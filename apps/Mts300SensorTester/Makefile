@@ -1,5 +1,5 @@
 COMPONENT=Mts300SensorTesterAppC
-PFLAGS = -I$(TOSDIR)/sensorboards/mts300
+PFLAGS = -I$(TOSDIR)/sensorboards/mts300 -I$(TOSDIR)/lib/MicReadStream
 CFLAGS += -DSAMP_TIME=1000
 
 BUILD_EXTRA_DEPS = DataMsg.java ControlMsg.java
