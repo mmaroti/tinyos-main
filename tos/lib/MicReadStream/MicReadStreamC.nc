@@ -47,3 +47,6 @@ implementation {
   AdcReadStreamClientC.Atm128AdcConfig -> MicDeviceP.Atm128AdcConfig;
   MicSetting = MicDeviceP;
 }
+
+
+
