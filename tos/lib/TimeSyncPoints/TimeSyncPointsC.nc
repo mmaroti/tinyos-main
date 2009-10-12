@@ -44,13 +44,14 @@ implementation
 	components TimeSyncMessageC;
   	components TimeSyncPointsP;
   	components new TimerMilliC() as Timer;
-  	
+/*  	
 #ifdef PLATFORM_IRIS
 	components ActiveMessageC;
 	TimeSyncPointsP.PacketTimeStampMilli -> ActiveMessageC.PacketTimeStampMilli;
 #else
 	TimeSyncPointsP.PacketTimeStampMilli -> TimeSyncMessageC.PacketTimeStampMilli;
-#endif 
+#endif
+*/ 	TimeSyncPointsP.PacketTimeStampMilli -> TimeSyncMessageC.PacketTimeStampMilli;
   	TimeSyncPointsP.TimeSyncReceive -> TimeSyncMessageC.Receive[AM_TIMESYNCPOINTS]; 
   	TimeSyncPointsP.TimeSyncPacketMilli -> TimeSyncMessageC.TimeSyncPacketMilli;
   	TimeSyncPointsP.TimeSyncAMSendMilli -> TimeSyncMessageC.TimeSyncAMSendMilli[AM_TIMESYNCPOINTS];

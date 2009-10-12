@@ -48,7 +48,7 @@ implementation {
 	App.Boot -> MainC;
 	App.Leds -> LedsC;
 	App.Timer -> TimerMilliC;
-	App.SpitControl -> ActiveMessageC;
+	App.SplitControl -> ActiveMessageC;
 	App.AMSend -> Sender.AMSend;
 	App.Packet -> Sender.Packet;
 	App.Receive -> Receiver.Receive;
