@@ -30,8 +30,17 @@
 *
 * Author: Zoltan Kincses
 */
+
 interface TimeSyncPoints {
   
-  event void syncPoint( uint32_t localTime, uint8_t nodeID, uint32_t remoteTime);
-
+	/**
+      * Signaled when a valid time synchronization message received
+      * 
+      * @param  localTime     the local time of the receiver mote 
+      * @param  nodeID        the node ID of the sender (remote) mote
+      * @param  remoteTime    the local time of the sender (remote) mote
+      */
+	event void syncPoint( uint32_t localTime, uint8_t nodeID, uint32_t remoteTime);
 }
+
+

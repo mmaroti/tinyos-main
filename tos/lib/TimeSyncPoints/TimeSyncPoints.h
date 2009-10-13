@@ -11,3 +11,4 @@ typedef struct timeSyncPointsMsg{
 }timeSyncPointsMsg_t; 
 
 #endif
+

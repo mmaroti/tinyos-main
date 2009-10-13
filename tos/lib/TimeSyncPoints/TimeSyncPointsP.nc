@@ -30,6 +30,7 @@
 *
 * Author: Zoltan Kincses
 */
+
 #include "TimeSyncPoints.h"
 
 module TimeSyncPointsP
@@ -59,82 +60,56 @@ implementation
 		STOPPING,
 		STARTED,
 	};
+
 	uint8_t state = STOPPED;
 	message_t syncMessage;
+	
 	command error_t SplitControl.start()
 	{
-		call AdjustRadio.start();
-		state = STARTING;
-		return SUCCESS;
+		error_t err = call AdjustRadio.start();
+		if(err == SUCCESS)
+		{
+			state = STARTING;
+		}
+		return err;
 	}
 	
 	command error_t SplitControl.stop()
 	{
-		call AdjustRadio.stop();
-		state = STOPPING;
-		return SUCCESS;
+		error_t err = call AdjustRadio.stop();
+		if(err == SUCCESS)
+		{
+			state = STOPPING;
+		}
+		return err;
 	}
 	
 	event void AdjustRadio.startDone(error_t err)
 	{
 		if (err==SUCCESS)
 		{
-			signal SplitControl.startDone(err);
-			{
-				if (state == STOPPING)
-				{
-					err=FAIL;
-				}
-				else if (state == STARTING)
-				{
-					err = SUCCESS;
-					state = STARTED;
-				}
-				else if (state == STARTED)
-				{
-					err = EALREADY;
-				}
-			}
-			if (state == STARTED)
-			{
-				call TimerMilli.startPeriodic(TIMESYNCPOINTS_PERIOD);
-			}
+			state = STARTED;
+			call TimerMilli.startPeriodic(TIMESYNCPOINTS_PERIOD);
 		}
 		else
 		{
-			call AdjustRadio.start();
+			state = STOPPED;
 		}
+		signal SplitControl.startDone(err);
 	}
 		
 	event void AdjustRadio.stopDone(error_t err)
 	{
 		if (err==SUCCESS)
 		{
-			signal SplitControl.stopDone(err);
-			{
-				if (state == STARTING)
-				{
-					err=FAIL;
-				}
-				else if (state == STOPPING)
-				{
-					err = SUCCESS;
-					state = STOPPED;
-				}
-				else if (state == STOPPED)
-				{
-					err=EALREADY;
-				}
-			}
-			if (state == STOPPED)
-			{
-				call TimerMilli.stop();
-			}
+			state = STOPPED;
+			call TimerMilli.stop();
 		}
 		else
 		{
-			call AdjustRadio.stop();
+			state = STARTED;
 		}
+		signal SplitControl.stopDone(err);
 	}
 	
 	event void TimerMilli.fired()
@@ -159,12 +134,8 @@ implementation
 				localTime=call PacketTimeStampMilli.timestamp(msg);
 				signal TimeSyncPoints.syncPoint(localTime,syncMsg->nodeID,localTime-(call TimeSyncPacketMilli.eventTime(msg)));
 			}
-			return msg;
 		}
-		else
-		{
-			return msg;
-		}
+		return msg;
 	}
 }
- 
+

@@ -30,6 +30,7 @@
 *
 * Author: Zoltan Kincses
 */
+
 #include "mts300.h"
 
 generic configuration MicReadStreamC(){
