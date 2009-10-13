@@ -30,6 +30,7 @@
 *
 * Author: Zoltan Kincses
 */
+
 #include "Packet.h"
 
 module RSSINodeC
@@ -77,7 +78,7 @@ implementation
 		uint8_t lqi=0;
 		int8_t rssi=0;
 		static uint8_t lqiMin=0xFF,lqiMax=0,lqiAbsDiff=0,lqiFirstVal=0,nodeID=0;
-		static int8_t rssiMin=0x7F,rssiMax=0,rssiAbsDiff=0,rssiFirstVal=0;
+		static int8_t rssiMin=127,rssiMax=-128,rssiAbsDiff=0,rssiFirstVal=0;
 		static uint32_t lqiAver=0,lqiEnergy=0,sampleCnt=0;
 		static int32_t rssiAver=0,rssiEnergy=0;
 
@@ -121,7 +122,7 @@ implementation
 			}
 			else if (ctrlpkt->instr == 'g' && ctrlpkt->nodeID==TOS_NODE_ID)
 			{
-				datapacket_t* datapkt = (datapacket_t*)(call Packet.getPayload(&datamsg, (int)NULL));
+				datapacket_t* datapkt = (datapacket_t*)(call Packet.getPayload(&datamsg, sizeof(datapacket_t)));
     				datapkt-> senderNodeID = nodeID;
 	    			datapkt-> receiverNodeID = TOS_NODE_ID;
     				datapkt-> sampleCnt = sampleCnt;
@@ -151,16 +152,8 @@ implementation
 	    			}
     				call Leds.led1Toggle();	
 			}
-			else
-			{
-				return controlmsg;
-			}
-			return controlmsg;
 		}
-		else
-		{
-			return controlmsg;
-		}
+		return controlmsg;
 	}
 
 	event void AMSend.sendDone(message_t* bufPtr, error_t error)
@@ -171,3 +164,4 @@ implementation
 		}
  	}
 }
+

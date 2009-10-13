@@ -30,6 +30,7 @@
 *
 * Author: Zoltan Kincses
 */
+
 #include "Packet.h"
 
 configuration RSSINodeAppC 
@@ -50,3 +51,4 @@ implementation {
 	App.Packet->CC2420ActiveMessageC.Packet;
 	App.CC2420Packet->CC2420ActiveMessageC.CC2420Packet;
 }
+

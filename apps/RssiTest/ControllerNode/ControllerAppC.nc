@@ -30,6 +30,7 @@
 *
 * Author: Zoltan Kincses
 */
+
 #include "Packet.h"
 
 configuration ControllerAppC 
@@ -53,3 +54,4 @@ implementation {
 	App.Packet -> Sender.Packet;
 	App.Receive -> Receiver.Receive;
 }
+

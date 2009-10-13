@@ -30,6 +30,7 @@
 *
 * Author: Zoltan Kincses
 */
+
 #include "Packet.h"
 
 module ControllerC
@@ -54,7 +55,7 @@ implementation
 	
 	inline void send_data()
 	{
-		controlpacket_t *strpkt = (controlpacket_t*)(call Packet.getPayload(&msg, (int)NULL));
+		controlpacket_t *strpkt = (controlpacket_t*)(call Packet.getPayload(&msg, sizeof(controlpacket_t)));
 		strpkt->nodeID=TOS_NODE_ID;
 		strpkt->instr='r';
 		call AMSend.send(AM_BROADCAST_ADDR, &msg, sizeof(controlpacket_t));
@@ -94,16 +95,8 @@ implementation
 				send_data();
 				call Timer.startOneShot(1000);
 			}
-			else
-			{
-				return ctrlmsg;
-			}
-			return ctrlmsg;
 		}
-		else
-		{
-			return ctrlmsg;
-		}	
+		return ctrlmsg;	
 			
     }
 
@@ -120,3 +113,4 @@ implementation
 	   }
     }
 }
+
