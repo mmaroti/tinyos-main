@@ -30,6 +30,7 @@
 *
 * Author: Zoltan Kincses
 */
+
 #include "TimeSyncUse.h"
 
 module TimeSyncUseC
@@ -110,4 +111,4 @@ implementation
 	{
 	}
 }
- 
+

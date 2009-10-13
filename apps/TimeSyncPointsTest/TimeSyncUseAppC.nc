@@ -30,6 +30,7 @@
 *
 * Author: Zoltan Kincses
 */
+
 #include "TimeSyncUse.h"
 
 
@@ -57,3 +58,4 @@ implementation
   	App.TimeSyncControl -> TimeSyncPointsC.SplitControl;  	
   	App.TimeSyncPoints -> TimeSyncPointsC.TimeSyncPoints;
 }
+
