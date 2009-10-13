@@ -30,6 +30,7 @@
 *
 * Author: Zoltan Kincses
 */
+
 #include "Mts300SensorMsg.h"
 
 configuration Mts300SensorTesterAppC 
@@ -60,3 +61,4 @@ implementation {
   App.VrefRead -> Sensor.Vref; 
   App.TempRead -> Sensor.Temp; 
 }
+

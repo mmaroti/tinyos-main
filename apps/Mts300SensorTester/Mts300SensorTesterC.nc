@@ -30,6 +30,7 @@
 *
 * Author: Zoltan Kincses
 */
+
 #include "Mts300SensorMsg.h"
 
 module Mts300SensorTesterC{
@@ -61,15 +62,15 @@ implementation
 	void send_data()
 	{
 		datamsg_t* packet = (datamsg_t*)(call DataPacket.getPayload(&msg, sizeof(datamsg_t)));
-    		packet-> nodeID = TOS_NODE_ID;
-	    	packet-> min = min;
-    		packet-> max = max;
-	    	packet-> average = aver;
+    	packet-> nodeID = TOS_NODE_ID;
+	    packet-> min = min;
+    	packet-> max = max;
+	    packet-> average = aver;
 		packet-> energy = energy;
 		packet-> sampleCnt = sampleCnt;
 		packet-> micSampPer = micSampPer;
 		packet-> micSampNum = micSampNum;
-    		call DataSend.send(0, &msg, sizeof(datamsg_t));
+    	call DataSend.send(0, &msg, sizeof(datamsg_t));
 	}
 	
 	inline void Calculate_data(uint16_t data,bool zeroLocals)
@@ -196,12 +197,8 @@ implementation
 					send_data();
 					break;
 			}
-			return bufPtr;
 		}
-		else
-		{
-			return bufPtr;
-		}
+		return bufPtr;
 	}	
 
 	event void TimerMilli.fired()
