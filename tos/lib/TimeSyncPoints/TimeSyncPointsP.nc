@@ -48,7 +48,7 @@ module TimeSyncPointsP
 		interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
 		interface TimeSyncAMSend<TMilli, uint32_t> as TimeSyncAMSendMilli;
 		interface Timer<TMilli> as TimerMilli;
-		interface SplitControl as AdjustRadio;		
+		interface SplitControl as AdjustRadio;
 	}
 }
 implementation
@@ -60,7 +60,6 @@ implementation
 		STOPPING,
 		STARTED,
 	};
-
 	uint8_t state = STOPPED;
 	message_t syncMessage;
 	
@@ -70,6 +69,19 @@ implementation
 		if(err == SUCCESS)
 		{
 			state = STARTING;
+		}
+		else if (err == EALREADY)
+		{
+			if (state == STOPPED || state == STOPPING || state == STARTING)
+			{
+				state = STARTED;
+				call TimerMilli.startPeriodic(TIMESYNCPOINTS_PERIOD);
+			}
+			signal SplitControl.startDone(SUCCESS);
+		}
+		else
+		{
+			signal SplitControl.startDone(FAIL);
 		}
 		return err;
 	}
@@ -81,6 +93,19 @@ implementation
 		{
 			state = STOPPING;
 		}
+		else if (err == EALREADY)
+		{
+			if(state == STARTED || state == STOPPING || state == STARTING)
+			{
+				state = STOPPED;
+				call TimerMilli.stop();
+			}
+			signal SplitControl.stopDone(SUCCESS);
+		}
+		else
+		{
+			signal SplitControl.stopDone(FAIL);
+		}
 		return err;
 	}
 	
@@ -91,10 +116,6 @@ implementation
 			state = STARTED;
 			call TimerMilli.startPeriodic(TIMESYNCPOINTS_PERIOD);
 		}
-		else
-		{
-			state = STOPPED;
-		}
 		signal SplitControl.startDone(err);
 	}
 		
@@ -104,10 +125,6 @@ implementation
 		{
 			state = STOPPED;
 			call TimerMilli.stop();
-		}
-		else
-		{
-			state = STARTED;
 		}
 		signal SplitControl.stopDone(err);
 	}
