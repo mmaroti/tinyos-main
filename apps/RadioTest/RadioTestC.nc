@@ -63,7 +63,7 @@ implementation {
   edge_t  edges[EDGE_COUNT];
 
   // bitmask that specifies on which edges we should send a message
-  // when a trigger timer is fired. Needed to setup based on edge
+  // when a trigger timer is fired. Must be initialized at Setup based on edge
   // descriptions.
   pending_t tTickSendMask;
 
@@ -71,87 +71,124 @@ implementation {
   uint8_t backlog[EDGE_COUNT];  
   pending_t pending;
 
-  /*task void processPending() {
+  task void sendPending() {
     static pending_t  pidx = 0x1;
-    static uint8_t    eidx = 0x1;
+    static uint8_t    eidx = 0x0;
 
-    if ( pending ) {
+    while ( state == STATE_RUNNING && pending ) {
       assert(pidx);
-      // process the pending job indexed by pidx
-      if ( !sendlock && SUCCESS == call AMSend.send( config.usebcast ? AM_BROADCAST_ADDR : (am_addr_t)(edges[eidx].receiver) , 
-                                        &pkt, 
-                                        sizeof(testmsg_t)) ) {
-        sendlock = TRUE;
-        if ( backlog
-        pending &= pidx; // CHECK BACKLOG!!
-      }
-      else {
-        
-      }
-      // move to the next pending job
-      eidx <<= 1;
-      if ( !(pidx <<= 1) )
-        pidx = eidx = 0x1;
-    }
-    post processPending();
-  }*/
+      // In case we need to send a message on the current edge
+      if ( pending & pidx ) {
 
-  /*task void doSetup() {
+        testmsg_t* msg = (testmsg_t*)(call Packet.getPayload(&pkt,sizeof(testmsg_t)));
+        msg->edgeid = eidx;
+        msg->msgid = edges[eidx].lastmsgid+1;
+  
+        if ( call AMSend.send( AM_BROADCAST_ADDR, &pkt, sizeof(testmsg_t)) == SUCCESS ) {
+          dbg("Debug","sendPending() Send SUCCESS\n");
+          ++(edges[eidx].stats.sendSuccessCount);
+
+          // Remove the pending bit if backlog is zero, or decrement the backlog
+          atomic {
+            if ( backlog[eidx] > 0 )
+              --backlog[eidx];
+            else
+              pending &= (!pidx);
+          }
+
+        } else {
+          dbg("Debug","sendPending() Send FAIL\n");
+          ++(edges[eidx].stats.sendFailCount);
+        }
+      }
+      // Move to the next edge
+      pidx <<= 1;
+      ++eidx;
+      if ( pidx == 0x0 ) {
+        pidx = 0x1;
+        eidx = 0x0;
+      }
+    }
+  }
+
+  task void doSetup() {
     uint8_t i = 0, k = 1;
 
     // Setup config variable
     config.runtime_msec = 1000;
-    config.usebcast = FALSE;
+    config.usebcast = TRUE;
     config.flags = 0;
-
-
-    // Setup the graph
-    edges[0].sender = 1;
-    edges[0].receiver = 2;
-    edges[0].flags = SEND_ON_INIT | SEND_ON_RECV;
-    edges[0].msgsize = 30;
-
-    edges[1].sender = 2;
-    edges[1].receiver = 1;
-    edges[1].flags = SEND_ON_RECV;
-    edges[1].msgsize = 30;
-
-    // Setup the pending bits
-    // We can have different outgoing edges with different flags
-    for ( i = 0; i < EDGE_COUNT; ++i, k <<= 1 )
-    {
-      if( edges[i].sender == TOS_NODE_ID )
-        pending |= k;
-    }
-    dbg("Pending","%d's initial pending : %d\n",TOS_NODE_ID,pending);
+    config.sendtrig_msec = 100;
 
     // Needed for TOSSIM simulation
     call AMPacket.setSource(&pkt,TOS_NODE_ID);
 
+    // Setup the graph
+    edges[0].sender = 1;
+    edges[0].receiver = 2;
+    edges[0].flags = SEND_ON_INIT | SEND_ON_SDONE;
+
+    edges[1].sender = 2;
+    edges[1].receiver = 1;
+    edges[1].flags = SEND_ON_INIT | SEND_ON_SDONE;
+
+   
+    // Setup the pending bits
+    // We can have different outgoing edges with different flags
+    for ( i = 0; i < EDGE_COUNT; ++i, k <<= 1 )
+    {
+      if( edges[i].sender != TOS_NODE_ID )
+        continue;
+
+      // Set the pending bits if we need to send at start        
+      if ( edges[i].flags & SEND_ON_INIT )
+        pending |= k;
+
+      // Set the tTickSendMask if we need to send on timer tick
+      if ( edges[i].flags & SEND_ON_TTICK )
+        tTickSendMask |= k;
+    }
+
+    dbg("Debug","%d's initial pending : ",TOS_NODE_ID); dbgbin(pending);
+    dbg("Debug","%d's initial tTickSendMask : ",TOS_NODE_ID); dbgbin(tTickSendMask);
+
+    if ( config.sendtrig_msec > 0 && tTickSendMask > 0 )
+      call TriggerTimer.startPeriodic(config.sendtrig_msec);
+
     // Now we are running
     state = STATE_RUNNING;
     call Timer.startOneShot(config.runtime_msec);
-    post processPending();
-  }*/
+ //   dbg("Debug","Started\n");
+    post sendPending();
+  }
  
   void setPendingOrBacklog(pending_t sbitmask) {
     uint8_t i = 0;    
-
-    // Check which edges need to be backlogged
     pending_t blogd;
-    blogd = pending & sbitmask;
 
-    // Other edges are cleared to set the pending bit
-    pending |= (pending ^ sbitmask);
+    dbg("Debug","setPendingOrBacklog() : "); dbgbin(sbitmask);
+
+    // The following is in atomic to prevent race conditions
+    atomic {
+      // Check which edges need to be backlogged
+      blogd = pending & sbitmask;
+
+      // Other edges are cleared to set the pending bit
+      pending |= (pending ^ sbitmask);
+    }
 
     // Backlog the previously selected edges
     while ( blogd ) {
       if ( blogd & 0x1 )
-        ++backlog[i];
+        ++(backlog[i]);
       ++i;
       blogd >>=1;
     }
+    dbg("Debug","setPendingOrBacklog() pending: "); dbgbin(pending);
+    post sendPending();
   }
+
+
 
   event void Boot.booted() {
     call AMControl.start();
@@ -159,8 +196,7 @@ implementation {
 
   event void AMControl.startDone(error_t err) {
     if (err == SUCCESS)
-      ;
-      //post doSetup();
+      post doSetup();
     else
       call AMControl.start();
   }
@@ -174,16 +210,21 @@ implementation {
 
   event void TriggerTimer.fired() {
     // Check whether we have to send message on timer tick
-    if ( state == STATE_RUNNING )
+    if ( state == STATE_RUNNING ) {
+        dbg("Debug","TriggerTimer fired --> ");
         setPendingOrBacklog( tTickSendMask );
+    }
   }
 
   event message_t* Receive.receive(message_t* bufPtr, void* payload, uint8_t len) {
+
     testmsg_t* msg = (testmsg_t*)payload;
 
     // In case the message is sent to this mote
     if ( state == STATE_RUNNING && edges[msg->edgeid].receiver == TOS_NODE_ID ) {
 
+      dbg("Debug","Message received.\n");
+      
       // If we got a message with a lower id than expected -> duplicate
       if ( msg->msgid <= edges[msg->edgeid].lastmsgid )
         ++(edges[msg->edgeid].stats.duplicateReceiveCount);
@@ -207,20 +248,22 @@ implementation {
   }
 
   event void AMSend.sendDone(message_t* bufPtr, error_t error) {
-    testmsg_t* msg = (testmsg_t*)(call Packet.getPayload(bufPtr,sizeof(testmsg_t)));
 
+    testmsg_t* msg = (testmsg_t*)(call Packet.getPayload(bufPtr,sizeof(testmsg_t)));
     if ( state != STATE_RUNNING )
       return;
 
     // In case of successfull send
     if ( error == SUCCESS ) {
-      ++(edges[msg->edgeid].stats.sendSuccessCount);
+      ++(edges[msg->edgeid].stats.sendDoneSuccessCount);
 
-      // If message is ACKed, update the stats and increment the message counter
-      if ( call PAck.wasAcked(bufPtr) ) {
+      // If message is ACKed, or we don't need ACK, update the stats and increment the message counter
+      if ( call PAck.wasAcked(bufPtr) || !( config.flags & USE_ACK ) ) {
+        dbg("Debug","Message sent successfully!\n");
+
         ++(edges[msg->edgeid].stats.wasAckedCount);
         ++(edges[msg->edgeid].lastmsgid); 
-
+        
         // Check whether we have to send message on sendDone
         if ( edges[msg->edgeid].flags & SEND_ON_SDONE )
           setPendingOrBacklog( pow(2,msg->edgeid) );
@@ -230,6 +273,7 @@ implementation {
         // Resend is done by setting a new pending "job", and not incrementing the message counter.
         // This way the next sent message's id remains the actual one, so the next sent message is a resent one.
         // That also allows the receive end to check only the messageid, and no need to maintain an array.
+        dbg("Debug","Message sent is not ACKed!\n");
 
         setPendingOrBacklog( pow(2,msg->edgeid) );
         ++(edges[msg->edgeid].stats.resendCount);
@@ -237,7 +281,8 @@ implementation {
 
     // In case of unsuccessfull send
     } else {
-      ++(edges[msg->edgeid].stats.sendFailCount);
+      dbg("Debug","Message sent UNsuccessfully!\n");
+      ++(edges[msg->edgeid].stats.sendDoneFailCount);
     }
   }
 }
