@@ -34,13 +34,14 @@
 interface TimeSyncPoints {
   
 	/**
-      * Signaled when a valid time synchronization message received
-      * 
-      * @param  localTime     the local time of the receiver mote 
-      * @param  nodeID        the node ID of the sender (remote) mote
-      * @param  remoteTime    the local time of the sender (remote) mote
-      */
-	event void syncPoint( uint32_t localTime, uint8_t nodeID, uint32_t remoteTime);
+	 * Signaled when a time synchronization point has been established
+	 * between two nodes (usually when a synchronization message has been 
+	 * received). The reported local times correspond to a the same real 
+	 * world event (usually to the time when the message has been sent).
+	 * 
+	 * @param  localTime     the local time on this mote 
+	 * @param  nodeID        the node ID of the remote mote
+	 * @param  remoteTime    the local time on the remote mote
+	 */
+	event void syncPoint(uint32_t localTime, uint8_t nodeID, uint32_t remoteTime);
 }
-
-
