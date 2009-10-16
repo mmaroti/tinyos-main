@@ -41,6 +41,7 @@ implementation {
   components MainC, RadioTestC as App;
 
   components new TimerMilliC() as Timer;
+  components new TimerMilliC() as TTimer;
   components new AMSenderC(AM_RTEST);
   components new AMReceiverC(AM_RTEST);
   components ActiveMessageC;
@@ -57,7 +58,7 @@ implementation {
   App.AMControl -> ActiveMessageC;
 
   App.Timer -> Timer;
-
+  App.TriggerTimer -> TTimer;
 }
 
 
