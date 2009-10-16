@@ -41,18 +41,40 @@
 #if EDGE_COUNT <= 8
   typedef nx_uint8_t nx_pending_t;
   typedef uint8_t pending_t;
+  #define BITSIZE 8
 #elif EDGE_COUNT <= 16
   typedef nx_uint16_t nx_pending_t;
   typedef uint16_t pending_t;
+  #define BITSIZE 16
 #elif EDGE_COUNT <= 32
   typedef nx_uint32_t nx_pending_t;
   typedef uint32_t pending_t;
+  #define BITSIZE 32
 #elif EDGE_COUNT <= 64
   typedef nx_uint64_t nx_pending_t;
   typedef uint64_t pending_t;
+  #define BITSIZE 64
 #else
   #error "EDGE_COUNT is set too high! The current limit is 64!"
 #endif
+
+
+#ifdef BITSIZE
+void dbgbin(pending_t data)
+{
+  pending_t bit = 1 << (BITSIZE-1);
+  char c[BITSIZE+1];
+  uint8_t i = 0;
+  while( bit ) {
+    c[i++] = ( data & bit ) ? '1' : '0';
+    bit >>= 1;
+  }
+  c[BITSIZE] = '\0';
+  dbg("Debug","%s\n",c);
+}
+#endif
+
+
 
 // Flags
 enum {
@@ -64,8 +86,8 @@ enum {
   SEND_ON_INIT = 0x01,
   SEND_ON_SDONE = 0x02,
   SEND_ON_TTICK = 0x04,
-  PONG_ON_PING = 0x08,
-  TICK_ON_INIT = 0x16
+  PONG_ON_PING = 0x08
+
 };
 
 enum {
@@ -82,6 +104,7 @@ enum {
 // Setup type
 typedef nx_struct setup_t {
   nx_uint32_t runtime_msec;   // How long should we run the test?
+  nx_uint32_t sendtrig_msec;  // How often we should send a message when sending on timer ticks ?
   nx_uint8_t  usebcast;       // Should we use broadcasting ?
   nx_uint8_t  flags;          // Global flags ( such as ACK, LPL, ... )
 } setup_t;
@@ -93,6 +116,8 @@ typedef nx_uint16_t stat_base_t;
 typedef nx_struct stat_t {
   stat_base_t sendSuccessCount;
   stat_base_t sendFailCount;
+  stat_base_t sendDoneSuccessCount;
+  stat_base_t sendDoneFailCount;
   stat_base_t wasAckedCount;
   stat_base_t resendCount;
   stat_base_t alreadyPendingCount;
@@ -108,7 +133,6 @@ typedef nx_struct edge_t {
   nx_uint8_t    flags;        // Sending policies
   nx_pending_t  pongs;        // In ping-pong policy the edge bitmask on which we should reply on receive
   nx_uint32_t   lastmsgid;    // The last message id sent ( on send side ) / received ( on receive side )
-  nx_uint8_t    timer_msec;   // Timer frequency for sending timer
   nx_uint8_t    msgsize;      // The message size we want to set on this edge
   stat_t        stats;        // The statistics collected on this particular edge
 } edge_t;
