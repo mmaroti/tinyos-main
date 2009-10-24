@@ -35,7 +35,6 @@
 
 module TimeSyncPointsP
 {
-	
 	provides
 	{
 		interface TimeSyncPoints;
@@ -48,11 +47,11 @@ module TimeSyncPointsP
 		interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
 		interface TimeSyncAMSend<TMilli, uint32_t> as TimeSyncAMSendMilli;
 		interface Timer<TMilli> as TimerMilli;
-		interface SplitControl as AdjustRadio;
 	}
 }
 implementation
 {
+
 	enum
 	{
 		STOPPED=0,
@@ -60,75 +59,68 @@ implementation
 		STOPPING,
 		STARTED,
 	};
+
 	uint8_t state = STOPPED;
 	message_t syncMessage;
+
+	task void startTimeSyncPoints()
+	{
+		state = STARTED;
+		call TimerMilli.startPeriodic(TIMESYNCPOINTS_PERIOD);
+		signal SplitControl.startDone(SUCCESS);
+	}
+	
+	task void stopTimeSyncPoints()
+	{
+		state = STOPPED;
+		call TimerMilli.stop();
+		signal SplitControl.stopDone(SUCCESS);
+	}
 	
 	command error_t SplitControl.start()
 	{
-		error_t err = call AdjustRadio.start();
-		if(err == SUCCESS)
+		if(state == STARTED)
 		{
-			state = STARTING;
+			return EALREADY;
 		}
-		else if (err == EALREADY)
+		else if (state == STARTING)
 		{
-			if (state == STOPPED || state == STOPPING || state == STARTING)
-			{
-				state = STARTED;
-				call TimerMilli.startPeriodic(TIMESYNCPOINTS_PERIOD);
-			}
-			signal SplitControl.startDone(SUCCESS);
+			return SUCCESS;
+		}
+		else if (state == STOPPING)
+		{
+			return EBUSY;
 		}
 		else
 		{
-			signal SplitControl.startDone(FAIL);
+			state = STARTING;
+			post startTimeSyncPoints();
+			return SUCCESS;
 		}
-		return err;
 	}
 	
 	command error_t SplitControl.stop()
 	{
-		error_t err = call AdjustRadio.stop();
-		if(err == SUCCESS)
+		if (state == STOPPED)
 		{
-			state = STOPPING;
+			return EALREADY;
 		}
-		else if (err == EALREADY)
+		else if (state == STOPPING)
 		{
-			if(state == STARTED || state == STOPPING || state == STARTING)
-			{
-				state = STOPPED;
-				call TimerMilli.stop();
-			}
-			signal SplitControl.stopDone(SUCCESS);
+			return SUCCESS;
+		}
+		else if (state == STARTING)
+		{
+			return EBUSY;
 		}
 		else
 		{
-			signal SplitControl.stopDone(FAIL);
+			state = STOPPING;
+			post stopTimeSyncPoints();
+			return SUCCESS;
 		}
-		return err;
 	}
-	
-	event void AdjustRadio.startDone(error_t err)
-	{
-		if (err==SUCCESS)
-		{
-			state = STARTED;
-			call TimerMilli.startPeriodic(TIMESYNCPOINTS_PERIOD);
-		}
-		signal SplitControl.startDone(err);
-	}
-		
-	event void AdjustRadio.stopDone(error_t err)
-	{
-		if (err==SUCCESS)
-		{
-			state = STOPPED;
-			call TimerMilli.stop();
-		}
-		signal SplitControl.stopDone(err);
-	}
-	
+
 	event void TimerMilli.fired()
 	{
 		timeSyncPointsMsg_t* packet = (timeSyncPointsMsg_t*)(call TimeSyncAMSendMilli.getPayload(&syncMessage, sizeof(timeSyncPointsMsg_t)));

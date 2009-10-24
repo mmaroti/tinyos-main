@@ -34,6 +34,7 @@
 import static java.lang.System.out;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.lang.Math;
 import net.tinyos.message.*;
 import net.tinyos.util.*;
 
@@ -48,18 +49,25 @@ class TimeSync implements MessageListener{
 	}
 	public void messageReceived(int dest_addr,Message msg)
 	{
+		long timeDiff = 0;
+		
 		if(msg instanceof TimeMsg)
 		{
 			TimeMsg timemsg=(TimeMsg)msg;
-			out.print(timemsg.get_remNodeID());
-			out.print("\t" + (timemsg.get_remTime()));
-			out.print("\t" + timemsg.get_locNodeID());
-			out.println("\t " + timemsg.get_locTime());
+			if (timemsg.get_locNodeID()>timemsg.get_remNodeID())
+			{
+				timeDiff=timemsg.get_locTime()-timemsg.get_remTime();
+			}
+			else
+			{
+				timeDiff=timemsg.get_remTime()-timemsg.get_locTime();
+			}
+			out.printf("%-15d %-15d %-15d %-15d %-15d%n",timemsg.get_remNodeID(),timemsg.get_remTime(),timemsg.get_locNodeID(),timemsg.get_locTime(),timeDiff);	
 		}
 	}
 	public static void main (String[] args)
 	{
 		TimeSync timesync= new TimeSync();
-		out.println("RID\tRemTime\tLID\tLocTime");
+		out.printf("%-15s %-15s %-15s %-15s %-15s%n","RemoteID","RemoteTime","LocalID","LocalTime","TimeDiff");
 	}	
 }

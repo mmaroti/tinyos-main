@@ -39,6 +39,7 @@ module TimeSyncUseC
 	uses interface Leds;
 	uses interface Timer<TMilli>as TimerMilli;
 	uses interface SplitControl as TimeSyncControl;
+	uses interface SplitControl as StartRadio;
 	uses interface Random;
 	uses interface Init;
 	uses interface Packet; 
@@ -54,7 +55,7 @@ implementation
 	
 	event void Boot.booted()
 	{
-		call TimeSyncControl.start();
+		call StartRadio.start();
 		call Init.init();
 		nodeId =0;
 		remoteTime=0;
@@ -62,19 +63,29 @@ implementation
 		startSend=FALSE;
 	}
 	
-	event void TimeSyncControl.startDone(error_t err)
+	event void StartRadio.startDone(error_t err)
 	{
 		if (err == SUCCESS)
 		{
-			//nothing to do
+			call TimeSyncControl.start();
 		}
 		else
 		{
-			call TimeSyncControl.start();
+			call StartRadio.start();
 		}
 	}
 	
+	event void TimeSyncControl.startDone(error_t err)
+	{
+		//nothing to do
+	}
+	
 	event void TimeSyncControl.stopDone(error_t err)
+	{
+		//nothing to do
+	}
+	
+	event void StartRadio.stopDone(error_t err)
 	{
 		//nothing to do
 	}
@@ -90,7 +101,7 @@ implementation
 			localTime=locTime;
 			waitTime=call Random.rand16();
 			call TimerMilli.startOneShot(waitTime);
-			call Leds.led0Toggle();
+			
 		}
 	}
 	

@@ -38,7 +38,6 @@ configuration TimeSyncPointsC
 {
 	provides interface TimeSyncPoints;
 	provides interface SplitControl;
-	
 }
 implementation
 {
@@ -50,7 +49,6 @@ implementation
   	TimeSyncPointsP.TimeSyncReceive -> TimeSyncMessageC.Receive[AM_TIMESYNCPOINTS]; 
   	TimeSyncPointsP.TimeSyncPacketMilli -> TimeSyncMessageC.TimeSyncPacketMilli;
   	TimeSyncPointsP.TimeSyncAMSendMilli -> TimeSyncMessageC.TimeSyncAMSendMilli[AM_TIMESYNCPOINTS];
-  	TimeSyncPointsP.AdjustRadio -> TimeSyncMessageC.SplitControl;
   	TimeSyncPointsP.TimerMilli -> Timer;
   	TimeSyncPoints=TimeSyncPointsP;
   	SplitControl=TimeSyncPointsP;

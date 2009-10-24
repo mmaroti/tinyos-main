@@ -42,20 +42,20 @@ implementation
 {
   	components TimeSyncUseC as App;
   	components MainC;
-  	components LedsC;
 	components RandomLfsrC;
 	components new TimerMilliC() as TimerMilli;
 	components new AMSenderC(AM_TIMEMSG) as TimeDataSender;
 	components TimeSyncPointsC;
+	components ActiveMessageC;
 	
 	App.Boot -> MainC;
-  	App.Leds -> LedsC;
   	App.TimerMilli -> TimerMilli;
   	App.AMSend -> TimeDataSender;
   	App.Packet -> TimeDataSender;
   	App.Random -> RandomLfsrC;
   	App.Init -> RandomLfsrC;
-  	App.TimeSyncControl -> TimeSyncPointsC.SplitControl;  	
+  	App.TimeSyncControl -> TimeSyncPointsC.SplitControl;
   	App.TimeSyncPoints -> TimeSyncPointsC.TimeSyncPoints;
+  	App.StartRadio -> ActiveMessageC.SplitControl;
 }
 
