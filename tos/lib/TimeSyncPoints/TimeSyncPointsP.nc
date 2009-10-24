@@ -38,7 +38,7 @@ module TimeSyncPointsP
 	provides
 	{
 		interface TimeSyncPoints;
-		interface SplitControl;
+		interface StdControl;
 	}
 	uses
 	{	
@@ -51,74 +51,34 @@ module TimeSyncPointsP
 }
 implementation
 {
-
+	
 	enum
 	{
 		STOPPED=0,
-		STARTING,
-		STOPPING,
 		STARTED,
 	};
 
 	uint8_t state = STOPPED;
 	message_t syncMessage;
-
-	task void startTimeSyncPoints()
+	
+	command error_t StdControl.start()
 	{
-		state = STARTED;
-		call TimerMilli.startPeriodic(TIMESYNCPOINTS_PERIOD);
-		signal SplitControl.startDone(SUCCESS);
+		if(state == STOPPED)
+		{
+			state = STARTED;
+			call TimerMilli.startPeriodic(TIMESYNCPOINTS_PERIOD);
+		}
+		return SUCCESS;
 	}
 	
-	task void stopTimeSyncPoints()
+	command error_t StdControl.stop()
 	{
-		state = STOPPED;
-		call TimerMilli.stop();
-		signal SplitControl.stopDone(SUCCESS);
-	}
-	
-	command error_t SplitControl.start()
-	{
-		if(state == STARTED)
+		if (state == STARTED)
 		{
-			return EALREADY;
+			state = STOPPED;
+			call TimerMilli.stop();
 		}
-		else if (state == STARTING)
-		{
-			return SUCCESS;
-		}
-		else if (state == STOPPING)
-		{
-			return EBUSY;
-		}
-		else
-		{
-			state = STARTING;
-			post startTimeSyncPoints();
-			return SUCCESS;
-		}
-	}
-	
-	command error_t SplitControl.stop()
-	{
-		if (state == STOPPED)
-		{
-			return EALREADY;
-		}
-		else if (state == STOPPING)
-		{
-			return SUCCESS;
-		}
-		else if (state == STARTING)
-		{
-			return EBUSY;
-		}
-		else
-		{
-			state = STOPPING;
-			post stopTimeSyncPoints();
-			return SUCCESS;
-		}
+		return SUCCESS;
 	}
 
 	event void TimerMilli.fired()

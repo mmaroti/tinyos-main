@@ -37,7 +37,7 @@
 configuration TimeSyncPointsC
 {
 	provides interface TimeSyncPoints;
-	provides interface SplitControl;
+	provides interface StdControl;
 }
 implementation
 {
@@ -51,6 +51,6 @@ implementation
   	TimeSyncPointsP.TimeSyncAMSendMilli -> TimeSyncMessageC.TimeSyncAMSendMilli[AM_TIMESYNCPOINTS];
   	TimeSyncPointsP.TimerMilli -> Timer;
   	TimeSyncPoints=TimeSyncPointsP;
-  	SplitControl=TimeSyncPointsP;
+  	StdControl=TimeSyncPointsP;
 }
 

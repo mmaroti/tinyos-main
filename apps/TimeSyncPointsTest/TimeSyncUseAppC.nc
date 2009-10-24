@@ -54,7 +54,7 @@ implementation
   	App.Packet -> TimeDataSender;
   	App.Random -> RandomLfsrC;
   	App.Init -> RandomLfsrC;
-  	App.TimeSyncControl -> TimeSyncPointsC.SplitControl;
+  	App.TimeSyncControl -> TimeSyncPointsC.StdControl;
   	App.TimeSyncPoints -> TimeSyncPointsC.TimeSyncPoints;
   	App.StartRadio -> ActiveMessageC.SplitControl;
 }
