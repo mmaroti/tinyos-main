@@ -37,7 +37,9 @@
 #define RADIO_TEST_CASES_H
 
 #include "RadioTest.h"
+
 #define RT_PROBLEM_NEXT },{
+#define RT_NULL_EDGE {MAX_EDGE_COUNT+1,MAX_EDGE_COUNT+1,0,0,0,0}
 
 // Sending flags
 enum {
@@ -47,27 +49,29 @@ enum {
   SEND_ON_TTICK = 0x04
 };
 
-edge_t problemSet[][MAX_EDGE_COUNT] = { {
+edge_t problemSet[][MAX_EDGE_COUNT+1] = { {
 
 /** TRIGGER PROBLEMS -------------------------------------- */
 
-/* 1. 
+/* 0. 
 * Type          : Send from TriggerTimer
 * Mote Count    : 2
 * Sending Motes : 1->2
 */
-  {1, 2, SEND_ON_TTICK, 0, 0, 0}
+  {1, 2, SEND_ON_TTICK, 0, 0, 0},
+  RT_NULL_EDGE
 
-/* 2.
+/* 1.
 * Type          : Send from TriggerTimer
 * Mote Count    : 2
 * Sending Motes : 1->2,2->1
 */
 RT_PROBLEM_NEXT
   {1, 2, SEND_ON_TTICK, 0, 0, 0},
-  {2, 1, SEND_ON_TTICK, 0, 0, 0}
+  {2, 1, SEND_ON_TTICK, 0, 0, 0},
+  RT_NULL_EDGE
 
-/* 3.
+/* 2.
 * Type          : Send from TriggerTimer
 * Mote Count    : 3
 * Sending Motes : 1->2,2->3,3->1
@@ -76,9 +80,10 @@ RT_PROBLEM_NEXT
 RT_PROBLEM_NEXT
   {1, 2, SEND_ON_TTICK, 0, 0, 0},
   {2, 3, SEND_ON_TTICK, 0, 0, 0},
-  {3, 1, SEND_ON_TTICK, 0, 0, 0}
+  {3, 1, SEND_ON_TTICK, 0, 0, 0},
+  RT_NULL_EDGE
 
-/* 4.
+/* 3.
 * Type          : Send from TriggerTimer
 * Mote Count    : 3
 * Sending Motes : 1->2,1->3,2->1,2->3,3->1,3->2
@@ -90,29 +95,31 @@ RT_PROBLEM_NEXT
   {2, 1, SEND_ON_TTICK, 0, 0, 0},
   {2, 3, SEND_ON_TTICK, 0, 0, 0},
   {3, 1, SEND_ON_TTICK, 0, 0, 0},
-  {3, 2, SEND_ON_TTICK, 0, 0, 0}
-
+  {3, 2, SEND_ON_TTICK, 0, 0, 0},
+  RT_NULL_EDGE
 
 /** MAXIMAL THROUGHPUT PROBLEMS -------------------------------------- */
 
-/* 5. 
+/* 4. 
 * Type          : Send from sendDone
 * Mote Count    : 2
 * Sending Motes : 1->2
 */
 RT_PROBLEM_NEXT
   {1, 2, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
+  RT_NULL_EDGE
 
-/* 6.
+/* 5.
 * Type          : Send from sendDone
 * Mote Count    : 2
 * Sending Motes : 1->2,2->1
 */
 RT_PROBLEM_NEXT
   {1, 2, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
-  {2, 1, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0}
+  {2, 1, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
+  RT_NULL_EDGE
 
-/* 7.
+/* 6.
 * Type          : Send from sendDone
 * Mote Count    : 3
 * Sending Motes : 1->2,2->3,3->1
@@ -120,9 +127,10 @@ RT_PROBLEM_NEXT
 RT_PROBLEM_NEXT
   {1, 2, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
   {2, 3, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
-  {3, 1, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0}
+  {3, 1, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
+  RT_NULL_EDGE
 
-/* 8.
+/* 7.
 * Type          : Send from sendDone
 * Mote Count    : 3
 * Sending Motes : 1->2,1->3,2->1,2->3,3->1,3->2
@@ -133,8 +141,8 @@ RT_PROBLEM_NEXT
   {2, 1, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
   {2, 3, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
   {3, 1, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
-  {3, 2, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0}
-
+  {3, 2, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
+  RT_NULL_EDGE
 
 /** PING-PONG PROBLEMS -------------------------------------- */
 /* Note :
@@ -152,7 +160,7 @@ RT_PROBLEM_NEXT
 */
 
 
-/* 9. 
+/* 8. 
 * Type          : Send from Receive.receive
 * Mote Count    : 2
 * Sending Motes : 1->2,2->1
@@ -160,10 +168,10 @@ RT_PROBLEM_NEXT
 */
 RT_PROBLEM_NEXT
   {1, 2, SEND_ON_INIT , 0x2, 0, 0},
-  {2, 1, SEND_OFF     , 0x1, 0, 0}
+  {2, 1, SEND_OFF     , 0x1, 0, 0},
+  RT_NULL_EDGE
 
-
-/* 10. 
+/* 9. 
 * Type          : Send from Receive.receive
 * Mote Count    : 3
 * Sending Motes : 1->2,2->3,3->1
@@ -174,10 +182,10 @@ RT_PROBLEM_NEXT
 RT_PROBLEM_NEXT
   {1, 2, SEND_ON_INIT , 0x2, 0, 0},
   {2, 3, SEND_OFF     , 0x4, 0, 0},
-  {3, 1, SEND_OFF     , 0x1, 0, 0}
+  {3, 1, SEND_OFF     , 0x1, 0, 0},
+  RT_NULL_EDGE
 
-
-/* 11. 
+/* 10. 
 * Type          : Send from Receive.receive
 * Mote Count    : 3
 * Sending Motes : 1->2,1->3,2->1,2->3,3->1,3->2
@@ -189,8 +197,8 @@ RT_PROBLEM_NEXT
   {3, 1, SEND_ON_INIT , 0x8 , 0, 0},
   {1, 3, SEND_OFF     , 0x4 , 0, 0},
   {2, 1, SEND_OFF     , 0x1 , 0, 0},
-  {3, 2, SEND_OFF     , 0x2 , 0, 0}
-
+  {3, 2, SEND_OFF     , 0x2 , 0, 0},
+  RT_NULL_EDGE
 
 }}; // ProblemSet END
 
