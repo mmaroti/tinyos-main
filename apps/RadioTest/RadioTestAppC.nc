@@ -33,7 +33,7 @@
 *         veresskrisztian@gmail.com
 */
 
-#include "RadioTest.h"
+enum { AM_RTEST = 101 };
 
 configuration RadioTestAppC {}
 
