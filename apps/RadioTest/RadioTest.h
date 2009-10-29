@@ -88,6 +88,12 @@ enum {
   STATE_DPROVIDE
 };
 
+// Configuration flags
+enum {
+  USE_ACK = 0x01,
+  USE_LPL = 0x02
+};
+
 // Setup type
 typedef nx_struct setup_t {
   nx_uint32_t runtime_msec;   // How long should we run the test?

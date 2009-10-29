@@ -37,31 +37,35 @@
 #define RADIO_TEST_CASES_H
 
 #include "RadioTest.h"
+#define RT_PROBLEM_NEXT },{
 
 // Sending flags
 enum {
+  SEND_OFF  = 0x0,
   SEND_ON_INIT = 0x01,
   SEND_ON_SDONE = 0x02,
   SEND_ON_TTICK = 0x04
 };
 
-enum {
-  USE_ACK = 0x01,
-  USE_LPL = 0x02
-};
+edge_t problemSet[][MAX_EDGE_COUNT] = { {
+
+/** TRIGGER PROBLEMS -------------------------------------- */
 
 /* 1. 
 * Type          : Send from TriggerTimer
 * Mote Count    : 2
 * Sending Motes : 1->2
 */
+  {1, 2, SEND_ON_TTICK, 0, 0, 0}
 
 /* 2.
 * Type          : Send from TriggerTimer
 * Mote Count    : 2
 * Sending Motes : 1->2,2->1
-*
 */
+RT_PROBLEM_NEXT
+  {1, 2, SEND_ON_TTICK, 0, 0, 0},
+  {2, 1, SEND_ON_TTICK, 0, 0, 0}
 
 /* 3.
 * Type          : Send from TriggerTimer
@@ -69,18 +73,125 @@ enum {
 * Sending Motes : 1->2,2->3,3->1
 *
 */
+RT_PROBLEM_NEXT
+  {1, 2, SEND_ON_TTICK, 0, 0, 0},
+  {2, 3, SEND_ON_TTICK, 0, 0, 0},
+  {3, 1, SEND_ON_TTICK, 0, 0, 0}
 
-/* 3.
+/* 4.
 * Type          : Send from TriggerTimer
 * Mote Count    : 3
-* Sending Motes : 1->2,1->3,2->
+* Sending Motes : 1->2,1->3,2->1,2->3,3->1,3->2
 *
 */
-/* 2.
+RT_PROBLEM_NEXT
+  {1, 2, SEND_ON_TTICK, 0, 0, 0},
+  {1, 3, SEND_ON_TTICK, 0, 0, 0},
+  {2, 1, SEND_ON_TTICK, 0, 0, 0},
+  {2, 3, SEND_ON_TTICK, 0, 0, 0},
+  {3, 1, SEND_ON_TTICK, 0, 0, 0},
+  {3, 2, SEND_ON_TTICK, 0, 0, 0}
+
+
+/** MAXIMAL THROUGHPUT PROBLEMS -------------------------------------- */
+
+/* 5. 
 * Type          : Send from sendDone
 * Mote Count    : 2
-* Sending Motes : 1
-*
+* Sending Motes : 1->2
 */
+RT_PROBLEM_NEXT
+  {1, 2, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
+
+/* 6.
+* Type          : Send from sendDone
+* Mote Count    : 2
+* Sending Motes : 1->2,2->1
+*/
+RT_PROBLEM_NEXT
+  {1, 2, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
+  {2, 1, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0}
+
+/* 7.
+* Type          : Send from sendDone
+* Mote Count    : 3
+* Sending Motes : 1->2,2->3,3->1
+*/
+RT_PROBLEM_NEXT
+  {1, 2, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
+  {2, 3, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
+  {3, 1, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0}
+
+/* 8.
+* Type          : Send from sendDone
+* Mote Count    : 3
+* Sending Motes : 1->2,1->3,2->1,2->3,3->1,3->2
+*/
+RT_PROBLEM_NEXT
+  {1, 2, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
+  {1, 3, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
+  {2, 1, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
+  {2, 3, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
+  {3, 1, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
+  {3, 2, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0}
+
+
+/** PING-PONG PROBLEMS -------------------------------------- */
+/* Note :
+  The 'pongs' flag of an edge say e1 defines the edgeset E on which 
+  we should send message upon receiving on e1.
+  The E set must conform to the edge descriptions. A zeroed 'pongs' is
+  considered as 'do Nothing'. The high bits of pongs are parsed and E 
+  is set accordingly. If the ith bit is high, E must contain the (i-1)th
+  edge.
+
+  If pongs = 0x1, than E = { 0 }
+     pongs = 0x17 than E = { 0, 4 }
+     pongs = 0x7  than E = { 0, 1 ,2 }
+  ...
+*/
+
+
+/* 9. 
+* Type          : Send from Receive.receive
+* Mote Count    : 2
+* Sending Motes : 1->2,2->1
+* Description   : A 2 element ping-pong, the initiator is Mote1.
+*/
+RT_PROBLEM_NEXT
+  {1, 2, SEND_ON_INIT , 0x2, 0, 0},
+  {2, 1, SEND_OFF     , 0x1, 0, 0}
+
+
+/* 10. 
+* Type          : Send from Receive.receive
+* Mote Count    : 3
+* Sending Motes : 1->2,2->3,3->1
+* Description   : A 3 element circle ping-pong. Mote1 initiates to Mote2,
+*                 then Mote2 passes the "ball" to Mote3,
+*                 Mote3 passes back to Mote1, and continued.
+*/
+RT_PROBLEM_NEXT
+  {1, 2, SEND_ON_INIT , 0x2, 0, 0},
+  {2, 3, SEND_OFF     , 0x4, 0, 0},
+  {3, 1, SEND_OFF     , 0x1, 0, 0}
+
+
+/* 11. 
+* Type          : Send from Receive.receive
+* Mote Count    : 3
+* Sending Motes : 1->2,1->3,2->1,2->3,3->1,3->2
+* Description   : A 3 element simultaneous pairwise ping-pong using 3 "balls".
+*/
+RT_PROBLEM_NEXT
+  {1, 2, SEND_ON_INIT , 0x16, 0, 0},
+  {2, 3, SEND_ON_INIT , 0x32, 0, 0},
+  {3, 1, SEND_ON_INIT , 0x8 , 0, 0},
+  {1, 3, SEND_OFF     , 0x4 , 0, 0},
+  {2, 1, SEND_OFF     , 0x1 , 0, 0},
+  {3, 2, SEND_OFF     , 0x2 , 0, 0}
+
+
+}}; // ProblemSet END
 
 #endif
