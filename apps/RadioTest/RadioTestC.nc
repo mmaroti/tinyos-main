@@ -33,10 +33,12 @@
 *         veresskrisztian@gmail.com
 */
 
-#include "RadioTest.h"
 #include "RadioTestCases.h"
-
 #include <assert.h>
+
+// Only for testing purposes, will be controlled by the basestation
+// in the near future.
+#define  PROBLEM_IDX 3
 
 module RadioTestC @safe() {
   uses {
@@ -62,7 +64,6 @@ implementation {
   message_t pkt;
 
   // edge descriptions
-  edge_t  edges[MAX_EDGE_COUNT];
   stat_t  stats[MAX_EDGE_COUNT];
 
   // bitmask that specifies on which edges we should send a message
@@ -79,19 +80,20 @@ implementation {
 
     while ( state == STATE_RUNNING && pending ) {
       assert(pidx);
+      
       // In case we need to send a message on the current edge
       if ( pending & pidx ) {
 
         testmsg_t* msg = (testmsg_t*)(call Packet.getPayload(&pkt,sizeof(testmsg_t)));
         msg->edgeid = eidx;
-        msg->msgid = edges[eidx].lastmsgid+1;
-  
+        msg->msgid = problemSet[PROBLEM_IDX][eidx].lastmsgid+1;
+        
         if ( call AMSend.send( AM_BROADCAST_ADDR, &pkt, sizeof(testmsg_t)) == SUCCESS ) {
           dbg("Debug","sendPending() Send SUCCESS\n");
           ++(stats[eidx].sendSuccessCount);
 
           // Remove the pending bit if backlog is zero, or decrement the backlog
-          pending &= (!pidx);
+          pending &= (~pidx);
 
           // Quit because only one message is allowed to be on air
           // Consequent messages would surely fail, don't include them in the statistics
@@ -118,34 +120,32 @@ implementation {
     config.runtime_msec = 1000;
     config.usebcast = TRUE;
     config.flags = 0;
-    config.sendtrig_msec = 100;
+    config.sendtrig_msec = 500;
 
     // Needed for TOSSIM simulation
     call AMPacket.setSource(&pkt,TOS_NODE_ID);
 
-    // Setup the graph
-    edges[0].sender = 1;
-    edges[0].receiver = 2;
-    edges[0].flags = SEND_ON_INIT | SEND_ON_SDONE;
-
-    edges[1].sender = 2;
-    edges[1].receiver = 1;
-    edges[1].flags = SEND_ON_INIT | SEND_ON_SDONE;
-
-   
     // Setup the pending bits
     // We can have different outgoing edges with different flags
-    for ( i = 0; i < MAX_EDGE_COUNT; ++i, k <<= 1 )
+    for( i = 0; problemSet[PROBLEM_IDX][i].sender < MAX_EDGE_COUNT; ++i, k<<=1 )
     {
-      if( edges[i].sender != TOS_NODE_ID )
-        continue;
+      dbg("Debug","(%d,%d,%d,%d,%d,%d)\n",
+        problemSet[PROBLEM_IDX][i].sender,
+        problemSet[PROBLEM_IDX][i].receiver,
+        problemSet[PROBLEM_IDX][i].flags,
+        problemSet[PROBLEM_IDX][i].pongs,
+        problemSet[PROBLEM_IDX][i].msgsize,
+        problemSet[PROBLEM_IDX][i].lastmsgid);
 
+      if( problemSet[PROBLEM_IDX][i].sender != TOS_NODE_ID )
+        continue;
+     
       // Set the pending bits if we need to send at start        
-      if ( edges[i].flags & SEND_ON_INIT )
+      if ( problemSet[PROBLEM_IDX][i].flags & SEND_ON_INIT )
         pending |= k;
 
       // Set the tTickSendMask if we need to send on timer tick
-      if ( edges[i].flags & SEND_ON_TTICK )
+      if ( problemSet[PROBLEM_IDX][i].flags & SEND_ON_TTICK )
         tTickSendMask |= k;
     }
 
@@ -158,7 +158,6 @@ implementation {
     // Now we are running
     state = STATE_RUNNING;
     call Timer.startOneShot(config.runtime_msec);
- //   dbg("Debug","Started\n");
     post sendPending();
   }
  
@@ -174,7 +173,7 @@ implementation {
     // Other edges are cleared to set the pending bit
     pending |= sbitmask;
 
-    // Backlog the previously selected edges
+    // Backlog the previously selected problemSet[PROBLEM_IDX]
     while ( blogd ) {
       if ( blogd & 0x1 )
         ++(stats[i].wouldBacklogCount);
@@ -217,28 +216,28 @@ implementation {
     testmsg_t* msg = (testmsg_t*)payload;
 
     // In case the message is sent to this mote
-    if ( state == STATE_RUNNING && edges[msg->edgeid].receiver == TOS_NODE_ID ) {
+    if ( state == STATE_RUNNING && problemSet[PROBLEM_IDX][msg->edgeid].receiver == TOS_NODE_ID ) {
 
       dbg("Debug","Message received.\n");
       
       // If we got a message with a lower id than expected -> duplicate
-      if ( msg->msgid <= edges[msg->edgeid].lastmsgid )
+      if ( msg->msgid <= problemSet[PROBLEM_IDX][msg->edgeid].lastmsgid )
         ++(stats[msg->edgeid].duplicateReceiveCount);
       
       // If we got a message with a higher id than expected -> we have missed messages
-      else if ( msg->msgid > edges[msg->edgeid].lastmsgid+1 ) {
-        stats[msg->edgeid].missedCount += msg->msgid - edges[msg->edgeid].lastmsgid - 1;
-        edges[msg->edgeid].lastmsgid = msg->msgid;
+      else if ( msg->msgid > problemSet[PROBLEM_IDX][msg->edgeid].lastmsgid+1 ) {
+        stats[msg->edgeid].missedCount += msg->msgid - problemSet[PROBLEM_IDX][msg->edgeid].lastmsgid - 1;
+        problemSet[PROBLEM_IDX][msg->edgeid].lastmsgid = msg->msgid;
       }
       // Else everything is OK
       else {
-        edges[msg->edgeid].lastmsgid = msg->msgid;
+        problemSet[PROBLEM_IDX][msg->edgeid].lastmsgid = msg->msgid;
         ++(stats[msg->edgeid].receiveCount);
       }
       
       // Check whether we have to send message on receive ( PONG_ON_PING case )
-      if ( edges[msg->edgeid].pongs )
-        setPendingOrBacklog( edges[msg->edgeid].pongs );
+      if ( problemSet[PROBLEM_IDX][msg->edgeid].pongs )
+        setPendingOrBacklog( problemSet[PROBLEM_IDX][msg->edgeid].pongs );
 
     }
     return bufPtr;
@@ -259,10 +258,10 @@ implementation {
         dbg("Debug","Message sent successfully!\n");
 
         ++(stats[msg->edgeid].wasAckedCount);
-        ++(edges[msg->edgeid].lastmsgid); 
+        ++(problemSet[PROBLEM_IDX][msg->edgeid].lastmsgid); 
         
         // Check whether we have to send message on sendDone
-        if ( edges[msg->edgeid].flags & SEND_ON_SDONE )
+        if ( problemSet[PROBLEM_IDX][msg->edgeid].flags & SEND_ON_SDONE )
           setPendingOrBacklog( pow(2,msg->edgeid) );
 
       // If Message NOT ACKed, resend it.
