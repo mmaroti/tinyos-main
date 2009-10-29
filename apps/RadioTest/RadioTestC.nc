@@ -34,6 +34,8 @@
 */
 
 #include "RadioTest.h"
+#include "RadioTestCases.h"
+
 #include <assert.h>
 
 module RadioTestC @safe() {
@@ -60,15 +62,15 @@ implementation {
   message_t pkt;
 
   // edge descriptions
-  edge_t  edges[EDGE_COUNT];
+  edge_t  edges[MAX_EDGE_COUNT];
+  stat_t  stats[MAX_EDGE_COUNT];
 
   // bitmask that specifies on which edges we should send a message
   // when a trigger timer is fired. Must be initialized at Setup based on edge
   // descriptions.
   pending_t tTickSendMask;
 
-  // backlog array and pending bitmask
-  uint8_t backlog[EDGE_COUNT];  
+  // pending bitmask
   pending_t pending;
 
   task void sendPending() {
@@ -86,19 +88,17 @@ implementation {
   
         if ( call AMSend.send( AM_BROADCAST_ADDR, &pkt, sizeof(testmsg_t)) == SUCCESS ) {
           dbg("Debug","sendPending() Send SUCCESS\n");
-          ++(edges[eidx].stats.sendSuccessCount);
+          ++(stats[eidx].sendSuccessCount);
 
           // Remove the pending bit if backlog is zero, or decrement the backlog
-          atomic {
-            if ( backlog[eidx] > 0 )
-              --backlog[eidx];
-            else
-              pending &= (!pidx);
-          }
+          pending &= (!pidx);
 
+          // Quit because only one message is allowed to be on air
+          // Consequent messages would surely fail, don't include them in the statistics
+          return;
         } else {
           dbg("Debug","sendPending() Send FAIL\n");
-          ++(edges[eidx].stats.sendFailCount);
+          ++(stats[eidx].sendFailCount);
         }
       }
       // Move to the next edge
@@ -135,7 +135,7 @@ implementation {
    
     // Setup the pending bits
     // We can have different outgoing edges with different flags
-    for ( i = 0; i < EDGE_COUNT; ++i, k <<= 1 )
+    for ( i = 0; i < MAX_EDGE_COUNT; ++i, k <<= 1 )
     {
       if( edges[i].sender != TOS_NODE_ID )
         continue;
@@ -168,19 +168,16 @@ implementation {
 
     dbg("Debug","setPendingOrBacklog() : "); dbgbin(sbitmask);
 
-    // The following is in atomic to prevent race conditions
-    atomic {
-      // Check which edges need to be backlogged
-      blogd = pending & sbitmask;
+    // Check which edges need to be backlogged
+    blogd = pending & sbitmask;
 
-      // Other edges are cleared to set the pending bit
-      pending |= (pending ^ sbitmask);
-    }
+    // Other edges are cleared to set the pending bit
+    pending |= sbitmask;
 
     // Backlog the previously selected edges
     while ( blogd ) {
       if ( blogd & 0x1 )
-        ++(backlog[i]);
+        ++(stats[i].wouldBacklogCount);
       ++i;
       blogd >>=1;
     }
@@ -203,7 +200,6 @@ implementation {
 
   event void AMControl.stopDone(error_t err) {
     state = STATE_INVALID;
-    call AMControl.start();
   }
 
   event void Timer.fired() { state = STATE_IDLE; }
@@ -227,20 +223,21 @@ implementation {
       
       // If we got a message with a lower id than expected -> duplicate
       if ( msg->msgid <= edges[msg->edgeid].lastmsgid )
-        ++(edges[msg->edgeid].stats.duplicateReceiveCount);
+        ++(stats[msg->edgeid].duplicateReceiveCount);
       
       // If we got a message with a higher id than expected -> we have missed messages
-      else if ( msg->msgid > edges[msg->edgeid].lastmsgid+1 )
-        ++(edges[msg->edgeid].stats.missedCount);
-      
+      else if ( msg->msgid > edges[msg->edgeid].lastmsgid+1 ) {
+        stats[msg->edgeid].missedCount += msg->msgid - edges[msg->edgeid].lastmsgid - 1;
+        edges[msg->edgeid].lastmsgid = msg->msgid;
+      }
       // Else everything is OK
       else {
         edges[msg->edgeid].lastmsgid = msg->msgid;
-        ++(edges[msg->edgeid].stats.receiveCount);
+        ++(stats[msg->edgeid].receiveCount);
       }
       
-      // Check whether we have to send message on receive
-      if ( edges[msg->edgeid].flags & PONG_ON_PING )
+      // Check whether we have to send message on receive ( PONG_ON_PING case )
+      if ( edges[msg->edgeid].pongs )
         setPendingOrBacklog( edges[msg->edgeid].pongs );
 
     }
@@ -255,13 +252,13 @@ implementation {
 
     // In case of successfull send
     if ( error == SUCCESS ) {
-      ++(edges[msg->edgeid].stats.sendDoneSuccessCount);
+      ++(stats[msg->edgeid].sendDoneSuccessCount);
 
       // If message is ACKed, or we don't need ACK, update the stats and increment the message counter
       if ( call PAck.wasAcked(bufPtr) || !( config.flags & USE_ACK ) ) {
         dbg("Debug","Message sent successfully!\n");
 
-        ++(edges[msg->edgeid].stats.wasAckedCount);
+        ++(stats[msg->edgeid].wasAckedCount);
         ++(edges[msg->edgeid].lastmsgid); 
         
         // Check whether we have to send message on sendDone
@@ -276,14 +273,17 @@ implementation {
         dbg("Debug","Message sent is not ACKed!\n");
 
         setPendingOrBacklog( pow(2,msg->edgeid) );
-        ++(edges[msg->edgeid].stats.resendCount);
+        ++(stats[msg->edgeid].resendCount);
       }
 
     // In case of unsuccessfull send
     } else {
       dbg("Debug","Message sent UNsuccessfully!\n");
-      ++(edges[msg->edgeid].stats.sendDoneFailCount);
+      ++(stats[msg->edgeid].sendDoneFailCount);
     }
+
+    // Re-post the queue processing task
+    post sendPending();
   }
 }
 
