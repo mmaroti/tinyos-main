@@ -36,7 +36,8 @@
 #ifndef RADIO_TEST_H
 #define RADIO_TEST_H
 
-#define MAX_EDGE_COUNT 64
+#define MAX_EDGE_COUNT 8
+#define MAX_NODE_COUNT 3
 
 #if MAX_EDGE_COUNT <= 8
   typedef nx_uint8_t nx_pending_t;
@@ -56,25 +57,25 @@
 
 void dbgbin(pending_t data)
 {
-  pending_t bit = 1 << (sizeof(pending_t)-1);
-  char c[sizeof(pending_t)+1];
+  pending_t bit = 1 << (sizeof(pending_t)*8-1);
+  char c[sizeof(pending_t)*8+1];
   uint8_t i = 0;
   while( bit ) {
     c[i++] = ( data & bit ) ? '1' : '0';
     bit >>= 1;
   }
-  c[sizeof(pending_t)] = '\0';
+  c[sizeof(pending_t)*8] = '\0';
   dbg("Debug","%s\n",c);
 }
 
 // Edge type
-typedef nx_struct edge_t {
-  nx_uint8_t    sender;       // Sender end of the edge
-  nx_uint8_t    receiver;     // Receiver end of the edge
-  nx_uint8_t    flags;        // Sending policies
-  nx_pending_t  pongs;        // In ping-pong policy the edge bitmask on which we should reply on receive
-  nx_uint8_t    msgsize;      // The message size we want to set on this edge
-  nx_uint32_t   lastmsgid;    // The last message id sent ( on send side ) / received ( on receive side )
+typedef struct edge_t {
+  uint8_t    sender;       // Sender end of the edge
+  uint8_t    receiver;     // Receiver end of the edge
+  uint8_t    flags;        // Sending policies
+  uint32_t   nextmsgid;    // The message id to be sent ( on send side ) / expected to receive ( on receive side )
+  uint32_t   lastmsgid;    // The last message id sent ( on send side ). On receive side it is unused.
+  pending_t  pongs;        // In ping-pong policy the edge bitmask on which we should reply on receive
 } edge_t;
 
 enum {
@@ -111,15 +112,30 @@ typedef nx_struct stat_t {
   stat_base_t sendFailCount;
   stat_base_t sendDoneSuccessCount;
   stat_base_t sendDoneFailCount;
+
   stat_base_t wasAckedCount;
   stat_base_t resendCount;
-  stat_base_t alreadyPendingCount;
+
   stat_base_t receiveCount;
   stat_base_t duplicateReceiveCount;
   stat_base_t missedCount;
+
   stat_base_t wouldBacklogCount;
 } stat_t;
 
+void dbgstat(stat_t s) {
+  dbg("Debug","stat.sendSuccessCount     : %d\n",s.sendSuccessCount);
+  dbg("Debug","stat.sendFailCount        : %d\n",s.sendFailCount);
+  dbg("Debug","stat.sendDoneSuccessCount : %d\n",s.sendDoneSuccessCount);
+  dbg("Debug","stat.sendDoneFailCount    : %d\n",s.sendDoneFailCount);
+  dbg("Debug","stat.wasAckedCount        : %d\n",s.wasAckedCount);
+  dbg("Debug","stat.resendCount          : %d\n",s.resendCount);
+  dbg("Debug","stat.receiveCount         : %d\n",s.receiveCount);
+  dbg("Debug","stat.duplicateReceiveCount: %d\n",s.duplicateReceiveCount);
+  dbg("Debug","stat.missedCount          : %d\n",s.missedCount);
+  dbg("Debug","stat.wouldBacklogCount    : %d\n",s.wouldBacklogCount);
+  dbg("Debug","---------------------------------------------\n");
+}
 typedef nx_struct testmsg_t {
   nx_uint8_t  edgeid;       // On which edge this message is intended to propagate through
   nx_uint32_t msgid;        // The auto-increment id of the message on the preset edge

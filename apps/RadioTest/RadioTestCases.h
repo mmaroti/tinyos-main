@@ -39,7 +39,7 @@
 #include "RadioTest.h"
 
 #define RT_PROBLEM_NEXT },{
-#define RT_NULL_EDGE {MAX_EDGE_COUNT+1,MAX_EDGE_COUNT+1,0,0,0,0}
+#define RT_NULL_EDGE {((MAX_NODE_COUNT)+1),((MAX_NODE_COUNT)+1),0,0,0,0}
 
 // Sending flags
 enum {
@@ -49,7 +49,7 @@ enum {
   SEND_ON_TTICK = 0x04
 };
 
-edge_t problemSet[][MAX_EDGE_COUNT+1] = { {
+edge_t problemSet[][(MAX_EDGE_COUNT+1)] = { {
 
 /** TRIGGER PROBLEMS -------------------------------------- */
 
@@ -58,8 +58,8 @@ edge_t problemSet[][MAX_EDGE_COUNT+1] = { {
 * Mote Count    : 2
 * Sending Motes : 1->2
 */
-  {1, 2, SEND_ON_TTICK, 0, 0, 0},
-  RT_NULL_EDGE
+  { 1, 2, SEND_ON_TTICK, 1, 0, 0 }, 
+  RT_NULL_EDGE 
 
 /* 1.
 * Type          : Send from TriggerTimer
@@ -67,8 +67,8 @@ edge_t problemSet[][MAX_EDGE_COUNT+1] = { {
 * Sending Motes : 1->2,2->1
 */
 RT_PROBLEM_NEXT
-  {1, 2, SEND_ON_TTICK, 0, 0, 0},
-  {2, 1, SEND_ON_TTICK, 0, 0, 0},
+  {1, 2, SEND_ON_TTICK, 1, 0, 0 },
+  {2, 1, SEND_ON_TTICK, 1, 0, 0 },
   RT_NULL_EDGE
 
 /* 2.
@@ -78,9 +78,9 @@ RT_PROBLEM_NEXT
 *
 */
 RT_PROBLEM_NEXT
-  {1, 2, SEND_ON_TTICK, 0, 0, 0},
-  {2, 3, SEND_ON_TTICK, 0, 0, 0},
-  {3, 1, SEND_ON_TTICK, 0, 0, 0},
+  {1, 2, SEND_ON_TTICK, 1, 0, 0 },
+  {2, 3, SEND_ON_TTICK, 1, 0, 0 },
+  {3, 1, SEND_ON_TTICK, 1, 0, 0 },
   RT_NULL_EDGE
 
 /* 3.
@@ -90,12 +90,12 @@ RT_PROBLEM_NEXT
 *
 */
 RT_PROBLEM_NEXT
-  {1, 2, SEND_ON_TTICK, 0, 0, 0},
-  {1, 3, SEND_ON_TTICK, 0, 0, 0},
-  {2, 1, SEND_ON_TTICK, 0, 0, 0},
-  {2, 3, SEND_ON_TTICK, 0, 0, 0},
-  {3, 1, SEND_ON_TTICK, 0, 0, 0},
-  {3, 2, SEND_ON_TTICK, 0, 0, 0},
+  {1, 2, SEND_ON_TTICK, 1, 0, 0 },
+  {1, 3, SEND_ON_TTICK, 1, 0, 0 },
+  {2, 1, SEND_ON_TTICK, 1, 0, 0 },
+  {2, 3, SEND_ON_TTICK, 1, 0, 0 },
+  {3, 1, SEND_ON_TTICK, 1, 0, 0 },
+  {3, 2, SEND_ON_TTICK, 1, 0, 0 },
   RT_NULL_EDGE
 
 /** MAXIMAL THROUGHPUT PROBLEMS -------------------------------------- */
@@ -106,7 +106,7 @@ RT_PROBLEM_NEXT
 * Sending Motes : 1->2
 */
 RT_PROBLEM_NEXT
-  {1, 2, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
+  {1, 2, SEND_ON_SDONE | SEND_ON_INIT, 1, 0, 0 },
   RT_NULL_EDGE
 
 /* 5.
@@ -115,8 +115,8 @@ RT_PROBLEM_NEXT
 * Sending Motes : 1->2,2->1
 */
 RT_PROBLEM_NEXT
-  {1, 2, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
-  {2, 1, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
+  {1, 2, SEND_ON_SDONE | SEND_ON_INIT, 1, 0, 0 },
+  {2, 1, SEND_ON_SDONE | SEND_ON_INIT, 1, 0, 0 },
   RT_NULL_EDGE
 
 /* 6.
@@ -125,9 +125,9 @@ RT_PROBLEM_NEXT
 * Sending Motes : 1->2,2->3,3->1
 */
 RT_PROBLEM_NEXT
-  {1, 2, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
-  {2, 3, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
-  {3, 1, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
+  {1, 2, SEND_ON_SDONE | SEND_ON_INIT, 1, 0, 0 },
+  {2, 3, SEND_ON_SDONE | SEND_ON_INIT, 1, 0, 0 },
+  {3, 1, SEND_ON_SDONE | SEND_ON_INIT, 1, 0, 0 },
   RT_NULL_EDGE
 
 /* 7.
@@ -136,12 +136,12 @@ RT_PROBLEM_NEXT
 * Sending Motes : 1->2,1->3,2->1,2->3,3->1,3->2
 */
 RT_PROBLEM_NEXT
-  {1, 2, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
-  {1, 3, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
-  {2, 1, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
-  {2, 3, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
-  {3, 1, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
-  {3, 2, SEND_ON_SDONE | SEND_ON_INIT, 0, 0, 0},
+  {1, 2, SEND_ON_SDONE | SEND_ON_INIT, 1, 0, 0 },
+  {1, 3, SEND_ON_SDONE | SEND_ON_INIT, 1, 0, 0 },
+  {2, 1, SEND_ON_SDONE | SEND_ON_INIT, 1, 0, 0 },
+  {2, 3, SEND_ON_SDONE | SEND_ON_INIT, 1, 0, 0 },
+  {3, 1, SEND_ON_SDONE | SEND_ON_INIT, 1, 0, 0 },
+  {3, 2, SEND_ON_SDONE | SEND_ON_INIT, 1, 0, 0 },
   RT_NULL_EDGE
 
 /** PING-PONG PROBLEMS -------------------------------------- */
@@ -167,8 +167,8 @@ RT_PROBLEM_NEXT
 * Description   : A 2 element ping-pong, the initiator is Mote1.
 */
 RT_PROBLEM_NEXT
-  {1, 2, SEND_ON_INIT , 0x2, 0, 0},
-  {2, 1, SEND_OFF     , 0x1, 0, 0},
+  {1, 2, SEND_ON_INIT , 0x2, 1, 0 },
+  {2, 1, SEND_OFF     , 0x1, 1, 0 },
   RT_NULL_EDGE
 
 /* 9. 
@@ -180,9 +180,9 @@ RT_PROBLEM_NEXT
 *                 Mote3 passes back to Mote1, and continued.
 */
 RT_PROBLEM_NEXT
-  {1, 2, SEND_ON_INIT , 0x2, 0, 0},
-  {2, 3, SEND_OFF     , 0x4, 0, 0},
-  {3, 1, SEND_OFF     , 0x1, 0, 0},
+  {1, 2, SEND_ON_INIT , 0x2, 1, 0 },
+  {2, 3, SEND_OFF     , 0x4, 1, 0 },
+  {3, 1, SEND_OFF     , 0x1, 1, 0 },
   RT_NULL_EDGE
 
 /* 10. 
@@ -192,14 +192,14 @@ RT_PROBLEM_NEXT
 * Description   : A 3 element simultaneous pairwise ping-pong using 3 "balls".
 */
 RT_PROBLEM_NEXT
-  {1, 2, SEND_ON_INIT , 0x16, 0, 0},
-  {2, 3, SEND_ON_INIT , 0x32, 0, 0},
-  {3, 1, SEND_ON_INIT , 0x8 , 0, 0},
-  {1, 3, SEND_OFF     , 0x4 , 0, 0},
-  {2, 1, SEND_OFF     , 0x1 , 0, 0},
-  {3, 2, SEND_OFF     , 0x2 , 0, 0},
+  {1, 2, SEND_ON_INIT , 0x16, 1, 0 },
+  {2, 3, SEND_ON_INIT , 0x32, 1, 0 },
+  {3, 1, SEND_ON_INIT , 0x8 , 1, 0 },
+  {1, 3, SEND_OFF     , 0x4 , 1, 0 },
+  {2, 1, SEND_OFF     , 0x1 , 1, 0 },
+  {3, 2, SEND_OFF     , 0x2 , 1, 0 },
   RT_NULL_EDGE
 
-}}; // ProblemSet END
+}}; // problemSet END
 
 #endif

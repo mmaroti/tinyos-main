@@ -38,7 +38,7 @@
 
 // Only for testing purposes, will be controlled by the basestation
 // in the near future.
-#define  PROBLEM_IDX 3
+#define  PROBLEM_IDX 5
 
 module RadioTestC @safe() {
   uses {
@@ -56,22 +56,17 @@ module RadioTestC @safe() {
 
 implementation {
 
-  // the current state of the mote
   uint8_t state;
-  
-  // radio test config and message packet
   setup_t config;
   message_t pkt;
 
-  // edge descriptions
   stat_t  stats[MAX_EDGE_COUNT];
+  uint8_t edgecount;
 
   // bitmask that specifies on which edges we should send a message
   // when a trigger timer is fired. Must be initialized at Setup based on edge
   // descriptions.
   pending_t tTickSendMask;
-
-  // pending bitmask
   pending_t pending;
 
   task void sendPending() {
@@ -86,10 +81,14 @@ implementation {
 
         testmsg_t* msg = (testmsg_t*)(call Packet.getPayload(&pkt,sizeof(testmsg_t)));
         msg->edgeid = eidx;
-        msg->msgid = problemSet[PROBLEM_IDX][eidx].lastmsgid+1;
-        
+        msg->msgid = problemSet[PROBLEM_IDX][eidx].nextmsgid;
+
+        // Check for resending      
+        if ( problemSet[PROBLEM_IDX][eidx].lastmsgid == problemSet[PROBLEM_IDX][eidx].nextmsgid )
+          ++(stats[eidx].resendCount);
+
         if ( call AMSend.send( AM_BROADCAST_ADDR, &pkt, sizeof(testmsg_t)) == SUCCESS ) {
-          dbg("Debug","sendPending() Send SUCCESS\n");
+          dbg("Debug","sendPending() Send SUCCESS on edge %d with msgid : %d\n",msg->edgeid,msg->msgid);
           ++(stats[eidx].sendSuccessCount);
 
           // Remove the pending bit if backlog is zero, or decrement the backlog
@@ -120,22 +119,23 @@ implementation {
     config.runtime_msec = 1000;
     config.usebcast = TRUE;
     config.flags = 0;
-    config.sendtrig_msec = 500;
+    config.sendtrig_msec = 100;
 
     // Needed for TOSSIM simulation
     call AMPacket.setSource(&pkt,TOS_NODE_ID);
 
     // Setup the pending bits
     // We can have different outgoing edges with different flags
-    for( i = 0; problemSet[PROBLEM_IDX][i].sender < MAX_EDGE_COUNT; ++i, k<<=1 )
+    for( i = 0; problemSet[PROBLEM_IDX][i].sender <= MAX_NODE_COUNT; ++i, k<<=1 )
     {
-      dbg("Debug","(%d,%d,%d,%d,%d,%d)\n",
+      /*dbg("Debug","(%d,%d,%d,%d,%d,%d)\n",
         problemSet[PROBLEM_IDX][i].sender,
         problemSet[PROBLEM_IDX][i].receiver,
         problemSet[PROBLEM_IDX][i].flags,
-        problemSet[PROBLEM_IDX][i].pongs,
-        problemSet[PROBLEM_IDX][i].msgsize,
-        problemSet[PROBLEM_IDX][i].lastmsgid);
+        problemSet[PROBLEM_IDX][i].nextmsgid,
+        problemSet[PROBLEM_IDX][i].lastmsgid,
+        problemSet[PROBLEM_IDX][i].pongs);
+      */
 
       if( problemSet[PROBLEM_IDX][i].sender != TOS_NODE_ID )
         continue;
@@ -148,6 +148,7 @@ implementation {
       if ( problemSet[PROBLEM_IDX][i].flags & SEND_ON_TTICK )
         tTickSendMask |= k;
     }
+    edgecount = i;
 
     dbg("Debug","%d's initial pending : ",TOS_NODE_ID); dbgbin(pending);
     dbg("Debug","%d's initial tTickSendMask : ",TOS_NODE_ID); dbgbin(tTickSendMask);
@@ -165,26 +166,21 @@ implementation {
     uint8_t i = 0;    
     pending_t blogd;
 
-    dbg("Debug","setPendingOrBacklog() : "); dbgbin(sbitmask);
-
     // Check which edges need to be backlogged
     blogd = pending & sbitmask;
 
     // Other edges are cleared to set the pending bit
     pending |= sbitmask;
 
-    // Backlog the previously selected problemSet[PROBLEM_IDX]
+    // Backlog the previously selected edges -> only update stats
     while ( blogd ) {
       if ( blogd & 0x1 )
         ++(stats[i].wouldBacklogCount);
       ++i;
       blogd >>=1;
     }
-    dbg("Debug","setPendingOrBacklog() pending: "); dbgbin(pending);
     post sendPending();
   }
-
-
 
   event void Boot.booted() {
     call AMControl.start();
@@ -201,11 +197,16 @@ implementation {
     state = STATE_INVALID;
   }
 
-  event void Timer.fired() { state = STATE_IDLE; }
+  event void Timer.fired() { 
+    uint8_t i;
+    state = STATE_IDLE;
+    for ( i = 0; i < edgecount; ++i )
+      dbgstat(stats[i]);
+  }
 
   event void TriggerTimer.fired() {
     // Check whether we have to send message on timer tick
-    if ( state == STATE_RUNNING ) {
+    if ( state == STATE_RUNNING && tTickSendMask ) {
         dbg("Debug","TriggerTimer fired --> ");
         setPendingOrBacklog( tTickSendMask );
     }
@@ -216,22 +217,23 @@ implementation {
     testmsg_t* msg = (testmsg_t*)payload;
 
     // In case the message is sent to this mote
-    if ( state == STATE_RUNNING && problemSet[PROBLEM_IDX][msg->edgeid].receiver == TOS_NODE_ID ) {
+    if (  state == STATE_RUNNING && 
+          problemSet[PROBLEM_IDX][msg->edgeid].receiver == TOS_NODE_ID ) {
 
-      dbg("Debug","Message received.\n");
+      dbg("Debug","Message received on edge %d with msgid : %d. Expected id is %d\n",msg->edgeid,msg->msgid,problemSet[PROBLEM_IDX][msg->edgeid].nextmsgid);
       
       // If we got a message with a lower id than expected -> duplicate
-      if ( msg->msgid <= problemSet[PROBLEM_IDX][msg->edgeid].lastmsgid )
+      if ( msg->msgid < problemSet[PROBLEM_IDX][msg->edgeid].nextmsgid )
         ++(stats[msg->edgeid].duplicateReceiveCount);
       
       // If we got a message with a higher id than expected -> we have missed messages
-      else if ( msg->msgid > problemSet[PROBLEM_IDX][msg->edgeid].lastmsgid+1 ) {
-        stats[msg->edgeid].missedCount += msg->msgid - problemSet[PROBLEM_IDX][msg->edgeid].lastmsgid - 1;
-        problemSet[PROBLEM_IDX][msg->edgeid].lastmsgid = msg->msgid;
+      else if ( msg->msgid > problemSet[PROBLEM_IDX][msg->edgeid].nextmsgid ) {
+        stats[msg->edgeid].missedCount += msg->msgid - problemSet[PROBLEM_IDX][msg->edgeid].nextmsgid;
+        problemSet[PROBLEM_IDX][msg->edgeid].nextmsgid = msg->msgid+1;
       }
       // Else everything is OK
       else {
-        problemSet[PROBLEM_IDX][msg->edgeid].lastmsgid = msg->msgid;
+        ++(problemSet[PROBLEM_IDX][msg->edgeid].nextmsgid);
         ++(stats[msg->edgeid].receiveCount);
       }
       
@@ -246,40 +248,45 @@ implementation {
   event void AMSend.sendDone(message_t* bufPtr, error_t error) {
 
     testmsg_t* msg = (testmsg_t*)(call Packet.getPayload(bufPtr,sizeof(testmsg_t)));
+    bool  acked = 0;
+
     if ( state != STATE_RUNNING )
       return;
 
     // In case of successfull send
     if ( error == SUCCESS ) {
       ++(stats[msg->edgeid].sendDoneSuccessCount);
+      problemSet[PROBLEM_IDX][msg->edgeid].lastmsgid = msg->msgid;
 
-      // If message is ACKed, or we don't need ACK, update the stats and increment the message counter
-      if ( call PAck.wasAcked(bufPtr) || !( config.flags & USE_ACK ) ) {
-        dbg("Debug","Message sent successfully!\n");
+      // If message is considered COMPLETELY sent according to config.flags ( BCAST, ACK ),
+      // increment the message counter
+      acked = call PAck.wasAcked(bufPtr);
+      if ( acked || !( config.flags & USE_ACK ) ) {
+        dbg("Debug","Message sent on edge %d with msgid %d is COMPLETE!\n",msg->edgeid,msg->msgid);
+        problemSet[PROBLEM_IDX][msg->edgeid].nextmsgid = msg->msgid+1;
 
-        ++(stats[msg->edgeid].wasAckedCount);
-        ++(problemSet[PROBLEM_IDX][msg->edgeid].lastmsgid); 
-        
-        // Check whether we have to send message on sendDone
-        if ( problemSet[PROBLEM_IDX][msg->edgeid].flags & SEND_ON_SDONE )
-          setPendingOrBacklog( pow(2,msg->edgeid) );
-
-      // If Message NOT ACKed, resend it.
+        // If message is ACKed, update the stats
+        if ( acked )
+          ++(stats[msg->edgeid].wasAckedCount);
+  
+      // If message is NOT considered COMPLETE resend it.
       } else {
         // Resend is done by setting a new pending "job", and not incrementing the message counter.
-        // This way the next sent message's id remains the actual one, so the next sent message is a resent one.
-        // That also allows the receive end to check only the messageid, and no need to maintain an array.
-        dbg("Debug","Message sent is not ACKed!\n");
-
+        // This way when configuring the packet to be sent with AMSend.send, we can detect that the
+        // message counter is not incremented, and update the resend count statistics.
+        dbg("Debug","Message sent on edge %d with msgid %d is INCOMPLETE!\n",msg->edgeid,msg->msgid);
         setPendingOrBacklog( pow(2,msg->edgeid) );
-        ++(stats[msg->edgeid].resendCount);
       }
 
     // In case of unsuccessfull send
     } else {
-      dbg("Debug","Message sent UNsuccessfully!\n");
+      dbg("Debug","Message sending failed on edge %d with msgid %d!\n",msg->edgeid,msg->msgid);
       ++(stats[msg->edgeid].sendDoneFailCount);
     }
+
+    // Check whether we have to send message on sendDone
+    if ( problemSet[PROBLEM_IDX][msg->edgeid].flags & SEND_ON_SDONE )
+     setPendingOrBacklog( pow(2,msg->edgeid) );
 
     // Re-post the queue processing task
     post sendPending();
