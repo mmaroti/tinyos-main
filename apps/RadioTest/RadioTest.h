@@ -73,7 +73,7 @@ typedef struct edge_t {
   uint8_t    sender;       // Sender end of the edge
   uint8_t    receiver;     // Receiver end of the edge
   uint8_t    flags;        // Sending policies
-  uint32_t   nextmsgid;    // The message id to be sent ( on send side ) / expected to receive ( on receive side )
+  uint32_t   nextmsgid;    // The message id to send ( on send side ) / expected to receive ( on receive side )
   uint32_t   lastmsgid;    // The last message id sent ( on send side ). On receive side it is unused.
   pending_t  pongs;        // In ping-pong policy the edge bitmask on which we should reply on receive
 } edge_t;

@@ -202,4 +202,21 @@ RT_PROBLEM_NEXT
 
 }}; // problemSet END
 
+
+void dbgpset(const edge_t* edgelist) {
+  uint8_t i=0;
+  while (edgelist[i].sender != MAX_NODE_COUNT+1 ) {
+    dbg("Debug","problem[%d].sender     : %d\n",i,edgelist[i].sender);
+    dbg("Debug","problem[%d].receiver   : %d\n",i,edgelist[i].receiver);
+    dbg("Debug","problem[%d].flags      : %d\n",i,edgelist[i].flags);
+    dbg("Debug","problem[%d].nextmsgid  : %d\n",i,edgelist[i].nextmsgid);
+    dbg("Debug","problem[%d].lastmsgid  : %d\n",i,edgelist[i].lastmsgid);
+    dbg("Debug","problem[%d].pongs      : %d\n",i,edgelist[i].pongs);
+    ++i;
+  }
+  dbg("Debug","---------------------------------------------\n");
+}
+
+
+
 #endif
