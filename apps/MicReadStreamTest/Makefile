@@ -1,5 +1,6 @@
 COMPONENT=MicReadStreamAppC
-PFLAGS = -I$(TOSDIR)/sensorboards/mts300 -I$(TOSDIR)/lib/MicReadStream
+CFLAGS = -DTOSH_DATA_LENGTH=114
+PFLAGS = -I$(TOSDIR)/sensorboards/mts300
 BUILD_EXTRA_DEPS = MicMsg.java CtrlMsg.java ReadyMsg.java
 CLEAN_EXTRA = $(BUILD_EXTRA_DEPS) MicMsg.java CtrlMsg.java ReadyMsg.java
 

@@ -40,24 +40,24 @@ implementation {
   
   	components MicReadStreamC;
 	components LedsC;
-	components new TimerMilliC();
-//	components new DemoSensorStreamC();
-//	components new MyMicStreamC();
+	components new TimerMilliC() as TimerMilli0;
+	components new TimerMilliC() as TimerMilli1;
+	components new AMSenderC(AM_DATAMSG) as DataSend;
+	components new AMSenderC(AM_READYMSG) as ReadySend;
+	components new AMReceiverC(AM_CTRLMSG) as Receiver;
+	components ActiveMessageC;
 	components new MicStreamC();
-  	components new AMSenderC(AM_DATAMSG) as DataSend;
-  	components new AMSenderC(AM_READYMSG) as ReadySend;
-  	components new AMReceiverC(AM_CTRLMSG) as Receiver;
-  	components ActiveMessageC;
+
   	components MainC;
   	  	  	
-//	MicReadStreamC.MicRead->DemoSensorStreamC;
-//	MicReadStreamC.MicRead-> MyMicStreamC;
-	MicReadStreamC.MicRead-> MicStreamC;
-	MicReadStreamC.Timer->TimerMilliC;
+	MicReadStreamC.MicRead->MicStreamC;
+//	MicReadStreamC.MicSetting -> MicStreamC;
+	MicReadStreamC.Timer0->TimerMilli0;
+	MicReadStreamC.Timer1->TimerMilli1;
 	MicReadStreamC.Leds->LedsC;
   	MicReadStreamC.Boot->MainC;
   	MicReadStreamC.DataSend->DataSend;
   	MicReadStreamC.ReadySend->ReadySend;
   	MicReadStreamC.Receive->Receiver;
-  	MicReadStreamC.SplitControl->ActiveMessageC; 
+	MicReadStreamC.SplitControl->ActiveMessageC;
 }

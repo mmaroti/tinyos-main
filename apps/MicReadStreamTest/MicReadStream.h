@@ -38,16 +38,18 @@ enum{
 	AM_DATAMSG = 1,
 	AM_CTRLMSG = 2,
 	AM_READYMSG=3,
-	MIC_SAMPLES = 10,
+	MIC_SAMPLES = 112,
 	TIMER_PERIOD= 10240,
 };
 
 typedef nx_struct datamsg{
-	nx_uint16_t micData[MIC_SAMPLES];
+	nx_uint8_t micData[MIC_SAMPLES];
+	nx_uint16_t sampleNum;
 }datamsg_t;
 
 typedef nx_struct readymsg{
 	nx_uint32_t usActualPeriod;
+	nx_uint16_t sampleNum;
 }readymsg_t;
 
 

@@ -38,8 +38,10 @@ module MicReadStreamC @ safe(){
 	uses
 	{
 		interface ReadStream<uint16_t> as MicRead;
-		interface Timer<TMilli> as Timer;
+		interface Timer<TMilli> as Timer0;
+		interface Timer<TMilli> as Timer1;
 		interface Leds;
+//		interface MicSetting;
 		interface AMSend as DataSend;
 		interface AMSend as ReadySend;
 		interface Receive;
@@ -57,52 +59,46 @@ implementation
 	
 	uint8_t state;
 	uint16_t micData[2][MIC_SAMPLES];
+	uint16_t sampleNum;
+	uint32_t periodToSend;
 	message_t dataMsg,readyMsg;
 	bool busy;
-
+	
 	inline void dataSend(uint16_t *dataToSend)
 	{
+		uint8_t i;
+		
 		if(!busy)
 		{
 			datamsg_t* packet = (datamsg_t*)(call DataSend.getPayload(&dataMsg, sizeof(datamsg_t)));
-    		packet-> micData[0] = dataToSend[0];
-    		packet-> micData[1] = dataToSend[1];
-    		packet-> micData[2] = dataToSend[2];
-    		packet-> micData[3] = dataToSend[3];
-    		packet-> micData[4] = dataToSend[4];
-    		packet-> micData[5] = dataToSend[5];
-    		packet-> micData[6] = dataToSend[6];
-    		packet-> micData[7] = dataToSend[7];
-    		packet-> micData[8] = dataToSend[8];
-    		packet-> micData[9] = dataToSend[9];
+
+			for(i=0;i<MIC_SAMPLES;++i)
+			{
+				packet->micData[i]=dataToSend[i]>>2;
+			}
+//			memcpy(packet->micData,dataToSend,sizeof(uint16_t)*MIC_SAMPLES);
+    		packet-> sampleNum = sampleNum;
 	    	if(call DataSend.send(AM_BROADCAST_ADDR, &dataMsg, sizeof(datamsg_t))==SUCCESS)
         	{
-        		busy=TRUE;
+				busy=TRUE;
         	}
         }
     }
-    
-	inline void readySend(uint32_t usActualPeriod)
+    inline void readySend(uint32_t usActualPeriod)
     {
 		readymsg_t* packet = (readymsg_t*)(call DataSend.getPayload(&readyMsg, sizeof(readymsg_t)));
 		packet->usActualPeriod=usActualPeriod;
+		packet->sampleNum=sampleNum;
 		call ReadySend.send(AM_BROADCAST_ADDR, &readyMsg, sizeof(readymsg_t));
 	}
-
-//	void sendMessage(uint32_t usActualPeriod,uint32_t sampleNum)
-//	{
-//		micMsg.sampleNum=sampleNum;
-//		micMsg.usActualPeriod=usActualPeriod;
-		
-//		memcpy(call AMSend.getPayload(&msg, sizeof(micmsg_t)),&micMsg,sizeof(micmsg_t));
-//    	call AMSend.send(AM_BROADCAST_ADDR, &msg, sizeof(micmsg_t));
-//   }
 
 	event void Boot.booted()
 	{
 		call SplitControl.start();
-		busy=FALSE;
+		call Leds.led0On();
+//		call MicSetting.muxSel(1);
 		state=STOPPED;
+		busy=FALSE;
 	}
 	
 	event void SplitControl.startDone(error_t err)
@@ -125,19 +121,18 @@ implementation
 			if (ctrl->instr == 's')
 			{
 				state = STARTED;
+				sampleNum=0;
+				call Leds.led1Toggle();
 				call MicRead.postBuffer(&micData[0][0],MIC_SAMPLES);
 				call MicRead.postBuffer(&micData[1][0],MIC_SAMPLES);
-				if(call MicRead.read(ctrl->micPeriod)!=SUCCESS)
-				{
-					call Leds.led0On();
-				}
-				call Timer.startOneShot(TIMER_PERIOD);
+				call MicRead.read(ctrl->micPeriod);
+				call Timer0.startOneShot(TIMER_PERIOD);
 			}
 		}
 	    return message;
      }
 	
-	event void Timer.fired()
+	event void Timer0.fired()
 	{
 		state=STOPPED;
 	}
@@ -145,17 +140,17 @@ implementation
 	event void MicRead.bufferDone(error_t result, uint16_t* buf, uint16_t count)
 	{
 		static bool firstBuffEn=TRUE;
-		
+
 		if(result==SUCCESS)
 		{
+			sampleNum++;
+			dataSend(buf);
 			if (state==STARTED)
 			{
-				dataSend(buf);
 				if(firstBuffEn)
 				{
 					firstBuffEn=FALSE;
 					call MicRead.postBuffer(&micData[0][0],MIC_SAMPLES);
-					
 				}
 				else
 				{
@@ -168,19 +163,22 @@ implementation
 				firstBuffEn = TRUE;
 			}
 		}
-		else
-		{
-			call Leds.led1On();
-		}			
 	}
 	
 	event void MicRead.readDone(error_t result, uint32_t usActualPeriod)
 	{
 		if(result==SUCCESS)
 		{
-			readySend(usActualPeriod);
-			call Leds.led2Toggle();
+			periodToSend = usActualPeriod;
+			call Timer1.startOneShot(1024);
+//			readySend(usActualPeriod);
+
 		}
+	}
+	
+	event void Timer1.fired()
+	{
+		readySend(periodToSend);
 	}
 
 	event void DataSend.sendDone(message_t* bufPtr, error_t error)
@@ -194,5 +192,11 @@ implementation
   	event void ReadySend.sendDone(message_t* bufPtr, error_t error)
 	{
 	}
+	
+//	async event error_t MicSetting.toneDetected()
+//	{
+//		return SUCCESS;
+//	}
+
 }
 
