@@ -33,8 +33,6 @@
 *         veresskrisztian@gmail.com
 */
 
-enum { AM_RTEST = 101 };
-
 configuration RadioTestAppC {}
 
 implementation {
@@ -42,18 +40,20 @@ implementation {
 
   components new TimerMilliC() as Timer;
   components new TimerMilliC() as TTimer;
-  components new AMSenderC(AM_RTEST);
-  components new AMReceiverC(AM_RTEST);
+  components new AMReceiverC(AM_SETUP_T) as RxConfig;
+  components new AMSenderC(AM_TESTMSG_T) as TxTest;
+  components new AMReceiverC(AM_TESTMSG_T) as RxTest;
   components ActiveMessageC;
 
 
   App.Boot -> MainC.Boot;
 
-  App.Receive -> AMReceiverC;
-  App.AMSend -> AMSenderC;
-  App.AMPacket -> AMSenderC;
-  App.Packet -> AMSenderC;
-  App.PAck -> AMSenderC;
+  App.RxConfig ->RxConfig;
+  App.RxTest -> RxTest;
+  App.TxTest -> TxTest;
+  App.AMPacket -> TxTest;
+  App.Packet -> TxTest;
+  App.PAck -> TxTest;
 
   App.AMControl -> ActiveMessageC;
 

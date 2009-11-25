@@ -81,9 +81,6 @@ typedef struct edge_t {
 enum {
   STATE_INVALID = 0,
   STATE_IDLE,
-  STATE_SETUP,
-  STATE_SETUP_IDLE,
-  STATE_SETUP_RDY,
   STATE_RUNNING,
   STATE_FINISHED,
   STATE_DPROVIDE
@@ -92,14 +89,15 @@ enum {
 // Configuration flags
 enum {
   USE_ACK = 0x01,
-  USE_LPL = 0x02
+  USE_LPL = 0x02,
+  USE_DIRECT_ADDR = 0x03
 };
 
 // Setup type
 typedef nx_struct setup_t {
+  nx_uint8_t  problem_idx;    // The problem we should test
   nx_uint32_t runtime_msec;   // How long should we run the test?
   nx_uint32_t sendtrig_msec;  // How often we should send a message when sending on timer ticks ?
-  nx_uint8_t  usebcast;       // Should we use broadcasting ?
   nx_uint8_t  flags;          // Global flags ( such as ACK, LPL, ... )
 } setup_t;
 
@@ -140,5 +138,11 @@ typedef nx_struct testmsg_t {
   nx_uint8_t  edgeid;       // On which edge this message is intended to propagate through
   nx_uint32_t msgid;        // The auto-increment id of the message on the preset edge
 } testmsg_t;
+
+
+enum { 
+  AM_SETUP_T = 101,
+  AM_TESTMSG_T = 102
+};
 
 #endif
