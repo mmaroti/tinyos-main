@@ -7,12 +7,12 @@
 public class MicMsg extends net.tinyos.message.Message {
 
     /** The default size of this message type in bytes. */
-    public static final int DEFAULT_MESSAGE_SIZE = 20;
+    public static final int DEFAULT_MESSAGE_SIZE = 114;
 
     /** The Active Message type associated with this message. */
     public static final int AM_TYPE = 1;
 
-    /** Create a new MicMsg of size 20. */
+    /** Create a new MicMsg of size 114. */
     public MicMsg() {
         super(DEFAULT_MESSAGE_SIZE);
         amTypeSet(AM_TYPE);
@@ -86,10 +86,13 @@ public class MicMsg extends net.tinyos.message.Message {
       String s = "Message <MicMsg> \n";
       try {
         s += "  [micData=";
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 112; i++) {
           s += "0x"+Long.toHexString(getElement_micData(i) & 0xff)+" ";
         }
         s += "]\n";
+      } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
+      try {
+        s += "  [sampleNum=0x"+Long.toHexString(get_sampleNum())+"]\n";
       } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
       return s;
     }
@@ -98,9 +101,9 @@ public class MicMsg extends net.tinyos.message.Message {
 
     /////////////////////////////////////////////////////////
     // Accessor methods for field: micData
-    //   Field type: int[], unsigned
+    //   Field type: short[], unsigned
     //   Offset (bits): 0
-    //   Size of each element (bits): 16
+    //   Size of each element (bits): 8
     /////////////////////////////////////////////////////////
 
     /**
@@ -122,8 +125,8 @@ public class MicMsg extends net.tinyos.message.Message {
      */
     public static int offset_micData(int index1) {
         int offset = 0;
-        if (index1 < 0 || index1 >= 10) throw new ArrayIndexOutOfBoundsException();
-        offset += 0 + index1 * 16;
+        if (index1 < 0 || index1 >= 112) throw new ArrayIndexOutOfBoundsException();
+        offset += 0 + index1 * 8;
         return (offset / 8);
     }
 
@@ -132,16 +135,16 @@ public class MicMsg extends net.tinyos.message.Message {
      */
     public static int offsetBits_micData(int index1) {
         int offset = 0;
-        if (index1 < 0 || index1 >= 10) throw new ArrayIndexOutOfBoundsException();
-        offset += 0 + index1 * 16;
+        if (index1 < 0 || index1 >= 112) throw new ArrayIndexOutOfBoundsException();
+        offset += 0 + index1 * 8;
         return offset;
     }
 
     /**
-     * Return the entire array 'micData' as a int[]
+     * Return the entire array 'micData' as a short[]
      */
-    public int[] get_micData() {
-        int[] tmp = new int[10];
+    public short[] get_micData() {
+        short[] tmp = new short[112];
         for (int index0 = 0; index0 < numElements_micData(0); index0++) {
             tmp[index0] = getElement_micData(index0);
         }
@@ -149,54 +152,54 @@ public class MicMsg extends net.tinyos.message.Message {
     }
 
     /**
-     * Set the contents of the array 'micData' from the given int[]
+     * Set the contents of the array 'micData' from the given short[]
      */
-    public void set_micData(int[] value) {
+    public void set_micData(short[] value) {
         for (int index0 = 0; index0 < value.length; index0++) {
             setElement_micData(index0, value[index0]);
         }
     }
 
     /**
-     * Return an element (as a int) of the array 'micData'
+     * Return an element (as a short) of the array 'micData'
      */
-    public int getElement_micData(int index1) {
-        return (int)getUIntBEElement(offsetBits_micData(index1), 16);
+    public short getElement_micData(int index1) {
+        return (short)getUIntBEElement(offsetBits_micData(index1), 8);
     }
 
     /**
      * Set an element of the array 'micData'
      */
-    public void setElement_micData(int index1, int value) {
-        setUIntBEElement(offsetBits_micData(index1), 16, value);
+    public void setElement_micData(int index1, short value) {
+        setUIntBEElement(offsetBits_micData(index1), 8, value);
     }
 
     /**
      * Return the total size, in bytes, of the array 'micData'
      */
     public static int totalSize_micData() {
-        return (160 / 8);
+        return (896 / 8);
     }
 
     /**
      * Return the total size, in bits, of the array 'micData'
      */
     public static int totalSizeBits_micData() {
-        return 160;
+        return 896;
     }
 
     /**
      * Return the size, in bytes, of each element of the array 'micData'
      */
     public static int elementSize_micData() {
-        return (16 / 8);
+        return (8 / 8);
     }
 
     /**
      * Return the size, in bits, of each element of the array 'micData'
      */
     public static int elementSizeBits_micData() {
-        return 16;
+        return 8;
     }
 
     /**
@@ -210,7 +213,7 @@ public class MicMsg extends net.tinyos.message.Message {
      * Return the number of elements in the array 'micData'
      */
     public static int numElements_micData() {
-        return 10;
+        return 112;
     }
 
     /**
@@ -218,10 +221,98 @@ public class MicMsg extends net.tinyos.message.Message {
      * for the given dimension.
      */
     public static int numElements_micData(int dimension) {
-      int array_dims[] = { 10,  };
+      int array_dims[] = { 112,  };
         if (dimension < 0 || dimension >= 1) throw new ArrayIndexOutOfBoundsException();
         if (array_dims[dimension] == 0) throw new IllegalArgumentException("Array dimension "+dimension+" has unknown size");
         return array_dims[dimension];
+    }
+
+    /**
+     * Fill in the array 'micData' with a String
+     */
+    public void setString_micData(String s) { 
+         int len = s.length();
+         int i;
+         for (i = 0; i < len; i++) {
+             setElement_micData(i, (short)s.charAt(i));
+         }
+         setElement_micData(i, (short)0); //null terminate
+    }
+
+    /**
+     * Read the array 'micData' as a String
+     */
+    public String getString_micData() { 
+         char carr[] = new char[Math.min(net.tinyos.message.Message.MAX_CONVERTED_STRING_LENGTH,112)];
+         int i;
+         for (i = 0; i < carr.length; i++) {
+             if ((char)getElement_micData(i) == (char)0) break;
+             carr[i] = (char)getElement_micData(i);
+         }
+         return new String(carr,0,i);
+    }
+
+    /////////////////////////////////////////////////////////
+    // Accessor methods for field: sampleNum
+    //   Field type: int, unsigned
+    //   Offset (bits): 896
+    //   Size (bits): 16
+    /////////////////////////////////////////////////////////
+
+    /**
+     * Return whether the field 'sampleNum' is signed (false).
+     */
+    public static boolean isSigned_sampleNum() {
+        return false;
+    }
+
+    /**
+     * Return whether the field 'sampleNum' is an array (false).
+     */
+    public static boolean isArray_sampleNum() {
+        return false;
+    }
+
+    /**
+     * Return the offset (in bytes) of the field 'sampleNum'
+     */
+    public static int offset_sampleNum() {
+        return (896 / 8);
+    }
+
+    /**
+     * Return the offset (in bits) of the field 'sampleNum'
+     */
+    public static int offsetBits_sampleNum() {
+        return 896;
+    }
+
+    /**
+     * Return the value (as a int) of the field 'sampleNum'
+     */
+    public int get_sampleNum() {
+        return (int)getUIntBEElement(offsetBits_sampleNum(), 16);
+    }
+
+    /**
+     * Set the value of the field 'sampleNum'
+     */
+    public void set_sampleNum(int value) {
+        setUIntBEElement(offsetBits_sampleNum(), 16, value);
+    }
+
+    /**
+     * Return the size, in bytes, of the field 'sampleNum'
+     */
+    public static int size_sampleNum() {
+        return (16 / 8);
+    }
+
+    /**
+     * Return the size, in bits, of the field 'sampleNum'
+     */
+    public static int sizeBits_sampleNum() {
+        return 16;
     }
 
 }

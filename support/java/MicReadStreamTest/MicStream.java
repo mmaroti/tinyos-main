@@ -34,21 +34,30 @@
 import static java.lang.System.out;
 import java.io.IOException;
 import java.io.FileOutputStream;
-
+import java.io.PrintStream;
 import net.tinyos.message.*;
 import net.tinyos.util.*;
 
 public class MicStream implements MessageListener {
 
 	private MoteIF mif;
-	private FileOutputStream output;
+	private FileOutputStream fileOutput;
+	private FileOutputStream fileOutputBin;
+	private PrintStream printToFile;
+	private long startTime=0;
+	private long endTime=0;
+	private long sampleNum=1;
+	private long missedPkt=0;
+	private String sampleFrq;
+
 		
-	public MicStream()
+	public MicStream(String sampleFrq)
 	{
 		mif = new MoteIF(PrintStreamMessenger.err);
 		mif.registerListener(new MicMsg(),this);
 		mif.registerListener(new CtrlMsg(),this);
 		mif.registerListener(new ReadyMsg(),this);
+		this.sampleFrq=sampleFrq;
 		
 	}
 	
@@ -58,26 +67,96 @@ public class MicStream implements MessageListener {
 		mif.deregisterListener(new CtrlMsg(),this);
 		mif.deregisterListener(new ReadyMsg(),this);
 	}
-		
-	private void dataCapture(MicMsg msg,boolean ready)
+/*		
+	private void dataCapture(MicMsg micmsg,ReadyMsg readymsg,boolean ready)
 	{
 		
 		try{
 			if (!ready){
-				if (output==null) {
-					output= new FileOutputStream("micdata.txt");
+				if (fileOutput==null) {
+					fileOutput= new FileOutputStream("micdata_"+sampleFrq+".txt");
 				}
-				for(int i=0;i<(msg.totalSize_micData()/msg.elementSize_micData());++i){
-					if (msg.getElement_micData(i)<=255){
-						output.write(0);
+				for(int i=0;i<(micmsg.totalSize_micData()/micmsg.elementSize_micData());++i){
+					if (micmsg.getElement_micData(i)<=255){
+						fileOutput.write(0);
 					}else{
-						output.write(msg.getElement_micData(i)>>8);
+						fileOutput.write(micmsg.getElement_micData(i)>>8);
 					}
-					output.write(msg.getElement_micData(i));
+					fileOutput.write(micmsg.getElement_micData(i));
 				}
 				
 			}else{
-				output.close();
+				out.print("Measurement finished\n");   // A futás vége
+				endTime = System.currentTimeMillis();  // A futási idõ mérésének a vége
+				out.printf("Frequency: %.2f Hz\n",((1/(double)(readymsg.get_usActualPeriod()))*1000000));
+				out.printf("Ellapsed time: %d ms\n",(endTime-startTime));
+				fileOutput.close();
+			}
+			
+		}catch(IOException e){
+			out.println("Cannot open the file");
+		}
+	}
+*/
+	private void dataCapture(MicMsg micmsg,ReadyMsg readymsg,boolean ready)
+	{
+		try{
+			if (!ready){
+				if (fileOutput==null && printToFile==null) {
+					fileOutput= new FileOutputStream("micdata_"+sampleFrq+".txt");
+					fileOutputBin = new FileOutputStream("micadata_"+sampleFrq+".dat");
+					printToFile = new PrintStream(fileOutput);
+				}
+				///////////////////////////////////////////////////////////////////////////////////
+				////////// Ellenõrzi hogy megérkezett-e a következõ üzenet ////////////////////////
+				////////// Ha nem akkor beleírja a file-ba, hogy az adott  ////////////////////////
+				//////////            üzenet nem érkezett meg              ////////////////////////
+				///////////////////////////////////////////////////////////////////////////////////
+				if(sampleNum==micmsg.get_sampleNum()){
+					sampleNum++;
+				} else {
+					for(long i=sampleNum;i<micmsg.get_sampleNum();++i){
+						printToFile.print(i+" message not arrived"+"\n");
+						missedPkt++;
+					}
+					sampleNum=micmsg.get_sampleNum()+1;
+				}
+				///////////////////////////////////////////////////////////////////////////////////
+				////////// Ha a következõ üzenet érkezett meg akkor azt    ////////////////////////
+				//////////              beleírja a file-ba                 ////////////////////////
+				///////////////////////////////////////////////////////////////////////////////////
+				printToFile.print(micmsg.get_sampleNum()+": ");				
+				for(int i=0;i<(micmsg.totalSize_micData()/micmsg.elementSize_micData());++i){
+					printToFile.print(micmsg.getElement_micData(i)+" ");
+/*					if (micmsg.getElement_micData(i)<=255){
+						fileOutputBin.write(0);
+					}else{
+						fileOutputBin.write(micmsg.getElement_micData(i)>>8);
+					}
+*/					
+					fileOutputBin.write(micmsg.getElement_micData(i));
+				}
+				printToFile.println();
+				
+			}else{
+				out.print("Measurement finished\n");   // A futás vége
+				endTime = System.currentTimeMillis();  // A futási idõ mérésének a vége
+				///////////////////////////////////////////////////////////////////////////////////
+				////////// Megvizsgálja, hogy az utolsóként vett üzenet   /////////////////////////
+				//////////      után volt-e még elveszett üzenet          /////////////////////////
+				///////////////////////////////////////////////////////////////////////////////////
+				if(readymsg.get_sampleNum()!=sampleNum-1){
+					for(long i=sampleNum;i<=readymsg.get_sampleNum();i++){
+						printToFile.print(i+" message not arrived"+"\n");
+						missedPkt++;
+					}
+				}
+				printToFile.printf("Frequency: %.2f Hz\n",((1/(double)(readymsg.get_usActualPeriod()))*1000000));
+				printToFile.printf("Ellapsed time: %d ms\n",(endTime-startTime));
+				printToFile.printf("The number of missed packets: %d\n",missedPkt);
+				fileOutput.close();
+				fileOutputBin.close();
+				printToFile.close();
 			}
 			
 		}catch(IOException e){
@@ -97,24 +176,27 @@ public class MicStream implements MessageListener {
 		{
 			out.println("Cannot send message to mote ");
 		}
+		out.print("Measurement started\n");     //A futás kezdete
+		startTime = System.currentTimeMillis(); // A futási idõ mérésének a kezdete
 	}
 
 	public void messageReceived(int dest_addr,Message msg)
 	{
 		if (msg instanceof MicMsg) {
 			MicMsg mic = (MicMsg)msg;
-			dataCapture(mic,false);
+			dataCapture(mic,null,false);
 		}
 		else if(msg instanceof ReadyMsg){
 			ReadyMsg ready = (ReadyMsg)msg;
-			out.printf("Frequency: %.2f Hz\n",((1/(double)(ready.get_usActualPeriod()))*1000000));
-			dataCapture(null,true);
+			dataCapture(null,ready,true);
 			System.exit(1);
 		}
 	}
 	
 	public static void main (String[] args) throws Exception {
-		MicStream mictester= new MicStream();
+		MicStream mictester= new MicStream(args[0]);
 		mictester.sendCtrlMessage('s',Integer.parseInt(args[0]));
 	}	
+    
+    
 }

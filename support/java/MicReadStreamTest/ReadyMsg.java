@@ -7,12 +7,12 @@
 public class ReadyMsg extends net.tinyos.message.Message {
 
     /** The default size of this message type in bytes. */
-    public static final int DEFAULT_MESSAGE_SIZE = 4;
+    public static final int DEFAULT_MESSAGE_SIZE = 6;
 
     /** The Active Message type associated with this message. */
     public static final int AM_TYPE = 3;
 
-    /** Create a new ReadyMsg of size 4. */
+    /** Create a new ReadyMsg of size 6. */
     public ReadyMsg() {
         super(DEFAULT_MESSAGE_SIZE);
         amTypeSet(AM_TYPE);
@@ -87,6 +87,9 @@ public class ReadyMsg extends net.tinyos.message.Message {
       try {
         s += "  [usActualPeriod=0x"+Long.toHexString(get_usActualPeriod())+"]\n";
       } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
+      try {
+        s += "  [sampleNum=0x"+Long.toHexString(get_sampleNum())+"]\n";
+      } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
       return s;
     }
 
@@ -153,6 +156,69 @@ public class ReadyMsg extends net.tinyos.message.Message {
      */
     public static int sizeBits_usActualPeriod() {
         return 32;
+    }
+
+    /////////////////////////////////////////////////////////
+    // Accessor methods for field: sampleNum
+    //   Field type: int, unsigned
+    //   Offset (bits): 32
+    //   Size (bits): 16
+    /////////////////////////////////////////////////////////
+
+    /**
+     * Return whether the field 'sampleNum' is signed (false).
+     */
+    public static boolean isSigned_sampleNum() {
+        return false;
+    }
+
+    /**
+     * Return whether the field 'sampleNum' is an array (false).
+     */
+    public static boolean isArray_sampleNum() {
+        return false;
+    }
+
+    /**
+     * Return the offset (in bytes) of the field 'sampleNum'
+     */
+    public static int offset_sampleNum() {
+        return (32 / 8);
+    }
+
+    /**
+     * Return the offset (in bits) of the field 'sampleNum'
+     */
+    public static int offsetBits_sampleNum() {
+        return 32;
+    }
+
+    /**
+     * Return the value (as a int) of the field 'sampleNum'
+     */
+    public int get_sampleNum() {
+        return (int)getUIntBEElement(offsetBits_sampleNum(), 16);
+    }
+
+    /**
+     * Set the value of the field 'sampleNum'
+     */
+    public void set_sampleNum(int value) {
+        setUIntBEElement(offsetBits_sampleNum(), 16, value);
+    }
+
+    /**
+     * Return the size, in bytes, of the field 'sampleNum'
+     */
+    public static int size_sampleNum() {
+        return (16 / 8);
+    }
+
+    /**
+     * Return the size, in bits, of the field 'sampleNum'
+     */
+    public static int sizeBits_sampleNum() {
+        return 16;
     }
 
 }
