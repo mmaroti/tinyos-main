@@ -2,152 +2,76 @@
 
 module MicReadAdcC
 {
-	uses {
-		interface Alarm<TMicro, uint32_t>;
-		interface Leds;
-		interface Boot;
-		interface Receive;
-		interface AMSend;
-		interface SplitControl as Uart;
-		interface Resource as AdcResource;
-		interface Atm128AdcSingle;
-		interface MicaBusAdc as MicAdcChannel;
-		interface SplitControl as Microphone;
-  	}
+  uses {
+    interface Boot;
+    interface Leds;
+    interface Resource as AdcResource;
+    interface Atm128AdcSingle;
+    interface MicaBusAdc as MicAdcChannel;
+    interface SplitControl as Microphone;
+    interface Alarm<TMilli, uint32_t>;
+  }
 }
 implementation {
   
-	enum
-	{
-		IDLE=0,
-		SAMPLING,
-		SENDING,
-	};
-  
-  	norace uint8_t state = IDLE;
-  	norace uint8_t preScale;
-	norace uint32_t sampleNum;
-	norace bool firstTime;
-	message_t msg;
-	
-	inline void dataSend()
-	{
-		data_msg_t* packet = (data_msg_t*)(call AMSend.getPayload(&msg, sizeof(data_msg_t)));
-    	packet-> sampleNum = sampleNum;
-	   	call AMSend.send(AM_BROADCAST_ADDR, &msg, sizeof(data_msg_t));
-//	   	call Leds.led2Toggle();
-    }
+	bool granted, started; // Status of start request
 
-    task void stopMicrophone()
-    {
+	void detect() {
+		call Atm128AdcSingle.getData(call MicAdcChannel.getChannel(),ATM128_ADC_VREF_OFF, FALSE,ATM128_ADC_PRESCALE_16);
+	}
+	
+	task void stopMicrophone() {
+    /* We're done. Power down the microphone, release the ADC and hand
+       control back to SynchronizerC */
+    	atomic granted = FALSE; // Note that we're no longer the ADC owner
+    	call AdcResource.release();
     	call Microphone.stop();
-    }
-	  	
-	event void Boot.booted()
-	{
-		call Uart.start();
-//		call Leds.led0On();
-	}
-  
-	event void Uart.startDone(error_t err)
-	{
-		if(err==SUCCESS)
-		{
-			if (state == SENDING)
-			{
-				dataSend();
-			}
-		}
-		else
-		{
-			call Uart.start();
-		}
 	}
 	
-	event void Uart.stopDone(error_t err)
-   	{
-   		if(err==SUCCESS)
-   		{
-			call AdcResource.request();
-   		}
-   		else
-   		{
-   			call Uart.stop();
-   		}
-   	}
-   	
-   	event void AdcResource.granted()
-  	{
+	event void Microphone.stopDone(error_t error) {
+    	atomic started = error != SUCCESS;
+	}
+	
+	event void Boot.booted()  {
+		atomic granted = started = FALSE;
+			
+		call Alarm.start(1024);
 		call Microphone.start();
+		call AdcResource.request();
+		
+		call Leds.led0On();
 	}
-	
-	event void Microphone.startDone(error_t error)
-  	{
-    	if (error == SUCCESS)
-    	{
-    		state = SAMPLING;
-    		call Atm128AdcSingle.getData(call MicAdcChannel.getChannel(),ATM128_ADC_VREF_OFF,FALSE,preScale);
-    	}
-    	else
-    	{
-    		call Microphone.start();
-    	}
-   	}
-   	
-   	async event void Atm128AdcSingle.dataReady(uint16_t data, bool precise)
-	{   
-		if (state == SAMPLING)
-		{
-			call Atm128AdcSingle.getData(call MicAdcChannel.getChannel(),ATM128_ADC_VREF_OFF,FALSE,preScale);
-		}
-		if(firstTime)
-		{
-			call Alarm.start(SAMPLE_PERIOD);
-			firstTime=FALSE;
-		}
-		else if(precise)
-		{
-			sampleNum++;
+
+	event void AdcResource.granted() {
+    	atomic granted = TRUE;  // Note when ADC granted
+	}
+
+	event void Microphone.startDone(error_t error) {
+		atomic started = error == SUCCESS; // Note if microphone started
+	}
+
+	async event void Alarm.fired() {
+		// It's time to detect a loud sound. If we didn't get the ADC or
+		// turn on the microphone in time, report a failed event detection.
+		atomic
+		if (granted && started) {
+			call Leds.led1On();
+			call Leds.led2Off();
+			detect();
+		} else {
+			call Leds.led2On();
+			call Alarm.start(1024);
 		}
 	}
-	
-	async event void Alarm.fired()
-	{
-		state = SENDING;
-		call AdcResource.release();
-		post stopMicrophone();
-	}
-	
-	event void Microphone.stopDone(error_t error)
-	{
-		if (error == SUCCESS)
-		{
-			call Uart.start();
-		}
-		else
-		{
-			call Microphone.stop();
-		}
-	}
-   		
-	event message_t* Receive.receive(message_t* message ,void* payload, uint8_t len)
-	{
-		if (len == sizeof(ctrl_msg_t))
-		{
-			ctrl_msg_t *ctrl = (ctrl_msg_t*)payload;
-			if (ctrl->instr == 's')
-			{
-				preScale=ctrl->preScale;
-				sampleNum=0;
-				firstTime=TRUE;
-//				call Leds.led1On();
-				call Uart.stop();
-			}
-   		}
-   		return message;
-   	}
-   	
-	event void AMSend.sendDone(message_t* bufPtr, error_t error)
-	{
+
+	async event void Atm128AdcSingle.dataReady(uint16_t data, bool precise) {
+    /* If we're the current ADC owner: check ADC completion events to
+       see if the microphone is above the threshold  */
+		atomic
+		if (precise){
+	    	post stopMicrophone();
+	  	} else {
+	  		detect();
+	  	}
 	}
 }
