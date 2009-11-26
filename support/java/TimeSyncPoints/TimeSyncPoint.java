@@ -31,20 +31,28 @@
 *
 * Author:Andras Biro
 */
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import Jama.Matrix;
+import Jama.SingularValueDecomposition;
+
 
 public class TimeSyncPoint {
-	ArrayList<TimeSyncPointPair> points=new ArrayList<TimeSyncPointPair>();
-	ArrayList<TimeSyncFunction> functions=new ArrayList<TimeSyncFunction>();
+	private ArrayList<TimeSyncPointPair> points=new ArrayList<TimeSyncPointPair>();
+	private Matrix A,B;
+	private Integer[] indexToNodeID=null;
 	
 	
 	public void AddPoint(long xtime,long ytime, int xid, int yid){
 		points.add(new TimeSyncPointPair(xtime,ytime,xid,yid));
 	}
 	
-	private void regression(ArrayList<TimeSyncPointPair> usedpoints){
+	private TimeSyncFunction regression(ArrayList<TimeSyncPointPair> usedpoints){
 		double av_x=0,av_y=0;
 		for(int i=0;i<usedpoints.size();i++){
 			av_x+=usedpoints.get(i).xtime;
@@ -58,47 +66,73 @@ public class TimeSyncPoint {
 			denom+=(usedpoints.get(i).xtime-av_x)*(usedpoints.get(i).xtime-av_x);
 		}
 		double b=numer/denom, a=av_y-b*av_x;
-		functions.add(new TimeSyncFunction(usedpoints.get(0).xid, usedpoints.get(0).yid, a, b));
+		return new TimeSyncFunction(usedpoints.get(0).xid, usedpoints.get(0).yid, a, b);
 	}
 	
-	private void createfunctions(){
+	public void createMatrices(){
 		HashSet<Integer> nodes = new HashSet<Integer>();
 		for(int i=0;i<points.size();i++){
 			nodes.add(points.get(i).xid);
 			nodes.add(points.get(i).yid);
 		}
-		Integer[] nodes_arr=(Integer[]) nodes.toArray();
-		for(int i=0;i<nodes_arr.length;i++){
-			for(int j=i+1;j<nodes_arr.length;j++){
+		Object[] nodes_obj=nodes.toArray();
+		indexToNodeID=new Integer[nodes_obj.length];
+		for(int i=0;i<nodes_obj.length;i++){
+			indexToNodeID[i]=(Integer)nodes_obj[i];
+		}
+		ArrayList<TimeSyncFunction> functions=new ArrayList<TimeSyncFunction>();
+		for(int i=0;i<indexToNodeID.length;i++){
+			for(int j=i+1;j<indexToNodeID.length;j++){
 				ArrayList<TimeSyncPointPair> usedpoints=new ArrayList<TimeSyncPointPair>();
 				for(int k=0;k<points.size();k++){
-					if(points.get(k).xid==i&&points.get(k).yid==j){
+					if(points.get(k).xid==indexToNodeID[i]&&points.get(k).yid==indexToNodeID[j]){
 						usedpoints.add(points.get(k));
 					}
-					//limit?
-					if(usedpoints.size()>0){
-						regression(usedpoints);
-					}
+				}
+				if(usedpoints.size()>0){ //limit?
+					functions.add(regression(usedpoints));
 				}
 				
 			}
 		}		
+		A=new Matrix(functions.size()+1,nodes.size());
+		B=new Matrix(functions.size()+1,1);
+		
+		for(int i=0;i<functions.size();i++){
+			TimeSyncFunction func=functions.get(i);
+			int y=0,x=0;
+			while(indexToNodeID[y]!=func.y)
+				y++;
+			while(indexToNodeID[x]!=func.x)
+				x++;
+			A.set(i,y,1);
+			A.set(i,x,-1*func.b);
+			B.set(i,0,func.a);	
+		}
+		
 	}
 	
-	public void calculate(int base){
-		createfunctions();
-		if(base>0xffff)
-			base=functions.get(0).x;
-		//TODO: közös bázisra hozás
-		//TODO: kiszámítani minden pontra a közelítő regressziós egyenest
+	private Times calculate(int where,double when,boolean createMatrices){
+		if(indexToNodeID==null||createMatrices)
+			createMatrices();
+		
+		//Recreate the X=constant row
+		A.setMatrix(A.getRowDimension()-1, A.getRowDimension()-1, 0, A.getColumnDimension()-1, new Matrix(1,A.getColumnDimension()));
+		int i=0;
+		while(indexToNodeID[i]!=where)
+			i++;
+		A.set(A.getRowDimension()-1,i,1);
+		B.set(B.getRowDimension()-1,0,when);
+				
+		SingularValueDecomposition decomp=A.svd();
+		//solution=V*S*Ut*B
+		Matrix solution=decomp.getV().times(decomp.getS().inverse()).times(decomp.getU().transpose()).times(B);
+		return new Times(solution.getColumnPackedCopy(),indexToNodeID);
+
 	}
 
-	/**
-	 * y=a+b*x
-	 * @author andris
-	 *
-	 */
-	public class TimeSyncFunction{
+	//y=a+b*x
+	private class TimeSyncFunction{
 		double a, b;
 		int x,y;
 		public TimeSyncFunction(int x, int y,double a, double b){
@@ -109,7 +143,26 @@ public class TimeSyncPoint {
 		}
 	}
 	
-	public class TimeSyncPointPair{
+	public class Times{
+		Integer where[];
+		Double when[];
+		public int size;
+		
+		public Times(double when[],Integer where[]){
+			if(when.length==where.length){
+				size=where.length;
+				this.where=new Integer[where.length];
+				this.when=new Double[when.length];
+				for(int i=0;i<when.length;i++){
+					this.where[i]=where[i];
+					this.when[i]=when[i];
+				}
+			}
+		}
+		
+	}
+	
+	private class TimeSyncPointPair{
 		long xtime,ytime;
 		int xid,yid;
 
@@ -143,6 +196,48 @@ public class TimeSyncPoint {
 		public int getYid() {
 			return yid;
 		}
+	}
+	
+	public static void main(String[] args) {
+		if(args.length<2){
+			System.err.println("Usage: TimeSyncPoints <BASENAME> <MAXINDEX>");
+			System.exit(1);
+		}
+		int maxindex=Integer.parseInt(args[1]);
+		TimeSyncPoint tsp=new TimeSyncPoint();
+		for(int i=0;i<=maxindex;i++){
+			String filename;
+			if(i<10)
+				filename=args[0]+"0"+Integer.toString(i);
+			else
+				filename=args[0]+Integer.toString(i);
+			
+			try {
+				BufferedReader input =  new BufferedReader(new FileReader(filename));
+				long x=0;
+				String line = null;
+				line = input.readLine();
+				int xid=Integer.parseInt(line);
+				line = input.readLine();
+				int yid=Integer.parseInt(line);
+		        while (( line = input.readLine()) != null){
+		        	tsp.AddPoint(x, (long)(1000*Double.parseDouble(line)), xid, yid);
+		        	x+=1000;
+		        }
+				input.close();
+			} catch (FileNotFoundException e) {
+				System.out.println("File not found: "+filename);
+			} catch (IOException e) {
+				System.out.println("Can't close file: "+filename);
+			}
+
+		}
+		
+		Times t=tsp.calculate(3,0, true);
+		for(int i=0;i<t.size;i++){
+			System.out.println(t.where[i]+"="+t.when[i]);
+		}
+		
 	}
 
 }
