@@ -31,23 +31,31 @@
 * Author: Zoltan Kincses
 */
 
-#ifndef MICADCREAD_H
-#define MICADCREAD_H
+#ifndef MICREADSTREAM_H
+#define MICREADSTREAM_H
 
-enum {
-  AM_DATA_MSG = 1,
-  AM_CTRL_MSG = 2,
-  SAMPLE_PERIOD=1024000,
-  MICROPHONE_WARMUP = 1200,
+enum{
+	AM_DATAMSG = 1,
+	AM_CTRLMSG = 2,
+	AM_READYMSG=3,
+	MIC_SAMPLES = 112,
+	TIMER_PERIOD= 10240,
 };
 
+typedef nx_struct datamsg{
+	nx_uint8_t micData[MIC_SAMPLES];
+	nx_uint16_t sampleNum;
+}datamsg_t;
 
-typedef nx_struct data_msg {
-  nx_uint32_t sampleNum;
-} data_msg_t;
+typedef nx_struct readymsg{
+	nx_uint32_t usActualPeriod;
+	nx_uint16_t sampleNum;
+}readymsg_t;
 
-typedef nx_struct ctrl_msg {
-  nx_uint8_t instr, preScale;
-} ctrl_msg_t;
+
+typedef nx_struct ctrlmsg{
+	nx_uint8_t instr;
+	nx_uint16_t micPeriod;
+}ctrlmsg_t;
 
 #endif

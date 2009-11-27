@@ -31,23 +31,33 @@
 * Author: Zoltan Kincses
 */
 
-#ifndef MICADCREAD_H
-#define MICADCREAD_H
+#include "MicReadStream.h"
 
-enum {
-  AM_DATA_MSG = 1,
-  AM_CTRL_MSG = 2,
-  SAMPLE_PERIOD=1024000,
-  MICROPHONE_WARMUP = 1200,
-};
+configuration MicReadStreamAppC 
+{ 
+} 
+implementation { 
+  
+  	components MicReadStreamC;
+	components LedsC;
+	components new TimerMilliC() as TimerMilli0;
+	components new TimerMilliC() as TimerMilli1;
+	components new AMSenderC(AM_DATAMSG) as DataSend;
+	components new AMSenderC(AM_READYMSG) as ReadySend;
+	components new AMReceiverC(AM_CTRLMSG) as Receiver;
+	components ActiveMessageC;
+	components new MicStreamC();
 
-
-typedef nx_struct data_msg {
-  nx_uint32_t sampleNum;
-} data_msg_t;
-
-typedef nx_struct ctrl_msg {
-  nx_uint8_t instr, preScale;
-} ctrl_msg_t;
-
-#endif
+  	components MainC;
+  	  	  	
+	MicReadStreamC.MicRead->MicStreamC;
+//	MicReadStreamC.MicSetting -> MicStreamC;
+	MicReadStreamC.Timer0->TimerMilli0;
+	MicReadStreamC.Timer1->TimerMilli1;
+	MicReadStreamC.Leds->LedsC;
+  	MicReadStreamC.Boot->MainC;
+  	MicReadStreamC.DataSend->DataSend;
+  	MicReadStreamC.ReadySend->ReadySend;
+  	MicReadStreamC.Receive->Receiver;
+	MicReadStreamC.SplitControl->ActiveMessageC;
+}
