@@ -623,7 +623,7 @@ implementation
 	inline void downloadMessage()
 	{
 		uint8_t length;
-		uint16_t crc;
+		bool crcValid = FALSE;
 
 		call SELN.clr();
 		call FastSpiByte.write(RF230_CMD_FRAME_READ);
@@ -642,7 +642,6 @@ implementation
 
 			data = getPayload(rxMsg);
 			getHeader(rxMsg)->length = length;
-			crc = 0;
 
 			// we do not store the CRC field
 			length -= 2;
@@ -654,31 +653,30 @@ implementation
 			length -= read;
 
 			do {
-				crc = RF230_CRCBYTE_COMMAND(crc, *(data++) = call FastSpiByte.splitReadWrite(0));
+				*(data++) = call FastSpiByte.splitReadWrite(0);
 			}
 			while( --read != 0  );
 
 			if( signal RadioReceive.header(rxMsg) )
 			{
 				while( length-- != 0 )
-					crc = RF230_CRCBYTE_COMMAND(crc, *(data++) = call FastSpiByte.splitReadWrite(0));
+					*(data++) = call FastSpiByte.splitReadWrite(0);
 
-				crc = RF230_CRCBYTE_COMMAND(crc, call FastSpiByte.splitReadWrite(0));
-				crc = RF230_CRCBYTE_COMMAND(crc, call FastSpiByte.splitReadWrite(0));
+				call FastSpiByte.splitReadWrite(0);	// two CRC bytes
+				call FastSpiByte.splitReadWrite(0);
 
 				call PacketLinkQuality.set(rxMsg, call FastSpiByte.splitRead());
+
+				// we should have no other incoming message or buffer underflow
+				crcValid = ! radioIrq;
 			}
-			else
-				crc = 1;
 		}
-		else
-			crc = 1;
 
 		call SELN.set();
 		state = STATE_RX_ON;
 		cmd = CMD_NONE;
 
-		if( crc == 0 && call PacketTimeStamp.isValid(rxMsg) )
+		if( crcValid && call PacketTimeStamp.isValid(rxMsg) )
 		{
 			uint32_t time32 = call PacketTimeStamp.timestamp(rxMsg);
 			time32 -= RX_SFD_DELAY + (length << (RADIO_ALARM_MILLI_EXP - 5));
@@ -693,7 +691,7 @@ implementation
 			call DiagMsg.chr('r');
 			call DiagMsg.uint32(call PacketTimeStamp.isValid(rxMsg) ? call PacketTimeStamp.timestamp(rxMsg) : 0);
 			call DiagMsg.uint16(call RadioAlarm.getNow());
-			call DiagMsg.int8(crc == 0 ? length : -length);
+			call DiagMsg.int8(crcValid ? length : -length);
 			call DiagMsg.hex8s(getPayload(rxMsg), length - 2);
 			call DiagMsg.int8(call PacketRSSI.isSet(rxMsg) ? call PacketRSSI.get(rxMsg) : -1);
 			call DiagMsg.uint8(call PacketLinkQuality.isSet(rxMsg) ? call PacketLinkQuality.get(rxMsg) : 0);
@@ -702,7 +700,7 @@ implementation
 #endif
 
 		// signal only if it has passed the CRC check
-		if( crc == 0 )
+		if( crcValid )
 			rxMsg = signal RadioReceive.receive(rxMsg);
 	}
 
