@@ -44,6 +44,7 @@ configuration RF230DriverHwAckC
 		interface RadioReceive;
 		interface RadioCCA;
 		interface RadioPacket;
+		interface RadioRegister;
 
 		interface PacketField<uint8_t> as PacketTransmitPower;
 		interface PacketField<uint8_t> as PacketRSSI;
@@ -72,6 +73,7 @@ implementation
 	RadioReceive = RF230DriverHwAckP;
 	RadioCCA = RF230DriverHwAckP;
 	RadioPacket = RF230DriverHwAckP;
+	RadioRegister = RF230DriverHwAckP;
 
 	LocalTimeRadio = HplRF230C;
 

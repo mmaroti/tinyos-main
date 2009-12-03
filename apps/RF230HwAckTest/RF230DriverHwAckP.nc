@@ -50,6 +50,7 @@ module RF230DriverHwAckP
 		interface RadioReceive;
 		interface RadioCCA;
 		interface RadioPacket;
+		interface RadioRegister;
 
 		interface PacketField<uint8_t> as PacketTransmitPower;
 		interface PacketField<uint8_t> as PacketRSSI;
@@ -124,7 +125,6 @@ implementation
 		STATE_TRX_OFF_2_RX_ON = 4,
 		STATE_RX_ON = 5,
 		STATE_BUSY_TX_2_RX_ON = 6,
-		STATE_PLL_ON_2_RX_ON = 7,
 	};
 
 	tasklet_norace uint8_t cmd;
@@ -139,6 +139,7 @@ implementation
 		CMD_CHANNEL = 7,		// changing the channel
 		CMD_SIGNAL_DONE = 8,		// signal the end of the state transition
 		CMD_DOWNLOAD = 9,		// download the received message
+		CMD_REGISTER = 10,		// exclusive access is granted for the user
 	};
 
 	norace bool radioIrq;
@@ -177,6 +178,36 @@ implementation
 		call SELN.set();
 
 		return reg;
+	}
+
+	bool isSpiAcquired();
+
+	tasklet_async command error_t RadioRegister.access()
+	{
+		if( cmd == CMD_NONE && isSpiAcquired() )
+		{
+			cmd = CMD_REGISTER;
+			return SUCCESS;
+		}
+
+		return EBUSY;
+	}
+
+	tasklet_async command void RadioRegister.release()
+	{
+		if( cmd == CMD_REGISTER )
+			cmd = CMD_NONE;
+	}
+
+	tasklet_async command void RadioRegister.write(uint8_t reg, uint8_t value)
+	{
+		if( cmd == CMD_REGISTER )
+			writeRegister(reg, value);
+	}
+	
+	tasklet_async command uint8_t RadioRegister.read(uint8_t reg)
+	{
+		return cmd == CMD_REGISTER ? readRegister(reg) : 0;
 	}
 
 /*----------------- ALARM -----------------*/
@@ -314,7 +345,7 @@ implementation
 
 /*----------------- CHANNEL -----------------*/
 
-	tasklet_async command uint8_t RadioState.getChannel()
+tasklet_async command uint8_t RadioState.getChannel()
 	{
 		return channel;
 	}
@@ -506,7 +537,7 @@ implementation
 		{
 			ASSERT( (readRegister(RF230_TRX_STATUS) & RF230_TRX_STATUS_MASK) == RF230_BUSY_RX_AACK );
 
-			state = STATE_PLL_ON_2_RX_ON;
+			writeRegister(RF230_TRX_STATE, RF230_RX_AACK_ON);
 			return EBUSY;
 		}
 
@@ -686,8 +717,6 @@ implementation
 		}
 
 		call SELN.set();
-		state = STATE_RX_ON;
-		cmd = CMD_NONE;
 
 		if( crcValid && call PacketTimeStamp.isValid(rxMsg) )
 		{
@@ -711,6 +740,9 @@ implementation
 			call DiagMsg.send();
 		}
 #endif
+
+		state = STATE_RX_ON;
+		cmd = CMD_NONE;
 
 		// signal only if it has passed the CRC check
 		if( crcValid )
@@ -769,13 +801,13 @@ implementation
 				{
 					ASSERT( state == STATE_BUSY_TX_2_RX_ON );
 
-					state = STATE_RX_ON;
-					cmd = CMD_NONE;
-
 					temp = readRegister(RF230_TRX_STATE) & RF230_TRAC_STATUS_MASK;
 
 					if( call Ieee154PacketLayer.getAckRequired(txMsg) )
 						call AckReceivedFlag.setValue(txMsg, temp != RF230_TRAC_NO_ACK);
+
+					state = STATE_RX_ON;
+					cmd = CMD_NONE;
 
 					signal RadioSend.sendDone(temp != RF230_TRAC_CHANNEL_ACCESS_FAILURE ? SUCCESS : EBUSY);
 
@@ -784,7 +816,7 @@ implementation
 				}
 				else if( cmd == CMD_NONE )
 				{
-					ASSERT( state == STATE_RX_ON || state == STATE_PLL_ON_2_RX_ON );
+					ASSERT( state == STATE_RX_ON );
 
 					if( irq == RF230_IRQ_TRX_END )
 					{
@@ -799,14 +831,6 @@ implementation
 					{
 						call PacketRSSI.clear(rxMsg);
 						call PacketTimeStamp.clear(rxMsg);
-					}
-
-					if( state == STATE_PLL_ON_2_RX_ON )
-					{
-						ASSERT( (readRegister(RF230_TRX_STATUS) & RF230_TRX_STATUS_MASK) == RF230_TX_ARET_ON );
-
-						writeRegister(RF230_TRX_STATE, RF230_RX_AACK_ON);
-						state = STATE_RX_ON;
 					}
 
 					cmd = CMD_DOWNLOAD;
