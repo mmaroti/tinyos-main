@@ -1,6 +1,6 @@
 COMPONENT=RadioTestAppC
 BUILD_EXTRA_DEPS = setup_t.py SetupT.java
-CLEAN_EXTRA = setup_t.py SetupT.java main.elf
+CLEAN_EXTRA = setup_t.py SetupT.java SetupT.class main.elf
 
 setup_t.py: RadioTest.h
 	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=setup_t RadioTest.h setup_t -o $@

@@ -79,11 +79,12 @@ typedef struct edge_t {
 } edge_t;
 
 enum {
-  STATE_INVALID = 0,
-  STATE_IDLE,
-  STATE_RUNNING,
-  STATE_FINISHED,
-  STATE_DPROVIDE
+  STATE_RADIOOFF = 0x0,
+  STATE_INVALID = 0x1,
+  STATE_IDLE = 0x2,
+  STATE_RUNNING = 0x4,
+  STATE_FINISHED = 0x6,
+  STATE_DPROVIDE = 0x7
 };
 
 // Configuration flags

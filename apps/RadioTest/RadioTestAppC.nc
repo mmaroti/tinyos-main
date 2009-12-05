@@ -36,7 +36,7 @@
 configuration RadioTestAppC {}
 
 implementation {
-  components MainC, RadioTestC as App;
+  components MainC, RadioTestC as App, LedsC;
 
   components new TimerMilliC() as Timer;
   components new TimerMilliC() as TTimer;
@@ -54,7 +54,7 @@ implementation {
   App.AMPacket -> TxTest;
   App.Packet -> TxTest;
   App.PAck -> TxTest;
-
+  App.Leds -> LedsC;
   App.AMControl -> ActiveMessageC;
 
   App.Timer -> Timer;

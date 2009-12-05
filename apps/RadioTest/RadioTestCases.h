@@ -202,6 +202,7 @@ RT_PROBLEM_NEXT
 
 }}; // problemSet END
 
+#define PROBLEMSET_COUNT 11
 
 void dbgpset(const edge_t* edgelist) {
   uint8_t i=0;
@@ -216,7 +217,5 @@ void dbgpset(const edge_t* edgelist) {
   }
   dbg("Debug","---------------------------------------------\n");
 }
-
-
 
 #endif

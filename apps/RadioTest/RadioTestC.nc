@@ -34,7 +34,6 @@
 */
 
 #include "RadioTestCases.h"
-#include <assert.h>
 
 // Only for testing purposes, will be controlled by the basestation
 // in the near future.
@@ -43,6 +42,7 @@
 module RadioTestC @safe() {
   uses {
     interface Boot;
+    interface Leds;
     interface Receive as RxConfig;
     interface Receive as RxTest;
     interface AMSend as TxTest;
@@ -84,11 +84,13 @@ implementation {
     if (err != SUCCESS)
       call AMControl.start();
     else
+      call Leds.set(STATE_IDLE);
       state = STATE_IDLE;
   }
 
   event void AMControl.stopDone(error_t err) {
-    state = STATE_INVALID;
+    call Leds.set(STATE_RADIOOFF);
+    state = STATE_RADIOOFF;
   }
 
   /* Task : sendPending
@@ -178,6 +180,7 @@ implementation {
       dbgstat(stats[i]);
     dbgpset(problem);
 #endif
+    call Leds.set(STATE_FINISHED);
     state = STATE_FINISHED;
   }
 
@@ -196,12 +199,21 @@ implementation {
     setup_t* msg = (setup_t*)payload;
     uint8_t i = 0, k = 1;
 
-    if ( state == STATE_IDLE ) {
+    if ( state == STATE_IDLE || state == STATE_INVALID ) {
 #ifdef USE_TOSSIM
       dbg("Debug","Config received\n");
 #endif
       // Store it - we will need it later
       config = *msg;
+      
+      if ( config.problem_idx > PROBLEMSET_COUNT ) {
+#ifdef USE_TOSSIM
+        dbg("Debug","Invalid problem idx received : %d\n",config.problem_idx);
+#endif
+        call Leds.set(STATE_INVALID);
+        state = STATE_INVALID;
+        return bufPtr;   
+      }
 
       // Enable the ACK feature on the message if wanted
       if ( (config.flags & USE_ACK) && SUCCESS == call PAck.requestAck(&pkt) )
@@ -245,10 +257,10 @@ implementation {
         call TriggerTimer.startPeriodic(config.sendtrig_msec);
 
       // Now we are running
+      call Leds.set(STATE_RUNNING);
       state = STATE_RUNNING;
       call Timer.startOneShot(config.runtime_msec);
       post sendPending();
-
     }
     return bufPtr;
   }
@@ -299,6 +311,7 @@ implementation {
 #ifdef USE_TOSSIM
       dbg("Debug","Message sent SUCCESSFULLY (edgeid,msgid) = (%d,%d)\n",msg->edgeid,msg->msgid);
 #endif
+      
       ++(stats[msg->edgeid].sendDoneSuccessCount);
       problem[msg->edgeid].lastmsgid = msg->msgid;
 
@@ -324,7 +337,7 @@ implementation {
         // Resend is done by setting a new pending "job", and not incrementing the message counter.
         // This way when configuring the packet to be sent with TxTest.send, we can detect that the
         // message counter is not incremented, and update the resend count statistics.
-        setPendingOrBacklog( pow(2,msg->edgeid) );
+        setPendingOrBacklog( powf(2,msg->edgeid) );
       }
 
     // In case of unsuccessfull send
@@ -334,7 +347,7 @@ implementation {
 
     // Check whether we have to send message on sendDone
     if ( problem[msg->edgeid].flags & SEND_ON_SDONE )
-     setPendingOrBacklog( pow(2,msg->edgeid) );
+      setPendingOrBacklog( powf(2,msg->edgeid) );
 
     // Re-post the queue processing task
     post sendPending();
