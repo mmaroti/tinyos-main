@@ -38,20 +38,22 @@ configuration ControllerAppC
 } 
 implementation { 
   
-	components ControllerC as App;
-	components MainC;
-	components LedsC;
-	components new TimerMilliC();
-	components new AMSenderC(AM_CONTROLPACKET) as Sender;
-	components new AMReceiverC(AM_CONTROLPACKET) as Receiver;
-	components ActiveMessageC;
+  components ControllerC as App;
+  components MainC;
+  components LedsC;
+   components new TimerMilliC();
+  components new AMSenderC(AM_CONTROLPACKET) as Sender;
+  components new AMReceiverC(AM_CONTROLPACKET) as Receiver;
+  components ActiveMessageC;
 
-	App.Boot -> MainC;
-	App.Leds -> LedsC;
-	App.Timer -> TimerMilliC;
-	App.SplitControl -> ActiveMessageC;
-	App.AMSend -> Sender.AMSend;
-	App.Packet -> Sender.Packet;
-	App.Receive -> Receiver.Receive;
+
+  App.Boot -> MainC;
+  App.Leds -> LedsC;
+  App.Timer -> TimerMilliC;
+  App.SplitControl -> ActiveMessageC;
+  App.AMSend -> Sender.AMSend;
+  App.Packet -> Sender.Packet;
+  App.Receive -> Receiver.Receive;
 }
+
 

@@ -50,17 +50,16 @@ module ControllerC
 implementation
 {
 	message_t msg;
-	bool stopSend;
-	uint8_t nodeNum;
-	
-	inline void send_data()
-	{
-		controlpacket_t *strpkt = (controlpacket_t*)(call Packet.getPayload(&msg, sizeof(controlpacket_t)));
-		strpkt->nodeID=TOS_NODE_ID;
-		strpkt->instr='r';
-		call AMSend.send(AM_BROADCAST_ADDR, &msg, sizeof(controlpacket_t));
-		call Leds.led0Toggle();
-	}
+	enum{
+		IDLE=0,
+		RSSI,
+		LQI,
+		WFS,
+		VREF,
+		LED,
+	};
+	uint8_t state=IDLE;
+	inline void sendControl(uint8_t*);
 	
 	event void Boot.booted()
 	{
@@ -69,31 +68,24 @@ implementation
 	
 	event void SplitControl.startDone(error_t err)
 	{
-		if (err==SUCCESS)
-		{
-			//nothing to do
-		}
-		else
+		if (err!=SUCCESS)
 		{
 			call SplitControl.start();
 		}
 	}
 	
-	event void SplitControl.stopDone(error_t err)
-	{
-		//no action
-	}
+	event void SplitControl.stopDone(error_t err){}
 	
 	event message_t* Receive.receive(message_t* ctrlmsg,void* payload, uint8_t len)
 	{
 		if (len == sizeof(controlpacket_t))
 		{
 			controlpacket_t *ctrlpkt = (controlpacket_t*)payload;
-			if(ctrlpkt->nodeID==TOS_NODE_ID && ctrlpkt->instr=='s')
+			if(ctrlpkt->nodeID==TOS_NODE_ID && ctrlpkt->instr[0]=='s')
 			{
-				stopSend=FALSE;
-				send_data();
-				call Timer.startOneShot(1000);
+				state=RSSI;
+				sendControl((uint8_t*)"sr");
+				call Timer.startOneShot(1024);
 			}
 		}
 		return ctrlmsg;	
@@ -102,15 +94,54 @@ implementation
 
     event void Timer.fired()
     {
-    	stopSend = TRUE;
+    	state++;
+    	switch(state)
+    	{
+    		case LQI:
+    			sendControl((uint8_t*)"sl");
+    			call Timer.startOneShot(1024);
+    			break;
+    		case WFS:
+    			call Timer.startOneShot(16);
+    			break;
+    		case VREF:
+    			sendControl((uint8_t*)"sv");
+    			call Timer.startOneShot(1024);
+    			break;
+    		case LED:
+    			sendControl((uint8_t*)"sf");
+    			state=IDLE;
+    			break;	
+    	}
+    	
     }
-
+    
     event void AMSend.sendDone(message_t* bufPtr, error_t error)
-    {
-	   if (&msg==bufPtr && !stopSend)
+	{
+	   
+	   if (&msg==bufPtr)
 	   {
-		send_data();
-	   }
-    }
+			
+			switch(state)
+			{	
+				case RSSI:
+					sendControl((uint8_t*)"sr");
+					break;
+				case LQI:
+					sendControl((uint8_t*)"sl");
+					break;
+		   }
+		}
+  	}
+ 	
+  	inline void sendControl(uint8_t* instr)
+	{
+		controlpacket_t *ctrlpkt = (controlpacket_t*)(call Packet.getPayload(&msg, sizeof(controlpacket_t)));
+		ctrlpkt->nodeID=TOS_NODE_ID;
+		ctrlpkt->instr[0]=instr[0];
+		ctrlpkt->instr[1]=instr[1];
+		call AMSend.send(AM_BROADCAST_ADDR, &msg, sizeof(controlpacket_t));
+	}
 }
+
 

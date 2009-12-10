@@ -41,14 +41,33 @@ implementation {
   	components RSSINodeC as App;
   	components MainC;
   	components LedsC;
-  	components CC2420ActiveMessageC;
+  	components ActiveMessageC;
+  	components new TimerMilliC() as vrefTimer;
+  	components new TimerMilliC() as ledTimer;
+	components new VoltageC();
 
+#ifdef PLATFORM_IRIS
+	components RF230ActiveMessageC;
+	App.PacketRSSI->RF230ActiveMessageC.PacketRSSI;
+	App.PacketLinkQuality->RF230ActiveMessageC.PacketLinkQuality;
+	
+#else
+	components CC2420ActiveMessageC;
+	App.CC2420Packet->CC2420ActiveMessageC.CC2420Packet;
+	App.intfSendInt8 -> ActiveMessageC.AMSend[AM_DATAINT8];
+#endif
+#ifdef PLATFORM_TELOSB
+	components UserButtonC;
+	App.Notify -> UserButtonC;
+#endif
   	App.Boot -> MainC;
   	App.Leds -> LedsC;
-  	App.SplitControl ->CC2420ActiveMessageC;
-  	App.Receive -> CC2420ActiveMessageC.Receive[AM_CONTROLPACKET];
-	App.AMSend -> CC2420ActiveMessageC.AMSend[AM_DATAPACKET];
-	App.Packet->CC2420ActiveMessageC.Packet;
-	App.CC2420Packet->CC2420ActiveMessageC.CC2420Packet;
+  	App.Vref->VoltageC;
+  	App.vrefTimer->vrefTimer;
+  	App.ledTimer->ledTimer;
+  	App.SplitControl ->ActiveMessageC;
+  	App.Receive -> ActiveMessageC.Receive[AM_CONTROLPACKET];
+  	App.intfSendUint8 -> ActiveMessageC.AMSend[AM_DATAUINT8];
+	App.intfSendUint16 -> ActiveMessageC.AMSend[AM_DATAUINT16];
 }
 
