@@ -7,12 +7,12 @@
 public class ControlMsg extends net.tinyos.message.Message {
 
     /** The default size of this message type in bytes. */
-    public static final int DEFAULT_MESSAGE_SIZE = 2;
+    public static final int DEFAULT_MESSAGE_SIZE = 3;
 
     /** The Active Message type associated with this message. */
     public static final int AM_TYPE = 1;
 
-    /** Create a new ControlMsg of size 2. */
+    /** Create a new ControlMsg of size 3. */
     public ControlMsg() {
         super(DEFAULT_MESSAGE_SIZE);
         amTypeSet(AM_TYPE);
@@ -88,7 +88,11 @@ public class ControlMsg extends net.tinyos.message.Message {
         s += "  [nodeID=0x"+Long.toHexString(get_nodeID())+"]\n";
       } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
       try {
-        s += "  [instr=0x"+Long.toHexString(get_instr())+"]\n";
+        s += "  [instr=";
+        for (int i = 0; i < 2; i++) {
+          s += "0x"+Long.toHexString(getElement_instr(i) & 0xff)+" ";
+        }
+        s += "]\n";
       } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
       return s;
     }
@@ -160,9 +164,9 @@ public class ControlMsg extends net.tinyos.message.Message {
 
     /////////////////////////////////////////////////////////
     // Accessor methods for field: instr
-    //   Field type: short, unsigned
+    //   Field type: short[], unsigned
     //   Offset (bits): 8
-    //   Size (bits): 8
+    //   Size of each element (bits): 8
     /////////////////////////////////////////////////////////
 
     /**
@@ -173,52 +177,142 @@ public class ControlMsg extends net.tinyos.message.Message {
     }
 
     /**
-     * Return whether the field 'instr' is an array (false).
+     * Return whether the field 'instr' is an array (true).
      */
     public static boolean isArray_instr() {
-        return false;
+        return true;
     }
 
     /**
      * Return the offset (in bytes) of the field 'instr'
      */
-    public static int offset_instr() {
-        return (8 / 8);
+    public static int offset_instr(int index1) {
+        int offset = 8;
+        if (index1 < 0 || index1 >= 2) throw new ArrayIndexOutOfBoundsException();
+        offset += 0 + index1 * 8;
+        return (offset / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'instr'
      */
-    public static int offsetBits_instr() {
-        return 8;
+    public static int offsetBits_instr(int index1) {
+        int offset = 8;
+        if (index1 < 0 || index1 >= 2) throw new ArrayIndexOutOfBoundsException();
+        offset += 0 + index1 * 8;
+        return offset;
     }
 
     /**
-     * Return the value (as a short) of the field 'instr'
+     * Return the entire array 'instr' as a short[]
      */
-    public short get_instr() {
-        return (short)getUIntBEElement(offsetBits_instr(), 8);
+    public short[] get_instr() {
+        short[] tmp = new short[2];
+        for (int index0 = 0; index0 < numElements_instr(0); index0++) {
+            tmp[index0] = getElement_instr(index0);
+        }
+        return tmp;
     }
 
     /**
-     * Set the value of the field 'instr'
+     * Set the contents of the array 'instr' from the given short[]
      */
-    public void set_instr(short value) {
-        setUIntBEElement(offsetBits_instr(), 8, value);
+    public void set_instr(short[] value) {
+        for (int index0 = 0; index0 < value.length; index0++) {
+            setElement_instr(index0, value[index0]);
+        }
     }
 
     /**
-     * Return the size, in bytes, of the field 'instr'
+     * Return an element (as a short) of the array 'instr'
      */
-    public static int size_instr() {
+    public short getElement_instr(int index1) {
+        return (short)getUIntBEElement(offsetBits_instr(index1), 8);
+    }
+
+    /**
+     * Set an element of the array 'instr'
+     */
+    public void setElement_instr(int index1, short value) {
+        setUIntBEElement(offsetBits_instr(index1), 8, value);
+    }
+
+    /**
+     * Return the total size, in bytes, of the array 'instr'
+     */
+    public static int totalSize_instr() {
+        return (16 / 8);
+    }
+
+    /**
+     * Return the total size, in bits, of the array 'instr'
+     */
+    public static int totalSizeBits_instr() {
+        return 16;
+    }
+
+    /**
+     * Return the size, in bytes, of each element of the array 'instr'
+     */
+    public static int elementSize_instr() {
         return (8 / 8);
     }
 
     /**
-     * Return the size, in bits, of the field 'instr'
+     * Return the size, in bits, of each element of the array 'instr'
      */
-    public static int sizeBits_instr() {
+    public static int elementSizeBits_instr() {
         return 8;
+    }
+
+    /**
+     * Return the number of dimensions in the array 'instr'
+     */
+    public static int numDimensions_instr() {
+        return 1;
+    }
+
+    /**
+     * Return the number of elements in the array 'instr'
+     */
+    public static int numElements_instr() {
+        return 2;
+    }
+
+    /**
+     * Return the number of elements in the array 'instr'
+     * for the given dimension.
+     */
+    public static int numElements_instr(int dimension) {
+      int array_dims[] = { 2,  };
+        if (dimension < 0 || dimension >= 1) throw new ArrayIndexOutOfBoundsException();
+        if (array_dims[dimension] == 0) throw new IllegalArgumentException("Array dimension "+dimension+" has unknown size");
+        return array_dims[dimension];
+    }
+
+    /**
+     * Fill in the array 'instr' with a String
+     */
+    public void setString_instr(String s) { 
+         int len = s.length();
+         int i;
+         for (i = 0; i < len; i++) {
+             setElement_instr(i, (short)s.charAt(i));
+         }
+         setElement_instr(i, (short)0); //null terminate
+    }
+
+    /**
+     * Read the array 'instr' as a String
+     */
+    public String getString_instr() { 
+         char carr[] = new char[Math.min(net.tinyos.message.Message.MAX_CONVERTED_STRING_LENGTH,2)];
+         int i;
+         for (i = 0; i < carr.length; i++) {
+             if ((char)getElement_instr(i) == (char)0) break;
+             carr[i] = (char)getElement_instr(i);
+         }
+         return new String(carr,0,i);
     }
 
 }

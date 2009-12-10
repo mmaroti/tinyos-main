@@ -37,126 +37,111 @@ import java.util.ArrayList;
 import java.lang.Math;
 import net.tinyos.message.*;
 import net.tinyos.util.*;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 
 class RSSI implements MessageListener {
 	
 	private MoteIF mif;
-	private int recMsgNum=0;
-	public ReceivedData[] recDataArray;
-			
-	public RSSI(String from,String to)
+	private FileOutputStream fileOutput;
+	private PrintStream printToFile;
+				
+	public RSSI()
 	{
 		mif = new MoteIF(PrintStreamMessenger.err);
 		mif.registerListener(new ControlMsg(),this);
-		mif.registerListener(new DataMsg(),this);
-		recDataArray = new ReceivedData[Math.abs(Integer.parseInt(to)-Integer.parseInt(from))+1];
-		
+		mif.registerListener(new Int8Msg(),this);
+		mif.registerListener(new Uint8Msg(),this);
+		mif.registerListener(new Uint16Msg(),this);
+			
 	}
 	public void messageReceived(int dest_addr,Message msg)
 	{
-		if(msg instanceof DataMsg)
-		{
-			DataMsg datamsg=(DataMsg)msg;
-			recDataArray[recMsgNum] = new ReceivedData();
-			recDataArray[recMsgNum].setsenderNodeID(datamsg.get_senderNodeID());
-			recDataArray[recMsgNum].setreceiverNodeID(datamsg.get_receiverNodeID());
-			recDataArray[recMsgNum].setrssiMin(datamsg.get_rssiMin());
-			recDataArray[recMsgNum].setrssiAver(datamsg.get_rssiAver());
-			recDataArray[recMsgNum].setrssiEnergy(datamsg.get_rssiEnergy());
-			recDataArray[recMsgNum].setrssiMax(datamsg.get_rssiMax());
-			recDataArray[recMsgNum].setlqiMin(datamsg.get_lqiMin());
-			recDataArray[recMsgNum].setlqiAver(datamsg.get_lqiAver());
-			recDataArray[recMsgNum].setlqiEnergy(datamsg.get_lqiEnergy());
-			recDataArray[recMsgNum].setlqiMax(datamsg.get_lqiMax());
-			recDataArray[recMsgNum].setsampleCnt(datamsg.get_sampleCnt());
-			recMsgNum++;
+		try{
+			if (fileOutput==null && printToFile==null) {
+				fileOutput= new FileOutputStream("TestResults.txt");
+				printToFile = new PrintStream(fileOutput);
+			}
+			if(msg instanceof Int8Msg) {
+				Int8Msg int8Msg = (Int8Msg)msg;
+				printToFile.print("The result of the RSSI measurement between node "+int8Msg.get_senderNodeID()+" and node "+int8Msg.get_receiverNodeID()+"\n");
+				printToFile.print("Minimum: " +int8Msg.get_min()+"\n");
+				printToFile.printf("Average: %.2f\n",((double)int8Msg.get_sum_a()/(double)int8Msg.get_sampleCnt()));
+				printToFile.print("Maximum: " +int8Msg.get_max()+"\n");
+				printToFile.printf("Energy:  %.2f\n",((double)int8Msg.get_sum_e()/(double)(int8Msg.get_sampleCnt()-1)));
+			}
+			else if (msg instanceof Uint8Msg) {
+				Uint8Msg uint8Msg = (Uint8Msg)msg;
+				if(uint8Msg.get_dataType()=='l') {
+					printToFile.print("The result of the LQI measurement between node "+uint8Msg.get_senderNodeID()+" and node "+uint8Msg.get_receiverNodeID()+"\n");
+				} else if (uint8Msg.get_dataType()=='r'){
+					printToFile.print("The result of the RSSI measurement between node "+uint8Msg.get_senderNodeID()+" and node "+uint8Msg.get_receiverNodeID()+"\n");
+				}
+				printToFile.print("Minimum: " +uint8Msg.get_min()+"\n");
+				printToFile.printf("Average: %.2f\n",((double)uint8Msg.get_sum_a()/(double)uint8Msg.get_sampleCnt()));
+				printToFile.print("Maximum: " +uint8Msg.get_max()+"\n");
+				printToFile.printf("Energy:  %.2f\n",((double)uint8Msg.get_sum_e()/(double)(uint8Msg.get_sampleCnt()-1)));
+			} else if (msg instanceof Uint16Msg) {
+				Uint16Msg uint16Msg = (Uint16Msg)msg;
+				printToFile.print("The result of the Vref measurement in case of node "+uint16Msg.get_receiverNodeID()+"\n");
+				printToFile.print("Minimum: " +uint16Msg.get_min()+"\n");
+				printToFile.printf("Average: %.2f\n",((double)uint16Msg.get_sum_a()/(double)uint16Msg.get_sampleCnt()));
+				printToFile.print("Maximum: " +uint16Msg.get_max()+"\n");
+				printToFile.printf("Energy:  %.2f\n",((double)uint16Msg.get_sum_e()/(double)(uint16Msg.get_sampleCnt()-1)));
+			}
+		}catch(IOException e){
+			out.println("Cannot open the file");
 		}
 	}
 	
-	public void sendCtrlMessage(short nodeID,char instr)  
+	public void sendCtrlMessage(short nodeID,short[] instr)  
     {
-    	ControlMsg smsg=new ControlMsg();
+    	ControlMsg ctrlmsg=new ControlMsg();
 	
-    	smsg.set_nodeID(nodeID);
-    	smsg.set_instr((short)instr);
+    	ctrlmsg.set_nodeID(nodeID);
+    	ctrlmsg.set_instr(instr);
 		try{
-			mif.send((int)nodeID,smsg);
+			mif.send((int)nodeID,ctrlmsg);
 		}catch(IOException e)
 		{
 			out.println("Cannot send message to node " + nodeID );
 		}
 	}
-	public void Display()
-	{
-		int nodeCount = 0;
-		if(recMsgNum == 0)
-		{
-			out.println("No message received!");
-		}
-		else
-		{
-			out.println();
-			out.println("Rssi:");
-			out.println();
-			out.println("SID\tRID\tMin\tAver\tMax\tEnergy\tSamples");
-			while(nodeCount!=recMsgNum)
-			{
-				
-				out.print("  "+recDataArray[nodeCount].getsenderNodeID());
-				out.print("\t"+recDataArray[nodeCount].getreceiverNodeID());
-				out.print("\t"+recDataArray[nodeCount].getrssiMin());
-				out.printf("\t%3.2f",((double)recDataArray[nodeCount].getrssiAver()/(double)recDataArray[nodeCount].getsampleCnt()));
-				out.print("\t"+recDataArray[nodeCount].getrssiMax());
-				out.printf("\t%3.2f",((double)recDataArray[nodeCount].getrssiEnergy()/(double)(recDataArray[nodeCount].getsampleCnt()-1)));
-				out.println("\t"+recDataArray[nodeCount].getsampleCnt());
-				nodeCount++;
-			}
-			nodeCount=0;
-			out.println();
-			out.println("Lqi:");
-			out.println();
-			out.println("SID\tRID\tMin\tAver\tMax\tEnergy\tSamples");
-			while(nodeCount!=recMsgNum)
-			{
-				
-				out.print("  "+recDataArray[nodeCount].getsenderNodeID());
-				out.print("\t"+recDataArray[nodeCount].getreceiverNodeID());
-				out.print("\t"+recDataArray[nodeCount].getlqiMin());
-				out.printf("\t%3.2f",((double)recDataArray[nodeCount].getlqiAver()/(double)recDataArray[nodeCount].getsampleCnt()));
-				out.print("\t"+recDataArray[nodeCount].getlqiMax());
-				out.printf("\t%3.2f",((double)recDataArray[nodeCount].getlqiEnergy()/(double)(recDataArray[nodeCount].getsampleCnt()-1)));
-				out.println("\t"+recDataArray[nodeCount].getsampleCnt());
-				nodeCount++;
-			}
-			
-		}
-	}
 	
 	public void run(String nodeID,String from,String to)
 	{
-		String cache;
-		sendCtrlMessage((short)Integer.parseInt(nodeID),'s');
-		try
-		{
-			Thread.sleep(2000);
-		}catch(InterruptedException e)
-		{}
-		if(Integer.parseInt(from)>Integer.parseInt(to))
-		{
-			cache = from;
-			from = to;
-			to = cache;
-		}
-		for(int count = Integer.parseInt(from); count<=Integer.parseInt(to);count++)
-		{
-			sendCtrlMessage((short)count,'g');
-		}
-		try
-		{
-			Thread.sleep(100);
-		}catch(InterruptedException e)
-		{}
+		try	{
+			String cache;
+			short[] instr= new short[2];
+			instr[0]='s';
+			sendCtrlMessage(Short.parseShort(nodeID),instr);
+			Thread.sleep(4000);
+			if(Integer.parseInt(from)>Integer.parseInt(to))
+			{
+				cache = from;
+				from = to;
+				to = cache;
+			}
+			for(short count = Short.parseShort(from); count<=Short.parseShort(to);count++)
+			{
+				instr[0]='g';
+				instr[1]='r';
+				sendCtrlMessage(count,instr);
+				Thread.sleep(500);
+				instr[1]='l';
+				sendCtrlMessage(count,instr);
+				Thread.sleep(500);
+				instr[1]='v';
+				sendCtrlMessage(count,instr);
+				Thread.sleep(500);
+			}
+			fileOutput.close();
+			printToFile.close();
+			out.print("Ready!\n");
+		}catch(InterruptedException e){
+		}catch(IOException e){}
 	}
+
 	public static void main (String[] args)
 	{
 		String[] temp;
@@ -167,9 +152,8 @@ class RSSI implements MessageListener {
 		else 
 		{
 			temp=args[1].split("-");
-			RSSI rssitester= new RSSI(temp[0],temp[1]);
+			RSSI rssitester= new RSSI();
 			rssitester.run(args[0],temp[0],temp[1]);
-			rssitester.Display();
 			System.exit(0);
 		}
 	}	
