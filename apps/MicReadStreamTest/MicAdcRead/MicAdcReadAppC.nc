@@ -33,7 +33,6 @@
 
 #include "MicAdcRead.h"
 
-
 configuration MicAdcReadAppC
 {
 }
@@ -52,7 +51,7 @@ implementation {
 	MicAdcReadC.Leds -> LedsC;
 	MicAdcReadC.Boot -> MainC;
 	MicAdcReadC.Alarm -> Alarm;
-	MicAdcReadC.Uart -> ActiveMessageC;
+	MicAdcReadC.Radio -> ActiveMessageC;
 	MicAdcReadC.Microphone -> MicrophoneC;
 	MicAdcReadC.AMSend -> Send;
 	MicAdcReadC.Receive -> Receive;

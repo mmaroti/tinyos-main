@@ -47,7 +47,7 @@ module RSSINodeC
 		interface AMSend as intfSendUint8;
 		interface AMSend as intfSendUint16;
 		interface Receive;
-		interface Timer<TMilli> as vrefTimer;
+		interface Timer<TMilli> as MesTimer;
 		interface Timer<TMilli> as ledTimer;
 		interface Read<uint16_t> as Vref;
 
@@ -59,7 +59,12 @@ module RSSINodeC
 		interface AMSend as intfSendInt8;
 #endif
 #ifdef PLATFORM_TELOSB
-	interface Notify<button_state_t>;
+		interface Notify<button_state_t>;
+		interface Read<uint16_t> as Temp;
+		interface Read<uint16_t> as Hum;
+		interface Read<uint16_t> as RadSens;
+		interface Read<uint16_t> as OvRadSens;
+		
 #endif
 	}
 
@@ -68,8 +73,8 @@ implementation
 {
 	message_t msg;
 	
-	bool vrefRead;
-	dataUint16_t vref;
+	bool Read;
+	dataUint16_t vref,ovsRad,sRad,hum,temp;
 	
 	void calcUint16(uint16_t,dataUint16_t*, bool);
 	void sendUint16(dataUint16_t*);
@@ -78,7 +83,7 @@ implementation
 	void calcUint8(uint8_t, dataUint8_t*, bool);
 	void sendUint8(dataUint8_t*);
 	void initUint8(dataUint8_t*);
-#ifndef PLATFORM_IRIS		
+#ifdef PLATFORM_TELOSB		
 	void calcInt8(int8_t,dataInt8_t*,bool);
 	void sendInt8(dataInt8_t*);
 	void initInt8(dataInt8_t*);
@@ -88,6 +93,10 @@ implementation
 		call SplitControl.start();
 #ifdef PLATFORM_TELOSB
 		call Notify.enable();
+		initUint16(&ovsRad);
+		initUint16(&sRad);
+		initUint16(&hum);
+		initUint16(&temp);
 #endif
 		initUint16(&vref);
 	}
@@ -155,9 +164,9 @@ implementation
 						initL=FALSE;
 						break;
 					case 'v':
-						vrefRead = TRUE;
+						Read = TRUE;
 						call Vref.read();
-						call vrefTimer.startOneShot(1024);
+						call MesTimer.startOneShot(1024);
 						vref.dataType='v';
 						vref.senderNodeID=ctrlpkt->nodeID;
 						vref.receiverNodeID=TOS_NODE_ID;
@@ -165,6 +174,40 @@ implementation
 					case 'f':
 						call ledTimer.startPeriodic(512);
 						break;
+#ifdef PLATFORM_TELOSB
+					case 't':
+						Read = TRUE;
+						call Temp.read();
+						call MesTimer.startOneShot(1024);
+						temp.dataType='t';
+						temp.senderNodeID=ctrlpkt->nodeID;
+						temp.receiverNodeID=TOS_NODE_ID;
+						break;
+					case 'h':
+						Read = TRUE;
+						call Hum.read();
+						call MesTimer.startOneShot(1024);
+						hum.dataType='h';
+						hum.senderNodeID=ctrlpkt->nodeID;
+						hum.receiverNodeID=TOS_NODE_ID;					
+						break;
+					case 's':
+						Read = TRUE;
+						call RadSens.read();
+						call MesTimer.startOneShot(1024);
+						sRad.dataType='s';
+						sRad.senderNodeID=ctrlpkt->nodeID;
+						sRad.receiverNodeID=TOS_NODE_ID;	
+						break;
+					case 'o':
+						Read = TRUE;
+						call OvRadSens.read();
+						call MesTimer.startOneShot(1024);
+						ovsRad.dataType='o';
+						ovsRad.senderNodeID=ctrlpkt->nodeID;
+						ovsRad.receiverNodeID=TOS_NODE_ID;	
+						break;
+#endif
 				}
 			}
 			else if(ctrlpkt->instr[0] == 'g' && ctrlpkt->nodeID==TOS_NODE_ID)
@@ -185,16 +228,35 @@ implementation
 						break;
 					case 'v':
 						sendUint16(&vref);
+						initUint16(&vref);
 						break;
+#ifdef PLATFORM_TELOSB
+					case 't':
+						sendUint16(&temp);
+						initUint16(&temp);
+						break;
+					case 'h':
+						sendUint16(&hum);
+						initUint16(&hum);
+						break;
+					case 's':
+						sendUint16(&sRad);
+						initUint16(&sRad);	
+						break;
+					case 'o':
+						sendUint16(&ovsRad);
+						initUint16(&ovsRad);	
+						break;
+#endif
 				}
 			}
 		}
 		return controlmsg;
 	}
 	
-	event void vrefTimer.fired()
+	event void MesTimer.fired()
 	{
-		vrefRead=FALSE;
+		Read=FALSE;
 	}
 	
 	event void ledTimer.fired()
@@ -217,14 +279,64 @@ implementation
   	{
 		if (err == SUCCESS)
 	    {
-     		calcUint16(data,&vref,!vrefRead);
-     		if (vrefRead == TRUE)
+     		calcUint16(data,&vref,!Read);
+     		if (Read == TRUE)
 	    	{
      			call Vref.read();
      		}
      	}
  	}
-#ifndef PLATFORM_IRIS 	
+#ifdef 	PLATFORM_TELOSB
+	event void Temp.readDone(error_t err, uint16_t data)
+  	{
+		if (err == SUCCESS)
+	    {
+     		calcUint16(data,&temp,!Read);
+     		if (Read == TRUE)
+	    	{
+     			call Temp.read();
+     		}
+     	}
+ 	}
+ 	
+ 	event void Hum.readDone(error_t err, uint16_t data)
+  	{
+		if (err == SUCCESS)
+	    {
+     		calcUint16(data,&hum,!Read);
+     		if (Read == TRUE)
+	    	{
+     			call Hum.read();
+     		}
+     	}
+ 	}
+ 	
+ 	event void RadSens.readDone(error_t err, uint16_t data)
+  	{
+		if (err == SUCCESS)
+	    {
+     		calcUint16(data,&sRad,!Read);
+     		if (Read == TRUE)
+	    	{
+     			call RadSens.read();
+     		}
+     	}
+ 	}
+ 	
+ 	event void OvRadSens.readDone(error_t err, uint16_t data)
+  	{
+		if (err == SUCCESS)
+	    {
+     		calcUint16(data,&ovsRad,!Read);
+     		if (Read == TRUE)
+	    	{
+     			call OvRadSens.read();
+     		}
+     	}
+ 	}
+#endif
+ 	
+#ifdef PLATFORM_TELOSB 	
  	event void intfSendInt8.sendDone(message_t* bufPtr, error_t error){}
 #endif	
     event void intfSendUint8.sendDone(message_t* bufPtr, error_t error){}
@@ -247,7 +359,7 @@ implementation
 		}
 	}
 #endif	
-#ifndef PLATFORM_IRIS 	
+#ifdef PLATFORM_TELOSB 	
 	void calcInt8(int8_t dataIn, dataInt8_t* structPtr, bool zeroLocals)
   	{
   		static int8_t firstVal=0,absDiff=0;
@@ -328,7 +440,7 @@ implementation
 	  	structPtr->sum_a += dataIn;
  		structPtr->sampleCnt++;
   	}
-#ifndef PLATFORM_IRIS  	
+#ifdef PLATFORM_TELOSB  	
   	void sendInt8(dataInt8_t* structPtr)
   	{
   		memcpy(call intfSendInt8.getPayload(&msg, sizeof(dataInt8_t)),structPtr,sizeof(dataInt8_t));
@@ -347,7 +459,7 @@ implementation
 		memcpy(call intfSendUint16.getPayload(&msg, sizeof(dataUint16_t)),structPtr,sizeof(dataUint16_t));
   		call intfSendUint16.send(0, &msg, sizeof(dataUint16_t));
     }
-#ifndef PLATFORM_IRIS  	    	
+#ifdef PLATFORM_TELOSB  	    	
   	void initInt8(dataInt8_t* structPtr)
  	{
 		structPtr->min=127;

@@ -140,9 +140,7 @@ implementation
  	
 	event void Boot.booted()
 	{
-		Init_values();
 		call AMControl.start();
-		
 	}
 
 	event void AMControl.startDone(error_t err)
@@ -167,35 +165,41 @@ implementation
 		if (len == sizeof(controlmsg_t))
 		{
 			controlmsg_t *ctrlmsg = (controlmsg_t*)payload;
-			switch(ctrlmsg->instr)
+			if(ctrlmsg->nodeID==TOS_NODE_ID)
 			{
-				case 'b':
-					call Beeper.beep(300);
+				switch(ctrlmsg->instr)
+				{
+					case 'b':
+						call Beeper.beep(300);
+						call Leds.led0On();
+						call Leds.led1On();
+						call Leds.led2On();
+						call TimerMilli.startOneShot(512);
+						break;
+					case 'l':
+						Init_values();
+						call TimerMilli.startOneShot(SAMP_TIME);
+						call PhotoRead.read();
+						break;	
+					case 'm':
+						Init_values();
+						call MicRead.postBuffer(micSamples,1000);
+						call MicRead.read(1);
+						break;
+					case 'v':
+						Init_values();
+						call TimerMilli.startOneShot(SAMP_TIME);
+						call VrefRead.read();
+						break;
+					case 't':
+						Init_values();
+						call TimerMilli.startOneShot(SAMP_TIME);
+						call TempRead.read();
+						break;
+					case 'g':
+						send_data();
 					break;
-				case 'l':
-					Init_values();
-					call TimerMilli.startPeriodic(SAMP_TIME);
-					call PhotoRead.read();
-					break;	
-				case 'm':
-					Init_values();
-					call MicRead.postBuffer(micSamples,1000);
-					call MicRead.read(1);
-					break;
-				case 'v':
-					Init_values();
-					call TimerMilli.startPeriodic(SAMP_TIME);
-					call VrefRead.read();
-					break;
-				case 't':
-					Init_values();
-					call TimerMilli.startPeriodic(SAMP_TIME);
-					call TempRead.read();
-					
-					break;
-				case 'g':
-					send_data();
-					break;
+				}
 			}
 		}
 		return bufPtr;
@@ -203,8 +207,10 @@ implementation
 
 	event void TimerMilli.fired()
 	{
-		call TimerMilli.stop();
 		readData=FALSE;
+		call Leds.led0Off();
+		call Leds.led1Off();
+		call Leds.led2Off();
 	}
 	
 	event void PhotoRead.readDone(error_t err, uint16_t data)

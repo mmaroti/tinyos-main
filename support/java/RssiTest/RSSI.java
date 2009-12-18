@@ -45,7 +45,8 @@ class RSSI implements MessageListener {
 	private MoteIF mif;
 	private FileOutputStream fileOutput;
 	private PrintStream printToFile;
-				
+	boolean rssiFirst=true,lqiFirst=true,vrefFirst=true,tempFirst=true,humFirst=true,srFirst=true,osrFirst=true;
+						
 	public RSSI()
 	{
 		mif = new MoteIF(PrintStreamMessenger.err);
@@ -53,47 +54,79 @@ class RSSI implements MessageListener {
 		mif.registerListener(new Int8Msg(),this);
 		mif.registerListener(new Uint8Msg(),this);
 		mif.registerListener(new Uint16Msg(),this);
-			
 	}
 	public void messageReceived(int dest_addr,Message msg)
 	{
-		try{
+		try {
 			if (fileOutput==null && printToFile==null) {
 				fileOutput= new FileOutputStream("TestResults.txt");
 				printToFile = new PrintStream(fileOutput);
 			}
 			if(msg instanceof Int8Msg) {
 				Int8Msg int8Msg = (Int8Msg)msg;
-				printToFile.print("The result of the RSSI measurement between node "+int8Msg.get_senderNodeID()+" and node "+int8Msg.get_receiverNodeID()+"\n");
-				printToFile.print("Minimum: " +int8Msg.get_min()+"\n");
-				printToFile.printf("Average: %.2f\n",((double)int8Msg.get_sum_a()/(double)int8Msg.get_sampleCnt()));
-				printToFile.print("Maximum: " +int8Msg.get_max()+"\n");
-				printToFile.printf("Energy:  %.2f\n",((double)int8Msg.get_sum_e()/(double)(int8Msg.get_sampleCnt()-1)));
+				if(int8Msg.get_dataType()==0)
+				{
+					out.println("The mote cannot receive the control messages");
+					fileOutput.close();
+					printToFile.close();
+					System.exit(-1);
+				}
+				if(rssiFirst==true) {
+					printToFile.println("The result of the RSSI measurement");
+					printToFile.printf("%-13s %-13s %-13s %-13s %-13s %-13s%n","SenderID","ReceiveID","Minimum","Average","Maximum","Energy");	
+					rssiFirst=false;
+				}
+				printToFile.printf("%-13d %-13d %-13d %-13.2f %-13d %-13.2f%n",int8Msg.get_senderNodeID(),int8Msg.get_receiverNodeID(),int8Msg.get_min(),((double)int8Msg.get_sum_a()/(double)int8Msg.get_sampleCnt()),int8Msg.get_max(),((double)int8Msg.get_sum_e()/(double)(int8Msg.get_sampleCnt()-1)));
 			}
 			else if (msg instanceof Uint8Msg) {
 				Uint8Msg uint8Msg = (Uint8Msg)msg;
-				if(uint8Msg.get_dataType()=='l') {
-					printToFile.print("The result of the LQI measurement between node "+uint8Msg.get_senderNodeID()+" and node "+uint8Msg.get_receiverNodeID()+"\n");
-				} else if (uint8Msg.get_dataType()=='r'){
-					printToFile.print("The result of the RSSI measurement between node "+uint8Msg.get_senderNodeID()+" and node "+uint8Msg.get_receiverNodeID()+"\n");
+				if(uint8Msg.get_dataType()==0) {
+					out.println("The mote cannot receive the control messages");
+					fileOutput.close();
+					printToFile.close();
+					System.exit(-1);
 				}
-				printToFile.print("Minimum: " +uint8Msg.get_min()+"\n");
-				printToFile.printf("Average: %.2f\n",((double)uint8Msg.get_sum_a()/(double)uint8Msg.get_sampleCnt()));
-				printToFile.print("Maximum: " +uint8Msg.get_max()+"\n");
-				printToFile.printf("Energy:  %.2f\n",((double)uint8Msg.get_sum_e()/(double)(uint8Msg.get_sampleCnt()-1)));
+				if((uint8Msg.get_dataType()=='r') & (rssiFirst==true)) {
+					printToFile.println("The result of the RSSI measurement");
+					printToFile.printf("%-13s %-13s %-13s %-13s %-13s %-13s%n","SenderID","ReceiveID","Minimum","Average","Maximum","Energy");	
+					rssiFirst=false;
+				}
+				else if ((uint8Msg.get_dataType()=='l') & (lqiFirst==true)) {
+					printToFile.println("The result of the LQI measurement");
+					printToFile.printf("%-13s %-13s %-13s %-13s %-13s %-13s%n","SenderID","ReceiveID","Minimum","Average","Maximum","Energy");	
+					lqiFirst=false;
+				}	
+				printToFile.printf("%-13d %-13d %-13d %-13.2f %-13d %-13.2f%n",uint8Msg.get_senderNodeID(),uint8Msg.get_receiverNodeID(),uint8Msg.get_min(),((double)uint8Msg.get_sum_a()/(double)uint8Msg.get_sampleCnt()),uint8Msg.get_max(),((double)uint8Msg.get_sum_e()/(double)(uint8Msg.get_sampleCnt()-1)));
 			} else if (msg instanceof Uint16Msg) {
 				Uint16Msg uint16Msg = (Uint16Msg)msg;
-				printToFile.print("The result of the Vref measurement in case of node "+uint16Msg.get_receiverNodeID()+"\n");
-				printToFile.print("Minimum: " +uint16Msg.get_min()+"\n");
-				printToFile.printf("Average: %.2f\n",((double)uint16Msg.get_sum_a()/(double)uint16Msg.get_sampleCnt()));
-				printToFile.print("Maximum: " +uint16Msg.get_max()+"\n");
-				printToFile.printf("Energy:  %.2f\n",((double)uint16Msg.get_sum_e()/(double)(uint16Msg.get_sampleCnt()-1)));
+				if(uint16Msg.get_dataType()=='v' & vrefFirst==true) {
+					printToFile.println("The result of the Vref measurement");
+					printToFile.printf("%-13s %-13s %-13s %-13s %-13s %-13s%n","SenderID","ReceiveID","Minimum","Average","Maximum","Energy");		
+					vrefFirst=false;	
+				} else if (uint16Msg.get_dataType()=='t' & tempFirst==true){
+					printToFile.println("The result of the Temperature measurement");
+					printToFile.printf("%-13s %-13s %-13s %-13s %-13s %-13s%n","SenderID","ReceiveID","Minimum","Average","Maximum","Energy");		
+					tempFirst=false;
+				} else if (uint16Msg.get_dataType()=='h' & humFirst==true){
+					printToFile.println("The result of the Humidity measurement");
+					printToFile.printf("%-13s %-13s %-13s %-13s %-13s %-13s%n","SenderID","ReceiveID","Minimum","Average","Maximum","Energy");		
+					humFirst=false;
+				} else if (uint16Msg.get_dataType()=='s' & srFirst==true){
+					printToFile.println("The result of the Solar Radiation measurement");
+					printToFile.printf("%-13s %-13s %-13s %-13s %-13s %-13s%n","SenderID","ReceiveID","Minimum","Average","Maximum","Energy");		
+					srFirst=false;
+				} else if (uint16Msg.get_dataType()=='o' & osrFirst==true){
+					printToFile.println("The result of the Overal Solar Radiation measurement");
+					printToFile.printf("%-13s %-13s %-13s %-13s %-13s %-13s%n","SenderID","ReceiveID","Minimum","Average","Maximum","Energy");		
+					osrFirst=true;	
+				}
+				printToFile.printf("%-13d %-13d %-13d %-13.2f %-13d %-13.2f%n",uint16Msg.get_senderNodeID(),uint16Msg.get_receiverNodeID(),uint16Msg.get_min(),((double)uint16Msg.get_sum_a()/(double)uint16Msg.get_sampleCnt()),uint16Msg.get_max(),((double)uint16Msg.get_sum_e()/(double)(uint16Msg.get_sampleCnt()-1)));
 			}
-		}catch(IOException e){
+		} catch(IOException e) {
 			out.println("Cannot open the file");
-		}
+			}
 	}
-	
+
 	public void sendCtrlMessage(short nodeID,short[] instr)  
     {
     	ControlMsg ctrlmsg=new ControlMsg();
@@ -108,32 +141,61 @@ class RSSI implements MessageListener {
 		}
 	}
 	
-	public void run(String nodeID,String from,String to)
+	public void run(String nodeType,String nodeID,String from,String to)
 	{
 		try	{
 			String cache;
 			short[] instr= new short[2];
 			instr[0]='s';
 			sendCtrlMessage(Short.parseShort(nodeID),instr);
-			Thread.sleep(4000);
-			if(Integer.parseInt(from)>Integer.parseInt(to))
-			{
+			if(nodeType.equals("Iris")){
+				Thread.sleep(4000);
+			} else if (nodeType.equals("Telsob")) {
+				Thread.sleep(10000);
+			}
+			if(Integer.parseInt(from)>Integer.parseInt(to)) {
 				cache = from;
 				from = to;
 				to = cache;
 			}
-			for(short count = Short.parseShort(from); count<=Short.parseShort(to);count++)
-			{
+			for(short count = Short.parseShort(from); count<=Short.parseShort(to);count++) {
 				instr[0]='g';
 				instr[1]='r';
 				sendCtrlMessage(count,instr);
 				Thread.sleep(500);
+			}
+			for(short count = Short.parseShort(from); count<=Short.parseShort(to);count++) {	
+			
 				instr[1]='l';
 				sendCtrlMessage(count,instr);
 				Thread.sleep(500);
+			}
+			for(short count = Short.parseShort(from); count<=Short.parseShort(to);count++) {	
 				instr[1]='v';
 				sendCtrlMessage(count,instr);
 				Thread.sleep(500);
+			}
+			if(nodeType.equals("Telosb")) {
+				for(short count = Short.parseShort(from); count<=Short.parseShort(to);count++) {	
+					instr[1]='t';
+					sendCtrlMessage(count,instr);
+					Thread.sleep(500);
+				}
+				for(short count = Short.parseShort(from); count<=Short.parseShort(to);count++) {	
+					instr[1]='h';
+					sendCtrlMessage(count,instr);
+					Thread.sleep(500);
+				}
+				for(short count = Short.parseShort(from); count<=Short.parseShort(to);count++) {	
+					instr[1]='s';
+					sendCtrlMessage(count,instr);
+					Thread.sleep(500);			
+				}
+				for(short count = Short.parseShort(from); count<=Short.parseShort(to);count++) {	
+					instr[1]='o';
+					sendCtrlMessage(count,instr);
+					Thread.sleep(500);	
+				}
 			}
 			fileOutput.close();
 			printToFile.close();
@@ -145,15 +207,15 @@ class RSSI implements MessageListener {
 	public static void main (String[] args)
 	{
 		String[] temp;
-		if (args.length<2)
+		if (args.length<3)
 		{
-			out.println("Usage: RSSI [controller mote ID] [motes which measure data (from-to)]");
+			out.println("Usage: RSSI [nodeType][controller mote ID][motes which measure data (from-to)]");
 		}
 		else 
 		{
-			temp=args[1].split("-");
+			temp=args[2].split("-");
 			RSSI rssitester= new RSSI();
-			rssitester.run(args[0],temp[0],temp[1]);
+			rssitester.run(args[0],args[1],temp[0],temp[1]);
 			System.exit(0);
 		}
 	}	

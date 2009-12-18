@@ -34,12 +34,16 @@
 import static java.lang.System.out;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import net.tinyos.message.*;
 import net.tinyos.util.*;
 
 class Mts300SensorTester implements MessageListener{
 	private MoteIF mif;
 	private int recMsgNum=0;
+	private FileOutputStream fileOutput;
+	private PrintStream printToFile;
 	public ReceivedData[] recDataArray;
 	
 	public Mts300SensorTester(String from,String to)
@@ -82,86 +86,69 @@ class Mts300SensorTester implements MessageListener{
 	}
 	public void Display(String testType)
 	{
-		int nodeCount = 0;
-		if(recMsgNum == 0)
-		{
-			out.println("No message received!");
-		}
-		else
-		{
-			out.println();
-			out.println("ID\tMin\tAver\tMax\tEnergy\tFreq(HZ)");
-			while(nodeCount!=recMsgNum)
-			{
-				
-				out.print(recDataArray[nodeCount].getNodeID());
-				out.print("\t"+recDataArray[nodeCount].getMin());
-				if (testType.equals("mic"))
-				{
-					out.printf("\t%1.2f",(double)recDataArray[nodeCount].getAverage()/(double)recDataArray[nodeCount].getmicSampNum());	
-				}
-				else
-				{
-					out.printf("\t%1.2f",(double)recDataArray[nodeCount].getAverage()/(double)recDataArray[nodeCount].getsampleCnt());
-				}	 
-				out.print("\t"+recDataArray[nodeCount].getMax());
-				if (testType.equals("mic"))
-				{
-					out.printf("\t%1.2f",(double)recDataArray[nodeCount].getEnergy()/(double)recDataArray[nodeCount].getmicSampNum());	
-				}
-				else
-				{
-					out.printf("\t%1.2f",(double)recDataArray[nodeCount].getEnergy()/(double)recDataArray[nodeCount].getsampleCnt());
-				}	 
-				if (testType.equals("mic"))
-				{
-					out.printf("\t%1.2f\n",((1/(double)recDataArray[nodeCount].getmicSampPer())*1000000));	
-				}
-				else
-				{
-					out.println("\t"+recDataArray[nodeCount].getsampleCnt());
-				}			
-				nodeCount++;
+		try{
+			int nodeCount = 0;
+			if(!testType.equals("beeper")){
+				fileOutput= new FileOutputStream(testType+"_test.txt");
+				printToFile = new PrintStream(fileOutput);
 			}
+			if(recMsgNum == 0)
+			{
+				if(!testType.equals("beeper")){
+					out.println("No message received!");
+					printToFile.println("No message received!");
+				}
+			}else{
+				out.println();
+				out.printf("%-13s %-13s %-13s %-13s %-13s %-13s%n","NodeID","Min","Average","Max","Energy","Freqency(HZ)");
+				printToFile.printf("%-13s %-13s %-13s %-13s %-13s %-13s%n","NodeID","Min","Average","Max","Energy","Freqency(HZ)");
+				while(nodeCount!=recMsgNum)
+				{
+					if (testType.equals("mic"))
+					{
+						out.printf("%-13d %-13d %-13.2f %-13d %-13.2f %-13.2f%n",recDataArray[nodeCount].getNodeID(),recDataArray[nodeCount].getMin(),((double)recDataArray[nodeCount].getAverage()/(double)recDataArray[nodeCount].getmicSampNum()),recDataArray[nodeCount].getMax(),((double)recDataArray[nodeCount].getEnergy()/(double)recDataArray[nodeCount].getmicSampNum()),((1/(double)recDataArray[nodeCount].getmicSampPer())*1000000));	
+						printToFile.printf("%-13d %-13d %-13.2f %-13d %-13.2f %-13.2f%n",recDataArray[nodeCount].getNodeID(),recDataArray[nodeCount].getMin(),((double)recDataArray[nodeCount].getAverage()/(double)recDataArray[nodeCount].getmicSampNum()),recDataArray[nodeCount].getMax(),((double)recDataArray[nodeCount].getEnergy()/((double)recDataArray[nodeCount].getmicSampNum()-1)),((1/(double)recDataArray[nodeCount].getmicSampPer())*1000000));	
+					}
+					else
+					{
+						out.printf("%-13d %-13d %-13.2f %-13d %-13.2f %-13d%n",recDataArray[nodeCount].getNodeID(),recDataArray[nodeCount].getMin(),((double)recDataArray[nodeCount].getAverage()/(double)recDataArray[nodeCount].getsampleCnt()),recDataArray[nodeCount].getMax(),((double)recDataArray[nodeCount].getEnergy()/(double)recDataArray[nodeCount].getsampleCnt()),recDataArray[nodeCount].getsampleCnt());	
+						printToFile.printf("%-13d %-13d %-13.2f %-13d %-13.2f %-13d%n",recDataArray[nodeCount].getNodeID(),recDataArray[nodeCount].getMin(),((double)recDataArray[nodeCount].getAverage()/(double)recDataArray[nodeCount].getsampleCnt()),recDataArray[nodeCount].getMax(),((double)recDataArray[nodeCount].getEnergy()/((double)recDataArray[nodeCount].getsampleCnt()-1)),recDataArray[nodeCount].getsampleCnt());	
+					}	 
+					nodeCount++;
+				}
+			}
+		}catch(IOException e){
+			out.println("Cannot open the file");
 		}
 	}
 
 	public void run(String testType,String from,String to)
 	{
 		String cache;
-		if(Integer.parseInt(from)>Integer.parseInt(to))
-		{
-			cache = from;
-			from = to;
-			to = cache;
-		}
-		for(int nodeID=Integer.parseInt(from);nodeID<=Integer.parseInt(to);nodeID++)
-		{
-			if (testType.equals("beeper"))
+		try{
+			if(Integer.parseInt(from)>Integer.parseInt(to))
 			{
-				sendCtrlMessage(testType.charAt(0),(short)nodeID);
-				try{
-					Thread.sleep(1000);
-				}catch(InterruptedException e){}
+				cache = from;
+				from = to;
+				to = cache;
 			}
-			else
-			{
-				sendCtrlMessage(testType.charAt(0),(short)nodeID);
-			}
-		}
-		if (!testType.equals("beeper"))
-		{
-			try{
-				Thread.sleep(3000);
-				}catch(InterruptedException e){}
 			for(int nodeID=Integer.parseInt(from);nodeID<=Integer.parseInt(to);nodeID++)
 			{
-				sendCtrlMessage('g',(short)nodeID);
+				if (testType.equals("beeper")) {
+					sendCtrlMessage(testType.charAt(0),(short)nodeID);
+					Thread.sleep(1000);
+				}else{
+					sendCtrlMessage(testType.charAt(0),(short)nodeID);
+				}
 			}
-			try{
+			if (!testType.equals("beeper")) {
+				Thread.sleep(3000);
+				for(int nodeID=Integer.parseInt(from);nodeID<=Integer.parseInt(to);nodeID++) {
+					sendCtrlMessage('g',(short)nodeID);
+				}
 				Thread.sleep(100);
-			}catch(InterruptedException e){}
-		}
+			}
+		}catch(InterruptedException e){}
 	}
 	public static void main (String[] args)
 	{

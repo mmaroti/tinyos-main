@@ -41,7 +41,7 @@ module MicAdcReadC
 		interface Boot;
 		interface Receive;
 		interface AMSend;
-		interface SplitControl as Uart;
+		interface SplitControl as Radio;
 		interface Resource as AdcResource;
 		interface Atm128AdcMultiple;
 		interface MicaBusAdc as MicAdcChannel;
@@ -50,17 +50,10 @@ module MicAdcReadC
 }
 implementation {
   
-	enum
-	{
-		IDLE=0,
-		SAMPLING,
-		SENDING,
-	};
-  	
-  	norace uint8_t state=IDLE;
-  	norace uint8_t preScale;
-	norace uint32_t sampleNum;
-	norace bool firstTime;
+  	norace uint32_t sampleNum;
+	norace bool firstTime=TRUE;
+	norace bool sampling=TRUE;
+	norace bool adcStarted=FALSE,micStarted=FALSE;
 	message_t msg;
 	
 	inline void dataSend()
@@ -70,121 +63,114 @@ implementation {
 		call AMSend.send(AM_BROADCAST_ADDR, &msg, sizeof(data_msg_t));
     }
 
-    task void stopMicrophone()
-    {
-    	call Microphone.stop();
-    }
-	  	
-	event void Boot.booted()
+   	event void Boot.booted()
 	{
-		call Uart.start();
-		call Leds.led0On();
+		call Radio.start();
+		call AdcResource.request();
+		call Microphone.start();
 	}
   
-	event void Uart.startDone(error_t err)
+	event void Radio.startDone(error_t err)
 	{
-		if(err==SUCCESS)
+		if(err!=SUCCESS)
 		{
-			if(state==SENDING)
-			{
-				dataSend();
-			}
-		}else
-		{
-			call Uart.start();
+			call Radio.start();
 		}
 	}
-	
-	event void Uart.stopDone(error_t err)
-   	{
-   		if(err==SUCCESS)
-   		{
-			call AdcResource.request();
-   		}
-   		else
-   		{
-   			call Uart.stop();
-   		}
-   	}
-   	
+	   	
    	event void AdcResource.granted()
   	{
-		call Microphone.start();
-		call Leds.led2On();
+		adcStarted=TRUE;
+		call Leds.led0On();
 	}
 	
 	event void Microphone.startDone(error_t error)
   	{
-    	if (error == SUCCESS)
+    	if (error != SUCCESS)
     	{
-    		state=SAMPLING;
-    		call Atm128AdcMultiple.getData(call MicAdcChannel.getChannel(),ATM128_ADC_VREF_OFF,FALSE,preScale);
-    		
-    	}
-    	else
-    	{
-    		call Microphone.start();
-    	}
-   	}
+	   		call Microphone.start();
+       	}
+    	micStarted=TRUE;
+	   	call Leds.led1On();
+	}
    	
-   	async event bool Atm128AdcMultiple.dataReady(uint16_t data, bool precise,uint8_t Channel,uint8_t* NewChannel,uint8_t* NewVoltage)
-	{   
-		if(firstTime)
-		{
-			call Alarm.start(SAMPLE_PERIOD);
-			firstTime=FALSE;
-		}
-		else if(precise)
-		{
-			sampleNum++;
-		}
-		if(state == SAMPLING)
-		{
-			return TRUE;
-		}
-		else
-		{
-			return FALSE;
-		}
-	}
-	
-	async event void Alarm.fired()
-	{
-		state=SENDING;
-		call AdcResource.release();
-		post stopMicrophone();
-	}
-	
-	event void Microphone.stopDone(error_t error)
-	{
-		if (error == SUCCESS)
-		{
-			call Uart.start();
-		}
-		else
-		{
-			call Microphone.stop();
-		}
-	}
-   		
-	event message_t* Receive.receive(message_t* message ,void* payload, uint8_t len)
+   	event message_t* Receive.receive(message_t* message ,void* payload, uint8_t len)
 	{
 		if (len == sizeof(ctrl_msg_t))
 		{
 			ctrl_msg_t *ctrl = (ctrl_msg_t*)payload;
 			if (ctrl->instr == 's')
 			{
-				preScale=ctrl->preScale;
 				sampleNum=0;
 				firstTime=TRUE;
-				call Leds.led1On();
-				call Uart.stop();
+				sampling = TRUE;
+				if(adcStarted & micStarted)
+				{
+					switch (ctrl->preScale)
+					{
+						case 0:
+							call Atm128AdcMultiple.getData(call MicAdcChannel.getChannel(),ATM128_ADC_VREF_OFF,FALSE,ATM128_ADC_PRESCALE_2);
+							break;
+						case 1:
+							call Atm128AdcMultiple.getData(call MicAdcChannel.getChannel(),ATM128_ADC_VREF_OFF,FALSE, ATM128_ADC_PRESCALE_2b);
+							break;
+						case 2:
+							call Atm128AdcMultiple.getData(call MicAdcChannel.getChannel(),ATM128_ADC_VREF_OFF,FALSE,ATM128_ADC_PRESCALE_4);
+							break;
+						case 3:
+							call Atm128AdcMultiple.getData(call MicAdcChannel.getChannel(),ATM128_ADC_VREF_OFF,FALSE,ATM128_ADC_PRESCALE_8);
+							break;
+						case 4:
+							call Atm128AdcMultiple.getData(call MicAdcChannel.getChannel(),ATM128_ADC_VREF_OFF,FALSE,ATM128_ADC_PRESCALE_16);
+							break;
+						case 5:
+							call Atm128AdcMultiple.getData(call MicAdcChannel.getChannel(),ATM128_ADC_VREF_OFF,FALSE,ATM128_ADC_PRESCALE_32);
+							break;
+						case 6:
+							call Atm128AdcMultiple.getData(call MicAdcChannel.getChannel(),ATM128_ADC_VREF_OFF,FALSE,ATM128_ADC_PRESCALE_64);
+							break;
+						case 7:
+							call Atm128AdcMultiple.getData(call MicAdcChannel.getChannel(),ATM128_ADC_VREF_OFF,FALSE,ATM128_ADC_PRESCALE_128);
+							break;
+						case 8:
+							call Atm128AdcMultiple.getData(call MicAdcChannel.getChannel(),ATM128_ADC_VREF_OFF,FALSE,ATM128_ADC_PRESCALE);
+							break;
+					}
+				}
+			}
+			if (ctrl->instr == 'g')
+			{
+				dataSend();	
 			}
    		}
    		return message;
    	}
    	
-	event void AMSend.sendDone(message_t* bufPtr, error_t error)
-	{
+   	async event bool Atm128AdcMultiple.dataReady(uint16_t data, bool precise,uint8_t Channel,uint8_t* NewChannel,uint8_t* NewVoltage)
+	{   
+		if(firstTime)
+		{
+			firstTime=FALSE;
+			call Alarm.start(SAMPLE_PERIOD);
+		}
+		else if(precise)
+		{
+			sampleNum++;
+		}
+		call Leds.led2On();
+		if(sampling==FALSE)
+		{
+			call Leds.led2Off();
+		}
+		return sampling;
 	}
+	
+	async event void Alarm.fired()
+	{
+		sampling=FALSE;
+	}
+   	
+	event void AMSend.sendDone(message_t* bufPtr, error_t error){}
+	event void Microphone.stopDone(error_t error){}
+	event void Radio.stopDone(error_t err){}
 }

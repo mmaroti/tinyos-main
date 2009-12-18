@@ -45,7 +45,7 @@ implementation {
   components new AMSenderC(AM_DATAMSG) as DataSender;
   components new AMReceiverC(AM_CONTROLMSG) as ControlReceiver;
   components new SensorMts300C() as Sensor;
-  components new MicReadStreamC();
+  components new MicStreamC();
   components ActiveMessageC;
 
   App.Boot -> MainC;
@@ -57,7 +57,7 @@ implementation {
   App.ControlReceive -> ControlReceiver.Receive;
   App.Beeper -> Sensor.Sounder;
   App.PhotoRead -> Sensor.Light;
-  App.MicRead ->  MicReadStreamC;
+  App.MicRead ->  MicStreamC;
   App.VrefRead -> Sensor.Vref; 
   App.TempRead -> Sensor.Temp; 
 }

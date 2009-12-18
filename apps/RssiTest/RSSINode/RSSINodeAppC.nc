@@ -42,7 +42,7 @@ implementation {
   	components MainC;
   	components LedsC;
   	components ActiveMessageC;
-  	components new TimerMilliC() as vrefTimer;
+  	components new TimerMilliC() as MesTimer;
   	components new TimerMilliC() as ledTimer;
 	components new VoltageC();
 
@@ -58,12 +58,19 @@ implementation {
 #endif
 #ifdef PLATFORM_TELOSB
 	components UserButtonC;
+	components new SensirionSht11C();
+	components new HamamatsuS1087ParC();
+	components new HamamatsuS10871TsrC();
+	App.Temp -> SensirionSht11C.Temperature;
+	App.Hum -> SensirionSht11C.Humidity;
+	App.RadSens ->	HamamatsuS1087ParC.Read;
+	App.OvRadSens -> HamamatsuS10871TsrC.Read;
 	App.Notify -> UserButtonC;
 #endif
   	App.Boot -> MainC;
   	App.Leds -> LedsC;
   	App.Vref->VoltageC;
-  	App.vrefTimer->vrefTimer;
+  	App.MesTimer->MesTimer;
   	App.ledTimer->ledTimer;
   	App.SplitControl ->ActiveMessageC;
   	App.Receive -> ActiveMessageC.Receive[AM_CONTROLPACKET];

@@ -56,6 +56,12 @@ implementation
 		LQI,
 		WFS,
 		VREF,
+#ifdef PLATFORM_TELOSB
+		TEMP,
+		HUM,
+		SRAD,
+		OVSRAD,
+#endif	
 		LED,
 	};
 	uint8_t state=IDLE;
@@ -106,8 +112,26 @@ implementation
     			break;
     		case VREF:
     			sendControl((uint8_t*)"sv");
-    			call Timer.startOneShot(1024);
+    			call Timer.startOneShot(1500);
     			break;
+#ifdef PLATFORM_TELOSB
+    		case TEMP:
+    			sendControl((uint8_t*)"st");
+    			call Timer.startOneShot(1500);
+    			break;
+ 			case HUM:
+    			sendControl((uint8_t*)"sh");
+    			call Timer.startOneShot(1500);
+    			break;
+    		case SRAD:
+    			sendControl((uint8_t*)"ss");
+    			call Timer.startOneShot(1500);
+    			break;
+    		case OVSRAD:
+    			sendControl((uint8_t*)"so");
+    			call Timer.startOneShot(1500);
+    			break;
+#endif
     		case LED:
     			sendControl((uint8_t*)"sf");
     			state=IDLE;
