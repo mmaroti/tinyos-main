@@ -1,5 +1,5 @@
 COMPONENT=RSSINodeAppC
-PFLAGS = -ID:/Projekt_szeged/Eclipse_Projects/!apps_PlatformTest
+PFLAGS = -ID:/Projekt_szeged/Eclipse_Projects/RSSI_06
 BUILD_EXTRA_DEPS = Int8Msg.java Uint8Msg.java Uint16Msg.java
 CLEAN_EXTRA = $(BUILD_EXTRA_DEPS) Int8Msg.java Uint8Msg.java Uint16Msg.java
 
