@@ -1,5 +1,5 @@
 COMPONENT=ControllerAppC
-PFLAGS = -ID:/Projekt_szeged/Eclipse_Projects/RSSI_06
+PFLAGS = -ID:/Projekt_szeged/Eclipse_Projects/!apps_PlatformTest
 BUILD_EXTRA_DEPS = ControlMsg.java
 CLEAN_EXTRA = $(BUILD_EXTRA_DEPS) ControlMsg.java
 

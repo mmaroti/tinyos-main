@@ -31,29 +31,53 @@
 * Author: Zoltan Kincses
 */
 
-#include "Packet.h"
+#ifndef PACKET_H
+#define PACKET_H
+ 
+ enum {
+   AM_CONTROLPACKET = 1,
+   AM_DATAINT8=2,
+   AM_DATAUINT8=3,
+   AM_DATAUINT16=4,
+ };
 
-configuration ControllerAppC 
-{ 
-} 
-implementation { 
-  
-  components ControllerC as App;
-  components MainC;
-  components LedsC;
-   components new TimerMilliC();
-  components new AMSenderC(AM_CONTROLPACKET) as Sender;
-  components new AMReceiverC(AM_CONTROLPACKET) as Receiver;
-  components ActiveMessageC;
+ typedef nx_struct controlpacket{
+	nx_uint8_t nodeID;
+	nx_uint8_t instr[2];
+ }controlpacket_t;
 
+ typedef nx_struct dataInt8{
+	nx_uint8_t dataType;
+	nx_uint8_t senderNodeID;
+	nx_uint8_t receiverNodeID;
+	nx_uint32_t sampleCnt;
+    nx_int8_t min;
+	nx_int8_t max;
+	nx_int32_t sum_a;
+	nx_int32_t sum_e;
+}dataInt8_t;
 
-  App.Boot -> MainC;
-  App.Leds -> LedsC;
-  App.Timer -> TimerMilliC;
-  App.SplitControl -> ActiveMessageC;
-  App.AMSend -> Sender.AMSend;
-  App.Packet -> Sender.Packet;
-  App.Receive -> Receiver.Receive;
-}
+typedef nx_struct dataUint8{
+	nx_uint8_t dataType;
+	nx_uint8_t senderNodeID;
+	nx_uint8_t receiverNodeID;
+	nx_uint32_t sampleCnt;
+    nx_uint8_t min;
+	nx_uint8_t max;
+	nx_uint32_t sum_a;
+	nx_uint32_t sum_e;
+}dataUint8_t;
 
+typedef nx_struct dataUint16{
+	nx_uint8_t dataType;
+	nx_uint8_t senderNodeID;
+	nx_uint8_t receiverNodeID;
+	nx_uint32_t sampleCnt;
+    nx_uint16_t min;
+	nx_uint16_t max;
+	nx_uint32_t sum_a;
+	nx_uint32_t sum_e;
+}dataUint16_t;
+
+#endif
 
