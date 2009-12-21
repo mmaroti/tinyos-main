@@ -155,7 +155,7 @@ class Mts300SensorTester implements MessageListener{
 		String[] temp;
 		if (args.length<2)
 		{
-			out.println("Usage: SensorTester [device test type] [motes which are used in the test (from-to)]");
+			out.println("Usage: Mts300SensorTester [device test type] [motes which are used in the test (from-to)]");
 			out.println("[device test type]: ");
 			out.println("\tBeeper test:     beeper");
 			out.println("\tLight  test:     light");
