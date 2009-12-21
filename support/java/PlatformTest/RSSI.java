@@ -101,26 +101,26 @@ class RSSI implements MessageListener {
 				Uint16Msg uint16Msg = (Uint16Msg)msg;
 				if(uint16Msg.get_dataType()=='v' & vrefFirst==true) {
 					printToFile.println("The result of the Vref measurement");
-					printToFile.printf("%-13s %-13s %-13s %-13s %-13s %-13s%n","SenderID","ReceiveID","Minimum","Average","Maximum","Energy");		
+					printToFile.printf("%-13s %-13s %-13s %-13s %-13s%n","NodeID","Minimum","Average","Maximum","Energy");		
 					vrefFirst=false;	
 				} else if (uint16Msg.get_dataType()=='t' & tempFirst==true){
 					printToFile.println("The result of the Temperature measurement");
-					printToFile.printf("%-13s %-13s %-13s %-13s %-13s %-13s%n","SenderID","ReceiveID","Minimum","Average","Maximum","Energy");		
+					printToFile.printf("%-13s %-13s %-13s %-13s %-13s%n","NodeID","Minimum","Average","Maximum","Energy");		
 					tempFirst=false;
 				} else if (uint16Msg.get_dataType()=='h' & humFirst==true){
 					printToFile.println("The result of the Humidity measurement");
-					printToFile.printf("%-13s %-13s %-13s %-13s %-13s %-13s%n","SenderID","ReceiveID","Minimum","Average","Maximum","Energy");		
+					printToFile.printf("%-13s %-13s %-13s %-13s %-13s%n","NodeID","Minimum","Average","Maximum","Energy");		
 					humFirst=false;
 				} else if (uint16Msg.get_dataType()=='s' & srFirst==true){
 					printToFile.println("The result of the Solar Radiation measurement");
-					printToFile.printf("%-13s %-13s %-13s %-13s %-13s %-13s%n","SenderID","ReceiveID","Minimum","Average","Maximum","Energy");		
+					printToFile.printf("%-13s %-13s %-13s %-13s %-13s%n","NodeID","Minimum","Average","Maximum","Energy");		
 					srFirst=false;
 				} else if (uint16Msg.get_dataType()=='o' & osrFirst==true){
 					printToFile.println("The result of the Overal Solar Radiation measurement");
-					printToFile.printf("%-13s %-13s %-13s %-13s %-13s %-13s%n","SenderID","ReceiveID","Minimum","Average","Maximum","Energy");		
+					printToFile.printf("%-13s %-13s %-13s %-13s %-13s%n","NodeID","Minimum","Average","Maximum","Energy");		
 					osrFirst=true;	
 				}
-				printToFile.printf("%-13d %-13d %-13d %-13.2f %-13d %-13.2f%n",uint16Msg.get_senderNodeID(),uint16Msg.get_receiverNodeID(),uint16Msg.get_min(),((double)uint16Msg.get_sum_a()/(double)uint16Msg.get_sampleCnt()),uint16Msg.get_max(),((double)uint16Msg.get_sum_e()/(double)(uint16Msg.get_sampleCnt()-1)));
+				printToFile.printf("%-13d %-13d %-13.2f %-13d %-13.2f%n",uint16Msg.get_receiverNodeID(),uint16Msg.get_min(),((double)uint16Msg.get_sum_a()/(double)uint16Msg.get_sampleCnt()),uint16Msg.get_max(),((double)uint16Msg.get_sum_e()/(double)(uint16Msg.get_sampleCnt()-1)));
 			}
 		} catch(IOException e) {
 			out.println("Cannot open the file");

@@ -142,11 +142,12 @@ class Mts300SensorTester implements MessageListener{
 				}
 			}
 			if (!testType.equals("beeper")) {
-				Thread.sleep(3000);
+				Thread.sleep(2000);
 				for(int nodeID=Integer.parseInt(from);nodeID<=Integer.parseInt(to);nodeID++) {
 					sendCtrlMessage('g',(short)nodeID);
+					Thread.sleep(100);
 				}
-				Thread.sleep(100);
+//				Thread.sleep(100);
 			}
 		}catch(InterruptedException e){}
 	}
@@ -155,7 +156,7 @@ class Mts300SensorTester implements MessageListener{
 		String[] temp;
 		if (args.length<2)
 		{
-			out.println("Usage: Mts300SensorTester [device test type] [motes which are used in the test (from-to)]");
+			out.println("Usage: SensorTester [device test type] [motes which are used in the test (from-to)]");
 			out.println("[device test type]: ");
 			out.println("\tBeeper test:     beeper");
 			out.println("\tLight  test:     light");
