@@ -33,15 +33,13 @@
 
 #include "MicReadStream.h"
 
-module MicReadStreamC @ safe(){
+module MicReadStreamC{
 	
 	uses
 	{
-		interface ReadStream<uint16_t> as MicRead;
-		interface Timer<TMilli> as Timer0;
-		interface Timer<TMilli> as Timer1;
+		interface ReadStream<uint16_t>;
+		interface Timer<TMilli>;
 		interface Leds;
-//		interface MicSetting;
 		interface AMSend as DataSend;
 		interface AMSend as ReadySend;
 		interface Receive;
@@ -58,45 +56,18 @@ implementation
 	};
 	
 	uint8_t state;
-	uint16_t micData[2][MIC_SAMPLES];
-	uint16_t sampleNum;
+	uint16_t MicRead[3][MIC_SAMPLES],sampleNum;
 	uint32_t periodToSend;
 	message_t dataMsg,readyMsg;
 	bool busy;
 	
-	inline void dataSend(uint16_t *dataToSend)
-	{
-		uint8_t i;
-		
-		if(!busy)
-		{
-			datamsg_t* packet = (datamsg_t*)(call DataSend.getPayload(&dataMsg, sizeof(datamsg_t)));
-
-			for(i=0;i<MIC_SAMPLES;++i)
-			{
-				packet->micData[i]=dataToSend[i]>>2;
-			}
-//			memcpy(packet->micData,dataToSend,sizeof(uint16_t)*MIC_SAMPLES);
-    		packet-> sampleNum = sampleNum;
-	    	if(call DataSend.send(AM_BROADCAST_ADDR, &dataMsg, sizeof(datamsg_t))==SUCCESS)
-        	{
-				busy=TRUE;
-        	}
-        }
-    }
-    inline void readySend(uint32_t usActualPeriod)
-    {
-		readymsg_t* packet = (readymsg_t*)(call DataSend.getPayload(&readyMsg, sizeof(readymsg_t)));
-		packet->usActualPeriod=usActualPeriod;
-		packet->sampleNum=sampleNum;
-		call ReadySend.send(AM_BROADCAST_ADDR, &readyMsg, sizeof(readymsg_t));
-	}
-
+	inline void dataSend(uint16_t*);
+	inline void readySend(uint32_t);
+	
 	event void Boot.booted()
 	{
 		call SplitControl.start();
 		call Leds.led0On();
-//		call MicSetting.muxSel(1);
 		state=STOPPED;
 		busy=FALSE;
 	}
@@ -109,78 +80,59 @@ implementation
 		}
 	}
 	
-	event void SplitControl.stopDone(error_t err)
-	{
-	} 
-	
 	event message_t* Receive.receive(message_t* message ,void* payload, uint8_t len)
 	{
+		uint8_t i;
+				
 		if (len == sizeof(ctrlmsg_t))
 		{
 			ctrlmsg_t *ctrl = (ctrlmsg_t*)payload;
 			if (ctrl->instr == 's')
 			{
 				state = STARTED;
-				sampleNum=0;
-				call Leds.led1Toggle();
-				call MicRead.postBuffer(&micData[0][0],MIC_SAMPLES);
-				call MicRead.postBuffer(&micData[1][0],MIC_SAMPLES);
-				call MicRead.read(ctrl->micPeriod);
-				call Timer0.startOneShot(TIMER_PERIOD);
+				sampleNum=1;
+				for(i = 0; i < 3; ++i)
+				{
+					call ReadStream.postBuffer(MicRead[i], MIC_SAMPLES);
+				}
+				call ReadStream.read(ctrl->micPeriod);
+				call Timer.startOneShot(TIMER_PERIOD);
 			}
 		}
 	    return message;
      }
 	
-	event void Timer0.fired()
+	event void Timer.fired()
 	{
+		if(state == STOPPED)
+		{
+			readySend(periodToSend);
+		}
 		state=STOPPED;
+		
 	}
 
-	event void MicRead.bufferDone(error_t result, uint16_t* buf, uint16_t count)
+	event void ReadStream.bufferDone(error_t result, uint16_t* buf, uint16_t count)
 	{
-		static bool firstBuffEn=TRUE;
-
 		if(result==SUCCESS)
 		{
-			sampleNum++;
-			dataSend(buf);
-			if (state==STARTED)
-			{
-				if(firstBuffEn)
-				{
-					firstBuffEn=FALSE;
-					call MicRead.postBuffer(&micData[0][0],MIC_SAMPLES);
-				}
-				else
-				{
-					firstBuffEn=TRUE;
-					call MicRead.postBuffer(&micData[1][0],MIC_SAMPLES);
-				}
-			}
-			else
-			{
-				firstBuffEn = TRUE;
-			}
+			 dataSend(buf);
+			 if(state == STARTED)
+			 { 
+			 	call ReadStream.postBuffer(buf, count);
+			 }	
 		}
 	}
 	
-	event void MicRead.readDone(error_t result, uint32_t usActualPeriod)
+	event void ReadStream.readDone(error_t result, uint32_t usActualPeriod)
 	{
 		if(result==SUCCESS)
 		{
 			periodToSend = usActualPeriod;
-			call Timer1.startOneShot(1024);
-//			readySend(usActualPeriod);
-
+			call Timer.startOneShot(64);
 		}
 	}
 	
-	event void Timer1.fired()
-	{
-		readySend(periodToSend);
-	}
-
 	event void DataSend.sendDone(message_t* bufPtr, error_t error)
 	{
 		if(error==SUCCESS)
@@ -189,14 +141,33 @@ implementation
 		}
   	}
   	
-  	event void ReadySend.sendDone(message_t* bufPtr, error_t error)
+  	inline void dataSend(uint16_t *dataToSend)
 	{
+		uint8_t i;
+		datamsg_t* packet;
+				
+		if(!busy)
+		{
+			busy=TRUE;
+			packet=(datamsg_t*)(call DataSend.getPayload(&dataMsg, sizeof(datamsg_t)));
+			for(i=0;i<MIC_SAMPLES;++i)
+			{
+				packet->micData[i]=dataToSend[i]>>2;
+			}
+    		packet-> sampleNum = sampleNum++;
+	    	call DataSend.send(AM_BROADCAST_ADDR, &dataMsg, sizeof(datamsg_t));
+        }
+    }
+    
+    inline void readySend(uint32_t usActualPeriod)
+    {
+		readymsg_t* packet = (readymsg_t*)(call DataSend.getPayload(&readyMsg, sizeof(readymsg_t)));
+		packet->usActualPeriod=usActualPeriod;
+		packet->sampleNum=sampleNum;
+		call ReadySend.send(AM_BROADCAST_ADDR, &readyMsg, sizeof(readymsg_t));
 	}
-	
-//	async event error_t MicSetting.toneDetected()
-//	{
-//		return SUCCESS;
-//	}
-
+   	
+  	event void ReadySend.sendDone(message_t* bufPtr, error_t error){}
+  	event void SplitControl.stopDone(error_t err){} 
 }
 

@@ -1,6 +1,8 @@
 COMPONENT=MicReadStreamAppC
-CFLAGS = -DTOSH_DATA_LENGTH=114
-PFLAGS = -I$(TOSDIR)/sensorboards/mts300
+CFLAGS += -DASSERT_NONE
+CFLAGS += -DTOSH_DATA_LENGTH=114
+CFLAGS += -ID:/Projekt_szeged/WSN_CVS/tinyos/tos/lib/Atm128FastAdc
+CFLAGS += -I$(TOSDIR)/sensorboards/mts300
 BUILD_EXTRA_DEPS = MicMsg.java CtrlMsg.java ReadyMsg.java
 CLEAN_EXTRA = $(BUILD_EXTRA_DEPS) MicMsg.java CtrlMsg.java ReadyMsg.java
 
@@ -10,6 +12,5 @@ CtrlMsg.java: MicReadStream.h
 	mig -target=null -java-classname=CtrlMsg java MicReadStream.h ctrlmsg -o $@
 ReadyMsg.java: MicReadStream.h
 	mig -target=null -java-classname=ReadyMsg java MicReadStream.h readymsg -o $@
-
 
 include $(MAKERULES)
