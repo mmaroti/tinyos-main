@@ -37,10 +37,11 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import net.tinyos.message.*;
 import net.tinyos.util.*;
+import net.tinyos.packet.*;
 
 public class MicStream implements MessageListener {
 
-	private MoteIF mif;
+	private MoteIF moteIF;
 	private FileOutputStream fileOutput;
 	private FileOutputStream fileOutputBin;
 	private PrintStream printToFile;
@@ -51,22 +52,16 @@ public class MicStream implements MessageListener {
 	private String sampleFrq;
 
 		
-	public MicStream(String sampleFrq)
+	public MicStream(String sampleFrq,MoteIF moteIF)
 	{
-		mif = new MoteIF(PrintStreamMessenger.err);
-		mif.registerListener(new MicMsg(),this);
-		mif.registerListener(new CtrlMsg(),this);
-		mif.registerListener(new ReadyMsg(),this);
+		this.moteIF=moteIF;
+		this.moteIF.registerListener(new MicMsg(),this);
+		this.moteIF.registerListener(new CtrlMsg(),this);
+		this.moteIF.registerListener(new ReadyMsg(),this);
 		this.sampleFrq=sampleFrq;
 		
 	}
 	
-	protected void finalze()
-	{
-		mif.deregisterListener(new MicMsg(),this);
-		mif.deregisterListener(new CtrlMsg(),this);
-		mif.deregisterListener(new ReadyMsg(),this);
-	}
 /*		
 	private void dataCapture(MicMsg micmsg,ReadyMsg readymsg,boolean ready)
 	{
@@ -145,13 +140,14 @@ public class MicStream implements MessageListener {
 				////////// Megvizsgálja, hogy az utolsóként vett üzenet   /////////////////////////
 				//////////      után volt-e még elveszett üzenet          /////////////////////////
 				///////////////////////////////////////////////////////////////////////////////////
-				if(readymsg.get_sampleNum()!=sampleNum-1){
+				if(readymsg.get_sampleNum()!=sampleNum){
 					for(long i=sampleNum;i<=readymsg.get_sampleNum();i++){
 						printToFile.print(i+" message not arrived"+"\n");
 						missedPkt++;
 					}
 				}
-				printToFile.printf("Frequency: %.2f Hz\n",((1/(double)(readymsg.get_usActualPeriod()))*1000000));
+//				printToFile.printf("Frequency: %.2f Hz\n",((1/(double)readymsg.get_usActualPeriod())*1000000));				
+				printToFile.printf("Frequency: %.2f Hz\n",((1/(((double)readymsg.get_usActualPeriod()/8)*7.3728))*1000000));
 				printToFile.printf("Ellapsed time: %d ms\n",(endTime-startTime));
 				printToFile.printf("The number of missed packets: %d\n",missedPkt);
 				fileOutput.close();
@@ -164,14 +160,14 @@ public class MicStream implements MessageListener {
 		}
 	}
 
-	public void sendCtrlMessage(char instr,int micPeriod)  
+	public void sendCtrlMessage(char instr)  
     {
     	CtrlMsg ctrlmsg=new CtrlMsg();
 	
     	ctrlmsg.set_instr((short)instr);
-    	ctrlmsg.set_micPeriod(micPeriod);
+    	ctrlmsg.set_micPeriod(Integer.parseInt(sampleFrq));
 		try{
-			mif.send(MoteIF.TOS_BCAST_ADDR,ctrlmsg);
+			moteIF.send(MoteIF.TOS_BCAST_ADDR,ctrlmsg);
 		}catch(IOException e)
 		{
 			out.println("Cannot send message to mote ");
@@ -194,8 +190,10 @@ public class MicStream implements MessageListener {
 	}
 	
 	public static void main (String[] args) throws Exception {
-		MicStream mictester= new MicStream(args[0]);
-		mictester.sendCtrlMessage('s',Integer.parseInt(args[0]));
+		PhoenixSource phoenix=BuildSource.makePhoenix("serial@com24:iris", PrintStreamMessenger.err);
+        MoteIF mif = new MoteIF(phoenix);
+		MicStream mictester= new MicStream(args[0],mif);
+		mictester.sendCtrlMessage('s');
 	}	
     
     
