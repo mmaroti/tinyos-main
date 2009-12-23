@@ -47,7 +47,7 @@ public class MicStream implements MessageListener {
 	private PrintStream printToFile;
 	private long startTime=0;
 	private long endTime=0;
-	private long sampleNum=1;
+	private long sampleNum=0;
 	private long missedPkt=0;
 	private String sampleFrq;
 
@@ -111,7 +111,7 @@ public class MicStream implements MessageListener {
 					sampleNum++;
 				} else {
 					for(long i=sampleNum;i<micmsg.get_sampleNum();++i){
-						printToFile.print(i+" message not arrived"+"\n");
+						printToFile.print(i+". packet is lost by the BaseStation"+"\n");
 						missedPkt++;
 					}
 					sampleNum=micmsg.get_sampleNum()+1;
@@ -142,14 +142,18 @@ public class MicStream implements MessageListener {
 				///////////////////////////////////////////////////////////////////////////////////
 				if(readymsg.get_sampleNum()!=sampleNum){
 					for(long i=sampleNum;i<=readymsg.get_sampleNum();i++){
-						printToFile.print(i+" message not arrived"+"\n");
+						printToFile.print(i+". packet is lost by the BaseStation"+"\n");
 						missedPkt++;
 					}
 				}
+				printToFile.println();
 //				printToFile.printf("Frequency: %.2f Hz\n",((1/(double)readymsg.get_usActualPeriod())*1000000));				
-				printToFile.printf("Frequency: %.2f Hz\n",((1/(((double)readymsg.get_usActualPeriod()/8)*7.3728))*1000000));
+				printToFile.printf("Frequency: %.2f Hz\n",((1/(((double)readymsg.get_usActualPeriod()*8)/7.3728))*1000000));
+				printToFile.printf("The number of packets lost by the BaseStation: %d\n",missedPkt);
+				printToFile.printf("The total number of generated packets: %d\n",readymsg.get_bufferDoneNum());
+				printToFile.printf("The number of errors under send: %d\n",readymsg.get_sendErrorNum());
+				printToFile.printf("The number of errors under sendDone: %d\n",readymsg.get_sendDoneErrorNum());
 				printToFile.printf("Ellapsed time: %d ms\n",(endTime-startTime));
-				printToFile.printf("The number of missed packets: %d\n",missedPkt);
 				fileOutput.close();
 				fileOutputBin.close();
 				printToFile.close();

@@ -50,6 +50,9 @@ typedef nx_struct datamsg{
 typedef nx_struct readymsg{
 	nx_uint32_t usActualPeriod;
 	nx_uint16_t sampleNum;
+	nx_uint16_t bufferDoneNum;
+	nx_uint16_t sendErrorNum;
+	nx_uint16_t sendDoneErrorNum;
 }readymsg_t;
 
 

@@ -34,7 +34,6 @@
 #include "MicReadStream.h"
 
 module MicReadStreamC{
-	
 	uses
 	{
 		interface ReadStream<uint16_t>;
@@ -54,16 +53,15 @@ implementation
 		STOPPED=0,
 		STARTED,
 	};
-	
 	uint8_t state;
-	uint16_t MicRead[3][MIC_SAMPLES],sampleNum;
+	uint16_t MicRead[3][MIC_SAMPLES],sampleNum,bufferDoneNum,sendErrorNum,sendDoneErrorNum;
 	uint32_t periodToSend;
 	message_t dataMsg,readyMsg;
 	bool busy;
-	
+
 	inline void dataSend(uint16_t*);
 	inline void readySend(uint32_t);
-	
+
 	event void Boot.booted()
 	{
 		call SplitControl.start();
@@ -71,7 +69,7 @@ implementation
 		state=STOPPED;
 		busy=FALSE;
 	}
-	
+
 	event void SplitControl.startDone(error_t err)
 	{
 		if (err!=SUCCESS)
@@ -79,7 +77,7 @@ implementation
 			call SplitControl.start();
 		}
 	}
-	
+
 	event message_t* Receive.receive(message_t* message ,void* payload, uint8_t len)
 	{
 		uint8_t i;
@@ -90,7 +88,10 @@ implementation
 			if (ctrl->instr == 's')
 			{
 				state = STARTED;
-				sampleNum=1;
+				sampleNum=0;
+				bufferDoneNum=0;
+				sendErrorNum=0;
+				sendDoneErrorNum=0;
 				for(i = 0; i < 3; ++i)
 				{
 					call ReadStream.postBuffer(MicRead[i], MIC_SAMPLES);
@@ -99,8 +100,8 @@ implementation
 				call Timer.startOneShot(TIMER_PERIOD);
 			}
 		}
-	    return message;
-     }
+		return message;
+	}
 	
 	event void Timer.fired()
 	{
@@ -116,11 +117,12 @@ implementation
 	{
 		if(result==SUCCESS)
 		{
-			 dataSend(buf);
-			 if(state == STARTED)
-			 { 
-			 	call ReadStream.postBuffer(buf, count);
-			 }	
+			bufferDoneNum++;
+			dataSend(buf);
+			if(state == STARTED)
+			{
+				call ReadStream.postBuffer(buf, count);
+			}	
 		}
 	}
 	
@@ -139,13 +141,18 @@ implementation
 		{
 			busy=FALSE;
 		}
-  	}
-  	
-  	inline void dataSend(uint16_t *dataToSend)
+		else
+		{
+			sendDoneErrorNum++;
+			call Leds.led2Toggle();
+		}
+	}
+
+	inline void dataSend(uint16_t *dataToSend)
 	{
 		uint8_t i;
 		datamsg_t* packet;
-				
+
 		if(!busy)
 		{
 			busy=TRUE;
@@ -154,20 +161,28 @@ implementation
 			{
 				packet->micData[i]=dataToSend[i]>>2;
 			}
-    		packet-> sampleNum = sampleNum++;
-	    	call DataSend.send(AM_BROADCAST_ADDR, &dataMsg, sizeof(datamsg_t));
-        }
-    }
-    
-    inline void readySend(uint32_t usActualPeriod)
-    {
+			packet-> sampleNum = sampleNum++;
+			if(call DataSend.send(AM_BROADCAST_ADDR, &dataMsg, sizeof(datamsg_t))!=SUCCESS)
+			{
+				sendErrorNum++;
+				call Leds.led1Toggle();
+			}
+		}
+	}
+
+	inline void readySend(uint32_t usActualPeriod)
+	{
 		readymsg_t* packet = (readymsg_t*)(call DataSend.getPayload(&readyMsg, sizeof(readymsg_t)));
 		packet->usActualPeriod=usActualPeriod;
 		packet->sampleNum=sampleNum;
+		packet->bufferDoneNum=bufferDoneNum;
+		packet->sendErrorNum=sendErrorNum;
+		packet->sendDoneErrorNum=sendDoneErrorNum;
 		call ReadySend.send(AM_BROADCAST_ADDR, &readyMsg, sizeof(readymsg_t));
 	}
-   	
-  	event void ReadySend.sendDone(message_t* bufPtr, error_t error){}
-  	event void SplitControl.stopDone(error_t err){} 
+
+	event void ReadySend.sendDone(message_t* bufPtr, error_t error){}
+	event void SplitControl.stopDone(error_t err){} 
 }
+
 
