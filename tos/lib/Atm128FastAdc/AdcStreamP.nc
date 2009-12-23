@@ -54,7 +54,7 @@ module AdcStreamP
 #ifdef ADC_DEBUG
 #define ADC_ASSERT ASSERT
 #else
-#define ADC_ASSERT NOASSERT
+#define ADC_ASSERT for(;0;)
 #endif
 
 implementation 
