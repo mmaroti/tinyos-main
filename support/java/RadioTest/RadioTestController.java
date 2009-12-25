@@ -33,118 +33,142 @@
 */
 
 import java.io.*;
-
+import java.util.concurrent.locks.*;
+import java.util.Vector;
 import org.apache.commons.cli.*;
-
 import net.tinyos.message.*;
 import net.tinyos.util.*;
 
-class RadioTestController implements MessageListener {
+public class RadioTestController implements MessageListener {
 	
 	private MoteIF mif;
-			
-	public RadioTestController()
+  private short motecount;
+  private short edgecount;
+  private Vector< StatT > stats;
+
+  // for stat collection
+  private short nextMoteID = 1;
+  final Lock lock = new ReentrantLock();
+	final Condition collected = lock.newCondition(); 
+  		
+	public RadioTestController(final short mc)
 	{
-		mif = new MoteIF(PrintStreamMessenger.err);
+		mif = new MoteIF();
+    mif.registerListener(new CtrlMsgT(),this);
+
+    motecount = mc;
+    edgecount = (short)(mc*(mc-1));
+
+    stats = new Vector<StatT>();
+    for( int i=0; i< edgecount; ++i )
+      stats.add(new StatT());
 	}
 
-	public void messageReceived(int dest_addr,Message msg)
-	{
-	}
-	
-	public void sendCtrlMessage(int nodeID,SetupT smsg)  
+	public void resetMote(final int moteID)  
   {
+    CtrlMsgT cmsg = new CtrlMsgT();
+    // refer to RadioTest.h CTRL_RESET
+    cmsg.set_type((short)4);
 		try {
-			mif.send(nodeID,smsg);
+			mif.send(moteID,cmsg);
 		} catch(IOException e) {
-		  System.out.println("Cannot send setup message to node " + nodeID );
+		  System.out.println("Cannot reset mote " + moteID );
     }
 	}
-	
-	public void run(int moteNum,SetupT smsg)
-	{
-		for(int count = 0; count <= moteNum; ++count )
-    	sendCtrlMessage(count,smsg);
+
+  public void setupMote(final int moteID, final SetupT config) {
+    CtrlMsgT cmsg = new CtrlMsgT();
+    // refer to RadioTest.h CTRL_SETUP
+    cmsg.set_type((short)0);
+    cmsg.set_data_config_problem_idx(config.get_problem_idx());
+    cmsg.set_data_config_runtime_msec(config.get_runtime_msec());
+    cmsg.set_data_config_sendtrig_msec(config.get_sendtrig_msec());
+    cmsg.set_data_config_flags(config.get_flags());
 		try {
-			Thread.sleep(100);
- 		} catch(InterruptedException e) {}
+			mif.send(moteID,cmsg);
+		} catch(IOException e) {
+		  System.out.println("Cannot setup mote " + moteID );
+    }
 	}
 
-	public static void main (String[] args)
-	{
-    Options opt = new Options();
+  private void requestStat() {
+    CtrlMsgT cmsg = new CtrlMsgT();
+    // refer to RadioTest.h CTRL_REQ_STAT
+    cmsg.set_type((short)1);
+    cmsg.set_idx((short)0);
     try {
-      
-      Option policy = OptionBuilder.withArgName( "number" )
-                                .hasArg()
-                                .isRequired()
-                                .withDescription( "The network policy to be used [0-11]." )
-                                .withLongOpt("policy")
-                                .create( "p" );
-
-      Option runtime = OptionBuilder.withArgName( "number" )
-                                .hasArg()
-                                .isRequired()
-                                .withDescription( "The test running time in millisecs." )
-                                .withLongOpt("time")
-                                .create( "t" );
-
-      Option trigger = OptionBuilder.withArgName( "number" )
-                                .hasArg()
-                                .withDescription( "The sending trigger time (it is ignored in some policies). [default : 0]" )
-                                .withLongOpt("trigger")
-                                .create( "tr" );
-
-      opt.addOption(policy);
-      opt.addOption(runtime);
-      opt.addOption(trigger);
-
-      opt.addOption("ack", false, "Use acknowledgements or not. [default : false]");
-      opt.addOption("ds", "direct_send", false, "Use direct-sending rather than broadcasting. [default : false]");
-      opt.addOption("lpl", false, "Use Low-Power Listening. [default : false]");
-      opt.addOption("h", "help", false, "Print help for this application");
-
-      BasicParser parser = new BasicParser();
-      CommandLine cl = parser.parse(opt, args);
-
-      if ( cl.hasOption('h') || 
-           !(cl.hasOption("p") && cl.hasOption("t")) ) {
-        HelpFormatter f = new HelpFormatter();
-        f.printHelp("RadioTestController", opt, true);
-      }
-      else {
-        short problemidx = (short)Integer.parseInt(cl.getOptionValue("p"));
-        int runtimemsec = Integer.parseInt(cl.getOptionValue("t"));
-        int triggermsec = cl.hasOption("tr") ? Integer.parseInt(cl.getOptionValue("tr")) : 0;
-        short flags = 0;
-        if ( cl.hasOption("ack") )
-          flags |= 0x1;
-        if ( cl.hasOption("ds") )
-          flags |= 0x2;
-        if ( cl.hasOption("lpl") )
-          flags |= 0x4;
-
-        SetupT st = new SetupT();
-        st.set_problem_idx(problemidx);
-        st.set_runtime_msec(runtimemsec);
-        st.set_sendtrig_msec(triggermsec);
-        st.set_flags(flags);
-
-  		  RadioTestController ctrl = new RadioTestController();
-			  ctrl.run(2,st);
-			  System.exit(0);
-      }
-    } catch (NumberFormatException ex) {
-      System.err.println("Invalid arguments specified!");
-      HelpFormatter f = new HelpFormatter();
-      f.printHelp("RadioTestController", opt, true);
-    } catch (MissingOptionException e) {
-      System.err.println("Invalid arguments specified!");
-      HelpFormatter f = new HelpFormatter();
-      f.printHelp("RadioTestController", opt, true);
-    } catch (ParseException e) {
-      e.printStackTrace();
+ 		  mif.send(nextMoteID,cmsg);
+ 	  } catch(IOException e) {
+ 	    System.out.println("Cannot initiate collection of stats from mote " + nextMoteID );
     }
   }
+  
+  public void messageReceived(int dest_addr,Message msg)
+	{
+    if ( msg instanceof CtrlMsgT ) {
+      CtrlMsgT cmsg = (CtrlMsgT)msg;
+      // refer to RadioTest.h CTRL_UPL_END
+      if ( cmsg.get_type() == 3 ) {
+        System.out.println("CTRL_UPL_END received.");
+        lock.lock();
+        if ( ++nextMoteID > motecount )
+          collected.signal();
+        else
+          requestStat();
+        lock.unlock();
+      // refer to RadioTest.h CTRL_UPL_STAT
+      } else if ( cmsg.get_type() == 2 ) {
+        System.out.println("CTRL_UPL_STAT received.");
+
+        StatT s = stats.get(cmsg.get_idx());
+        s.set_sendSuccessCount(     s.get_sendSuccessCount()    +   cmsg.get_data_stat_sendSuccessCount());
+        s.set_sendFailCount(        s.get_sendFailCount()       +   cmsg.get_data_stat_sendFailCount());
+        s.set_sendDoneSuccessCount( s.get_sendDoneSuccessCount()+   cmsg.get_data_stat_sendDoneSuccessCount());
+        s.set_sendDoneFailCount(    s.get_sendDoneFailCount()   +   cmsg.get_data_stat_sendDoneFailCount());
+        s.set_wasAckedCount(        s.get_wasAckedCount()       +   cmsg.get_data_stat_wasAckedCount());
+        s.set_resendCount(          s.get_resendCount()         +   cmsg.get_data_stat_resendCount());
+        s.set_receiveCount(         s.get_receiveCount()        +   cmsg.get_data_stat_receiveCount());
+        s.set_duplicateReceiveCount(s.get_duplicateReceiveCount()+  cmsg.get_data_stat_duplicateReceiveCount());
+        s.set_missedCount(          s.get_missedCount()         +   cmsg.get_data_stat_missedCount());
+        s.set_wouldBacklogCount(    s.get_wouldBacklogCount()   +   cmsg.get_data_stat_wouldBacklogCount());
+  
+        stats.set(cmsg.get_idx(),s);
+      }
+    }
+	}
+
+  public void printStats() {
+    System.out.println("Statistics :");
+    for(int j = 0; j < edgecount; ++j ) {
+      System.out.println();
+      System.out.println("Edge #" + j);
+      System.out.println("--------------------------------------------");
+      System.out.println(stats.get(j).toString());
+    }
+  }
+
+	public void run(final SetupT config)
+	{
+		for(int i = 0; i < motecount; ++i )
+      resetMote(i+1);
+        
+    for(int i = 0; i < motecount; ++i )
+      setupMote(i+1,config);
+
+    lock.lock();
+    try {
+      // wait for test completion
+      Thread.sleep((int)(config.get_runtime_msec()*1.1));
+
+      requestStat();
+      // wait until all statistics are collected
+      collected.await();
+      printStats();
+    } catch ( InterruptedException e ) {
+      System.err.println("Stats collection interrupted!");
+    } finally {
+      lock.unlock();
+    }
+	}
 }
 
