@@ -40,20 +40,24 @@ implementation {
 
   components new TimerMilliC() as Timer;
   components new TimerMilliC() as TTimer;
-  components new AMReceiverC(AM_SETUP_T) as RxConfig;
+  components new AMReceiverC(AM_CTRLMSG_T) as RxBase;
+  components new AMSenderC(AM_CTRLMSG_T) as TxBase;
   components new AMSenderC(AM_TESTMSG_T) as TxTest;
   components new AMReceiverC(AM_TESTMSG_T) as RxTest;
   components ActiveMessageC;
 
-
   App.Boot -> MainC.Boot;
+  
+  App.RxBase ->RxBase;
+  App.TxBase ->TxBase;
 
-  App.RxConfig ->RxConfig;
   App.RxTest -> RxTest;
   App.TxTest -> TxTest;
+
   App.AMPacket -> TxTest;
   App.Packet -> TxTest;
   App.PAck -> TxTest;
+
   App.Leds -> LedsC;
   App.AMControl -> ActiveMessageC;
 

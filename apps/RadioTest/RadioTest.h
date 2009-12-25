@@ -55,18 +55,33 @@
   #error "MAX_EDGE_COUNT is set too high! The current limit is 64!"
 #endif
 
-void dbgbin(pending_t data)
-{
-  pending_t bit = 1 << (sizeof(pending_t)*8-1);
-  char c[sizeof(pending_t)*8+1];
-  uint8_t i = 0;
-  while( bit ) {
-    c[i++] = ( data & bit ) ? '1' : '0';
-    bit >>= 1;
-  }
-  c[sizeof(pending_t)*8] = '\0';
-  dbg("Debug","%s\n",c);
-}
+enum {
+  // Mote states
+  STATE_RADIOOFF = 0x0,
+  STATE_INVALID = 0x1,
+  STATE_IDLE = 0x2,
+  STATE_RUNNING = 0x4,
+  STATE_FINISHED = 0x6,
+  STATE_UPLOADING = 0x7,
+
+  // Policy flags
+  USE_ACK = 0x01,
+  USE_LPL = 0x02,
+  USE_DIRECT_ADDR = 0x03,
+
+  // AM Type identifiers
+  AM_CTRLMSG_T = 101,
+  AM_TESTMSG_T = 102,
+  AM_SETUP_T   = 103,
+  AM_STAT_T    = 104,
+
+  // Control message types
+  CTRL_SETUP = 0,
+  CTRL_REQ_STAT = 1,
+  CTRL_UPL_STAT = 2,
+  CTRL_UPL_END = 3,
+  CTRL_RESET = 4
+};
 
 // Edge type
 typedef struct edge_t {
@@ -78,21 +93,6 @@ typedef struct edge_t {
   pending_t  pongs;        // In ping-pong policy the edge bitmask on which we should reply on receive
 } edge_t;
 
-enum {
-  STATE_RADIOOFF = 0x0,
-  STATE_INVALID = 0x1,
-  STATE_IDLE = 0x2,
-  STATE_RUNNING = 0x4,
-  STATE_FINISHED = 0x6,
-  STATE_DPROVIDE = 0x7
-};
-
-// Configuration flags
-enum {
-  USE_ACK = 0x01,
-  USE_LPL = 0x02,
-  USE_DIRECT_ADDR = 0x03
-};
 
 // Setup type
 typedef nx_struct setup_t {
@@ -101,7 +101,6 @@ typedef nx_struct setup_t {
   nx_uint32_t sendtrig_msec;  // How often we should send a message when sending on timer ticks ?
   nx_uint8_t  flags;          // Global flags ( such as ACK, LPL, ... )
 } setup_t;
-
 
 // Stats base type
 typedef nx_uint16_t stat_base_t;
@@ -122,6 +121,35 @@ typedef nx_struct stat_t {
   stat_base_t wouldBacklogCount;
 } stat_t;
 
+
+typedef nx_struct testmsg_t {
+  nx_uint8_t  edgeid;       // On which edge this message is intended to propagate through
+  nx_uint32_t msgid;        // The auto-increment id of the message on the preset edge
+} testmsg_t;
+
+typedef nx_struct ctrlmsg_t {
+  nx_uint8_t  type;         // Control type
+  nx_uint8_t  idx;          // The index of the sent stat ( when a mote provides data to the basestation )
+  nx_union {
+    setup_t     config;     // The config ( basestation->mote )
+    stat_t      stat;       // The stat ( mote->basestation )
+  } data;
+} ctrlmsg_t;
+
+#ifdef USE_TOSSIM
+void dbgbin(pending_t data)
+{
+  pending_t bit = 1 << (sizeof(pending_t)*8-1);
+  char c[sizeof(pending_t)*8+1];
+  uint8_t i = 0;
+  while( bit ) {
+    c[i++] = ( data & bit ) ? '1' : '0';
+    bit >>= 1;
+  }
+  c[sizeof(pending_t)*8] = '\0';
+  dbg("Debug","%s\n",c);
+}
+
 void dbgstat(stat_t s) {
   dbg("Debug","stat.sendSuccessCount     : %d\n",s.sendSuccessCount);
   dbg("Debug","stat.sendFailCount        : %d\n",s.sendFailCount);
@@ -135,15 +163,6 @@ void dbgstat(stat_t s) {
   dbg("Debug","stat.wouldBacklogCount    : %d\n",s.wouldBacklogCount);
   dbg("Debug","---------------------------------------------\n");
 }
-typedef nx_struct testmsg_t {
-  nx_uint8_t  edgeid;       // On which edge this message is intended to propagate through
-  nx_uint32_t msgid;        // The auto-increment id of the message on the preset edge
-} testmsg_t;
-
-
-enum { 
-  AM_SETUP_T = 101,
-  AM_TESTMSG_T = 102
-};
+#endif
 
 #endif
