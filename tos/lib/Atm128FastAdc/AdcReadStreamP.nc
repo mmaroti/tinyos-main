@@ -63,15 +63,15 @@ implementation
 	{
 		STATE_READY = 0,
 
-		STATE_20 = 2,		// 2 buffers to be filled, 0 to be reported
-		STATE_11 = 3,		// 1 buffer to be filled, 1 to be reported
-		STATE_02 = 4,		// 0 buffer to be filled, 2 to be reported
-		STATE_10 = 7,		// 1 buffer to be filled, 0 to be reported
-		STATE_01 = 8,		// 0 buffer to be filled, 1 to be reported
-		STATE_00 = 12,		// error reporting
+		STATE_20 = 1,		// 2 buffers to be filled, 0 to be reported
+		STATE_11 = 2,		// 1 buffer to be filled, 1 to be reported
+		STATE_02 = 3,		// 0 buffer to be filled, 2 to be reported
+		STATE_10 = 4,		// 1 buffer to be filled, 0 to be reported
+		STATE_01 = 5,		// 0 buffer to be filled, 1 to be reported
+		STATE_00 = 7,		// error reporting
 
 		SAMPLING_STEP = 1,	// state increment after sampling
-		REPORTING_STEP = 4,	// state increment after reporting
+		REPORTING_STEP = 2,	// state increment after reporting
 	};
 
 	norace uint8_t state;
@@ -221,7 +221,16 @@ implementation
 		return SUCCESS;
 	}
 
-#define PERIOD(prescaler) (uint16_t)(13 * prescaler / PLATFORM_MHZ)
+// TODO: define these next to PLATFORM_MHZ
+#if defined(PLATFORM_IRIS) || defined(PLATFORM_MICAZ) || defined(PLATFORM_MICA2)
+#define PLATFORM_HZ 7372800
+#endif
+
+#ifndef PLATFORM_HZ
+#define PLATFORM_HZ (1000000 * PLATFORM_MHZ)
+#endif
+
+#define PERIOD(prescaler) (uint16_t)(1000000.0 * 13 * prescaler / PLATFORM_HZ)
 
 	command error_t ReadStream.read[uint8_t s](uint32_t period)
 	{
