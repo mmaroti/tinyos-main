@@ -1,4 +1,4 @@
-/* $Id: AdcReadStreamClientC.nc,v 1.1 2009-12-29 09:28:08 mmaroti Exp $
+/* $Id: AdcReadStreamClientC.nc,v 1.2 2009-12-29 23:11:30 mmaroti Exp $
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
@@ -26,15 +26,15 @@ generic configuration AdcReadStreamClientC() {
   }
 }
 implementation {
-  components AdcStreamC, Atm128AdcC;
+  components AdcReadStreamC, Atm128AdcC;
 
   enum {
     ADC_STREAM = unique(UQ_ADC_READSTREAM),
     ADC_CLIENT = unique(UQ_ATM128ADC_RESOURCE)
   };
 
-  ReadStream = AdcStreamC.ReadStream[ADC_STREAM];
-  Atm128AdcConfig = AdcStreamC.Atm128AdcConfig[ADC_STREAM];
-  AdcStreamC.Resource[ADC_STREAM] -> Atm128AdcC.Resource[ADC_CLIENT];
+  ReadStream = AdcReadStreamC.ReadStream[ADC_STREAM];
+  Atm128AdcConfig = AdcReadStreamC.Atm128AdcConfig[ADC_STREAM];
+  AdcReadStreamC.Resource[ADC_STREAM] -> Atm128AdcC.Resource[ADC_CLIENT];
   ResourceConfigure = Atm128AdcC.ResourceConfigure[ADC_CLIENT];
 }

@@ -128,12 +128,12 @@ implementation
 	}
 
 	enum {
-		ADC_ADAPTERS = uniqueCount("UQ_ADC_ADAPTER"),
+		ADC_ADAPTERS = uniqueCount(UQ_ATM128ADC_ADAPTER),
 	};
 
 	async event void HplAtm128Adc.dataReady(uint16_t data)
 	{
-		// to make this special case faster
+		// to make this special case even faster
 		if( ADC_ADAPTERS == 1 )
 			signal Atm128Adc.dataReady[0](data);
 		else
@@ -147,6 +147,5 @@ implementation
 
 	default async event void Atm128Adc.dataReady[uint8_t adap](uint16_t data)
 	{
-		call Atm128Adc.cancel[adap]();
 	}
 }
