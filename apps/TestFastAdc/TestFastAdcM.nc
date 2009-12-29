@@ -49,31 +49,38 @@ module TestFastAdcM
 
 implementation
 {
+/*
+	at 7372800 Hz MCU clock and 13 ADC clock per samples
+
+	prescaler = 2,	freq = 283569 Hz, period = 3 us
+	prescaler = 4,	freq = 141784 Hz, period = 7 us
+	prescaler = 8,	freq = 70892 Hz,  period = 14 us
+	prescaler = 16, freq = 35446 Hz,  period = 28 us
+	prescaler = 32, freq = 17723 Hz,  period = 56 us
+	prescaler = 64, freq = 8861 Hz,   period = 112 us
+	prescaler = 128, freq = 4430 Hz,  period = 225 us
+
+	maxWorkCounter = 46881 (when not sampling)
+*/
+
+
 	enum
 	{
 		BUFFER_COUNT = 3,
-		BUFFER_SIZE = 50,
-		SAMPLING = 50,
+		BUFFER_SIZE = 1000,
+		SAMPLING = 14,
 	};
 
 	uint16_t buffers[BUFFER_COUNT][BUFFER_SIZE];
 
-	uint16_t lastSample = -BUFFER_SIZE;
-	
-	uint16_t sampleCount;
-	uint16_t missedCount;
+	uint32_t sampleCount;	// number of samples per second
+	uint32_t workCounter;	// number of empty task executions per second
 
 	event void ReadStream.bufferDone(error_t result, uint16_t* buf, uint16_t count)
 	{
 		if( result == SUCCESS )
 		{
-			atomic
-			{
-				sampleCount += BUFFER_SIZE;
-				missedCount += *buf - lastSample - BUFFER_SIZE;
-			}
-
-			lastSample = *buf;
+			sampleCount += BUFFER_SIZE;
 
 			result = call ReadStream.postBuffer(buf, count);
 		}
@@ -86,22 +93,16 @@ implementation
 
 	event void Timer.fired()
 	{
-		uint16_t s, m;
-
-		atomic
-		{
-			s = sampleCount;
-			m = missedCount;
-			sampleCount = 0;
-			missedCount = 0;
-		}
-
 		if( call DiagMsg.record() )
 		{
-			call DiagMsg.uint16(s);
-			call DiagMsg.uint16(m);
+			call DiagMsg.uint32(sampleCount);
+			call DiagMsg.uint32(workCounter);
+			call DiagMsg.uint16((uint16_t)(100 - workCounter / 469));	// sampling overhead in %
 			call DiagMsg.send();
 		}
+
+		sampleCount = 0;
+		workCounter = 0;
 	}
 
 	event void ReadStream.readDone(error_t result, uint32_t usActualPeriod)
@@ -114,6 +115,12 @@ implementation
 		call SplitControl.start();
 	}
 	
+	task void workTask()
+	{
+		++workCounter;
+		post workTask();
+	}
+
 	event void SplitControl.startDone(error_t error)
 	{
 		uint8_t i;
@@ -130,6 +137,7 @@ implementation
 		ASSERT( error == SUCCESS );
 
 		call Timer.startPeriodic(1024);
+		post workTask();
 	}
 	
 	event void SplitControl.stopDone(error_t err)
