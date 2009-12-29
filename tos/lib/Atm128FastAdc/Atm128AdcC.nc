@@ -32,34 +32,35 @@
 * Author: Miklos Maroti
 */
 
-#include "Adc.h"
+#include "Atm128Adc.h"
 
-configuration WireAdcStreamP
+configuration Atm128AdcC
 {
 	provides
 	{
-		interface ReadStream<uint16_t>[uint8_t client];
+		interface Resource[uint8_t client];
+		interface Atm128Adc[uint8_t adapter];
 	}
-
 	uses
 	{
-		interface Atm128AdcConfig[uint8_t client];
-		interface Resource[uint8_t client];
+		interface ResourceConfigure[uint8_t client];
 	}
 }
-
 implementation
 {
-	components Atm128AdcC, AdcStreamP, PlatformC, DiagMsgC,
-		new ArbitratedReadStreamC(uniqueCount(UQ_ADC_READSTREAM), uint16_t);
+	components Atm128AdcP, HplAtm128AdcC, PlatformC, MainC,
+		new RoundRobinArbiterC(UQ_ATM128ADC_RESOURCE) as ArbiterC,
+		new AsyncStdControlPowerManagerC() as PowerManagerC;
 
-	Resource = ArbitratedReadStreamC;
-	ReadStream = ArbitratedReadStreamC;
-	Atm128AdcConfig = AdcStreamP;
+	Resource = ArbiterC;
+	ResourceConfigure = ArbiterC;
+	Atm128Adc = Atm128AdcP;
 
-	ArbitratedReadStreamC.Service -> AdcStreamP;
+	PlatformC.SubInit -> Atm128AdcP;
 
-	AdcStreamP.Atm128AdcMultiple -> Atm128AdcC;
-	AdcStreamP.Atm128Calibrate -> PlatformC;
-	AdcStreamP.DiagMsg -> DiagMsgC;
+	Atm128AdcP.HplAtm128Adc -> HplAtm128AdcC;
+	Atm128AdcP.Atm128Calibrate -> PlatformC;
+
+	PowerManagerC.AsyncStdControl -> Atm128AdcP;
+	PowerManagerC.ResourceDefaultOwner -> ArbiterC;
 }

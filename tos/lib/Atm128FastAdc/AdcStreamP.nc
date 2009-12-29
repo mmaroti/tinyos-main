@@ -35,27 +35,27 @@
 #include "Adc.h"
 #include "Assert.h"
 
+#ifdef ADC_DEBUG
+#define ADC_ASSERT ASSERT
+#else
+#define ADC_ASSERT(COND) for(;0;)
+#endif
+
 module AdcStreamP
 {
 	provides
 	{
-		interface ReadStream<uint16_t>[uint8_t client];
+		interface ReadStream<uint16_t>[uint8_t stream];
 	}
 
 	uses
 	{
-		interface Atm128AdcMultiple;
-		interface Atm128AdcConfig[uint8_t client];
+		interface Atm128Adc;
+		interface Atm128AdcConfig[uint8_t stream];
 		interface Atm128Calibrate;
 		interface DiagMsg;
 	}
 }
-
-#ifdef ADC_DEBUG
-#define ADC_ASSERT ASSERT
-#else
-#define ADC_ASSERT for(;0;)
-#endif
 
 implementation 
 {
@@ -72,7 +72,6 @@ implementation
 
 		SAMPLING_STEP = 1,	// state increment after sampling
 		REPORTING_STEP = 4,	// state increment after reporting
-		SAMPLING_MASK = 0x03,
 	};
 
 	norace uint8_t state;
@@ -90,46 +89,32 @@ implementation
 
 	task void bufferDone();
 
-	async event bool Atm128AdcMultiple.dataReady(uint16_t data, bool precise, uint8_t channel,
-		uint8_t *newChannel, uint8_t *newRefVoltage)
+	async event void Atm128Adc.dataReady(uint16_t data)
 	{
-		uint8_t s;
-
-		// this should not be here, but a new interrupt can come
-		// before the ADC is stopped, so we have to ignore that
-		atomic
-		{
-			if( (state & SAMPLING_MASK) == 0 )
-				return FAIL;
-		}
-
 		ADC_ASSERT( currentPtr != NULL && currentPtr < currentEnd );
-//		ADC_ASSERT( state == STATE_20 || state == STATE_11 || state == STATE_10 );
+		ADC_ASSERT( state == STATE_20 || state == STATE_11 || state == STATE_10 );
 
-		atomic
-		{
-			*(currentPtr++) = data;
+		*(currentPtr++) = data;
 
-			if( currentPtr != currentEnd )
-				return TRUE;
+		if( currentPtr != currentEnd )
+			return;
 
-			currentPtr = secondStart;
-			currentEnd = currentPtr + secondLength;
-			s = (state += SAMPLING_STEP);
-		}
+		currentPtr = secondStart;
+		currentEnd = currentPtr + secondLength;
+
+		if( (state += SAMPLING_STEP) != STATE_11 )
+			call Atm128Adc.cancel();
 
 		post bufferDone();
-
-		return s == STATE_11;
 	}
 
 	// ------- Slow path
 
 	enum {
-		CLIENTS = uniqueCount(UQ_ADC_READSTREAM),
+		ADC_STREAMS = uniqueCount(UQ_ADC_READSTREAM),
 	};
 
-	uint8_t client;
+	uint8_t stream;
 	uint16_t actualPeriod;
 
 	typedef struct free_buffer_t
@@ -138,7 +123,7 @@ implementation
 		struct free_buffer_t * next;
 	} free_buffer_t;
 
-	free_buffer_t * freeBuffers[CLIENTS];
+	free_buffer_t * freeBuffers[ADC_STREAMS];
 
 	task void bufferDone()
 	{
@@ -153,7 +138,7 @@ implementation
 		{
 			call DiagMsg.str("done");
 			call DiagMsg.uint8(state);
-			call DiagMsg.uint8(freeBuffers[client] != 0);
+			call DiagMsg.uint8(freeBuffers[stream] != 0);
 			call DiagMsg.send();
 		}
 */
@@ -164,11 +149,11 @@ implementation
 		{
 			s = state;
 
-			if( s == STATE_11 && freeBuffers[client] != NULL )
+			if( s == STATE_11 && freeBuffers[stream] != NULL )
 			{
-				secondStart = (uint16_t *)freeBuffers[client];
-				secondLength = freeBuffers[client]->count;
-				freeBuffers[client] = freeBuffers[client]->next;
+				secondStart = (uint16_t *)freeBuffers[stream];
+				secondLength = freeBuffers[stream]->count;
+				freeBuffers[stream] = freeBuffers[stream]->next;
 
 				state = STATE_20;
 			}
@@ -176,28 +161,28 @@ implementation
 				state = s + REPORTING_STEP;
 		}
 
-		if( s != STATE_00 || freeBuffers[client] != NULL )
+		if( s != STATE_00 || freeBuffers[stream] != NULL )
 		{
 			if( s == STATE_00 )
 			{
-				reportStart = (uint16_t *)freeBuffers[client];
-				reportLength = freeBuffers[client]->count;
-				freeBuffers[client] = freeBuffers[client]->next;
+				reportStart = (uint16_t *)freeBuffers[stream];
+				reportLength = freeBuffers[stream]->count;
+				freeBuffers[stream] = freeBuffers[stream]->next;
 			}
 
-			signal ReadStream.bufferDone[client](s != STATE_00 ? SUCCESS : FAIL, reportStart, reportLength);
+			signal ReadStream.bufferDone[stream](s != STATE_00 ? SUCCESS : FAIL, reportStart, reportLength);
 		}
 
-		if( freeBuffers[client] == NULL && (s == STATE_00 || s == STATE_01) )
+		if( freeBuffers[stream] == NULL && (s == STATE_00 || s == STATE_01) )
 		{
-			signal ReadStream.readDone[client](s == STATE_01 ? SUCCESS : FAIL, actualPeriod); 
+			signal ReadStream.readDone[stream](s == STATE_01 ? SUCCESS : FAIL, actualPeriod); 
 			state = STATE_READY;
 		}
 		else if( s != STATE_11 )
 			post bufferDone();
 	}
 
-	command error_t ReadStream.postBuffer[uint8_t c](uint16_t *buffer, uint16_t count)
+	command error_t ReadStream.postBuffer[uint8_t s](uint16_t *buffer, uint16_t count)
 	{
 		free_buffer_t * * last;
 
@@ -208,7 +193,7 @@ implementation
 		{
 			call DiagMsg.str("post");
 			call DiagMsg.uint8(state);
-			call DiagMsg.uint8(freeBuffers[c] != 0);
+			call DiagMsg.uint8(freeBuffers[s] != 0);
 			call DiagMsg.send();
 		}
 */
@@ -224,10 +209,8 @@ implementation
 			}
 		}
 
-		last = & freeBuffers[c];
+		last = & freeBuffers[s];
 
-		// TODO: setup next buffer
-		
 		while( *last != NULL )
 			last = &((*last)->next);
 	
@@ -240,30 +223,34 @@ implementation
 
 #define PERIOD(prescaler) (uint16_t)(13 * prescaler / PLATFORM_MHZ)
 
-	command error_t ReadStream.read[uint8_t c](uint32_t period)
+	command error_t ReadStream.read[uint8_t s](uint32_t period)
 	{
 		uint8_t prescaler;
 
 		if( state != STATE_READY )
 			return EBUSY;
 
-		if( freeBuffers[c] == NULL )
+		if( freeBuffers[s] == NULL )
 			return FAIL;
 
-		firstStart = (uint16_t *)freeBuffers[c];
-		firstLength = freeBuffers[c]->count;
-		freeBuffers[c] = freeBuffers[c]->next;
+		// do it early
+		call Atm128Adc.setSource(call Atm128AdcConfig.getChannel[stream](), 
+			call Atm128AdcConfig.getRefVoltage[stream](), FALSE);
+
+		firstStart = (uint16_t *)freeBuffers[s];
+		firstLength = freeBuffers[s]->count;
+		freeBuffers[s] = freeBuffers[s]->next;
 
 		currentPtr = firstStart;
 		currentEnd = firstStart + firstLength;
 
-		if( freeBuffers[c] == NULL )
+		if( freeBuffers[s] == NULL )
 			state = STATE_10;
 		else
 		{
-			secondStart = (uint16_t *)freeBuffers[c];
-			secondLength = freeBuffers[c]->count;
-			freeBuffers[c] = freeBuffers[c]->next;
+			secondStart = (uint16_t *)freeBuffers[s];
+			secondLength = freeBuffers[s]->count;
+			freeBuffers[s] = freeBuffers[s]->next;
 
 			state = STATE_20;
 		}
@@ -304,26 +291,25 @@ implementation
 			period = PERIOD(2);
 		}
 
-		client = c;
+		stream = s;
 		actualPeriod = period;	// TODO: correct for MHZ differences
 
-		call Atm128AdcMultiple.getData(call Atm128AdcConfig.getChannel[client](), 
-			call Atm128AdcConfig.getRefVoltage[client](), FALSE, prescaler);
+		call Atm128Adc.getData(prescaler, TRUE);
 
 		return SUCCESS;
 	}
 
 // -------  Configuration defaults (Read ground fast!)
 
-	default async command uint8_t Atm128AdcConfig.getChannel[uint8_t c]() {
+	default async command uint8_t Atm128AdcConfig.getChannel[uint8_t s]() {
 		return ATM128_ADC_SNGL_GND;
 	}
 
-	default async command uint8_t Atm128AdcConfig.getRefVoltage[uint8_t c]() {
+	default async command uint8_t Atm128AdcConfig.getRefVoltage[uint8_t s]() {
 		return ATM128_ADC_VREF_OFF;
 	}
 
-	default async command uint8_t Atm128AdcConfig.getPrescaler[uint8_t c]() {
+	default async command uint8_t Atm128AdcConfig.getPrescaler[uint8_t s]() {
 		return ATM128_ADC_PRESCALE_2;
 	}
 }
