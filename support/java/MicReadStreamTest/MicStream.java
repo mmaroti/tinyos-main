@@ -147,10 +147,11 @@ public class MicStream implements MessageListener {
 					}
 				}
 				printToFile.println();
-//				printToFile.printf("Frequency: %.2f Hz\n",((1/(double)readymsg.get_usActualPeriod())*1000000));				
-				printToFile.printf("Frequency: %.2f Hz\n",((1/(((double)readymsg.get_usActualPeriod()*8)/7.3728))*1000000));
-				printToFile.printf("The number of packets lost by the BaseStation: %d\n",missedPkt);
+				printToFile.printf("Frequency: %.2f Hz\n",((1/(double)readymsg.get_usActualPeriod())*1000000));				
+//				printToFile.printf("Frequency: %.2f Hz\n",((1/(((double)readymsg.get_usActualPeriod()*8)/7.3728))*1000000));
 				printToFile.printf("The total number of generated packets: %d\n",readymsg.get_bufferDoneNum());
+				printToFile.printf("The number of packets lost by the BaseStation: %d\n",missedPkt);
+				printToFile.printf("The number of packets lost because the busy flag is true: %d\n",readymsg.get_busyTrueNum());
 				printToFile.printf("The number of errors under send: %d\n",readymsg.get_sendErrorNum());
 				printToFile.printf("The number of errors under sendDone: %d\n",readymsg.get_sendDoneErrorNum());
 				printToFile.printf("Ellapsed time: %d ms\n",(endTime-startTime));

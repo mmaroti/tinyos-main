@@ -53,6 +53,7 @@ typedef nx_struct readymsg{
 	nx_uint16_t bufferDoneNum;
 	nx_uint16_t sendErrorNum;
 	nx_uint16_t sendDoneErrorNum;
+	nx_uint16_t busyTrueNum;
 }readymsg_t;
 
 

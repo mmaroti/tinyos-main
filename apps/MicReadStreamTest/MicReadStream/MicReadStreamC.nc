@@ -54,7 +54,7 @@ implementation
 		STARTED,
 	};
 	uint8_t state;
-	uint16_t MicRead[3][MIC_SAMPLES],sampleNum,bufferDoneNum,sendErrorNum,sendDoneErrorNum;
+	uint16_t MicRead[3][MIC_SAMPLES],sampleNum,bufferDoneNum,sendErrorNum,sendDoneErrorNum,busyTrueNum;
 	uint32_t periodToSend;
 	message_t dataMsg,readyMsg;
 	bool busy;
@@ -92,6 +92,7 @@ implementation
 				bufferDoneNum=0;
 				sendErrorNum=0;
 				sendDoneErrorNum=0;
+				busyTrueNum=0;
 				for(i = 0; i < 3; ++i)
 				{
 					call ReadStream.postBuffer(MicRead[i], MIC_SAMPLES);
@@ -118,11 +119,16 @@ implementation
 		if(result==SUCCESS)
 		{
 			bufferDoneNum++;
+			if(busy)
+			{
+				busyTrueNum++;
+			}	
 			dataSend(buf);
 			if(state == STARTED)
 			{
 				call ReadStream.postBuffer(buf, count);
-			}	
+			}
+			
 		}
 	}
 	
@@ -178,6 +184,7 @@ implementation
 		packet->bufferDoneNum=bufferDoneNum;
 		packet->sendErrorNum=sendErrorNum;
 		packet->sendDoneErrorNum=sendDoneErrorNum;
+		packet->busyTrueNum=busyTrueNum;
 		call ReadySend.send(AM_BROADCAST_ADDR, &readyMsg, sizeof(readymsg_t));
 	}
 
