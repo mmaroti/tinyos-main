@@ -34,7 +34,7 @@
 
 #include "Adc.h"
 
-configuration AdcReadStreamC
+configuration WireAdcStreamP
 {
 	provides
 	{
@@ -55,16 +55,16 @@ implementation
 		ADC_ADAPTER = unique(UQ_ATM128ADC_ADAPTER),
 	};
 
-	components Atm128AdcC, AdcReadStreamP, PlatformC, DiagMsgC,
+	components Atm128AdcC, AdcStreamP, PlatformC, DiagMsgC,
 		new ArbitratedReadStreamC(ADC_STREAMS, uint16_t);
 
 	Resource = ArbitratedReadStreamC;
 	ReadStream = ArbitratedReadStreamC;
-	Atm128AdcConfig = AdcReadStreamP;
+	Atm128AdcConfig = AdcStreamP;
 
-	ArbitratedReadStreamC.Service -> AdcReadStreamP;
+	ArbitratedReadStreamC.Service -> AdcStreamP;
 
-	AdcReadStreamP.Atm128Adc -> Atm128AdcC.Atm128Adc[ADC_ADAPTER];
-	AdcReadStreamP.Atm128Calibrate -> PlatformC;
-	AdcReadStreamP.DiagMsg -> DiagMsgC;
+	AdcStreamP.Atm128Adc -> Atm128AdcC.Atm128Adc[ADC_ADAPTER];
+	AdcStreamP.Atm128Calibrate -> PlatformC;
+	AdcStreamP.DiagMsg -> DiagMsgC;
 }

@@ -41,7 +41,7 @@
 #define ADC_ASSERT(COND) for(;0;)
 #endif
 
-module AdcReadStreamP
+module AdcStreamP
 {
 	provides
 	{
