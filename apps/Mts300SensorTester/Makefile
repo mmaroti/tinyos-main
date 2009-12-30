@@ -1,4 +1,5 @@
 COMPONENT=Mts300SensorTesterAppC
-PFLAGS = -I$(TOSDIR)/sensorboards/mts300
+CFLAGS += -I$(TOSDIR)/sensorboards/mts300
+CFLAGS += -I$(SZTETOSDIR)/lib/MicReadStream
 CFLAGS += -DSAMP_TIME=1000
 include $(MAKERULES)
