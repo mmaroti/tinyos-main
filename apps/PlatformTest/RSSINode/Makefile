@@ -1,2 +1,0 @@
-COMPONENT=RSSINodeAppC
-include $(MAKERULES)
