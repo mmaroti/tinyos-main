@@ -212,21 +212,19 @@ class PlatformTest implements MessageListener {
 	public static void main (String[] args)
 	{
 		String[] motes;
-		String[] moteType;
 		PhoenixSource phoenix;
 		MoteIF mif;
-		if (args.length<3)
+		if (args.length<4)
 		{
-			out.println("Usage: PlatformTest [serial@port:motetype][controller mote ID][motes which measure data (from-to)]");
+			out.println("Usage: PlatformTest [serial@port:motetype][test mote type][controller mote ID][motes which measure data (from-to)]");
 		}
 		else 
 		{
 			phoenix=BuildSource.makePhoenix(args[0], PrintStreamMessenger.err);
 			mif = new MoteIF(phoenix);
-			moteType=args[0].split(":");
-			motes=args[2].split("-");
+			motes=args[3].split("-");
 			PlatformTest tester= new PlatformTest(mif);
-			tester.run(moteType[1],args[1],motes[0],motes[1]);
+			tester.run(args[1],args[2],motes[0],motes[1]);
 			System.exit(0);
 		}
 	}	
