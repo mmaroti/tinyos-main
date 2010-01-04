@@ -37,23 +37,24 @@ import java.util.ArrayList;
 import java.lang.Math;
 import net.tinyos.message.*;
 import net.tinyos.util.*;
+import net.tinyos.packet.*;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 
-class RSSI implements MessageListener {
+class PlatformTest implements MessageListener {
 	
-	private MoteIF mif;
+	private MoteIF moteIF;
 	private FileOutputStream fileOutput;
 	private PrintStream printToFile;
 	boolean rssiFirst=true,lqiFirst=true,vrefFirst=true,tempFirst=true,humFirst=true,srFirst=true,osrFirst=true;
 						
-	public RSSI()
+	public PlatformTest(MoteIF moteIF)
 	{
-		mif = new MoteIF(PrintStreamMessenger.err);
-		mif.registerListener(new ControlMsg(),this);
-		mif.registerListener(new Int8Msg(),this);
-		mif.registerListener(new Uint8Msg(),this);
-		mif.registerListener(new Uint16Msg(),this);
+		this.moteIF=moteIF;
+		this.moteIF.registerListener(new ControlMsg(),this);
+		this.moteIF.registerListener(new Int8Msg(),this);
+		this.moteIF.registerListener(new Uint8Msg(),this);
+		this.moteIF.registerListener(new Uint16Msg(),this);
 	}
 	public void messageReceived(int dest_addr,Message msg)
 	{
@@ -134,7 +135,7 @@ class RSSI implements MessageListener {
     	ctrlmsg.set_nodeID(nodeID);
     	ctrlmsg.set_instr(instr);
 		try{
-			mif.send((int)nodeID,ctrlmsg);
+			moteIF.send((int)nodeID,ctrlmsg);
 		}catch(IOException e)
 		{
 			out.println("Cannot send message to node " + nodeID );
@@ -148,9 +149,9 @@ class RSSI implements MessageListener {
 			short[] instr= new short[2];
 			instr[0]='s';
 			sendCtrlMessage(Short.parseShort(nodeID),instr);
-			if(nodeType.equals("Iris")){
+			if(nodeType.equals("iris")){
 				Thread.sleep(4000);
-			} else if (nodeType.equals("Telsob")) {
+			} else if (nodeType.equals("telsob")) {
 				Thread.sleep(10000);
 			}
 			if(Integer.parseInt(from)>Integer.parseInt(to)) {
@@ -175,7 +176,7 @@ class RSSI implements MessageListener {
 				sendCtrlMessage(count,instr);
 				Thread.sleep(500);
 			}
-			if(nodeType.equals("Telosb")) {
+			if(nodeType.equals("telosb")) {
 				for(short count = Short.parseShort(from); count<=Short.parseShort(to);count++) {	
 					instr[1]='t';
 					sendCtrlMessage(count,instr);
@@ -197,8 +198,12 @@ class RSSI implements MessageListener {
 					Thread.sleep(500);	
 				}
 			}
-			fileOutput.close();
-			printToFile.close();
+			if (fileOutput!=null){
+				fileOutput.close();
+			}
+			if (printToFile!=null){
+				printToFile.close();
+			}
 			out.print("Ready!\n");
 		}catch(InterruptedException e){
 		}catch(IOException e){}
@@ -206,16 +211,22 @@ class RSSI implements MessageListener {
 
 	public static void main (String[] args)
 	{
-		String[] temp;
+		String[] motes;
+		String[] moteType;
+		PhoenixSource phoenix;
+		MoteIF mif;
 		if (args.length<3)
 		{
-			out.println("Usage: RSSI [nodeType][controller mote ID][motes which measure data (from-to)]");
+			out.println("Usage: PlatformTest [serial@port:motetype][controller mote ID][motes which measure data (from-to)]");
 		}
 		else 
 		{
-			temp=args[2].split("-");
-			RSSI rssitester= new RSSI();
-			rssitester.run(args[0],args[1],temp[0],temp[1]);
+			phoenix=BuildSource.makePhoenix(args[0], PrintStreamMessenger.err);
+			mif = new MoteIF(phoenix);
+			moteType=args[0].split(":");
+			motes=args[2].split("-");
+			PlatformTest tester= new PlatformTest(mif);
+			tester.run(moteType[1],args[1],motes[0],motes[1]);
 			System.exit(0);
 		}
 	}	
