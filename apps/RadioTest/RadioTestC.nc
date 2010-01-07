@@ -36,6 +36,11 @@
 //#define  USE_TOSSIM  1
 
 #include "RadioTestCases.h"
+#ifdef PLATFORM_IRIS
+#define POWER2(E) pow(2,(E))
+#else
+#define POWER2(E) powf(2,(E))
+#endif
 
 module RadioTestC @safe() {
   uses {
@@ -371,7 +376,7 @@ implementation {
   
       // If message is NOT considered COMPLETE resend it.
       } else {
-        setPendingOrBacklog( powf(2,msg->edgeid) );
+        setPendingOrBacklog( POWER2(msg->edgeid) );
       }
 
     } else {
@@ -380,7 +385,7 @@ implementation {
 
     // Check whether we have to send message on sendDone
     if ( problem[msg->edgeid].flags & SEND_ON_SDONE )
-      setPendingOrBacklog( powf(2,msg->edgeid) );
+      setPendingOrBacklog( POWER2(msg->edgeid) );
 
     post sendPending();
   }
