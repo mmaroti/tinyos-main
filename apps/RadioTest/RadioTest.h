@@ -72,15 +72,14 @@ enum {
   // AM Type identifiers
   AM_CTRLMSG_T = 101,
   AM_TESTMSG_T = 102,
-  AM_SETUP_T   = 103,
-  AM_STAT_T    = 104,
+  AM_STATMSG_T = 103,
+  AM_SETUP_T   = 110,
+  AM_STAT_T    = 111,
 
   // Control message types
   CTRL_SETUP = 0,
-  CTRL_REQ_STAT = 1,
-  CTRL_UPL_STAT = 2,
-  CTRL_UPL_END = 3,
-  CTRL_RESET = 4
+  CTRL_RESET = 1,
+  CTRL_REQ_STAT = 2,
 };
 
 // Edge type
@@ -129,14 +128,16 @@ typedef nx_struct testmsg_t {
 
 typedef nx_struct ctrlmsg_t {
   nx_uint8_t  type;         // Control type
-  nx_uint8_t  idx;          // The index of the sent stat ( when a mote provides data to the basestation )
-  nx_union {
-    setup_t     config;     // The config ( basestation->mote )
-    stat_t      stat;       // The stat ( mote->basestation )
-  } data;
+  nx_uint8_t  idx;          // The requested stat [optional]
+  setup_t     config;       // The config [optional]
 } ctrlmsg_t;
 
-#ifdef USE_TOSSIM
+typedef nx_struct statmsg_t {
+  nx_uint8_t  idx;          // The index of the sent stat
+  stat_t      stat;         // The statistics structure
+} statmsg_t;
+
+
 void dbgbin(pending_t data)
 {
   pending_t bit = 1 << (sizeof(pending_t)*8-1);
@@ -163,6 +164,5 @@ void dbgstat(stat_t s) {
   dbg("Debug","stat.wouldBacklogCount    : %d\n",s.wouldBacklogCount);
   dbg("Debug","---------------------------------------------\n");
 }
-#endif
 
 #endif

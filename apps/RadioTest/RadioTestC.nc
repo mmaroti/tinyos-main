@@ -33,7 +33,7 @@
 *         veresskrisztian@gmail.com
 */
 
-//#define  USE_TOSSIM  1
+#define  USE_TOSSIM  1
 
 #include "RadioTestCases.h"
 #ifdef PLATFORM_IRIS
@@ -96,14 +96,14 @@ implementation {
 
   /* Task : sendPending
    * 
-   * Processes the owned message queue in a round-robin way, and tries to send the
-   * messages. According to success or failure, it also collects different statistics.
+   * Processes the message queue in a round-robin way, and tries to send the next waiting
+   * message. According to success or failure, it also collects different statistics.
    */
   task void sendPending() {
     static pending_t  pidx = 0x1;
     static uint8_t    eidx = 0x0;
-    static testmsg_t* msg;
-    static am_addr_t  address;
+    testmsg_t* msg;
+    am_addr_t  address;
 
     while ( state == STATE_RUNNING && pending ) {
 
@@ -118,21 +118,14 @@ implementation {
         if ( problem[eidx].lastmsgid == problem[eidx].nextmsgid )
           ++(stats[eidx].resendCount);
 
-        // Set the destination
         address = ( config.flags & USE_DIRECT_ADDR ) ? problem[eidx].receiver : AM_BROADCAST_ADDR;
-        call AMPacket.setDestination(&pkt, address); 
-
-        // SUCCESSFULL Send
         if ( call TxTest.send( address, &pkt, sizeof(testmsg_t)) == SUCCESS ) {
-          ++(stats[eidx].sendSuccessCount);
-#ifdef USE_TOSSIM
           dbg("Debug","Message sent (edgeid,msgid) = (%d,%d)\n",msg->edgeid,msg->msgid);
-#endif
+
+          ++(stats[eidx].sendSuccessCount);
           // Remove the pending bit
           pending &= (~pidx);
           return;
-
-        // UNSUCCESSFULL Send
         } else {
           ++(stats[eidx].sendFailCount);
         }
@@ -180,49 +173,25 @@ implementation {
 
   event void TriggerTimer.fired() {
     if ( state == STATE_RUNNING && tTickSendMask ) {
-#ifdef USE_TOSSIM
         dbg("Debug","Trigger!\n");
-#endif
         setPendingOrBacklog( tTickSendMask );
     }
   }
 
   void sendStat(uint8_t statidx) {
-    ctrlmsg_t* msg;
-    if ( state != STATE_UPLOADING )
-      return;
-
-    // Indicate the end of stats
-    if ( statidx >= MAX_EDGE_COUNT ) {
-      msg = (ctrlmsg_t*)(call Packet.getPayload(&pkt,sizeof(ctrlmsg_t)));
-      msg->type = CTRL_UPL_END;
-      call TxBase.send(AM_BROADCAST_ADDR, &pkt, sizeof(ctrlmsg_t));
-    }
-    // If that edge doesn't belong to us try the next one
-    if ( problem[statidx].sender != TOS_NODE_ID &&
-         problem[statidx].receiver != TOS_NODE_ID )
-      sendStat(statidx+1);
-    // Else send the stat
-    else {
-#ifdef USE_TOSSIM
+    statmsg_t* msg;
+    if ( state == STATE_UPLOADING && statidx < MAX_EDGE_COUNT ) {
       dbg("Debug","Uploading stat : %d\n", statidx);
-#endif
-      msg = (ctrlmsg_t*)(call Packet.getPayload(&pkt,sizeof(ctrlmsg_t)));
-      msg->type = CTRL_UPL_STAT;
+      state = STATE_UPLOADING; call Leds.set(state);
+      msg = (statmsg_t*)(call Packet.getPayload(&pkt,sizeof(statmsg_t)));
       msg->idx = statidx;
-      msg->data.stat = stats[statidx];
-      if ( SUCCESS != call TxBase.send(AM_BROADCAST_ADDR, &pkt, sizeof(ctrlmsg_t) ) )
-        sendStat(statidx);
+      msg->stat = stats[statidx];
+      call TxBase.send(AM_BROADCAST_ADDR, &pkt, sizeof(statmsg_t) );
+      state = STATE_FINISHED; call Leds.set(state);
     }
   }
 
-  event void TxBase.sendDone(message_t* bufPtr, error_t error) { 
-    ctrlmsg_t* msg = (ctrlmsg_t*)(call Packet.getPayload(bufPtr,sizeof(ctrlmsg_t)));
-    if ( error == SUCCESS && msg->type != CTRL_UPL_END )
-      sendStat(++msg->idx);
-    else
-      sendStat(msg->idx);
-  }
+  event void TxBase.sendDone(message_t* bufPtr, error_t error) { }
 
   event message_t* RxBase.receive(message_t* bufPtr, void* payload, uint8_t len) {
  
@@ -231,7 +200,8 @@ implementation {
     uint8_t ctype = msg->type;
 
     // BaseStation RESETs this mote
-    if ( ctype == CTRL_RESET ) {
+    if ( ( state == STATE_FINISHED || state == STATE_INVALID ) && ctype == CTRL_RESET ) {
+      dbg("Debug","CTRL_RESET received! Resetting...\n");
 #ifdef USE_TOSSIM
       edgecount = 0;
 #else
@@ -240,33 +210,31 @@ implementation {
       memset(stats,0,sizeof(stat_t)*MAX_EDGE_COUNT);
       state = STATE_IDLE; call Leds.set(state);
 
-    // BaseStation REQUESTS statistics
+    // BaseStation REQUESTs statistics
     } else if ( ( state == STATE_FINISHED || state == STATE_UPLOADING ) && ctype == CTRL_REQ_STAT ) {
-      state = STATE_UPLOADING; call Leds.set(state);
-
-#ifdef USE_TOSSIM
-      dbg("Debug","Upload request received : %d\n", msg->idx);
-#endif
-      call PAck.noAck(&pkt);
+      dbg("Debug","CTRL_REQ_STAT received for stat : %d\n", msg->idx);
       sendStat(msg->idx);
             
     // BaseStation SETUPs this mote
     } else if ( (state == STATE_IDLE || state == STATE_INVALID ) && ctype == CTRL_SETUP ) {
-#ifdef USE_TOSSIM
-      dbg("Debug","Config received.\n");
-#endif
-      config = msg->data.config;
+      dbg("Debug","CTRL_SETUP received.\n");
+      config = msg->config;
+      
+      // Check config consistency
       if ( config.problem_idx > PROBLEMSET_COUNT ) {
-#ifdef USE_TOSSIM
         dbg("Debug","Invalid problem idx received : %d\n",config.problem_idx);
-#endif
         state = STATE_INVALID; call Leds.set(state);
         return bufPtr;   
       }
 
-      // Enable the ACK feature on the message if wanted
+      // Enable the ACK feature if wanted
       if ( config.flags & USE_ACK )
         call PAck.requestAck(&pkt);
+      else
+        call PAck.noAck(&pkt);
+
+      // Setup the LPL faeture if wanted
+      // TODO!
 
 #ifdef USE_TOSSIM
       call AMPacket.setSource(&pkt,TOS_NODE_ID);
@@ -317,9 +285,7 @@ implementation {
     // In case the message is sent to this mote
     if (  state == STATE_RUNNING && 
           problem[msg->edgeid].receiver == TOS_NODE_ID ) {
-#ifdef USE_TOSSIM
       dbg("Debug","Message received (edgeid,msgid) = (%d,%d)\n",msg->edgeid,msg->msgid);
-#endif      
       ++(stats[msg->edgeid].receiveCount);
 
       // If we got a message with a lower id than expected -> duplicate
