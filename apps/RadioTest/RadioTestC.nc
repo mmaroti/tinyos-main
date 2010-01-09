@@ -104,8 +104,9 @@ implementation {
     static uint8_t    eidx = 0x0;
     testmsg_t* msg;
     am_addr_t  address;
+    bool sendsuccess = FALSE;
 
-    while ( state == STATE_RUNNING && pending ) {
+    while ( state == STATE_RUNNING && pending && !sendsuccess ) {
 
       // In case we need to send a message on the current edge
       if ( pending & pidx ) {
@@ -125,7 +126,10 @@ implementation {
           ++(stats[eidx].sendSuccessCount);
           // Remove the pending bit
           pending &= (~pidx);
-          return;
+
+          // This condition guarantees that in case of a successfull send, the round-robin edge
+          // incrementation takes place yet this function returns.
+          sendsuccess = TRUE;
         } else {
           ++(stats[eidx].sendFailCount);
         }
@@ -233,7 +237,7 @@ implementation {
       else
         call PAck.noAck(&pkt);
 
-      // Setup the LPL faeture if wanted
+      // Setup the LPL feature if wanted
       // TODO!
 
 #ifdef USE_TOSSIM
@@ -264,8 +268,8 @@ implementation {
       }
 #ifdef USE_TOSSIM
       edgecount = i;
+      dbgpset(problem);
 #endif
-
       // Now we are running
       state = STATE_RUNNING; call Leds.set(state);
       call Timer.startOneShot(config.runtime_msec);
@@ -327,7 +331,8 @@ implementation {
       dbg("Debug","Message sent SUCCESSFULLY (edgeid,msgid) = (%d,%d)\n",msg->edgeid,msg->msgid);
       // If using TOSSIM, acknowledgements doesn't work, we must bypass it with a random value.
       acked = (rand()%10 < 3);
-      dbg("Debug","Message acked : %s\n",acked ? "yes" : "no");
+      if ( config.flags & USE_ACK )
+        dbg("Debug","Message acked : %s\n",acked ? "yes" : "no");
 #else
       acked = call PAck.wasAcked(bufPtr);
 #endif
