@@ -57,7 +57,7 @@ def tossim_run(motenum,policy,platform):
 
   # Inject control message ( SETUP )
   msg.set_type(0);
-  msg.set_config_problem_idx(0)
+  msg.set_config_problem_idx(policy)
   msg.set_config_runtime_msec(1000)
   msg.set_config_sendtrig_msec(100)
   msg.set_config_flags(0)
@@ -66,7 +66,7 @@ def tossim_run(motenum,policy,platform):
   print "Injecting CTRL CONFIG packets ";
   for i in range(0, motenum):
     pkt.deliver(i+1, t.time() + 3)
-  for i in range(0, 1000):
+  for i in range(0, 10000):
     t.runNextEvent()
 
   # Inject control messages ( REQUEST )
