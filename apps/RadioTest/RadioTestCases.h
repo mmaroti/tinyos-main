@@ -43,10 +43,10 @@
 
 // Sending flags
 enum {
-  SEND_OFF  = 0x0,
-  SEND_ON_INIT = 0x01,
-  SEND_ON_SDONE = 0x02,
-  SEND_ON_TTICK = 0x04
+  SEND_OFF  = 0,
+  SEND_ON_INIT = 1,
+  SEND_ON_SDONE = 2,
+  SEND_ON_TTICK = 4
 };
 
 edge_t problemSet[][(MAX_EDGE_COUNT+1)] = { {
@@ -167,8 +167,8 @@ RT_PROBLEM_NEXT
 * Description   : A 2 element ping-pong, the initiator is Mote1.
 */
 RT_PROBLEM_NEXT
-  {1, 2, SEND_ON_INIT , 0x2, 1, 0 },
-  {2, 1, SEND_OFF     , 0x1, 1, 0 },
+  {1, 2, SEND_ON_INIT , 1, 0, 2 },
+  {2, 1, SEND_OFF     , 1, 0, 1 },
   RT_NULL_EDGE
 
 /* 9. 
@@ -180,9 +180,9 @@ RT_PROBLEM_NEXT
 *                 Mote3 passes back to Mote1, and continued.
 */
 RT_PROBLEM_NEXT
-  {1, 2, SEND_ON_INIT , 0x2, 1, 0 },
-  {2, 3, SEND_OFF     , 0x4, 1, 0 },
-  {3, 1, SEND_OFF     , 0x1, 1, 0 },
+  {1, 2, SEND_ON_INIT , 1, 0, 2 },
+  {2, 3, SEND_OFF     , 1, 0, 4 },
+  {3, 1, SEND_OFF     , 1, 0, 1 },
   RT_NULL_EDGE
 
 /* 10. 
@@ -192,12 +192,12 @@ RT_PROBLEM_NEXT
 * Description   : A 3 element simultaneous pairwise ping-pong using 3 "balls".
 */
 RT_PROBLEM_NEXT
-  {1, 2, SEND_ON_INIT , 0x16, 1, 0 },
-  {2, 3, SEND_ON_INIT , 0x32, 1, 0 },
-  {3, 1, SEND_ON_INIT , 0x8 , 1, 0 },
-  {1, 3, SEND_OFF     , 0x4 , 1, 0 },
-  {2, 1, SEND_OFF     , 0x1 , 1, 0 },
-  {3, 2, SEND_OFF     , 0x2 , 1, 0 },
+  {1, 2, SEND_ON_INIT , 1, 0, 16 },
+  {2, 3, SEND_ON_INIT , 1, 0, 32 },
+  {3, 1, SEND_ON_INIT , 1, 0, 8 },
+  {1, 3, SEND_OFF     , 1, 0, 4 },
+  {2, 1, SEND_OFF     , 1, 0, 1 },
+  {3, 2, SEND_OFF     , 1, 0, 2 },
   RT_NULL_EDGE
 
 }}; // problemSet END
