@@ -38,21 +38,15 @@ configuration MicReadStreamAppC
 }
 implementation { 
 
-	components MicReadStreamC;
+	components MicReadStreamC as App;
 	components MainC;
 	components LedsC;
-	components new TimerMilliC();
 	components ActiveMessageC;
-//	components new VoltageStreamC();
 	components new MicStreamC();
 
-	MicReadStreamC.ReadStream->MicStreamC;
-//	MicReadStreamC.ReadStream->VoltageStreamC;
-	MicReadStreamC.Timer->TimerMilliC;
-	MicReadStreamC.Leds->LedsC;
-	MicReadStreamC.Boot->MainC;
-	MicReadStreamC.DataSend->ActiveMessageC.AMSend[AM_DATAMSG];
-	MicReadStreamC.ReadySend->ActiveMessageC.AMSend[AM_READYMSG];
-	MicReadStreamC.Receive->ActiveMessageC.Receive[AM_CTRLMSG];
-	MicReadStreamC.SplitControl->ActiveMessageC;
+	App.ReadStream->MicStreamC;
+	App.Leds->LedsC;
+	App.Boot->MainC;
+	App.AMSend->ActiveMessageC.AMSend[AM_DATAMSG];
+	App.SplitControl->ActiveMessageC;
 }

@@ -37,158 +37,76 @@ module MicReadStreamC{
 	uses
 	{
 		interface ReadStream<uint16_t>;
-		interface Timer<TMilli>;
 		interface Leds;
-		interface AMSend as DataSend;
-		interface AMSend as ReadySend;
-		interface Receive;
+		interface AMSend;
 		interface Boot;
 		interface SplitControl;
 	}
 }
 implementation
 {
-	enum
-	{
-		STOPPED=0,
-		STARTED,
-	};
-	uint8_t state;
-	uint16_t MicRead[3][MIC_SAMPLES],sampleNum,bufferDoneNum,sendErrorNum,sendDoneErrorNum,busyTrueNum;
-	uint32_t periodToSend;
-	message_t dataMsg,readyMsg;
-	bool busy;
 
-	inline void dataSend(uint16_t*);
-	inline void readySend(uint32_t);
+	uint16_t MicRead[3][BUFFER_SIZE],bufferNum;
+	message_t dataMsg;
 
 	event void Boot.booted()
 	{
 		call SplitControl.start();
-		call Leds.led0On();
-		state=STOPPED;
-		busy=FALSE;
 	}
 
 	event void SplitControl.startDone(error_t err)
 	{
-		if (err!=SUCCESS)
-		{
-			call SplitControl.start();
-		}
-	}
-
-	event message_t* Receive.receive(message_t* message ,void* payload, uint8_t len)
-	{
 		uint8_t i;
-				
-		if (len == sizeof(ctrlmsg_t))
-		{
-			ctrlmsg_t *ctrl = (ctrlmsg_t*)payload;
-			if (ctrl->instr == 's')
-			{
-				state = STARTED;
-				sampleNum=0;
-				bufferDoneNum=0;
-				sendErrorNum=0;
-				sendDoneErrorNum=0;
-				busyTrueNum=0;
-				for(i = 0; i < 3; ++i)
-				{
-					call ReadStream.postBuffer(MicRead[i], MIC_SAMPLES);
-				}
-				call ReadStream.read(ctrl->micPeriod);
-				call Timer.startOneShot(TIMER_PERIOD);
-			}
-		}
-		return message;
-	}
-	
-	event void Timer.fired()
-	{
-		if(state == STOPPED)
-		{
-			readySend(periodToSend);
-		}
-		state=STOPPED;
 		
+		if (err==SUCCESS)
+		{
+			for(i = 0; i < 3; ++i)
+			{
+				call ReadStream.postBuffer(MicRead[i], BUFFER_SIZE);
+			}
+			call ReadStream.read(SAMPLING_PERIOD);
+		}
+		else
+		{
+			call SplitControl.start();			
+		}
 	}
 
 	event void ReadStream.bufferDone(error_t result, uint16_t* buf, uint16_t count)
 	{
-		if(result==SUCCESS)
-		{
-			bufferDoneNum++;
-			if(busy)
-			{
-				busyTrueNum++;
-			}	
-			dataSend(buf);
-			if(state == STARTED)
-			{
-				call ReadStream.postBuffer(buf, count);
-			}
-			
-		}
-	}
-	
-	event void ReadStream.readDone(error_t result, uint32_t usActualPeriod)
-	{
-		if(result==SUCCESS)
-		{
-			periodToSend = usActualPeriod;
-			call Timer.startOneShot(64);
-		}
-	}
-	
-	event void DataSend.sendDone(message_t* bufPtr, error_t error)
-	{
-		if(error==SUCCESS)
-		{
-			busy=FALSE;
-		}
-		else
-		{
-			sendDoneErrorNum++;
-			call Leds.led2Toggle();
-		}
-	}
-
-	inline void dataSend(uint16_t *dataToSend)
-	{
 		uint8_t i;
 		datamsg_t* packet;
-
-		if(!busy)
+		
+		if(result==SUCCESS)
 		{
-			busy=TRUE;
-			packet=(datamsg_t*)(call DataSend.getPayload(&dataMsg, sizeof(datamsg_t)));
-			for(i=0;i<MIC_SAMPLES;++i)
+			bufferNum++;
+			packet=(datamsg_t*)(call AMSend.getPayload(&dataMsg, sizeof(datamsg_t)));
+			for(i=0;i<BUFFER_SIZE;++i)
 			{
-				packet->micData[i]=dataToSend[i]>>2;
+				packet->data[i]=buf[i]>>2;
 			}
-			packet-> sampleNum = sampleNum++;
-			if(call DataSend.send(AM_BROADCAST_ADDR, &dataMsg, sizeof(datamsg_t))!=SUCCESS)
+			packet->bufferNum=bufferNum;	
+			if(call AMSend.send(0, &dataMsg, sizeof(datamsg_t))!=SUCCESS)
 			{
-				sendErrorNum++;
-				call Leds.led1Toggle();
-			}
+				call Leds.led0Toggle();
+			}	
+			call ReadStream.postBuffer(buf, count);
 		}
 	}
 
-	inline void readySend(uint32_t usActualPeriod)
+	event void AMSend.sendDone(message_t* bufPtr, error_t error)
 	{
-		readymsg_t* packet = (readymsg_t*)(call DataSend.getPayload(&readyMsg, sizeof(readymsg_t)));
-		packet->usActualPeriod=usActualPeriod;
-		packet->sampleNum=sampleNum;
-		packet->bufferDoneNum=bufferDoneNum;
-		packet->sendErrorNum=sendErrorNum;
-		packet->sendDoneErrorNum=sendDoneErrorNum;
-		packet->busyTrueNum=busyTrueNum;
-		call ReadySend.send(AM_BROADCAST_ADDR, &readyMsg, sizeof(readymsg_t));
+		if(error!=SUCCESS)
+		{
+			call Leds.led1Toggle();
+		}
 	}
-
-	event void ReadySend.sendDone(message_t* bufPtr, error_t error){}
+	event void ReadStream.readDone(error_t result, uint32_t usActualPeriod){
+		if (result == SUCCESS)
+		{
+			call Leds.led2On();
+		}
+	}
 	event void SplitControl.stopDone(error_t err){} 
 }
 

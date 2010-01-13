@@ -36,30 +36,13 @@
 
 enum{
 	AM_DATAMSG = 1,
-	AM_CTRLMSG = 2,
-	AM_READYMSG=3,
-	MIC_SAMPLES = 112,
-	TIMER_PERIOD= 10240,
+	SAMPLING_PERIOD = 112,
+	BUFFER_SIZE = 112,
 };
 
 typedef nx_struct datamsg{
-	nx_uint8_t micData[MIC_SAMPLES];
-	nx_uint16_t sampleNum;
+	nx_uint8_t data[BUFFER_SIZE];
+	nx_uint16_t bufferNum;
 }datamsg_t;
-
-typedef nx_struct readymsg{
-	nx_uint32_t usActualPeriod;
-	nx_uint16_t sampleNum;
-	nx_uint16_t bufferDoneNum;
-	nx_uint16_t sendErrorNum;
-	nx_uint16_t sendDoneErrorNum;
-	nx_uint16_t busyTrueNum;
-}readymsg_t;
-
-
-typedef nx_struct ctrlmsg{
-	nx_uint8_t instr;
-	nx_uint16_t micPeriod;
-}ctrlmsg_t;
 
 #endif
