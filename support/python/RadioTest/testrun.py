@@ -57,23 +57,44 @@ def tossim_run(motenum,policy,platform):
 
   # Inject control message ( SETUP )
   msg.set_type(0);
-  msg.set_config_problem_idx(policy)
-  msg.set_config_runtime_msec(1000)
-  msg.set_config_sendtrig_msec(100)
-  msg.set_config_flags(0)
+  msg.set_data_config_problem_idx(policy)
+  msg.set_data_config_runtime_msec(1000)
+  msg.set_data_config_sendtrig_msec(5)
+  msg.set_data_config_flags(0)
   pkt.setData(msg.data)
 
-  print "Injecting CTRL CONFIG packets ";
+  print "Injecting CTRL SETUP packets ";
   for i in range(0, motenum):
     pkt.deliver(i+1, t.time() + 3)
+  for i in range(0, 1000):
+    t.runNextEvent()
+
+  # Inject control message ( SETUP_SYN )  
+  msg.set_type(1);
+  pkt.setData(msg.data)
+  print "Injecting CTRL SETUP SYN packets ";
+  for i in range(0, motenum):
+    pkt.deliver(i+1, t.time() + 3)
+ 
+  for i in range(0, 1000):
+    t.runNextEvent()
+  
+  # Inject control message ( START )  
+  msg.set_type(10);
+  pkt.setData(msg.data)
+  pkt.setDestination(0xffff)
+  print "Injecting CTRL START packets ";
+  for i in range(0, motenum):
+    pkt.deliver(i+1, t.time() + 3)
+  
   for i in range(0, 10000):
     t.runNextEvent()
 
   # Inject control messages ( REQUEST )
-  msg.set_type(2)
+  msg.set_type(30)
   for i in range(0, motenum):
     for j in range(0,motenum*2):
-      msg.set_idx(j)
+      msg.set_data_statidx(j)
       pkt.setData(msg.data)
       print "Injecting CTRL REQUEST packet for ",i+1," requesting stat ",j;
       pkt.deliver(i+1, t.time() + 3)
@@ -82,7 +103,7 @@ def tossim_run(motenum,policy,platform):
         t.runNextEvent()
 
   # Inject control message ( RESET )
-  msg.set_type(1)
+  msg.set_type(20)
   pkt.setData(msg.data)
   
   print "Injecting CTRL RESET packets ";
@@ -90,7 +111,6 @@ def tossim_run(motenum,policy,platform):
     pkt.deliver(i+1, t.time() + 3)
   for i in range(0, 1000):
     t.runNextEvent()
-
 
 def usage():
     print sys.argv[0]," <-m|--motenum=> <int> <-p|--policy=> <int> [-h|--help] [-w|--hardware= <WSN platform>]"
