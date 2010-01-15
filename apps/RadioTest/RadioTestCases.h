@@ -39,7 +39,7 @@
 #include "RadioTest.h"
 
 #define RT_PROBLEM_NEXT },{
-#define RT_NULL_EDGE {((MAX_NODE_COUNT)+1),((MAX_NODE_COUNT)+1),0,0,0,0}
+#define RT_NULL_EDGE {0,0,0,0,0,0}
 
 // Sending flags
 enum {
@@ -206,7 +206,7 @@ RT_PROBLEM_NEXT
 
 void dbgpset(const edge_t* edgelist) {
   uint8_t i=0;
-  while (edgelist[i].sender != MAX_NODE_COUNT+1 ) {
+  while (edgelist[i].sender != 0 ) {
     dbg("Debug","problem[%d].sender     : %d\n",i,edgelist[i].sender);
     dbg("Debug","problem[%d].receiver   : %d\n",i,edgelist[i].receiver);
     dbg("Debug","problem[%d].flags      : %d\n",i,edgelist[i].flags);
