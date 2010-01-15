@@ -57,11 +57,11 @@
 
 enum {
   // Mote states
-  STATE_RADIOOFF = 0x0,
-  STATE_INVALID = 0x1,
-  STATE_IDLE = 0x2,
+  STATE_INVALID = 0x0,
+  STATE_IDLE = 0x1,
+  STATE_CONFIGURED = 0x2,
   STATE_RUNNING = 0x4,
-  STATE_FINISHED = 0x6,
+  STATE_FINISHED = 0x5,
   STATE_UPLOADING = 0x7,
 
   // Policy flags
@@ -78,8 +78,15 @@ enum {
 
   // Control message types
   CTRL_SETUP = 0,
-  CTRL_RESET = 1,
-  CTRL_REQ_STAT = 2,
+  CTRL_SETUP_SYN = 1,
+  CTRL_SETUP_ACK = 2,
+
+  CTRL_START = 10,
+  CTRL_RESET = 20,
+
+  CTRL_STAT_REQ = 30,
+  CTRL_STAT_OK = 31,
+  CTRL_STAT_NEXISTS = 32
 };
 
 // Edge type
@@ -127,16 +134,13 @@ typedef nx_struct testmsg_t {
 } testmsg_t;
 
 typedef nx_struct ctrlmsg_t {
-  nx_uint8_t  type;         // Control type
-  nx_uint8_t  idx;          // The requested stat [optional]
-  setup_t     config;       // The config [optional]
+  nx_uint8_t    type;         // Control type
+  nx_union {
+    setup_t     config;       // The config in the setup stage
+    nx_uint8_t  statidx;      // The requested stat index in the requesting stage
+    stat_t      stat;         // The requested stat in the downloading stage
+  } data;
 } ctrlmsg_t;
-
-typedef nx_struct statmsg_t {
-  nx_uint8_t  idx;          // The index of the sent stat
-  stat_t      stat;         // The statistics structure
-} statmsg_t;
-
 
 void dbgbin(pending_t data)
 {
