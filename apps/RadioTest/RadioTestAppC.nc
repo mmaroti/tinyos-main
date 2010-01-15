@@ -61,7 +61,7 @@ implementation {
   App.Leds -> LedsC;
   App.AMControl -> ActiveMessageC;
 
-  App.Timer -> Timer;
+  App.TestEndTimer -> Timer;
   App.TriggerTimer -> TTimer;
 }
 
