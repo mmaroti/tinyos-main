@@ -137,6 +137,9 @@ class Capture extends JFrame implements MessageListener {
 
 	private void initCapture(){
 		try{
+			if(wavFile!=null){
+				wavFile.delete();
+			}
 			wavFile = new File("microphone.wav");
 			wavFile.deleteOnExit();
 			wavFileHandler=new RandomAccessFile(wavFile,"rw");
