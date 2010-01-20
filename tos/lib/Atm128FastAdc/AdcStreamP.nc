@@ -33,12 +33,12 @@
 */
 
 #include "Adc.h"
-#include "Assert.h"
 
 #ifdef ADC_DEBUG
-#define ADC_ASSERT ASSERT
+	void assert(bool condition, const char* file, uint16_t line);
+	#define ADC_ASSERT(COND) assert(COND, __FILE__, __LINE__)
 #else
-#define ADC_ASSERT(COND) for(;0;)
+	#define ADC_ASSERT(COND) for(;0;)
 #endif
 
 module AdcStreamP
