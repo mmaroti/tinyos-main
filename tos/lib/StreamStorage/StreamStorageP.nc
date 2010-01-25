@@ -165,7 +165,7 @@ implementation{
 //				printf("@%ld#%ld:%ld\n",call LogWrite.currentOffset(),(call LogWrite.currentOffset())/PAGE_SIZE,(call LogWrite.currentOffset()+len)/PAGE_SIZE);
 //				printfflush();
 //			#endif	
-			if((((call LogWrite.currentOffset())/PAGE_SIZE)<((call LogWrite.currentOffset()+len)/PAGE_SIZE))||((call LogWrite.currentOffset())%PAGE_SIZE)==0){//data is overlapping to the next page, or we're on the first byte of the page
+			if((((call LogWrite.currentOffset())/PAGE_SIZE)<((call LogWrite.currentOffset()+len-1)/PAGE_SIZE))||((call LogWrite.currentOffset())%PAGE_SIZE)==0){//data is overlapping to the next page, or we're on the first byte of the page
 				firstwritelength=(PAGE_SIZE-((call LogWrite.currentOffset())%PAGE_SIZE))%PAGE_SIZE;
 				if(firstwritelength>0){//if we had any space on this page, fill it
 					status=WRITE_PENDING_DATA1;				
@@ -249,15 +249,10 @@ implementation{
 				call LogWrite.append(&current_addr, sizeof(current_addr));
 			}break;
 			case WRITE_PENDING_METADATA:{//we're done with the metadata, now we write the rest of the data, or the ID	
-				if(writelength==firstwritelength)
+				if(writelength==firstwritelength&&write_id>0)
 				{
-					if(write_id>0){
-						status=WRITE_PENDING_ID;
-						call LogWrite.append(&write_id, sizeof(write_id));
-					} else {
-						status=NORMAL;
-						signal StreamStorage.appendDone(writebuffer, writelength, SUCCESS);
-					}
+					status=NORMAL;
+					signal StreamStorage.appendDone(writebuffer, writelength, SUCCESS);
 				}else {
 					status=WRITE_PENDING_DATA2;
 					call LogWrite.append(writebuffer+firstwritelength, writelength-firstwritelength);
