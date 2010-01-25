@@ -39,9 +39,9 @@ enum {
 	UINT8_T=1<<4,
 	UINT16_T=2<<4,
 	UINT32_T=4<<4,
-	INT8_T=1+16<<4,
-	INT16_T=2+16<<4,
-	INT32_T=4+16<<4,		
+	INT8_T=1+(16<<4),
+	INT16_T=2+(16<<4),
+	INT32_T=4+(16<<4),		
 };
 
 #endif /* STREAM_STORAGE_H */

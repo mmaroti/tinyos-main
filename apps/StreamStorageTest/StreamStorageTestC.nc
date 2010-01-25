@@ -43,46 +43,61 @@ module StreamStorageTestC{
 	}
 }
 implementation{
-	nx_uint16_t buffer;
+	uint16_t buffer;
 	uint8_t readbuf[100];
 	
 	event void Boot.booted(){
-		call SplitControl.start();	
+		printf("##############################################\n");
+		buffer=10;
+		call StreamStorage.erase();
+		//call SplitControl.start();	
 	}
 	
 	event void SplitControl.startDone(error_t error){
 		
 		call Leds.set(7);
-		call StreamStorage.erease();	
-		//call StreamStorage.append(UINT16_T, &buffer, sizeof(buffer));
+		//call StreamStorage.read(20,&readbuf,20);
+		call StreamStorage.append(&buffer, 1);
 	}
 
 	event void StreamStorage.appendDone(void* buf, uint8_t  len, error_t error){
 		buffer++;
-		if(buffer<100){
-			call StreamStorage.append(UINT16_T, &buffer, sizeof(buffer));
+		if(buffer<300){
+			call StreamStorage.append(&buffer, sizeof(buffer));
 		}else{
 			call StreamStorage.sync();
 		}
+	}
+	
+	event void StreamStorage.appendDoneWithID(void* buf, uint8_t  len, error_t error){
+		
 	}
 
 	event void StreamStorage.readDone(void* buf, uint8_t  len, error_t error){
 		uint8_t i;
 		call Leds.set(2);
-		printf("Read data: \n");
-		for(i=0;i<19;i++)
-			printf("%u. %u\n",i,*(readbuf+i));
-		printfflush();
+		if(error==SUCCESS){
+			printf("Read data: \n");
+			for(i=0;i<19;i++)
+				printf("%u. %u\n",i,*(readbuf+i));
+			printfflush();
+		} else {
+			printf("Read error: %d\n",error);
+			printfflush();
+		}
 	}
 	
-	event void StreamStorage.ereaseDone(error_t error){
-		call Leds.set(0);
-		call StreamStorage.append(UINT16_T, &buffer, sizeof(buffer));
+	event void StreamStorage.eraseDone(error_t error){
+		//call Leds.set(0);
+		//call StreamStorage.append(UINT16_T, &buffer, sizeof(buffer));
+		printf("Error: %d\n",error);
+		printfflush();
+		call SplitControl.start();
 	}
 	
 	event void StreamStorage.syncDone(error_t error){
-		call StreamStorage.read(10,&readbuf,20);
-		call Leds.set(1);
+		call StreamStorage.read(270,&readbuf,20);
+		//call Leds.set(1);
 	}
 
 
