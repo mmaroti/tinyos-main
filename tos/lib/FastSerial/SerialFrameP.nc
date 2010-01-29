@@ -39,11 +39,13 @@ module SerialFrameP
 	provides
 	{
 		interface SerialComm as SerialSend;
+		interface SerialComm as SerialReceive;
 	}
 
 	uses
 	{
 		interface SerialComm as SubSend;
+		interface SerialComm as UpReceive;
 	}
 }
 
@@ -62,11 +64,11 @@ implementation
 	norace uint8_t txState;
 	norace uint8_t txByte;
 
-	async command error_t SerialSend.start()
+	async command void SerialSend.start()
 	{
 		SERIAL_ASSERT( txState == TXSTATE_START );
 
-		return call SubSend.start();
+		call SubSend.start();
 	}
 
 	async event void SubSend.startDone()
@@ -130,4 +132,96 @@ implementation
 	}
 
 // ------- Receive
+
+	enum
+	{
+		RXSTATE_OFF = 0,
+		RXSTATE_RECEIVE = 1,
+		RXSTATE_ESCAPE = 2,
+		RXSTATE_FRAME = 3,
+	};
+
+	norace uint8_t rxState;
+
+	async command void SerialReceive.send(uint8_t data)
+	{
+		SERIAL_ASSERT( rxState == RXSTATE_RECEIVE || rxState == RXSTATE_ESCAPE );
+
+		// make the fall through case fast
+		if( data != HDLC_FLAG_BYTE )
+		{
+			if( data != HDLC_CTLESC_BYTE )
+			{
+				if( rxState == RXSTATE_ESCAPE )
+				{
+					rxState = RXSTATE_RECEIVE;
+					data ^= 0x20;
+				}
+
+				call UpReceive.send(data);
+			}
+			else
+			{
+				rxState = RXSTATE_ESCAPE;
+				signal SerialReceive.sendDone();
+			}
+		}
+		else
+		{
+			rxState = RXSTATE_FRAME;
+			call UpReceive.stop();
+		}
+	}
+
+	async event void UpReceive.sendDone()
+	{
+		SERIAL_ASSERT( rxState == RXSTATE_RECEIVE );
+
+		signal SerialReceive.sendDone();
+	}
+
+	async command void SerialReceive.start()
+	{
+		SERIAL_ASSERT( rxState == RXSTATE_OFF );
+
+		call UpReceive.start();
+	}
+
+	async event void UpReceive.startDone()
+	{
+		if( rxState == RXSTATE_FRAME )
+		{
+			rxState = RXSTATE_RECEIVE;
+			signal SerialReceive.sendDone();
+		}
+		else
+		{
+			SERIAL_ASSERT( rxState == RXSTATE_OFF );
+
+			rxState = RXSTATE_RECEIVE;
+			signal SerialReceive.startDone();
+		}
+	}
+
+	async command void SerialReceive.stop()
+	{
+		SERIAL_ASSERT( rxState == RXSTATE_RECEIVE || rxState == RXSTATE_ESCAPE );
+
+		call UpReceive.stop();
+	}
+
+	async event void UpReceive.stopDone(error_t error)
+	{
+		if( rxState == RXSTATE_FRAME )
+		{
+			call UpReceive.start();
+		}
+		else
+		{
+			SERIAL_ASSERT( rxState == RXSTATE_RECEIVE || rxState == RXSTATE_ESCAPE );
+
+			rxState = RXSTATE_OFF;
+			signal SerialReceive.stopDone(SUCCESS);
+		}
+	}
 }

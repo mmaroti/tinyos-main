@@ -59,11 +59,11 @@ implementation
 
 	norace uint8_t txState;
 
-	async command error_t SerialSend.start()
+	async command void SerialSend.start()
 	{
 		SERIAL_ASSERT( txState == TXSTATE_START );
 
-		return call SubSend.start();
+		call SubSend.start();
 	}
 
 	async event void SubSend.startDone()

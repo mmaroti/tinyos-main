@@ -53,33 +53,41 @@ configuration SerialDispatcherC
 
 implementation
 {
-	SplitControl = SerialDispatcherP;
-	Receive = SerialDispatcherP;
-	Send = SerialDispatcherP;
-	SerialPacketInfo = SerialDispatcherP;
-
 	Leds = UnconnectedLeds;
 	Init = UnconnectedInit;
 
 	components SerialDispatcherP;
 	SerialDispatcherP.SubSend -> SerialProtocolP;
-	SerialDispatcherP.SubControl -> PlatformSerialC;
+	SerialDispatcherP.SubControl -> SerialAdapterP;
+	SerialPacketInfo = SerialDispatcherP;
+	SplitControl = SerialDispatcherP;
+	Receive = SerialDispatcherP;
+	Send = SerialDispatcherP;
 
 	components SerialProtocolP;
-	SerialProtocolP.SubSend -> SerialCrcP;
+	SerialProtocolP.SubSend -> SerialCrcP.SerialSend;
 
 	components SerialCrcP;
-	SerialCrcP.SubSend -> SerialFrameP;
+	SerialCrcP.SubSend -> SerialFrameP.SerialSend;
+
+	components SerialBufferP;
+	SerialFrameP.UpReceive -> SerialBufferP.SerialReceive;
+	SerialPacketInfo = SerialBufferP;
+	SerialBufferP.Leds -> LedsC;
 
 	components SerialFrameP;
-	SerialFrameP.SubSend -> SerialAdapterP;
+	SerialFrameP.SubSend -> SerialAdapterP.SerialSend;
+	SerialAdapterP.UpReceive -> SerialFrameP.SerialReceive;
 
 	components SerialAdapterP;
 	SerialAdapterP.UartStream -> PlatformSerialC;
+	SerialAdapterP.SubControl -> PlatformSerialC;
 
 	components PlatformSerialC;
 
 #ifdef SERIAL_DEBUG
-	components SerialDebugC;
+	components SerialDebugP;
+	SerialDebugP.Leds -> LedsC;
 #endif
+	components LedsC;
 }

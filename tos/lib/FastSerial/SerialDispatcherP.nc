@@ -44,7 +44,7 @@ module SerialDispatcherP
 
 	uses
 	{
-		interface StdControl as SubControl;
+		interface SplitControl as SubControl;
 		interface SerialComm as SubSend;
 		interface SerialPacketInfo[uart_id_t id];
 	}
@@ -55,10 +55,8 @@ implementation
 	enum
 	{
 		STATE_OFF = 0,
-		STATE_OFF_TO_ON = 1,
-		STATE_ON_TO_OFF = 2,
-		STATE_ON = 3,
-		STATE_SEND = 4,
+		STATE_ON = 1,
+		STATE_SEND = 2,
 	};
 
 	norace uint8_t state;
@@ -69,38 +67,39 @@ implementation
 
 	command error_t SplitControl.start()
 	{
-		error_t error;
-
 		if( state != STATE_OFF )
 			return EALREADY;
 
-		error = call SubControl.start();
-		if( error != SUCCESS )
-			return error;
-
-		state = STATE_OFF_TO_ON;
-		post signalDone();
-		return SUCCESS;
+		return call SubControl.start();
 	}
 
 	command error_t SplitControl.stop()
 	{
-		error_t error;
-
 		if( state != STATE_ON )
 			return EALREADY;
 
-		error = call SubControl.stop();
-		if( error != SUCCESS )
-			return error;
-
-		state = STATE_ON_TO_OFF;
-		post signalDone();
-		return SUCCESS;
+		return call SubControl.stop();
 	}
 
-	default event void SplitControl.startDone(error_t err) { }
-	default event void SplitControl.stopDone(error_t err) { }
+	event void SubControl.startDone(error_t error)
+	{
+		SERIAL_ASSERT( state == STATE_OFF );
+
+		if( error == SUCCESS )
+			state = STATE_ON;
+
+		signal SplitControl.startDone(error);
+	}
+
+	event void SubControl.stopDone(error_t error)
+	{
+		SERIAL_ASSERT( state == STATE_ON );
+
+		if( error == SUCCESS )
+			state = STATE_OFF;
+
+		signal SplitControl.stopDone(error);
+	}
 
 // ------- Send
 
@@ -120,7 +119,8 @@ implementation
 		txEnd = txPtr + call SerialPacketInfo.dataLinkLength[id](msg, len);
 		txId = id;
 
-		return call SubSend.start();
+		call SubSend.start();
+		return SUCCESS;
 	}
 
 	async event void SubSend.startDone()
@@ -177,17 +177,9 @@ implementation
 
 	task void signalDone()
 	{
-		if( state == STATE_OFF_TO_ON )
-		{
-			state = STATE_ON;
-			signal SplitControl.startDone(SUCCESS);
-		}
-		else if( state == STATE_ON_TO_OFF )
-		{
-			state = STATE_OFF;
-			signal SplitControl.stopDone(SUCCESS);
-		}
-		else if( state == STATE_SEND )
+		SERIAL_ASSERT( state == STATE_SEND );
+
+		if( state == STATE_SEND )
 		{
 			state = STATE_ON;
 			signal Send.sendDone[txId](txMsg, txError);

@@ -36,9 +36,11 @@ interface SerialComm
 	/**
 	 * Starts a new frame. This command MUST not be called till
 	 * the stop command is finished. Implementations may add extra
-	 * header bytes transparently.
+	 * header bytes transparently. There is no returned error code,
+	 * otherwise we cannot guarantee that we can start a new frame.
+	 * All errors should be reported in the stopDone event.
 	 */
-	async command error_t start();
+	async command void start();
 
 	/**
 	 * Signals the completition of the start command.

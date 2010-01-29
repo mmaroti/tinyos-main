@@ -37,18 +37,33 @@ module SerialAdapterP
 {
 	provides
 	{
+		interface SplitControl;
 		interface SerialComm as SerialSend;
 	}
 
 	uses
 	{
+		interface SerialComm as UpReceive;
+
 		interface UartStream;
+		interface StdControl as SubControl;
 	}
 }
 
 implementation
 {
-// ------- Send	
+// ------- State
+
+	enum
+	{
+		RXSTATE_OFF = 0,
+		RXSTATE_STARTDONE = 1,
+		RXSTATE_STOPDONE = 2,
+		RXSTATE_ON = 3,
+		RXSTATE_SEND = 4,
+	};
+
+	norace uint8_t rxState;
 
 	enum
 	{
@@ -62,13 +77,9 @@ implementation
 	};
 
 	norace uint8_t txState;
-	norace uint8_t txByte;
 
 	task void signalDone()
 	{
-		SERIAL_ASSERT( txState == (TXSTATE_STARTED | TXSTATE_STARTDONE) || txState == (TXSTATE_STARTED | TXSTATE_STOPDONE) 
-			|| txState == (TXSTATE_STARTED | TXSTATE_STOPDONE | TXSTATE_ERROR) );
-
 		if( (txState & TXSTATE_STARTDONE) != 0 )
 		{
 			txState &= ~TXSTATE_STARTDONE;
@@ -82,16 +93,105 @@ implementation
 
 			signal SerialSend.stopDone(error);
 		}
+
+		if( rxState == RXSTATE_STARTDONE )
+		{
+			rxState = RXSTATE_ON;
+			signal SplitControl.startDone(SUCCESS);
+		}
+		else if( rxState == RXSTATE_STOPDONE )
+		{
+			rxState = RXSTATE_OFF;
+			signal SplitControl.stopDone(SUCCESS);
+		}
 	}
 
-	async command error_t SerialSend.start()
+// ------- Receive
+
+	command error_t SplitControl.start()
+	{
+		if( rxState != RXSTATE_OFF )
+			return EALREADY;
+
+		SERIAL_ASSERT( txState == TXSTATE_OFF );
+
+		if( call SubControl.start() == SUCCESS )
+		{
+			rxState = RXSTATE_STARTDONE;
+			call UpReceive.start();
+
+			return SUCCESS;
+		}
+
+		return FAIL;
+	}
+
+	command error_t SplitControl.stop()
+	{
+		if( rxState != RXSTATE_ON )
+			return EALREADY;
+
+		if( txState != TXSTATE_OFF )
+			return EBUSY;
+
+		if( call SubControl.stop() == SUCCESS )
+		{
+			rxState = RXSTATE_STOPDONE;
+			call UpReceive.stop();
+
+			return SUCCESS;
+		}
+
+		return FAIL;
+	}
+
+	async event void UpReceive.startDone()
+	{
+		SERIAL_ASSERT( rxState == RXSTATE_STARTDONE );
+		post signalDone();
+	}
+
+	async event void UpReceive.stopDone(error_t error)
+	{
+		SERIAL_ASSERT( rxState == RXSTATE_STOPDONE );
+		post signalDone();
+	}
+
+	async event void UartStream.receivedByte(uint8_t data)
+	{
+#ifdef SERIAL_DEBUG
+		SERIAL_ASSERT( rxState == RXSTATE_ON );
+		rxState = RXSTATE_SEND;
+#endif
+
+		call UpReceive.send(data);
+
+		SERIAL_ASSERT( rxState == RXSTATE_ON );
+	}
+
+	async event void UpReceive.sendDone()
+	{
+#ifdef SERIAL_DEBUG
+		SERIAL_ASSERT( rxState == RXSTATE_SEND );
+		rxState = RXSTATE_ON;
+#endif
+	}
+
+	async event void UartStream.receiveDone(uint8_t* buf, uint16_t len, error_t error)
+	{
+	}
+
+// ------- Send	
+
+	norace uint8_t txByte;
+
+	async command void SerialSend.start()
 	{
 		SERIAL_ASSERT( txState == TXSTATE_OFF );
+		SERIAL_ASSERT( rxState == RXSTATE_ON || rxState == RXSTATE_SEND );
 
 		txState = TXSTATE_STARTED | TXSTATE_STARTDONE;
 		post signalDone();
-
-		return SUCCESS;
 	}
 
 	async command void SerialSend.send(uint8_t byte)
@@ -140,15 +240,5 @@ implementation
 		// it is possible that TXSTATE_SENDDONE is on, so we have to signal stopDone from a task
 		txState |= TXSTATE_STOPDONE;
 		post signalDone();
-	}
-
-// ------- Receive
-
-	async event void UartStream.receivedByte(uint8_t data)
-	{
-	}
-
-	async event void UartStream.receiveDone(uint8_t* buf, uint16_t len, error_t error)
-	{
 	}
 }
