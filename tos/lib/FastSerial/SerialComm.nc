@@ -51,12 +51,12 @@ interface SerialComm
 	 * Sends a new byte within the frame. Implementations may do 
 	 * some encoding and transmit more than one byte.
 	 */
-	async command void send(uint8_t byte);
+	async command void data(uint8_t byte);
 
 	/**
 	 * Signalled once for each send command.
 	 */
-	async event void sendDone();
+	async event void dataDone();
 
 	/**
 	 * Finishes the transmission of this frame. Implementations

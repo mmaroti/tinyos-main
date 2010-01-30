@@ -35,7 +35,6 @@ configuration SerialDispatcherC
 {
 	provides
 	{
-		interface Init;		// this should be removed
 		interface SplitControl;
 		interface Receive[uart_id_t];
 		interface Send[uart_id_t];
@@ -44,40 +43,45 @@ configuration SerialDispatcherC
 	uses
 	{
 		interface SerialPacketInfo[uart_id_t];
-		interface Leds;		// this should be removed
 	}
 
-	provides interface Leds as UnconnectedLeds;
+	// TODO: remove these, since they are not used
+	provides interface Init;
+	uses interface Leds;
 	uses interface Init as UnconnectedInit;
+	provides interface Leds as UnconnectedLeds;
 }
 
 implementation
 {
+	SplitControl = SerialDispatcherP;
+	Receive = SerialDispatcherP;
+	Send = SerialDispatcherP;
+
 	Leds = UnconnectedLeds;
 	Init = UnconnectedInit;
 
 	components SerialDispatcherP;
 	SerialDispatcherP.SubSend -> SerialProtocolP;
+	SerialDispatcherP.SubReceive -> SerialProtocolP;
 	SerialDispatcherP.SubControl -> SerialAdapterP;
-	SerialPacketInfo = SerialDispatcherP;
-	SplitControl = SerialDispatcherP;
-	Receive = SerialDispatcherP;
-	Send = SerialDispatcherP;
+	SerialDispatcherP.SerialPacketInfo = SerialPacketInfo;
 
 	components SerialProtocolP;
-	SerialProtocolP.SubSend -> SerialCrcP.SerialSend;
+	SerialProtocolP.SubSend -> SerialCrcP;
+	SerialProtocolP.SubReceive -> SerialCrcP;
 
 	components SerialCrcP;
 	SerialCrcP.SubSend -> SerialFrameP.SerialSend;
+	SerialCrcP.SubReceive -> SerialBufferP.Receive;
 
 	components SerialBufferP;
-	SerialFrameP.UpReceive -> SerialBufferP.SerialReceive;
-	SerialPacketInfo = SerialBufferP;
-	SerialBufferP.Leds -> LedsC;
+	SerialBufferP.SubReceive <- SerialFrameP.SerialReceive;
+	SerialBufferP.SerialPacketInfo = SerialPacketInfo;
 
 	components SerialFrameP;
 	SerialFrameP.SubSend -> SerialAdapterP.SerialSend;
-	SerialAdapterP.UpReceive -> SerialFrameP.SerialReceive;
+	SerialFrameP.SubReceive <- SerialAdapterP.SerialReceive;
 
 	components SerialAdapterP;
 	SerialAdapterP.UartStream -> PlatformSerialC;
@@ -86,8 +90,7 @@ implementation
 	components PlatformSerialC;
 
 #ifdef SERIAL_DEBUG
-	components SerialDebugP;
+	components SerialDebugP, LedsC;
 	SerialDebugP.Leds -> LedsC;
 #endif
-	components LedsC;
 }

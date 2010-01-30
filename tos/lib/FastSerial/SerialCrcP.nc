@@ -39,11 +39,13 @@ module SerialCrcP
 	provides
 	{
 		interface SerialComm as SerialSend;
+		interface Receive;
 	}
 
 	uses
 	{
 		interface SerialComm as SubSend;
+		interface Receive as SubReceive;
 	}
 }
 
@@ -77,25 +79,25 @@ implementation
 		signal SerialSend.startDone();
 	}
 
-	async command void SerialSend.send(uint8_t byte)
+	async command void SerialSend.data(uint8_t byte)
 	{
 		SERIAL_ASSERT( txState == TXSTATE_DATA );
 
 		// start transmitting, then we have time to calculate
-		call SubSend.send(byte);
+		call SubSend.data(byte);
 
 		crc = crcByte(crc, byte);
 	}
 
-	async event void SubSend.sendDone()
+	async event void SubSend.dataDone()
 	{
 		// make fast path fall through
 		if( txState == TXSTATE_DATA )
-			signal SerialSend.sendDone();
+			signal SerialSend.dataDone();
 		else if( txState == TXSTATE_CRC1 )
 		{
 			txState = TXSTATE_CRC2;
-			call SubSend.send((uint8_t)(crc >> 8));
+			call SubSend.data((uint8_t)(crc >> 8));
 		}
 		else
 		{
@@ -109,7 +111,7 @@ implementation
 		SERIAL_ASSERT( txState == TXSTATE_DATA );
 
 		txState = TXSTATE_CRC1;
-		call SubSend.send((uint8_t)crc);
+		call SubSend.data((uint8_t)crc);
 	}
 
 	async event void SubSend.stopDone(error_t error)
@@ -122,4 +124,43 @@ implementation
 
 // ------- Receive
 
+	inline serial_metadata_t* getMeta(message_t *msg)
+	{
+		return (serial_metadata_t*)(msg->metadata);
+	}
+
+	event message_t* SubReceive.receive(message_t* msg, void* payload, uint8_t length)
+	{
+		if( length >= 2 )
+		{
+			uint16_t c = 0;
+			uint8_t i;
+			uint8_t *p;
+
+			// the first 3 bytes are in the protocol header
+			p = (uint8_t*) getMeta(msg)->protocol;
+			c = crcByte(c, *(p++));
+			c = crcByte(c, *(p++));
+			c = crcByte(c, *p);
+
+			p = payload;
+			i = length - 1;
+			while( --i > 0 )
+				c = crcByte(c, *(p++));
+
+			/*
+			 * TODO: The CRC bytes come in the wrong order, this prevents
+			 * the easy calculation within the while loop, this should be 
+			 * fixed on the PC side. Also, this would automatically support
+			 * short packets (length = 1 for ACK packet).
+			 */
+			c = crcByte(c, p[1]);
+			c = crcByte(c, p[0]);
+
+			if( c == 0 )
+				msg = signal Receive.receive(msg, payload, length-2);
+		}
+
+		return msg;
+	}
 }

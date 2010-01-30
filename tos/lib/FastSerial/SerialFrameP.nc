@@ -39,13 +39,13 @@ module SerialFrameP
 	provides
 	{
 		interface SerialComm as SerialSend;
-		interface SerialComm as SerialReceive;
+		interface SerialComm as SubReceive;
 	}
 
 	uses
 	{
 		interface SerialComm as SubSend;
-		interface SerialComm as UpReceive;
+		interface SerialComm as SerialReceive;
 	}
 }
 
@@ -75,33 +75,33 @@ implementation
 	{
 		SERIAL_ASSERT( txState == TXSTATE_START );
 
-		call SubSend.send(HDLC_FLAG_BYTE);
+		call SubSend.data(HDLC_FLAG_BYTE);
 	}
 
-	async command void SerialSend.send(uint8_t byte)
+	async command void SerialSend.data(uint8_t byte)
 	{
 		SERIAL_ASSERT( txState == TXSTATE_DATA );
 
 		// make fast path fall through
 		if( byte != HDLC_FLAG_BYTE && byte != HDLC_CTLESC_BYTE )
-			call SubSend.send(byte);
+			call SubSend.data(byte);
 		else
 		{
 			txByte = byte ^ 0x20;
 			txState = TXSTATE_ESCAPED;
-			call SubSend.send(HDLC_CTLESC_BYTE);
+			call SubSend.data(HDLC_CTLESC_BYTE);
 		}
 	}
 
-	async event void SubSend.sendDone()
+	async event void SubSend.dataDone()
 	{
 		// make fast path fall through
 		if( txState == TXSTATE_DATA )
-			signal SerialSend.sendDone();
+			signal SerialSend.dataDone();
 		else if( txState == TXSTATE_ESCAPED )
 		{
 			txState = TXSTATE_DATA;
-			call SubSend.send(txByte);
+			call SubSend.data(txByte);
 		}
 		else if( txState == TXSTATE_START )
 		{
@@ -120,7 +120,7 @@ implementation
 		SERIAL_ASSERT( txState == TXSTATE_DATA );
 
 		txState = TXSTATE_STOP;
-		call SubSend.send(HDLC_FLAG_BYTE);
+		call SubSend.data(HDLC_FLAG_BYTE);
 	}
 
 	async event void SubSend.stopDone(error_t error)
@@ -143,85 +143,85 @@ implementation
 
 	norace uint8_t rxState;
 
-	async command void SerialReceive.send(uint8_t data)
+	async command void SubReceive.data(uint8_t byte)
 	{
 		SERIAL_ASSERT( rxState == RXSTATE_RECEIVE || rxState == RXSTATE_ESCAPE );
 
 		// make the fall through case fast
-		if( data != HDLC_FLAG_BYTE )
+		if( byte != HDLC_FLAG_BYTE )
 		{
-			if( data != HDLC_CTLESC_BYTE )
+			if( byte != HDLC_CTLESC_BYTE )
 			{
 				if( rxState == RXSTATE_ESCAPE )
 				{
 					rxState = RXSTATE_RECEIVE;
-					data ^= 0x20;
+					byte ^= 0x20;
 				}
 
-				call UpReceive.send(data);
+				call SerialReceive.data(byte);
 			}
 			else
 			{
 				rxState = RXSTATE_ESCAPE;
-				signal SerialReceive.sendDone();
+				signal SubReceive.dataDone();
 			}
 		}
 		else
 		{
 			rxState = RXSTATE_FRAME;
-			call UpReceive.stop();
+			call SerialReceive.stop();
 		}
 	}
 
-	async event void UpReceive.sendDone()
+	async event void SerialReceive.dataDone()
 	{
 		SERIAL_ASSERT( rxState == RXSTATE_RECEIVE );
 
-		signal SerialReceive.sendDone();
+		signal SubReceive.dataDone();
 	}
 
-	async command void SerialReceive.start()
+	async command void SubReceive.start()
 	{
 		SERIAL_ASSERT( rxState == RXSTATE_OFF );
 
-		call UpReceive.start();
+		call SerialReceive.start();
 	}
 
-	async event void UpReceive.startDone()
+	async event void SerialReceive.startDone()
 	{
 		if( rxState == RXSTATE_FRAME )
 		{
 			rxState = RXSTATE_RECEIVE;
-			signal SerialReceive.sendDone();
+			signal SubReceive.dataDone();
 		}
 		else
 		{
 			SERIAL_ASSERT( rxState == RXSTATE_OFF );
 
 			rxState = RXSTATE_RECEIVE;
-			signal SerialReceive.startDone();
+			signal SubReceive.startDone();
 		}
 	}
 
-	async command void SerialReceive.stop()
+	async command void SubReceive.stop()
 	{
 		SERIAL_ASSERT( rxState == RXSTATE_RECEIVE || rxState == RXSTATE_ESCAPE );
 
-		call UpReceive.stop();
+		call SerialReceive.stop();
 	}
 
-	async event void UpReceive.stopDone(error_t error)
+	async event void SerialReceive.stopDone(error_t error)
 	{
 		if( rxState == RXSTATE_FRAME )
 		{
-			call UpReceive.start();
+			call SerialReceive.start();
 		}
 		else
 		{
 			SERIAL_ASSERT( rxState == RXSTATE_RECEIVE || rxState == RXSTATE_ESCAPE );
 
 			rxState = RXSTATE_OFF;
-			signal SerialReceive.stopDone(SUCCESS);
+			signal SubReceive.stopDone(SUCCESS);
 		}
 	}
 }

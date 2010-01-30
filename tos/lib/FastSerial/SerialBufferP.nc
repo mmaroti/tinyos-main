@@ -37,14 +37,13 @@ module SerialBufferP
 {
 	provides
 	{
-		interface SerialComm as SerialReceive;
-		interface Receive as UpReceive;
+		interface SerialComm as SubReceive;
+		interface Receive;
 	}
 
 	uses
 	{
 		interface SerialPacketInfo[uart_id_t id];
-		interface Leds;
 	}
 }
 
@@ -101,7 +100,7 @@ implementation
 		}
 	}
 
-	async command void SerialReceive.start()
+	async command void SubReceive.start()
 	{
 		SERIAL_ASSERT( rxState == RXSTATE_OFF );
 		SERIAL_ASSERT( rxPtr == rxEnd );
@@ -115,10 +114,10 @@ implementation
 		else
 			rxState = RXSTATE_NOBUFFER;
 
-		signal SerialReceive.startDone();
+		signal SubReceive.startDone();
 	}
 
-	async command void SerialReceive.send(uint8_t data)
+	async command void SubReceive.data(uint8_t byte)
 	{
 		SERIAL_ASSERT( rxState != RXSTATE_OFF );
 
@@ -128,14 +127,14 @@ implementation
 			SERIAL_ASSERT( rxState == RXSTATE_PROTOCOL || rxState == RXSTATE_PAYLOAD );
 			SERIAL_ASSERT( rxPtr != NULL );
 
-			*(rxPtr++) = data;
+			*(rxPtr++) = byte;
 		}
 		else if( rxState == RXSTATE_PROTOCOL )
 		{
 			SERIAL_ASSERT( (nx_uint8_t*)rxPtr == getMeta(rxMsg)->protocol + 2 ); 
 
 			// store the last byte
-			*rxPtr = data;
+			*rxPtr = byte;
 
 			rxPtr = getPayload(rxMsg);
 			rxEnd = & getMeta(rxMsg)->length;
@@ -144,15 +143,12 @@ implementation
 		else
 			rxState = RXSTATE_ERROR;
 
-		signal SerialReceive.sendDone();
+		signal SubReceive.dataDone();
 	}
 
-	
-	// If there is free buffer, then return that, otherwise return 
-	// NULL and from a task call setReceiveBuffer with a free buffer.
 	message_t* deliverBuffer(message_t* msg);
 
-	async command void SerialReceive.stop()
+	async command void SubReceive.stop()
 	{
 		SERIAL_ASSERT( rxState != RXSTATE_OFF );
 
@@ -168,7 +164,7 @@ implementation
 		rxEnd = NULL;
 		rxState = RXSTATE_OFF;
 
-		signal SerialReceive.stopDone(SUCCESS);
+		signal SubReceive.stopDone(SUCCESS);
 	}
 
 	default async command uint8_t SerialPacketInfo.offset[uart_id_t id]()
@@ -183,20 +179,18 @@ implementation
 	task void deliverTask()
 	{
 		message_t *msg = deliverMsg;
-		msg = signal UpReceive.receive(msg, getPayload(msg), getMeta(msg)->length);
+		msg = signal Receive.receive(msg, getPayload(msg), getMeta(msg)->length);
 		setReceiveBuffer(msg);
 	}
 
+	/*
+	 * If there is free buffer, then return that, otherwise return 
+	 * NULL and from a task call setReceiveBuffer with a free buffer.
+	 */
 	message_t* deliverBuffer(message_t *msg)
 	{
 		deliverMsg = msg;
 		post deliverTask();
 		return NULL;
-	}
-
-	default event message_t* UpReceive.receive(message_t* msg, void* payload, uint8_t length)
-	{
-		call Leds.led1Toggle();
-		return msg;
 	}
 }

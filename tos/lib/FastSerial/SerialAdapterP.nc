@@ -43,7 +43,7 @@ module SerialAdapterP
 
 	uses
 	{
-		interface SerialComm as UpReceive;
+		interface SerialComm as SerialReceive;
 
 		interface UartStream;
 		interface StdControl as SubControl;
@@ -118,7 +118,7 @@ implementation
 		if( call SubControl.start() == SUCCESS )
 		{
 			rxState = RXSTATE_STARTDONE;
-			call UpReceive.start();
+			call SerialReceive.start();
 
 			return SUCCESS;
 		}
@@ -137,7 +137,7 @@ implementation
 		if( call SubControl.stop() == SUCCESS )
 		{
 			rxState = RXSTATE_STOPDONE;
-			call UpReceive.stop();
+			call SerialReceive.stop();
 
 			return SUCCESS;
 		}
@@ -145,31 +145,31 @@ implementation
 		return FAIL;
 	}
 
-	async event void UpReceive.startDone()
+	async event void SerialReceive.startDone()
 	{
 		SERIAL_ASSERT( rxState == RXSTATE_STARTDONE );
 		post signalDone();
 	}
 
-	async event void UpReceive.stopDone(error_t error)
+	async event void SerialReceive.stopDone(error_t error)
 	{
 		SERIAL_ASSERT( rxState == RXSTATE_STOPDONE );
 		post signalDone();
 	}
 
-	async event void UartStream.receivedByte(uint8_t data)
+	async event void UartStream.receivedByte(uint8_t byte)
 	{
 #ifdef SERIAL_DEBUG
 		SERIAL_ASSERT( rxState == RXSTATE_ON );
 		rxState = RXSTATE_SEND;
 #endif
 
-		call UpReceive.send(data);
+		call SerialReceive.data(byte);
 
 		SERIAL_ASSERT( rxState == RXSTATE_ON );
 	}
 
-	async event void UpReceive.sendDone()
+	async event void SerialReceive.dataDone()
 	{
 #ifdef SERIAL_DEBUG
 		SERIAL_ASSERT( rxState == RXSTATE_SEND );
@@ -194,7 +194,7 @@ implementation
 		post signalDone();
 	}
 
-	async command void SerialSend.send(uint8_t byte)
+	async command void SerialSend.data(uint8_t byte)
 	{
 		SERIAL_ASSERT( (txState & TXSTATE_STARTED) != 0 && (txState & TXSTATE_PENDING) == 0 );
 
@@ -218,7 +218,7 @@ implementation
 			// keep delivering sendDone events if the interrupt has occured again while it was executing
 			do
 			{
-				signal SerialSend.sendDone();
+				signal SerialSend.dataDone();
 
 				atomic
 				{

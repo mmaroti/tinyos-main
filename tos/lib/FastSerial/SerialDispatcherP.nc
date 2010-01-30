@@ -46,6 +46,7 @@ module SerialDispatcherP
 	{
 		interface SplitControl as SubControl;
 		interface SerialComm as SubSend;
+		interface Receive as SubReceive;
 		interface SerialPacketInfo[uart_id_t id];
 	}
 }
@@ -106,7 +107,7 @@ implementation
 	message_t *txMsg;
 	norace uint8_t *txPtr;
 	norace uint8_t *txEnd;
-	norace uint8_t txId;
+	norace uint8_t txUart;
 	norace uint8_t txError;
 
 	command error_t Send.send[uart_id_t id](message_t* msg, uint8_t len)
@@ -117,7 +118,7 @@ implementation
 		txMsg = msg;
 		txPtr = ((uint8_t*)msg) + call SerialPacketInfo.offset[id]();
 		txEnd = txPtr + call SerialPacketInfo.dataLinkLength[id](msg, len);
-		txId = id;
+		txUart = id;
 
 		call SubSend.start();
 		return SUCCESS;
@@ -128,15 +129,15 @@ implementation
 		SERIAL_ASSERT( state == STATE_ON );
 
 		state = STATE_SEND;
-		call SubSend.send(txId);
+		call SubSend.data(txUart);
 	}
 	
-	async event void SubSend.sendDone()
+	async event void SubSend.dataDone()
 	{
 		SERIAL_ASSERT( state == STATE_SEND );
 
 		if( txPtr != txEnd )
-			call SubSend.send( *(txPtr++) );
+			call SubSend.data( *(txPtr++) );
 		else
 			call SubSend.stop();
 	}
@@ -156,15 +157,12 @@ implementation
 	
 	command uint8_t Send.maxPayloadLength[uart_id_t id]()
 	{
-		return sizeof(message_header_t) + TOSH_DATA_LENGTH + sizeof(message_footer_t) - call SerialPacketInfo.offset[id]();
+		return 0;
 	}
 
 	command void* Send.getPayload[uart_id_t id](message_t* msg, uint8_t len)
 	{
-		if( len > call Send.maxPayloadLength[id]() )
-			return NULL;
-		else
-			return ((void*)msg) + call SerialPacketInfo.offset[id]();
+		return NULL;
 	}
 
 	default event void Send.sendDone[uart_id_t id](message_t *msg, error_t error)
@@ -172,6 +170,26 @@ implementation
 	}
 
 // ------- Receive
+
+	inline serial_metadata_t* getMeta(message_t *msg)
+	{
+		return (serial_metadata_t*)(msg->metadata);
+	}
+
+	event message_t* SubReceive.receive(message_t* msg, void* payload, uint8_t length)
+	{
+		uint8_t uart = getMeta(msg)->protocol[2];
+		uint8_t newLength = call SerialPacketInfo.upperLength[uart](msg, length);
+
+		SERIAL_ASSERT( ((uint8_t*)msg) + call SerialPacketInfo.offset[uart]() == payload );
+
+		return signal Receive.receive[uart](msg, payload + (length - newLength), newLength);
+	}
+
+	default event message_t* Receive.receive[uart_id_t id](message_t* msg, void* payload, uint8_t length)
+	{
+		return msg;
+	}
 
 // ------- SignalDone
 
@@ -182,7 +200,7 @@ implementation
 		if( state == STATE_SEND )
 		{
 			state = STATE_ON;
-			signal Send.sendDone[txId](txMsg, txError);
+			signal Send.sendDone[txUart](txMsg, txError);
 		}
 	}
 
@@ -193,6 +211,11 @@ implementation
 
 	default async command uint8_t SerialPacketInfo.dataLinkLength[uart_id_t id](message_t *msg, uint8_t len)
 	{
-		return 0;
+		return len;
+	}
+
+	default async command uint8_t SerialPacketInfo.upperLength[uart_id_t id](message_t* msg, uint8_t len)
+	{
+		return len;
 	}
 }

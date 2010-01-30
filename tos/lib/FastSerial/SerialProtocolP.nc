@@ -39,11 +39,13 @@ module SerialProtocolP
 	provides
 	{
 		interface SerialComm as SerialSend;
+		interface Receive;
 	}
 
 	uses
 	{
 		interface SerialComm as SubSend;
+		interface Receive as SubReceive;
 	}
 }
 
@@ -53,61 +55,147 @@ implementation
 
 	enum
 	{
-		TXSTATE_START = 0,
-		TXSTATE_DATA = 1,
+		STATE_OFF = 0,
+
+		STATE_STARTED = 0x01,		// currently sending a DATA or ACK frame
+		STATE_PACKET_ACK = 0x02,	// transmit an ACK frame after the protocol byte
+		STATE_PACKET_DATA = 0x04,	// sending the payload of a DATA frame
+		STATE_PACKET_END = 0x08,	// finish the transmission after and ACK frame
+
+		STATE_PENDING_ACK = 0x10,	// start ACK frame after the currently transmitted frame
+		STATE_PENDING_DATA = 0x20,	// start DATA frame after the currently transmitted frame
 	};
 
-	norace uint8_t txState;
+	norace uint8_t state;
+	norace uint8_t ackToken;
+
+	void sendAckFrame(uint8_t token)
+	{
+		SERIAL_ASSERT( (state & STATE_PACKET_ACK) == 0 );
+		SERIAL_ASSERT( (state & STATE_PENDING_ACK) == 0 );
+
+		ackToken = token;
+
+		if( (state & STATE_STARTED) == 0 )
+		{
+			state |= STATE_STARTED | STATE_PACKET_ACK;
+			call SubSend.start();
+		}
+		else
+			state |= STATE_PENDING_ACK;
+	}
 
 	async command void SerialSend.start()
 	{
-		SERIAL_ASSERT( txState == TXSTATE_START );
+		SERIAL_ASSERT( (state & STATE_PACKET_DATA) == 0 );
+		SERIAL_ASSERT( (state & STATE_PENDING_DATA) == 0 );
 
-		call SubSend.start();
+		if( (state & STATE_STARTED) == 0 )
+		{
+			state |= STATE_STARTED;
+			call SubSend.start();
+		}
+		else
+			state |= STATE_PENDING_DATA;
 	}
 
 	async event void SubSend.startDone()
 	{
-		SERIAL_ASSERT( txState == TXSTATE_START );
+		uint8_t byte;
 
-		call SubSend.send(SERIAL_PROTO_PACKET_NOACK);
-	}
+		SERIAL_ASSERT( (state & STATE_STARTED) != 0 );
+		SERIAL_ASSERT( (state & STATE_PACKET_DATA) == 0 );
+		SERIAL_ASSERT( (state & STATE_PACKET_END) == 0 );
 
-	async command void SerialSend.send(uint8_t byte)
-	{
-		SERIAL_ASSERT( txState == TXSTATE_DATA );
-
-		call SubSend.send(byte);
-	}
-
-	async event void SubSend.sendDone()
-	{
-		// make fast path fall through
-		if( txState == TXSTATE_DATA )
-			signal SerialSend.sendDone();
+		if( (state & STATE_PACKET_ACK) != 0 )
+			byte = SERIAL_PROTO_ACK;
 		else
-		{
-			SERIAL_ASSERT( txState == TXSTATE_START );
+			byte = SERIAL_PROTO_PACKET_NOACK;
 
-			txState = TXSTATE_DATA;
+		call SubSend.data(byte);
+	}
+
+	async command void SerialSend.data(uint8_t byte)
+	{
+		SERIAL_ASSERT( (state & STATE_STARTED) != 0 );
+		SERIAL_ASSERT( (state & STATE_PACKET_DATA) != 0 );
+		SERIAL_ASSERT( (state & STATE_PACKET_ACK) == 0 );
+		SERIAL_ASSERT( (state & STATE_PACKET_END) == 0 );
+
+		call SubSend.data(byte);
+	}
+
+	async event void SubSend.dataDone()
+	{
+		SERIAL_ASSERT( (state & STATE_STARTED) != 0 );
+
+		// make fast path fall through
+		if( (state & STATE_PACKET_DATA) != 0 )
+			signal SerialSend.dataDone();
+		else if( (state & STATE_PACKET_ACK) == 0 )
+		{
+			state |= STATE_PACKET_DATA;
 			signal SerialSend.startDone();
 		}
+		else if( (state & STATE_PACKET_END) == 0 )
+		{
+			state |= STATE_PACKET_END;
+			call SubSend.data(ackToken);
+		}
+		else
+			call SubSend.stop();
 	}
 
 	async command void SerialSend.stop()
 	{
-		SERIAL_ASSERT( txState == TXSTATE_DATA );
+		SERIAL_ASSERT( (state & STATE_STARTED) != 0 );
+		SERIAL_ASSERT( (state & STATE_PACKET_DATA) != 0 );
+		SERIAL_ASSERT( (state & STATE_PACKET_ACK) == 0 );
+		SERIAL_ASSERT( (state & STATE_PACKET_END) == 0 );
 
 		call SubSend.stop();
 	}
 
 	async event void SubSend.stopDone(error_t error)
 	{
-		SERIAL_ASSERT( txState == TXSTATE_DATA );
+		bool oldState = state;
 
-		txState = TXSTATE_START;
-		signal SerialSend.stopDone(error);
+		if( (state & STATE_PENDING_ACK) != 0 )
+		{
+			SERIAL_ASSERT( state == (STATE_STARTED | STATE_PACKET_DATA | STATE_PENDING_ACK) );
+			state = STATE_STARTED | STATE_PACKET_ACK;
+		}
+		else if( (state & STATE_PENDING_DATA) != 0 )
+		{
+			SERIAL_ASSERT( state == (STATE_STARTED | STATE_PACKET_ACK | STATE_PACKET_END | STATE_PENDING_DATA) );
+			state = STATE_STARTED;
+		}
+		else
+			state = STATE_OFF;
+
+		if( state != STATE_OFF )
+			call SubSend.start();
+
+		if( (oldState & STATE_PACKET_DATA) != 0 )
+			signal SerialSend.stopDone(error);
 	}
 
 // ------- Receive
+
+	inline serial_metadata_t* getMeta(message_t *msg)
+	{
+		return (serial_metadata_t*)(msg->metadata);
+	}
+
+	event message_t* SubReceive.receive(message_t* msg, void* payload, uint8_t length)
+	{
+		if( getMeta(msg)->protocol[0] == SERIAL_PROTO_PACKET_ACK )
+		{
+			sendAckFrame(getMeta(msg)->protocol[1]);
+
+			msg = signal Receive.receive(msg, payload, length);
+		}
+
+		return msg;
+	}
 }
