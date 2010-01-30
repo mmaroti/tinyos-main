@@ -38,6 +38,7 @@ module TestFastSerialP
 		interface Boot;
 		interface SplitControl as SerialControl;
 		interface AMSend as SerialSend;
+		interface Receive as SerialReceive;
 		interface Leds;
 
 #ifdef TEST_WITH_RADIO
@@ -79,6 +80,23 @@ implementation
 	   	call SerialSend.send(AM_BROADCAST_ADDR, &serialMsg, TOSH_DATA_LENGTH);
   	}
 
+	uint8_t receiveCounter;
+
+	event message_t* SerialReceive.receive(message_t* msg, void* payload, uint8_t length)
+	{
+		call Leds.led1Toggle();
+
+		if( payload != msg->data || length != 1 )
+			call Leds.led0On();
+
+		if( msg->data[0] != (uint8_t)(receiveCounter + 1) )
+			call Leds.led0On();
+
+		receiveCounter = msg->data[0];
+
+		return msg;
+	}
+
 #ifdef TEST_WITH_RADIO
 	event void RadioControl.startDone(error_t err)
 	{
@@ -89,7 +107,6 @@ implementation
 
 	event void RadioSend.sendDone(message_t* bufPtr, error_t error)
 	{
-		call Leds.led1Toggle();
 	   	call RadioSend.send(AM_BROADCAST_ADDR, &radioMsg, TOSH_DATA_LENGTH);
   	}
 #endif

@@ -23,6 +23,8 @@
 
 import net.tinyos.packet.*;
 import net.tinyos.util.PrintStreamMessenger;
+import java.io.*;
+import java.util.*;
 
 public class TestFastSerial implements PacketListenerIF
 {
@@ -41,8 +43,12 @@ public class TestFastSerial implements PacketListenerIF
 		forwarder.registerPacketListener(this);
     }
 
+	Timer timer = new Timer();
+
 	public void run()
 	{
+		timer.scheduleAtFixedRate(reportTask, 1000, 1000);
+		timer.scheduleAtFixedRate(senderTask, 500, 1000);
 		forwarder.run();
 	}
 
@@ -64,13 +70,9 @@ public class TestFastSerial implements PacketListenerIF
 		listener.run();
 	}
 
-	static final int REPORT_INTERVAL = 1000;
-
-	long nextReportTime = System.currentTimeMillis() + REPORT_INTERVAL;
 	int packetCount = 0;
 	int byteCount = 0;
 	int missingCount = 0;
-
 	int lastSeqNo;
 
 	public void packetReceived(byte[] packet) 
@@ -81,24 +83,44 @@ public class TestFastSerial implements PacketListenerIF
 			return;
 		}
 
-		while( nextReportTime < System.currentTimeMillis() )
-		{
-			System.out.println(timestamp.format(new java.util.Date()) + " " 
-				+ packetCount + " pkts/sec " 
-				+ byteCount + " bytes/sec "
-				+ missingCount + " missing pkts");
-
-			nextReportTime += REPORT_INTERVAL;
-
-			packetCount = 0;
-			byteCount = 0;
-			missingCount = 0;
-		}
-
 		++packetCount;
 		byteCount += packet.length;
 		missingCount += (packet[PACKET_DATA_FIELD] - lastSeqNo - 1) & 0xFF;
 
 		lastSeqNo = packet[PACKET_DATA_FIELD] & 0xFF;
     }
+
+	TimerTask reportTask = new TimerTask()
+	{
+		public void run()
+		{
+			System.out.println(timestamp.format(new java.util.Date()) + " " 
+				+ packetCount + " pkts/sec " 
+				+ byteCount + " bytes/sec "
+				+ missingCount + " missing pkts");
+
+			packetCount = 0;
+			byteCount = 0;
+			missingCount = 0;
+		}
+	};
+
+	byte sendCounter;
+
+	TimerTask senderTask = new TimerTask()
+	{
+		public void run()
+		{
+			byte[] packet = { 0x00, (byte)0xFF, (byte)0xFF, 0x00, 0x00, 0x01, 0x00, 0x72, ++sendCounter };
+
+			try
+			{
+				forwarder.writePacket(packet);
+			}
+			catch( IOException e )
+			{
+				System.out.println("could not send msg");
+			}
+		}
+	};
 }

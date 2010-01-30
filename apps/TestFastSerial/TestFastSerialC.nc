@@ -45,6 +45,7 @@ implementation
 	TestFastSerialP.Boot -> MainC;
 	TestFastSerialP.SerialControl -> SerialActiveMessageC;
 	TestFastSerialP.SerialSend -> SerialActiveMessageC.AMSend[0x72];
+	TestFastSerialP.SerialReceive -> SerialActiveMessageC.Receive[0x72];
 	TestFastSerialP.Leds -> LedsC;
 
 #ifdef TEST_WITH_RADIO
