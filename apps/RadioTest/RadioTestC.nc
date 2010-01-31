@@ -33,7 +33,7 @@
 *         veresskrisztian@gmail.com
 */
 
-#define  USE_TOSSIM  1
+//#define  USE_TOSSIM  1
 
 #include "RadioTestCases.h"
 #ifdef PLATFORM_IRIS
@@ -65,6 +65,7 @@ implementation {
   message_t pkt;
   stat_t  stats[MAX_EDGE_COUNT];
   setup_t config;
+  uint8_t statidx;
 
 #ifdef USE_TOSSIM
   uint8_t edgecount;
@@ -189,6 +190,30 @@ implementation {
 
   event void TxBase.sendDone(message_t* bufPtr, error_t error) { }
 
+  task void sendSetupAck() {
+    ctrlmsg_t* msg = (ctrlmsg_t*)(call Packet.getPayload(&pkt,sizeof(ctrlmsg_t)));
+    msg->type = CTRL_SETUP_ACK;
+    if (  state == STATE_SETUP_RCVD && 
+          call TxBase.send(AM_BROADCAST_ADDR, &pkt, sizeof(ctrlmsg_t)) == SUCCESS ) {
+      state = STATE_CONFIGURED; call Leds.set(state);
+    }
+  }
+
+  task void sendStat() {
+    ctrlmsg_t* msg = (ctrlmsg_t*)(call Packet.getPayload(&pkt,sizeof(ctrlmsg_t)));
+    state = STATE_UPLOADING; call Leds.set(state);
+    msg->type = ( statidx >= MAX_EDGE_COUNT || 
+                    problem[statidx].sender == 0 ) ? CTRL_STAT_NEXISTS : CTRL_STAT_OK;
+    msg->data.stat.statidx = statidx;
+    if ( msg->type == CTRL_STAT_OK )
+      msg->data.stat.statpayload = stats[statidx];
+
+    dbg("Debug","%s\n", ( statidx >= MAX_EDGE_COUNT || problem[statidx].sender == 0 ) ? "CTRL_STAT_NEXISTS" : "CTRL_STAT_OK"); dbgstat(msg->data.stat.statpayload);
+
+    call TxBase.send(AM_BROADCAST_ADDR, &pkt, sizeof(ctrlmsg_t) );
+    state = STATE_FINISHED; call Leds.set(state);
+  }
+
   event message_t* RxBase.receive(message_t* bufPtr, void* payload, uint8_t len) {
  
     ctrlmsg_t* msg = (ctrlmsg_t*)payload;
@@ -211,6 +236,7 @@ implementation {
     // ----------------------------------------------------------------------------------
     } else if ( ( state == STATE_INVALID || 
                   state == STATE_IDLE || 
+                  state == STATE_SETUP_RCVD ||
                   state == STATE_CONFIGURED ) && ctype == CTRL_SETUP ) {
       dbg("Debug","CTRL_SETUP received.\n");
       config = msg->data.config;
@@ -261,16 +287,13 @@ implementation {
       edgecount = idx;
       dbgpset(problem);
 #endif
-      state = STATE_CONFIGURED; call Leds.set(state);
+      state = STATE_SETUP_RCVD; call Leds.set(state);
 
     // BaseStation wants SETUP SYNchronization
     // ----------------------------------------------------------------------------------
-    } else if ( state == STATE_CONFIGURED && ctype == CTRL_SETUP_SYN ) {
+    } else if ( state == STATE_SETUP_RCVD && ctype == CTRL_SETUP_SYN ) {
       dbg("Debug","CTRL_SETUP_SYN received.\n");
-
-      msg = (ctrlmsg_t*)(call Packet.getPayload(&pkt,sizeof(ctrlmsg_t)));
-      msg->type = CTRL_SETUP_ACK;
-      call TxBase.send(AM_BROADCAST_ADDR, &pkt, sizeof(ctrlmsg_t) );
+      post sendSetupAck();
 
     // BaseStation wants to START the test
     // ----------------------------------------------------------------------------------
@@ -287,20 +310,9 @@ implementation {
     // BaseStation REQUESTs statistics
     // ----------------------------------------------------------------------------------
     } else if ( state == STATE_FINISHED && ctype == CTRL_STAT_REQ ) {
-      dbg("Debug","CTRL_REQ_STAT received for stat : %d\n", msg->data.statidx);
-
-      state = STATE_UPLOADING; call Leds.set(state);
-      // save the stat idx, because we will destroy the msg structure!
-      idx = msg->data.statidx;
-      msg = (ctrlmsg_t*)(call Packet.getPayload(&pkt,sizeof(ctrlmsg_t)));
-      msg->type = ( idx >= MAX_EDGE_COUNT || 
-                    problem[idx].sender == 0 ) ? CTRL_STAT_NEXISTS : CTRL_STAT_OK;
-      msg->data.stat = stats[idx];
-
-      dbg("Debug","%s\n", ( idx >= MAX_EDGE_COUNT || problem[idx].sender == 0 ) ? "CTRL_STAT_NEXISTS" : "CTRL_STAT_OK"); dbgstat(msg->data.stat);
-
-      call TxBase.send(AM_BROADCAST_ADDR, &pkt, sizeof(ctrlmsg_t) );
-      state = STATE_FINISHED; call Leds.set(state);
+      dbg("Debug","CTRL_REQ_STAT received for stat : %d\n", msg->data.stat.statidx);
+      statidx = msg->data.stat.statidx;
+      post sendStat();
     }
     return bufPtr;
   }

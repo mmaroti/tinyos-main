@@ -59,7 +59,8 @@ enum {
   // Mote states
   STATE_INVALID = 0x0,
   STATE_IDLE = 0x1,
-  STATE_CONFIGURED = 0x2,
+  STATE_SETUP_RCVD = 0x2,
+  STATE_CONFIGURED = 0x3,
   STATE_RUNNING = 0x4,
   STATE_FINISHED = 0x5,
   STATE_UPLOADING = 0x7,
@@ -72,9 +73,6 @@ enum {
   // AM Type identifiers
   AM_CTRLMSG_T = 101,
   AM_TESTMSG_T = 102,
-  AM_STATMSG_T = 103,
-  AM_SETUP_T   = 110,
-  AM_STAT_T    = 111,
 
   // Control message types
   CTRL_SETUP = 0,
@@ -137,8 +135,10 @@ typedef nx_struct ctrlmsg_t {
   nx_uint8_t    type;         // Control type
   nx_union {
     setup_t     config;       // The config in the setup stage
-    nx_uint8_t  statidx;      // The requested stat index in the requesting stage
-    stat_t      stat;         // The requested stat in the downloading stage
+    nx_struct {
+      nx_uint8_t  statidx;      // The requested stat index in the requesting stage
+      stat_t      statpayload;  // The requested stat in the downloading stage
+    } stat;
   } data;
 } ctrlmsg_t;
 
