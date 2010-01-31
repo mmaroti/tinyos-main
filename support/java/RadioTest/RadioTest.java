@@ -32,7 +32,6 @@
 *         veresskrisztian@gmail.com
 */
 
-import java.io.*;
 import org.apache.commons.cli.*;
 
 public class RadioTest {
@@ -76,6 +75,7 @@ public class RadioTest {
       opt.addOption("lpl", false, "Use Low-Power Listening. [default : false]");
       opt.addOption("r", "reset", false, "Reset all motes");
       opt.addOption("h", "help", false, "Print help for this application");
+      opt.addOption("dl", "download", false, "Only download the statistics");
 
       BasicParser parser = new BasicParser();
       CommandLine cl = parser.parse(opt, args);
@@ -87,8 +87,14 @@ public class RadioTest {
       } else if ( cl.hasOption('r') ) {
         short motenum = (short)Integer.parseInt(cl.getOptionValue("m"));
         RadioTestController rtc = new RadioTestController(motenum);
-        for( short i = 0; i< motenum; ++i )
-          rtc.resetMote(i+1);
+        rtc.resetMotes();
+        System.exit(0);
+
+      } else if ( cl.hasOption("dl") ) {
+        short motenum = (short)Integer.parseInt(cl.getOptionValue("m"));
+        RadioTestController rtc = new RadioTestController(motenum);
+        if ( rtc.collect() )
+            rtc.printStats();
         System.exit(0);
 
       } else if ( ! (cl.hasOption("p") && cl.hasOption("t") ) ) {
@@ -97,7 +103,7 @@ public class RadioTest {
       } else {
         short motenum = (short)Integer.parseInt(cl.getOptionValue("m"));
         short problemidx = (short)Integer.parseInt(cl.getOptionValue("p"));
-        int runtimemsec = Integer.parseInt(cl.getOptionValue("t"));
+        short runtimemsec = (short)Integer.parseInt(cl.getOptionValue("t"));
         int triggermsec = cl.hasOption("tr") ? Integer.parseInt(cl.getOptionValue("tr")) : 0;
         short flags = 0;
         if ( cl.hasOption("ack") )
@@ -114,8 +120,11 @@ public class RadioTest {
         st.set_flags(flags);
 
         RadioTestController rtc = new RadioTestController(motenum);
-        rtc.run(st);
-       // rtc.printStats();
+        if ( rtc.setupMotes(st) ) {
+          rtc.run(runtimemsec);
+          if ( rtc.collect() )
+            rtc.printStats();
+        }
         System.exit(0);
       }
     } catch (NumberFormatException ex) {
