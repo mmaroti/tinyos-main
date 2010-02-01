@@ -270,6 +270,7 @@ implementation {
       problem = problemSet[config.problem_idx];
 #endif    
 
+      tTickSendMask = 0;
       for( idx = 0; problem[idx].sender > 0; ++idx, k<<=1 )
       {
         if( problem[idx].sender != TOS_NODE_ID )
