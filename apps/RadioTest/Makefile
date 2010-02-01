@@ -2,6 +2,9 @@ COMPONENT=RadioTestAppC
 BUILD_EXTRA_DEPS = ctrlmsg_t.py setup_t.py CtrlMsgT.java StatT.java SetupT.java
 CLEAN_EXTRA      = ctrlmsg_t.py setup_t.py CtrlMsgT.java StatT.java SetupT.java main.elf *.class
 
+CFLAGS += -DCC2420_DEF_CHANNEL=11
+CFLAGS += -DRF230_DEF_CHANNEL=11
+
 setup_t.py: RadioTest.h
 	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=setup_t RadioTest.h setup_t -o $@
 
