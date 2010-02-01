@@ -35,21 +35,15 @@
 import org.apache.commons.cli.*;
 
 public class RadioTest {
+
 	public static void main (String[] args)
 	{
     Options opt = new Options();
     try {
 
-      Option motecnt = OptionBuilder.withArgName( "number" )
-                                .hasArg()
-                                .isRequired()
-                                .withDescription( "The number of motes to be used." )
-                                .withLongOpt("motenum")
-                                .create( "m" );      
-
       Option policy = OptionBuilder.withArgName( "number" )
                                 .hasArg()
-                                .withDescription( "The network policy to be used [0-11]." )
+                                .withDescription( "The network policy to be used [0-" + (RadioTestController.PROBLEMSET_COUNT-1) + "]." )
                                 .withLongOpt("policy")
                                 .create( "p" );
 
@@ -65,7 +59,6 @@ public class RadioTest {
                                 .withLongOpt("trigger")
                                 .create( "tr" );
 
-      opt.addOption(motecnt);
       opt.addOption(policy);
       opt.addOption(runtime);
       opt.addOption(trigger);
@@ -75,7 +68,7 @@ public class RadioTest {
       opt.addOption("lpl", false, "Use Low-Power Listening. [default : false]");
       opt.addOption("r", "reset", false, "Reset all motes");
       opt.addOption("h", "help", false, "Print help for this application");
-      opt.addOption("dl", "download", false, "Only download the statistics");
+      opt.addOption("dl", "download", false, "Download the statistics from all motes");
 
       BasicParser parser = new BasicParser();
       CommandLine cl = parser.parse(opt, args);
@@ -84,25 +77,20 @@ public class RadioTest {
         HelpFormatter f = new HelpFormatter();
         f.printHelp("RadioTest", opt, true);
 
-      } else if ( cl.hasOption('r') ) {
-        short motenum = (short)Integer.parseInt(cl.getOptionValue("m"));
-        RadioTestController rtc = new RadioTestController(motenum);
-        rtc.resetMotes();
-        System.exit(0);
-
-      } else if ( cl.hasOption("dl") ) {
-        short motenum = (short)Integer.parseInt(cl.getOptionValue("m"));
-        RadioTestController rtc = new RadioTestController(motenum);
-        if ( rtc.collect() )
+      // Downloading
+      } else if ( cl.hasOption('p') && cl.hasOption("dl") ) {
+          short problemidx = (short)Integer.parseInt(cl.getOptionValue('p'));
+          RadioTestController rtc = new RadioTestController(problemidx);
+          if ( rtc.collect() )
             rtc.printStats();
-        System.exit(0);
 
-      } else if ( ! (cl.hasOption("p") && cl.hasOption("t") ) ) {
-        throw new MissingOptionException("Invalid arguments!");
+      // Option checks, test running
+      } else if ( cl.hasOption('p') && cl.hasOption('t') ) {
 
-      } else {
-        short motenum = (short)Integer.parseInt(cl.getOptionValue("m"));
-        short problemidx = (short)Integer.parseInt(cl.getOptionValue("p"));
+        short problemidx = (short)Integer.parseInt(cl.getOptionValue('p'));
+        if ( problemidx >= RadioTestController.PROBLEMSET_COUNT )
+          throw new MissingOptionException("Invalid policy specified!");
+
         short runtimemsec = (short)Integer.parseInt(cl.getOptionValue("t"));
         int triggermsec = cl.hasOption("tr") ? Integer.parseInt(cl.getOptionValue("tr")) : 0;
         short flags = 0;
@@ -119,24 +107,37 @@ public class RadioTest {
         st.set_sendtrig_msec(triggermsec);
         st.set_flags(flags);
 
-        RadioTestController rtc = new RadioTestController(motenum);
+        RadioTestController rtc = new RadioTestController(problemidx);
         if ( rtc.setupMotes(st) ) {
           rtc.run(runtimemsec);
           if ( rtc.collect() )
             rtc.printStats();
         }
-        System.exit(0);
+      } else if ( !cl.hasOption('r') ){
+          throw new MissingOptionException("Invalid arguments!");
       }
+
+      // Resetting if requested
+      if ( cl.hasOption('r') ) {
+          RadioTestController rtc = new RadioTestController((short)0);
+          rtc.resetMotes();
+      }
+
     } catch (NumberFormatException ex) {
       System.err.println("Invalid arguments specified!");
       HelpFormatter f = new HelpFormatter();
       f.printHelp("RadioTest", opt, true);
+
     } catch (MissingOptionException e) {
-      System.err.println("Invalid arguments specified!");
+      System.err.println(e.getMessage());
+      System.err.println();
       HelpFormatter f = new HelpFormatter();
       f.printHelp("RadioTest", opt, true);
+
     } catch (ParseException e) {
       e.printStackTrace();
+    } finally {
+      System.exit(0);
     }
   }
 }

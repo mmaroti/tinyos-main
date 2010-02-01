@@ -38,13 +38,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.Vector;
 import net.tinyos.message.*;
 import net.tinyos.util.*;
+import org.apache.commons.cli.*;
 
 public class RadioTestController implements MessageListener {
 	
 	private MoteIF mif;
-  private short motecount,edgecount,stage;
+  private short stage, pidx;
   private Vector< StatT > stats;
-  private boolean[] handshake;
+  private boolean handshake;
 
   final Lock lock = new ReentrantLock();
   final Condition answered = lock.newCondition(); 
@@ -52,27 +53,22 @@ public class RadioTestController implements MessageListener {
   private static short currentMote = 0;
   private static short currentStat = 0;
 
-  public static int MAXPROBES=3;
-  public static int MAXTIMEOUT=1000;
+  private static final short MAXPROBES = 3;
+  private static final int MAXTIMEOUT = 1000;
 
-	public RadioTestController(final short mc)
+  // refer to RadioTestCases.h
+  public static final short PROBLEMSET_COUNT = 11;
+  public static short[] trproblem = new short[] { 1,1,1,1,0,0,0,0,0,0,0 };
+  public static short[] motecount = new short[] { 2,2,3,3,2,2,3,3,2,3,3 };
+  public static short[] edgecount = new short[] { 1,2,3,6,1,2,3,6,2,3,6 };
+
+	public RadioTestController(final short p)
 	{
 		mif = new MoteIF();
     mif.registerListener(new CtrlMsgT(),this);
-
-    motecount = mc;
-    edgecount = (short)(mc*(mc-1));
-
-    stats = new Vector<StatT>();
-    for( int i=0; i< edgecount; ++i )
-      stats.add(new StatT());
-
-    handshake = new boolean[motecount];
-    for( int i=0; i< motecount; ++i )
-      handshake[i]=false;
-    
     stage = 0;
-	}
+    pidx = p;
+ 	}
 
 	public void resetMotes()  
   {
@@ -88,8 +84,13 @@ public class RadioTestController implements MessageListener {
     }
 	}
 
-  public boolean setupMotes(final SetupT config) {
+  public boolean setupMotes(final SetupT config) throws MissingOptionException {
+    
+    if ( trproblem[pidx] != 0 && config.get_sendtrig_msec() == 0 )
+      throw new MissingOptionException("Network policy " + pidx + " needs trigger timer specified!");
+
     CtrlMsgT cmsg = new CtrlMsgT();
+
     // refer to RadioTest.h CTRL_SETUP
     cmsg.set_type((short)0);
     cmsg.set_data_config_problem_idx(config.get_problem_idx());
@@ -107,16 +108,17 @@ public class RadioTestController implements MessageListener {
 
       // refer to RadioTest.h CTRL_SETUP_SYN
       cmsg2.set_type((short)1);
-      for ( currentMote = 0; currentMote < motecount ; ++currentMote ) {
+      for ( currentMote = 0; currentMote < motecount[pidx] ; ++currentMote ) {
         System.out.print(" [M" + (currentMote+1) + "] Setup ACK : ");
+        handshake=false;
 
         // send CTRL_SETUP_SYN and wait for CTRL_SETUP_ACK at most 1 sec at most 3 times
-        for( short probe = 0; !handshake[currentMote] && probe < MAXPROBES ; ++probe ) {
+        for( short probe = 0; !handshake && probe < MAXPROBES ; ++probe ) {
           mif.send(currentMote+1,cmsg2);
           if ( !answered.await(MAXTIMEOUT,TimeUnit.MILLISECONDS) )
             System.out.print('.');
         }
-        if ( !handshake[currentMote] ) {
+        if ( !handshake ) {
           System.out.println(" Timeout, giving up.");
           return false;
         }
@@ -137,7 +139,7 @@ public class RadioTestController implements MessageListener {
 	{
     // We are now on running stage
     stage = 1;
-    System.out.print(" Running the loaded configuration ... ");
+    System.out.print(" Running config ... ");
     CtrlMsgT cmsg = new CtrlMsgT();
     // refer to RadioTest.h CTRL_START
     cmsg.set_type((short)10);
@@ -145,7 +147,7 @@ public class RadioTestController implements MessageListener {
 			mif.send(MoteIF.TOS_BCAST_ADDR,cmsg);
       // wait for test completion
       Thread.sleep((int)(runtimemsec*1.2));
-      System.out.println("DONE");
+      System.out.println("OK");
 		} catch(IOException e) {
 		  System.out.println("Cannot send START message!");
     } catch ( InterruptedException e ) {
@@ -156,22 +158,27 @@ public class RadioTestController implements MessageListener {
   public boolean collect()
 	{
     // We are now on downloading stage
-    stage = 2;
+    stage = 2;  
+    stats = new Vector<StatT>();
+
     System.out.println(" Downloading statistics ... ");
     System.out.println(" ---------------------------------");
     lock.lock();
     try {
-      for ( currentMote = 0; currentMote < motecount ; ++currentMote ) {
+      for ( currentMote = 0; currentMote < motecount[pidx] ; ++currentMote ) {
         System.out.print(" [M" + (currentMote+1) + "] :");
-        for ( currentStat = 0; currentStat < edgecount; ++currentStat ) {
+        for ( currentStat = 0; currentStat < edgecount[pidx]; ++currentStat ) {
+
           System.out.print(" " + currentStat);
-          handshake[currentMote] = false;
-          for( short probe = 0; !handshake[currentMote] && probe < MAXPROBES; ++probe ) {
+          handshake = false;
+          stats.add(new StatT());
+
+          for( short probe = 0; !handshake && probe < MAXPROBES; ++probe ) {
             requestStat();
             if ( !answered.await(MAXTIMEOUT,TimeUnit.MILLISECONDS) )
               System.out.print(".");
           }
-          if ( !handshake[currentMote] ) {
+          if ( !handshake ) {
             System.out.println(" Timeout, giving up.");
             return false;
           }          
@@ -209,7 +216,7 @@ public class RadioTestController implements MessageListener {
 
       // refer to RadioTest.h CTRL_SETUP_ACK
       if ( cmsg.get_type() == 2 && stage == 0 ) {
-        handshake[currentMote] = true;
+        handshake = true;
         answered.signal();
 
       // refer to RadioTest.h CTRL_STAT_OK
@@ -218,8 +225,24 @@ public class RadioTestController implements MessageListener {
                   currentStat == cmsg.get_data_stat_statidx() ) {
 
         //System.out.println(cmsg.toString());
-
+        
         StatT s = stats.get(cmsg.get_data_stat_statidx());
+        
+/*        StatT s2 = new StatT();
+        s2.set_sendSuccessCount(     s2.get_sendSuccessCount()    +   cmsg.get_data_stat_statpayload_sendSuccessCount());
+        s2.set_sendFailCount(        s2.get_sendFailCount()       +   cmsg.get_data_stat_statpayload_sendFailCount());
+        s2.set_sendDoneSuccessCount( s2.get_sendDoneSuccessCount()+   cmsg.get_data_stat_statpayload_sendDoneSuccessCount());
+        s2.set_sendDoneFailCount(    s2.get_sendDoneFailCount()   +   cmsg.get_data_stat_statpayload_sendDoneFailCount());
+        s2.set_wasAckedCount(        s2.get_wasAckedCount()       +   cmsg.get_data_stat_statpayload_wasAckedCount());
+        s2.set_resendCount(          s2.get_resendCount()         +   cmsg.get_data_stat_statpayload_resendCount());
+        s2.set_receiveCount(         s2.get_receiveCount()        +   cmsg.get_data_stat_statpayload_receiveCount());
+        s2.set_duplicateReceiveCount(s2.get_duplicateReceiveCount()+  cmsg.get_data_stat_statpayload_duplicateReceiveCount());
+        s2.set_missedCount(          s2.get_missedCount()         +   cmsg.get_data_stat_statpayload_missedCount());
+        s2.set_wouldBacklogCount(    s2.get_wouldBacklogCount()   +   cmsg.get_data_stat_statpayload_wouldBacklogCount());
+        System.out.print("Received (mote,stat):(" + (currentMote+1) + "," + currentStat + ")  :" );
+        printStat(s2);
+*/
+
         s.set_sendSuccessCount(     s.get_sendSuccessCount()    +   cmsg.get_data_stat_statpayload_sendSuccessCount());
         s.set_sendFailCount(        s.get_sendFailCount()       +   cmsg.get_data_stat_statpayload_sendFailCount());
         s.set_sendDoneSuccessCount( s.get_sendDoneSuccessCount()+   cmsg.get_data_stat_statpayload_sendDoneSuccessCount());
@@ -230,39 +253,41 @@ public class RadioTestController implements MessageListener {
         s.set_duplicateReceiveCount(s.get_duplicateReceiveCount()+  cmsg.get_data_stat_statpayload_duplicateReceiveCount());
         s.set_missedCount(          s.get_missedCount()         +   cmsg.get_data_stat_statpayload_missedCount());
         s.set_wouldBacklogCount(    s.get_wouldBacklogCount()   +   cmsg.get_data_stat_statpayload_wouldBacklogCount());
-  
-        stats.set(cmsg.get_data_stat_statidx(),s);
 
-        handshake[currentMote] = true;
+        stats.set(cmsg.get_data_stat_statidx(),s);
+        handshake = true;
         answered.signal();
 
       // refer to RadioTest.h CTRL_STAT_NEXIST
       } else if ( cmsg.get_type() == 32 && stage == 2 ) {
         System.out.print("L");
-        edgecount = (short)(cmsg.get_data_stat_statidx());
-        handshake[currentMote] = true;
+//        edgecount = (short)(cmsg.get_data_stat_statidx());
+        handshake = true;
         answered.signal();
       }
       lock.unlock();
     }
 	}
 
+  private void printStat(final StatT s) {
+    System.out.print(" " + s.get_sendSuccessCount());
+    System.out.print(" " + s.get_sendFailCount());
+    System.out.print(" " + s.get_sendDoneSuccessCount());
+    System.out.print(" " + s.get_sendDoneFailCount());
+    System.out.print(" " + s.get_wasAckedCount());
+    System.out.print(" " + s.get_resendCount());
+    System.out.print(" " + s.get_receiveCount());
+    System.out.print(" " + s.get_duplicateReceiveCount());
+    System.out.print(" " + s.get_missedCount());
+    System.out.println(" " + s.get_wouldBacklogCount());
+  }
+
   public void printStats() {
     System.out.println(" Statistics :");
     System.out.println(" ---------------------------------");
-    for(int j = 0; j < edgecount; ++j ) {
+    for(int j = 0; j < edgecount[pidx]; ++j ) {
       System.out.print(" E"+ j + ":");
-      System.out.print(" " + stats.get(j).get_sendSuccessCount());
-      System.out.print(" " + stats.get(j).get_sendFailCount());
-      System.out.print(" " + stats.get(j).get_sendDoneSuccessCount());
-      System.out.print(" " + stats.get(j).get_sendDoneFailCount());
-      System.out.print(" " + stats.get(j).get_wasAckedCount());
-      System.out.print(" " + stats.get(j).get_resendCount());
-      System.out.print(" " + stats.get(j).get_receiveCount());
-      System.out.print(" " + stats.get(j).get_duplicateReceiveCount());
-      System.out.print(" " + stats.get(j).get_missedCount());
-      System.out.println(" " + stats.get(j).get_wouldBacklogCount());
-
+      printStat(stats.get(j));
     }
   }
 }
