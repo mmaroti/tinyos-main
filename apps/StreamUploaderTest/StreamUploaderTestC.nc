@@ -32,16 +32,79 @@
 * Author:Andras Biro
 */
 
-#ifndef STREAM_STORAGE_H
-#define STREAM_STORAGE_H
+module StreamUploaderTestC{
+	uses {
+		interface SplitControl;
+		interface StreamStorage;
+		interface Boot;
+		interface Leds;
+		interface SplitControl as AMControl;
+	}
+}
+implementation{
+	uint16_t buffer;
+	uint32_t counter=0;
+	uint8_t readbuf[100],j=2;
+	
+	event void Boot.booted(){
+		buffer=0;
+		call StreamStorage.erase();	
+	}
+	
+	event void SplitControl.startDone(error_t error){
+		
+		call Leds.set(3);
+		//call StreamStorage.read(770,&readbuf,20);
+		call StreamStorage.appendWithID(15,&buffer, sizeof(buffer));
+	}
 
-enum {
-	UINT8_T=1<<4,
-	UINT16_T=2<<4,
-	UINT32_T=4<<4,
-	INT8_T=1+(16<<4),
-	INT16_T=2+(16<<4),
-	INT32_T=4+(16<<4),		
-};
+	event void StreamStorage.appendDone(void* buf, uint8_t  len, error_t error){
+		buffer++;
+		if(buffer<300){
+			call StreamStorage.append(&buffer, sizeof(buffer));
+		}else{
+			call StreamStorage.sync();
+		}
+	}
+	
+	event void StreamStorage.appendDoneWithID(void* buf, uint8_t  len, error_t error){
+		buffer++;
+		counter++;
+		if(counter<10000){
+			call StreamStorage.appendWithID(15,&buffer, sizeof(buffer));
+		}else{
+			call StreamStorage.sync();
+		}
+	}
 
-#endif /* STREAM_STORAGE_H */
+	event void StreamStorage.readDone(void* buf, uint8_t  len, error_t error){
+
+	}
+	
+	event void StreamStorage.eraseDone(error_t error){
+		//call Leds.set(0);
+		//call StreamStorage.append(UINT16_T, &buffer, sizeof(buffer));
+		call SplitControl.start();
+	}
+	
+	event void StreamStorage.syncDone(error_t error){
+		call AMControl.start();
+	}
+
+	event void AMControl.startDone(error_t error){
+		call Leds.set(7);
+	}
+
+	event void SplitControl.stopDone(error_t error){
+	}
+	
+	event void StreamStorage.getMinAddressDone(uint32_t minaddr){
+	}
+
+
+
+	event void AMControl.stopDone(error_t error){
+	}
+
+
+}

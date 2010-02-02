@@ -32,7 +32,6 @@
 * Author:Andras Biro
 */
 
-#include "StreamStorage.h"
 #include "printf.h"
 module StreamStorageTestC{
 	uses {
@@ -43,34 +42,45 @@ module StreamStorageTestC{
 	}
 }
 implementation{
-	uint16_t buffer;
-	uint8_t readbuf[100];
+	uint16_t buffer=0xefbe;
+	uint32_t counter=0;
+	uint8_t readbuf[100],j=2;
 	
 	event void Boot.booted(){
 		printf("##############################################\n");
-		buffer=10;
-		call StreamStorage.erase();
-		//call SplitControl.start();	
+		//call StreamStorage.erase();
+		call SplitControl.start();	
 	}
 	
 	event void SplitControl.startDone(error_t error){
 		
 		call Leds.set(7);
-		//call StreamStorage.read(20,&readbuf,20);
-		call StreamStorage.append(&buffer, 1);
+		//call StreamStorage.read(20770,&readbuf,20);
+		//call StreamStorage.appendWithID(15,&buffer, sizeof(buffer));
+		//call StreamStorage.append(&buffer, 1);
+		call StreamStorage.getMinAddress();
 	}
 
 	event void StreamStorage.appendDone(void* buf, uint8_t  len, error_t error){
 		buffer++;
-		if(buffer<300){
+		counter++;
+		printf("%ld\n",counter+4);
+		if(counter<520){
 			call StreamStorage.append(&buffer, sizeof(buffer));
+			//call StreamStorage.append(&buffer, 1);
 		}else{
 			call StreamStorage.sync();
 		}
 	}
 	
 	event void StreamStorage.appendDoneWithID(void* buf, uint8_t  len, error_t error){
-		
+		//buffer++;
+		counter++;
+		if(counter<175500){
+			call StreamStorage.appendWithID(15,&buffer, sizeof(buffer));
+		}else{
+			call StreamStorage.sync();
+		}
 	}
 
 	event void StreamStorage.readDone(void* buf, uint8_t  len, error_t error){
@@ -79,12 +89,16 @@ implementation{
 		if(error==SUCCESS){
 			printf("Read data: \n");
 			for(i=0;i<19;i++)
-				printf("%u. %u\n",i,*(readbuf+i));
+				printf("%u\n",*(readbuf+i));
 			printfflush();
 		} else {
 			printf("Read error: %d\n",error);
 			printfflush();
 		}
+		call StreamStorage.getMinAddress();
+//		j--;
+//		if(j>0)
+//			call StreamStorage.read(20,&readbuf,20);
 	}
 	
 	event void StreamStorage.eraseDone(error_t error){
@@ -96,13 +110,21 @@ implementation{
 	}
 	
 	event void StreamStorage.syncDone(error_t error){
-		call StreamStorage.read(270,&readbuf,20);
+		counter=0;
+		//call StreamStorage.append(&buffer, 1);
+		//call StreamStorage.read(270,&readbuf,20);
 		//call Leds.set(1);
+		call StreamStorage.getMinAddress();
 	}
 
 
 	event void SplitControl.stopDone(error_t error){
 		
+	}
+	
+	event void StreamStorage.getMinAddressDone(uint32_t minaddr){
+		printf("Min address: %ld\n",minaddr);
+		printfflush();
 	}
 
 

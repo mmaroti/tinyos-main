@@ -31,19 +31,35 @@
 *
 * Author:Andras Biro
 */
+#ifndef STREAM_UPLOADER_H
+#define STREAM_UPLOADER_H
+enum{
+	MESSAGE_SIZE=27,
+	AM_LAST_DATA_MSG_T=0,
+	AM_DATA_MSG_T=0,
+	AM_RESP_MSG_T=0,
+	AM_HELLO_MSG_T=0,
+};
 
-interface StreamStorage{
-	command error_t erase();
-	event void eraseDone(error_t error);
-	command error_t appendWithID(nx_uint8_t id, void* buf, uint8_t  len);
-	event void appendDoneWithID(void* buf, uint8_t  len, error_t error);
-	command error_t append(void* buf, uint8_t  len);
-	event void appendDone(void* buf, uint8_t  len, error_t error);
-	command error_t sync();
-	event void syncDone(error_t error);
-	command error_t getMinAddress();
-	event void getMinAddressDone(uint32_t addr);
-	command uint32_t getMaxAddress();
-	command error_t read(uint32_t addr, void* buf, uint8_t  len);
-	event void readDone(void* buf, uint8_t  len, error_t error);
-}
+typedef nx_struct hello_msg_t {
+	nx_uint16_t nodeid;
+} hello_msg;
+
+
+typedef nx_struct resp_msg_t {
+	nx_uint32_t min_address;
+	nx_uint32_t max_address;
+	nx_uint16_t src;
+	nx_uint16_t dest;
+} resp_msg;
+
+typedef nx_struct data_msg_t {
+	nx_uint8_t address;
+	nx_uint8_t data[MESSAGE_SIZE];
+} data_msg;
+
+typedef nx_struct last_data_msg_t {
+	nx_uint8_t data[MESSAGE_SIZE-1];
+	nx_uint8_t len;
+} last_data_msg;
+#endif /* STREAM_UPLOADER_H */

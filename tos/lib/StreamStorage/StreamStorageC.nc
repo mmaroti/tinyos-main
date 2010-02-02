@@ -43,8 +43,6 @@ implementation{
 
 		
 	components StreamStorageP, new LogStorageC(volume_id, TRUE);
-	components LedsC;
-	StreamStorageP.Leds -> LedsC;
 	StreamStorageP.LogRead -> LogStorageC;
 	StreamStorageP.LogWrite -> LogStorageC;
 	StreamStorage=StreamStorageP.StreamStorage;
