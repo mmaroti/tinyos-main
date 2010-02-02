@@ -38,7 +38,7 @@
  *
  * @author Philip Levis
  *
- * @version $Id: Atm128I2CMasterPacketP.nc,v 1.1 2010-02-02 10:51:51 zkincses Exp $
+ * @version $Id: Atm128I2CMasterPacketP.nc,v 1.1 2010-02-02 14:22:17 zkincses Exp $
  */
 
 generic module Atm128I2CMasterPacketP() {

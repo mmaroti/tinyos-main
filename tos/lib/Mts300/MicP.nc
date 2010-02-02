@@ -24,7 +24,7 @@
  *
  *  @author Hu Siquan <husq@xbow.com> 
  *
- *  $Id: MicP.nc,v 1.1 2010-02-02 10:51:51 zkincses Exp $
+ *  $Id: MicP.nc,v 1.1 2010-02-02 14:22:17 zkincses Exp $
  */
 
 #include "Timer.h"
