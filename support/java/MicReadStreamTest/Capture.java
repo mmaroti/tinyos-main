@@ -29,8 +29,8 @@
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 * Author: Zoltan Kincses
-* Author: Paczolay Denes
-* Author: Gosztolya Gabor
+* Author: Denes Paczolay
+* Author: Gabor Gosztolya
 */
 
 import javax.swing.*;
