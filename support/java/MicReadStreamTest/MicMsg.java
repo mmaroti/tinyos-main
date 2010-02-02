@@ -86,13 +86,16 @@ public class MicMsg extends net.tinyos.message.Message {
       String s = "Message <MicMsg> \n";
       try {
         s += "  [data=";
-        for (int i = 0; i < 112; i++) {
+        for (int i = 0; i < 110; i++) {
           s += "0x"+Long.toHexString(getElement_data(i) & 0xff)+" ";
         }
         s += "]\n";
       } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
       try {
         s += "  [bufferNum=0x"+Long.toHexString(get_bufferNum())+"]\n";
+      } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
+      try {
+        s += "  [gainVal=0x"+Long.toHexString(get_gainVal())+"]\n";
       } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
       return s;
     }
@@ -125,7 +128,7 @@ public class MicMsg extends net.tinyos.message.Message {
      */
     public static int offset_data(int index1) {
         int offset = 0;
-        if (index1 < 0 || index1 >= 112) throw new ArrayIndexOutOfBoundsException();
+        if (index1 < 0 || index1 >= 110) throw new ArrayIndexOutOfBoundsException();
         offset += 0 + index1 * 8;
         return (offset / 8);
     }
@@ -135,7 +138,7 @@ public class MicMsg extends net.tinyos.message.Message {
      */
     public static int offsetBits_data(int index1) {
         int offset = 0;
-        if (index1 < 0 || index1 >= 112) throw new ArrayIndexOutOfBoundsException();
+        if (index1 < 0 || index1 >= 110) throw new ArrayIndexOutOfBoundsException();
         offset += 0 + index1 * 8;
         return offset;
     }
@@ -144,7 +147,7 @@ public class MicMsg extends net.tinyos.message.Message {
      * Return the entire array 'data' as a short[]
      */
     public short[] get_data() {
-        short[] tmp = new short[112];
+        short[] tmp = new short[110];
         for (int index0 = 0; index0 < numElements_data(0); index0++) {
             tmp[index0] = getElement_data(index0);
         }
@@ -178,14 +181,14 @@ public class MicMsg extends net.tinyos.message.Message {
      * Return the total size, in bytes, of the array 'data'
      */
     public static int totalSize_data() {
-        return (896 / 8);
+        return (880 / 8);
     }
 
     /**
      * Return the total size, in bits, of the array 'data'
      */
     public static int totalSizeBits_data() {
-        return 896;
+        return 880;
     }
 
     /**
@@ -213,7 +216,7 @@ public class MicMsg extends net.tinyos.message.Message {
      * Return the number of elements in the array 'data'
      */
     public static int numElements_data() {
-        return 112;
+        return 110;
     }
 
     /**
@@ -221,7 +224,7 @@ public class MicMsg extends net.tinyos.message.Message {
      * for the given dimension.
      */
     public static int numElements_data(int dimension) {
-      int array_dims[] = { 112,  };
+      int array_dims[] = { 110,  };
         if (dimension < 0 || dimension >= 1) throw new ArrayIndexOutOfBoundsException();
         if (array_dims[dimension] == 0) throw new IllegalArgumentException("Array dimension "+dimension+" has unknown size");
         return array_dims[dimension];
@@ -243,7 +246,7 @@ public class MicMsg extends net.tinyos.message.Message {
      * Read the array 'data' as a String
      */
     public String getString_data() { 
-         char carr[] = new char[Math.min(net.tinyos.message.Message.MAX_CONVERTED_STRING_LENGTH,112)];
+         char carr[] = new char[Math.min(net.tinyos.message.Message.MAX_CONVERTED_STRING_LENGTH,110)];
          int i;
          for (i = 0; i < carr.length; i++) {
              if ((char)getElement_data(i) == (char)0) break;
@@ -255,7 +258,7 @@ public class MicMsg extends net.tinyos.message.Message {
     /////////////////////////////////////////////////////////
     // Accessor methods for field: bufferNum
     //   Field type: int, unsigned
-    //   Offset (bits): 896
+    //   Offset (bits): 880
     //   Size (bits): 16
     /////////////////////////////////////////////////////////
 
@@ -277,14 +280,14 @@ public class MicMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'bufferNum'
      */
     public static int offset_bufferNum() {
-        return (896 / 8);
+        return (880 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'bufferNum'
      */
     public static int offsetBits_bufferNum() {
-        return 896;
+        return 880;
     }
 
     /**
@@ -312,6 +315,69 @@ public class MicMsg extends net.tinyos.message.Message {
      * Return the size, in bits, of the field 'bufferNum'
      */
     public static int sizeBits_bufferNum() {
+        return 16;
+    }
+
+    /////////////////////////////////////////////////////////
+    // Accessor methods for field: gainVal
+    //   Field type: int, unsigned
+    //   Offset (bits): 896
+    //   Size (bits): 16
+    /////////////////////////////////////////////////////////
+
+    /**
+     * Return whether the field 'gainVal' is signed (false).
+     */
+    public static boolean isSigned_gainVal() {
+        return false;
+    }
+
+    /**
+     * Return whether the field 'gainVal' is an array (false).
+     */
+    public static boolean isArray_gainVal() {
+        return false;
+    }
+
+    /**
+     * Return the offset (in bytes) of the field 'gainVal'
+     */
+    public static int offset_gainVal() {
+        return (896 / 8);
+    }
+
+    /**
+     * Return the offset (in bits) of the field 'gainVal'
+     */
+    public static int offsetBits_gainVal() {
+        return 896;
+    }
+
+    /**
+     * Return the value (as a int) of the field 'gainVal'
+     */
+    public int get_gainVal() {
+        return (int)getUIntBEElement(offsetBits_gainVal(), 16);
+    }
+
+    /**
+     * Set the value of the field 'gainVal'
+     */
+    public void set_gainVal(int value) {
+        setUIntBEElement(offsetBits_gainVal(), 16, value);
+    }
+
+    /**
+     * Return the size, in bytes, of the field 'gainVal'
+     */
+    public static int size_gainVal() {
+        return (16 / 8);
+    }
+
+    /**
+     * Return the size, in bits, of the field 'gainVal'
+     */
+    public static int sizeBits_gainVal() {
         return 16;
     }
 

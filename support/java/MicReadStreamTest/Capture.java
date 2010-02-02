@@ -29,9 +29,10 @@
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 * Author: Zoltan Kincses
+* Author: Paczolay Denes
+* Author: Gosztolya Gabor
 */
 
-import static java.lang.System.out; 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -44,18 +45,21 @@ import net.tinyos.util.*;
 import net.tinyos.packet.*;
 
 class Capture extends JFrame implements MessageListener {
+	
+	public static final boolean is8bits			= false;
 
 	PhoenixSource phoenix;
 	MoteIF mif;
 	
 	boolean captureAudio = false;
 	boolean firstTime = true;
-	long missedPktNum,bufferNum,bufferSize,receivedPktNum;
-//	int gain;
+	long missedPktNum,bufferNum,bufferSize,receivedSamples,receivedPktNum;
 	
 	File wavFile;
 	RandomAccessFile wavFileHandler;
 	TextField outputText;
+	TextField currentGain;
+
 			
 	public static void main(String args[]){
 		new Capture();
@@ -66,12 +70,11 @@ class Capture extends JFrame implements MessageListener {
 		final JButton captureBtn = new JButton("Capture");
 		final JButton stopBtn = new JButton("Stop");
 		final JButton playBtn = new JButton("Playback");
-		
-//		final JSlider slider = new JSlider(JSlider.VERTICAL, 0, 2, 0);
-		
+
 		outputText = new TextField();
+		currentGain = new TextField();
 			
-		phoenix=BuildSource.makePhoenix("serial@com24:460800", PrintStreamMessenger.err);
+		phoenix=BuildSource.makePhoenix("serial@com26:921600", PrintStreamMessenger.err);
 	    mif = new MoteIF(phoenix);
 	    mif.registerListener(new MicMsg(),this);
     
@@ -114,20 +117,15 @@ class Capture extends JFrame implements MessageListener {
 		);
 		
 		getContentPane().add(playBtn);	
-		
-//		slider.addChangeListener(new ChangeListener() {
-//			public void stateChanged(ChangeEvent ev) {
-//			gain=slider.getValue();
-//			}
-//		}
-//		);
-    	
-//    	getContentPane().add(slider);	
-    	
+
     	outputText.setEditable(false);
     	outputText.setColumns(60); 
     	getContentPane().add(outputText);
     		
+    	currentGain.setEditable(false);
+    	currentGain.setColumns(60); 
+    	getContentPane().add(currentGain);
+
 		getContentPane().setLayout(new FlowLayout());
 		setTitle("Capture/Playback");
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -141,7 +139,7 @@ class Capture extends JFrame implements MessageListener {
 				wavFile.delete();
 			}
 			wavFile = new File("microphone.wav");
-			wavFile.deleteOnExit();
+			//wavFile.deleteOnExit();
 			wavFileHandler=new RandomAccessFile(wavFile,"rw");
 		}catch(NullPointerException e){
 		}catch(FileNotFoundException e){
@@ -168,44 +166,67 @@ class Capture extends JFrame implements MessageListener {
 	}
 	
 	private void dataCapture(MicMsg micMsg){
-//		int expandData=0;
 		if(firstTime){
 			bufferNum=micMsg.get_bufferNum();
 			bufferSize=micMsg.totalSize_data()/micMsg.elementSize_data();
+			receivedSamples = 0;
 			missedPktNum=0;
 			receivedPktNum=0;
 			firstTime=false;
 		}
 		++receivedPktNum;
-		if(bufferNum==micMsg.get_bufferNum()){
-			++bufferNum;
-			for(int i=0;i<bufferSize;++i){
-//				expandData=micMsg.getElement_data(i)<<2;
-				try{
-//					if(expandData<=255){
-//	      				wavFileHandler.write(0);
-//					}else{
-//		        		wavFileHandler.write(expandData);
-//					}
-//	        		wavFileHandler.write(expandData);
-	        		wavFileHandler.write(micMsg.getElement_data(i));
- 				}catch(IOException e){
-					e.printStackTrace();
+
+		// to handle missed packages
+		while (bufferNum < micMsg.get_bufferNum()) {
+			
+			missedPktNum++;
+			bufferNum++;
+		}
+		bufferNum++;
+		
+		try{
+			if (is8bits) {
+				for(int i=0;i<bufferSize;++i){
+					wavFileHandler.write(micMsg.getElement_data(i));
 				}
- 			}
-		}else{
-			for(long i=bufferNum;i<micMsg.get_bufferNum();++i){
-				missedPktNum++;
+				receivedSamples += bufferSize;
 			}
-			bufferNum=micMsg.get_bufferNum()+1;
+			else {
+				long anum = bufferSize / 5;
+				int abase = 0;
+				short[] ares = new short[4];
+				short fifth;
+				for (int i = 0; i < anum; i++) {
+					ares[0] = micMsg.getElement_data(abase + 0);
+					ares[1] = micMsg.getElement_data(abase + 1);
+					ares[2] = micMsg.getElement_data(abase + 2);
+					ares[3] = micMsg.getElement_data(abase + 3);
+					fifth = micMsg.getElement_data(abase + 4);
+					ares[0] |= (fifth &   3) << 8;
+					ares[1] |= (fifth &  12) << 6;
+					ares[2] |= (fifth &  48) << 4;
+					ares[3] |= (fifth & 192) << 2;
+					abase += 5;
+					for (int j = 0; j < 4; j++) {
+						int atmp = ares[j];
+						ares[j] = (short)((atmp << 6) - 32768);
+						wavFileHandler.writeShort(Short.reverseBytes(ares[j]));
+					}
+				}
+				receivedSamples += anum * 4;
+ 			}
+ 			currentGain.setText("The current gain is: " + micMsg.get_gainVal());
+		}
+		catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 	
 	private void endCapture(){
 		captureAudio = false;
 		firstTime = true;
-		setHeader((int)(bufferSize*receivedPktNum));
-		DisplayText("Received pakets: "+receivedPktNum+" Missed packets: "+missedPktNum+" Total loss: "+((double)missedPktNum/(double)(receivedPktNum+missedPktNum))*100+" %");
+		setHeader((int)(receivedSamples));
+		outputText.setText("Total received packets: "+(receivedPktNum+missedPktNum)+" Total missed packets: "+missedPktNum+" Total loss: "+((double)missedPktNum/(double)(receivedPktNum+missedPktNum))*100+" %");
 	}
 	
 	private void setHeader(int NumSamples)
@@ -218,10 +239,10 @@ class Capture extends JFrame implements MessageListener {
 		long Subchunk1Size=16;
 		int AudioFormat=1;
 		int NumChannels=1;
-		long SampleRate=8928;
+		long SampleRate=17723;
 		long ByteRate;
 		int BlockAlign;
-		int BitsPerSample=8;
+		int BitsPerSample= is8bits ? 8 : 16;
 		
 		byte Subchunk2ID[]="data".getBytes();
 		long Subchunk2Size;
@@ -260,7 +281,6 @@ class Capture extends JFrame implements MessageListener {
 		SourceDataLine auline=null;
 		DataLine.Info info=null;
 		int nBytesRead = 0, amplifiedData=0;
-//		byte[] abData = new byte[2];
 		byte[] abData = new byte[1000];
 		public	void run(){
 			try{
@@ -286,13 +306,6 @@ class Capture extends JFrame implements MessageListener {
 			try{
 				while ((nBytesRead = audioInputStream.read(abData, 0, abData.length))!=-1){
 					if (nBytesRead >= 0){
-//						amplifiedData=(byteArrayToInt(abData,0))<<gain;
-//						if(amplifiedData <= 255){
-//		    				abData[0]=0;
-//      				}else{
-//		     				abData[0]=(byte)(amplifiedData>>8);
-//        				}
-//        				abData[1]=(byte)amplifiedData;
 						auline.write(abData, 0, nBytesRead);
 					}
 				}
@@ -328,10 +341,4 @@ class Capture extends JFrame implements MessageListener {
 		return value;
 	}
 	
-	private void DisplayText(String text) {
-		if (text != null){
-			outputText.setText(text);
-		}
-	}
 }
-
