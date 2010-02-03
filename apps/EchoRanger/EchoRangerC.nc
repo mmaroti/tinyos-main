@@ -53,6 +53,7 @@ implementation
 	EchoRangerM.AMControl -> ActiveMessageC;
 	EchoRangerM.AMSend -> ActiveMessageC.AMSend[0x77];
 	EchoRangerM.MicRead ->	MicStreamC;
+	EchoRangerM.MicSetting -> MicStreamC;
 	EchoRangerM.Alarm -> AlarmC;
 	EchoRangerM.SounderPin -> MicaBusC.PW2;	// from SounderC
 }

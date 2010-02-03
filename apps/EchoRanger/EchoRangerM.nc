@@ -44,6 +44,7 @@ module EchoRangerM
 		interface AMSend;
 		interface GeneralIO as SounderPin;
 		interface ReadStream<uint16_t> as MicRead;
+		interface MicSetting;
 		interface Alarm<TMicro, uint16_t> as Alarm;
 	}
 }
@@ -53,13 +54,15 @@ implementation
 	enum
 	{
 		SAMPLING = 56,		// in microsec (17723 Hz)
-		BUFFER = 100,		// must be at least 4
-		BEEP = 2000,		// in microsec
+		BUFFER = 400,		// must be at least 4
+		BEEP = 1000,		// in microsec
+		SENDSIZE = 50,		// number of samples in a single message
 	};
 
 	event void Boot.booted()
 	{
 		call SounderPin.clr();
+		call MicSetting.gainAdjust(0xff);
 		call AMControl.start();
 	}
 
@@ -119,11 +122,11 @@ implementation
 
 	typedef struct report_t
 	{
-		uint8_t index;
-		uint16_t data[10];
+		uint16_t index;
+		uint16_t data[SENDSIZE];
 	} report_t;
 
-	uint8_t reportIndex;
+	uint16_t reportIndex;
 	message_t reportMsg;
 
 	task void reportTask()
@@ -131,12 +134,12 @@ implementation
 		report_t* report;
 		uint8_t i;
 
-		if( reportIndex < BUFFER )
+		if( reportIndex <= BUFFER - SENDSIZE )
 		{
 			report = (call AMSend.getPayload(&reportMsg, sizeof(report_t)));
 
 			report->index = reportIndex;
-			for(i = 0; i < 10; ++i)
+			for(i = 0; i < SENDSIZE; ++i)
 				report->data[i] = buffer[reportIndex++];
 
 			if( call AMSend.send(0xFFFF, &reportMsg, sizeof(report_t)) != SUCCESS )
@@ -162,5 +165,10 @@ implementation
 			reportIndex = 0;
 			post reportTask();
 		}
+	}
+
+	async event error_t MicSetting.toneDetected()
+	{
+		return SUCCESS;
 	}
 }
