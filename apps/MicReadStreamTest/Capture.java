@@ -187,7 +187,7 @@ class Capture extends JFrame implements MessageListener {
 		try{
 			if (is8bits) {
 				for(int i=0;i<bufferSize;++i){
-					wavFileHandler.write(micMsg.getElement_data(i));
+					wavFileHandler.write(((micMsg.getElement_data(i))^0x80)); // decode the microphone data
 				}
 				receivedSamples += bufferSize;
 			}

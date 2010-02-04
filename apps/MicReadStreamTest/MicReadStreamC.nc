@@ -96,7 +96,11 @@ implementation
 #ifdef EIGHT_BIT_DATA
 			for(i=0;i<BUFFER_SIZE;++i)
 			{
-				packet->data[i]=buf[i]>>2;
+				////////////////////////////////////////////////////////////////////
+				//Encode the microphone data to remove the 0x7e, 0x7d, characters //
+				//These characters are used as a flag in the serial transmission  //
+				////////////////////////////////////////////////////////////////////
+				packet->data[i]=(buf[i]>>2)^0x80;
 			}
 #else
 			i = j = 0;
