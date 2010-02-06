@@ -54,7 +54,7 @@ implementation
 	enum
 	{
 		SAMPLING = 56,		// in microsec (17723 Hz)
-		BUFFER = 400,		// must be at least 4
+		BUFFER = 2000,		// must be at least 4
 		BEEP = 1000,		// in microsec
 		SENDSIZE = 50,		// number of samples in a single message
 	};
@@ -69,7 +69,7 @@ implementation
 	event void AMControl.startDone(error_t err)
 	{
 		if( err == SUCCESS )
-			call TimerMilli.startPeriodic(2000);
+			call TimerMilli.startPeriodic(4000);
 		else
 			call AMControl.start();
 	}
@@ -102,15 +102,22 @@ implementation
 		}
 	}
 	
+	uint16_t beep = 0;
+
  	event void MicRead.bufferDone(error_t result, uint16_t* bufPtr, uint16_t count)
 	{
 		if( state == STATE_WARMUP )
 		{
 			state = STATE_LISTEN;
 
-			call Alarm.start(BEEP);
+			beep += 500;
+
+			call Alarm.start(beep);
 			call Leds.led1On();
 			call SounderPin.set();
+
+			if( beep >= 2000 )
+				beep = 0;
 		}
 	}
 
