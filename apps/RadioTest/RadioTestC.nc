@@ -33,13 +33,17 @@
 *         veresskrisztian@gmail.com
 */
 
-//#define  USE_TOSSIM  1
+#define  _DEBUG_MODE_
 
 #include "RadioTestCases.h"
-#ifdef PLATFORM_IRIS
-#define POWER2(E) pow(2,(E))
+
+#define SET_STATE(s) { state = s; call Leds.set(state); }
+
+#if defined(_DEBUG_MODE_)
+  #define P_ENSURE(cond) if(!(cond)){ dbgLINE = __LINE__; }
 #else
-#define POWER2(E) powf(2,(E))
+  #define str(s) s
+  #define P_ENSURE(cond) str()
 #endif
 
 module RadioTestC @safe() {
@@ -50,35 +54,40 @@ module RadioTestC @safe() {
     interface AMSend as TxBase;
     interface Receive as RxTest;
     interface AMSend as TxTest;
+
     interface SplitControl as AMControl;
     interface Packet;
     interface PacketAcknowledgements as PAck;
     interface AMPacket;
     interface Timer<TMilli> as TestEndTimer;
     interface Timer<TMilli> as TriggerTimer;
+    interface LowPowerListening;
   }
 }
 
 implementation {
 
+  // State-machine variable
   uint8_t state;
+  // BS communication variables
+  int8_t  reqidx,reqtype;
+
   message_t pkt;
+
   stat_t  stats[MAX_EDGE_COUNT];
   setup_t config;
-  uint8_t statidx;
-
-#ifdef USE_TOSSIM
-  uint8_t edgecount;
-  edge_t problem[MAX_EDGE_COUNT+1];
-#else
   edge_t* problem;
-#endif
 
-  // bitmask that specifies on which edges we should send a message
-  // when a trigger timer is fired. Must be initialized based on edge
-  // descriptions.
+  // Bitmask specifying edges on which we should send on timer ticks
   pending_t tTickSendMask;
+  // Bitmask specifying edges with pending sending requests
   pending_t pending;
+
+#ifdef _DEBUG_MODE_
+  uint32_t dbgLINE;
+  stat_t  nullstat;
+  pending_t dbgNOTMYEDGES;
+#endif
 
   event void Boot.booted() {
     call AMControl.start();
@@ -88,54 +97,54 @@ implementation {
     if (err != SUCCESS)
       call AMControl.start();
     else
-      state = STATE_IDLE; call Leds.set(state);
+      SET_STATE( STATE_IDLE )
   }
 
   event void AMControl.stopDone(error_t err) {
-    state = STATE_INVALID; call Leds.set(state);
+    SET_STATE( STATE_INVALID )
   }
 
   /* Task : sendPending
-   * 
-   * Processes the message queue in a round-robin way, and tries to send the next waiting
-   * message. According to success or failure, it also collects different statistics.
+   * Processes the 'pending' bitmask and tries to send only the next waiting message.
    */
   task void sendPending() {
     static pending_t  pidx = 0x1;
     static uint8_t    eidx = 0x0;
     testmsg_t* msg;
     am_addr_t  address;
-    bool sendsuccess = FALSE;
+    bool abortSending = FALSE;
 
-    while ( state == STATE_RUNNING && pending && !sendsuccess ) {
+    while ( state == STATE_RUNNING && pending && !abortSending ) {
+      
+      P_ENSURE( (1 << eidx) == pidx )
 
       // In case we need to send a message on the current edge
       if ( pending & pidx ) {
         
-        msg = (testmsg_t*)(call Packet.getPayload(&pkt,sizeof(testmsg_t)));
-        msg->edgeid = eidx;
-        msg->msgid = problem[eidx].nextmsgid;
-
+        P_ENSURE( problem[eidx].sender == TOS_NODE_ID )
+        
         // Check for resending      
         if ( problem[eidx].lastmsgid == problem[eidx].nextmsgid )
           ++(stats[eidx].resendCount);
 
-        address = ( config.flags & USE_DIRECT_ADDR ) ? problem[eidx].receiver : AM_BROADCAST_ADDR;
+        // Compose the new message
+        msg = (testmsg_t*)(call Packet.getPayload(&pkt,sizeof(testmsg_t)));
+        msg->edgeid = eidx;
+        msg->msgid = problem[eidx].nextmsgid;
+        address = ( config.flags & USE_DADDR ) ? problem[eidx].receiver : AM_BROADCAST_ADDR;
+
+        // Send out
         switch ( call TxTest.send( address, &pkt, sizeof(testmsg_t)) ) {
           case SUCCESS :
-            dbg("Debug","Message sent (edgeid,msgid) = (%d,%d)\n",msg->edgeid,msg->msgid);
-
             ++(stats[eidx].sendSuccessCount);
-            // Remove the pending bit
-            pending &= (~pidx);
-
-            // This condition guarantees that in case of a successfull send, the round-robin edge
+            // This condition guarantees that the round-robin edge
             // incrementation takes place yet this function returns.
-            sendsuccess = TRUE;
+            abortSending = TRUE;
             break;
           case EBUSY :
-            // In this case, the round-robin edge-incrementation DOES NOT take place!
-            return;
+            ++(stats[eidx].sendBusyCount);
+            abortSending = TRUE;
+            break;
           case FAIL :
             ++(stats[eidx].sendFailCount);
             break;
@@ -149,6 +158,7 @@ implementation {
         pidx = 0x1;
         eidx = 0x0;
       }
+
     }
   }
 
@@ -161,11 +171,15 @@ implementation {
     uint8_t i = 0;    
     pending_t blogd;
 
+    P_ENSURE( (dbgNOTMYEDGES & sbitmask) == 0x0 )
+
     // Check which edges need to be backlogged
     blogd = pending & sbitmask;
 
     // Other edges are cleared to set the pending bit
     pending |= sbitmask;
+
+    P_ENSURE( (dbgNOTMYEDGES & pending) == 0x0 )
 
     // Backlog the previously selected edges -> only update stats
     while ( blogd ) {
@@ -177,105 +191,126 @@ implementation {
     post sendPending();
   }
 
-  event void TestEndTimer.fired() { 
-    state = STATE_FINISHED; call Leds.set(state);
+  event void TestEndTimer.fired() {
+    if ( state == STATE_RUNNING ) {
+      SET_STATE( STATE_LASTCHANCE )
+      call TestEndTimer.startOneShot(config.lastchance_msec);
+
+    } else if ( state == STATE_LASTCHANCE )
+      SET_STATE( STATE_FINISHED )
+
+    call LowPowerListening.setLocalWakeupInterval(0);
   }
 
   event void TriggerTimer.fired() {
-    if ( state == STATE_RUNNING && tTickSendMask ) {
-        dbg("Debug","Trigger!\n");
+    if ( state == STATE_RUNNING && tTickSendMask )
         setPendingOrBacklog( tTickSendMask );
-    }
   }
 
   event void TxBase.sendDone(message_t* bufPtr, error_t error) { }
 
-  task void sendSetupAck() {
-    ctrlmsg_t* msg = (ctrlmsg_t*)(call Packet.getPayload(&pkt,sizeof(ctrlmsg_t)));
-    msg->type = CTRL_SETUP_ACK;
-    if (  state == STATE_SETUP_RCVD && 
-          call TxBase.send(AM_BROADCAST_ADDR, &pkt, sizeof(ctrlmsg_t)) == SUCCESS ) {
-      state = STATE_CONFIGURED; call Leds.set(state);
+  task void sendResponse() {
+    responsemsg_t* msg = (responsemsg_t*)(call Packet.getPayload(&pkt,sizeof(responsemsg_t)));
+
+    // RESPONSE the setup acknowledgement if applicable
+    if ( reqtype == CTRL_SETUP_SYN ) {
+      msg->type = RESP_SETUP_ACK;
+      if (state == STATE_SETUP_RCVD &&
+          SUCCESS == call TxBase.send(AM_BROADCAST_ADDR, &pkt, sizeof(responsemsg_t)) )
+        SET_STATE( STATE_CONFIGURED )
+  
+    // RESPONSE statistics and final edge states
+    } else if ( reqtype == CTRL_DATA_REQ ) {
+      SET_STATE( STATE_UPLOADING )
+
+      msg->type = ( reqidx >= MAX_EDGE_COUNT || problem[reqidx].sender == INVALID_NODE )
+                    ? RESP_DATA_NEXISTS
+                    : RESP_DATA_OK;
+      msg->respidx = reqidx;
+      if ( msg->type == RESP_DATA_OK )
+        msg->payload.stat = stats[reqidx];
+      call TxBase.send(AM_BROADCAST_ADDR, &pkt, sizeof(responsemsg_t) );
+      SET_STATE( STATE_FINISHED )
+
+    // RESPONSE debug information
+    } else if ( reqtype == CTRL_DBG_REQ ) {
+      SET_STATE( STATE_UPLOADING )
+
+      msg->type = ( reqidx >= MAX_EDGE_COUNT || problem[reqidx].sender == INVALID_NODE )
+                    ? RESP_DATA_NEXISTS
+                    : RESP_DBG_OK;
+      msg->respidx = reqidx;
+      if ( msg->type == RESP_DBG_OK ) {
+        msg->payload.debug.endtype = (problem[reqidx].sender == TOS_NODE_ID) ? 1 
+                                    : ( (problem[reqidx].receiver == TOS_NODE_ID) ? 2 : 3 );
+        msg->payload.debug.nextmsgid = problem[reqidx].nextmsgid;
+        msg->payload.debug.lastmsgid = problem[reqidx].lastmsgid;
+#ifdef _DEBUG_MODE_
+        msg->payload.debug.dbgLINE = dbgLINE;
+#else
+        msg->payload.debug.dbgLINE = 0;
+#endif
+      }
+      call TxBase.send(AM_BROADCAST_ADDR, &pkt, sizeof(responsemsg_t) );
+      SET_STATE( STATE_FINISHED )
     }
-  }
-
-  task void sendStat() {
-    ctrlmsg_t* msg = (ctrlmsg_t*)(call Packet.getPayload(&pkt,sizeof(ctrlmsg_t)));
-    state = STATE_UPLOADING; call Leds.set(state);
-    msg->type = ( statidx >= MAX_EDGE_COUNT || 
-                    problem[statidx].sender == 0 ) ? CTRL_STAT_NEXISTS : CTRL_STAT_OK;
-    msg->data.stat.statidx = statidx;
-    if ( msg->type == CTRL_STAT_OK )
-      msg->data.stat.statpayload = stats[statidx];
-
-    dbg("Debug","%s\n", ( statidx >= MAX_EDGE_COUNT || problem[statidx].sender == 0 ) ? "CTRL_STAT_NEXISTS" : "CTRL_STAT_OK"); dbgstat(msg->data.stat.statpayload);
-
-    call TxBase.send(AM_BROADCAST_ADDR, &pkt, sizeof(ctrlmsg_t) );
-    state = STATE_FINISHED; call Leds.set(state);
   }
 
   event message_t* RxBase.receive(message_t* bufPtr, void* payload, uint8_t len) {
  
     ctrlmsg_t* msg = (ctrlmsg_t*)payload;
-    uint8_t idx = 0, k = 1;
+    uint8_t idx, k;
     uint8_t ctype = msg->type;
 
     // BaseStation RESETs this mote
     // ----------------------------------------------------------------------------------
-    if ( ( state != STATE_RUNNING && state != STATE_UPLOADING ) && ctype == CTRL_RESET ) {
-      dbg("Debug","CTRL_RESET received! Resetting...\n");
-#ifdef USE_TOSSIM
-      edgecount = 0;
-#else
-      problem = 0;
-#endif
+    if ( ctype == CTRL_RESET && ( state != STATE_RUNNING && 
+                                  state != STATE_LASTCHANCE ) ) {
+
+      problem = (edge_t*)NULL;
       memset(stats,0,sizeof(stat_t)*MAX_EDGE_COUNT);
-      state = STATE_IDLE; call Leds.set(state);
-     
+      memset(&config,0,sizeof(setup_t));
+
+      reqidx = reqtype = -1;
+      tTickSendMask = pending = 0x0;
+
+#ifdef _DEBUG_MODE_
+      dbgLINE = dbgNOTMYEDGES = 0;
+#endif
+
+      SET_STATE ( STATE_IDLE )
+    
     // BaseStation SETUPs this mote
     // ----------------------------------------------------------------------------------
-    } else if ( ( state == STATE_INVALID || 
-                  state == STATE_IDLE || 
-                  state == STATE_SETUP_RCVD ||
-                  state == STATE_CONFIGURED ) && ctype == CTRL_SETUP ) {
-      dbg("Debug","CTRL_SETUP received.\n");
-      config = msg->data.config;
-      
+    } else if ( ctype == CTRL_SETUP && (  state == STATE_INVALID || 
+                                          state == STATE_IDLE ) ) {
+
+      // Save the configuration
+      config = msg->config;
+
       // Check config consistency
-      if ( config.problem_idx > PROBLEMSET_COUNT ) {
-        dbg("Debug","Invalid problem idx received : %d\n",config.problem_idx);
-        state = STATE_INVALID; call Leds.set(state);
-        return bufPtr;   
-      }
+      P_ENSURE( msg->config.problem_idx < PROBLEMSET_COUNT )
+      P_ENSURE( msg->config.runtime_msec != 0 )
+      P_ENSURE( config.problem_idx < PROBLEMSET_COUNT )
+      P_ENSURE( config.runtime_msec > 0 )
+      P_ENSURE( tTickSendMask == 0 )
+      P_ENSURE( pending == 0 )
+      P_ENSURE( dbgNOTMYEDGES == 0 )
 
-      // Enable the ACK feature if wanted
-      if ( config.flags & USE_ACK )
-        call PAck.requestAck(&pkt);
-      else
-        call PAck.noAck(&pkt);
-
-      // Setup the LPL feature if wanted
-      // TODO!
-
-#ifdef USE_TOSSIM
-      call AMPacket.setSource(&pkt,TOS_NODE_ID);
-
-      // Dump the current problem to a separate memory location
-      while ( problemSet[config.problem_idx][idx].sender != 0 ) {
-        problem[idx] = problemSet[config.problem_idx][idx];
-        ++idx;
-      }
-      problem[idx] = problemSet[config.problem_idx][idx];
-#else
       problem = problemSet[config.problem_idx];
-#endif    
-
-      tTickSendMask = 0;
-      for( idx = 0; problem[idx].sender > 0; ++idx, k<<=1 )
+      for( idx = 0, k = 1; problem[idx].sender != INVALID_NODE; ++idx, k<<=1 )
       {
+        // Make sure these values are OK
+        problem[idx].nextmsgid = 1;
+        problem[idx].lastmsgid = 0;
+
         if( problem[idx].sender != TOS_NODE_ID )
+#ifdef _DEBUG_MODE_
+          { (dbgNOTMYEDGES |= k); continue; }
+#else
           continue;
-     
+#endif
+
         // Set the pending bits if we need to send at start        
         if ( problem[idx].flags & SEND_ON_INIT )
           pending |= k;
@@ -284,36 +319,60 @@ implementation {
         if ( problem[idx].flags & SEND_ON_TTICK )
           tTickSendMask |= k;
       }
-#ifdef USE_TOSSIM
-      edgecount = idx;
-      dbgpset(problem);
-#endif
-      state = STATE_SETUP_RCVD; call Leds.set(state);
 
-    // BaseStation wants SETUP SYNchronization
-    // ----------------------------------------------------------------------------------
-    } else if ( state == STATE_SETUP_RCVD && ctype == CTRL_SETUP_SYN ) {
-      dbg("Debug","CTRL_SETUP_SYN received.\n");
-      post sendSetupAck();
+      // Enable the ACK feature if wanted
+      if ( config.flags & USE_ACK )
+        call PAck.requestAck(&pkt);
+      else
+        call PAck.noAck(&pkt);
+
+      // LPL feature MUST NOT be set up here, otherwise there is a risk
+      // of missing after-setup acks and START message!
+
+      SET_STATE( STATE_SETUP_RCVD )
 
     // BaseStation wants to START the test
     // ----------------------------------------------------------------------------------
-    } else if ( state == STATE_CONFIGURED && ctype == CTRL_START ) {
-      dbg("Debug","CTRL_START received.\n");
-      state = STATE_RUNNING; call Leds.set(state);
+    } else if ( ctype == CTRL_START && state == STATE_CONFIGURED ) {
+
+      SET_STATE( STATE_RUNNING )
       call TestEndTimer.startOneShot(config.runtime_msec);
 
-      if ( config.sendtrig_msec > 0 && tTickSendMask > 0 )
+      P_ENSURE( ( !(config.flags & USE_LPL) && config.lplwakeupintval == 0 ) ||
+                ( (config.flags & USE_LPL) && config.lplwakeupintval > 0 )     )
+
+      // Setup the LPL feature if wanted
+      call LowPowerListening.setLocalWakeupInterval(config.lplwakeupintval);
+
+      if ( config.sendtrig_msec > 0 && tTickSendMask )
         call TriggerTimer.startPeriodic(config.sendtrig_msec);
 
       post sendPending();
 
+    // BaseStation wants SETUP SYNchronization
+    // ----------------------------------------------------------------------------------
+    } else if ( ctype == CTRL_SETUP_SYN && ( state == STATE_SETUP_RCVD ||
+                                             state == STATE_CONFIGURED ) ) {
+      reqtype = CTRL_SETUP_SYN;
+      post sendResponse();
+
     // BaseStation REQUESTs statistics
     // ----------------------------------------------------------------------------------
-    } else if ( state == STATE_FINISHED && ctype == CTRL_STAT_REQ ) {
-      dbg("Debug","CTRL_REQ_STAT received for stat : %d\n", msg->data.stat.statidx);
-      statidx = msg->data.stat.statidx;
-      post sendStat();
+    } else if ( ctype == CTRL_DATA_REQ && ( state == STATE_FINISHED ||
+                                            state == STATE_UPLOADING ||
+                                            state == STATE_INVALID ) ) {
+      reqtype = CTRL_DATA_REQ;
+      reqidx = msg->reqidx;
+      post sendResponse();
+
+    // BaseStation REQUESTs debug information
+    // ----------------------------------------------------------------------------------
+    } else if ( ctype == CTRL_DBG_REQ &&  ( state == STATE_FINISHED  ||
+                                            state == STATE_UPLOADING ||
+                                            state == STATE_INVALID ) ) {
+      reqtype = CTRL_DBG_REQ;
+      reqidx = msg->reqidx;
+      post sendResponse();
     }
     return bufPtr;
   }
@@ -323,14 +382,18 @@ implementation {
     testmsg_t* msg = (testmsg_t*)payload;
 
     // In case the message is sent to this mote
-    if (  state == STATE_RUNNING && 
+    if (  ( state == STATE_RUNNING || 
+            state == STATE_LASTCHANCE ) && 
           problem[msg->edgeid].receiver == TOS_NODE_ID ) {
-      dbg("Debug","Message received (edgeid,msgid) = (%d,%d)\n",msg->edgeid,msg->msgid);
+
+      P_ENSURE( problem[msg->edgeid].receiver == TOS_NODE_ID )
+      P_ENSURE( problem[msg->edgeid].lastmsgid == 0 )
+
       ++(stats[msg->edgeid].receiveCount);
 
       // If we got a message with a lower id than expected -> duplicate
       if ( msg->msgid < problem[msg->edgeid].nextmsgid )
-        ++(stats[msg->edgeid].duplicateReceiveCount);
+        ++(stats[msg->edgeid].duplicateCount);
       
       // If we got a message with a higher id than expected -> we have missed messages
       else if ( msg->msgid > problem[msg->edgeid].nextmsgid ) {
@@ -341,7 +404,7 @@ implementation {
       else
         ++(problem[msg->edgeid].nextmsgid);
       
-      // Check whether we have to send message on receive ( PONG_ON_PING case )
+      // Check whether we have to send message on receive ( ping-pong case )
       if ( problem[msg->edgeid].pongs ) {
         setPendingOrBacklog( problem[msg->edgeid].pongs );
       }
@@ -353,47 +416,48 @@ implementation {
   event void TxTest.sendDone(message_t* bufPtr, error_t error) {
 
     testmsg_t* msg = (testmsg_t*)(call Packet.getPayload(bufPtr,sizeof(testmsg_t)));
-    bool  acked = 0;
-
-    if ( state != STATE_RUNNING )
-      return;
-
-    if ( error == SUCCESS ) {
-      
-      ++(stats[msg->edgeid].sendDoneSuccessCount);
-      problem[msg->edgeid].lastmsgid = msg->msgid;
-
-#ifdef USE_TOSSIM
-      dbg("Debug","Message sent SUCCESSFULLY (edgeid,msgid) = (%d,%d)\n",msg->edgeid,msg->msgid);
-      // If using TOSSIM, acknowledgements doesn't work, we must bypass it with a random value.
-      acked = (rand()%10 < 3);
-      if ( config.flags & USE_ACK )
-        dbg("Debug","Message acked : %s\n",acked ? "yes" : "no");
-#else
-      acked = call PAck.wasAcked(bufPtr);
-#endif
-           
-      // Message is COMPLETELY sent
-      if ( acked || !( config.flags & USE_ACK ) ) {
-        problem[msg->edgeid].nextmsgid = msg->msgid+1;
-
-        // If message is ACKed, update the stats
-        if ( acked && ( config.flags & USE_ACK ) )
-          ++(stats[msg->edgeid].wasAckedCount);
-  
-      // If message is NOT considered COMPLETE resend it.
-      } else {
-        setPendingOrBacklog( POWER2(msg->edgeid) );
-      }
-
-    } else {
-      ++(stats[msg->edgeid].sendDoneFailCount);
-    }
-
     // Check whether we have to send message on sendDone
-    if ( problem[msg->edgeid].flags & SEND_ON_SDONE )
-      setPendingOrBacklog( POWER2(msg->edgeid) );
+    bool keepPending = (problem[msg->edgeid].flags & SEND_ON_SDONE) != 0;
 
-    post sendPending();
+    if ( state == STATE_RUNNING || state == STATE_LASTCHANCE ) {
+
+      P_ENSURE( problem[msg->edgeid].sender == TOS_NODE_ID )
+
+      if ( error == SUCCESS ) {
+
+        P_ENSURE( pending & (1 << msg->edgeid) )
+        P_ENSURE(problem[msg->edgeid].sender == TOS_NODE_ID )
+        P_ENSURE( (problem[msg->edgeid].nextmsgid - problem[msg->edgeid].lastmsgid == 1 ) ||
+                  (problem[msg->edgeid].nextmsgid - problem[msg->edgeid].lastmsgid == 0 )    )
+
+        ++(stats[msg->edgeid].sendDoneSuccessCount);
+        problem[msg->edgeid].lastmsgid = msg->msgid;
+
+        // If ACK is not requested
+        if ( (config.flags & USE_ACK) == 0x0 )
+          ++(problem[msg->edgeid].nextmsgid);
+
+        // If ACK is requested and received
+        else if ( call PAck.wasAcked(bufPtr) ) {
+          ++(problem[msg->edgeid].nextmsgid);
+          ++(stats[msg->edgeid].wasAckedCount);
+
+        // Else the message is not considered to be sent
+        } else {
+          ++(stats[msg->edgeid].notAckedCount);
+          keepPending = TRUE;
+        }
+
+        // Remove the pending bit
+        if ( !keepPending )
+          atomic { pending &= ~ (1 << msg->edgeid ); }
+
+      } else {
+        ++(stats[msg->edgeid].sendDoneFailCount);
+      }
+      post sendPending();
+    }
   }
+
+
 }
