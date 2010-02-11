@@ -39,14 +39,15 @@
 #include "RadioTest.h"
 
 #define RT_PROBLEM_NEXT },{
-#define RT_NULL_EDGE {0,0,0,0,0,0}
+#define RT_NULL_EDGE { INVALID_NODE, INVALID_NODE, 0,0,0,0}
+#define INVALID_NODE 0
 
 // Sending flags
 enum {
-  SEND_OFF  = 0,
-  SEND_ON_INIT = 1,
-  SEND_ON_SDONE = 2,
-  SEND_ON_TTICK = 4
+  SEND_AS_REQ     = 0x0,
+  SEND_ON_INIT    = 0x1,
+  SEND_ON_SDONE   = 0x2,
+  SEND_ON_TTICK   = 0x4
 };
 
 edge_t problemSet[][(MAX_EDGE_COUNT+1)] = { {
@@ -167,8 +168,8 @@ RT_PROBLEM_NEXT
 * Description   : A 2 element ping-pong, the initiator is Mote1.
 */
 RT_PROBLEM_NEXT
-  {1, 2, SEND_ON_INIT , 1, 0, 2 },
-  {2, 1, SEND_OFF     , 1, 0, 1 },
+  {1, 2, SEND_ON_INIT , 1, 0, 0x2 },
+  {2, 1, SEND_AS_REQ  , 1, 0, 0x1 },
   RT_NULL_EDGE
 
 /* 9. 
@@ -180,9 +181,9 @@ RT_PROBLEM_NEXT
 *                 Mote3 passes back to Mote1, and continued.
 */
 RT_PROBLEM_NEXT
-  {1, 2, SEND_ON_INIT , 1, 0, 2 },
-  {2, 3, SEND_OFF     , 1, 0, 4 },
-  {3, 1, SEND_OFF     , 1, 0, 1 },
+  {1, 2, SEND_ON_INIT , 1, 0, 0x2 },
+  {2, 3, SEND_AS_REQ  , 1, 0, 0x4 },
+  {3, 1, SEND_AS_REQ  , 1, 0, 0x1 },
   RT_NULL_EDGE
 
 /* 10. 
@@ -192,30 +193,16 @@ RT_PROBLEM_NEXT
 * Description   : A 3 element simultaneous pairwise ping-pong using 3 "balls".
 */
 RT_PROBLEM_NEXT
-  {1, 2, SEND_ON_INIT , 1, 0, 16 },
-  {2, 3, SEND_ON_INIT , 1, 0, 32 },
-  {3, 1, SEND_ON_INIT , 1, 0, 8 },
-  {1, 3, SEND_OFF     , 1, 0, 4 },
-  {2, 1, SEND_OFF     , 1, 0, 1 },
-  {3, 2, SEND_OFF     , 1, 0, 2 },
+  {1, 2, SEND_ON_INIT , 1, 0, 0x10 },
+  {2, 3, SEND_ON_INIT , 1, 0, 0x20 },
+  {3, 1, SEND_ON_INIT , 1, 0, 0x8 },
+  {1, 3, SEND_AS_REQ  , 1, 0, 0x4 },
+  {2, 1, SEND_AS_REQ  , 1, 0, 0x1 },
+  {3, 2, SEND_AS_REQ  , 1, 0, 0x2 },
   RT_NULL_EDGE
 
 }}; // problemSet END
 
 #define PROBLEMSET_COUNT 11
-
-void dbgpset(const edge_t* edgelist) {
-  uint8_t i=0;
-  while (edgelist[i].sender != 0 ) {
-    dbg("Debug","problem[%d].sender     : %d\n",i,edgelist[i].sender);
-    dbg("Debug","problem[%d].receiver   : %d\n",i,edgelist[i].receiver);
-    dbg("Debug","problem[%d].flags      : %d\n",i,edgelist[i].flags);
-    dbg("Debug","problem[%d].nextmsgid  : %d\n",i,edgelist[i].nextmsgid);
-    dbg("Debug","problem[%d].lastmsgid  : %d\n",i,edgelist[i].lastmsgid);
-    dbg("Debug","problem[%d].pongs      : %d\n",i,edgelist[i].pongs);
-    ++i;
-  }
-  dbg("Debug","---------------------------------------------\n");
-}
 
 #endif
