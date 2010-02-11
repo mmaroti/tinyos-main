@@ -40,11 +40,24 @@ implementation {
 
   components new TimerMilliC() as Timer;
   components new TimerMilliC() as TTimer;
-  components new AMReceiverC(AM_CTRLMSG_T) as RxBase;
-  components new AMSenderC(AM_CTRLMSG_T) as TxBase;
-  components new AMSenderC(AM_TESTMSG_T) as TxTest;
-  components new AMReceiverC(AM_TESTMSG_T) as RxTest;
+  components new AMReceiverC(AM_CTRLMSG_T)    as RxBase;
+  components new AMSenderC(AM_RESPONSEMSG_T)  as TxBase;
+  components new AMSenderC(AM_TESTMSG_T)      as TxTest;
+  components new AMReceiverC(AM_TESTMSG_T)    as RxTest;
   components ActiveMessageC;
+
+#if defined(PLATFORM_MICA2) || defined(PLATFORM_MICA2DOT)
+  components CC1000CsmaRadioC as LplRadio;
+#elif defined(PLATFORM_MICAZ) || defined(PLATFORM_TELOSB) || defined(PLATFORM_SHIMMER) || defined(PLATFORM_SHIMMER2) || defined(PLATFORM_INTELMOTE2) || defined(PLATFORM_TELOSA)
+  components CC2420ActiveMessageC as LplRadio;
+#elif defined(PLATFORM_IRIS) || defined(PLATFORM_MULLE)
+  components RF230ActiveMessageC as LplRadio;
+#elif defined(PLATFORM_EYESIFXV1) || defined(PLATFORM_EYESIFXV2)
+  components LplC as LplRadio;
+#else
+#error "LPL testing not supported on this platform"
+#endif
+
 
   App.Boot -> MainC.Boot;
   
@@ -60,7 +73,7 @@ implementation {
 
   App.Leds -> LedsC;
   App.AMControl -> ActiveMessageC;
-
+  App.LowPowerListening -> LplRadio;
   App.TestEndTimer -> Timer;
   App.TriggerTimer -> TTimer;
 }
