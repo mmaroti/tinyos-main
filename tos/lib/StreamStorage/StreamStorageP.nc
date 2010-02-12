@@ -276,7 +276,7 @@ implementation{
 				signal StreamStorage.appendDone(writebuffer, writelength, error);
 			return;
 		} 
-		if(status!=WRITE_PENDING_METADATA||status!=WRITE_PENDING_METADATA_ID_UNWRITTEN)
+		if(status!=WRITE_PENDING_METADATA&&status!=WRITE_PENDING_METADATA_ID_UNWRITTEN)
 			current_addr+=len;
 		if(minAddress.valid&&recordsLost){
 			minAddress.valid=FALSE;
@@ -692,7 +692,7 @@ implementation{
 	}
 
 	command uint32_t StreamStorage.getMaxAddress(){
-		return current_addr;
+		return current_addr-1;
 	}
 
 	command error_t StreamStorage.getMinAddress(){
