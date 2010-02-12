@@ -34,15 +34,19 @@
 enum
 {
 	SEND_PERIOD = 100,	// in TMilli units
-	BLINK_DELAY = 30000,	// in TMicro units
+	REPORT_DELAY_0 = 10,
+	REPORT_DELAY_1 = 20,
+	REPORT_DELAY_2 = 30,
 };
 
 /*
-	node 0 sends full packets at every SEND_PERIOD microseconds, node 1 receives them
-
-	node 0 blinks LED 0 after BLINK_DELAY microseconds after the time stamp of the sent message
-	node 1 blinks LED 1 after BLINK_DELAY microseconds after the time stamp of the received message
-*/
+ * NODE 0 is sending reference messages with payload length 1 to NODES 1 
+ * and 2, and blinks LED 0. All nodes make a reference time stmap for the 
+ * reference messages. When NODE 1 receives a reference message, it sends 
+ * a test message with length 100 to NODES 0 and 2 and blinks LED 1. All
+ * NODES records the time stmap of the test message too. Then they report
+ * the difference of the two time stamps via DiagMsgs to a basestation.
+ */
 
 module TestTimeStampP
 {
@@ -50,13 +54,15 @@ module TestTimeStampP
 	{
 		interface Boot;
 		interface SplitControl;
-		interface AMSend;
-		interface Receive;
+		interface AMSend as RefSend;
+		interface Receive as RefReceive;
+		interface AMSend as TestSend;
+		interface Receive as TestReceive;
 		interface Leds;
-		interface Timer<TMilli> as Timer;
-
+		interface Timer<TMilli> as SendTimer;
+		interface Timer<TMilli> as ReportTimer;
 		interface PacketTimeStamp<TMicro, uint32_t>;
-		interface Alarm<TMicro, uint16_t>;
+		interface DiagMsg;
 	}
 }
 
@@ -72,47 +78,92 @@ implementation
 	event void SplitControl.startDone(error_t err)
 	{
 		if( TOS_NODE_ID == 0 )
-			call Timer.startPeriodic(SEND_PERIOD);
+			call SendTimer.startPeriodic(SEND_PERIOD);
 	}
-	
+
 	event void SplitControl.stopDone(error_t err) { }
 
-	event void Timer.fired()
-	{
-		call AMSend.send(AM_BROADCAST_ADDR, &msgBuffer, TOSH_DATA_LENGTH);
-	}
+	uint32_t refTime;
+	uint32_t testTime;
 
-	void startAlarm(message_t* msg)
+	event void SendTimer.fired()
 	{
-		uint16_t time;
-
-		if( call PacketTimeStamp.isValid(msg) )
+		if( TOS_NODE_ID == 0 )
 		{
-			time = BLINK_DELAY + (uint16_t) call PacketTimeStamp.timestamp(msg);
-
-			atomic
-			{
-				call Alarm.start( time - call Alarm.getNow() );
-			}
+			call Leds.led0Toggle();
+			call RefSend.send(AM_BROADCAST_ADDR, &msgBuffer, 1);
 		}
 	}
 
-	event void AMSend.sendDone(message_t* msg, error_t error)
+	event void ReportTimer.fired()
 	{
-		startAlarm(msg);
-  	}
+		if( call DiagMsg.record() )
+		{
+			call DiagMsg.uint8(TOS_NODE_ID);
+			call DiagMsg.uint32(testTime - refTime);
+			call DiagMsg.uint32(refTime);
+			call DiagMsg.send();
+		}
+	}
 
-	event message_t* Receive.receive(message_t* msg, void* payload, uint8_t length)
+	event void RefSend.sendDone(message_t* msg, error_t error)
 	{
-		startAlarm(msg);
+		if( TOS_NODE_ID == 0 )
+		{
+			if( call PacketTimeStamp.isValid(msg) )
+				refTime = call PacketTimeStamp.timestamp(msg);
+			else
+				refTime = 0;
+		}
+	}
+
+	event message_t* RefReceive.receive(message_t* msg, void* payload, uint8_t length)
+	{
+		if( call PacketTimeStamp.isValid(msg) )
+			refTime = call PacketTimeStamp.timestamp(msg);
+		else
+			refTime = 0;
+
+		if( TOS_NODE_ID == 1 )
+		{
+			call Leds.led1Toggle();
+			call TestSend.send(AM_BROADCAST_ADDR, &msgBuffer, TOSH_DATA_LENGTH);
+		}
+
 		return msg;
 	}
 
-	async event void Alarm.fired()
+	event void TestSend.sendDone(message_t* msg, error_t error)
 	{
-		if( TOS_NODE_ID == 0 )
-			call Leds.led0Toggle();
-		else
-			call Leds.led1Toggle();
+		if( TOS_NODE_ID == 1 )
+		{
+			if( call PacketTimeStamp.isValid(msg) )
+				testTime = call PacketTimeStamp.timestamp(msg);
+			else
+				testTime = 0;
+
+			call ReportTimer.startOneShot(REPORT_DELAY_1);
+		}
+  	}
+
+	event message_t* TestReceive.receive(message_t* msg, void* payload, uint8_t length)
+	{
+		if( TOS_NODE_ID != 1 )
+		{
+			if( call PacketTimeStamp.isValid(msg) )
+				testTime = call PacketTimeStamp.timestamp(msg);
+			else
+				testTime = 0;
+		}
+
+		if( TOS_NODE_ID == 2 )
+		{
+			call Leds.led2Toggle();
+			call ReportTimer.startOneShot(REPORT_DELAY_2);
+		}
+		else if( TOS_NODE_ID == 0 )
+			call ReportTimer.startOneShot(REPORT_DELAY_0);
+
+		return msg;
 	}
 }

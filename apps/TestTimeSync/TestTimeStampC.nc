@@ -37,14 +37,25 @@ configuration TestTimeStampC
 
 implementation
 { 
-	components TestTimeStampP, ActiveMessageC, MainC, LedsC, new TimerMilliC(), new AlarmOne16C();
+	components TestTimeStampP, ActiveMessageC, MainC, LedsC, 
+		new TimerMilliC() as SendTimerC, new TimerMilliC() as ReportTimerC;
+
+	TestTimeStampP.PacketTimeStamp -> ActiveMessageC;
 
 	TestTimeStampP.Boot -> MainC;
 	TestTimeStampP.SplitControl -> ActiveMessageC;
-	TestTimeStampP.AMSend -> ActiveMessageC.AMSend[0x55];
-	TestTimeStampP.Receive -> ActiveMessageC.Receive[0x55];
+	TestTimeStampP.RefSend -> ActiveMessageC.AMSend[0x66];
+	TestTimeStampP.RefReceive -> ActiveMessageC.Receive[0x66];
+	TestTimeStampP.TestSend -> ActiveMessageC.AMSend[0x55];
+	TestTimeStampP.TestReceive -> ActiveMessageC.Receive[0x55];
 	TestTimeStampP.Leds -> LedsC;
-	TestTimeStampP.Timer -> TimerMilliC;
-	TestTimeStampP.PacketTimeStamp -> ActiveMessageC;
-	TestTimeStampP.Alarm -> AlarmOne16C;
+	TestTimeStampP.SendTimer -> SendTimerC;
+	TestTimeStampP.ReportTimer -> ReportTimerC;
+	TestTimeStampP.DiagMsg -> DiagMsgP;
+
+	components DiagMsgP;
+	MainC.SoftwareInit -> DiagMsgP.Init;
+	DiagMsgP.AMSend -> ActiveMessageC.AMSend[0xB1];
+	DiagMsgP.Packet -> ActiveMessageC;
+
 }
