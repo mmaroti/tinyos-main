@@ -9,72 +9,70 @@ public class dataMsg extends net.tinyos.message.Message {
     /** The default size of this message type in bytes. */
     public static final int DEFAULT_MESSAGE_SIZE = 28;
 
-    /** The Active Message type associated with this message. */
-
     /** Create a new dataMsg of size 28. */
-    public dataMsg(byte am_type) {
+    public dataMsg(byte amtype) {
         super(DEFAULT_MESSAGE_SIZE);
-        amTypeSet(am_type);
+        amTypeSet(amtype);
     }
 
     /** Create a new dataMsg of the given data_length. */
-    public dataMsg(int data_length,byte am_type) {
+    public dataMsg(int data_length,byte amtype) {
         super(data_length);
-        amTypeSet(am_type);
+        amTypeSet(amtype);
     }
 
     /**
      * Create a new dataMsg with the given data_length
      * and base offset.
      */
-    public dataMsg(int data_length, int base_offset,byte am_type) {
+    public dataMsg(int data_length, int base_offset,byte amtype) {
         super(data_length, base_offset);
-        amTypeSet(am_type);
+        amTypeSet(amtype);
     }
 
     /**
      * Create a new dataMsg using the given byte array
      * as backing store.
      */
-    public dataMsg(byte[] data,byte am_type) {
+    public dataMsg(byte[] data,byte amtype) {
         super(data);
-        amTypeSet(am_type);
+        amTypeSet(amtype);
     }
 
     /**
      * Create a new dataMsg using the given byte array
      * as backing store, with the given base offset.
      */
-    public dataMsg(byte[] data, int base_offset,byte am_type) {
+    public dataMsg(byte[] data, int base_offset,byte amtype) {
         super(data, base_offset);
-        amTypeSet(am_type);
+        amTypeSet(amtype);
     }
 
     /**
      * Create a new dataMsg using the given byte array
      * as backing store, with the given base offset and data length.
      */
-    public dataMsg(byte[] data, int base_offset, int data_length,byte am_type) {
+    public dataMsg(byte[] data, int base_offset, int data_length,byte amtype) {
         super(data, base_offset, data_length);
-        amTypeSet(am_type);
+        amTypeSet(amtype);
     }
 
     /**
      * Create a new dataMsg embedded in the given message
      * at the given base offset.
      */
-    public dataMsg(net.tinyos.message.Message msg, int base_offset,byte am_type) {
+    public dataMsg(net.tinyos.message.Message msg, int base_offset,byte amtype) {
         super(msg, base_offset, DEFAULT_MESSAGE_SIZE);
-        amTypeSet(am_type);
+        amTypeSet(amtype);
     }
 
     /**
      * Create a new dataMsg embedded in the given message
      * at the given base offset and length.
      */
-    public dataMsg(net.tinyos.message.Message msg, int base_offset, int data_length,byte am_type) {
+    public dataMsg(net.tinyos.message.Message msg, int base_offset, int data_length,byte amtype) {
         super(msg, base_offset, data_length);
-        amTypeSet(am_type);
+        amTypeSet(amtype);
     }
 
     /**
@@ -88,7 +86,7 @@ public class dataMsg extends net.tinyos.message.Message {
       } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
       try {
         s += "  [data=";
-        for (int i = 0; i < 27; i++) {
+        for (int i = 0; i < 24; i++) {
           s += "0x"+Long.toHexString(getElement_data(i) & 0xff)+" ";
         }
         s += "]\n";
@@ -100,9 +98,9 @@ public class dataMsg extends net.tinyos.message.Message {
 
     /////////////////////////////////////////////////////////
     // Accessor methods for field: address
-    //   Field type: short, unsigned
+    //   Field type: long, unsigned
     //   Offset (bits): 0
-    //   Size (bits): 8
+    //   Size (bits): 32
     /////////////////////////////////////////////////////////
 
     /**
@@ -134,45 +132,45 @@ public class dataMsg extends net.tinyos.message.Message {
     }
 
     /**
-     * Return the value (as a short) of the field 'address'
+     * Return the value (as a long) of the field 'address'
      */
-    public short get_address() {
-        return (short)getUIntBEElement(offsetBits_address(), 8);
+    public long get_address() {
+        return (long)getUIntBEElement(offsetBits_address(), 32);
     }
 
     /**
      * Set the value of the field 'address'
      */
-    public void set_address(short value) {
-        setUIntBEElement(offsetBits_address(), 8, value);
+    public void set_address(long value) {
+        setUIntBEElement(offsetBits_address(), 32, value);
     }
 
     /**
      * Return the size, in bytes, of the field 'address'
      */
     public static int size_address() {
-        return (8 / 8);
+        return (32 / 8);
     }
 
     /**
      * Return the size, in bits, of the field 'address'
      */
     public static int sizeBits_address() {
-        return 8;
+        return 32;
     }
 
     /////////////////////////////////////////////////////////
     // Accessor methods for field: data
-    //   Field type: short[], unsigned
-    //   Offset (bits): 8
+    //   Field type: byte[], signed
+    //   Offset (bits): 32
     //   Size of each element (bits): 8
     /////////////////////////////////////////////////////////
 
     /**
-     * Return whether the field 'data' is signed (false).
+     * Return whether the field 'data' is signed (true).
      */
     public static boolean isSigned_data() {
-        return false;
+        return true;
     }
 
     /**
@@ -186,8 +184,8 @@ public class dataMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'data'
      */
     public static int offset_data(int index1) {
-        int offset = 8;
-        if (index1 < 0 || index1 >= 27) throw new ArrayIndexOutOfBoundsException();
+        int offset = 32;
+        if (index1 < 0 || index1 >= 24) throw new ArrayIndexOutOfBoundsException();
         offset += 0 + index1 * 8;
         return (offset / 8);
     }
@@ -196,17 +194,17 @@ public class dataMsg extends net.tinyos.message.Message {
      * Return the offset (in bits) of the field 'data'
      */
     public static int offsetBits_data(int index1) {
-        int offset = 8;
-        if (index1 < 0 || index1 >= 27) throw new ArrayIndexOutOfBoundsException();
+        int offset = 32;
+        if (index1 < 0 || index1 >= 24) throw new ArrayIndexOutOfBoundsException();
         offset += 0 + index1 * 8;
         return offset;
     }
 
     /**
-     * Return the entire array 'data' as a short[]
+     * Return the entire array 'data' as a byte[]
      */
-    public short[] get_data() {
-        short[] tmp = new short[27];
+    public byte[] get_data() {
+        byte[] tmp = new byte[24];
         for (int index0 = 0; index0 < numElements_data(0); index0++) {
             tmp[index0] = getElement_data(index0);
         }
@@ -214,40 +212,40 @@ public class dataMsg extends net.tinyos.message.Message {
     }
 
     /**
-     * Set the contents of the array 'data' from the given short[]
+     * Set the contents of the array 'data' from the given byte[]
      */
-    public void set_data(short[] value) {
+    public void set_data(byte[] value) {
         for (int index0 = 0; index0 < value.length; index0++) {
             setElement_data(index0, value[index0]);
         }
     }
 
     /**
-     * Return an element (as a short) of the array 'data'
+     * Return an element (as a byte) of the array 'data'
      */
-    public short getElement_data(int index1) {
-        return (short)getUIntBEElement(offsetBits_data(index1), 8);
+    public byte getElement_data(int index1) {
+        return (byte)getSIntBEElement(offsetBits_data(index1), 8);
     }
 
     /**
      * Set an element of the array 'data'
      */
-    public void setElement_data(int index1, short value) {
-        setUIntBEElement(offsetBits_data(index1), 8, value);
+    public void setElement_data(int index1, byte value) {
+        setSIntBEElement(offsetBits_data(index1), 8, value);
     }
 
     /**
      * Return the total size, in bytes, of the array 'data'
      */
     public static int totalSize_data() {
-        return (216 / 8);
+        return (192 / 8);
     }
 
     /**
      * Return the total size, in bits, of the array 'data'
      */
     public static int totalSizeBits_data() {
-        return 216;
+        return 192;
     }
 
     /**
@@ -275,7 +273,7 @@ public class dataMsg extends net.tinyos.message.Message {
      * Return the number of elements in the array 'data'
      */
     public static int numElements_data() {
-        return 27;
+        return 24;
     }
 
     /**
@@ -283,7 +281,7 @@ public class dataMsg extends net.tinyos.message.Message {
      * for the given dimension.
      */
     public static int numElements_data(int dimension) {
-      int array_dims[] = { 27,  };
+      int array_dims[] = { 24,  };
         if (dimension < 0 || dimension >= 1) throw new ArrayIndexOutOfBoundsException();
         if (array_dims[dimension] == 0) throw new IllegalArgumentException("Array dimension "+dimension+" has unknown size");
         return array_dims[dimension];
@@ -296,16 +294,16 @@ public class dataMsg extends net.tinyos.message.Message {
          int len = s.length();
          int i;
          for (i = 0; i < len; i++) {
-             setElement_data(i, (short)s.charAt(i));
+             setElement_data(i, (byte)s.charAt(i));
          }
-         setElement_data(i, (short)0); //null terminate
+         setElement_data(i, (byte)0); //null terminate
     }
 
     /**
      * Read the array 'data' as a String
      */
     public String getString_data() { 
-         char carr[] = new char[Math.min(net.tinyos.message.Message.MAX_CONVERTED_STRING_LENGTH,27)];
+         char carr[] = new char[Math.min(net.tinyos.message.Message.MAX_CONVERTED_STRING_LENGTH,24)];
          int i;
          for (i = 0; i < carr.length; i++) {
              if ((char)getElement_data(i) == (char)0) break;
@@ -313,5 +311,4 @@ public class dataMsg extends net.tinyos.message.Message {
          }
          return new String(carr,0,i);
     }
-
 }

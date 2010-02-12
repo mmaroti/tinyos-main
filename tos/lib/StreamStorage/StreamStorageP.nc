@@ -33,7 +33,7 @@
 */
 //command to watch the debug lines:
 //java net.tinyos.tools.PrintfClient -comm serial@/dev/ttyUSB1:iris
-//#define DEBUG
+#define DEBUG
 #ifdef DEBUG
 	#include "printf.h"
 #endif
@@ -436,7 +436,7 @@ implementation{
 						call LogRead.seek(call LogRead.currentOffset()-len+PAGE_SIZE-(call LogRead.currentOffset()-len)%PAGE_SIZE);
 						return;
 					}
-					addressTranslation.logAddress=call LogRead.currentOffset()-len-len;
+					addressTranslation.logAddress=call LogRead.currentOffset()-len;
 					#ifdef DEBUG
 						printf("Metadata at %ld: %ld\n",call LogRead.currentOffset()-len,*metadata);
 					#endif
@@ -540,6 +540,10 @@ implementation{
 							readfirstlength=0;
 							status=READ_PENDING_DATA2;
 						}
+						#ifdef DEBUG
+							printf("Jump to %ld\n",addressTranslation.logAddress);
+							printfflush();
+						#endif
 						call LogRead.seek(addressTranslation.logAddress);
 					}
 											

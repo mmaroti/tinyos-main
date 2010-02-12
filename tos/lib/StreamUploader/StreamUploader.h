@@ -34,32 +34,29 @@
 #ifndef STREAM_UPLOADER_H
 #define STREAM_UPLOADER_H
 enum{
-	MESSAGE_SIZE=27,
-	AM_LAST_DATA_MSG_T=0,
-	AM_DATA_MSG_T=0,
-	AM_RESP_MSG_T=0,
-	AM_HELLO_MSG_T=0,
+	OFF=0,
+	WAIT_START,
+	WAIT_STOP,
+	SEND,
+		
+	MESSAGE_SIZE=28-4,
+//	AM_CTRL_MSG_T=10,
+//	AM_DATA_MSG_T=10,
+//	AM_COMPL_MSG_T=10,
+	WAIT_TIME=1000,
 };
 
-typedef nx_struct hello_msg_t {
-	nx_uint16_t nodeid;
-} hello_msg;
-
-
-typedef nx_struct resp_msg_t {
+typedef nx_struct ctrl_msg_t {
 	nx_uint32_t min_address;
 	nx_uint32_t max_address;
-	nx_uint16_t src;
-	nx_uint16_t dest;
-} resp_msg;
+} ctrl_msg;
 
 typedef nx_struct data_msg_t {
-	nx_uint8_t address;
-	nx_uint8_t data[MESSAGE_SIZE];
+	nx_uint32_t address;
+	nx_int8_t data[MESSAGE_SIZE];
 } data_msg;
 
-typedef nx_struct last_data_msg_t {
-	nx_uint8_t data[MESSAGE_SIZE-1];
-	nx_uint8_t len;
-} last_data_msg;
+typedef nx_struct compl_msg_t {
+	nx_uint32_t newminaddress;
+} compl_msg;
 #endif /* STREAM_UPLOADER_H */

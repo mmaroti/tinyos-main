@@ -31,17 +31,23 @@
 *
 * Author:Andras Biro
 */
-generic configuration StreamUploaderC(uint8_t am_id, uint8_t vol_id){
+generic configuration StreamUploaderC(uint8_t am_id){
+	provides interface StdControl;
 }
 implementation{
-	components StreamUploaderP as App, new StreamStorageC(vol_id);
+	components StreamUploaderP as App;
 	components new AMSenderC(am_id) as AMSend;
 	components new AMReceiverC(am_id) as AMReceive;
 	components ActiveMessageC;
+	components new TimerMilliC() as WaitTimer;
+	components new TimerMilliC() as StorageWaitTimer;
 	
 	App.Packet -> AMSend;
  	App.AMPacket -> AMSend;
   	App.AMSend -> AMSend;
+  	App.SplitControl -> ActiveMessageC;
   	App.Receive -> AMReceive;
-  	App.StreamStorage->StreamStorageC;
+  	App.WaitTimer->WaitTimer;
+  	App.StorageWaitTimer->StorageWaitTimer;
+  	StdControl=App.StdControl;
 }
