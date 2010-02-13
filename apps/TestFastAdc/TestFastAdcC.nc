@@ -38,13 +38,16 @@ configuration TestFastAdcC
 implementation
 { 
 	components TestFastAdcM, SerialActiveMessageC, new VoltageStreamC(), new TimerMilliC(), MainC;
-	components LedsC, DiagMsgC, AssertC;
+	components LedsC, DiagMsgC, AssertC, ActiveMessageC;
 
 	TestFastAdcM.ReadStream -> VoltageStreamC;
   	TestFastAdcM.Boot -> MainC;
-	TestFastAdcM.SplitControl -> SerialActiveMessageC;
+	TestFastAdcM.SerialControl -> SerialActiveMessageC;
 	TestFastAdcM.Timer -> TimerMilliC;
 
 	TestFastAdcM.Leds -> LedsC;
 	TestFastAdcM.DiagMsg -> DiagMsgC;
+
+	TestFastAdcM.ActiveControl -> ActiveMessageC;
+	TestFastAdcM.AMSend -> ActiveMessageC.AMSend[0x23];
 }

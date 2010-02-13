@@ -32,6 +32,7 @@
 */
 
 #include "Assert.h"
+#include "AM.h"
 
 module TestFastAdcM
 {
@@ -39,8 +40,10 @@ module TestFastAdcM
 	{
 		interface ReadStream<uint16_t>;
 		interface Boot;
-		interface SplitControl;
+		interface SplitControl as SerialControl;
+		interface SplitControl as ActiveControl;
 		interface Timer<TMilli>;
+		interface AMSend;
 
 		interface Leds;
 		interface DiagMsg;
@@ -67,28 +70,48 @@ implementation
 	enum
 	{
 		BUFFER_COUNT = 3,
-		BUFFER_SIZE = 1000,
-		SAMPLING = 14,
+		BUFFER_SIZE = 100,
+		SAMPLING = 56,
 	};
 
 	uint16_t buffers[BUFFER_COUNT][BUFFER_SIZE];
 
 	uint32_t sampleCount;	// number of samples per second
 	uint32_t workCounter;	// number of empty task executions per second
+	uint32_t sentCount;	// number of bytes sent with the radio
+
+	message_t dataMsg;
+
+	event void AMSend.sendDone(message_t* msg, error_t result)
+	{
+		if( result == SUCCESS )
+			sentCount += BUFFER_SIZE;
+		else
+			call Leds.led1Toggle();
+	}
 
 	event void ReadStream.bufferDone(error_t result, uint16_t* buf, uint16_t count)
 	{
+		uint8_t i;
+		uint8_t *p;
+
 		if( result == SUCCESS )
 		{
 			sampleCount += BUFFER_SIZE;
 
-			result = call ReadStream.postBuffer(buf, count);
-		}
+			p = call AMSend.getPayload(&dataMsg, BUFFER_SIZE);
+			if( p != NULL )
+			{
+				for(i = 0; i < BUFFER_SIZE; ++i)
+					p[i] = buf[i] >> 2;
 
-		if( result != SUCCESS )
-			call Leds.led0Toggle();
-		else
-			call Leds.led1Toggle();
+				result = call AMSend.send(AM_BROADCAST_ADDR, &dataMsg, BUFFER_SIZE);
+				if( result != SUCCESS )
+					call Leds.led0Toggle();
+			}
+
+			call ReadStream.postBuffer(buf, count);
+		}
 	}
 
 	event void Timer.fired()
@@ -96,12 +119,14 @@ implementation
 		if( call DiagMsg.record() )
 		{
 			call DiagMsg.uint32(sampleCount);
+			call DiagMsg.uint32(sentCount);
 			call DiagMsg.uint32(workCounter);
 			call DiagMsg.uint16((uint16_t)(100 - workCounter / 469));	// sampling overhead in %
 			call DiagMsg.send();
 		}
 
 		sampleCount = 0;
+		sentCount = 0;
 		workCounter = 0;
 	}
 
@@ -112,7 +137,13 @@ implementation
 
 	event void Boot.booted()
 	{
-		call SplitControl.start();
+		error_t result;
+
+		result = call SerialControl.start();
+		ASSERT( result == SUCCESS );
+
+		result = call ActiveControl.start();
+		ASSERT( result == SUCCESS );
 	}
 	
 	task void workTask()
@@ -121,7 +152,22 @@ implementation
 		post workTask();
 	}
 
-	event void SplitControl.startDone(error_t error)
+	event void ActiveControl.startDone(error_t error)
+	{
+		ASSERT( error == SUCCESS );
+	}
+
+	event void ActiveControl.stopDone(error_t err)
+	{
+		ASSERT(FALSE);
+	} 
+
+	event void SerialControl.stopDone(error_t err)
+	{
+		ASSERT(FALSE);
+	} 
+
+	event void SerialControl.startDone(error_t error)
 	{
 		uint8_t i;
 
@@ -139,10 +185,4 @@ implementation
 		call Timer.startPeriodic(1024);
 		post workTask();
 	}
-	
-	event void SplitControl.stopDone(error_t err)
-	{
-		ASSERT(FALSE);
-	} 
 }
-
