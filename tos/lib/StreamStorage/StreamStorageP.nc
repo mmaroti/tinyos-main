@@ -33,7 +33,7 @@
 */
 //command to watch the debug lines:
 //java net.tinyos.tools.PrintfClient -comm serial@/dev/ttyUSB1:iris
-#define DEBUG
+//#define DEBUG
 #ifdef DEBUG
 	#include "printf.h"
 #endif
@@ -396,7 +396,6 @@ implementation{
 
 	
 	event void LogRead.readDone(void *buf, storage_len_t len, error_t error){
-		nx_uint32_t *metadata=(nx_uint32_t*)buf;//unfortunately, we need this, because the endiannes is unpredictable in the buffer
 		if(error!=SUCCESS){
 			switch(status){
 				case INIT_STEP:{
@@ -428,6 +427,7 @@ implementation{
 		}else{ 
 			switch(status){
 				case READ_PENDING_SEEK:{
+					nx_uint32_t *metadata=(nx_uint32_t*)buf;//unfortunately, we need this, because the endiannes is unpredictable in the buffer
 					if(((call LogRead.currentOffset()-len)%254)!=0){
 						#ifdef DEBUG
 							printf("SB: %ld, Jump to %ld\n",call LogRead.currentOffset()-len,call LogRead.currentOffset()-len+PAGE_SIZE-(call LogRead.currentOffset()-len)%PAGE_SIZE);
@@ -476,6 +476,7 @@ implementation{
 					call LogRead.seek(addressTranslation.logAddress);
 				}break;
 				case READ_PENDING_SEEK_STEP_F:{
+					nx_uint32_t *metadata=(nx_uint32_t*)buf;//unfortunately, we need this, because the endiannes is unpredictable in the buffer
 					addressTranslation.logAddress=call LogRead.currentOffset()-len;
 					last_page=call LogRead.currentOffset()-call LogRead.currentOffset()%PAGE_SIZE;
 					#ifdef DEBUG
@@ -513,6 +514,7 @@ implementation{
 											
 				}break;
 				case READ_PENDING_SEEK_STEP_B:{
+					nx_uint32_t *metadata=(nx_uint32_t*)buf;//unfortunately, we need this, because the endiannes is unpredictable in the buffer
 					addressTranslation.logAddress=call LogRead.currentOffset()-len;
 					last_page=call LogRead.currentOffset()-call LogRead.currentOffset()%PAGE_SIZE;
 					#ifdef DEBUG
@@ -558,6 +560,7 @@ implementation{
 					signal StreamStorage.readDone(readbuffer, readlength, SUCCESS);
 				}break;
 				case INIT_START:{
+					nx_uint32_t *metadata=(nx_uint32_t*)buf;//unfortunately, we need this, because the endiannes is unpredictable in the buffer
 					if(((call LogRead.currentOffset()-len)%254)!=0){
 						#ifdef DEBUG
 							printf("SB: %ld, Jump to %ld\n",call LogRead.currentOffset()-len,call LogRead.currentOffset()-len+PAGE_SIZE-(call LogRead.currentOffset()-len)%PAGE_SIZE);
@@ -578,12 +581,13 @@ implementation{
 					call LogRead.seek(last_page+PAGE_SIZE);				
 				}break;
 				case INIT:{//we read all of the metadata, searching for the last page
-//					#ifdef DEBUG
-//						printf("Current addr: %ld; Buffer: %ld\n",call LogRead.currentOffset()-sizeof(buffer),*metadata);
-//						printfflush();
-//					#endif	
-					//unfortunatly we can read the first byte of every page, but if it's unwritten, the buffer doesn't change (in this case: current_addr==*metadata)
-					if((((uint32_t)(*metadata-current_addr))<=PAGE_SIZE)&&(current_addr!=*metadata)){//than it's a correct page. we should check the next one
+					nx_uint32_t *metadata=(nx_uint32_t*)buf;//unfortunately, we need this, because the endiannes is unpredictable in the buffer
+					#ifdef DEBUG
+						printf("Current addr: %ld; Buffer: %ld\n",call LogRead.currentOffset()-sizeof(buffer),*metadata);
+						printfflush();
+					#endif
+					//Strange behavior: if I change the two sides of the AND relation, it will change the result					
+					if((current_addr!=*metadata)&&(((uint32_t)(*metadata-current_addr))<=PAGE_SIZE)){//than it's a correct page. we should check the next one
 						last_page=call LogRead.currentOffset()-len;
 						current_addr=*metadata;
 						call LogRead.seek(last_page+PAGE_SIZE);	
@@ -629,6 +633,7 @@ implementation{
 					}
 				}break;
 				case GET_MIN:{
+					nx_uint32_t *metadata=(nx_uint32_t*)buf;//unfortunately, we need this, because the endiannes is unpredictable in the buffer
 					if(((call LogRead.currentOffset()-len)%254)!=0){
 						#ifdef DEBUG
 							printf("SB: %ld, Jump to %ld\n",call LogRead.currentOffset()-len,call LogRead.currentOffset()-len+PAGE_SIZE-(call LogRead.currentOffset()-len)%PAGE_SIZE);
@@ -696,7 +701,7 @@ implementation{
 	}
 
 	command uint32_t StreamStorage.getMaxAddress(){
-		return current_addr-1;
+		return current_addr;
 	}
 
 	command error_t StreamStorage.getMinAddress(){
