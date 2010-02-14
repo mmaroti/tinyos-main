@@ -46,6 +46,7 @@ implementation{
  	App.AMPacket -> AMSend;
   	App.AMSend -> AMSend;
   	App.SplitControl -> ActiveMessageC;
+  	App.PacketAcknowledgements -> ActiveMessageC;
   	App.Receive -> AMReceive;
   	App.WaitTimer->WaitTimer;
   	App.StorageWaitTimer->StorageWaitTimer;

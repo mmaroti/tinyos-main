@@ -32,10 +32,7 @@
  * Author:Andras Biro
  */
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import net.tinyos.message.Message;
 import net.tinyos.message.MessageListener;
@@ -48,7 +45,7 @@ public class StreamDownloader implements MessageListener {
 	private MoteIF moteIF;
 	private byte am_type;
 	private ArrayList<dataFile> files = new ArrayList<dataFile>();
-	
+	public static final int MIN_DOWNLOAD_SIZE=dataMsg.DEFAULT_MESSAGE_SIZE*4;
 	
 
 	public StreamDownloader(String source, byte amtype) {
@@ -65,10 +62,9 @@ public class StreamDownloader implements MessageListener {
 	}
 
 	public void messageReceived(int to, Message message) {
-		//System.out.println("message received");
 		if (message instanceof ctrlMsg && message.dataLength() == ctrlMsg.DEFAULT_MESSAGE_SIZE) {
 			ctrlMsg msg = (ctrlMsg) message;
-			System.out.println("Ctrl message received min:"+msg.get_min_address()+" max:"+msg.get_max_address());
+			System.out.println("Ctrl message received from #"+msg.getSerialPacket().get_header_src()+"min:"+msg.get_min_address()+" max:"+msg.get_max_address());
 			dataFile currentFile = null;
 			for (int i = 0; i < files.size(); i++) {
 				if (files.get(i).nodeid == msg.getSerialPacket().get_header_src()) {
@@ -77,27 +73,47 @@ public class StreamDownloader implements MessageListener {
 				}
 			}
 			if (currentFile == null) {
-				currentFile = new dataFile(msg.getSerialPacket().get_header_src());
-				
-				files.add(currentFile);
+				try {
+					currentFile = new dataFile(msg.getSerialPacket().get_header_src());
+					files.add(currentFile);
+				} catch (IOException e) {
+					System.err.println("Can't read gapfile for node #"+msg.getSerialPacket().get_header_src()+" data won't be downloaded from there");
+					currentFile=null;
+				}
 			}
-			ctrlMsg response = new ctrlMsg(am_type);
-			response.set_max_address(msg.get_max_address());
-			if (msg.get_min_address() <= currentFile.maxaddress+1)
-				response.set_min_address(currentFile.maxaddress+1);
-			else {
-				response.set_min_address(msg.get_min_address());
-				currentFile.addGap(currentFile.maxaddress + 1, msg
-						.get_min_address() - 1);
+			if(msg.get_max_address()-currentFile.maxaddress>=MIN_DOWNLOAD_SIZE){
+				ctrlMsg response = new ctrlMsg(am_type);
+				response.set_max_address(msg.get_max_address());
+				if (msg.get_min_address() <= currentFile.maxaddress+1)
+					response.set_min_address(currentFile.maxaddress+1);
+				else {
+					response.set_min_address(msg.get_min_address());
+				}
+				try {
+					moteIF.send(currentFile.nodeid, response);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} else {//if we don't have to download new data, we try to fill a gap
+				Long[] rep;
+				rep = currentFile.repairGap(msg.get_min_address());
+				if(rep[0]<rep[1]){
+					ctrlMsg response = new ctrlMsg(am_type);
+					response.set_min_address(rep[0]);
+					response.set_max_address(rep[1]);
+					try {
+						moteIF.send(currentFile.nodeid, response);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
 			}
-			try {
-				moteIF.send(currentFile.nodeid, response);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		} else if (message instanceof dataMsg&& message.dataLength() == dataMsg.DEFAULT_MESSAGE_SIZE) {
+		} else if (message instanceof dataMsg && message.dataLength() == dataMsg.DEFAULT_MESSAGE_SIZE) {
 			dataMsg msg = (dataMsg) message;
+//			if(msg.get_address()<100)
+//				return;
 			System.out.print("Data received from "+msg.getSerialPacket().get_header_src()+" address: "+msg.get_address()+"|");
 			dataFile currentFile = null;
 			for (int i = 0; i < files.size(); i++) {
@@ -108,39 +124,35 @@ public class StreamDownloader implements MessageListener {
 			}
 			if (currentFile != null) {
 				try {
-					FileOutputStream fout = new FileOutputStream(currentFile.dataFile, true);
-					FileChannel fc=(FileChannel)fout.getChannel();
-					ByteBuffer bb=ByteBuffer.wrap(msg.get_data());
-					fc.position(msg.get_address());
-					fc.write(bb);
-					fout.flush();
-					fout.close();
+					currentFile.dataFile.seek(msg.get_address());
+					currentFile.dataFile.write(msg.get_data(), 0, msg.get_length());
 					if(msg.get_address()==currentFile.maxaddress+1){//the next bytes
 						System.out.println("Data OK");
-						currentFile.maxaddress += dataMsg.totalSize_data();
+						currentFile.maxaddress += msg.get_length();
 					} else if(msg.get_address()>currentFile.maxaddress+1){//we missed some data
 						System.out.println("New gap: " + (currentFile.maxaddress+1) + "-" + (msg.get_address()-1));
 						currentFile.addGap(currentFile.maxaddress+1, msg.get_address()-1);
-						currentFile.maxaddress = msg.get_address() + dataMsg.totalSize_data();
+						currentFile.maxaddress = msg.get_address() + msg.get_length()-1;
 					} else { //we fill a gap
 						for(int i=0;i<currentFile.getGapNumber();i++){
 							currentFile.getGap(i);
 							if(!currentFile.getGap(i).unrepairable){
-								if((currentFile.getGap(i).start<msg.get_address()+dataMsg.totalSize_data())||(currentFile.getGap(i).end>=msg.get_address())){
-									long start,end;
-									if(currentFile.getGap(i).start<msg.get_address()+dataMsg.totalSize_data()){
-										start=msg.get_address()+dataMsg.totalSize_data()-1;
-									} else
-										start=currentFile.getGap(i).start;
-									if(currentFile.getGap(i).end>=msg.get_address()){
-										end=msg.get_address();
-									} else
-										end=currentFile.getGap(i).end;
-									System.out.print("Remove gap: " + currentFile.getGap(i).start+"-"+currentFile.getGap(i).end);
+								if(((currentFile.getGap(i).start<msg.get_address()+msg.get_length())&&(currentFile.getGap(i).start>=msg.get_address()))||
+									((currentFile.getGap(i).end>=msg.get_address())&&(currentFile.getGap(i).end<msg.get_address()+msg.get_length()))){
+									long start_bef,end_bef,start_aft,end_aft;
+									start_bef=currentFile.getGap(i).start;
+									end_bef=msg.get_address()-1;
+									start_aft=msg.get_address()+msg.get_length();
+									end_aft=currentFile.getGap(i).end;
+									System.out.print("Remove gap: " + currentFile.getGap(i).start+"-"+currentFile.getGap(i).end+"|");
 									currentFile.removeGap(i);
-									if(end>start){//we didn't fill the whole gap
-										System.out.print("New gap: " + (currentFile.maxaddress+1) + "-" + (msg.get_address()-1));
-										currentFile.addGap(start, end);
+									if(end_bef>start_bef){//we didn't fill the whole gap
+										System.out.print("New gap: " + start_bef + "-" + end_bef+"|");
+										currentFile.addGap(start_bef, end_bef);
+									}
+									if(end_aft>start_aft){//we didn't fill the whole gap
+										System.out.print("New gap: " + start_aft + "-" + end_aft+"|");
+										currentFile.addGap(start_aft, end_aft);
 									}
 									System.out.print("\n");
 								}
@@ -155,30 +167,6 @@ public class StreamDownloader implements MessageListener {
 					e.printStackTrace();
 				}
 			} 
-		} else if (message instanceof complMsg&& message.dataLength() == complMsg.DEFAULT_MESSAGE_SIZE) {
-			complMsg msg = (complMsg) message;
-			dataFile currentFile = null;
-			for (int i = 0; i < files.size(); i++) {
-				if (files.get(i).nodeid == msg.getSerialPacket().get_header_src()) {
-					currentFile = files.get(i);
-					break;
-				}
-			}
-			if (currentFile != null){
-				Long[] rep;
-				rep = currentFile.repairGap(msg.get_newminaddress());
-				if(rep[0]!=rep[1]){
-					ctrlMsg response = new ctrlMsg(am_type);
-					response.set_min_address(rep[0]);
-					response.set_max_address(rep[1]);
-					try {
-						moteIF.send(currentFile.nodeid, response);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}
 		}
 	}
 

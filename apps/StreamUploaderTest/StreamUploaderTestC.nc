@@ -38,7 +38,7 @@ module StreamUploaderTestC{
 		interface StreamStorage;
 		interface Boot;
 		interface Leds;
-		interface SplitControl as AMControl;
+		interface StdControl;
 	}
 }
 implementation{
@@ -48,7 +48,8 @@ implementation{
 	
 	event void Boot.booted(){
 		buffer=0;
-		call StreamStorage.erase();	
+		call StreamStorage.erase();
+		//call SplitControl.start();	
 	}
 	
 	event void SplitControl.startDone(error_t error){
@@ -56,6 +57,7 @@ implementation{
 		call Leds.set(3);
 		//call StreamStorage.read(770,&readbuf,20);
 		call StreamStorage.appendWithID(15,&buffer, sizeof(buffer));
+		//call StdControl.start();
 	}
 
 	event void StreamStorage.appendDone(void* buf, uint8_t  len, error_t error){
@@ -70,15 +72,13 @@ implementation{
 	event void StreamStorage.appendDoneWithID(void* buf, uint8_t  len, error_t error){
 		buffer++;
 		counter++;
-		if(counter<10000){
+		if(counter<1000){
 			call StreamStorage.appendWithID(15,&buffer, sizeof(buffer));
 		}else{
+			call Leds.set(7);
+			//call StdControl.start();
 			call StreamStorage.sync();
 		}
-	}
-
-	event void StreamStorage.readDone(void* buf, uint8_t  len, error_t error){
-
 	}
 	
 	event void StreamStorage.eraseDone(error_t error){
@@ -88,23 +88,20 @@ implementation{
 	}
 	
 	event void StreamStorage.syncDone(error_t error){
-		call AMControl.start();
-	}
-
-	event void AMControl.startDone(error_t error){
 		call Leds.set(7);
+		call StdControl.start();
 	}
 
 	event void SplitControl.stopDone(error_t error){
 	}
 	
-	event void StreamStorage.getMinAddressDone(uint32_t minaddr){
+
+
+	event void StreamStorage.getMinAddressDone(uint32_t addr){
+		// TODO Auto-generated method stub
 	}
 
-
-
-	event void AMControl.stopDone(error_t error){
+	event void StreamStorage.readDone(void *buf, uint8_t len, error_t error){
+		// TODO Auto-generated method stub
 	}
-
-
 }

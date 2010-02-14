@@ -55,17 +55,17 @@ implementation{
 	event void SplitControl.startDone(error_t error){
 		
 		call Leds.set(7);
-		//call StreamStorage.read(20770,&readbuf,20);
+		call StreamStorage.read(2980,&readbuf,20);
 		//call StreamStorage.appendWithID(15,&buffer, sizeof(buffer));
 		//call StreamStorage.append(&buffer, 1);
-		call StreamStorage.getMinAddress();
+		//call StreamStorage.getMinAddress();
 	}
 
 	event void StreamStorage.appendDone(void* buf, uint8_t  len, error_t error){
 		buffer++;
 		counter++;
-		printf("%ld\n",counter+4);
-		if(counter<520){
+		//printf("%ld\n",counter+4);
+		if(counter<600){
 			call StreamStorage.append(&buffer, sizeof(buffer));
 			//call StreamStorage.append(&buffer, 1);
 		}else{

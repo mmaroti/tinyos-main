@@ -35,15 +35,17 @@
 #define STREAM_UPLOADER_H
 enum{
 	OFF=0,
-	WAIT_START,
-	WAIT_STOP,
+	WAIT_FOR_BS,
+	WAIT_FOR_REQ,
 	SEND,
-		
-	MESSAGE_SIZE=28-4,
-//	AM_CTRL_MSG_T=10,
+	BS_ADDR=0,
+	NO_BS=0,
+	BS_OK=60,
+	MESSAGE_SIZE=28-5,
+//	AM_CTRL_MSG_T=10,//Just for the MIG
 //	AM_DATA_MSG_T=10,
-//	AM_COMPL_MSG_T=10,
-	WAIT_TIME=1000,
+	SHORT_TIME=1000,//in milliseconds
+	LONG_TIME=60,//in seconds
 };
 
 typedef nx_struct ctrl_msg_t {
@@ -53,10 +55,8 @@ typedef nx_struct ctrl_msg_t {
 
 typedef nx_struct data_msg_t {
 	nx_uint32_t address;
+	nx_uint8_t length;
 	nx_int8_t data[MESSAGE_SIZE];
 } data_msg;
 
-typedef nx_struct compl_msg_t {
-	nx_uint32_t newminaddress;
-} compl_msg;
 #endif /* STREAM_UPLOADER_H */

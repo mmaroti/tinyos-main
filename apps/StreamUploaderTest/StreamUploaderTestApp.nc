@@ -37,10 +37,11 @@ configuration StreamUploaderTestApp{
 }
 implementation{
 	components new StreamStorageC(VOLUME_STOR);
-	components StreamUploaderTestC as App, MainC, LedsC, new StreamUploaderC(10,VOLUME_STOR), ActiveMessageC;
+	components StreamUploaderTestC as App, MainC, LedsC, new StreamUploaderC(10), StreamUploaderP;
 	App.StreamStorage->StreamStorageC;
+	StreamUploaderP.StreamStorage -> StreamStorageC;
 	App.SplitControl->StreamStorageC;
 	App.Boot -> MainC.Boot;
 	App.Leds->LedsC;
-	App.AMControl -> ActiveMessageC;
+	App.StdControl -> StreamUploaderC;
 }
