@@ -31,33 +31,19 @@
 * Author: Miklos Maroti
 */
 
-configuration TestShimmerC
-{ 
+configuration Idg300C
+{
+	provides
+	{
+		interface StdControl;
+	}
 } 
 
 implementation
-{ 
-	components TestShimmerP, ActiveMessageC, new TimerMilliC(), MainC;
-	components LedsC, RadioDiagMsgC;
+{
+	components Idg300P, MainC;
 
-  	TestShimmerP.Boot -> MainC;
-	TestShimmerP.Timer -> TimerMilliC;
-	TestShimmerP.Leds -> LedsC;
-	TestShimmerP.DiagMsg -> RadioDiagMsgC;
-	TestShimmerP.SplitControl -> ActiveMessageC;
+	StdControl = Idg300P;
 
-	components ShimmerAdcC;
-	TestShimmerP.ShimmerAdc -> ShimmerAdcC;
-
-	components Mma7260P;
-	TestShimmerP.AccelInit -> Mma7260P;
-	TestShimmerP.Accel -> Mma7260P;
-
-	components Idg300C;
-	TestShimmerP.Gyro -> Idg300C;
-
-	components BufferedSendP;
-	TestShimmerP.BufferedSend -> BufferedSendP;
-	BufferedSendP.AMSend -> ActiveMessageC.AMSend[0x37];
-	BufferedSendP.Packet -> ActiveMessageC;
+	Idg300P.Init <- MainC.SoftwareInit;
 }

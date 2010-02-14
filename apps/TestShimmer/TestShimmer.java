@@ -44,8 +44,10 @@ public class TestShimmer implements PacketListenerIF
 	static final int PACKET_TYPE_FIELD = 7;
 	static final int PACKET_LENGTH_FIELD = 5;
 	static final int PACKET_DATA_FIELD = 8;
+
 	static final byte AM_TYPE = (byte)0x37;
-	
+	static final int CHANNEL_COUNT = 8;
+
 	protected PhoenixSource forwarder;
 	
 	public TestShimmer(PhoenixSource forwarder)
@@ -153,7 +155,7 @@ public class TestShimmer implements PacketListenerIF
 				{
 					String line = timestamp.format(new java.util.Date()) + "," + getUInt32();
 					
-					for(int i = 0; i < 4; ++i)
+					for(int i = 0; i < CHANNEL_COUNT; ++i)
 						line += "," + getUInt16();
 
 					System.out.println(line);

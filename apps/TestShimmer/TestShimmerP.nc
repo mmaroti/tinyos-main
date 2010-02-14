@@ -51,6 +51,8 @@ module TestShimmerP
 		interface Leds;
 		interface DiagMsg;
 		interface BufferedSend;
+
+		interface StdControl as Gyro;
 	}
 }
 
@@ -66,7 +68,16 @@ implementation
 		SHIMMER_ADC_ACCEL_X, 
 		SHIMMER_ADC_ACCEL_Y,
 		SHIMMER_ADC_ACCEL_Z,
+		SHIMMER_ADC_GYRO_X, 
+		SHIMMER_ADC_GYRO_Y,
+		SHIMMER_ADC_GYRO_Z,
 		SHIMMER_ADC_BATTERY,
+		SHIMMER_ADC_TEMP,
+	};
+
+	enum
+	{
+		CHANNEL_COUNT = 8,
 	};
 
 	event void SplitControl.startDone(error_t error)
@@ -79,10 +90,12 @@ implementation
 			call Accel.setSensitivity(RANGE_4_0G);
 			call Accel.wake(TRUE);
 
-			if( call ShimmerAdc.setChannels(channels, 4) != SUCCESS )
+			call Gyro.start();
+
+			if( call ShimmerAdc.setChannels(channels, CHANNEL_COUNT) != SUCCESS )
 				call Leds.led1On();
 
-			call Timer.startPeriodic(4);
+			call Timer.startPeriodic(5);
 		}
 		else 
 			call SplitControl.start();
@@ -105,7 +118,7 @@ implementation
 	{
 		call Leds.led0Toggle();
 
-		call BufferedSend.send(data - 2, 12);
+		call BufferedSend.send(data - 2, 4 + CHANNEL_COUNT*2);
 /*
 		if( call DiagMsg.record() )
 		{

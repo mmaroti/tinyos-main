@@ -1,4 +1,5 @@
-/** Copyright (c) 2010, University of Szeged
+/*
+* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -31,33 +32,44 @@
 * Author: Miklos Maroti
 */
 
-configuration TestShimmerC
-{ 
-} 
+module Idg300P
+{
+	provides 
+	{
+		interface StdControl;
+		interface Init;
+	}
+}
 
 implementation
-{ 
-	components TestShimmerP, ActiveMessageC, new TimerMilliC(), MainC;
-	components LedsC, RadioDiagMsgC;
+{
+	command error_t Init.init()
+	{
+		// set up ADC channels
+		TOSH_MAKE_ADC_1_INPUT();   // x
+		TOSH_MAKE_ADC_2_INPUT();   // z
+		TOSH_MAKE_ADC_6_INPUT();   // y
 
-  	TestShimmerP.Boot -> MainC;
-	TestShimmerP.Timer -> TimerMilliC;
-	TestShimmerP.Leds -> LedsC;
-	TestShimmerP.DiagMsg -> RadioDiagMsgC;
-	TestShimmerP.SplitControl -> ActiveMessageC;
+		TOSH_SEL_ADC_1_MODFUNC();
+		TOSH_SEL_ADC_2_MODFUNC();
+		TOSH_SEL_ADC_6_MODFUNC();
 
-	components ShimmerAdcC;
-	TestShimmerP.ShimmerAdc -> ShimmerAdcC;
+		return SUCCESS;
+	}
 
-	components Mma7260P;
-	TestShimmerP.AccelInit -> Mma7260P;
-	TestShimmerP.Accel -> Mma7260P;
+	command error_t StdControl.start()
+	{
+		// gyro enable low
+		TOSH_CLR_PROG_OUT_PIN();
 
-	components Idg300C;
-	TestShimmerP.Gyro -> Idg300C;
+		return SUCCESS;
+	}
 
-	components BufferedSendP;
-	TestShimmerP.BufferedSend -> BufferedSendP;
-	BufferedSendP.AMSend -> ActiveMessageC.AMSend[0x37];
-	BufferedSendP.Packet -> ActiveMessageC;
+	command error_t StdControl.stop()
+	{
+		// disable gyro
+		TOSH_SET_PROG_OUT_PIN();
+
+		return SUCCESS;
+	}
 }
