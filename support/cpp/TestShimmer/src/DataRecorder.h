@@ -8,6 +8,9 @@
 
 struct Sample
 {
+	Sample();
+	QString toString() const;
+
 	int time;
 	int xAccel;
 	int yAccel;
@@ -16,6 +19,7 @@ struct Sample
 	int yGyro;
 	int zGyro;
 	int voltage;
+	int temp;
 };
 
 class DataRecorder : public QObject

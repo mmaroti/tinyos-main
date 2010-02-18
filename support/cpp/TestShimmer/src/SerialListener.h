@@ -18,6 +18,8 @@ public:
 	unsigned char getByte(int index) const;
 	unsigned short getShort(int index) const;
 	unsigned int getInt(int index) const;
+
+	QString toString() const;
 };
 
 class QextSerialPort;
@@ -54,6 +56,7 @@ private:
 	void receiveTosPacket(const QByteArray & packet);
 
 	int timerId;
+	int moteTime;
 };
 
 #endif // SERIALLISTENER_H

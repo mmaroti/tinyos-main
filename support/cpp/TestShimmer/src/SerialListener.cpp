@@ -187,6 +187,7 @@ void SerialListener::receiveTosPacket(const QByteArray & packet)
 		msg.type = packet.at(7) & 0xFF;
 		msg.payload.append(packet.data() + 8, length);
 
+//		qDebug() << "msg " + msg.toString();
 		emit receiveMessage(msg);
 	}
 }
@@ -195,12 +196,34 @@ void SerialListener::timerEvent(QTimerEvent *event)
 {
 	ActiveMessage msg;
 
-//	TODO: generated valid message
 	msg.dest = 65545;
 	msg.source = 13;
 	msg.group = 0;
-	msg.type = 12;
-	msg.payload.append('a');
+	msg.type = 0x37;
+
+	for(int i = 0; i < 5; ++i)
+	{
+		moteTime += 160;
+
+		msg.payload.append((char)(moteTime));
+		msg.payload.append((char)(moteTime >> 8));
+		msg.payload.append((char)(moteTime >> 16));
+		msg.payload.append((char)(moteTime >> 24));
+
+		for(int j = 0; j < 6; ++j)
+		{
+			int value = qrand() & 0x0FFF;
+			msg.payload.append((char)(value));
+			msg.payload.append((char)(value >> 8));
+		}
+
+		msg.payload.append((char)0);
+		msg.payload.append((char)0x09);
+
+		int value = (moteTime >> 7) & 0x0FFF;
+		msg.payload.append((char)(value));
+		msg.payload.append((char)(value >> 8));
+	}
 
 	emit receiveMessage(msg);
 }
@@ -212,14 +235,45 @@ unsigned char ActiveMessage::getByte(int index) const
 
 unsigned short ActiveMessage::getShort(int index) const
 {
-	unsigned short a = ((payload.at(index) & 0xFF) << 8) + (payload.at(index) & 0xFF);
-	return a;
+	return (payload.at(index) & 0xFF) + ((payload.at(index + 1) & 0xFF) << 8);
 }
 
 unsigned int ActiveMessage::getInt(int index) const
 {
-	unsigned int a = getShort(index);
-	a <<= 16;
-	return a + getShort(index + 2);
+	unsigned int a, b, c, d;
+
+	a = payload.at(index);
+	b = payload.at(index + 1);
+	c = payload.at(index + 2);
+	d = payload.at(index + 3);
+
+	a &= 0xFF;
+	b &= 0xFF;
+	c &= 0xFF;
+	d &= 0xFF;
+
+	return (d << 24) + (c << 16) + (b << 8) + a;
 }
 
+QString ActiveMessage::toString() const
+{
+	QString s = "(dst:" + QString::number(dest)
+		+ " src:" + QString::number(source)
+		+ " grp:" + QString::number(group)
+		+ " typ:" + QString::number(type)
+		+ " len:" + QString::number(payload.size())
+		+ " bytes:";
+
+	for(int i = 0; i < payload.size(); ++i)
+	{
+		s += " 0x";
+
+		QString t = QString::number(payload.at(i) & 0xFF, 16);
+		if( t.length() == 1 )
+			s += '0';
+
+		s += t;
+	}
+
+	return s + ')';
+}

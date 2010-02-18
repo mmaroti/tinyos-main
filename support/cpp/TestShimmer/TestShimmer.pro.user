@@ -50,7 +50,7 @@
  </data>
  <data>
   <variable>activebuildconfiguration</variable>
-  <value type="QString">Release</value>
+  <value type="QString">Debug</value>
  </data>
  <data>
   <variable>buildConfiguration-Debug</variable>
@@ -80,7 +80,6 @@
     <value type="QString">ALLUSERSPROFILE=C:\Documents and Settings\All Users</value>
     <value type="QString">APPDATA=C:\Documents and Settings\mmaroti\Application Data</value>
     <value type="QString">CLASSPATH=.;C:\Program Files\Java\jdk1.6.0_17\lib\ext\QTJava.zip;C:\Program Files\Java\jdk1.6.0_17\lib\tools.jar</value>
-    <value type="QString">CLIENTNAME=Console</value>
     <value type="QString">COMMONPROGRAMFILES=C:\Program Files\Common Files</value>
     <value type="QString">COMPUTERNAME=MMAROTI-T61</value>
     <value type="QString">COMSPEC=C:\WINDOWS\system32\cmd.exe</value>
@@ -131,7 +130,6 @@
     <value type="QString">ALLUSERSPROFILE=C:\Documents and Settings\All Users</value>
     <value type="QString">APPDATA=C:\Documents and Settings\mmaroti\Application Data</value>
     <value type="QString">CLASSPATH=.;C:\Program Files\Java\jdk1.6.0_17\lib\ext\QTJava.zip;C:\Program Files\Java\jdk1.6.0_17\lib\tools.jar</value>
-    <value type="QString">CLIENTNAME=Console</value>
     <value type="QString">COMMONPROGRAMFILES=C:\Program Files\Common Files</value>
     <value type="QString">COMPUTERNAME=MMAROTI-T61</value>
     <value type="QString">COMSPEC=C:\WINDOWS\system32\cmd.exe</value>

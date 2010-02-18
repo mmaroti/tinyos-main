@@ -25,7 +25,7 @@ private:
 
 private slots:
 	void on_clearButton_clicked();
- void on_recordButton_clicked();
+	void on_recordButton_clicked();
 };
 
 #endif // RAWDATAWIDGET_H
