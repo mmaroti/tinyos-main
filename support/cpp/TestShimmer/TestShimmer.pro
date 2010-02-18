@@ -3,10 +3,11 @@
 # -------------------------------------------------
 TEMPLATE = app
 TARGET = TestShimmer
-INCLUDEPATH += lib\qextserialport
-QMAKE_LIBDIR += lib\qextserialport
+INCLUDEPATH += lib/qextserialport
+QMAKE_LIBDIR += lib/qextserialport
 CONFIG(debug, debug|release):LIBS += -lqextserialportd
 else:LIBS += -lqextserialport
+unix:LIBS += -lqextserialport_unix
 win32:LIBS += -lsetupapi
 SOURCES += src/DataRecorder.cpp \
     src/MainWindow.cpp \
