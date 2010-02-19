@@ -48,7 +48,6 @@ module StreamStorageP{
 	}
 }
 implementation{
-	
 	enum {
 		UNINIT=0,
 		NORMAL,
@@ -151,7 +150,7 @@ implementation{
 		#endif	
 		if(error==SUCCESS){
 			current_addr=0;
-			minAddress.valid=FALSE;
+			//minAddress.valid=FALSE;
 		}
 		if(status==ERASE_PENDING)
 			status=NORMAL;
@@ -345,12 +344,12 @@ implementation{
 					printf("%ld,%ld\n",addressTranslation.logAddress,addressTranslation.streamAddress);
 					printfflush();
 				#endif
-				if((addr-addressTranslation.streamAddress<=(PAGE_SIZE-sizeof(current_addr)))&&(addr-addressTranslation.streamAddress>=0)){
+				if((addr-addressTranslation.streamAddress<(PAGE_SIZE-sizeof(current_addr)))&&(addr-addressTranslation.streamAddress>=0)){
 						#ifdef DEBUG
 							printf("Data is on this page\n");
 						#endif
 						addressTranslation.logAddress=addressTranslation.logAddress+(storage_cookie_t)(addr-addressTranslation.streamAddress+sizeof(current_addr));//jump to the data
-						if((addressTranslation.logAddress%PAGE_SIZE)>((addressTranslation.logAddress+readlength)%PAGE_SIZE)){ //the data was cut half with metadata
+						if((addressTranslation.logAddress%PAGE_SIZE)>=((addressTranslation.logAddress+readlength)%PAGE_SIZE)){ //the data was cut half with metadata
 							readfirstlength=PAGE_SIZE-(addressTranslation.logAddress%PAGE_SIZE);
 							status=READ_PENDING_DATA1;
 						} else {
