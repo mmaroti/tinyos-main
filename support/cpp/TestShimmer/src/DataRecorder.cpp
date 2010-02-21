@@ -60,19 +60,6 @@ void DataRecorder::clearMessages()
 	emit samplesCleared();
 }
 
-Sample::Sample()
-{
-	time = -1;
-	xAccel = -1;
-	yAccel = -1;
-	zAccel = -1;
-	xGyro = -1;
-	yGyro = -1;
-	zGyro = -1;
-	voltage = -1;
-	temp = -1;
-}
-
 QString Sample::toString() const
 {
 	QString s = "(";
