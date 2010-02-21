@@ -7,8 +7,9 @@
 #include "Application.h"
 #include "DataRecorder.h"
 #include "math.h"
+#include "PlotScrollArea.h"
 
-RawDataPlot::RawDataPlot(QScrollArea *parent, Application &app) : QWidget(parent),
+RawDataPlot::RawDataPlot(PlotScrollArea *parent, Application &app) : QWidget(parent),
 	dataRecorder(app.dataRecorder)
 {
 	scrollArea = parent;
@@ -16,11 +17,8 @@ RawDataPlot::RawDataPlot(QScrollArea *parent, Application &app) : QWidget(parent
 
 	connect(&app.dataRecorder, SIGNAL(sampleAdded()), this, SLOT(onSampleAdded()));
 	connect(&app.dataRecorder, SIGNAL(samplesCleared()), this, SLOT(onSamplesCleared()));
-/*
-	setAutoFillBackground(true);
-	setMinimumWidth(5000);
-	startTimer(10);
-*/
+
+	resize(QWIDGETSIZE_MAX, 1000);
 }
 
 QPoint RawDataPlot::getPoint(int x, int y)
@@ -32,13 +30,45 @@ QPoint RawDataPlot::getPoint(int x, int y)
 void RawDataPlot::paintEvent(QPaintEvent *event)
 {
 	QPainter painter(this);
-//	painter.setRenderHint(QPainter::Antialiasing, true);
+	painter.setRenderHint(QPainter::Antialiasing, true);
 
 	parentHeight = parentWidget()->height();
 	QRect rect = event->rect();
 
-	int x0 = rect.left() - 1;
-	int x1 = rect.right() + 1;
+	if( (graphs & GRID) != 0 )
+	{
+		painter.setPen(QPen(Qt::black, 1, Qt::SolidLine));
+		painter.drawLine(0, parentHeight/2, width(), parentHeight/2);
+		painter.drawLine(0, parentHeight/4, width(), parentHeight/4);
+		painter.drawLine(0, 3*parentHeight/4, width(), 3*parentHeight/4);
+	}
+
+	if( (graphs & TIME) != 0 )
+	{
+		painter.setPen(QPen(Qt::black, 1, Qt::SolidLine));
+
+		double HZ = 204.8;
+		double TICKS = 2;
+
+		int start = floor((rect.left() - 20) * TICKS / HZ);
+		int end = ceil((rect.right() + 20) * TICKS / HZ);
+
+		for(int i = start; i <= end; ++i)
+		{
+			QPoint xp = getPoint(i * HZ / TICKS, 2048);
+			painter.drawLine(xp.x(), xp.y() - 5, xp.x(), xp.y() + 5);
+
+			double sec = (double)i / TICKS;
+
+			painter.drawText(xp.x() - 20, xp.y() - 15, 41, 10, Qt::AlignCenter, QString::number(sec, 'f', 1));
+		}
+	}
+
+	// to see which area is beeing refreshed
+//	painter.drawLine(rect.left(), rect.top(), rect.right(), rect.bottom());
+
+	int x0 = rect.left() - 2;
+	int x1 = rect.right() + 2;
 
 	if( x0 >= dataRecorder.size() )
 		return;
@@ -90,64 +120,47 @@ void RawDataPlot::paintEvent(QPaintEvent *event)
 			painter.drawLine(getPoint(i-1, dataRecorder.at(i-1).zGyro), getPoint(i, dataRecorder.at(i).zGyro));
 	}
 
-	if( (graphs & GRID) != 0 )
+	if( (graphs & VOLTAGE) != 0 )
 	{
-		painter.setPen(QPen(Qt::black, 1, Qt::SolidLine));
-		painter.drawLine(0, parentHeight/2, width(), parentHeight/2);
-		painter.drawLine(0, parentHeight/4, width(), parentHeight/4);
-		painter.drawLine(0, 3*parentHeight/4, width(), 3*parentHeight/4);
-	}
-
-	if( (graphs & TIME) != 0 )
-	{
-		painter.setPen(QPen(Qt::black, 1, Qt::SolidLine));
-
-		double HZ = 204.8;
-		double TICKS = 2;
-
-		int start = floor((rect.left() - 20) * TICKS / HZ);
-		int end = ceil((rect.right() + 20) * TICKS / HZ);
-
-		for(int i = start; i <= end; ++i)
-		{
-			QPoint xp = getPoint(i * HZ / TICKS, 2048);
-			painter.drawLine(xp.x(), xp.y() - 5, xp.x(), xp.y() + 5);
-
-			double sec = (double)i / TICKS;
-
-			painter.drawText(xp.x() - 20, xp.y() - 15, 41, 10, Qt::AlignCenter, QString::number(sec, 'f', 1));
-		}
-	}
-
-//	painter.drawLine(rect.left(), rect.top(), rect.right(), rect.bottom());
-}
-
-void RawDataPlot::timerEvent(QTimerEvent *event)
-{
-	if( plotWidth != dataRecorder.size() )
-	{
-		int oldWidth = plotWidth;
-/*
-		plotWidth += 4;
-		if( dataRecorder.size() < plotWidth )
-			plotWidth = dataRecorder.size();
-*/
-		plotWidth = dataRecorder.size();
-
-		setMinimumWidth(plotWidth);
-		scrollArea->ensureVisible(plotWidth,0,1,1);
-		update(oldWidth, 0, plotWidth - oldWidth, parentWidget()->height());
+		painter.setPen(QPen(Qt::yellow, 2, Qt::SolidLine));
+		for(int i = x0 + 1; i < x1; ++i)
+			painter.drawLine(getPoint(i-1, dataRecorder.at(i-1).voltage), getPoint(i, dataRecorder.at(i).voltage));
 	}
 }
 
 void RawDataPlot::onSampleAdded()
 {
-	timerEvent(NULL);
+	if( plotWidth != dataRecorder.size() )
+	{
+		int oldWidth = plotWidth;
+		plotWidth = dataRecorder.size();
+
+		scrollArea->setWidgetRect(QRect(0, 0, plotWidth, 1000));
+		scrollArea->ensureVisible(plotWidth,0,1,1);
+
+		QWidget::update(oldWidth-2, 0, plotWidth-oldWidth+2, parentWidget()->height());
+	}
 }
 
 void RawDataPlot::onSamplesCleared()
 {
-	plotWidth = 0;
-	setMinimumWidth(0);
-	update(0, 0, parentWidget()->width(), parentWidget()->height());
+	plotWidth = dataRecorder.size();
+	scrollArea->setWidgetRect(QRect(0, 0, plotWidth, 1000));
+	scrollArea->ensureVisible(plotWidth,0,1,1);
+	QWidget::update(0, 0, parentWidget()->width(), parentWidget()->height());
+}
+
+QSize RawDataPlot::size() const
+{
+	return QSize(dataRecorder.size(), 0);
+}
+
+void RawDataPlot::setGraphs(int graphs, bool on)
+{
+	if( on )
+		this->graphs |= graphs;
+	else
+		this->graphs &= ~graphs;
+
+	QWidget::update();
 }

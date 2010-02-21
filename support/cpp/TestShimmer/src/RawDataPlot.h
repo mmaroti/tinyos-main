@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <QPen>
 
-class QScrollArea;
+class PlotScrollArea;
 class Application;
 class DataRecorder;
 class QPen;
@@ -14,7 +14,7 @@ class RawDataPlot : public QWidget
 {
 	Q_OBJECT
 public:
-	RawDataPlot(QScrollArea *parent, Application &app);
+	RawDataPlot(PlotScrollArea *parent, Application &app);
 
 	enum
 	{
@@ -24,16 +24,16 @@ public:
 		XGYRO = 0x0008,
 		YGYRO = 0x0010,
 		ZGYRO = 0x0020,
-		GRID = 0x0040,
-		TIME = 0x0080,
+		VOLTAGE = 0x0040,
+		GRID = 0x0100,
+		TIME = 0x0200,
 	};
 
-	void setGraphs(int graphs) { this->graphs = graphs; }
+	void setGraphs(int graphs, bool on);
 	int getGraphs() const { return graphs; }
 
 protected:
 	virtual void paintEvent(QPaintEvent *event);
-	virtual void timerEvent(QTimerEvent *event);
 
 	int graphs;
 
@@ -41,9 +41,11 @@ public slots:
 	void onSampleAdded();
 	void onSamplesCleared();
 
+	QSize size() const;
+
 private:
 	DataRecorder &dataRecorder;
-	QScrollArea *scrollArea;
+	PlotScrollArea *scrollArea;
 	int parentHeight;
 	int plotWidth;
 

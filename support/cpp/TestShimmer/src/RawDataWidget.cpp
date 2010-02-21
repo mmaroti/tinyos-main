@@ -11,7 +11,8 @@ RawDataWidget::RawDataWidget(QWidget *parent, Application &app) :
     application(app)
 {
 	ui->setupUi(this);
-	ui->scrollArea->setWidget(new RawDataPlot(ui->scrollArea, app));
+	plot = new RawDataPlot(ui->scrollArea, app);
+	ui->scrollArea->setWidget(plot);
 }
 
 RawDataWidget::~RawDataWidget()
@@ -53,4 +54,39 @@ void RawDataWidget::on_clearButton_clicked()
 //	disconnect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)), &application.dataRecorder, SLOT(onReceiveMessage(ActiveMessage)));
 
 	application.dataRecorder.clearMessages();
+}
+
+void RawDataWidget::on_xAccel_clicked()
+{
+	plot->setGraphs(RawDataPlot::XACCEL, ui->xAccel->checkState());
+}
+
+void RawDataWidget::on_yAccel_clicked()
+{
+	plot->setGraphs(RawDataPlot::YACCEL, ui->yAccel->checkState());
+}
+
+void RawDataWidget::on_zAccel_clicked()
+{
+	plot->setGraphs(RawDataPlot::ZACCEL, ui->zAccel->checkState());
+}
+
+void RawDataWidget::on_xGyro_clicked()
+{
+	plot->setGraphs(RawDataPlot::XGYRO, ui->xGyro->checkState());
+}
+
+void RawDataWidget::on_yGyro_clicked()
+{
+	plot->setGraphs(RawDataPlot::YGYRO, ui->yGyro->checkState());
+}
+
+void RawDataWidget::on_zGyro_clicked()
+{
+	plot->setGraphs(RawDataPlot::ZGYRO, ui->zGyro->checkState());
+}
+
+void RawDataWidget::on_voltage_clicked()
+{
+	plot->setGraphs(RawDataPlot::VOLTAGE, ui->voltage->checkState());
 }

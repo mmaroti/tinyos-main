@@ -5,6 +5,7 @@
 
 class Application;
 class DataRecorder;
+class RawDataPlot;
 
 namespace Ui {
 	class RawDataWidget;
@@ -22,8 +23,16 @@ protected:
 private:
 	Ui::RawDataWidget *ui;
 	Application &application;
+	RawDataPlot *plot;
 
 private slots:
+	void on_voltage_clicked();
+	void on_zGyro_clicked();
+	void on_yGyro_clicked();
+	void on_xGyro_clicked();
+	void on_zAccel_clicked();
+	void on_yAccel_clicked();
+	void on_xAccel_clicked();
 	void on_clearButton_clicked();
 	void on_recordButton_clicked();
 };

@@ -212,17 +212,17 @@ void SerialListener::timerEvent(QTimerEvent *event)
 
 		for(int j = 0; j < 6; ++j)
 		{
-			int value = qrand() & 0x0FFF;
+			int value = (qrand() & 0x07FF) + 0x0400;
 			msg.payload.append((char)(value));
 			msg.payload.append((char)(value >> 8));
 		}
 
-		msg.payload.append((char)0);
-		msg.payload.append((char)0x09);
-
 		int value = (moteTime >> 7) & 0x0FFF;
 		msg.payload.append((char)(value));
 		msg.payload.append((char)(value >> 8));
+
+		msg.payload.append((char)0);
+		msg.payload.append((char)0x09);
 	}
 
 	emit receiveMessage(msg);

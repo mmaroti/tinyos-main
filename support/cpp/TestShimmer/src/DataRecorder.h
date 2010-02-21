@@ -1,5 +1,5 @@
 
-#include <QQueue>
+#include <QVarLengthArray>
 #include <QObject>
 #include "SerialListener.h"
 
@@ -8,6 +8,7 @@
 
 struct Sample
 {
+	Sample();
 	QString toString() const;
 
 	int time;
@@ -29,7 +30,7 @@ public:
 	DataRecorder();
 	virtual ~DataRecorder();
 
-	const QQueue<Sample>& getSamples() const {
+	const QVarLengthArray<Sample> & getSamples() const {
 		return samples;
 	}
 
@@ -59,10 +60,7 @@ public:
 	void clearMessages();
 
 protected:
-	QQueue<Sample> samples;
+	QVarLengthArray<Sample> samples;
 };
-
-// Make Qt aware of the Sample type
-Q_DECLARE_TYPEINFO(Sample, Q_PRIMITIVE_TYPE);
 
 #endif // DATARECORDER_H
