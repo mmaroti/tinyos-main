@@ -17,7 +17,8 @@ SOURCES += src/DataRecorder.cpp \
     src/RawDataWidget.cpp \
     src/RawDataPlot.cpp \
     src/Application.cpp \
-    src/PlotScrollArea.cpp
+    src/PlotScrollArea.cpp \
+    src/CalibrationWidget.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     lib/qextserialport/qextserialenumerator.h \
@@ -27,8 +28,10 @@ HEADERS += src/DataRecorder.h \
     src/RawDataWidget.h \
     src/RawDataPlot.h \
     src/Application.h \
-    src/PlotScrollArea.h
+    src/PlotScrollArea.h \
+    src/CalibrationWidget.h
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
-    src/RawDataWidget.ui
+    src/RawDataWidget.ui \
+    src/CalibrationWidget.ui
 RESOURCES += src/Resources.qrc

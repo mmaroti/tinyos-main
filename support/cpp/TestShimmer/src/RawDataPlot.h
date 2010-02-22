@@ -34,6 +34,7 @@ public:
 
 protected:
 	virtual void paintEvent(QPaintEvent *event);
+	virtual void mousePressEvent(QMouseEvent * event);
 
 	int graphs;
 
@@ -41,15 +42,14 @@ public slots:
 	void onSampleAdded();
 	void onSamplesCleared();
 
-	QSize size() const;
-
 private:
-	DataRecorder &dataRecorder;
+	Application &application;
 	PlotScrollArea *scrollArea;
 	int parentHeight;
 	int plotWidth;
 
 	QPoint getPoint(int x, int y);
+	QPoint getSample(int x, int y);
 };
 
 #endif // RAWDATAPLOT_H

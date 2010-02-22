@@ -9,11 +9,27 @@
 
 ConnectWidget::ConnectWidget(QWidget *parent, Application &app) :
 	QWidget(parent),
-	ui(new Ui::ConnectWidget)
+	ui(new Ui::ConnectWidget),
+	application(app)
 {
 	ui->setupUi(this);
 
+	rescanPorts();
+
+	moteIcon.addFile(":/icons/Wireless.png", QSize(), QIcon::Normal, QIcon::Off);
+
+	connect(this, SIGNAL(portChanged(QString, int)), &app.serialListener, SLOT(onPortChanged(QString, int)));
+	connect(&app.serialListener, SIGNAL(receiveMessage(const ActiveMessage &)), this, SLOT(onReceiveMessage(const ActiveMessage &)));
+}
+
+void ConnectWidget::rescanPorts()
+{
 	QLayout *layout = ui->comPorts->layout();
+
+	portButtons.clear();
+	QLayoutItem *child;
+	while( (child = layout->takeAt(0)) != NULL )
+	     delete child;
 
 	QList<QextPortInfo> ports = QextSerialEnumerator::getPorts();
 	for (int i = 0; i < ports.size(); i++) {
@@ -29,6 +45,9 @@ ConnectWidget::ConnectWidget(QWidget *parent, Application &app) :
 		QRadioButton *radio = new QRadioButton(ports.at(i).friendName);
 		portButtons.insert(ports.at(i).portName, radio);
 		layout->addWidget(radio);
+
+		if( application.settings.value("port", "") == ports.at(i).portName )
+			radio->setChecked(true);
 	}
 
 	QRadioButton *radio = new QRadioButton("Simulated Input Source");
@@ -38,10 +57,12 @@ ConnectWidget::ConnectWidget(QWidget *parent, Application &app) :
 	QSpacerItem *spacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 	layout->addItem(spacer);
 
-	moteIcon.addFile(":/icons/Wireless.png", QSize(), QIcon::Normal, QIcon::Off);
-
-	connect(this, SIGNAL(portChanged(QString, int)), &app.serialListener, SLOT(onPortChanged(QString, int)));
-	connect(&app.serialListener, SIGNAL(receiveMessage(const ActiveMessage &)), this, SLOT(onReceiveMessage(const ActiveMessage &)));
+	QString baud = application.settings.value("baudrate", "").value<QString>();
+	for(int i = 0; i < ui->baudRate->count(); ++i)
+	{
+		if( ui->baudRate->itemText(i) == baud )
+			ui->baudRate->setCurrentIndex(i);
+	}
 }
 
 ConnectWidget::~ConnectWidget()
@@ -73,6 +94,10 @@ void ConnectWidget::on_connectButton_clicked()
 	}
 
 	int baudRate = ui->baudRate->currentText().toInt();
+
+	application.settings.setValue("port", portName);
+	application.settings.setValue("baudrate", ui->baudRate->currentText());
+
 	emit portChanged(portName, baudRate);
 }
 
@@ -98,6 +123,7 @@ void ConnectWidget::onReceiveMessage(const ActiveMessage & msg)
 
 void ConnectWidget::on_refreshButton_clicked()
 {
+	rescanPorts();
 	moteItems.clear();
 	ui->motes->clear();
 }

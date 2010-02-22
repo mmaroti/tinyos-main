@@ -4,6 +4,7 @@
 #include "RawDataWidget.h"
 #include <QScrollArea>
 #include "Application.h"
+#include "CalibrationWidget.h"
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
@@ -11,18 +12,14 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 	ui->setupUi(this);
 
-//	QScrollArea * scrollArea = new QScrollArea();
-//	scrollArea->setWidget(new PlotWidget(scrollArea));
-//	scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-//	scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-//	ui->testTab->layout()->addWidget(scrollArea);
-
 	ui->connectTab->layout()->addWidget(new ConnectWidget(ui->connectTab, app));
 	ui->rawTab->layout()->addWidget(new RawDataWidget(ui->rawTab, app));
+	ui->calibrationTab->layout()->addWidget(new CalibrationWidget(ui->calibrationTab, app));
 
 	statusBar()->showMessage("Started.");
 
 	connect(&app.serialListener, SIGNAL(showNotification(const QString &, int)), statusBar(), SLOT(showMessage(const QString &, int)));
+	connect(&app, SIGNAL(showMessageSignal(const QString &)), statusBar(), SLOT(showMessage(QString)));
 }
 
 MainWindow::~MainWindow()

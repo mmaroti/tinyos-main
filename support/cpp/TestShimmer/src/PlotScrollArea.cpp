@@ -10,8 +10,8 @@ PlotScrollArea::PlotScrollArea(QWidget *parent) :
 	plotWidget = NULL;
 
 	viewport()->setBackgroundRole(QPalette::NoRole);
-	horizontalScrollBar()->setSingleStep(1);
-	verticalScrollBar()->setSingleStep(1);
+	horizontalScrollBar()->setSingleStep(10);
+	verticalScrollBar()->setSingleStep(10);
 
 	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);

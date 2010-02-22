@@ -10,7 +10,7 @@
 #include "PlotScrollArea.h"
 
 RawDataPlot::RawDataPlot(PlotScrollArea *parent, Application &app) : QWidget(parent),
-	dataRecorder(app.dataRecorder)
+	application(app)
 {
 	scrollArea = parent;
 	graphs = XACCEL | YACCEL | ZACCEL | XGYRO | YGYRO | ZGYRO | GRID | TIME;
@@ -19,6 +19,15 @@ RawDataPlot::RawDataPlot(PlotScrollArea *parent, Application &app) : QWidget(par
 	connect(&app.dataRecorder, SIGNAL(samplesCleared()), this, SLOT(onSamplesCleared()));
 
 	resize(QWIDGETSIZE_MAX, 1000);
+}
+
+QPoint RawDataPlot::getSample(int x, int y)
+{
+	if( parentHeight <= 1 )
+		parentHeight = 2;
+
+	y = 4095 - (y * 4095 / (parentHeight - 1));
+	return QPoint(x, y);
 }
 
 QPoint RawDataPlot::getPoint(int x, int y)
@@ -67,15 +76,17 @@ void RawDataPlot::paintEvent(QPaintEvent *event)
 	// to see which area is beeing refreshed
 //	painter.drawLine(rect.left(), rect.top(), rect.right(), rect.bottom());
 
+	const DataRecorder &dataRecorder = application.dataRecorder;
+
 	int x0 = rect.left() - 2;
 	int x1 = rect.right() + 2;
 
-	if( x0 >= dataRecorder.size() )
+	if( x0 >= application.dataRecorder.size() )
 		return;
 
 	if( x0 < 0 )
 		x0 = 0;
-	if( x1 > dataRecorder.size() )
+	if( x1 > application.dataRecorder.size() )
 		x1 = dataRecorder.size();
 
 	if( (graphs & XACCEL) != 0 )
@@ -130,10 +141,10 @@ void RawDataPlot::paintEvent(QPaintEvent *event)
 
 void RawDataPlot::onSampleAdded()
 {
-	if( plotWidth != dataRecorder.size() )
+	if( plotWidth != application.dataRecorder.size() )
 	{
 		int oldWidth = plotWidth;
-		plotWidth = dataRecorder.size();
+		plotWidth = application.dataRecorder.size();
 
 		scrollArea->setWidgetRect(QRect(0, 0, plotWidth, 1000));
 		scrollArea->ensureVisible(plotWidth,0,1,1);
@@ -144,15 +155,10 @@ void RawDataPlot::onSampleAdded()
 
 void RawDataPlot::onSamplesCleared()
 {
-	plotWidth = dataRecorder.size();
+	plotWidth = application.dataRecorder.size();
 	scrollArea->setWidgetRect(QRect(0, 0, plotWidth, 1000));
 	scrollArea->ensureVisible(plotWidth,0,1,1);
 	QWidget::update(0, 0, parentWidget()->width(), parentWidget()->height());
-}
-
-QSize RawDataPlot::size() const
-{
-	return QSize(dataRecorder.size(), 0);
 }
 
 void RawDataPlot::setGraphs(int graphs, bool on)
@@ -163,4 +169,10 @@ void RawDataPlot::setGraphs(int graphs, bool on)
 		this->graphs &= ~graphs;
 
 	QWidget::update();
+}
+
+void RawDataPlot::mousePressEvent(QMouseEvent * event)
+{
+	QPoint sample = getSample(event->pos().x(), event->pos().y());
+	application.showMessage("Point " + QString::number(sample.x()) + ", " + QString::number(sample.y()));
 }

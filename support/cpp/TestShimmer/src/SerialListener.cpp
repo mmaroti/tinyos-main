@@ -12,7 +12,6 @@ SerialListener::SerialListener()
 
 SerialListener::~SerialListener()
 {
-
 }
 
 void SerialListener::disconnectPort(const char * message)
@@ -27,9 +26,9 @@ void SerialListener::disconnectPort(const char * message)
 	{
 		disconnect(port, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
 
-		port->close();
-		delete port;
-		port = NULL;
+		// delete the port from timer, otherwise it sigfaults because
+		// we might be in a different thread
+		timerId = startTimer(0);
 	}
 
 	emit showNotification(message);
@@ -194,6 +193,18 @@ void SerialListener::receiveTosPacket(const QByteArray & packet)
 
 void SerialListener::timerEvent(QTimerEvent *event)
 {
+	if( port != NULL )
+	{
+		port->close();
+		delete port;
+		port = NULL;
+
+		killTimer(timerId);
+		timerId = -1;
+
+		return;
+	}
+
 	ActiveMessage msg;
 
 	msg.dest = 65545;

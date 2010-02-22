@@ -28,6 +28,7 @@ protected slots:
 
 protected:
 	void changeEvent(QEvent *e);
+	void rescanPorts();
 
 private:
 	Ui::ConnectWidget *ui;
@@ -35,6 +36,8 @@ private:
 
 	QHash<QString, QRadioButton*> portButtons;
 	QHash<int, QListWidgetItem*> moteItems;
+
+	Application &application;
 
 private slots:
 	void on_refreshButton_clicked();
