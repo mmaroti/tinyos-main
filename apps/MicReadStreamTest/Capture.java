@@ -62,10 +62,15 @@ class Capture extends JFrame implements MessageListener {
 
 			
 	public static void main(String args[]){
-		new Capture();
+		if ( args.length == 2 && args[0].equals("-comm") ) {
+			new Capture(args[1]);
+		} else {
+			System.err.println("usage: java Capture [-comm <source>]");
+			System.exit(1);
+		}
 	}
 
-	public Capture(){
+	public Capture(String Source){
 	
 		final JButton captureBtn = new JButton("Capture");
 		final JButton stopBtn = new JButton("Stop");
@@ -74,7 +79,7 @@ class Capture extends JFrame implements MessageListener {
 		outputText = new TextField();
 		currentGain = new TextField();
 			
-		phoenix=BuildSource.makePhoenix("serial@com26:921600", PrintStreamMessenger.err);
+		phoenix=BuildSource.makePhoenix(Source, PrintStreamMessenger.err);
 	    mif = new MoteIF(phoenix);
 	    mif.registerListener(new MicMsg(),this);
     
