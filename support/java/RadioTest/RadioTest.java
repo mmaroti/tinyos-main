@@ -145,7 +145,7 @@ public class RadioTest {
         SetupT st = new SetupT();
         st.set_problem_idx(problemidx);
         st.set_runtime_msec(runtimemsec);
-        st.set_sendtrig_msec(triggermsec);
+        st.set_timer_msec(triggermsec);
         st.set_lastchance_msec(lchance);
         st.set_lplwakeupintval((short)lplwui);
         st.set_flags(flags);

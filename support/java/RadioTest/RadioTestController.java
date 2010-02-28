@@ -92,7 +92,7 @@ public class RadioTestController implements MessageListener {
 
   public boolean setupMotes(final SetupT config) throws MissingOptionException {
 
-    if ( trproblem[pidx] != 0 && config.get_sendtrig_msec() == 0 )
+    if ( trproblem[pidx] != 0 && config.get_timer_msec() == 0 )
       throw new MissingOptionException("Network policy " + pidx + " needs trigger timer specified!");
     
     CtrlMsgT cmsg = new CtrlMsgT();
@@ -101,7 +101,7 @@ public class RadioTestController implements MessageListener {
     cmsg.set_type((short)0);
     cmsg.set_config_problem_idx(config.get_problem_idx());
     cmsg.set_config_runtime_msec(config.get_runtime_msec());
-    cmsg.set_config_sendtrig_msec( (trproblem[pidx] != 0) ? config.get_sendtrig_msec() : 0);
+    cmsg.set_config_timer_msec( (trproblem[pidx] != 0) ? config.get_timer_msec() : 0);
     cmsg.set_config_lastchance_msec(config.get_lastchance_msec());
     cmsg.set_config_lplwakeupintval(config.get_lplwakeupintval());
     cmsg.set_config_flags(config.get_flags());
@@ -125,7 +125,7 @@ public class RadioTestController implements MessageListener {
           answered.await(MAXTIMEOUT,TimeUnit.MILLISECONDS);
         }
         if ( !handshake ) {
-          System.out.println("TIMEOUT, MOTE :" + currentMote);
+          System.out.println("TIMEOUT, MOTE :" + (currentMote+1));
           return false;
         }
       }
@@ -171,7 +171,7 @@ public class RadioTestController implements MessageListener {
     stats = new Vector<StatT>();
  
     debuglines = new long[motecount[pidx]];
-    finalMsgIds = new long[edgecount[pidx]][4];
+    finalMsgIds = new long[edgecount[pidx]][2];
 
     System.out.print("> Downloading data ... "); 
 
@@ -248,18 +248,26 @@ public class RadioTestController implements MessageListener {
 
         // Save stat
         StatT s = stats.get(currentData);
+        s.set_triggerCount(         s.get_triggerCount()          +   rmsg.get_payload_stat_triggerCount());
+        s.set_backlogCount(         s.get_backlogCount()          +   rmsg.get_payload_stat_backlogCount());
+        s.set_resendCount(          s.get_resendCount()           +   rmsg.get_payload_stat_resendCount());
+        s.set_sendCount(            s.get_sendCount()             +   rmsg.get_payload_stat_sendCount());
         s.set_sendSuccessCount(     s.get_sendSuccessCount()      +   rmsg.get_payload_stat_sendSuccessCount());
         s.set_sendFailCount(        s.get_sendFailCount()         +   rmsg.get_payload_stat_sendFailCount());
-        s.set_sendBusyCount(        s.get_sendBusyCount()         +   rmsg.get_payload_stat_sendBusyCount());
+
+        s.set_sendDoneCount(        s.get_sendDoneCount()         +   rmsg.get_payload_stat_sendDoneCount());
         s.set_sendDoneSuccessCount( s.get_sendDoneSuccessCount()  +   rmsg.get_payload_stat_sendDoneSuccessCount());
         s.set_sendDoneFailCount(    s.get_sendDoneFailCount()     +   rmsg.get_payload_stat_sendDoneFailCount());
+
         s.set_wasAckedCount(        s.get_wasAckedCount()         +   rmsg.get_payload_stat_wasAckedCount());
         s.set_notAckedCount(        s.get_notAckedCount()         +   rmsg.get_payload_stat_notAckedCount());
-        s.set_resendCount(          s.get_resendCount()           +   rmsg.get_payload_stat_resendCount());
+
         s.set_receiveCount(         s.get_receiveCount()          +   rmsg.get_payload_stat_receiveCount());
+        s.set_expectedCount(        s.get_expectedCount()         +   rmsg.get_payload_stat_expectedCount());
         s.set_duplicateCount(       s.get_duplicateCount()        +   rmsg.get_payload_stat_duplicateCount());
         s.set_missedCount(          s.get_missedCount()           +   rmsg.get_payload_stat_missedCount());
-        s.set_wouldBacklogCount(    s.get_wouldBacklogCount()     +   rmsg.get_payload_stat_wouldBacklogCount());
+
+        s.set_remainedCount(        s.get_remainedCount()         +   rmsg.get_payload_stat_remainedCount());
         stats.set(currentData,s);
 
         handshake = true;
@@ -270,15 +278,14 @@ public class RadioTestController implements MessageListener {
                   stage == 2  &&
                   currentData == rmsg.get_respidx() ) {
 
+        debuglines[currentMote] = rmsg.get_payload_debug_dbgLINE();
+
         int offset = ( rmsg.get_payload_debug_endtype() == 3 ) 
                      ? -1
-                     : ( ( rmsg.get_payload_debug_endtype() == 1 ) ? 0 : 2 );
+                     : ( ( rmsg.get_payload_debug_endtype() == 1 ) ? 0 : 1 );
         
-        if ( offset != - 1 ) {
+        if ( offset != - 1 )
           finalMsgIds[currentData][offset] = rmsg.get_payload_debug_nextmsgid();
-          finalMsgIds[currentData][offset+1] = rmsg.get_payload_debug_lastmsgid();
-          debuglines[currentMote] = rmsg.get_payload_debug_dbgLINE();
-        }
 
         handshake = true;
         answered.signal();
@@ -295,21 +302,28 @@ public class RadioTestController implements MessageListener {
   private String statAsString(final short idx) {
     StatT s = stats.get(idx);
     String ret = " Stat(" + idx + "): ";
+
+    ret += " " + s.get_triggerCount();
+    ret += " " + s.get_backlogCount();
+    ret += " " + s.get_resendCount();
+
+    ret += " | " + s.get_sendCount();
     ret += " " + s.get_sendSuccessCount();
     ret += " " + s.get_sendFailCount();
-    ret += " " + s.get_sendBusyCount();
 
-    ret += " | " + s.get_sendDoneSuccessCount();
+    ret += " | " + s.get_sendDoneCount();
+    ret += " " + s.get_sendDoneSuccessCount();
     ret += " " + s.get_sendDoneFailCount();
       
     ret += " | " + s.get_wasAckedCount();
     ret += " " + s.get_notAckedCount();
-    ret += " " + s.get_resendCount();
-    ret += " " + s.get_wouldBacklogCount();
 
     ret += " | " + s.get_receiveCount();
+    ret += " " + s.get_expectedCount();
     ret += " " + s.get_duplicateCount();
     ret += " " + s.get_missedCount();
+
+    ret += " | " + s.get_remainedCount();
     ret += " | ";
 
     return ret;
@@ -319,18 +333,27 @@ public class RadioTestController implements MessageListener {
     StatT s = stats.get(idx);
     String ret = "<stat idx=\"" + idx + "\">";
 
+    ret += "<TC>" + s.get_triggerCount() + "</TC>";
+    ret += "<BC>" + s.get_backlogCount() + "</BC>";
+    ret += "<RC>" + s.get_resendCount() + "</RC>";
+
+    ret += "<SC>" + s.get_sendCount() + "</SC>";
     ret += "<SSC>" + s.get_sendSuccessCount() + "</SSC>";
     ret += "<SFC>" + s.get_sendFailCount() + "</SFC>";
-    ret += "<SBC>" + s.get_sendBusyCount() + "</SBC>";
+
+    ret += "<SDC>" + s.get_sendDoneCount() + "</SDC>";
     ret += "<SDSC>" + s.get_sendDoneSuccessCount() + "</SDSC>";
     ret += "<SDFC>" + s.get_sendDoneFailCount() + "</SDFC>";
+
     ret += "<WAC>" + s.get_wasAckedCount() + "</WAC>";
     ret += "<NAC>" + s.get_notAckedCount() + "</NAC>";
-    ret += "<RSC>" + s.get_resendCount() + "</RSC>";
-    ret += "<WBC>" + s.get_wouldBacklogCount() + "</WBC>";
+
     ret += "<RCC>" + s.get_receiveCount() + "</RCC>";
+    ret += "<EXC>" + s.get_expectedCount() + "</EXC>";
     ret += "<DRC>" + s.get_duplicateCount() + "</DRC>";
     ret += "<MC>" + s.get_missedCount() + "</MC>";
+
+    ret += "<REMC>" + s.get_remainedCount() + "</REMC>";
     ret += "</stat>";
     return ret;
   }
@@ -339,17 +362,13 @@ public class RadioTestController implements MessageListener {
     String ret = "Final MsgIds : ";
     ret += " " + finalMsgIds[idx][0];
     ret += " " + finalMsgIds[idx][1];
-    ret += " " + finalMsgIds[idx][2];
-    ret += " " + finalMsgIds[idx][3];
     return ret;
   }
 
   private String finalMsgIdsAsXml(final int idx) {
     String ret = "<finaledgestate idx=\"" + idx + "\">";
     ret += "<SNM>" + finalMsgIds[idx][0] + "</SNM>";
-    ret += "<SLM>" + finalMsgIds[idx][1] + "</SLM>";
-    ret += "<RNM>" + finalMsgIds[idx][2] + "</RNM>";
-    ret += "<RLM>" + finalMsgIds[idx][3] + "</RLM>";
+    ret += "<RNM>" + finalMsgIds[idx][1] + "</RNM>";
     ret += "</finaledgestate>";
     return ret;
   }
@@ -361,7 +380,7 @@ public class RadioTestController implements MessageListener {
 
       String out = " [ Problem: " + config.get_problem_idx();
       out += " | Runtime: " + config.get_runtime_msec() + " ms";
-      out += " | Trigger: " + ((trproblem[pidx] != 0) ? config.get_sendtrig_msec() : 0)  + " ms";
+      out += " | Trigger: " + ((trproblem[pidx] != 0) ? config.get_timer_msec() : 0)  + " ms";
       out += " | LCTime: " + config.get_lastchance_msec() + " ms";
       out += " | ACK/DAddr/LPL: ";
       out += ( config.get_flags() & 0x1 ) > 0 ? "On/" : "Off/";
@@ -392,7 +411,7 @@ public class RadioTestController implements MessageListener {
         pstream.println("  <testcase>");
         pstream.println("    <idx>" + pidx + "</idx>");
         pstream.println("    <runtime>" + config.get_runtime_msec() + "</runtime>");
-        pstream.println("    <trigger>" + ((trproblem[pidx] != 0) ? config.get_sendtrig_msec() : 0) + "</trigger>");
+        pstream.println("    <trigger>" + ((trproblem[pidx] != 0) ? config.get_timer_msec() : 0) + "</trigger>");
         pstream.println("    <lastchance>" + config.get_lastchance_msec() + "</lastchance>");
         pstream.println("    <ack>" + (((config.get_flags() & 0x1) > 0 )? "On" : "Off") + "</ack>");
         pstream.println("    <daddr>" + (((config.get_flags() & 0x2) > 0 ) ? "On" : "Off") + "</daddr>");
