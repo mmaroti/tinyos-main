@@ -23,7 +23,7 @@ fi
 
 # Parameter sets for trigger tests
 RUNTIMES=( 1000 );
-TRIGGERS=( 10 100 );
+TRIGGERS=( 8 10 12 100 );
 # LPL : value 0 means no LPL!
 LPL=( 0 );
 
@@ -53,20 +53,20 @@ for p in `seq $FIRSTTEST $LASTTEST`; do
           TRIGGER=${TRIGGERS[$tr]};
 
           # no ACK, no DADDR
-          java RadioTest -p $p -t $TIME -tr $TRIGGER -r -lpl $LPLIV -xml $OUTPUT 1>$LOG 2>$NULL;
+          java RadioTest -p $p -t $TIME -tr $TRIGGER -r -lpl $LPLIV -xml $OUTPUT 1>>$LOG 2>$NULL;
           # no ACK, DADDR
-          java RadioTest -p $p -t $TIME -tr $TRIGGER -r -lpl $LPLIV -daddr -xml $OUTPUT 1>$LOG 2>$NULL;
+          java RadioTest -p $p -t $TIME -tr $TRIGGER -r -lpl $LPLIV -daddr -xml $OUTPUT 1>>$LOG 2>$NULL;
           # ACK, DADDR
-          java RadioTest -p $p -t $TIME -tr $TRIGGER -r -lpl $LPLIV -daddr -ack -xml $OUTPUT 1>$LOG 2>$NULL;
+          java RadioTest -p $p -t $TIME -tr $TRIGGER -r -lpl $LPLIV -daddr -ack -xml $OUTPUT 1>>$LOG 2>$NULL;
         done
       done
     else
       # no ACK, no DADDR
-      java RadioTest -p $p -t 1000 -lpl $LPLIV -r -xml $OUTPUT 1>$LOG 2>$NULL;
+      java RadioTest -p $p -t 1000 -lpl $LPLIV -r -xml $OUTPUT 1>>$LOG 2>$NULL;
       # no ACK, DADDR
-      java RadioTest -p $p -t 1000 -lpl $LPLIV -r -daddr -xml $OUTPUT 1>$LOG 2>$NULL;
+      java RadioTest -p $p -t 1000 -lpl $LPLIV -r -daddr -xml $OUTPUT 1>>$LOG 2>$NULL;
       # ACK, DADDR
-      java RadioTest -p $p -t 1000 -lpl $LPLIV -r -daddr -ack -xml $OUTPUT 1>$LOG 2>$NULL;
+      java RadioTest -p $p -t 1000 -lpl $LPLIV -r -daddr -ack -xml $OUTPUT 1>>$LOG 2>$NULL;
     fi
   done
 done

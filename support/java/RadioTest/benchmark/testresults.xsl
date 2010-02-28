@@ -34,36 +34,38 @@
       <table class="data">
         <tr>  
           <td class="sub"></td>
-          <td class="title_send" colspan="3">send()</td>
-          <td class="title_send" colspan="2">sendDone()</td>
           <td class="title_send" colspan="4">&#160;</td>
-          <td class="title_rcv" colspan="3">receive()</td>
-          <td class="title_send" colspan="2">msgID</td>
-          <td class="title_rcv" colspan="2">msgID</td>
+          <td class="title_send" colspan="3">send()</td>
+          <td class="title_send" colspan="3">sendDone()</td>
+          <td class="title_send" colspan="2">&#160;</td>
+          <td class="title_rcv" colspan="4">receive()</td>
+          <td class="sub" colspan="2"><strong>msgID</strong></td>
         </tr>
         <tr>
           <td class="sub"><strong>Edge</strong></td>
-          <td class="sub">SUCCESS</td>
-          <td class="sub">BUSY</td>
-          <td class="sub">FAILED</td>
+          <td class="sub">Rem</td>
+          <td class="sub">Triggered</td>
+          <td class="sub">Backlog</td>
+          <td class="sub">Resend</td>
 
+          <td class="sub">Total</td>
           <td class="sub">SUCCESS</td>
-          <td class="sub">FAILED</td>
+          <td class="sub">FAIL</td>
+
+          <td class="sub">Total</td>
+          <td class="sub">SUCCESS</td>
+          <td class="sub">FAIL</td>
 
           <td class="sub">ACK</td>
           <td class="sub">no ACK</td>
-          <td class="sub">Resend</td>
-          <td class="sub">Backlog</td>
-
-          <td class="sub">Receive</td>
+ 
+          <td class="sub">Total</td>
+          <td class="sub">Expected</td>
           <td class="sub">Duplicate</td>
           <td class="sub">Missed</td>
 
-          <td class="sub">Next</td>
-          <td class="sub">Last</td>
-
-          <td class="sub">Next</td>
-          <td class="sub">Last</td>
+          <td class="sub">Nxt</td>
+          <td class="sub">Nxt</td>
         </tr>
         <xsl:for-each select="statlist/stat">
         <tr>
@@ -114,28 +116,37 @@
 </xsl:template>
 
 <xsl:template match="stat">
+          
+          <td class="sub"><xsl:value-of select="REMC"/></td>          
+          <td class="rt_data snd"><xsl:value-of select="TC"/></td>
+          <td class="rt_data snd"><xsl:value-of select="BC"/></td>
+
+<!--          <xsl:variable name="temp_sc" select="current()/SC"/>
+          <xsl:variable name="temp_tc" select="current()/TC"/>
+          <xsl:variable name="temp_bc" select="current()/BC"/>
+          <xsl:variable name="temp_rsc" select="$temp_tc - $temp_sc - $temp_bc"/>-->
+          <td class="rt_data snd"><xsl:value-of select="RC"/></td>
+
+          <td class="rt_data snd"><xsl:value-of select="SC"/></td>
           <td class="rt_data snd"><xsl:value-of select="SSC"/></td>
-          <td class="rt_data snd"><xsl:value-of select="SBC"/></td>
           <td class="rt_data snd"><xsl:value-of select="SFC"/></td>
 
+          <td class="rt_data snd"><xsl:value-of select="SDC"/></td>
           <td class="rt_data snd"><xsl:value-of select="SDSC"/></td>
           <td class="rt_data snd"><xsl:value-of select="SDFC"/></td>
 
           <td class="rt_data snd"><xsl:value-of select="WAC"/></td>
           <td class="rt_data snd"><xsl:value-of select="NAC"/></td>
-          <td class="rt_data snd"><xsl:value-of select="RSC"/></td>
-          <td class="rt_data snd"><xsl:value-of select="WBC"/></td>
 
           <td class="rt_data rcv"><xsl:value-of select="RCC"/></td>
+          <td class="rt_data rcv"><xsl:value-of select="EXC"/></td>
           <td class="rt_data rcv"><xsl:value-of select="DRC"/></td>
           <td class="rt_data rcv"><xsl:value-of select="MC"/></td>
 </xsl:template>
 
 <xsl:template match="finaledgestate">
           <td class="rt_data snd"><xsl:value-of select="SNM"/></td>
-          <td class="rt_data snd"><xsl:value-of select="SLM"/></td>
           <td class="rt_data rcv"><xsl:value-of select="RNM"/></td>
-          <td class="rt_data rcv"><xsl:value-of select="RLM"/></td>
 </xsl:template>
 
 <xsl:template match="debuglist">
