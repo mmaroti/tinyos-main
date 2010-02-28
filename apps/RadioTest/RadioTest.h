@@ -86,7 +86,10 @@ enum {
   CTRL_DBG_REQ      = 40,
   RESP_DBG_OK       = 41,
 
-  RESP_DATA_NEXISTS  = 50
+  RESP_DATA_NEXISTS  = 50,
+
+  UNLOCKED          = 0,
+  LOCKED            = 1
 };
 
 // Edge type
@@ -95,7 +98,6 @@ typedef struct edge_t {
   uint8_t       receiver;         // Receiver end of the edge
   uint8_t       flags;            // Sending policies
   uint16_t      nextmsgid;        // The message id to send (on send side)/expected to receive (on receive side)
-  uint16_t      lastmsgid;        // The last message id sent (on send side). On receive side it is unused.
   pending_t     pongs;            // In ping-pong policy the edge bitmask on which we should reply on receive
 } edge_t;
 
@@ -104,7 +106,7 @@ typedef struct edge_t {
 typedef nx_struct setup_t {
   nx_uint8_t    problem_idx;      // The problem we should test
   nx_uint32_t   runtime_msec;     // How long should we run the test?
-  nx_uint32_t   sendtrig_msec;    // How often we should send a message when sending on timer ticks ?
+  nx_uint32_t   timer_msec;       // How often we should send a message when sending on timer ticks ?
   nx_uint32_t   lastchance_msec;  // How long should we wait for reception after the running time has elapsed ?
   nx_uint8_t    flags;            // Global flags ( such as ACK, LPL, ... )
   nx_uint16_t   lplwakeupintval;  // Low Power Listening wakeup interval
@@ -116,21 +118,27 @@ typedef nx_uint16_t stat_base_t;
 
 // Stats type
 typedef nx_struct stat_t {
+  stat_base_t   triggerCount;
+  stat_base_t   backlogCount;
+  stat_base_t   resendCount;
+
+  stat_base_t   sendCount;
   stat_base_t   sendSuccessCount;
   stat_base_t   sendFailCount;
-  stat_base_t   sendBusyCount;
 
+  stat_base_t   sendDoneCount;
   stat_base_t   sendDoneSuccessCount;
   stat_base_t   sendDoneFailCount;
 
   stat_base_t   wasAckedCount;
   stat_base_t   notAckedCount;
-  stat_base_t   resendCount;
-  stat_base_t   wouldBacklogCount;
 
   stat_base_t   receiveCount;
+  stat_base_t   expectedCount;
   stat_base_t   duplicateCount;
   stat_base_t   missedCount;
+
+  nx_uint8_t    remainedCount;
 } stat_t;
 
 
@@ -153,8 +161,7 @@ typedef nx_struct responsemsg_t {
     nx_struct {
       nx_uint8_t    endtype;      //  1 : Sender / 2 : Receiver / 3: Nothing
       nx_uint16_t   nextmsgid;    // The final value of nextmsgid on the requested edge.
-      nx_uint16_t   lastmsgid;    // The final value of lastmsgid on the requested edge.
-      nx_uint32_t   dbgLINE;      // Assertion LINE value if any assertion failed.
+      nx_uint16_t   dbgLINE;      // Assertion LINE value if any assertion failed.
     }           debug;
   } payload;
 } responsemsg_t;
