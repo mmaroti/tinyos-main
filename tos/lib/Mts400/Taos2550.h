@@ -43,5 +43,8 @@ enum{
 
 };
 
+enum { VL_KEY = unique("Taos2550.Resource") };
+enum { IRL_KEY = unique("Taos2550.Resource") };
+
 #endif
 
