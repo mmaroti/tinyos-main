@@ -31,12 +31,14 @@
 * Author: Zoltan Kincses
 */
 
+#include"Taos2550.h"
+
 configuration HplTaos2550C {
   provides interface Resource[ uint8_t id ];
 }
 implementation {
 	components HplTaos2550P;
-	components new FcfsArbiterC( "Taos2550.Resource" ) as Arbiter;
+	components new FcfsArbiterC( UQ_TAOS2550 ) as Arbiter;
 	Resource = Arbiter;
   
 	components new SplitControlPowerManagerC();

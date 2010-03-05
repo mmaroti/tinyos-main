@@ -34,6 +34,8 @@
 #ifndef TAOS2550_H
 #define TAOS2550_H
 	
+#define UQ_TAOS2550 "Taos2550.Resource"
+
 enum{
 	TAOS_I2C_ADDR = 0x39,
 	TAOS_I2C_ADC0 =0x43,
@@ -43,8 +45,8 @@ enum{
 
 };
 
-enum { VL_KEY = unique("Taos2550.Resource") };
-enum { IRL_KEY = unique("Taos2550.Resource") };
+enum {	VL_KEY = unique(UQ_TAOS2550)};
+enum {	IRL_KEY = unique(UQ_TAOS2550)};
 
 #endif
 
