@@ -45,8 +45,5 @@ enum{
 
 };
 
-enum {	VL_KEY = unique(UQ_TAOS2550)};
-enum {	IRL_KEY = unique(UQ_TAOS2550)};
-
 #endif
 

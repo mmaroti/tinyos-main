@@ -45,6 +45,9 @@ implementation {
 	
 	components HalTaos2550C;
 	
+	enum {	VL_KEY = unique(UQ_TAOS2550)};
+	enum {	IRL_KEY = unique(UQ_TAOS2550)};
+	
 	Taos2550ReaderP.VLResource -> HalTaos2550C.Resource[ VL_KEY ];
 	Taos2550ReaderP.VLRead -> HalTaos2550C.VLight;
 	Taos2550ReaderP.IRResource -> HalTaos2550C.Resource[ IRL_KEY];
