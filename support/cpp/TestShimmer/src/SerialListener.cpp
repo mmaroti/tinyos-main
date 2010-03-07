@@ -191,7 +191,7 @@ void SerialListener::receiveTosPacket(const QByteArray & packet)
 	}
 }
 
-void SerialListener::timerEvent(QTimerEvent *event)
+void SerialListener::timerEvent(QTimerEvent *)
 {
 	if( port != NULL )
 	{
