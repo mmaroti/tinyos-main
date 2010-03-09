@@ -44,6 +44,71 @@ void RawDataPlot::paintEvent(QPaintEvent *event)
 	parentHeight = parentWidget()->height();
 	QRect rect = event->rect();
 
+	// to see which area is beeing refreshed
+//	painter.drawLine(rect.left(), rect.top(), rect.right(), rect.bottom());
+
+	const DataRecorder &dataRecorder = application.dataRecorder;
+
+	int x0 = rect.left() - 2;
+	int x1 = rect.right() + 2;
+
+	if( x0 < application.dataRecorder.size() )
+	{
+		if( x0 < 0 )
+			x0 = 0;
+		if( x1 > application.dataRecorder.size() )
+			x1 = dataRecorder.size();
+
+		if( (graphs & XACCEL) != 0 )
+		{
+			painter.setPen(QPen(Qt::black, 2, Qt::SolidLine));
+			for(int i = x0 + 1; i < x1; ++i)
+				painter.drawLine(getPoint(i-1, dataRecorder.at(i-1).xAccel), getPoint(i, dataRecorder.at(i).xAccel));
+		}
+
+		if( (graphs & YACCEL) != 0 )
+		{
+			painter.setPen(QPen(Qt::blue, 2, Qt::SolidLine));
+			for(int i = x0 + 1; i < x1; ++i)
+				painter.drawLine(getPoint(i-1, dataRecorder.at(i-1).yAccel), getPoint(i, dataRecorder.at(i).yAccel));
+		}
+
+		if( (graphs & ZACCEL) != 0 )
+		{
+			painter.setPen(QPen(Qt::red, 2, Qt::SolidLine));
+			for(int i = x0 + 1; i < x1; ++i)
+				painter.drawLine(getPoint(i-1, dataRecorder.at(i-1).zAccel), getPoint(i, dataRecorder.at(i).zAccel));
+		}
+
+		if( (graphs & XGYRO) != 0 )
+		{
+			painter.setPen(QPen(Qt::green, 2, Qt::SolidLine));
+			for(int i = x0 + 1; i < x1; ++i)
+				painter.drawLine(getPoint(i-1, dataRecorder.at(i-1).xGyro), getPoint(i, dataRecorder.at(i).xGyro));
+		}
+
+		if( (graphs & YGYRO) != 0 )
+		{
+			painter.setPen(QPen(Qt::cyan, 2, Qt::SolidLine));
+			for(int i = x0 + 1; i < x1; ++i)
+				painter.drawLine(getPoint(i-1, dataRecorder.at(i-1).yGyro), getPoint(i, dataRecorder.at(i).yGyro));
+		}
+
+		if( (graphs & ZGYRO) != 0 )
+		{
+			painter.setPen(QPen(Qt::magenta, 2, Qt::SolidLine));
+			for(int i = x0 + 1; i < x1; ++i)
+				painter.drawLine(getPoint(i-1, dataRecorder.at(i-1).zGyro), getPoint(i, dataRecorder.at(i).zGyro));
+		}
+
+		if( (graphs & VOLTAGE) != 0 )
+		{
+			painter.setPen(QPen(Qt::yellow, 2, Qt::SolidLine));
+			for(int i = x0 + 1; i < x1; ++i)
+				painter.drawLine(getPoint(i-1, dataRecorder.at(i-1).voltage), getPoint(i, dataRecorder.at(i).voltage));
+		}
+	}
+
 	if( (graphs & GRID) != 0 )
 	{
 		painter.setPen(QPen(Qt::black, 1, Qt::SolidLine));
@@ -73,70 +138,6 @@ void RawDataPlot::paintEvent(QPaintEvent *event)
 		}
 	}
 
-	// to see which area is beeing refreshed
-//	painter.drawLine(rect.left(), rect.top(), rect.right(), rect.bottom());
-
-	const DataRecorder &dataRecorder = application.dataRecorder;
-
-	int x0 = rect.left() - 2;
-	int x1 = rect.right() + 2;
-
-	if( x0 >= application.dataRecorder.size() )
-		return;
-
-	if( x0 < 0 )
-		x0 = 0;
-	if( x1 > application.dataRecorder.size() )
-		x1 = dataRecorder.size();
-
-	if( (graphs & XACCEL) != 0 )
-	{
-		painter.setPen(QPen(Qt::black, 2, Qt::SolidLine));
-		for(int i = x0 + 1; i < x1; ++i)
-			painter.drawLine(getPoint(i-1, dataRecorder.at(i-1).xAccel), getPoint(i, dataRecorder.at(i).xAccel));
-	}
-
-	if( (graphs & YACCEL) != 0 )
-	{
-		painter.setPen(QPen(Qt::blue, 2, Qt::SolidLine));
-		for(int i = x0 + 1; i < x1; ++i)
-			painter.drawLine(getPoint(i-1, dataRecorder.at(i-1).yAccel), getPoint(i, dataRecorder.at(i).yAccel));
-	}
-
-	if( (graphs & ZACCEL) != 0 )
-	{
-		painter.setPen(QPen(Qt::red, 2, Qt::SolidLine));
-		for(int i = x0 + 1; i < x1; ++i)
-			painter.drawLine(getPoint(i-1, dataRecorder.at(i-1).zAccel), getPoint(i, dataRecorder.at(i).zAccel));
-	}
-
-	if( (graphs & XGYRO) != 0 )
-	{
-		painter.setPen(QPen(Qt::green, 2, Qt::SolidLine));
-		for(int i = x0 + 1; i < x1; ++i)
-			painter.drawLine(getPoint(i-1, dataRecorder.at(i-1).xGyro), getPoint(i, dataRecorder.at(i).xGyro));
-	}
-
-	if( (graphs & YGYRO) != 0 )
-	{
-		painter.setPen(QPen(Qt::cyan, 2, Qt::SolidLine));
-		for(int i = x0 + 1; i < x1; ++i)
-			painter.drawLine(getPoint(i-1, dataRecorder.at(i-1).yGyro), getPoint(i, dataRecorder.at(i).yGyro));
-	}
-
-	if( (graphs & ZGYRO) != 0 )
-	{
-		painter.setPen(QPen(Qt::magenta, 2, Qt::SolidLine));
-		for(int i = x0 + 1; i < x1; ++i)
-			painter.drawLine(getPoint(i-1, dataRecorder.at(i-1).zGyro), getPoint(i, dataRecorder.at(i).zGyro));
-	}
-
-	if( (graphs & VOLTAGE) != 0 )
-	{
-		painter.setPen(QPen(Qt::yellow, 2, Qt::SolidLine));
-		for(int i = x0 + 1; i < x1; ++i)
-			painter.drawLine(getPoint(i-1, dataRecorder.at(i-1).voltage), getPoint(i, dataRecorder.at(i).voltage));
-	}
 }
 
 void RawDataPlot::onSampleAdded()
