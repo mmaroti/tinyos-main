@@ -48,7 +48,7 @@ implementation {
 	components Atm128AdcC;
 	Accel202LogicP.Resource -> Atm128AdcC.Resource[unique(UQ_ATM128ADC_RESOURCE)];
 	Accel202LogicP.Atm128AdcSingle -> Atm128AdcC;
-	Accel202LogicP.XADC -> MicaBusC.Adc5;
-	Accel202LogicP.YADC -> MicaBusC.Adc6;
+	Accel202LogicP.XADC -> MicaBusC.Adc1;
+	Accel202LogicP.YADC -> MicaBusC.Adc2;
 }
 
