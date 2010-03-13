@@ -38,7 +38,7 @@
           <td class="title_send" colspan="3">send()</td>
           <td class="title_send" colspan="3">sendDone()</td>
           <td class="title_send" colspan="2">&#160;</td>
-          <td class="title_rcv" colspan="4">receive()</td>
+          <td class="title_rcv" colspan="6">receive()</td>
           <td class="sub" colspan="2"><strong>msgID</strong></td>
         </tr>
         <tr>
@@ -61,11 +61,14 @@
  
           <td class="sub">Total</td>
           <td class="sub">Expected</td>
+          <td class="sub">Wrong</td>
           <td class="sub">Duplicate</td>
+          <td class="sub">Forward</td>
           <td class="sub">Missed</td>
 
           <td class="sub">Nxt</td>
           <td class="sub">Nxt</td>
+
         </tr>
         <xsl:for-each select="statlist/stat">
         <tr>
@@ -76,7 +79,100 @@
         </tr>
         </xsl:for-each>
       </table>
+
+<!-- ERROR CHECKING -->
+      <div class="title_light">Statistics Error Checking</div>
+
+      <table class="data">
+      <tr>
+        <td class="sub"><strong>Edge</strong></td>
+        <td class="sub">Trigger</td>
+        <td class="sub">Send (S/F)</td>
+        <td class="sub">sDone(S/F)</td>
+        <td class="sub">ACK</td>
+        <td class="sub">resendC</td>
+        <td class="sub">Recv (E/W)</td>
+        <td class="sub">Wrong (Dupl/Fwd)</td>
+      </tr>
+      <xsl:for-each select="statlist/stat">
+        <tr>
+          <td class="sub"><xsl:value-of select="@idx"/></td>
+
+          <td class="sub">
+          <xsl:choose>
+            <xsl:when test="TC - BC - SC + RC - REMC = 0"><span class="debug_ok">OK</span>
+            </xsl:when>
+            <xsl:otherwise><span class="debug_fail">ERR</span>
+            </xsl:otherwise>
+          </xsl:choose>
+          </td>
+
+          <td class="sub">
+          <xsl:choose>
+            <xsl:when test="SC - SSC - SFC = 0"><span class="debug_ok">OK</span>
+            </xsl:when>
+            <xsl:otherwise><span class="debug_fail">ERR</span>
+            </xsl:otherwise>
+          </xsl:choose>
+          </td>
+          <td class="sub">
+          <xsl:choose>
+            <xsl:when test="SDC - SDSC - SDFC = 0"><span class="debug_ok">OK</span>
+            </xsl:when>
+            <xsl:otherwise><span class="debug_fail">ERR</span>
+            </xsl:otherwise>
+          </xsl:choose>
+          </td>
+          <td class="sub">
+          <xsl:choose>
+            <xsl:when test="../../testcase/ack = 'Off'"><span class="debug_ok">-</span>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:choose>
+              <xsl:when test="SDSC - WAC - NAC = 0"><span class="debug_ok">OK</span>
+              </xsl:when>
+              <xsl:otherwise><span class="debug_fail">ERR</span>
+              </xsl:otherwise>
+              </xsl:choose>
+            </xsl:otherwise>
+          </xsl:choose>
+          </td>
+          <td class="sub">
+          <xsl:choose>
+            <xsl:when test="RC - SFC - SDFC - NAC = 0"><span class="debug_ok">OK</span>
+            </xsl:when>
+            <xsl:otherwise><span class="debug_fail">ERR</span>
+            </xsl:otherwise>
+          </xsl:choose>
+          </td>
+
+          <td class="sub">
+          <xsl:choose>
+            <xsl:when test="RCC - EXC - WC = 0"><span class="debug_ok">OK</span>
+            </xsl:when>
+            <xsl:otherwise><span class="debug_fail">ERR</span>
+            </xsl:otherwise>
+          </xsl:choose>
+          </td>
+
+          <td class="sub">
+          <xsl:choose>
+            <xsl:when test="WC - DRC - FC = 0"><span class="debug_ok">OK</span>
+            </xsl:when>
+            <xsl:otherwise><span class="debug_fail">ERR</span>
+            </xsl:otherwise>
+          </xsl:choose>
+          </td>
+
+        </tr>
+      </xsl:for-each>
+      </table>
+
+<!-- END ERROR CHECKING -->
+
+      <div class="title_light">Mote Internal Error Checking</div>
       <xsl:apply-templates select="debuglist"/>
+
     </td>
   </tr>
 </table>
@@ -121,10 +217,6 @@
           <td class="rt_data snd"><xsl:value-of select="TC"/></td>
           <td class="rt_data snd"><xsl:value-of select="BC"/></td>
 
-<!--          <xsl:variable name="temp_sc" select="current()/SC"/>
-          <xsl:variable name="temp_tc" select="current()/TC"/>
-          <xsl:variable name="temp_bc" select="current()/BC"/>
-          <xsl:variable name="temp_rsc" select="$temp_tc - $temp_sc - $temp_bc"/>-->
           <td class="rt_data snd"><xsl:value-of select="RC"/></td>
 
           <td class="rt_data snd"><xsl:value-of select="SC"/></td>
@@ -140,8 +232,11 @@
 
           <td class="rt_data rcv"><xsl:value-of select="RCC"/></td>
           <td class="rt_data rcv"><xsl:value-of select="EXC"/></td>
+          <td class="rt_data rcv"><xsl:value-of select="WC"/></td>
           <td class="rt_data rcv"><xsl:value-of select="DRC"/></td>
+          <td class="rt_data rcv"><xsl:value-of select="FC"/></td>
           <td class="rt_data rcv"><xsl:value-of select="MC"/></td>
+          
 </xsl:template>
 
 <xsl:template match="finaledgestate">
