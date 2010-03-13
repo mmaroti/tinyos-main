@@ -264,10 +264,12 @@ public class RadioTestController implements MessageListener {
 
         s.set_receiveCount(         s.get_receiveCount()          +   rmsg.get_payload_stat_receiveCount());
         s.set_expectedCount(        s.get_expectedCount()         +   rmsg.get_payload_stat_expectedCount());
+        s.set_wrongCount(           s.get_wrongCount()            +   rmsg.get_payload_stat_wrongCount());
         s.set_duplicateCount(       s.get_duplicateCount()        +   rmsg.get_payload_stat_duplicateCount());
         s.set_missedCount(          s.get_missedCount()           +   rmsg.get_payload_stat_missedCount());
+        s.set_forwardCount(         s.get_forwardCount()          +   rmsg.get_payload_stat_forwardCount());
 
-        s.set_remainedCount(        s.get_remainedCount()         +   rmsg.get_payload_stat_remainedCount());
+        s.set_remainedCount((short)( s.get_remainedCount()        +   rmsg.get_payload_stat_remainedCount()));
         stats.set(currentData,s);
 
         handshake = true;
@@ -320,7 +322,9 @@ public class RadioTestController implements MessageListener {
 
     ret += " | " + s.get_receiveCount();
     ret += " " + s.get_expectedCount();
+    ret += " " + s.get_wrongCount();
     ret += " " + s.get_duplicateCount();
+    ret += " " + s.get_forwardCount();
     ret += " " + s.get_missedCount();
 
     ret += " | " + s.get_remainedCount();
@@ -350,6 +354,8 @@ public class RadioTestController implements MessageListener {
 
     ret += "<RCC>" + s.get_receiveCount() + "</RCC>";
     ret += "<EXC>" + s.get_expectedCount() + "</EXC>";
+    ret += "<WC>" + s.get_wrongCount() + "</WC>";
+    ret += "<FC>" + s.get_forwardCount() + "</FC>";
     ret += "<DRC>" + s.get_duplicateCount() + "</DRC>";
     ret += "<MC>" + s.get_missedCount() + "</MC>";
 
