@@ -156,7 +156,9 @@ public class RadioTest {
         if ( rtc.setupMotes(st) && rtc.run(runtimemsec+lchance) && rtc.collect() ) {
           String output = cl.hasOption("xml") ? cl.getOptionValue("xml") : "";
           rtc.printResults(st,output);
-        }        
+        } else {
+          System.exit(1);
+        }  
         // If reset is also requested
         if ( cl.hasOption('r') )
           rtc.resetMotes();
