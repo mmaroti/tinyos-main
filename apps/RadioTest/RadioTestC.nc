@@ -103,7 +103,7 @@ implementation {
   }
 
   event void AMControl.stopDone(error_t err) {
-    SET_STATE( STATE_UPLOADING )
+    SET_STATE( STATE_INVALID )
   }
 
   event void TestEndTimer.fired() {
@@ -429,20 +429,25 @@ implementation {
 
       ++(stats[msg->edgeid].receiveCount);
 
-      // If we got a message with a lower id than expected -> duplicate
-      if ( msg->msgid == problem[msg->edgeid].nextmsgid - 1 )
-        ++(stats[msg->edgeid].duplicateCount);
-      
-      // If we got a message with a higher id than expected -> we have missed messages
-      else if ( msg->msgid > problem[msg->edgeid].nextmsgid ) {
-        stats[msg->edgeid].missedCount += msg->msgid - problem[msg->edgeid].nextmsgid;
-        problem[msg->edgeid].nextmsgid = msg->msgid+1;
-      }
-      // Else everything is OK
-      else {
-        ++(problem[msg->edgeid].nextmsgid);
+      // If the message id is ok
+      if ( msg->msgid == problem[msg->edgeid].nextmsgid ) {
         ++(stats[msg->edgeid].expectedCount);
+
+      } else {
+        ++(stats[msg->edgeid].wrongCount);
+        
+        // If we got a message with a lower id than expected -> duplicate
+        if ( msg->msgid < problem[msg->edgeid].nextmsgid )
+          ++(stats[msg->edgeid].duplicateCount);
+        // If we got a message with a higher id than expected -> we have missed messages
+        else {
+          ++(stats[msg->edgeid].forwardCount);
+          stats[msg->edgeid].missedCount += msg->msgid - problem[msg->edgeid].nextmsgid;
+        }
       }
+
+      // Set the next expected message id
+      problem[msg->edgeid].nextmsgid = msg->msgid + 1;
 
       // Check whether we have to send message on receive ( ping-pong case )
       if ( problem[msg->edgeid].pongs ) {
@@ -456,7 +461,7 @@ implementation {
   event void TxTest.sendDone(message_t* bufPtr, error_t error) {
 
     testmsg_t* msg = (testmsg_t*)(call Packet.getPayload(bufPtr,sizeof(testmsg_t)));
-    bool clearPending = TRUE;
+    bool clearPending = TRUE, isResend = FALSE;
 
     if ( state == STATE_RUNNING || state == STATE_LASTCHANCE ) {
 
@@ -483,17 +488,20 @@ implementation {
           ++(stats[msg->edgeid].notAckedCount);
           ++(stats[msg->edgeid].resendCount);
           clearPending = FALSE;
+          isResend = TRUE;
         }
 
       } else {
         ++(stats[msg->edgeid].sendDoneFailCount);
         ++(stats[msg->edgeid].resendCount);
         clearPending = FALSE;
+        isResend = TRUE;
       }
 
       // Check whether we have to send message on sendDone
       if ( problem[msg->edgeid].flags & SEND_ON_SDONE ) {
-        ++(stats[msg->edgeid].triggerCount);
+        if ( !isResend )
+          ++(stats[msg->edgeid].triggerCount);
         clearPending = FALSE;
       }
       // Remove the pending bit if applicable

@@ -136,7 +136,9 @@ typedef nx_struct stat_t {
   stat_base_t   receiveCount;
   stat_base_t   expectedCount;
   stat_base_t   duplicateCount;
+  stat_base_t   forwardCount;
   stat_base_t   missedCount;
+  stat_base_t   wrongCount;
 
   nx_uint8_t    remainedCount;
 } stat_t;
