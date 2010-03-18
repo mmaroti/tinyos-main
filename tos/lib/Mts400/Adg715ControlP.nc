@@ -42,7 +42,7 @@
  */
 
 #include <I2C.h>
-#include "adg715.h"
+#include "Adg715.h"
 
 generic module Adg715ControlP(bool pinA1High, bool pinA0High) {
 	uses {
