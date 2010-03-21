@@ -29,7 +29,11 @@ void ConnectWidget::rescanPorts()
 	portButtons.clear();
 	QLayoutItem *child;
 	while( (child = layout->takeAt(0)) != NULL )
-	     delete child;
+	{
+		QWidget *widget = child->widget();
+		delete child;
+		delete widget;
+	}
 
 	QList<QextPortInfo> ports = QextSerialEnumerator::getPorts();
 	for (int i = 0; i < ports.size(); i++) {
