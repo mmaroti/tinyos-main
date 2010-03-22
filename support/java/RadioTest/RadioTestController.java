@@ -55,8 +55,8 @@ public class RadioTestController implements MessageListener {
   final Condition answered = lock.newCondition(); 
   private boolean handshake;  		
   private static short currentMote = 0, currentData = 0;
-  private static final short  MAXPROBES   = 3;
-  private static final int    MAXTIMEOUT  = 1000;
+  private static final short  MAXPROBES   = 6;
+  private static final int    MAXTIMEOUT  = 500;
 
   // Conformance to the NesC code
   // refer to RadioTestCases.h
@@ -107,7 +107,7 @@ public class RadioTestController implements MessageListener {
     cmsg.set_config_flags(config.get_flags());
     lock.lock();
 
-    System.out.print("> Setting up motes ... ");
+    System.out.print("> Setting up motes for problem " + config.get_problem_idx() + " ... ");
 
     CtrlMsgT cmsg2 = new CtrlMsgT();
 		try {
