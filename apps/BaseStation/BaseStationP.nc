@@ -1,4 +1,4 @@
-// $Id: BaseStationP.nc,v 1.1 2010-02-04 13:16:04 zkincses Exp $
+// $Id: BaseStationP.nc,v 1.2 2010-03-22 00:27:29 mmaroti Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -33,7 +33,7 @@
  * @author Phil Buonadonna
  * @author Gilman Tolle
  * @author David Gay
- * Revision:	$Id: BaseStationP.nc,v 1.1 2010-02-04 13:16:04 zkincses Exp $
+ * Revision:	$Id: BaseStationP.nc,v 1.2 2010-03-22 00:27:29 mmaroti Exp $
  */
   
 /* 
@@ -179,6 +179,7 @@ implementation
     am_id_t id;
     am_addr_t addr, src;
     message_t* msg;
+    am_group_t grp;
     atomic
       if (uartIn == uartOut && !uartFull)
 	{
@@ -191,8 +192,10 @@ implementation
     id = call RadioAMPacket.type(msg);
     addr = call RadioAMPacket.destination(msg);
     src = call RadioAMPacket.source(msg);
+    grp = call RadioAMPacket.group(msg);
     call UartPacket.clear(msg);
     call UartAMPacket.setSource(msg, src);
+    call UartAMPacket.setGroup(msg, grp);
 
     if (call UartSend.send[id](addr, uartQueue[uartOut], len) == SUCCESS)
       call Leds.led1Toggle();
