@@ -110,6 +110,9 @@ implementation {
     uint8_t i = 0;
     if ( state == STATE_RUNNING ) {
       SET_STATE( STATE_LASTCHANCE )
+      call LowPowerListening.setLocalWakeupInterval(0);
+      call LowPowerListening.setRemoteWakeupInterval(&pkt,0);
+
       call TestEndTimer.startOneShot(config.lastchance_msec);
 
     } else if ( state == STATE_LASTCHANCE ) {
@@ -123,7 +126,7 @@ implementation {
       }
     }
 
-    call LowPowerListening.setLocalWakeupInterval(0);
+    
   }
 
   void setPendingOrBacklog(pending_t);  // forward-declaration
@@ -167,6 +170,8 @@ implementation {
       address = ( config.flags & USE_DADDR ) ? problem[eidx].receiver : AM_BROADCAST_ADDR;
 
       _ASSERT_( pending == lpending );
+
+      call LowPowerListening.setRemoteWakeupInterval(&pkt,config.lplwakeupintval);
 
       // Send out
       switch ( call TxTest.send( address, &pkt, sizeof(testmsg_t)) ) {
@@ -238,7 +243,7 @@ implementation {
     // RESPONSE the setup acknowledgement if applicable
     if ( reqtype == CTRL_SETUP_SYN ) {
       msg->type = RESP_SETUP_ACK;
-      if (state == STATE_SETUP_RCVD &&
+      if ( (state == STATE_SETUP_RCVD || state == STATE_CONFIGURED) &&
           SUCCESS == call TxBase.send(AM_BROADCAST_ADDR, &pkt, sizeof(responsemsg_t)) )
         SET_STATE( STATE_CONFIGURED )
   
