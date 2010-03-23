@@ -76,4 +76,7 @@ implementation
 		call IRResource.release();
 		signal InfraredLight.readDone( result, val );
 	}
+	
+	default event void VisibleLight.readDone( error_t result, uint16_t val ) { }
+  	default event void InfraredLight.readDone( error_t result, uint16_t val ) { }
 }
