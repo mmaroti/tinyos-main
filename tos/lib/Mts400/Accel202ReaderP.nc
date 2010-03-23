@@ -76,4 +76,7 @@ implementation
 		call Y_Resoure.release();
 		signal Y_Axis.readDone( result, val );
 	}
+	
+	default event void X_Axis.readDone( error_t result, uint16_t val ) { }
+  	default event void Y_Axis.readDone( error_t result, uint16_t val ) { }	
 }
