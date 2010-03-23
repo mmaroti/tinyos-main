@@ -31,6 +31,9 @@
 *
 * Author:Andras Biro
 */
+#ifndef SAMP_T
+	#define SAMP_T 60000U
+#endif
 module SSTest_MTS400C{
 	uses {
 		interface SplitControl;
@@ -62,8 +65,12 @@ implementation{
 	
 	event void StreamStorage.eraseDone(error_t error){
 		call Leds.set(0);
-		call StdControl.start();
-		call SensorTimer.startPeriodicAt(1000,6000L);
+		#ifndef RADIO_DISABLE
+			call StdControl.start();
+		#endif
+		#ifndef MEAS_DISABLE
+			call SensorTimer.startPeriodic(SAMP_T);
+		#endif
 	}
 	
 	event void SplitControl.startDone(error_t error){
@@ -71,8 +78,12 @@ implementation{
 			call StreamStorage.erase();
 		else {
 			call Leds.set(0);
-			call StdControl.start();
-			call SensorTimer.startPeriodicAt(1000,600L);
+			#ifndef RADIO_DISABLE
+				call StdControl.start();
+			#endif
+			#ifndef MEAS_DISABLE
+				call SensorTimer.startPeriodic(SAMP_T);
+			#endif
 		}
 	}
 	
@@ -93,6 +104,8 @@ implementation{
 			fresh_data.humi=val;
 		else
 			fresh_data.humi=0xffff;
+		//fresh_data.time=call LocalTime.get();
+		//call StreamStorage.append(&fresh_data, sizeof(fresh_data));
 		call LRead.read();
 	}
 	
@@ -102,7 +115,9 @@ implementation{
 		else
 			fresh_data.light=0xffff;
 		fresh_data.time=call LocalTime.get();
-		call StreamStorage.append(&fresh_data, sizeof(fresh_data));
+		#ifndef FLASHWRITE_DISABLE
+			call StreamStorage.append(&fresh_data, sizeof(fresh_data));
+		#endif
 	}
 	
 

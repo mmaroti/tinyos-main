@@ -34,6 +34,12 @@
 #ifndef STREAM_UPLOADER_H
 #define STREAM_UPLOADER_H
 #include "message.h"
+#ifndef RADIO_SHORT
+	#define RADIO_SHORT 1000U
+#endif
+#ifndef RADIO_LONG
+	#define RADIO_LONG 60U
+#endif
 enum{
 	OFF=0,
 	WAIT_FOR_BS,
@@ -46,8 +52,8 @@ enum{
 	MESSAGE_SIZE=TOSH_DATA_LENGTH-5,
 //	AM_CTRL_MSG_T=10,//Just for the MIG
 //	AM_DATA_MSG_T=10,
-	SHORT_TIME=1000,//in milliseconds
-	LONG_TIME=10,//in seconds
+//	SHORT_TIME=RADIO_SHORT,//in milliseconds
+//	LONG_TIME=RADIO_LONG,//in seconds
 };
 
 typedef nx_struct ctrl_msg_t {

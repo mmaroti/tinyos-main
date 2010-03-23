@@ -126,7 +126,7 @@ implementation{
 				call StorageWaitTimer.startOneShot(10);
 		}else{
 			status=WAIT_FOR_BS;
-			call WaitTimer.startOneShot((uint32_t)(uint32_t)SHORT_TIME);
+			call WaitTimer.startOneShot((uint32_t)(uint32_t)RADIO_SHORT);
 		}
 	}
 
@@ -149,7 +149,7 @@ implementation{
 			if(call PacketAcknowledgements.wasAcked(msg)){
 				bs_lost=BS_OK;
 				status=WAIT_FOR_REQ;
-				call WaitTimer.startOneShot(SHORT_TIME);
+				call WaitTimer.startOneShot(RADIO_SHORT);
 			} else {
 				bs_lost--;
 				call SplitControl.stop();			
@@ -164,7 +164,7 @@ implementation{
 			if(call PacketAcknowledgements.wasAcked(msg)){
 				bs_lost=BS_OK;
 				status=WAIT_FOR_REQ;
-				call WaitTimer.startOneShot(SHORT_TIME);
+				call WaitTimer.startOneShot(RADIO_SHORT);
 			} else {
 				bs_lost--;
 				call SplitControl.stop();			
@@ -213,9 +213,9 @@ implementation{
 			if(status!=OFF){
 				status=WAIT_FOR_BS;
 				if(bs_lost==NO_BS||bs_lost==BS_OK)//if BS_OK, than it doesn't want any data, so we can sleep longer
-					call WaitTimer.startOneShot((uint32_t)LONG_TIME*1000);
+					call WaitTimer.startOneShot((uint32_t)RADIO_LONG*1000);
 				else
-					call WaitTimer.startOneShot(SHORT_TIME);
+					call WaitTimer.startOneShot(RADIO_SHORT);
 			}
 		}
 	}
