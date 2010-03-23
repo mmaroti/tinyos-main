@@ -31,20 +31,33 @@
 *
 * Author:Andras Biro
 */
+#ifndef STREAM_UPLOADER_H
+#define STREAM_UPLOADER_H
+enum{
+	OFF=0,
+	WAIT_FOR_BS,
+	WAIT_FOR_REQ,
+	SEND,
+	ERASE,
+	BS_ADDR=0,
+	NO_BS=0,
+	BS_OK=60,
+	MESSAGE_SIZE=28-5,
+//	AM_CTRL_MSG_T=10,//Just for the MIG
+//	AM_DATA_MSG_T=10,
+	SHORT_TIME=1000,//in milliseconds
+	LONG_TIME=60,//in seconds
+};
 
- #include "Storage.h"
-generic configuration StreamStorageC(volume_id_t volume_id){
-	provides {
-		interface StreamStorage;
-		interface SplitControl;
-	}
-}
-implementation{
+typedef nx_struct ctrl_msg_t {
+	nx_uint32_t min_address;
+	nx_uint32_t max_address;
+} ctrl_msg;
 
-		
-	components StreamStorageP, new LogStorageC(volume_id, TRUE);
-	StreamStorageP.LogRead -> LogStorageC;
-	StreamStorageP.LogWrite -> LogStorageC;
-	StreamStorage=StreamStorageP.StreamStorage;
-	SplitControl=StreamStorageP.SplitControl;
-}
+typedef nx_struct data_msg_t {
+	nx_uint32_t address;
+	nx_uint8_t length;
+	nx_int8_t data[MESSAGE_SIZE];
+} data_msg;
+
+#endif /* STREAM_UPLOADER_H */

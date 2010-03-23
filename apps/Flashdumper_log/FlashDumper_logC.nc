@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009, University of Szeged
+* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -31,20 +31,22 @@
 *
 * Author:Andras Biro
 */
+#include "StorageVolumes.h"
+#include "FlashDumper_log.h"
+configuration FlashDumper_logC {
 
- #include "Storage.h"
-generic configuration StreamStorageC(volume_id_t volume_id){
-	provides {
-		interface StreamStorage;
-		interface SplitControl;
-	}
 }
 implementation{
-
-		
-	components StreamStorageP, new LogStorageC(volume_id, TRUE);
-	StreamStorageP.LogRead -> LogStorageC;
-	StreamStorageP.LogWrite -> LogStorageC;
-	StreamStorage=StreamStorageP.StreamStorage;
-	SplitControl=StreamStorageP.SplitControl;
+	components new LogStorageC(VOLUME_FLASH, TRUE);
+	components SerialActiveMessageC, new SerialAMSenderC(AM_CTRL_MSG_T), new SerialAMReceiverC(AM_CTRL_MSG_T);
+	components FlashDumper_logP as App, MainC,LedsC;
+	
+	App.LogRead -> LogStorageC;	
+	App.Boot-> MainC;
+	App.Leds->LedsC;
+	App.SplitControl -> SerialActiveMessageC;
+	App.AMSend -> SerialAMSenderC;
+	App.Receive -> SerialAMReceiverC;
+	App.Packet -> SerialAMSenderC;
+	App.AMPacket -> SerialAMSenderC;
 }

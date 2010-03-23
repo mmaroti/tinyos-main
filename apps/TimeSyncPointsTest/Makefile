@@ -1,5 +1,5 @@
 COMPONENT=TimeSyncUseAppC
-PFLAGS = -I$(TOSDIR)/lib/timeSyncPoints
+PFLAGS = -I$(SZTETOSDIR)/lib/TimeSyncPoints
 BUILD_EXTRA_DEPS = TimeMsg.java 
 CLEAN_EXTRA = $(BUILD_EXTRA_DEPS) TimeMsg.java 
 

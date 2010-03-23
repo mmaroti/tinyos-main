@@ -59,6 +59,7 @@ implementation{
 		READ_PENDING_SEEK_STEP_F,
 		READ_PENDING_DATA1,
 		READ_PENDING_DATA2,
+		READ_PENDING_DATA3,
 		WRITE_PENDING_ID,
 		WRITE_PENDING_DATA1,
 		WRITE_PENDING_DATA2,
@@ -71,12 +72,10 @@ implementation{
 			PAGE_SIZE=254,
 			ERASE_SIZE=PAGE_SIZE,
 			FIRST_DATA=254,
-			PAGES=2048,
 		#else
 			PAGE_SIZE=256,
 			ERASE_SIZE=PAGE_SIZE,
 			FIRST_DATA=0,
-			PAGES=2048,
 		#endif
 	};
 	
@@ -93,6 +92,7 @@ implementation{
 	uint8_t status=UNINIT;
 	uint32_t last_page;
 	uint16_t circled=0;
+	uint16_t PAGES;
 	struct{
 		uint32_t streamAddress;
 		storage_cookie_t logAddress;
@@ -112,12 +112,15 @@ implementation{
 			return EALREADY;
 		#ifdef DEBUG
 			printf("Start; ");
+		#endif
+		PAGES=call LogRead.getSize()/PAGE_SIZE;
+		#ifdef DEBUG
+			printf(" volume size=%ld; pages=%u; ",call LogRead.getSize(),PAGES);
 			printfflush();
 		#endif
 		addressTranslation.success=FALSE;
 		status=INIT_START;
 	
-
 		call LogRead.seek(SEEK_BEGINNING);
 		return SUCCESS;	
 	}
@@ -160,7 +163,7 @@ implementation{
 	}
 
 //Write
-	command error_t StreamStorage.append(void *buf, uint8_t len){
+	command error_t StreamStorage.append(void *buf, uint16_t len){
 //		#ifdef DEBUG
 //			printf("Start append %d long, status=%d\n", len,status);
 //			printfflush();
@@ -170,7 +173,7 @@ implementation{
 				return EOFF;
 			else
 				return EBUSY;
-		} else if(len>PAGE_SIZE-5){
+		} else if(len>PAGE_SIZE-sizeof(current_addr)){
 			return EINVAL;
 		}else{
 			uint32_t offset=call LogWrite.currentOffset();
@@ -181,17 +184,20 @@ implementation{
 //				printf("@%ld#%ld:%ld\n",call LogWrite.currentOffset(),(call LogWrite.currentOffset())/PAGE_SIZE,(call LogWrite.currentOffset()+len)/PAGE_SIZE);
 //				printfflush();
 //			#endif				
-
-			if((offset/PAGE_SIZE)%2048==0&&(offset%PAGE_SIZE+len+circled)>=PAGE_SIZE){
-				#ifdef DEBUG
-					printf("finishing page\n");
-					printfflush();
-				#endif
-				offset++;
-				circled++;
-			}
-			if(((offset/PAGE_SIZE)<((offset+len-1)/PAGE_SIZE))||(offset%PAGE_SIZE)==0){//data is overlapping to the next page, or we're on the first byte of the page
+			
+			if(((offset/PAGE_SIZE)<((offset+len-1)/PAGE_SIZE))||(offset%PAGE_SIZE)==0||((offset/PAGE_SIZE)%PAGES==0&&(offset%PAGE_SIZE+len+circled)>=PAGE_SIZE)){//data is overlapping to the next page, or we're on the first byte of the page
 				firstwritelength=(PAGE_SIZE-(offset%PAGE_SIZE))%PAGE_SIZE;
+				if((offset/PAGE_SIZE)%PAGES==0&&(offset%PAGE_SIZE+len+1+circled)>=PAGE_SIZE){
+					#ifdef DEBUG
+						printf("finishing volume\n");
+						printfflush();
+					#endif
+					circled++;
+					if(firstwritelength==0)
+						firstwritelength=writelength-1;
+					else
+						firstwritelength--;
+				}
 				if(firstwritelength>0){//if we had any space on this page, fill it
 					status=WRITE_PENDING_DATA1;				
 					call LogWrite.append(writebuffer, firstwritelength);
@@ -208,7 +214,7 @@ implementation{
 			return SUCCESS;
 		}
 	}
-	command error_t StreamStorage.appendWithID(nx_uint8_t id, void *buf, uint8_t  len){
+	command error_t StreamStorage.appendWithID(nx_uint8_t id, void *buf, uint16_t  len){
 //		#ifdef DEBUG
 //			printf("Start append %d long, status=%d\n", len,status);
 //			printfflush();
@@ -229,17 +235,19 @@ implementation{
 //				printf("@%ld#%ld:%ld\n",call LogWrite.currentOffset(),(call LogWrite.currentOffset())/PAGE_SIZE,(call LogWrite.currentOffset()+len)/PAGE_SIZE);
 //				printfflush();
 //			#endif	
-			if((offset/PAGE_SIZE)%2048==0&&(offset%PAGE_SIZE+len+1+circled)>=PAGE_SIZE){
-				#ifdef DEBUG
-					printf("finishing page\n");
-					printfflush();
-				#endif
-				offset++;
-				circled++;
-			}
-			if(((offset/PAGE_SIZE)<((offset+len)/PAGE_SIZE))||(offset%PAGE_SIZE)==0){//data is overlapping to the next page, or we're on the first byte of the page
+			if(((offset/PAGE_SIZE)<((offset+len)/PAGE_SIZE))||(offset%PAGE_SIZE)==0||((offset/PAGE_SIZE)%PAGES==0&&(offset%PAGE_SIZE+len+circled)>=PAGE_SIZE)){//data is overlapping to the next page, or we're on the first byte of the page
 				firstwritelength=(PAGE_SIZE-(offset%PAGE_SIZE))%PAGE_SIZE;
-				
+				if((offset/PAGE_SIZE)%PAGES==0&&(offset%PAGE_SIZE+len+1+circled)>=PAGE_SIZE){
+					#ifdef DEBUG
+						printf("finishing volume\n");
+						printfflush();
+					#endif
+					circled++;
+					if(firstwritelength==0)
+						firstwritelength=writelength-1;
+					else
+						firstwritelength--;
+				}
 				if(firstwritelength>0){//if we had any space on this page, fill it
 					status=WRITE_PENDING_ID;
 					call LogWrite.append(&write_id, sizeof(write_id));			
@@ -550,14 +558,34 @@ implementation{
 											
 				}break;
 				case READ_PENDING_DATA1:{//we read the first half of the data, now we jump over the metadata
-					status=READ_PENDING_DATA2;
-					call LogRead.seek(call LogRead.currentOffset()+sizeof(current_addr));
+					if(addressTranslation.logAddress+len==call LogRead.currentOffset()){
+						status=READ_PENDING_DATA2;
+						call LogRead.seek(call LogRead.currentOffset()+sizeof(current_addr));	
+					} else {//we read something from the next page (incl. metadata), so we're correcting this (this could only happen on a synced page)
+						uint32_t offset=call LogRead.currentOffset();
+						status=READ_PENDING_DATA3;
+						readfirstlength=readfirstlength-offset%PAGE_SIZE;
+						call LogRead.seek(offset-offset%PAGE_SIZE+sizeof(current_addr));
+					}
 				}break;
 				case READ_PENDING_DATA2:{//we're done
+					if(addressTranslation.logAddress+((readfirstlength>0)?readfirstlength+sizeof(current_addr):0)+len==call LogRead.currentOffset()){
+						addressTranslation.success=TRUE;
+						status=NORMAL;
+						signal StreamStorage.readDone(readbuffer, readlength, SUCCESS);
+					} else {//we read something from the next page (incl. metadata), so we're correcting this (this could only happen on a synced page)
+						uint32_t offset=call LogRead.currentOffset();
+						status=READ_PENDING_DATA3;
+						readfirstlength=readlength-offset%PAGE_SIZE;
+						call LogRead.seek(offset-offset%PAGE_SIZE+sizeof(current_addr));
+						//call LogRead.seek(offset-4);
+					}
+				}break;
+				case READ_PENDING_DATA3:{//we're done
 					addressTranslation.success=TRUE;
 					status=NORMAL;
 					signal StreamStorage.readDone(readbuffer, readlength, SUCCESS);
-				}break;
+				}
 				case INIT_START:{
 					nx_uint32_t *metadata=(nx_uint32_t*)buf;//unfortunately, we need this, because the endiannes is unpredictable in the buffer
 					if(((call LogRead.currentOffset()-len)%254)!=0){
@@ -682,7 +710,8 @@ implementation{
 			}	
 		} else {
 			switch(status){
-				case READ_PENDING_DATA2:{
+				case READ_PENDING_DATA2:
+				case READ_PENDING_DATA3:{
 					call LogRead.read(readbuffer+readfirstlength, readlength-readfirstlength);
 				}break;
 				case READ_PENDING_DATA1:{

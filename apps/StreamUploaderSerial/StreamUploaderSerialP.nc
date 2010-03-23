@@ -32,24 +32,20 @@
 * Author:Andras Biro
 */
 #include "StreamUploader.h"
-module StreamUploaderP{
-	provides interface StdControl;
+//#include "printf.h"
+module StreamUploaderSerialP{
 	uses {
 		interface Receive;
 	    interface AMSend;
 	    interface Packet;
   		interface AMPacket;
   		interface StreamStorage;    
-  		interface SplitControl;
-  		interface PacketAcknowledgements;
+  		interface SplitControl as SerialControl;
+  		interface SplitControl as StreamControl;
   		interface Timer<TMilli> as WaitTimer;
   		interface Timer<TMilli> as StorageWaitTimer;
-  		
-		interface TimeSyncPacket<TMilli, uint32_t> as TimeSyncPacketMilli;
-		interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
-		interface TimeSyncAMSend<TMilli, uint32_t> as TimeSyncAMSendMilli;
-		
-		interface Leds;
+  		interface Boot;
+  		interface Leds;
 	}
 }
 
@@ -57,16 +53,28 @@ implementation{
 	uint32_t minaddress,maxaddress;
 	uint8_t status=OFF;
 	uint8_t buffer[MESSAGE_SIZE];
-	uint8_t bs_lost=NO_BS;
 	message_t message;
+	
+	event void Boot.booted(){
+		call StreamControl.start();	
+	}
+	
+	event void StreamControl.startDone(error_t error){
+		if(error!=SUCCESS){
+			call StreamControl.start();
+		} else {
+			status=WAIT_FOR_BS;
+			if(call StreamStorage.getMinAddress()==EBUSY)
+				call StorageWaitTimer.startOneShot(10);
+		}
+	}
 	
 	event void StreamStorage.getMinAddressDone(uint32_t addr){
 		ctrl_msg* msg=call Packet.getPayload(&message, sizeof(ctrl_msg));
 		msg->min_address=addr;
 		msg->max_address=call StreamStorage.getMaxAddress();
-		call PacketAcknowledgements.requestAck(&message);
-		if(call SplitControl.start()==EALREADY)
-			call TimeSyncAMSendMilli.send(BS_ADDR, &message, sizeof(ctrl_msg),0);		
+		if(call SerialControl.start()==EALREADY)
+			call AMSend.send(BS_ADDR, &message, sizeof(ctrl_msg));		
 	}
 	
 	event void StorageWaitTimer.fired(){
@@ -93,8 +101,10 @@ implementation{
 	}
 	
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len){
-		if((status==WAIT_FOR_REQ)&&len==sizeof(ctrl_msg)){
+		call Leds.led1Toggle();
+		if((status==WAIT_FOR_BS||status==WAIT_FOR_REQ)&&len==sizeof(ctrl_msg)){
 			ctrl_msg *rec=(ctrl_msg*)payload;
+			call Leds.led0Toggle();
 			if(rec->min_address!=rec->max_address){
 				status=SEND;
 				minaddress=rec->min_address;
@@ -114,6 +124,7 @@ implementation{
 			
 		}
 		return msg;
+		
 	}
 	
 	inline void readNext(){
@@ -139,6 +150,7 @@ implementation{
 				memcpy(&(msg->data),buf,len);
 				call AMSend.send(BS_ADDR, &message, sizeof(data_msg));
 			} else{
+				call Leds.led2Toggle();
 				readNext();
 			}
 		}
@@ -146,30 +158,10 @@ implementation{
 
 	event void AMSend.sendDone(message_t *msg, error_t error){
 		if(status==WAIT_FOR_BS){
-			if(call PacketAcknowledgements.wasAcked(msg)){
-				bs_lost=BS_OK;
-				status=WAIT_FOR_REQ;
-				call WaitTimer.startOneShot(SHORT_TIME);
-			} else {
-				bs_lost--;
-				call SplitControl.stop();			
-			}
+			call WaitTimer.startOneShot(SHORT_TIME);
 		} else { //data sending
 			readNext();
 		}	
-	}
-
-	event void TimeSyncAMSendMilli.sendDone(message_t *msg, error_t error){
-		if(status==WAIT_FOR_BS){
-			if(call PacketAcknowledgements.wasAcked(msg)){
-				bs_lost=BS_OK;
-				status=WAIT_FOR_REQ;
-				call WaitTimer.startOneShot(SHORT_TIME);
-			} else {
-				bs_lost--;
-				call SplitControl.stop();			
-			}
-		} 
 	}
 
 	event void WaitTimer.fired(){
@@ -179,43 +171,26 @@ implementation{
 					call StorageWaitTimer.startOneShot(10);
 			}break;
 			case WAIT_FOR_REQ:{
-				call SplitControl.stop();	
+				call SerialControl.stop();	
 			}break;
 		}
 	}
 
-	command error_t StdControl.stop(){
-		status=OFF;
-		call StorageWaitTimer.stop();
-		call WaitTimer.stop();
-		call SplitControl.stop();
-		return SUCCESS;
-	}
 
-	command error_t StdControl.start(){
-		status=WAIT_FOR_BS;
-		if(call StreamStorage.getMinAddress()==EBUSY)
-			call StorageWaitTimer.startOneShot(10);
-		return SUCCESS;
-	}
-
-	event void SplitControl.startDone(error_t error){
+	event void SerialControl.startDone(error_t error){
 		if(error==SUCCESS){
-			call TimeSyncAMSendMilli.send(BS_ADDR, &message, sizeof(ctrl_msg),0); 
+			call AMSend.send(BS_ADDR, &message, sizeof(ctrl_msg)); 
 		}else
-			call SplitControl.start();
+			call SerialControl.start();
 	}
 
-	event void SplitControl.stopDone(error_t error){
+	event void SerialControl.stopDone(error_t error){
 		if(error!=SUCCESS)
-			call SplitControl.stop();
+			call SerialControl.stop();
 		else{
 			if(status!=OFF){
 				status=WAIT_FOR_BS;
-				if(bs_lost==NO_BS||bs_lost==BS_OK)//if BS_OK, than it doesn't want any data, so we can sleep longer
-					call WaitTimer.startOneShot((uint32_t)LONG_TIME*1000);
-				else
-					call WaitTimer.startOneShot(SHORT_TIME);
+				call WaitTimer.startOneShot(SHORT_TIME);
 			}
 		}
 	}
@@ -234,13 +209,16 @@ implementation{
 		// TODO Auto-generated method stub
 	}
 
-	event void StreamStorage.appendDoneWithID(void *buf, uint16_t len, error_t error){
+	event void StreamStorage.appendDoneWithID(void *buf, uint8_t len, error_t error){
 		// TODO Auto-generated method stub
 	}
 
 
-	event void StreamStorage.appendDone(void *buf, uint16_t len, error_t error){
+	event void StreamStorage.appendDone(void *buf, uint8_t len, error_t error){
 		// TODO Auto-generated method stub
 	}
 
+	event void StreamControl.stopDone(error_t error){
+		// TODO Auto-generated method stub
+	}
 }

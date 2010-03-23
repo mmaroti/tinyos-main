@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, University of Szeged
+ * Copyright (c) 2010, University of Szeged
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ public class StreamDownloader implements MessageListener {
 	private MoteIF moteIF;
 	private byte am_type;
 	private ArrayList<dataFile> files = new ArrayList<dataFile>();
-	public static final int MIN_DOWNLOAD_SIZE=dataMsg.DEFAULT_MESSAGE_SIZE*4;
+	public static final int MIN_DOWNLOAD_SIZE=1;//dataMsg.DEFAULT_MESSAGE_SIZE*4;
 	
 
 	public StreamDownloader(String source, byte amtype) {
@@ -58,13 +58,13 @@ public class StreamDownloader implements MessageListener {
 		}
 		this.moteIF = new MoteIF(phoenix);
 		this.moteIF.registerListener(new dataMsg(am_type), this);
-		this.moteIF.registerListener(new ctrlMsg(am_type), this);
+		this.moteIF.registerListener(new ctrlMsgTS(am_type), this);
 	}
 
 	public void messageReceived(int to, Message message) {
-		if (message instanceof ctrlMsg && message.dataLength() == ctrlMsg.DEFAULT_MESSAGE_SIZE) {
-			ctrlMsg msg = (ctrlMsg) message;
-			System.out.println("Ctrl message received from #"+msg.getSerialPacket().get_header_src()+"min:"+msg.get_min_address()+" max:"+msg.get_max_address());
+		if (message instanceof ctrlMsgTS && message.dataLength() == ctrlMsgTS.DEFAULT_MESSAGE_SIZE) {
+			ctrlMsgTS msg = (ctrlMsgTS) message;
+			System.out.println("Ctrl message received from #"+msg.getSerialPacket().get_header_src()+" min:"+msg.get_min_address()+" max:"+msg.get_max_address()+" timestamp:"+msg.get_timestamp());
 			dataFile currentFile = null;
 			for (int i = 0; i < files.size(); i++) {
 				if (files.get(i).nodeid == msg.getSerialPacket().get_header_src()) {

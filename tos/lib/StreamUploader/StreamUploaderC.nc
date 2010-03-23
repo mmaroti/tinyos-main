@@ -41,7 +41,9 @@ implementation{
 	components ActiveMessageC;
 	components new TimerMilliC() as WaitTimer;
 	components new TimerMilliC() as StorageWaitTimer;
+	components TimeSyncMessageC, LedsC;
 	
+	App.Leds->LedsC;
 	App.Packet -> AMSend;
  	App.AMPacket -> AMSend;
   	App.AMSend -> AMSend;
@@ -50,5 +52,8 @@ implementation{
   	App.Receive -> AMReceive;
   	App.WaitTimer->WaitTimer;
   	App.StorageWaitTimer->StorageWaitTimer;
+  	App.PacketTimeStampMilli -> TimeSyncMessageC.PacketTimeStampMilli;
+  	App.TimeSyncPacketMilli -> TimeSyncMessageC.TimeSyncPacketMilli;
+  	App.TimeSyncAMSendMilli -> TimeSyncMessageC.TimeSyncAMSendMilli[am_id];
   	StdControl=App.StdControl;
 }

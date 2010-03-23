@@ -38,14 +38,15 @@ enum{
 	WAIT_FOR_BS,
 	WAIT_FOR_REQ,
 	SEND,
+	ERASE,
 	BS_ADDR=0,
 	NO_BS=0,
 	BS_OK=60,
-	MESSAGE_SIZE=28-5,
+	MESSAGE_SIZE=TOSH_DATA_LENGTH-5,
 //	AM_CTRL_MSG_T=10,//Just for the MIG
 //	AM_DATA_MSG_T=10,
 	SHORT_TIME=1000,//in milliseconds
-	LONG_TIME=60,//in seconds
+	LONG_TIME=10,//in seconds
 };
 
 typedef nx_struct ctrl_msg_t {

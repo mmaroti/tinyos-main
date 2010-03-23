@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009, University of Szeged
+* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -31,20 +31,32 @@
 *
 * Author:Andras Biro
 */
-
- #include "Storage.h"
-generic configuration StreamStorageC(volume_id_t volume_id){
-	provides {
-		interface StreamStorage;
-		interface SplitControl;
-	}
+#include "Storage.h"
+#include "StorageVolumes.h"
+#include "FlashDumper_at45db.h"
+configuration FlashDumper_at45dbC {
+ 
 }
-implementation{
+implementation {
+  enum {
+    LOG_ID = unique(UQ_LOG_STORAGE),
+    RESOURCE_ID = unique(UQ_AT45DB)
+  };
+    
+  components FlashDumper_at45dbP, At45dbStorageManagerC, At45dbC, MainC, LedsC;
+  components SerialActiveMessageC, new SerialAMSenderC(AM_CTRL_MSG_T), new SerialAMReceiverC(AM_CTRL_MSG_T);
 
-		
-	components StreamStorageP, new LogStorageC(volume_id, TRUE);
-	StreamStorageP.LogRead -> LogStorageC;
-	StreamStorageP.LogWrite -> LogStorageC;
-	StreamStorage=StreamStorageP.StreamStorage;
-	SplitControl=StreamStorageP.SplitControl;
+  FlashDumper_at45dbP.At45db -> At45dbC;
+  FlashDumper_at45dbP.At45dbVolume[LOG_ID] -> At45dbStorageManagerC.At45dbVolume[VOLUME_FLASH];
+  FlashDumper_at45dbP.Resource -> At45dbC.Resource[RESOURCE_ID];
+  
+  FlashDumper_at45dbP.Boot-> MainC;
+  FlashDumper_at45dbP.Leds->LedsC;
+  
+  FlashDumper_at45dbP.SplitControl -> SerialActiveMessageC;
+  FlashDumper_at45dbP.AMSend -> SerialAMSenderC;
+  FlashDumper_at45dbP.Receive -> SerialAMReceiverC;
+  FlashDumper_at45dbP.Packet -> SerialAMSenderC;
+  FlashDumper_at45dbP.AMPacket -> SerialAMSenderC;
 }
+  

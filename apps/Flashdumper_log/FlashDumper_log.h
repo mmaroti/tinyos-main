@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009, University of Szeged
+* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -31,20 +31,23 @@
 *
 * Author:Andras Biro
 */
+#ifndef FLASH_DUMPER_H
+#define FLASH_DUMPER_H
+#include "message.h"
+enum{
+	DATA_SIZE=TOSH_DATA_LENGTH-4,
+	PAGE_SIZE=254,
+	AM_CTRL_MSG_T=10,
+	AM_DATA_MSG_T=10,
+};
+typedef struct ctrl_msg_t{
+	uint16_t startpage;
+	uint16_t endpage;
+} ctrl_msg;
 
- #include "Storage.h"
-generic configuration StreamStorageC(volume_id_t volume_id){
-	provides {
-		interface StreamStorage;
-		interface SplitControl;
-	}
-}
-implementation{
-
-		
-	components StreamStorageP, new LogStorageC(volume_id, TRUE);
-	StreamStorageP.LogRead -> LogStorageC;
-	StreamStorageP.LogWrite -> LogStorageC;
-	StreamStorage=StreamStorageP.StreamStorage;
-	SplitControl=StreamStorageP.SplitControl;
-}
+typedef struct data_msg_t{
+	uint8_t data[DATA_SIZE];
+	uint16_t page;
+	uint16_t offset;
+} data_msg;
+#endif /* FLASH_DUMPER_H */

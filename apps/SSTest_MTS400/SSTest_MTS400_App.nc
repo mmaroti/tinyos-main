@@ -32,19 +32,23 @@
 * Author:Andras Biro
 */
 
- #include "Storage.h"
-generic configuration StreamStorageC(volume_id_t volume_id){
-	provides {
-		interface StreamStorage;
-		interface SplitControl;
-	}
+#include "StorageVolumes.h"
+configuration SSTest_MTS400_App{
 }
 implementation{
-
-		
-	components StreamStorageP, new LogStorageC(volume_id, TRUE);
-	StreamStorageP.LogRead -> LogStorageC;
-	StreamStorageP.LogWrite -> LogStorageC;
-	StreamStorage=StreamStorageP.StreamStorage;
-	SplitControl=StreamStorageP.SplitControl;
+	components new StreamStorageC(VOLUME_STOR), StreamStorageP, StorageFrameC,StorageFrameP;
+	components new TimerMilliC() as SensorTimer,new SensirionSht11C(), new Taos2550C();
+	components SSTest_MTS400C as App, MainC, LedsC, new StreamUploaderC(10), StreamUploaderP, LocalTimeMilliC;
+	StorageFrameP.StreamStorage->StreamStorageC;
+	StreamUploaderP.StreamStorage -> StreamStorageC;
+	App.StreamStorage->StorageFrameC;
+	App.SplitControl->StreamStorageC;
+	App.Boot -> MainC.Boot;
+	App.Leds->LedsC;
+	App.StdControl -> StreamUploaderC;
+	App.LocalTime->LocalTimeMilliC;
+	App.SensorTimer -> SensorTimer;
+	App.TRead -> SensirionSht11C.Temperature;
+	App.HRead -> SensirionSht11C.Humidity;
+	App.LRead -> Taos2550C.VisibleLight;
 }

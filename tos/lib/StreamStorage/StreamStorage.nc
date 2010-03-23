@@ -35,10 +35,10 @@
 interface StreamStorage{
 	command error_t erase();
 	event void eraseDone(error_t error);
-	command error_t appendWithID(nx_uint8_t id, void* buf, uint8_t  len);
-	event void appendDoneWithID(void* buf, uint8_t  len, error_t error);
-	command error_t append(void* buf, uint8_t  len);
-	event void appendDone(void* buf, uint8_t  len, error_t error);
+	command error_t appendWithID(nx_uint8_t id, void* buf, uint16_t  len);
+	event void appendDoneWithID(void* buf, uint16_t  len, error_t error);
+	command error_t append(void* buf, uint16_t  len);
+	event void appendDone(void* buf, uint16_t  len, error_t error);
 	command error_t sync();
 	event void syncDone(error_t error);
 	command error_t getMinAddress();

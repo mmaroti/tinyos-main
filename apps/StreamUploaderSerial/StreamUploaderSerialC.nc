@@ -31,20 +31,27 @@
 *
 * Author:Andras Biro
 */
-
- #include "Storage.h"
-generic configuration StreamStorageC(volume_id_t volume_id){
-	provides {
-		interface StreamStorage;
-		interface SplitControl;
-	}
+#include "StorageVolumes.h"
+configuration StreamUploaderSerialC{
 }
 implementation{
-
-		
-	components StreamStorageP, new LogStorageC(volume_id, TRUE);
-	StreamStorageP.LogRead -> LogStorageC;
-	StreamStorageP.LogWrite -> LogStorageC;
-	StreamStorage=StreamStorageP.StreamStorage;
-	SplitControl=StreamStorageP.SplitControl;
+	components StreamUploaderSerialP as App;
+	components new SerialAMSenderC(10) as AMSend;
+	components new SerialAMReceiverC(10) as AMReceive;
+	components SerialActiveMessageC, MainC, LedsC;
+	components new TimerMilliC() as WaitTimer;
+	components new TimerMilliC() as StorageWaitTimer;
+	components new StreamStorageC(VOLUME_STOR);
+	
+	App.Boot->MainC;
+	App.Packet -> AMSend;
+ 	App.AMPacket -> AMSend;
+  	App.AMSend -> AMSend;
+  	App.SerialControl -> SerialActiveMessageC;
+  	App.Receive -> AMReceive;
+  	App.WaitTimer->WaitTimer;
+  	App.StorageWaitTimer->StorageWaitTimer;
+  	App.StreamControl->StreamStorageC;
+  	App.StreamStorage->StreamStorageC;
+  	App.Leds-> LedsC;
 }
