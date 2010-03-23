@@ -33,6 +33,7 @@
 */
 #ifndef STREAM_UPLOADER_H
 #define STREAM_UPLOADER_H
+#include "message.h"
 enum{
 	OFF=0,
 	WAIT_FOR_BS,
