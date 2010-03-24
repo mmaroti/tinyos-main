@@ -57,7 +57,7 @@ implementation{
 	uint32_t minaddress,maxaddress;
 	uint8_t status=OFF;
 	uint8_t buffer[MESSAGE_SIZE];
-	uint8_t bs_lost=NO_BS;
+	uint8_t bs_lost;
 	message_t message;
 	
 	event void StreamStorage.getMinAddressDone(uint32_t addr){
@@ -65,8 +65,12 @@ implementation{
 		msg->min_address=addr;
 		msg->max_address=call StreamStorage.getMaxAddress();
 		call PacketAcknowledgements.requestAck(&message);
-		if(call SplitControl.start()==EALREADY)
-			call TimeSyncAMSendMilli.send(BS_ADDR, &message, sizeof(ctrl_msg),0);		
+		call Leds.led1Toggle();
+		if(call SplitControl.start()==EALREADY){
+			if(call TimeSyncAMSendMilli.send(BS_ADDR, &message, sizeof(ctrl_msg),0)!=SUCCESS){
+				call SplitControl.stop();
+			}
+		}		
 	}
 	
 	event void StorageWaitTimer.fired(){
@@ -126,7 +130,7 @@ implementation{
 				call StorageWaitTimer.startOneShot(10);
 		}else{
 			status=WAIT_FOR_BS;
-			call WaitTimer.startOneShot((uint32_t)(uint32_t)RADIO_SHORT);
+			call WaitTimer.startOneShot((uint32_t)RADIO_SHORT);
 		}
 	}
 
@@ -137,7 +141,8 @@ implementation{
 				msg->length=len;
 				msg->address=minaddress;
 				memcpy(&(msg->data),buf,len);
-				call AMSend.send(BS_ADDR, &message, sizeof(data_msg));
+				if(call AMSend.send(BS_ADDR, &message, sizeof(data_msg))!=SUCCESS)
+					readNext();
 			} else{
 				readNext();
 			}
@@ -145,18 +150,7 @@ implementation{
 	}
 
 	event void AMSend.sendDone(message_t *msg, error_t error){
-		if(status==WAIT_FOR_BS){
-			if(call PacketAcknowledgements.wasAcked(msg)){
-				bs_lost=BS_OK;
-				status=WAIT_FOR_REQ;
-				call WaitTimer.startOneShot(RADIO_SHORT);
-			} else {
-				bs_lost--;
-				call SplitControl.stop();			
-			}
-		} else { //data sending
-			readNext();
-		}	
+		readNext();
 	}
 
 	event void TimeSyncAMSendMilli.sendDone(message_t *msg, error_t error){
@@ -166,7 +160,8 @@ implementation{
 				status=WAIT_FOR_REQ;
 				call WaitTimer.startOneShot(RADIO_SHORT);
 			} else {
-				bs_lost--;
+				if(bs_lost!=NO_BS)
+					bs_lost--;	
 				call SplitControl.stop();			
 			}
 		} 
@@ -174,12 +169,12 @@ implementation{
 
 	event void WaitTimer.fired(){
 		switch(status){
+			case WAIT_FOR_REQ:{
+				call SplitControl.stop();	
+			}break;
 			case WAIT_FOR_BS:{
 				if(call StreamStorage.getMinAddress()==EBUSY)
 					call StorageWaitTimer.startOneShot(10);
-			}break;
-			case WAIT_FOR_REQ:{
-				call SplitControl.stop();	
 			}break;
 		}
 	}
@@ -194,6 +189,7 @@ implementation{
 
 	command error_t StdControl.start(){
 		status=WAIT_FOR_BS;
+		bs_lost=NO_BS;
 		if(call StreamStorage.getMinAddress()==EBUSY)
 			call StorageWaitTimer.startOneShot(10);
 		return SUCCESS;
@@ -201,7 +197,10 @@ implementation{
 
 	event void SplitControl.startDone(error_t error){
 		if(error==SUCCESS){
-			call TimeSyncAMSendMilli.send(BS_ADDR, &message, sizeof(ctrl_msg),0); 
+			call Leds.led2On();
+			if(call TimeSyncAMSendMilli.send(BS_ADDR, &message, sizeof(ctrl_msg),0)!=SUCCESS){
+				call SplitControl.stop();
+			}
 		}else
 			call SplitControl.start();
 	}
@@ -209,7 +208,8 @@ implementation{
 	event void SplitControl.stopDone(error_t error){
 		if(error!=SUCCESS)
 			call SplitControl.stop();
-		else{
+		else{			
+			call Leds.led2Off();
 			if(status!=OFF){
 				status=WAIT_FOR_BS;
 				if(bs_lost==NO_BS||bs_lost==BS_OK)//if BS_OK, than it doesn't want any data, so we can sleep longer
