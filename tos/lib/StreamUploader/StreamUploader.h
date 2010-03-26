@@ -59,6 +59,7 @@ enum{
 typedef nx_struct ctrl_msg_t {
 	nx_uint32_t min_address;
 	nx_uint32_t max_address;
+	nx_uint32_t localtime;
 } ctrl_msg;
 
 typedef nx_struct data_msg_t {

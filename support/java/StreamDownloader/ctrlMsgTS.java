@@ -7,7 +7,7 @@
 public class ctrlMsgTS extends net.tinyos.message.Message {
 
     /** The default size of this message type in bytes. */
-    public static final int DEFAULT_MESSAGE_SIZE = 12;
+    public static final int DEFAULT_MESSAGE_SIZE = 16;
 
     /** The Active Message type associated with this message. */
     public static final int am_type = 10;
@@ -222,9 +222,72 @@ public class ctrlMsgTS extends net.tinyos.message.Message {
     }
 
     /////////////////////////////////////////////////////////
-    // Accessor methods for timestamp
+    // Accessor methods for field: localtime
     //   Field type: long, unsigned
     //   Offset (bits): 64
+    //   Size (bits): 32
+    /////////////////////////////////////////////////////////
+
+    /**
+     * Return whether the field 'localtime' is signed (false).
+     */
+    public static boolean isSigned_localtime() {
+        return false;
+    }
+
+    /**
+     * Return whether the field 'localtime' is an array (false).
+     */
+    public static boolean isArray_localtime() {
+        return false;
+    }
+
+    /**
+     * Return the offset (in bytes) of the field 'localtime'
+     */
+    public static int offset_localtime() {
+        return (64 / 8);
+    }
+
+    /**
+     * Return the offset (in bits) of the field 'localtime'
+     */
+    public static int offsetBits_localtime() {
+        return 64;
+    }
+
+    /**
+     * Return the value (as a long) of the field 'localtime'
+     */
+    public long get_localtime() {
+        return (long)getUIntBEElement(offsetBits_localtime(), 32);
+    }
+
+    /**
+     * Set the value of the field 'localtime'
+     */
+    public void set_localtime(long value) {
+        setUIntBEElement(offsetBits_localtime(), 32, value);
+    }
+
+    /**
+     * Return the size, in bytes, of the field 'localtime'
+     */
+    public static int size_localtime() {
+        return (32 / 8);
+    }
+
+    /**
+     * Return the size, in bits, of the field 'localtime'
+     */
+    public static int sizeBits_localtime() {
+        return 32;
+    }
+    
+    /////////////////////////////////////////////////////////
+    // Accessor methods for timestamp
+    //   Field type: long, unsigned
+    //   Offset (bits): 96
     //   Size (bits): 32
     /////////////////////////////////////////////////////////
 
@@ -232,23 +295,20 @@ public class ctrlMsgTS extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'max_address'
      */
     public static int offset_timestamp() {
-        return (64 / 8);
+        return (96 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'max_address'
      */
     public static int offsetBits_timestamp() {
-        return 64;
+        return 96;
     }
 
     /**
      * Return the value (as a long) of the field 'max_address'
      */
     public Long get_timestamp() {
-    	//System.out.println(Long.toHexString((Long)getUIntBEElement(offsetBits_timestamp(), 32)));
-    	//System.out.println(Long.toHexString(-1*(0xffffffffL<<32|(Long)getUIntBEElement(offsetBits_timestamp(), 32))));
-        //return -1*(0xffffffffL<<32|(Long)getUIntBEElement(offsetBits_timestamp(), 32));
     	return (Long)getUIntBEElement(offsetBits_timestamp(), 32);
     }
 

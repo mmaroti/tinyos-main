@@ -8,17 +8,24 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
 
 public class dataFile {
 	RandomAccessFile dataFile;
 	long maxaddress;
 	int nodeid;
 	private ArrayList<Gap> gaps = new ArrayList<Gap>();
-	private File gapFile; 
+	private File gapFile, timestamps; 
+
+	public File getTimestamps() {
+		return timestamps;
+	}
 
 	public dataFile(int nodeid) throws IOException{
 		File file=new File(String.valueOf(nodeid)+"data.bin");
 		gapFile = new File(String.valueOf(nodeid)+"gaps.txt");
+		timestamps = new File(String.valueOf(nodeid)+"timestamps.txt");
 		if(file.exists()){
 			try {
 				this.dataFile=new RandomAccessFile(file,"rwd");
@@ -46,6 +53,8 @@ public class dataFile {
 				}
 			}else {
 				System.out.print("\nGapfile doesn't exist");
+			if(!timestamps.exists())
+				System.out.print("\nTimestamp file doesn't exist");
 			}
 			System.out.println("\nFile opened");
 		}else {
@@ -58,6 +67,7 @@ public class dataFile {
 				e.printStackTrace();
 			}
 			gapFile = new File(String.valueOf(nodeid)+"gaps.txt");
+			timestamps = new File(String.valueOf(nodeid)+"timestamps.txt");
 		}
 	}
 	
@@ -115,6 +125,15 @@ public class dataFile {
 		return gaps.size();
 	}
 	
+	public HashSet<Long> getAllGap() {
+		HashSet<Long> ret=new HashSet<Long>();
+		for(Gap g:gaps){
+			for(long i=g.start;i<=g.end;i++)
+				ret.add(i);				
+		}
+		return ret;
+	}
+	
 	private void writeGapFile(){
 		try {
 			Writer output = new BufferedWriter(new FileWriter(gapFile));
@@ -125,6 +144,18 @@ public class dataFile {
 				else
 					output.write(" F\n");
 			}
+			output.flush();
+			output.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public void addTimeStamp(long local, long remote){
+		try {
+			Writer output = new BufferedWriter(new FileWriter(timestamps,true));
+			output.write(local+":"+remote+"\n");
 			output.flush();
 			output.close();
 		} catch (IOException e) {

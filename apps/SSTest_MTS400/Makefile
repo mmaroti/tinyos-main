@@ -6,7 +6,7 @@ CFLAGS += -I$(SZTETOSDIR)/lib/StreamStorage
 CFLAGS += -I$(SZTETOSDIR)/lib/StorageFrame
 CFLAGS += -I$(SZTETOSDIR)/lib/StreamUploader
 #sampling time in ms, default: 60000U
-#CFLAGS += -DSAMP_T=60000U
+CFLAGS += -DSAMP_T=6000U
 #short waiting time for the radio in ms, default: 1000U
 #CFLAGS += -DRADIO_SHORT=1000U
 #long waiting time for the radio in s, default: 60U

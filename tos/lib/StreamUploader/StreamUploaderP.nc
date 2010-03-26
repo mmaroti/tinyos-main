@@ -49,6 +49,7 @@ module StreamUploaderP{
 		interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
 		interface TimeSyncAMSend<TMilli, uint32_t> as TimeSyncAMSendMilli;
 		
+		interface LocalTime<TMilli>;
 		interface Leds;
 	}
 }
@@ -64,10 +65,11 @@ implementation{
 		ctrl_msg* msg=call Packet.getPayload(&message, sizeof(ctrl_msg));
 		msg->min_address=addr;
 		msg->max_address=call StreamStorage.getMaxAddress();
+		msg->localtime=call LocalTime.get();
 		call PacketAcknowledgements.requestAck(&message);
 		call Leds.led1Toggle();
 		if(call SplitControl.start()==EALREADY){
-			if(call TimeSyncAMSendMilli.send(BS_ADDR, &message, sizeof(ctrl_msg),0)!=SUCCESS){
+			if(call TimeSyncAMSendMilli.send(BS_ADDR, &message, sizeof(ctrl_msg),msg->localtime)!=SUCCESS){
 				call SplitControl.stop();
 			}
 		}		
@@ -188,17 +190,21 @@ implementation{
 	}
 
 	command error_t StdControl.start(){
+		error_t err;
 		status=WAIT_FOR_BS;
 		bs_lost=NO_BS;
-		if(call StreamStorage.getMinAddress()==EBUSY)
+		err=call StreamStorage.getMinAddress();
+		if(err==EBUSY)
 			call StorageWaitTimer.startOneShot(10);
 		return SUCCESS;
 	}
 
 	event void SplitControl.startDone(error_t error){
 		if(error==SUCCESS){
+			ctrl_msg* msg=call Packet.getPayload(&message, sizeof(ctrl_msg));
 			call Leds.led2On();
-			if(call TimeSyncAMSendMilli.send(BS_ADDR, &message, sizeof(ctrl_msg),0)!=SUCCESS){
+			msg->localtime=call LocalTime.get();
+			if(call TimeSyncAMSendMilli.send(BS_ADDR, &message, sizeof(ctrl_msg),msg->localtime)!=SUCCESS){
 				call SplitControl.stop();
 			}
 		}else

@@ -59,15 +59,11 @@ implementation{
 
 	event void Boot.booted(){
 		call Leds.set(7);
-		//call StreamStorage.erase();
 		call SplitControl.start();	
 	}
 	
 	event void StreamStorage.eraseDone(error_t error){
 		call Leds.set(0);
-		#ifndef RADIO_DISABLE
-			call StdControl.start();
-		#endif
 		#ifndef MEAS_DISABLE
 			call SensorTimer.startPeriodic(SAMP_T);
 		#endif
