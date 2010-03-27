@@ -377,6 +377,7 @@ implementation {
 
       // Setup the LPL feature if wanted
       call LowPowerListening.setLocalWakeupInterval(config.lplwakeupintval);
+      call LowPowerListening.setRemoteWakeupInterval(&pkt,config.lplwakeupintval);
 
       if ( config.timer_msec > 0 && tTickSendMask )
         call TriggerTimer.startPeriodic(config.timer_msec);
