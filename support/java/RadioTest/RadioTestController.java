@@ -93,7 +93,7 @@ public class RadioTestController implements MessageListener {
   public boolean setupMotes(final SetupT config) throws MissingOptionException {
 
     if ( trproblem[pidx] != 0 && config.get_timer_msec() == 0 )
-      throw new MissingOptionException("Network policy " + pidx + " needs trigger timer specified!");
+      throw new MissingOptionException("Network problem " + pidx + " needs trigger timer specified!");
     
     CtrlMsgT cmsg = new CtrlMsgT();
 

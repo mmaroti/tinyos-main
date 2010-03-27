@@ -51,10 +51,10 @@ public class RadioTest {
     opt = new Options();
     try {
 
-      Option policy = OptionBuilder.withArgName( "number" )
+      Option problem = OptionBuilder.withArgName( "number" )
                                 .hasArg()
-                                .withDescription( "The network policy to be used [0-" + (RadioTestController.PROBLEMSET_COUNT-1) + "]." )
-                                .withLongOpt("policy")
+                                .withDescription( "The network problem to be used [0-" + (RadioTestController.PROBLEMSET_COUNT-1) + "]." )
+                                .withLongOpt("problem")
                                 .create( "p" );
 
       Option runtime = OptionBuilder.withArgName( "number" )
@@ -85,7 +85,7 @@ public class RadioTest {
                                 .withDescription( "Write statistics to XML output" )
                                 .create( "xml" );
 
-      opt.addOption(policy);
+      opt.addOption(problem);
       opt.addOption(runtime);
       opt.addOption(trigger);
       opt.addOption(lastchance);
@@ -106,7 +106,7 @@ public class RadioTest {
       } else if ( cl.hasOption('p') ) {
         short problemidx = (short)Integer.parseInt(cl.getOptionValue('p'));
         if ( problemidx >= RadioTestController.PROBLEMSET_COUNT || problemidx < 0 )
-          throw new MissingOptionException("Invalid policy specified!");
+          throw new MissingOptionException("Invalid problem specified!");
   
         int runtimemsec = cl.hasOption('t') 
                                 ? Integer.parseInt(cl.getOptionValue("t")) 
