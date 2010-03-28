@@ -48,7 +48,7 @@ public class StreamDownloader implements MessageListener {
 	private byte am_type;
 	private ArrayList<dataFile> files = new ArrayList<dataFile>();
 	private int listenonly;
-	public static final int MIN_DOWNLOAD_SIZE=dataMsg.DEFAULT_MESSAGE_SIZE*4;
+	public static final int MIN_DOWNLOAD_SIZE=dataMsg.numElements_data()*4;
 	
 	
 
@@ -63,7 +63,7 @@ public class StreamDownloader implements MessageListener {
 		}
 		this.moteIF = new MoteIF(phoenix);
 		this.moteIF.registerListener(new dataMsg(am_type), this);
-		this.moteIF.registerListener(new ctrlMsgTS(am_type), this);
+		this.moteIF.registerListener(new ctrlMsgTS((byte) (am_type+1)), this);
 	}
 
 	public void messageReceived(int to, Message message) {
@@ -71,7 +71,7 @@ public class StreamDownloader implements MessageListener {
 			if (message instanceof ctrlMsgTS && message.dataLength() == ctrlMsgTS.DEFAULT_MESSAGE_SIZE) {
 				long received_t=(new Date()).getTime();
 				ctrlMsgTS msg = (ctrlMsgTS) message;
-				System.out.println("Ctrl message received from #"+msg.getSerialPacket().get_header_src()+" min:"+msg.get_min_address()+" max:"+msg.get_max_address()+" timestamp:"+msg.get_localtime()+msg.get_timestamp());
+				System.out.println("Ctrl message received from #"+msg.getSerialPacket().get_header_src()+" min:"+msg.get_min_address()+" max:"+msg.get_max_address()+" timestamp:"+(Long)(msg.get_localtime()+msg.get_timestamp()));
 				dataFile currentFile = null;
 				for (int i = 0; i < files.size(); i++) {
 					if (files.get(i).nodeid == msg.getSerialPacket().get_header_src()) {

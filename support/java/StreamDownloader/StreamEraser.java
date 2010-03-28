@@ -26,7 +26,7 @@ public class StreamEraser implements MessageListener {
 			phoenix = BuildSource.makePhoenix(source, PrintStreamMessenger.err);
 		}
 		this.moteIF = new MoteIF(phoenix);
-		this.moteIF.registerListener(new ctrlMsgTS(am_type), this);
+		this.moteIF.registerListener(new ctrlMsgTS((byte) (am_type+1)), this);
 		System.out.println("Waiting for node #"+nodeid);
 	}
 

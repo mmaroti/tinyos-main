@@ -67,6 +67,7 @@ implementation{
 		WRITE_PENDING_METADATA_ID_UNWRITTEN,
 		ERASE_PENDING,
 		ERASE_PENDING_UNINIT,
+		SYNC_PENDING,
 		GET_MIN,
 		#ifdef AT45DB_H
 			PAGE_SIZE=254,
@@ -110,6 +111,7 @@ implementation{
 	command error_t SplitControl.start(){
 		if(status!=UNINIT)
 			return EALREADY;
+		status=INIT_START;
 		#ifdef DEBUG
 			printf("Start; ");
 		#endif
@@ -118,9 +120,7 @@ implementation{
 			printf(" volume size=%ld; pages=%u; ",call LogRead.getSize(),PAGES);
 			printfflush();
 		#endif
-		addressTranslation.success=FALSE;
-		status=INIT_START;
-	
+		addressTranslation.success=FALSE;	
 		call LogRead.seek(SEEK_BEGINNING);
 		return SUCCESS;	
 	}
@@ -177,6 +177,7 @@ implementation{
 			return EINVAL;
 		}else{
 			uint32_t offset=call LogWrite.currentOffset();
+			status=WRITE_PENDING_DATA1;
 			writebuffer=buf;
 			writelength=len;
 			write_id=0;
@@ -228,6 +229,7 @@ implementation{
 			return EINVAL;
 		}else{
 			uint32_t offset=call LogWrite.currentOffset();
+			status=WRITE_PENDING_DATA1;
 			writebuffer=buf;
 			writelength=len;
 			write_id=id;
@@ -265,7 +267,6 @@ implementation{
 		}
 	}
 	
-	//TODO: what should we do with half written data?
 	event void LogWrite.appendDone(void *buf, storage_len_t len, bool recordsLost, error_t error){
 //		#ifdef DEBUG
 //			uint8_t i;
@@ -342,6 +343,7 @@ implementation{
 			else
 				return EBUSY;
 		else {
+			status=READ_PENDING_SEEK;
 			readbuffer=buf;
 			readlength=len;
 			if(addressTranslation.success){
@@ -749,6 +751,7 @@ implementation{
 	
 
 	event void LogWrite.syncDone(error_t error){
+		status=NORMAL;
 		signal StreamStorage.syncDone(error);	
 	}
 
@@ -759,6 +762,7 @@ implementation{
 			else
 				return EBUSY;
 		else {
+			status=SYNC_PENDING;
 			return call LogWrite.sync();
 		}
 	}

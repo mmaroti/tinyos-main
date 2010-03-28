@@ -74,7 +74,7 @@ implementation{
 		msg->min_address=addr;
 		msg->max_address=call StreamStorage.getMaxAddress();
 		if(call SerialControl.start()==EALREADY)
-			call AMSend.send(BS_ADDR, &message, sizeof(ctrl_msg));		
+			call AMSend.send(BS_ADDR, &message, sizeof(ctrl_msg)+4);		
 	}
 	
 	event void StorageWaitTimer.fired(){
@@ -137,7 +137,7 @@ implementation{
 				call StorageWaitTimer.startOneShot(10);
 		}else{
 			status=WAIT_FOR_BS;
-			call WaitTimer.startOneShot((uint32_t)(uint32_t)SHORT_TIME);
+			call WaitTimer.startOneShot((uint32_t)(uint32_t)RADIO_SHORT);
 		}
 	}
 
@@ -158,7 +158,7 @@ implementation{
 
 	event void AMSend.sendDone(message_t *msg, error_t error){
 		if(status==WAIT_FOR_BS){
-			call WaitTimer.startOneShot(SHORT_TIME);
+			call WaitTimer.startOneShot(RADIO_SHORT);
 		} else { //data sending
 			readNext();
 		}	
@@ -179,7 +179,7 @@ implementation{
 
 	event void SerialControl.startDone(error_t error){
 		if(error==SUCCESS){
-			call AMSend.send(BS_ADDR, &message, sizeof(ctrl_msg)); 
+			call AMSend.send(BS_ADDR, &message, sizeof(ctrl_msg)+4); 
 		}else
 			call SerialControl.start();
 	}
@@ -190,7 +190,7 @@ implementation{
 		else{
 			if(status!=OFF){
 				status=WAIT_FOR_BS;
-				call WaitTimer.startOneShot(SHORT_TIME);
+				call WaitTimer.startOneShot(RADIO_SHORT);
 			}
 		}
 	}
@@ -209,12 +209,12 @@ implementation{
 		// TODO Auto-generated method stub
 	}
 
-	event void StreamStorage.appendDoneWithID(void *buf, uint8_t len, error_t error){
+	event void StreamStorage.appendDoneWithID(void *buf, uint16_t len, error_t error){
 		// TODO Auto-generated method stub
 	}
 
 
-	event void StreamStorage.appendDone(void *buf, uint8_t len, error_t error){
+	event void StreamStorage.appendDone(void *buf, uint16_t len, error_t error){
 		// TODO Auto-generated method stub
 	}
 

@@ -33,6 +33,13 @@
 */
 #ifndef STREAM_UPLOADER_H
 #define STREAM_UPLOADER_H
+#include "message.h"
+#ifndef RADIO_SHORT
+	#define RADIO_SHORT 1000U
+#endif
+#ifndef RADIO_LONG
+	#define RADIO_LONG 60U
+#endif
 enum{
 	OFF=0,
 	WAIT_FOR_BS,
@@ -42,16 +49,17 @@ enum{
 	BS_ADDR=0,
 	NO_BS=0,
 	BS_OK=60,
-	MESSAGE_SIZE=28-5,
+	MESSAGE_SIZE=TOSH_DATA_LENGTH-5,
 //	AM_CTRL_MSG_T=10,//Just for the MIG
 //	AM_DATA_MSG_T=10,
-	SHORT_TIME=1000,//in milliseconds
-	LONG_TIME=60,//in seconds
+//	SHORT_TIME=RADIO_SHORT,//in milliseconds
+//	LONG_TIME=RADIO_LONG,//in seconds
 };
 
 typedef nx_struct ctrl_msg_t {
 	nx_uint32_t min_address;
 	nx_uint32_t max_address;
+	nx_uint32_t localtime;
 } ctrl_msg;
 
 typedef nx_struct data_msg_t {

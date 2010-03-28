@@ -44,9 +44,7 @@ module StreamUploaderP{
   		interface PacketAcknowledgements;
   		interface Timer<TMilli> as WaitTimer;
   		interface Timer<TMilli> as StorageWaitTimer;
-  		
-		interface TimeSyncPacket<TMilli, uint32_t> as TimeSyncPacketMilli;
-		interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
+
 		interface TimeSyncAMSend<TMilli, uint32_t> as TimeSyncAMSendMilli;
 		
 		interface LocalTime<TMilli>;
@@ -63,6 +61,7 @@ implementation{
 	
 	event void StreamStorage.getMinAddressDone(uint32_t addr){
 		ctrl_msg* msg=call Packet.getPayload(&message, sizeof(ctrl_msg));
+		call Packet.clear(&message);
 		msg->min_address=addr;
 		msg->max_address=call StreamStorage.getMaxAddress();
 		msg->localtime=call LocalTime.get();
@@ -139,7 +138,7 @@ implementation{
 	event void StreamStorage.readDone(void *buf, uint8_t len, error_t error){
 		if(status==SEND){
 			if(error==SUCCESS){
-				data_msg* msg=call Packet.getPayload(&message, sizeof(data_msg));
+				data_msg* msg=call Packet.getPayload(&message, sizeof(data_msg));				
 				msg->length=len;
 				msg->address=minaddress;
 				memcpy(&(msg->data),buf,len);
@@ -152,7 +151,7 @@ implementation{
 	}
 
 	event void AMSend.sendDone(message_t *msg, error_t error){
-		readNext();
+			readNext();
 	}
 
 	event void TimeSyncAMSendMilli.sendDone(message_t *msg, error_t error){
@@ -166,6 +165,7 @@ implementation{
 					bs_lost--;	
 				call SplitControl.stop();			
 			}
+			call Packet.clear(&message);
 		} 
 	}
 
