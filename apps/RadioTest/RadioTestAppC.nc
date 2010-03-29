@@ -42,7 +42,7 @@ implementation {
   components new TimerMilliC() as TTimer;
   components new AMReceiverC(AM_CTRLMSG_T)    as RxBase;
   components new AMSenderC(AM_RESPONSEMSG_T)  as TxBase;
-  components new AMSenderC(AM_TESTMSG_T)      as TxTest;
+  components new DirectAMSenderC(AM_TESTMSG_T)      as TxTest;
   components new AMReceiverC(AM_TESTMSG_T)    as RxTest;
   components ActiveMessageC;
 
