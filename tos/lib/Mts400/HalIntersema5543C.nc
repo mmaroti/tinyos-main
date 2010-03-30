@@ -46,11 +46,11 @@ implementation {
 	components HplIntersema5543C;
 	Resource = HplIntersema5543C.Resource;
 
-	components HplAtm128GeneralIOC;
+	components MicaBusC;
 	
-	Intersema5543LogicP.SPI_CLK -> HplAtm128GeneralIOC.PortD5;
-	Intersema5543LogicP.SPI_SI -> HplAtm128GeneralIOC.PortD2;
-	Intersema5543LogicP.SPI_SO -> HplAtm128GeneralIOC.PortD3;
+	Intersema5543LogicP.SPI_CLK -> MicaBusC.USART1_CLK;
+	Intersema5543LogicP.SPI_SI -> MicaBusC.USART1_RXD;
+	Intersema5543LogicP.SPI_SO -> MicaBusC.USART1_TXD;
 	
 	components new TimerMilliC() as Timer;
 	Intersema5543LogicP.Timer->Timer;
