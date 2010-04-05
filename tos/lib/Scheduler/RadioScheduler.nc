@@ -6,4 +6,6 @@ interface RadioScheduler{
 	command error_t RadioStop(uint32_t when);
 	command error_t RadioStopCancel();
 	event void RadioStopDone(error_t error); 
+	
+	command bool IsStarted();
 }

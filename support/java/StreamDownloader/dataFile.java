@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 
 public class dataFile {
@@ -21,11 +20,29 @@ public class dataFile {
 	public File getTimestamps() {
 		return timestamps;
 	}
-
+	
+	public dataFile(String path) throws IOException{
+		if(path.endsWith("data.bin")){
+			path.lastIndexOf('/');
+			int nodeid=Integer.parseInt(path.substring(path.lastIndexOf('/')+1, path.length()-8));
+			String dir=path.substring(0, path.lastIndexOf('/')+1);
+			File file=new File(dir+String.valueOf(nodeid)+"data.bin");
+			gapFile = new File(dir+String.valueOf(nodeid)+"gaps.txt");
+			timestamps = new File(dir+String.valueOf(nodeid)+"timestamps.txt");
+			initDataFile(file, gapFile, timestamps, nodeid);
+		} else
+			throw new FileNotFoundException();
+	}
+	
 	public dataFile(int nodeid) throws IOException{
 		File file=new File(String.valueOf(nodeid)+"data.bin");
 		gapFile = new File(String.valueOf(nodeid)+"gaps.txt");
 		timestamps = new File(String.valueOf(nodeid)+"timestamps.txt");
+		initDataFile(file, gapFile, timestamps, nodeid);
+	}
+	
+
+	private void initDataFile(File file, File gapfile, File timestamps, int nodeid) throws IOException{
 		if(file.exists()){
 			try {
 				this.dataFile=new RandomAccessFile(file,"rwd");
