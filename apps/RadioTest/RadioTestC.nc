@@ -72,7 +72,7 @@ implementation {
   // BS communication variables
   int8_t  reqidx,reqtype;
 
-  message_t pkt;
+  message_t pkt,bpkt;
   stat_t  stats[MAX_EDGE_COUNT];
   setup_t config;
   edge_t* problem;
@@ -92,6 +92,7 @@ implementation {
   uint8_t  pidx = 0x1;
 
   event void Boot.booted() {
+    SET_STATE( STATE_INVALID )
     call AMControl.start();
   }
 
@@ -108,15 +109,22 @@ implementation {
 
   event void TestEndTimer.fired() {
     uint8_t i = 0;
+    _ASSERT_( state == STATE_RUNNING || state == STATE_LASTCHANCE )
+
     if ( state == STATE_RUNNING ) {
-      SET_STATE( STATE_LASTCHANCE )
+      // need to stop the timer to ensure that it only triggers in STATE_RUNNING
+      call TriggerTimer.stop();
       call LowPowerListening.setLocalWakeupInterval(0);
       call LowPowerListening.setRemoteWakeupInterval(&pkt,0);
 
+      SET_STATE( STATE_LASTCHANCE )      
       call TestEndTimer.startOneShot(config.lastchance_msec);
 
     } else if ( state == STATE_LASTCHANCE ) {
       SET_STATE( STATE_FINISHED )
+
+      _ASSERT_( sendlock == UNLOCKED )
+
       // compute the remained statistic
       while ( pending ) {
         if ( pending & 0x1 )
@@ -124,15 +132,7 @@ implementation {
         ++i;
         pending >>= 1;
       }
-    }
-
-    
-  }
-
-  void setPendingOrBacklog(pending_t);  // forward-declaration
-  event void TriggerTimer.fired() {
-    if ( state == STATE_RUNNING && tTickSendMask )
-        setPendingOrBacklog( tTickSendMask );
+    }  
   }
 
   /* Task : sendPending
@@ -162,6 +162,8 @@ implementation {
       
       _ASSERT_( (1 << eidx) == pidx );
       _ASSERT_( problem[eidx].sender == TOS_NODE_ID );
+      _ASSERT_( pending == lpending )
+      _ASSERT_( sendlock == UNLOCKED )
         
       // Compose the new message
       msg = (testmsg_t*)(call Packet.getPayload(&pkt,sizeof(testmsg_t)));
@@ -169,14 +171,12 @@ implementation {
       msg->msgid = problem[eidx].nextmsgid;
       address = ( config.flags & USE_DADDR ) ? problem[eidx].receiver : AM_BROADCAST_ADDR;
 
-      _ASSERT_( pending == lpending );
-
       call LowPowerListening.setRemoteWakeupInterval(&pkt,config.lplwakeupintval);
-
       // Send out
       switch ( call TxTest.send( address, &pkt, sizeof(testmsg_t)) ) {
         case SUCCESS :
           ++(stats[eidx].sendSuccessCount);
+          sendlock = LOCKED;
           break;
         case FAIL :
           ++(stats[eidx].sendFailCount);
@@ -187,7 +187,6 @@ implementation {
           break;
       }
       ++(stats[eidx].sendCount);
-      sendlock = LOCKED;
     }
   }
 
@@ -201,6 +200,10 @@ implementation {
     pending_t blogd;
     
     _ASSERT_( (dbgNOTMYEDGES & sbitmask) == 0x0 )
+  
+    // if nothing to set or state is not STATE_RUNNING, return
+    if ( sbitmask == 0 || state != STATE_RUNNING )
+      return;
 
     atomic {
       // Check which edges need to be backlogged
@@ -227,10 +230,9 @@ implementation {
       ++i;
       sbitmask >>=1;
     }
-    // If a sending loop doesn't exists, post the sending task
+    // Since pending is now not zero for sure, post sendPending
     if ( sendlock == UNLOCKED )
       post sendPending();
-
   }
 
   // ------------------------------------------------------------------------------------
@@ -238,18 +240,16 @@ implementation {
   // ------------------------------------------------------------------------------------
 
   task void sendResponse() {
-    responsemsg_t* msg = (responsemsg_t*)(call Packet.getPayload(&pkt,sizeof(responsemsg_t)));
+    responsemsg_t* msg = (responsemsg_t*)(call Packet.getPayload(&bpkt,sizeof(responsemsg_t)));
 
     // RESPONSE the setup acknowledgement if applicable
     if ( reqtype == CTRL_SETUP_SYN ) {
-      msg->type = RESP_SETUP_ACK;
-      if ( (state == STATE_SETUP_RCVD || state == STATE_CONFIGURED) &&
-          SUCCESS == call TxBase.send(AM_BROADCAST_ADDR, &pkt, sizeof(responsemsg_t)) )
-        SET_STATE( STATE_CONFIGURED )
+      msg->type = (state == STATE_SETUP_RCVD || state == STATE_CONFIGURED )
+                  ? RESP_SETUP_ACK
+                  : RESP_SETUP_NOACK;
   
     // RESPONSE statistics and final edge states
     } else if ( reqtype == CTRL_DATA_REQ ) {
-      SET_STATE( STATE_UPLOADING )
 
       msg->type = ( reqidx >= MAX_EDGE_COUNT || problem[reqidx].sender == INVALID_NODE )
                     ? RESP_DATA_NEXISTS
@@ -257,19 +257,16 @@ implementation {
       msg->respidx = reqidx;
       if ( msg->type == RESP_DATA_OK )
         msg->payload.stat = stats[reqidx];
-      call TxBase.send(AM_BROADCAST_ADDR, &pkt, sizeof(responsemsg_t) );
-      SET_STATE( STATE_FINISHED )
 
     // RESPONSE debug information
     } else if ( reqtype == CTRL_DBG_REQ ) {
-      SET_STATE( STATE_UPLOADING )
 
       msg->type = ( reqidx >= MAX_EDGE_COUNT || problem[reqidx].sender == INVALID_NODE )
                     ? RESP_DATA_NEXISTS
                     : RESP_DBG_OK;
       msg->respidx = reqidx;
       if ( msg->type == RESP_DBG_OK ) {
-        msg->payload.debug.endtype = (problem[reqidx].sender == TOS_NODE_ID) ? 1 
+        msg->payload.debug.endtype = (problem[reqidx].sender == TOS_NODE_ID) ? 1
                                     : ( (problem[reqidx].receiver == TOS_NODE_ID) ? 2 : 3 );
         msg->payload.debug.nextmsgid = problem[reqidx].nextmsgid;
 #ifdef _DEBUG_MODE_
@@ -278,9 +275,20 @@ implementation {
         msg->payload.debug.dbgLINE = 0;
 #endif
       }
-      call TxBase.send(AM_BROADCAST_ADDR, &pkt, sizeof(responsemsg_t) );
-      SET_STATE( STATE_FINISHED )
     }
+
+    // send the response message
+    _ASSERT_( sendlock == UNLOCKED )
+    if ( SUCCESS == call TxBase.send(AM_BROADCAST_ADDR, &bpkt, sizeof(responsemsg_t)) )
+      sendlock = LOCKED;
+  }
+
+
+  event void TxBase.sendDone(message_t* bufPtr, error_t error) {
+    _ASSERT_( sendlock == LOCKED )
+    sendlock = UNLOCKED;
+    if ( SUCCESS == error && state == STATE_SETUP_RCVD )
+        SET_STATE( STATE_CONFIGURED )
   }
 
   event message_t* RxBase.receive(message_t* bufPtr, void* payload, uint8_t len) {
@@ -291,8 +299,7 @@ implementation {
 
     // BaseStation RESETs this mote
     // ----------------------------------------------------------------------------------
-    if ( ctype == CTRL_RESET && ( state != STATE_RUNNING && 
-                                  state != STATE_LASTCHANCE ) ) {
+    if ( ctype == CTRL_RESET ) {
 
       problem = (edge_t*)NULL;
       memset(stats,0,sizeof(stat_t)*MAX_EDGE_COUNT);
@@ -309,18 +316,23 @@ implementation {
       dbgLINE = dbgNOTMYEDGES = 0;
 #endif
 
+      call TriggerTimer.stop();
+      call TestEndTimer.stop();
+      
+      call LowPowerListening.setLocalWakeupInterval(0);
+      call LowPowerListening.setRemoteWakeupInterval(&pkt,0);
+
       SET_STATE ( STATE_IDLE )
     
     // BaseStation SETUPs this mote
     // ----------------------------------------------------------------------------------
-    } else if ( ctype == CTRL_SETUP && (  state == STATE_INVALID || 
-                                          state == STATE_IDLE ) ) {
-
+    } else if ( ctype == CTRL_SETUP ) {
+        
       // Save the configuration
       config = msg->config;
-      sendlock = UNLOCKED;
 
       // Check config consistency
+      _ASSERT_( state == STATE_IDLE )
       _ASSERT_( msg->config.problem_idx < PROBLEMSET_COUNT );
       _ASSERT_( msg->config.runtime_msec != 0 );
       _ASSERT_( config.problem_idx < PROBLEMSET_COUNT );
@@ -367,13 +379,13 @@ implementation {
 
     // BaseStation wants to START the test
     // ----------------------------------------------------------------------------------
-    } else if ( ctype == CTRL_START && state == STATE_CONFIGURED ) {
+    } else if ( ctype == CTRL_START ) {
 
-      SET_STATE( STATE_RUNNING )
-      call TestEndTimer.startOneShot(config.runtime_msec);
-
+      _ASSERT_( state == STATE_CONFIGURED )
       _ASSERT_( ( !(config.flags & USE_LPL) && config.lplwakeupintval == 0 ) ||
                 ( (config.flags & USE_LPL) && config.lplwakeupintval > 0 )     )
+
+      SET_STATE( STATE_RUNNING )
 
       // Setup the LPL feature if wanted
       call LowPowerListening.setLocalWakeupInterval(config.lplwakeupintval);
@@ -382,49 +394,53 @@ implementation {
       if ( config.timer_msec > 0 && tTickSendMask )
         call TriggerTimer.startPeriodic(config.timer_msec);
 
+      call TestEndTimer.startOneShot(config.runtime_msec);
+
       // If we send initial message
       if ( pending )
         post sendPending();
 
     // BaseStation wants SETUP SYNchronization
     // ----------------------------------------------------------------------------------
-    } else if ( ctype == CTRL_SETUP_SYN && ( state == STATE_SETUP_RCVD ||
-                                             state == STATE_CONFIGURED ) ) {
-      reqtype = CTRL_SETUP_SYN;
+    } else if ( ctype == CTRL_SETUP_SYN ) {
+      _ASSERT_( state == STATE_SETUP_RCVD || state == STATE_CONFIGURED )
+
+      reqtype = ctype;
       post sendResponse();
 
     // BaseStation REQUESTs statistics
     // ----------------------------------------------------------------------------------
-    } else if ( ctype == CTRL_DATA_REQ && ( state == STATE_FINISHED ||
-                                            state == STATE_UPLOADING ||
-                                            state == STATE_INVALID ) ) {
-      reqtype = CTRL_DATA_REQ;
+    } else if ( ctype == CTRL_DATA_REQ ) {
+      _ASSERT_( state == STATE_FINISHED )
+        
+      reqtype = ctype;
       reqidx = msg->reqidx;
       post sendResponse();
 
     // BaseStation REQUESTs debug information
     // ----------------------------------------------------------------------------------
-    } else if ( ctype == CTRL_DBG_REQ &&  ( state == STATE_FINISHED  ||
-                                            state == STATE_UPLOADING ||
-                                            state == STATE_INVALID ) ) {
-      reqtype = CTRL_DBG_REQ;
+    } else if ( ctype == CTRL_DBG_REQ ) {
+      _ASSERT_( state == STATE_FINISHED )
+
+      reqtype = ctype;
       reqidx = msg->reqidx;
       post sendResponse();
     }
     return bufPtr;
   }
 
-  event void TxBase.sendDone(message_t* bufPtr, error_t error) { }
-
-
   // ------------------------------------------------------------------------------------
   // RADIO TEST COMMUNICATION
   // ------------------------------------------------------------------------------------
 
+  event void TriggerTimer.fired() {
+    setPendingOrBacklog( tTickSendMask );
+  }
 
   event message_t* RxTest.receive(message_t* bufPtr, void* payload, uint8_t len) {
 
     testmsg_t* msg = (testmsg_t*)payload;
+    _ASSERT_( state == STATE_RUNNING || state == STATE_LASTCHANCE )
 
     // In case the message is sent to this mote
     if (  ( state == STATE_RUNNING || 
@@ -455,10 +471,8 @@ implementation {
       // Set the next expected message id
       problem[msg->edgeid].nextmsgid = msg->msgid + 1;
 
-      // Check whether we have to send message on receive ( ping-pong case )
-      if ( problem[msg->edgeid].pongs ) {
-        setPendingOrBacklog( problem[msg->edgeid].pongs );
-      }
+      // Register new requests in ping-pong case
+      setPendingOrBacklog( problem[msg->edgeid].pongs );
     }
     return bufPtr;
   }
@@ -468,6 +482,9 @@ implementation {
 
     testmsg_t* msg = (testmsg_t*)(call Packet.getPayload(bufPtr,sizeof(testmsg_t)));
     bool clearPending = TRUE, isResend = FALSE;
+    sendlock = UNLOCKED;
+
+    _ASSERT_( state == STATE_RUNNING || state == STATE_LASTCHANCE )
 
     if ( state == STATE_RUNNING || state == STATE_LASTCHANCE ) {
 
@@ -478,7 +495,6 @@ implementation {
 
       if ( error == SUCCESS ) {
         ++(stats[msg->edgeid].sendDoneSuccessCount);
-        sendlock = UNLOCKED;
 
         // If ACK is not requested
         if ( (config.flags & USE_ACK) == 0x0 ) {
@@ -514,9 +530,9 @@ implementation {
       if ( clearPending )
         atomic { pending &= ~ (1 << msg->edgeid ); }
 
-      // Re-post the sendPending if we have any request     
-      if ( pending && !sendlock )
-        post sendPending();
+      // Re-post the sendPending
+      _ASSERT_ ( sendlock == UNLOCKED )
+      post sendPending();
     }
   } // end TxTest.sendDone
 

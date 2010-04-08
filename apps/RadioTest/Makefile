@@ -4,7 +4,7 @@ CLEAN_EXTRA      = ctrlmsg_t.py setup_t.py CtrlMsgT.java ResponseMsgT.java StatT
 
 CFLAGS += -DCC2420_DEF_CHANNEL=11
 #CFLAGS += -DRF230_DEF_CHANNEL=11
-CFLAGS += -DLOW_POWER_LISTENING
+#CFLAGS += -DLOW_POWER_LISTENING
 CFLAGS += -DTOSH_DATA_LENGTH=70
 
 setup_t.py: RadioTest.h

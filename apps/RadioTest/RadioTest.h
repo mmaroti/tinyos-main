@@ -76,6 +76,7 @@ enum {
   CTRL_SETUP        = 0,
   CTRL_SETUP_SYN    = 1,
   RESP_SETUP_ACK    = 2,
+  RESP_SETUP_NOACK  = 3,
 
   CTRL_START        = 10,
   CTRL_RESET        = 20,
