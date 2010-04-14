@@ -3,10 +3,11 @@ configuration RadioSchedulerC{
 	provides interface LocalTime<TMilli>;
 }
 implementation{
-	components RadioSchedulerP, LocalTimeMilliC, new TimerMilliC() as Timer;
-	 
+	components RadioSchedulerP, LocalTimeMilliC;
+	components new TimerMilliC() as SignalTimer;
+	RadioSchedulerP.SignalTimer->SignalTimer;
+	
 	RadioSchedulerP.LocalTime->LocalTimeMilliC;
-	RadioSchedulerP.Timer->Timer;
 	LocalTime=LocalTimeMilliC;
 	RadioScheduler=RadioSchedulerP.RadioScheduler;
 }

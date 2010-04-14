@@ -1,10 +1,11 @@
 #include "Scheduler.h"
+//#include "printf.h"
 module RadioSchedulerP{
 	provides interface RadioScheduler[uint8_t radio_id];
 	uses {
 		interface SplitControl;
 		interface LocalTime<TMilli>;
-		interface Timer<TMilli>;
+		interface Timer<TMilli> as SignalTimer;
 		interface Leds;
 	} 
 }
@@ -33,6 +34,7 @@ implementation{
 	task void processTiming(){
 		uint8_t i;
 		uint32_t locTime=call LocalTime.get();
+		call SignalTimer.stop();
 		nextEventUser=USERNUM;
 		
 		for(i=0;i<USERNUM;i++){
@@ -53,7 +55,7 @@ implementation{
 		if(nextEventUser==USERNUM)//there are no events
 			return;
 		nextEventIsReal=TRUE;
-		if(radioon){
+		if(radioon){		
 			if((users[nextEventUser].flags&FLAG_TURNEDON)==0)//radio is on, and we want to turn it on
 				nextEventIsReal=FALSE;
 			else{//radio is on, we want to turn it off, but maybe other users still using it
@@ -65,19 +67,22 @@ implementation{
 				}
 			}
 		}
+//		nextEventIsReal?printf("SCH:Next event: from %d, at %ld (now:%ld)",nextEventUser,users[nextEventUser].eventTime,locTime):
+//		printf("SCH:Next sim event: from %d, at %ld (now:%ld)",nextEventUser,users[nextEventUser].eventTime,locTime);
+//			(users[nextEventUser].flags&FLAG_TURNEDON)!=0?printf(" OFF\n"):printf(" ON\n");
+//		printfflush();
 		//otherwise, the event is real
-		if((int32_t)(users[nextEventUser].eventTime-locTime)<0){
+		//if we will turn on the radio, we substract  the switching delay from the waiting time
+		if((int32_t)(users[nextEventUser].eventTime-(!radioon&&nextEventIsReal)?RADIO_ON_DELAY:0-locTime)<0){
 			signalEvent();
 		} else {
-			if(nextEventIsReal&&!radioon)
-				call Timer.startOneShotAt(users[nextEventUser].eventTime-RADIO_ON_DELAY, 0);
-			else
-				call Timer.startOneShotAt(users[nextEventUser].eventTime, 0);
+			call SignalTimer.startOneShotAt(locTime, users[nextEventUser].eventTime-(!radioon&&nextEventIsReal)?RADIO_ON_DELAY:0-locTime-locTime);
 		}
 	}  	
 	
-	event void Timer.fired(){
-		signalEvent();
+	event void SignalTimer.fired(){
+		if((users[nextEventUser].flags&FLAG_CANCELLED)==0)
+			signalEvent();
 	}
 	
 	task void StopSplitControl(){
@@ -96,10 +101,14 @@ implementation{
 				if(call SplitControl.stop()!=SUCCESS){
 					post StopSplitControl();
 				}
+//				printf("OFF by %d at %ld\n",nextEventUser,call LocalTime.get());
+//				printfflush();
 			}else{
 				if(call SplitControl.start()!=SUCCESS){
 					post StartSplitControl();
 				}
+//				printf("ON by %d at %ld\n",nextEventUser, call LocalTime.get());
+//				printfflush();
 			}
 		} else { //just signaling success
 			if((users[nextEventUser].flags&FLAG_TURNEDON)!=0){

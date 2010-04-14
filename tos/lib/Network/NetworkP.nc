@@ -13,18 +13,18 @@ module NetworkP{
 		interface Packet;
 		interface AMPacket;
 		interface LocalTime<TMilli>;
-		interface Timer<TMilli>;
+		interface Timer<TMilli> as ListenTimer;
+		interface Timer<TMilli> as FirstSendTimer;
 		interface RadioScheduler as DiscoveryScheduler;
 		interface RadioScheduler as BeaconScheduler;
 		interface RadioScheduler as NetworkScheduler[uint8_t user_id];
-		interface Receive as SubReceive[am_id_t am_id];
-		interface AMSend as SubSend[am_id_t am_id];
-		interface Receive as SubSnoop[am_id_t am_id];
+		interface Receive as SubReceive;
+		interface AMSend as SubSend;
+		interface Receive as SubSnoop;
 		interface Random;
 		interface Init as RandomInit;
 		interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
 		interface Leds;
-		interface PacketAcknowledgements;
 	}
 }
 implementation{
@@ -55,30 +55,31 @@ implementation{
 
 	command error_t StdControl.start(){
 		call RandomInit.init();
-		call BeaconScheduler.RadioStart(0);//send the first message ASAP
-		call DiscoveryScheduler.RadioStart(0);
+		call BeaconScheduler.RadioStart(call LocalTime.get());//send the first message ASAP
+		call DiscoveryScheduler.RadioStart(call LocalTime.get());
 		return SUCCESS;
 	}
 
 	command uint8_t AMSend.maxPayloadLength[am_id_t am_id](){
-		return call SubSend.maxPayloadLength[am_id]();
+		return call SubSend.maxPayloadLength()-1;
 	}
 
 	command void * AMSend.getPayload[am_id_t am_id](message_t *msg, uint8_t len){
-		return call SubSend.getPayload[am_id](msg, len);
+		return call SubSend.getPayload(msg, len);
 	}
 
 	command error_t AMSend.send[am_id_t am_id](am_addr_t addr, message_t *msg, uint8_t len){
-		call PacketAcknowledgements.requestAck(msg);
-		if(call Timer.isRunning())
-			return call SubSend.send[am_id](addr, msg, len);
-		else{
+		msg->data[len]=am_id;
+		len++;
+		if(call ListenTimer.isRunning()){
+			return call SubSend.send(addr, msg, len);
+		}else{
 			beacon_t* mess=call Packet.getPayload(&beacon, sizeof(beacon_t));
 			mess->flags|=FLAG_DATA;
 			data=msg;
 			call Packet.setPayloadLength(data, len);
 			call AMPacket.setDestination(msg, addr);
-			call AMPacket.setType(msg, am_id);
+			//call AMPacket.setType(msg, am_id);
 			return SUCCESS;	
 		}
 	}
@@ -89,33 +90,64 @@ implementation{
 			mess->flags&=~FLAG_DATA;
 			return SUCCESS;
 		} else {
-			return call SubSend.cancel[am_id](msg);
+			return call SubSend.cancel(msg);
 		}
 	}
 	
-	event void SubSend.sendDone[am_id_t am_id](message_t *msg, error_t error){
-		if(error==SUCCESS&&call PacketAcknowledgements.wasAcked(msg))
-			call Timer.startOneShot(call LocalTime.get()+BEACON_INTERVAL);
-		signal AMSend.sendDone[am_id](msg, error);
+	event void SubSend.sendDone(message_t *msg, error_t error){
+		if(error==SUCCESS){
+			call ListenTimer.startOneShot(BEACON_INTERVAL);
+			printf("send done, sleep at %ld (%ld)\n",call ListenTimer.gett0()+call ListenTimer.getdt(), call ListenTimer.getNow());
+		}
+		signal AMSend.sendDone[msg->data[call Packet.payloadLength(msg)-1]](msg, error);
 	}
 
-	event message_t * SubReceive.receive[am_id_t am_id](message_t *msg, void *payload, uint8_t len){
-		if(call Timer.isRunning()&&call AMPacket.source(msg)==wakenBy)
-			call NetworkScheduler.RadioStopCancel[am_id]();
-		signal Receive.receive[am_id](msg, payload, len);
+	event message_t * SubReceive.receive(message_t *msg, void *payload, uint8_t len){
+//		printf("rec from %u, waken by: %u\n",call AMPacket.source(msg),wakenBy);
+//		printfflush();
+		if(call AMPacket.source(msg)==wakenBy){
+			uint8_t i;
+			call Leds.led2Toggle();
+			for(i=0;i<MAX_NEIGHBOR;i++){
+				if(nt[i].nodeid==call TimeSyncAMPacket.source(msg))
+					break;
+			}
+			if(i!=MAX_NEIGHBOR){
+				nt[i].nextsleep=call LocalTime.get()+BEACON_INTERVAL;
+				if(!call NetworkScheduler.RadioStopCancel[i]()==SUCCESS)
+					call NetworkScheduler.RadioStart[i](call LocalTime.get());//TODO: move this to a task: if the radio is currently switching of, we can't turn it on 
+	//			printf("next sleep: %ld (%ld)\n",nt[i].nextsleep,call LocalTime.get());
+	//			printfflush();
+				
+			}
+		}
+		signal Receive.receive[msg->data[call Packet.payloadLength(msg)-1]](msg, payload, len-1);
 		return msg;
 	}
 	
-	event message_t * SubSnoop.receive[am_id_t am_id](message_t *msg, void *payload, uint8_t len){
-		if(call Timer.isRunning()&&call AMPacket.source(msg)==wakenBy)
-			call NetworkScheduler.RadioStopCancel[am_id]();
-		signal Snoop.receive[am_id](msg, payload, len);
+	event message_t * SubSnoop.receive(message_t *msg, void *payload, uint8_t len){
+		if(call AMPacket.source(msg)==wakenBy){
+			uint8_t i;
+			for(i=0;i<MAX_NEIGHBOR;i++){
+				if(nt[i].nodeid==call TimeSyncAMPacket.source(msg))
+					break;
+			}
+			if(i!=MAX_NEIGHBOR){
+				nt[i].nextsleep=call LocalTime.get()+BEACON_INTERVAL;
+				if(!call NetworkScheduler.RadioStopCancel[i]()==SUCCESS)
+					call NetworkScheduler.RadioStart[i](call LocalTime.get());//TODO: move this to a task: if the radio is currently switching of, we can't turn it on 
+	//			printf("next sleep: %ld (%ld)\n",nt[i].nextsleep,call LocalTime.get());
+	//			printfflush();
+				
+			}
+		}
+		signal Snoop.receive[msg->data[call Packet.payloadLength(msg)-1]](msg, payload, len-1);
 		return msg;
 	}
 
 	event void DiscoveryScheduler.RadioStartDone(error_t error){
 		if(error!=SUCCESS){
-			call DiscoveryScheduler.RadioStart(0);
+			call DiscoveryScheduler.RadioStart(call LocalTime.get());
 		} else {
 			if(init){
 				init=FALSE;
@@ -128,7 +160,7 @@ implementation{
 
 	event void DiscoveryScheduler.RadioStopDone(error_t error){
 		if(error!=SUCCESS){
-			call DiscoveryScheduler.RadioStop(0);
+			call DiscoveryScheduler.RadioStop(call LocalTime.get());
 		} else {
 			//TODO: randomize the waiting time
 			call DiscoveryScheduler.RadioStart(call LocalTime.get()+INIT_DISCOVERY);
@@ -139,11 +171,12 @@ implementation{
 		beacon_t* mess=call Packet.getPayload(&beacon, sizeof(beacon_t));
 		mess->localTime=call LocalTime.get();
 		//call BeaconScheduler.RadioStop(mess->localTime+10);
-		call TimeSyncAMSend.send(TOS_BCAST_ADDR, &beacon, sizeof(beacon_t), mess->localTime);
 		if(nextBeacon==0)
 			nextBeacon=mess->localTime+BEACON_INTERVAL;
 		else
 			nextBeacon+=BEACON_INTERVAL;
+		if(call TimeSyncAMSend.send(TOS_BCAST_ADDR, &beacon, sizeof(beacon_t), mess->localTime)!=SUCCESS)
+			call BeaconScheduler.RadioStop(mess->localTime);
 	}
 	
 	event void TimeSyncAMSend.sendDone(message_t *msg, error_t error){
@@ -154,8 +187,10 @@ implementation{
 			call BeaconScheduler.RadioStop(localtime);
 		else {
 			mess->flags&=~FLAG_DATA;
-			call Timer.startOneShot(BEACON_INTERVAL);
-			call SubSend.send[call AMPacket.type(data)](call AMPacket.destination(data), data, call Packet.payloadLength(data));
+			call ListenTimer.startOneShot(BEACON_INTERVAL);
+			printf("start send, sleep at %ld (%ld)\n",call ListenTimer.gett0()+call ListenTimer.getdt(), call ListenTimer.getNow());
+			//call FirstSendTimer.startOneShot(100);
+			call SubSend.send(call AMPacket.destination(data), data, call Packet.payloadLength(data));
 		}
 		for(i=0;i<MAX_NEIGHBOR;i++){
 			if(nt[i].lost>0){
@@ -176,27 +211,39 @@ implementation{
 
 	event void BeaconScheduler.RadioStopDone(error_t error){
 		if(error!=SUCCESS){
-			call BeaconScheduler.RadioStop(0);
+			call BeaconScheduler.RadioStop(call LocalTime.get());
 		} else {
 			call BeaconScheduler.RadioStart(nextBeacon);
 		}	
 	}
 	
 	event void NetworkScheduler.RadioStartDone[uint8_t user_id](error_t error){
-		nt[user_id].nextsleep=call LocalTime.get()+WAKE_TIME;
-		call NetworkScheduler.RadioStop[user_id](nt[user_id].nextsleep);//this should be enough to receive a message
-	}
-
-	event void NetworkScheduler.RadioStopDone[uint8_t user_id](error_t error){
-		if(error==ECANCEL){
+		if(wakenBy==TOS_BCAST_ADDR){
+			nt[user_id].nextsleep=call LocalTime.get()+WAKE_TIME;
+			call NetworkScheduler.RadioStop[user_id](nt[user_id].nextsleep);//this should be enough to receive a message
+		} else {
+			printf("waken by (with restart) %d (%d))\n",wakenBy, user_id);
+			printfflush();
 			nt[user_id].nextsleep=call LocalTime.get()+BEACON_INTERVAL;
 			call NetworkScheduler.RadioStop[user_id](nt[user_id].nextsleep);
 		}
 	}
 
+	event void NetworkScheduler.RadioStopDone[uint8_t user_id](error_t error){
+		if(error==ECANCEL){
+			printf("waken by (with cancel) %d (%d)\n",wakenBy, user_id);
+			printfflush();
+			nt[user_id].nextsleep=call LocalTime.get()+BEACON_INTERVAL;
+			call NetworkScheduler.RadioStop[user_id](nt[user_id].nextsleep);
+		} else
+			wakenBy=TOS_BCAST_ADDR;
+	}
+
 	event message_t * TimeSyncReceive.receive(message_t *msg, void *payload, uint8_t len){
 		uint8_t i=0;
 		beacon_t* mess=call Packet.getPayload(msg, sizeof(beacon_t));
+//		printf("%u\n", mess->flags);
+//		printfflush();
 		while(i<MAX_NEIGHBOR){
 			if(nt[i].nodeid==call TimeSyncAMPacket.source(msg))
 				break;
@@ -207,9 +254,14 @@ implementation{
 				nt[i].nextwake=call TimeSyncPacket.eventTime(msg)+BEACON_INTERVAL;
 			} else
 				nt[i].nextwake+=BEACON_INTERVAL;
-			call NetworkScheduler.RadioStopCancel[i]();
-			wakenBy=call AMPacket.source(msg);
-			call Leds.led2Toggle();
+			if((mess->flags&FLAG_DATA)!=0){
+//				printf("sm: %u (%u)\n",call NetworkScheduler.RadioStopModify[i](nt[i].nextsleep), mess->flags);
+				wakenBy=call AMPacket.source(msg);
+				if(!call NetworkScheduler.RadioStopCancel[i]()==SUCCESS)
+					call NetworkScheduler.RadioStart[i](call LocalTime.get());//TODO: move this to a task: if the radio is currently switching of, we can't turn it on 
+				//nt[i].nextsleep=call LocalTime.get()+BEACON_INTERVAL;
+				//call NetworkScheduler.RadioStopModify[i](nt[i].nextsleep);
+			}
 			nt[i].lost=0xff;
 		} else if(call TimeSyncPacket.isValid(msg)){//if the timestamp is not valid, we can't insert the source as a new neighbor
 			uint32_t farestwaketime=0;
@@ -225,12 +277,10 @@ implementation{
 				i++;
 			}
 			if(i!=MAX_NEIGHBOR){//insert a new neighbor into an empty place
-				call Leds.led1Toggle();
 				nt[i].lost=0xff;
 				nt[i].nodeid=call TimeSyncAMPacket.source(msg);
 				nt[i].nextwake=call TimeSyncPacket.eventTime(msg)+BEACON_INTERVAL;
 			} else if(farestwaketimeuser!=MAX_NEIGHBOR||call TimeSyncAMPacket.source(msg)<=MAX_BS_NODEID){ //insert a new neighbor instead of a worse one, or insert a basestation instead of the worst one
-				call Leds.led1Toggle();
 				nt[i].lost=0xff;
 				nt[i].nodeid=call TimeSyncAMPacket.source(msg);
 				nt[i].nextwake=call TimeSyncPacket.eventTime(msg)+BEACON_INTERVAL;
@@ -242,8 +292,15 @@ implementation{
 		return msg;
 	}
 	
-	event void Timer.fired(){
-		wakenBy=TOS_BCAST_ADDR;
+	event void ListenTimer.fired(){
+		uint32_t localtime=call LocalTime.get();
+		printf("LT fired at %ld\n",localtime);
+		printfflush();
+		call Leds.led1Toggle();
+		while((int32_t)(localtime-nextBeacon)>0){
+			nextBeacon+=BEACON_INTERVAL;
+		}
+		call BeaconScheduler.RadioStop(localtime);
 	}
 	
 	default event message_t * Receive.receive[am_id_t am_id](message_t *msg, void *payload, uint8_t len){
@@ -256,4 +313,11 @@ implementation{
 	
 	default event void AMSend.sendDone[am_id_t am_id](message_t *msg, uint8_t len){};
 	
+
+	event void FirstSendTimer.fired(){
+		printf("FS fired at %ld\n",call LocalTime.get());
+		printfflush();
+		call Leds.led2Toggle();
+		call SubSend.send(call AMPacket.destination(data), data, call Packet.payloadLength(data));
+	}
 }

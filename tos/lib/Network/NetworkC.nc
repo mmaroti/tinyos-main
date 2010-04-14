@@ -9,21 +9,21 @@ configuration NetworkC{
 }
 implementation{
 	components NetSchedulersC;
-	components RadioSchedulerP, TimeSyncMessageC, LedsC, NetworkP, ActiveMessageC,RandomC, new TimerMilliC();
+	components RadioSchedulerP, TimeSyncMessageC, LedsC, NetworkP, ActiveMessageC,RandomC;
+	components new TimerMilliC() as ListenTimer, new TimerMilliC() as FirstSendTimer;
 	RadioSchedulerP.SplitControl->TimeSyncMessageC;
 	RadioSchedulerP.Leds->LedsC;
 	
-	NetworkP.TimeSyncAMSend -> TimeSyncMessageC.TimeSyncAMSendMilli[10];
-//	NetworkP.TimeSyncReceive -> TimeSyncMessageC.Receive[10];
+	NetworkP.TimeSyncAMSend -> TimeSyncMessageC.TimeSyncAMSendMilli[BEACON_AM_ID];
+	NetworkP.TimeSyncReceive -> TimeSyncMessageC.Receive[BEACON_AM_ID];
 	NetworkP.TimeSyncPacket -> TimeSyncMessageC;
 	NetworkP.TimeSyncAMPacket -> TimeSyncMessageC.AMPacket;
 	
 	NetworkP.Packet->ActiveMessageC;
 	NetworkP.AMPacket->ActiveMessageC;
-	NetworkP.SubSend->ActiveMessageC.AMSend;
-	NetworkP.SubReceive->ActiveMessageC.Receive;
-	NetworkP.SubSnoop->ActiveMessageC.Snoop;
-	NetworkP.PacketAcknowledgements->ActiveMessageC;
+	NetworkP.SubSend->ActiveMessageC.AMSend[DATA_AM_ID];
+	NetworkP.SubReceive->ActiveMessageC.Receive[DATA_AM_ID];
+	NetworkP.SubSnoop->ActiveMessageC.Snoop[DATA_AM_ID];
 	NetworkP.LocalTime->NetSchedulersC.LocalTime;
 	NetworkP.DiscoveryScheduler->NetSchedulersC.DiscoveryScheduler;
 	NetworkP.BeaconScheduler->NetSchedulersC.BeaconScheduler;
@@ -32,7 +32,8 @@ implementation{
 	NetworkP.RandomInit->RandomC;
 	NetworkP.PacketTimeStampMilli-> TimeSyncMessageC;
 	NetworkP.Leds->LedsC;
-	NetworkP.Timer->TimerMilliC;
+	NetworkP.ListenTimer->ListenTimer;
+	NetworkP.FirstSendTimer->FirstSendTimer;
 	StdControl=NetworkP.StdControl;
 	TimeSyncPoints=NetworkP.TimeSyncPoints;
 	AMSend=NetworkP.AMSend;
