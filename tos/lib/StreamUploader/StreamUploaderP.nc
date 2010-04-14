@@ -44,7 +44,7 @@ module StreamUploaderP{
   		interface PacketAcknowledgements;
   		interface Timer<TMilli> as WaitTimer;
   		interface Timer<TMilli> as StorageWaitTimer;
-
+  		
 		interface TimeSyncAMSend<TMilli, uint32_t> as TimeSyncAMSendMilli;
 		
 		interface LocalTime<TMilli>;
@@ -59,39 +59,64 @@ implementation{
 	uint8_t bs_lost;
 	message_t message;
 	
+	
+	task void SCStop(){
+		if(call SplitControl.stop()!=SUCCESS){
+			post SCStop();
+		}
+	}
+	
+	task void SCStart(){
+		if(call SplitControl.start()!=SUCCESS){
+			post SCStart();
+		}
+	}
+	
 	event void StreamStorage.getMinAddressDone(uint32_t addr){
 		ctrl_msg* msg=call Packet.getPayload(&message, sizeof(ctrl_msg));
+		error_t err;
 		call Packet.clear(&message);
 		msg->min_address=addr;
 		msg->max_address=call StreamStorage.getMaxAddress();
 		msg->localtime=call LocalTime.get();
 		call PacketAcknowledgements.requestAck(&message);
-		call Leds.led1Toggle();
-		if(call SplitControl.start()==EALREADY){
+		err=call SplitControl.start();
+		if(err==EALREADY){
 			if(call TimeSyncAMSendMilli.send(BS_ADDR, &message, sizeof(ctrl_msg),msg->localtime)!=SUCCESS){
-				call SplitControl.stop();
+				if(call SplitControl.stop()!=SUCCESS){
+					post SCStop();
+				}
 			}
-		}		
+		}else if(err!=SUCCESS){
+			if(call SplitControl.start()!=SUCCESS){
+				post SCStart();
+			}
+		}
+			
 	}
 	
 	event void StorageWaitTimer.fired(){
 		switch(status){
 			case WAIT_FOR_BS:{
-				if(call StreamStorage.getMinAddress()==EBUSY)
+				if(call StreamStorage.getMinAddress()==EBUSY){
 					call StorageWaitTimer.startOneShot(10);
+				}
 			}break;
 			case SEND:{
 				if(minaddress+MESSAGE_SIZE<=maxaddress){
-					if(call StreamStorage.read(minaddress, buffer, MESSAGE_SIZE)==EBUSY)
+					if(call StreamStorage.read(minaddress, buffer, MESSAGE_SIZE)==EBUSY){
 						call StorageWaitTimer.startOneShot(10);
+					}
 				}else{
-					if(call StreamStorage.read(minaddress, buffer, maxaddress-minaddress)==EBUSY)
+					if(call StreamStorage.read(minaddress, buffer, maxaddress-minaddress)==EBUSY){
 						call StorageWaitTimer.startOneShot(10);
+					}
 				}
 			}break;
 			case ERASE:{
-				if(call StreamStorage.erase()==EBUSY)
+				if(call StreamStorage.erase()==EBUSY){
 					call StorageWaitTimer.startOneShot(10);
+				}
 			}break;
 			
 		}
@@ -105,16 +130,19 @@ implementation{
 				minaddress=rec->min_address;
 				maxaddress=rec->max_address;
 				if(minaddress+MESSAGE_SIZE<=maxaddress){
-					if(call StreamStorage.read(minaddress, buffer, MESSAGE_SIZE)==EBUSY)
+					if(call StreamStorage.read(minaddress, buffer, MESSAGE_SIZE)==EBUSY){
 						call StorageWaitTimer.startOneShot(10);
-				}else{
-					if(call StreamStorage.read(minaddress, buffer, maxaddress-minaddress)==EBUSY)
+					}
+				}else{call Leds.led1Toggle();
+					if(call StreamStorage.read(minaddress, buffer, maxaddress-minaddress)==EBUSY){
 						call StorageWaitTimer.startOneShot(10);
+					}
 				}
 			} else {
 				status=ERASE;
-				if(call StreamStorage.erase()==EBUSY)
+				if(call StreamStorage.erase()==EBUSY){
 					call StorageWaitTimer.startOneShot(10);
+				}
 			}
 			
 		}
@@ -124,11 +152,13 @@ implementation{
 	inline void readNext(){
 		minaddress+=MESSAGE_SIZE;
 		if(minaddress+MESSAGE_SIZE<=maxaddress){
-			if(call StreamStorage.read(minaddress, buffer, MESSAGE_SIZE)==EBUSY)
+			if(call StreamStorage.read(minaddress, buffer, MESSAGE_SIZE)==EBUSY){
 				call StorageWaitTimer.startOneShot(10);
+			}
 		}else if(minaddress<maxaddress){
-			if(call StreamStorage.read(minaddress, buffer, maxaddress-minaddress)==EBUSY)
+			if(call StreamStorage.read(minaddress, buffer, maxaddress-minaddress)==EBUSY){
 				call StorageWaitTimer.startOneShot(10);
+			}
 		}else{
 			status=WAIT_FOR_BS;
 			call WaitTimer.startOneShot((uint32_t)RADIO_SHORT);
@@ -138,12 +168,13 @@ implementation{
 	event void StreamStorage.readDone(void *buf, uint8_t len, error_t error){
 		if(status==SEND){
 			if(error==SUCCESS){
-				data_msg* msg=call Packet.getPayload(&message, sizeof(data_msg));				
+				data_msg* msg=call Packet.getPayload(&message, sizeof(data_msg));
 				msg->length=len;
 				msg->address=minaddress;
 				memcpy(&(msg->data),buf,len);
-				if(call AMSend.send(BS_ADDR, &message, sizeof(data_msg))!=SUCCESS)
+				if(call AMSend.send(BS_ADDR, &message, sizeof(data_msg))!=SUCCESS){
 					readNext();
+				}
 			} else{
 				readNext();
 			}
@@ -151,7 +182,7 @@ implementation{
 	}
 
 	event void AMSend.sendDone(message_t *msg, error_t error){
-			readNext();
+		readNext();
 	}
 
 	event void TimeSyncAMSendMilli.sendDone(message_t *msg, error_t error){
@@ -161,31 +192,39 @@ implementation{
 				status=WAIT_FOR_REQ;
 				call WaitTimer.startOneShot(RADIO_SHORT);
 			} else {
-				if(bs_lost!=NO_BS)
+				if(bs_lost!=NO_BS){
 					bs_lost--;	
-				call SplitControl.stop();			
+				}
+				if(call SplitControl.stop()!=SUCCESS){
+					post SCStop();			
+				}
 			}
-			call Packet.clear(&message);
 		} 
+		call Packet.clear(&message);
 	}
 
 	event void WaitTimer.fired(){
 		switch(status){
 			case WAIT_FOR_REQ:{
-				call SplitControl.stop();	
+				if(call SplitControl.stop()!=SUCCESS){
+					post SCStop();	
+				}
 			}break;
 			case WAIT_FOR_BS:{
-				if(call StreamStorage.getMinAddress()==EBUSY)
+				if(call StreamStorage.getMinAddress()==EBUSY){
 					call StorageWaitTimer.startOneShot(10);
+				}
 			}break;
-		}
+		}		
 	}
 
 	command error_t StdControl.stop(){
 		status=OFF;
 		call StorageWaitTimer.stop();
 		call WaitTimer.stop();
-		call SplitControl.stop();
+		if(call SplitControl.stop()!=SUCCESS){
+			post SCStop();
+		}
 		return SUCCESS;
 	}
 
@@ -194,8 +233,9 @@ implementation{
 		status=WAIT_FOR_BS;
 		bs_lost=NO_BS;
 		err=call StreamStorage.getMinAddress();
-		if(err==EBUSY)
+		if(err==EBUSY){
 			call StorageWaitTimer.startOneShot(10);
+		}
 		return SUCCESS;
 	}
 
@@ -205,23 +245,31 @@ implementation{
 			call Leds.led2On();
 			msg->localtime=call LocalTime.get();
 			if(call TimeSyncAMSendMilli.send(BS_ADDR, &message, sizeof(ctrl_msg),msg->localtime)!=SUCCESS){
-				call SplitControl.stop();
+				if(call SplitControl.stop()!=SUCCESS){
+					post SCStop();
+				}
 			}
-		}else
-			call SplitControl.start();
+		}else{
+			if(call SplitControl.start()!=SUCCESS){
+				post SCStart();
+			}
+		}
 	}
 
 	event void SplitControl.stopDone(error_t error){
-		if(error!=SUCCESS)
-			call SplitControl.stop();
-		else{			
+		if(error!=SUCCESS){
+			if(call SplitControl.stop()!=SUCCESS){
+				post SCStop();
+			}
+		}else{		
 			call Leds.led2Off();
 			if(status!=OFF){
 				status=WAIT_FOR_BS;
-				if(bs_lost==NO_BS||bs_lost==BS_OK)//if BS_OK, than it doesn't want any data, so we can sleep longer
+				if(bs_lost==NO_BS||bs_lost==BS_OK){//if BS_OK, than it doesn't want any data, so we can sleep longer
 					call WaitTimer.startOneShot((uint32_t)RADIO_LONG*1000);
-				else
+				}else{
 					call WaitTimer.startOneShot(RADIO_SHORT);
+				}
 			}
 		}
 	}
@@ -230,8 +278,9 @@ implementation{
 	event void StreamStorage.eraseDone(error_t error){
 		if(status!=OFF){
 			status=WAIT_FOR_BS;
-			if(call StreamStorage.getMinAddress()==EBUSY)
+			if(call StreamStorage.getMinAddress()==EBUSY){
 				call StorageWaitTimer.startOneShot(10);
+			}
 		}
 	}
 

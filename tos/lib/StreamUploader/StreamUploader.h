@@ -50,8 +50,9 @@ enum{
 	NO_BS=0,
 	BS_OK=60,
 	MESSAGE_SIZE=TOSH_DATA_LENGTH-5,
-//	AM_CTRL_MSG_T=10,//Just for the MIG
-//	AM_DATA_MSG_T=10,
+	AM_CTRL_MSG_T=10,//Just for the MIG
+	AM_DATA_MSG_T=AM_CTRL_MSG_T+1,
+	AM_CTRLTS_MSG_T=AM_CTRL_MSG_T,
 //	SHORT_TIME=RADIO_SHORT,//in milliseconds
 //	LONG_TIME=RADIO_LONG,//in seconds
 };
@@ -61,6 +62,13 @@ typedef nx_struct ctrl_msg_t {
 	nx_uint32_t max_address;
 	nx_uint32_t localtime;
 } ctrl_msg;
+
+typedef nx_struct ctrlts_msg_t {
+	nx_uint32_t min_address;
+	nx_uint32_t max_address;
+	nx_uint32_t localtime;
+	nx_uint32_t timestamp;
+} ctrlts_msg;
 
 typedef nx_struct data_msg_t {
 	nx_uint32_t address;

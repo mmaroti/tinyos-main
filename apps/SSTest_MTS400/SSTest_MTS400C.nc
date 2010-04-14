@@ -49,11 +49,11 @@ module SSTest_MTS400C{
 	}
 }
 implementation{
-	typedef struct asdf{
-		uint16_t temp;
-		uint16_t humi;
-		uint16_t light;
-		uint32_t time;
+	typedef nx_struct asdf{
+		nx_uint16_t temp;
+		nx_uint16_t humi;
+		nx_uint8_t light;
+		nx_uint32_t time;
 	} one_meas;
 	one_meas fresh_data;
 
@@ -64,15 +64,18 @@ implementation{
 	
 	event void StreamStorage.eraseDone(error_t error){
 		call Leds.set(0);
+		#ifndef RADIO_DISABLE
+			call StdControl.start();
+		#endif
 		#ifndef MEAS_DISABLE
 			call SensorTimer.startPeriodic(SAMP_T);
 		#endif
 	}
 	
 	event void SplitControl.startDone(error_t error){
-		if(error==FAIL)
+		if(error==FAIL){
 			call StreamStorage.erase();
-		else {
+		}else {
 			call Leds.set(0);
 			#ifndef RADIO_DISABLE
 				call StdControl.start();
@@ -107,9 +110,9 @@ implementation{
 	
 	event void LRead.readDone(error_t result, uint16_t val){
 		if(result==SUCCESS)
-			fresh_data.light=val;
+			fresh_data.light=(uint8_t)val;
 		else
-			fresh_data.light=0xffff;
+			fresh_data.light=127;
 		fresh_data.time=call LocalTime.get();
 		#ifndef FLASHWRITE_DISABLE
 			call StreamStorage.append(&fresh_data, sizeof(fresh_data));

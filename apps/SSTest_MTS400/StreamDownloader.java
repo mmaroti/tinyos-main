@@ -45,7 +45,6 @@ import net.tinyos.util.PrintStreamMessenger;
 
 public class StreamDownloader implements MessageListener {
 	private MoteIF moteIF;
-	private byte am_type;
 	private ArrayList<dataFile> files = new ArrayList<dataFile>();
 	private int listenonly;
 	public static final int MIN_DOWNLOAD_SIZE=dataMsg.numElements_data()*4;
@@ -54,7 +53,6 @@ public class StreamDownloader implements MessageListener {
 
 	public StreamDownloader(int listenonly, String source, byte amtype) {
 		PhoenixSource phoenix;
-		am_type = amtype;
 		this.listenonly=listenonly;
 		if (source == null) {
 			phoenix = BuildSource.makePhoenix(PrintStreamMessenger.err);
@@ -62,15 +60,15 @@ public class StreamDownloader implements MessageListener {
 			phoenix = BuildSource.makePhoenix(source, PrintStreamMessenger.err);
 		}
 		this.moteIF = new MoteIF(phoenix);
-		this.moteIF.registerListener(new dataMsg(am_type), this);
-		this.moteIF.registerListener(new ctrlMsgTS((byte) (am_type+1)), this);
+		this.moteIF.registerListener(new dataMsg(), this);
+		this.moteIF.registerListener(new ctrltsMsg(), this);
 	}
 
 	public void messageReceived(int to, Message message) {
 		if(listenonly<0||message.getSerialPacket().get_header_src()==listenonly){
-			if (message instanceof ctrlMsgTS && message.dataLength() == ctrlMsgTS.DEFAULT_MESSAGE_SIZE) {
+			if (message instanceof ctrltsMsg && message.dataLength() == ctrltsMsg.DEFAULT_MESSAGE_SIZE) {
 				long received_t=(new Date()).getTime();
-				ctrlMsgTS msg = (ctrlMsgTS) message;
+				ctrltsMsg msg = (ctrltsMsg) message;
 				System.out.println("Ctrl message received from #"+msg.getSerialPacket().get_header_src()+" min:"+msg.get_min_address()+" max:"+msg.get_max_address()+" timestamp:"+(Long)(msg.get_localtime()+msg.get_timestamp()));
 				dataFile currentFile = null;
 				for (int i = 0; i < files.size(); i++) {
@@ -90,7 +88,7 @@ public class StreamDownloader implements MessageListener {
 				}
 				currentFile.addTimeStamp(received_t, msg.get_localtime()+msg.get_timestamp());
 				if(msg.get_max_address()-currentFile.maxaddress>=MIN_DOWNLOAD_SIZE){
-					ctrlMsg response = new ctrlMsg(am_type);
+					ctrlMsg response = new ctrlMsg();
 					response.set_max_address(msg.get_max_address());
 					if (msg.get_min_address() <= currentFile.maxaddress+1)
 						response.set_min_address(currentFile.maxaddress+1);
@@ -107,7 +105,7 @@ public class StreamDownloader implements MessageListener {
 					Long[] rep;
 					rep = currentFile.repairGap(msg.get_min_address());
 					if(rep[0]<rep[1]){
-						ctrlMsg response = new ctrlMsg(am_type);
+						ctrlMsg response = new ctrlMsg();
 						response.set_min_address(rep[0]);
 						response.set_max_address(rep[1]);
 						try {

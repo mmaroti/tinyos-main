@@ -1,5 +1,5 @@
 import java.io.IOException;
-import java.util.ArrayList;
+//import java.util.ArrayList;
 
 import net.tinyos.message.Message;
 import net.tinyos.message.MessageListener;
@@ -11,14 +11,12 @@ import net.tinyos.util.PrintStreamMessenger;
 
 public class StreamEraser implements MessageListener {
 	private MoteIF moteIF;
-	private byte am_type;
 	private int nodeid;
 	private boolean cmdSent=false;
-	private ArrayList<dataFile> files = new ArrayList<dataFile>();
+	//private ArrayList<dataFile> files = new ArrayList<dataFile>();
 	
-	public StreamEraser(String source, byte amtype, int nodeid) {
+	public StreamEraser(String source, int nodeid) {
 		PhoenixSource phoenix;
-		am_type = amtype;
 		this.nodeid=nodeid;
 		if (source == null) {
 			phoenix = BuildSource.makePhoenix(PrintStreamMessenger.err);
@@ -26,17 +24,17 @@ public class StreamEraser implements MessageListener {
 			phoenix = BuildSource.makePhoenix(source, PrintStreamMessenger.err);
 		}
 		this.moteIF = new MoteIF(phoenix);
-		this.moteIF.registerListener(new ctrlMsgTS((byte) (am_type+1)), this);
+		this.moteIF.registerListener(new ctrltsMsg(), this);
 		System.out.println("Waiting for node #"+nodeid);
 	}
 
 	public void messageReceived(int to, Message message) {
-		if (message instanceof ctrlMsgTS && message.dataLength() == ctrlMsgTS.DEFAULT_MESSAGE_SIZE) {
-			ctrlMsgTS msg = (ctrlMsgTS) message;
+		if (message instanceof ctrltsMsg && message.dataLength() == ctrltsMsg.DEFAULT_MESSAGE_SIZE) {
+			ctrltsMsg msg = (ctrltsMsg) message;
 			if(msg.getSerialPacket().get_header_src()==nodeid){
 				if(cmdSent==false){
 					System.out.println("Found node, sending erase command");
-					ctrlMsg response = new ctrlMsg(am_type);
+					ctrlMsg response = new ctrlMsg();
 					response.set_min_address(0);
 					response.set_max_address(0);
 					try {
@@ -75,6 +73,6 @@ public class StreamEraser implements MessageListener {
 			usage();
 		}
 
-		new StreamEraser(source, (byte) 10, node_id);
+		new StreamEraser(source, node_id);
 	}
 }

@@ -31,17 +31,18 @@
 *
 * Author:Andras Biro
 */
-generic configuration StreamUploaderC(uint8_t am_id){
+#include "StreamUploader.h"
+configuration StreamUploaderC{
 	provides interface StdControl;
 }
 implementation{
 	components StreamUploaderP as App;
-	components new AMSenderC(am_id) as AMSend;
-	components new AMReceiverC(am_id) as AMReceive;
+	components new AMSenderC(AM_DATA_MSG_T) as AMSend;
+	components new AMReceiverC(AM_CTRL_MSG_T) as AMReceive;
 	components ActiveMessageC;
 	components new TimerMilliC() as WaitTimer;
 	components new TimerMilliC() as StorageWaitTimer;
-	components LedsC, LocalTimeMilliC, TimeSyncMessageC;
+	components TimeSyncMessageC, LedsC, LocalTimeMilliC;
 	
 	App.Leds->LedsC;
 	App.Packet -> AMSend;
@@ -52,9 +53,7 @@ implementation{
   	App.Receive -> AMReceive;
   	App.WaitTimer->WaitTimer;
   	App.StorageWaitTimer->StorageWaitTimer;
-  	//App.PacketTimeStampMilli -> TimeSyncMessageC.PacketTimeStampMilli;
-  	//App.TimeSyncPacketMilli -> TimeSyncMessageC.TimeSyncPacketMilli;
-  	App.TimeSyncAMSendMilli -> TimeSyncMessageC.TimeSyncAMSendMilli[am_id+1];
+  	App.TimeSyncAMSendMilli -> TimeSyncMessageC.TimeSyncAMSendMilli[AM_CTRL_MSG_T];
   	App.LocalTime -> LocalTimeMilliC;
   	StdControl=App.StdControl;
 }

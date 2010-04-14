@@ -38,7 +38,7 @@ configuration SSTest_MTS400_App{
 implementation{
 	components new StreamStorageC(VOLUME_STOR), StreamStorageP, StorageFrameC,StorageFrameP;
 	components new TimerMilliC() as SensorTimer,new SensirionSht11C(), new Taos2550C();
-	components SSTest_MTS400C as App, MainC, LedsC, new StreamUploaderC(10), StreamUploaderP, LocalTimeMilliC;
+	components SSTest_MTS400C as App, MainC, LedsC, StreamUploaderC, StreamUploaderP, LocalTimeMilliC;
 	StorageFrameP.StreamStorage->StreamStorageC;
 	StreamUploaderP.StreamStorage -> StreamStorageC;
 	App.StreamStorage->StorageFrameC;
