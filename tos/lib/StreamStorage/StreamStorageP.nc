@@ -688,6 +688,7 @@ implementation{
 						printf("seek to beginning failed\n");
 						printfflush();
 					#endif	
+					status=UNINIT;
 					signal SplitControl.startDone(FAIL);
 				}break;
 				case INIT:{				//probably becouse it's unwritten
