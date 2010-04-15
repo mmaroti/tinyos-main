@@ -106,10 +106,10 @@ implementation{
 //		printfflush();
 		//otherwise, the event is real
 		//if we will turn on the radio, we substract  the switching delay from the waiting time
-		if((int32_t)(users[nextEventUser].eventTime-(!radioon&&nextEventIsReal)?RADIO_ON_DELAY:0-locTime)<0){
+		if((int32_t)(users[nextEventUser].eventTime-locTime-((!radioon&&nextEventIsReal)?RADIO_ON_DELAY:0))<0){
 			signalEvent();
 		} else {
-			call SignalTimer.startOneShotAt(locTime, users[nextEventUser].eventTime-(!radioon&&nextEventIsReal)?RADIO_ON_DELAY:0-locTime-locTime);
+			call SignalTimer.startOneShotAt(locTime, users[nextEventUser].eventTime-locTime-((!radioon&&nextEventIsReal)?RADIO_ON_DELAY:0));
 		}
 	}  	
 	
