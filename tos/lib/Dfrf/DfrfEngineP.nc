@@ -94,9 +94,9 @@ implementation
 	/**
 	* Return the next block in the descriptor.
 	*/
-	static inline dfrf_block_t* nextBlock(dfrf_desc_t* desc, dfrf_block_t* blk)
+	static inline dfrf_block_t* nextBlock(dfrf_desc_t* desc, dfrf_block_t* block)
 	{
-		return (dfrf_block_t*)( (uint8_t*)blk + blockLength(desc) );
+		return (dfrf_block_t*)( (uint8_t*)block + blockLength(desc) );
 	}
 
 	/**
@@ -104,20 +104,20 @@ implementation
 	*/
 	dfrf_block_t* getBlock(dfrf_desc_t* desc, void *data)
 	{
-		dfrf_block_t* blk = desc->blocks;
-		dfrf_block_t* selected = blk;
+		dfrf_block_t* block = desc->blocks;
+		dfrf_block_t* selected = block;
 
 		do
 		{
-			if( blk->priority != 0xFF
-				&& memcmp(blk->data, data, desc->uniqueLength) == 0 )
-				return blk;
+			if( block->priority != 0xFF
+				&& memcmp(block->data, data, desc->uniqueLength) == 0 )
+				return block;
 
-			if( blk->priority > selected->priority )
-				selected = blk;
+			if( block->priority > selected->priority )
+				selected = block;
 
-			blk = nextBlock(desc, blk);
-		} while( blk < desc->blocksEnd );
+			block = nextBlock(desc, block);
+		} while( block < desc->blocksEnd );
 
 		selected->priority = 0xFF;
 		return selected;
@@ -135,38 +135,6 @@ implementation
 		DIRTY_AGING = 0x01,	// only aging is required, no sending
 		DIRTY_SENDING = 0x03,   // some packets are ready to be sent
 	};
-
-	static inline bool isDirtyClean(dfrf_desc_t* desc) {
-		return desc->dirty == DIRTY_CLEAN;
-	}
-
-	static inline bool isDirtyAging(dfrf_desc_t* desc) {
-		return (desc->dirty & DIRTY_AGING) != 0;
-	}
-
-	static inline bool isDirtySending(dfrf_desc_t* desc) {
-		return (desc->dirty & DIRTY_SENDING) != 0;
-	}
-
-	static inline void setDirtyClean(dfrf_desc_t* desc) {
-		desc->dirty = DIRTY_CLEAN;
-	}
-
-	static inline void setDirtyAging(dfrf_desc_t* desc) {
-		desc->dirty |= DIRTY_AGING;
-	}
-
-	static inline void setDirtySending(dfrf_desc_t* desc) {
-		desc->dirty |= DIRTY_SENDING;
-	}
-
-	static inline void clearDirtyAging(dfrf_desc_t* desc) {
-		desc->dirty &= ~DIRTY_AGING;
-	}
-
-	static inline void clearDirtySending(dfrf_desc_t* desc) {
-		desc->dirty &= ~DIRTY_SENDING;
-	}
 
 	/*
 	* There are three concurrent activities, that routing engine performs.
@@ -249,7 +217,7 @@ implementation
 	void selectData(struct descriptor *desc, struct block **selection)
 	{
 		uint8_t maxPriority = 0xFF;
-		dfrf_block_t* blk = desc->blocks;
+		dfrf_block_t* block = desc->blocks;
 		dfrf_block_t** s = selection + maxPacketsPerMsg(desc);
 		dfrf_block_t stopBlock = { 0x00 };
 
@@ -270,7 +238,7 @@ implementation
 		// and insert them in selection in decreasing order
 		do
 		{
-			uint8_t priority = blk->priority;
+			uint8_t priority = block->priority;
 			// only block with even priority can be transmitted
 			// see DfrfPolicy.nc for more details
 			if( (priority & 0x01) == 0 && priority < maxPriority )
@@ -282,12 +250,12 @@ implementation
 					++s;
 				}
 
-				*s = blk;
+				*s = block;
 				maxPriority = (*selection)->priority;
 			}
 
-			blk = nextBlock(desc, blk);
-		} while( blk < desc->blocksEnd );
+			block = nextBlock(desc, block);
+		} while( block < desc->blocksEnd );
 	}
 
 	/**
@@ -344,9 +312,9 @@ implementation
 		{
 			// if DIRTY_SENDING, then there exists at least one block that need to be
 			// transmitted in desc
-			if( isDirtySending(desc) )
+			if( desc->dirty == DIRTY_SENDING )
 			{
-				uint8_t i;
+				uint8_t i = call Packet.payloadLength(&txMsg);
 
 				selectData(desc, selection);
 				copyData(desc, selection);
@@ -363,12 +331,11 @@ implementation
 						post sendMsg();
 
 					call Leds.led0Toggle();
-
-					// we have sent at least one packet, this packet needs to be aged
-					setDirtyAging(desc);
-
 					return;
 				}
+
+				// we have sent at least one packet, no more are pending
+				desc->dirty = DIRTY_AGING;
 			}
 			desc = desc->nextDesc;
 		}
@@ -447,14 +414,14 @@ implementation
 
 				block->priority = call DfrfPolicy.received[appId](msg->location, block->priority);
 				if ( (block->priority & 0x01) == 0 )
-					setDirtySending(desc);
+					desc->dirty = DIRTY_SENDING;
 				else
-					setDirtyAging(desc);
+					desc->dirty |= DIRTY_AGING;
 
 				pkt = nextPacket(rxMsg, call Packet.payloadLength(rxMsg), pkt, desc->dataLength);
 			}
 
-			if( isDirtySending(desc) )
+			if( desc->dirty == DIRTY_SENDING )
 				post sendMsg();
 		}
 
@@ -506,25 +473,25 @@ implementation
 
 		while( desc != 0 )
 		{
-			if( !isDirtyClean(desc) )
+			if( desc->dirty != DIRTY_CLEAN )
 			{
-				struct block *blk = desc->blocks;
-				setDirtyClean(desc);
+				struct block *block = desc->blocks;
+				desc->dirty = DIRTY_CLEAN;
 				do
 				{
-					if( blk->priority != 0xFF )
+					if( block->priority != 0xFF )
 					{
-						blk->priority = call DfrfPolicy.age[desc->appId](blk->priority);
+						block->priority = call DfrfPolicy.age[desc->appId](block->priority);
 
-						if( (blk->priority & 0x01) == 0 )
-							setDirtySending(desc);
+						if( (block->priority & 0x01) == 0 )
+							desc->dirty = DIRTY_SENDING;
 						else
-							setDirtyAging(desc);
+							desc->dirty |= DIRTY_AGING;
 					}
-					blk = nextBlock(desc, blk);
-				} while( blk < desc->blocksEnd );
+					block = nextBlock(desc, block);
+				} while( block < desc->blocksEnd );
 
-				if( isDirtySending(desc) )
+				if( desc->dirty == DIRTY_SENDING )
 					post sendMsg();
 			}
 			desc = desc->nextDesc;
@@ -549,13 +516,13 @@ implementation
 
 	  if( desc != 0 )
 	  {
-		  struct block *blk = getBlock(desc, data);
-		  if( blk->priority == 0xFF )
+		  struct block *block = getBlock(desc, data);
+		  if( block->priority == 0xFF )
 		  {
-			memcpy(blk->data, data, desc->dataLength);
-			blk->priority = 0x00;
+			memcpy(block->data, data, desc->dataLength);
+			block->priority = 0x00;
 
-			setDirtySending(desc);
+			desc->dirty = DIRTY_SENDING;
 
 			post sendMsg();
 
@@ -570,7 +537,7 @@ implementation
 	command error_t DfrfControl.init[uint8_t id](uint8_t dataLength, uint8_t uniqueLength,
 		void *buffer, uint16_t bufferLength)
 	{
-		dfrf_block_t *blk;
+		dfrf_block_t *block;
 		dfrf_desc_t *desc;
 
 		if( dataLength == 0 //dataLength is too small
@@ -585,16 +552,16 @@ implementation
 		desc->appId = id;
 		desc->dataLength = dataLength;
 		desc->uniqueLength = uniqueLength;
-		setDirtyClean(desc);
+		desc->dirty = DIRTY_CLEAN;
 
 		buffer += bufferLength - (blockLength(desc)-1); // this is the first invalid position
-		blk = desc->blocks;
-		while( (void*)blk < buffer )
+		block = desc->blocks;
+		while( (void*)block < buffer )
 		{
-			blk->priority = 0xFF;
-			blk = nextBlock(desc, blk);
+			block->priority = 0xFF;
+			block = nextBlock(desc, block);
 		}
-		desc->blocksEnd = blk;
+		desc->blocksEnd = block;
 
 		desc->nextDesc = firstDesc;
 		firstDesc = desc;
