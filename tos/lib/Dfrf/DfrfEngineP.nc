@@ -37,7 +37,6 @@
 
 #include "Dfrf.h"
 #include <string.h>
-#include "printf.h"
 // #define FLOODROUTING_DEBUG
 
 module DfrfEngineP
@@ -325,22 +324,18 @@ implementation
 			// transmitted in desc
 			if( desc->dirty == DIRTY_SENDING )
 			{
-				uint8_t i;
-
 				selectData(desc, selection);
 				copyData(desc, selection);
 
-				i = call Packet.payloadLength(&txMsg);
-
 				// if there is at least one block to be sent
-				if( i > sizeof(dfrf_msg_t) )
+				if( call Packet.payloadLength(&txMsg) > sizeof(dfrf_msg_t) )
 				{
 					uint8_t j;
 					for(j=0;j<i;j++)
 						printf("%x ", txMsg.data[j]);
 					printf(" (%u)\n",i);
 
-					if( call AMSend.send(TOS_BCAST_ADDR, &txMsg, i) != SUCCESS )
+					if( call AMSend.send(TOS_BCAST_ADDR, &txMsg, call Packet.payloadLength(&txMsg)) != SUCCESS )
 						post sendMsg();
 					else
 						setSending();
