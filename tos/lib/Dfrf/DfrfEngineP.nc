@@ -146,17 +146,10 @@ implementation
 	{
 		STATE_IDLE = 0x00,
 		STATE_PROCESSING = 0x01,
+		STATE_SENDING = 0x02,
 	};
 
 	uint8_t state = STATE_IDLE;
-
-	static inline bool isIdle() {
-		return state == STATE_IDLE;
-	}
-
-	static inline void setIdle() {
-		state = STATE_IDLE;
-	}
 
 	static inline bool isProcessing() {
 		return (state & STATE_PROCESSING) != 0;
@@ -169,6 +162,19 @@ implementation
 	static inline void clearProcessing() {
 		state &= ~STATE_PROCESSING;
 	}
+
+	static inline bool isSending() {
+		return (state & STATE_SENDING) != 0;
+	}
+
+	static inline void setSending() {
+		state |= STATE_SENDING;
+	}
+
+	static inline void clearSending() {
+		state &= ~STATE_SENDING;
+	}
+
 
 	message_t rxMsgBuf, txMsg;
 	message_t* rxMsg = &rxMsgBuf;
@@ -307,17 +313,24 @@ implementation
 		// a radio message
 		struct block *selection[1 + (call Packet.maxPayloadLength() - sizeof(dfrf_msg_t))];
 
-		struct descriptor *desc = firstDesc;
+		struct descriptor *desc;
+
+		if( isSending() )
+			return;
+
+		desc = firstDesc;
 		while( desc != 0 )
 		{
 			// if DIRTY_SENDING, then there exists at least one block that need to be
 			// transmitted in desc
 			if( desc->dirty == DIRTY_SENDING )
 			{
-				uint8_t i = call Packet.payloadLength(&txMsg);
+				uint8_t i;
 
 				selectData(desc, selection);
 				copyData(desc, selection);
+
+				i = call Packet.payloadLength(&txMsg);
 
 				// if there is at least one block to be sent
 				if( i > sizeof(dfrf_msg_t) )
@@ -329,6 +342,8 @@ implementation
 
 					if( call AMSend.send(TOS_BCAST_ADDR, &txMsg, i) != SUCCESS )
 						post sendMsg();
+					else
+						setSending();
 
 					call Leds.led0Toggle();
 					return;
@@ -350,6 +365,8 @@ implementation
 		dfrf_msg_t *msg = dfrfMsg(&txMsg);
 		uint8_t appId = msg->appId;
 		struct descriptor *desc = getDescriptor(appId);
+
+		clearSending();
 
 		if( desc != 0 )
 		{
@@ -428,15 +445,6 @@ implementation
 		clearProcessing();
 	}
 
-	void bufferSwitch(message_t** a, message_t** b)
-	{
-		message_t* tmp;
-
-		tmp = *a;
-		*a = *b;
-		*b = tmp;
-	}
-
 	/**
 	* Routing message from a different mote is scheduled for processing.
 	*  since the pointer p which we obtain in the receive event can not be used
@@ -450,7 +458,11 @@ implementation
 
 		if( !isProcessing() )
 		{
-			bufferSwitch(&p, &rxMsg);
+			message_t* tmp;
+			
+			tmp = rxMsg;
+			rxMsg = p;
+			p = tmp;
 
 			post procMsg();
 			setProcessing();
