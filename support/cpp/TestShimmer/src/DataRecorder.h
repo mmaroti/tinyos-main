@@ -10,6 +10,7 @@ struct Sample
 {
 	Sample();
 	QString toString() const;
+        QString toCsvString() const;
 
 	int time;
 	int xAccel;
@@ -58,9 +59,12 @@ public slots:
 
 public:
 	void clearMessages();
+        void saveSamples(QString);
+        void loadSamples(QString);
+        void csvToSample(QString);
 
 protected:
 	QVarLengthArray<Sample> samples;
-};
 
+};
 #endif // DATARECORDER_H

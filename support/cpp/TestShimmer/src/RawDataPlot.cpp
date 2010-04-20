@@ -13,7 +13,7 @@ RawDataPlot::RawDataPlot(PlotScrollArea *parent, Application &app) : QWidget(par
 	application(app)
 {
 	scrollArea = parent;
-	graphs = XACCEL | YACCEL | ZACCEL | XGYRO | YGYRO | ZGYRO | GRID | TIME;
+        graphs = XACCEL | YACCEL | ZACCEL | XGYRO | YGYRO | ZGYRO | GRID | TIME | TEMP;
 
 	connect(&app.dataRecorder, SIGNAL(sampleAdded()), this, SLOT(onSampleAdded()));
 	connect(&app.dataRecorder, SIGNAL(samplesCleared()), this, SLOT(onSamplesCleared()));
@@ -107,6 +107,13 @@ void RawDataPlot::paintEvent(QPaintEvent *event)
 			for(int i = x0 + 1; i < x1; ++i)
 				painter.drawLine(getPoint(i-1, dataRecorder.at(i-1).voltage), getPoint(i, dataRecorder.at(i).voltage));
 		}
+
+                if( (graphs & TEMP) != 0 )
+                {
+                        painter.setPen(QPen(Qt::yellow, 2, Qt::SolidLine));
+                        for(int i = x0 + 1; i < x1; ++i)
+                                painter.drawLine(getPoint(i-1, dataRecorder.at(i-1).temp), getPoint(i, dataRecorder.at(i).temp));
+                }
 	}
 
 	if( (graphs & GRID) != 0 )

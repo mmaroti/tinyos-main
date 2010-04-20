@@ -2,6 +2,7 @@
 #define CALIBRATIONWIDGET_H
 
 #include <QWidget>
+#include "CalibrationModule.h"
 
 class Application;
 
@@ -20,6 +21,11 @@ protected:
 
 private:
     Ui::CalibrationWidget *ui;
+    Application &application;
+    CalibrationModule *calibrationModule;
+
+private slots:
+    void on_startButton_clicked();
 };
 
 #endif // CALIBRATIONWIDGET_H

@@ -5,6 +5,7 @@
 #include <QSettings>
 #include "SerialListener.h"
 #include "DataRecorder.h"
+#include "CalibrationModule.h"
 
 class Application : public QObject
 {

@@ -27,6 +27,7 @@ public:
 		VOLTAGE = 0x0040,
 		GRID = 0x0100,
 		TIME = 0x0200,
+                TEMP = 0x0400,
 	};
 
 	void setGraphs(int graphs, bool on);

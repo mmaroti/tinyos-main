@@ -1,9 +1,10 @@
-
 #include "RawDataWidget.h"
 #include "ui_RawDataWidget.h"
+#include "ConsoleWidget.h"
 #include "RawDataPlot.h"
 #include "Application.h"
 #include "QtDebug"
+#include <qfiledialog.h>
 
 RawDataWidget::RawDataWidget(QWidget *parent, Application &app) :
     QWidget(parent),
@@ -56,6 +57,25 @@ void RawDataWidget::on_clearButton_clicked()
 	application.dataRecorder.clearMessages();
 }
 
+void RawDataWidget::on_loadButton_clicked()
+{
+    QString file = QFileDialog::getOpenFileName(this, "Select one or more files to open", "c:/");
+    if ( !file.isEmpty() ) {
+        application.dataRecorder.loadSamples( file );
+    }
+    plot->RawDataPlot::onSampleAdded();
+
+}
+
+void RawDataWidget::on_saveButton_clicked()
+{
+    QString fn = QFileDialog::getSaveFileName(  this, "Choose a filename to save under", "c:/", "CSV (*.csv)");
+    if ( !fn.isEmpty() ) {
+        application.dataRecorder.saveSamples( fn );
+    }
+
+}
+
 void RawDataWidget::on_xAccel_clicked()
 {
 	plot->setGraphs(RawDataPlot::XACCEL, ui->xAccel->checkState());
@@ -90,3 +110,9 @@ void RawDataWidget::on_voltage_clicked()
 {
 	plot->setGraphs(RawDataPlot::VOLTAGE, ui->voltage->checkState());
 }
+
+void RawDataWidget::on_temp_clicked()
+{
+        plot->setGraphs(RawDataPlot::TEMP, ui->temp->checkState());
+}
+

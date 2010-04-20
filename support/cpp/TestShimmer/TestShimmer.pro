@@ -17,7 +17,9 @@ SOURCES += src/DataRecorder.cpp \
     src/RawDataPlot.cpp \
     src/Application.cpp \
     src/PlotScrollArea.cpp \
-    src/CalibrationWidget.cpp
+    src/CalibrationWidget.cpp \
+    src/ConsoleWidget.cpp \
+    src/CalibrationModule.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -26,9 +28,12 @@ HEADERS += src/DataRecorder.h \
     src/RawDataPlot.h \
     src/Application.h \
     src/PlotScrollArea.h \
-    src/CalibrationWidget.h
+    src/CalibrationWidget.h \
+    src/ConsoleWidget.h \
+    src/CalibrationModule.h
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/RawDataWidget.ui \
-    src/CalibrationWidget.ui
+    src/CalibrationWidget.ui \
+    src/ConsoleWidget.ui
 RESOURCES += src/Resources.qrc

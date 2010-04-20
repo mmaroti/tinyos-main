@@ -310,6 +310,16 @@
         <property name="text">
          <string>voltage</string>
         </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="temp">
+        <property name="text">
+         <string>temp</string>
+        </property>
        </widget>
       </item>
      </layout>

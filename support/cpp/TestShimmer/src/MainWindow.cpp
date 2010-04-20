@@ -5,6 +5,7 @@
 #include <QScrollArea>
 #include "Application.h"
 #include "CalibrationWidget.h"
+#include "ConsoleWidget.h"
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
@@ -15,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui->connectTab->layout()->addWidget(new ConnectWidget(ui->connectTab, app));
 	ui->rawTab->layout()->addWidget(new RawDataWidget(ui->rawTab, app));
 	ui->calibrationTab->layout()->addWidget(new CalibrationWidget(ui->calibrationTab, app));
+        ui->consoleTab->layout()->addWidget(new ConsoleWidget(ui->consoleTab, app));
 
 	statusBar()->showMessage("Started.");
 
