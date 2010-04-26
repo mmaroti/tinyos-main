@@ -53,7 +53,6 @@ module AdcStreamP
 		interface Atm128Adc;
 		interface Atm128AdcConfig[uint8_t stream];
 		interface Atm128Calibrate;
-		interface DiagMsg;
 	}
 }
 
@@ -133,15 +132,7 @@ implementation
 		uint16_t reportLength = firstLength;
 
 		ADC_ASSERT( state == STATE_11 || state == STATE_02 || state == STATE_01 || state == STATE_00 );
-/*
-		if( call DiagMsg.record() )
-		{
-			call DiagMsg.str("done");
-			call DiagMsg.uint8(state);
-			call DiagMsg.uint8(freeBuffers[stream] != 0);
-			call DiagMsg.send();
-		}
-*/
+
 		firstStart = secondStart;
 		firstLength = secondLength;
 
@@ -188,15 +179,7 @@ implementation
 
 		if( count < (sizeof(free_buffer_t) + 1) >> 1 )
 			return ESIZE;
-/*
-		if( call DiagMsg.record() )
-		{
-			call DiagMsg.str("post");
-			call DiagMsg.uint8(state);
-			call DiagMsg.uint8(freeBuffers[s] != 0);
-			call DiagMsg.send();
-		}
-*/
+
 		atomic
 		{
 			if( state == STATE_10 )

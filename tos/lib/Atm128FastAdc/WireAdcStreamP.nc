@@ -55,7 +55,7 @@ implementation
 		ADC_ADAPTER = unique(UQ_ATM128ADC_ADAPTER),
 	};
 
-	components Atm128AdcC, AdcStreamP, PlatformC, DiagMsgC,
+	components Atm128AdcC, AdcStreamP, PlatformC, 
 		new ArbitratedReadStreamC(ADC_STREAMS, uint16_t);
 
 	Resource = ArbitratedReadStreamC;
@@ -66,5 +66,4 @@ implementation
 
 	AdcStreamP.Atm128Adc -> Atm128AdcC.Atm128Adc[ADC_ADAPTER];
 	AdcStreamP.Atm128Calibrate -> PlatformC;
-	AdcStreamP.DiagMsg -> DiagMsgC;
 }
