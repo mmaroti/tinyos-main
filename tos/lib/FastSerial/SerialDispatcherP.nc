@@ -102,6 +102,9 @@ implementation
 		signal SplitControl.stopDone(error);
 	}
 
+	default event void SplitControl.startDone(error_t error) { }
+	default event void SplitControl.stopDone(error_t error) { }
+
 // ------- Send
 
 	message_t *txMsg;
