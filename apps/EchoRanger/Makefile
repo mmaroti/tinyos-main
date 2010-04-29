@@ -1,4 +1,4 @@
-COMPONENT=EchoRangerC
+COMPONENT=ApplicationC
 CFLAGS += -DTOSH_DATA_LENGTH=102
 CFLAGS += -I$(TOSDIR)/sensorboards/mts300
 CFLAGS += -I$(SZTETOSDIR)/lib/Atm128FastAdc

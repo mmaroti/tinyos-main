@@ -31,35 +31,18 @@
 * Author: Miklos Maroti
 */
 
-#include "EchoRanger.h"
-
-configuration EchoRangerC
+configuration ApplicationC
 {
-	provides
-	{
-		interface Read<echorange_t*> as EchoRanger;
-	}
 }
 
 implementation
 {
-	components EchoRangerM;
-	components MainC;
-	components LedsC;
-	components new AlarmOne16C() as AlarmC;
-	components new MicStreamC();
-	components new AMSenderC(0x77);
-	components MicaBusC;
-	components LocalTimeMicroC;
+	components MainC, LedsC, new TimerMilliC(), ActiveMessageC;
+	components ApplicationM, EchoRangerC;
 
-	EchoRangerM.Boot -> MainC;
-	EchoRangerM.Leds -> LedsC;
-	EchoRangerM.AMSend -> AMSenderC;
-	EchoRangerM.MicRead ->	MicStreamC;
-	EchoRangerM.MicSetting -> MicStreamC;
-	EchoRangerM.Alarm -> AlarmC;
-	EchoRangerM.SounderPin -> MicaBusC.PW2;	// from SounderC
-	EchoRangerM.LocalTime -> LocalTimeMicroC;
-
-	EchoRanger = EchoRangerM;
+	ApplicationM.Boot -> MainC;
+	ApplicationM.Leds -> LedsC;
+	ApplicationM.TimerMilli -> TimerMilliC;
+	ApplicationM.AMControl -> ActiveMessageC;
+	ApplicationM.EchoRanger -> EchoRangerC;
 }

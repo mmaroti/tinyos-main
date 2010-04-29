@@ -31,35 +31,19 @@
 * Author: Miklos Maroti
 */
 
-#include "EchoRanger.h"
+#ifndef __ECHORANGER_H__
+#define __ECHORANGER_H__
 
-configuration EchoRangerC
+typedef struct echorange_t
 {
-	provides
-	{
-		interface Read<echorange_t*> as EchoRanger;
-	}
-}
+	uint16_t sequence;
+	uint32_t timestamp;
+	uint16_t average;
+	uint16_t range1;
+	uint16_t match1;
+	uint16_t range2;
+	uint16_t match2;
+	uint16_t temperature;
+} echorange_t;
 
-implementation
-{
-	components EchoRangerM;
-	components MainC;
-	components LedsC;
-	components new AlarmOne16C() as AlarmC;
-	components new MicStreamC();
-	components new AMSenderC(0x77);
-	components MicaBusC;
-	components LocalTimeMicroC;
-
-	EchoRangerM.Boot -> MainC;
-	EchoRangerM.Leds -> LedsC;
-	EchoRangerM.AMSend -> AMSenderC;
-	EchoRangerM.MicRead ->	MicStreamC;
-	EchoRangerM.MicSetting -> MicStreamC;
-	EchoRangerM.Alarm -> AlarmC;
-	EchoRangerM.SounderPin -> MicaBusC.PW2;	// from SounderC
-	EchoRangerM.LocalTime -> LocalTimeMicroC;
-
-	EchoRanger = EchoRangerM;
-}
+#endif//__ECHORANGER_H__

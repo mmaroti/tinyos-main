@@ -32,20 +32,25 @@
 */
 
 #include "message.h"
+#include "EchoRanger.h"
 
 module EchoRangerM
 {
+	provides
+	{
+		interface Read<echorange_t*> as EchoRanger;
+	}
+
 	uses
 	{
 		interface Boot;
 		interface Leds;
-		interface Timer<TMilli> as TimerMilli;
-		interface SplitControl as AMControl;
 		interface AMSend;
 		interface GeneralIO as SounderPin;
 		interface ReadStream<uint16_t> as MicRead;
 		interface MicSetting;
 		interface Alarm<TMicro, uint16_t> as Alarm;
+		interface LocalTime<TMicro>;
 	}
 }
 
@@ -53,9 +58,11 @@ implementation
 {
 	enum
 	{
-		SAMPLING = 56,		// in microsec (17723 Hz)
-		BUFFER = 2000,		// must be at least 4
-		BEEP = 1000,		// in microsec
+		SAMPLING = 56,		// sampling rate in microsec (17723 Hz)
+		BUFFER = 1024,		// size of buffer, must be at least 4
+		BEEP = 500,		// the length of beep in microsec
+		SILENCE = 16,		// number of samples before echo
+		MATCH = 16,		// number of samples matching the sine wave
 		SENDSIZE = 50,		// number of samples in a single message
 	};
 
@@ -63,19 +70,6 @@ implementation
 	{
 		call SounderPin.clr();
 		call MicSetting.gainAdjust(0xff);
-		call AMControl.start();
-	}
-
-	event void AMControl.startDone(error_t err)
-	{
-		if( err == SUCCESS )
-			call TimerMilli.startPeriodic(4000);
-		else
-			call AMControl.start();
-	}
-
-	event void AMControl.stopDone(error_t err)
-	{
 	}
 
 	uint16_t buffer[BUFFER];
@@ -86,23 +80,25 @@ implementation
 		STATE_READY = 0,
 		STATE_WARMUP = 1,
 		STATE_LISTEN = 2,
-		STATE_REPORT = 3,
+		STATE_PROCESS = 3,
 	};
 
-	event void TimerMilli.fired()
+	command error_t EchoRanger.read()
 	{
 		if( state == STATE_READY )
 		{
-			call Leds.led0Toggle();
+			call Leds.led0On();
 
 			state = STATE_WARMUP;
 			call MicRead.postBuffer(buffer + BUFFER - 2, 2);
 			call MicRead.postBuffer(buffer, BUFFER);
 			call MicRead.read(SAMPLING);
+
+			return SUCCESS;
 		}
+		else
+			return FAIL;
 	}
-	
-	uint16_t beep = 0;
 
  	event void MicRead.bufferDone(error_t result, uint16_t* bufPtr, uint16_t count)
 	{
@@ -110,14 +106,9 @@ implementation
 		{
 			state = STATE_LISTEN;
 
-			beep += 500;
-
-			call Alarm.start(beep);
+			call Alarm.start(BEEP);
 			call Leds.led1On();
 			call SounderPin.set();
-
-			if( beep >= 2000 )
-				beep = 0;
 		}
 	}
 
@@ -126,6 +117,93 @@ implementation
 		call Leds.led1Off();
 		call SounderPin.clr();
 	}
+
+	task void process();
+
+	event void MicRead.readDone(error_t result, uint32_t usActualPeriod)
+	{
+		if( state == STATE_LISTEN )
+		{
+			state = STATE_PROCESS;
+			post process();
+		}
+	}
+
+	async event error_t MicSetting.toneDetected()
+	{
+		return SUCCESS;
+	}
+
+	echorange_t range;
+
+	uint16_t getAverage()
+	{
+		uint32_t sum = 0;
+		uint16_t i;
+
+		for(i = 0; i < BUFFER; ++i)
+			sum += buffer[i];
+
+		return (uint16_t)(sum / BUFFER);
+	}
+
+	uint16_t getVolume(uint16_t start, uint8_t length)
+	{
+		uint16_t volume = 0;
+		int16_t sample;
+
+		while( --length >= 0 )
+		{
+			sample = buffer[start++] - range.average;
+
+			if( sample < 0 )
+				sample = -sample;
+
+			volume += sample;
+		}
+
+		return volume;
+	}
+
+	int16_t matchTable[MATCH] = {70, 56, -323, -57, 500, -59, -447, 258, 407, -411, -283, 227, 329, -154, -402, 114};
+
+	uint16_t getMatch(uint16_t start)
+	{
+		int16_t sample;
+		int16_t theory;
+		uint16_t index;
+		uint16_t match;
+		uint16_t volume;
+
+		match = getVolume(start - SILENCE, SILENCE);
+
+		volume = getVolume(start, 16);
+
+		for(index = start; index < start + 16; ++index)
+		{
+			sample = buffer[index] - range.average;
+			theory = ((uint32_t)(matchTable[index - start]) * volume) >> 8;
+
+			if( sample > theory )
+				match += sample - theory;
+			else
+				match += theory - sample;
+		}
+
+		return match;		
+	}
+
+	task void process()
+	{
+		range.sequence += 1;
+		range.timestamp = call LocalTime.get();
+		range.average = getAverage();
+
+		state = STATE_READY;
+		signal EchoRanger.readDone(SUCCESS, &range);
+	}
+
+// -----------------------
 
 	typedef struct report_t
 	{
@@ -164,18 +242,4 @@ implementation
 		post reportTask();
   	}
 
-	event void MicRead.readDone(error_t result, uint32_t usActualPeriod)
-	{
-		if( state == STATE_LISTEN )
-		{
-			state = STATE_REPORT;
-			reportIndex = 0;
-			post reportTask();
-		}
-	}
-
-	async event error_t MicSetting.toneDetected()
-	{
-		return SUCCESS;
-	}
 }

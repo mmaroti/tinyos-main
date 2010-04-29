@@ -33,8 +33,6 @@
 
 import net.tinyos.packet.*;
 import net.tinyos.util.PrintStreamMessenger;
-import java.io.*;
-import java.util.*;
 
 public class EchoRanger implements PacketListenerIF
 {
