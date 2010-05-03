@@ -3,6 +3,7 @@
 #include "DataRecorder.h"
 #include "CalibrationModule.h"
 #include "Application.h"
+#include <qfiledialog.h>
 
 CalibrationWidget::CalibrationWidget(QWidget *parent, Application &app) :
     QWidget(parent),
@@ -34,16 +35,18 @@ void CalibrationWidget::on_startButton_clicked()
 {
     QString message = "";
     if ( ui->stationaryButton->isChecked() ) {
-        if ( application.dataRecorder.size() < WINDOW ){
+        if ( application.dataRecorder.size() < WINDOW*6 ) {
             message = "Error: Not enough data for calibration! Please Load a longer record!";
         } else {
-            if ( calibrationModule->Calibrate() == 1 ){
-                for (int j = 0; j < calibrationModule->size(); j++) {
-                    message.append(calibrationModule->atToString(j));
-                }
+            if ( calibrationModule->Calibrate() == "1" ) {
                 for (int i = 0; i < 6; i++){
-                    message.append(QString::number(calibrationModule->atIdleSides(i)));
+                    message.append(calibrationModule->at(calibrationModule->atIdleSides(i)).toString());
                     message.append("\n");
+                    }
+                QString fn = QFileDialog::getSaveFileName(  this, "Choose a filename to save under", "c:/", "CSV (*.csv)");
+                if ( !fn.isEmpty() ) {
+                   // application.dataRecorder.saveSamples( fn );
+                    calibrationModule->saveCalibratedData( fn );
                 }
             } else {
                 message = "Calibration Error!";

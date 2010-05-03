@@ -3,8 +3,14 @@
 # -------------------------------------------------
 TEMPLATE = app
 TARGET = TestShimmer
+# QMAKE_LIBDIR += c:\Octave\3.2.4_gcc-4.4.0\lib\octave-3.2.4\
+# LIBS += -lliboctave -lliboctinterp
+# INCLUDEPATH += c:\Octave\3.2.4_gcc-4.4.0\include\octave-3.2.4\octave\
+# INCLUDEPATH += c:\Octave\3.2.4_gcc-4.4.0\include
+INCLUDEPATH += ../TntJama/
 INCLUDEPATH += ../QextSerialPort/
 QMAKE_LIBDIR += ../QextSerialPort/build
+CONFIG(debug) += CONSOLE
 CONFIG(debug, debug|release):LIBS += -lqextserialportd
 else:LIBS += -lqextserialport
 win32:LIBS += -lsetupapi
