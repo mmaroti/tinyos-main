@@ -3,4 +3,5 @@ CFLAGS += -I$(SZTETOSDIR)/lib/Mts300
 CFLAGS += -I$(TOSDIR)/sensorboards/mts300
 CFLAGS += -I$(SZTETOSDIR)/lib/MicReadStream
 CFLAGS += -DSAMP_TIME=1000
+CFLAGS += -DMTS300CB
 include $(MAKERULES)
