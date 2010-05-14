@@ -48,9 +48,9 @@ implementation {
 
 	components MicaBusC;
 	
-	Intersema5543LogicP.SPI_CLK -> MicaBusC.USART1_CLK;
-	Intersema5543LogicP.SPI_SI -> MicaBusC.USART1_RXD;
-	Intersema5543LogicP.SPI_SO -> MicaBusC.USART1_TXD;
+	Intersema5543LogicP.SPI_CLK -> MicaBusC.UART_CLK;
+	Intersema5543LogicP.SPI_SI -> MicaBusC.UART_RXD;
+	Intersema5543LogicP.SPI_SO -> MicaBusC.UART_TXD;
 	
 	components new TimerMilliC() as Timer;
 	Intersema5543LogicP.Timer->Timer;

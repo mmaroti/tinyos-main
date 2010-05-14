@@ -80,7 +80,7 @@ implementation {
 	ChannelEepromPower   = HplAdg715C.Channel5;
 	ChannelAccelPower    = HplAdg715C.Channel6;
 	DcDcBoost33Channel  = HplAdg715C.Channel7;
-//  ChannelGpsEnable     = HplAdg715C.Channel8;
+//	ChannelGpsEnable     = HplAdg715C.Channel8;
 	DcDcBoost5Channel   = HplAdg715C.Channel8;
 //	ChannelGpsPower      = HplAdg715C.Channel7;
 }

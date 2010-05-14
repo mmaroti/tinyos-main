@@ -41,29 +41,39 @@
  
 configuration Adg715CommC {
 	provides {
-		/** Connects USART1_TXD to GPS_RX */
+		/** Connects UART_TXD to GPS_RX */
 		//interface Channel as ChannelGpsRx;
-		/** Connects Accel_X to ADC5 */
+
+		/** Connects Accel_X to ADC1 */
 		interface Channel as ChannelAccel_X;
-    	/** Connects USART1_RXD to GPS_TX */
+
+		/** Connects UART_RXD to GPS_TX */
 		//interface Channel as ChannelGpsTx;
-		/** Connects Accel_Y to ADC6  */
+
+		/** Connects Accel_Y to ADC2  */
 		interface Channel as ChannelAccel_Y;
-		/** Connects USART1_CLK to Pressure_SCLK */
+
+		/** Connects UART_CLK to Pressure_SCLK */
 		/** Connects Pressure_SCLK to FLASH_CLK*/
 		interface Channel as ChannelPressureClock;
-		/** Connects USART1_TX to Pressure_DOUT */
+
+		/** Connects UART_TX to Pressure_DOUT */
 		/** Connects Pressure_DIN to FLASH_SI  */
 		interface Channel as ChannelPressureDin;
-		/** Connects USART1_RX to Pressure_DIN */
+
+		/** Connects UART_RX to Pressure_DIN */
 		/** Connects Pressure_DOUT to FLASH_SO */
 		interface Channel as ChannelPressureDout;
+
 		/** Pins not connected for channel 6 on this chip */
 		//interface Channel as Channel6CommNull;
+
 		/** Connects Thermopile_Select_Cnt to GND */    
 		interface Channel as ChannelThermopile_Select_Cnt;
+
 		/** Connects PW3 to Humidity_SCK */
 		interface Channel as ChannelHumidityClock;
+
 		/** Connects INT3 to Humidity_DATA */
 		interface Channel as ChannelHumidityData;
 	}

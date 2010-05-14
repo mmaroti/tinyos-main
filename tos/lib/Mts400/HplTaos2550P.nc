@@ -82,7 +82,6 @@ implementation {
 		signal SplitControl.startDone(SUCCESS);
 	}
 	
-	
 	command error_t SplitControl.stop() {
 		return  call ChannelLightPower.close(); 
 	}
@@ -101,6 +100,3 @@ implementation {
 	
 	async event void I2CPacket.readDone(error_t error, uint16_t addr,uint8_t length, uint8_t* data){}
 }
-
-
-

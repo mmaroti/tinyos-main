@@ -30,7 +30,7 @@
  *
  * Authors:		Joe Polastre
  *
- * $Id: Intersema5543LogicP.nc,v 1.1 2010-03-23 08:40:49 zkincses Exp $
+ * $Id: Intersema5543LogicP.nc,v 1.2 2010-05-14 12:58:25 mmaroti Exp $
  */
 
 
@@ -84,8 +84,8 @@ implementation
 			state = PRESS;
 			post SPITask();
 			return SUCCESS;
-    	}
-    	return FAIL;
+	    	}
+    		return FAIL;
 	}
 
 	command error_t Temp.read() {
@@ -173,9 +173,9 @@ implementation
 	}
 		
 	uint16_t spi_word(uint8_t num) {
-		int i;
-	    TOSH_wait();
-	    TOSH_wait();
+		uint8_t i;
+		TOSH_wait();
+		TOSH_wait();
 		// write first byte
 		for (i = 0; i < 3; i++) {
 			write_bit(TRUE);
@@ -214,24 +214,21 @@ implementation
 	}
 	
 	void spi_reset() {
-		int i = 0;
+		uint8_t i = 0;
 		for (i = 0; i < 21; i++) {
 			if (i < 16) {
-				if ((i % 2) == 0) {
+				if ((i % 2) == 0)
 					write_bit(TRUE);
-				}
-				else {
+				else
 					write_bit(FALSE);
-				}
 			}
-			else {
+			else
 				write_bit(FALSE);
-			}
 		} 
 	}
 	
 	void sense() {
-		int i;
+		uint8_t i;
 		TOSH_wait();
 		TOSH_wait();
 		// write first byte
@@ -259,7 +256,7 @@ implementation
 
 	event void Timer.fired() {
 		if (call SPI_SI.get() == 1) {
-	      	timeout++;
+		      	timeout++;
 			if (timeout > PRESSURE_TIMEOUT_TRIES) {
 				if (state == PRESS) {
 					state = IDLE;
@@ -271,11 +268,9 @@ implementation
 					return;
 				}
 			}
-      		call Timer.startOneShot(20);
-    	}else {
+      			call Timer.startOneShot(20);
+	    	} 
+		else 
 			post gotInterrupt();
-		}
 	}
 }
-
-

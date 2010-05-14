@@ -37,4 +37,3 @@
 #define UQ_ACCEL202 "Accel202.Resource"
 
 #endif
-

@@ -36,7 +36,7 @@
  * the Sensirion SHT11 sensor on the telosb platform.
  *
  * @author Gilman Tolle <gtolle@archrock.com>
- * @version $Revision: 1.3 $ $Date: 2010-03-04 14:30:20 $
+ * @version $Revision: 1.4 $ $Date: 2010-05-14 12:58:25 $
  */
 
 module HplSensirionSht11P {
@@ -110,4 +110,3 @@ implementation {
 		signal SplitControl.stopDone( err );
 	}
 }
-

@@ -37,7 +37,7 @@
  * Sensirion SHT11 driver.
  *
  * @author Gilman Tolle <gtolle@archrock.com>
- * @version $Revision: 1.5 $ $Date: 2010-05-14 12:01:14 $
+ * @version $Revision: 1.6 $ $Date: 2010-05-14 12:58:25 $
  */
 
 configuration HplSensirionSht11C {
@@ -76,6 +76,4 @@ implementation {
 	HplSensirionSht11P.ChannelHumidityData->Adg715CommC.ChannelHumidityData;
 	components Adg715PowerC; 
 	HplSensirionSht11P.ChannelHumidityPower->Adg715PowerC.ChannelHumidityPower;
-	
-	
 }

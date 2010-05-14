@@ -51,4 +51,3 @@ implementation {
 	Accel202LogicP.XADC -> MicaBusC.Adc1;
 	Accel202LogicP.YADC -> MicaBusC.Adc2;
 }
-

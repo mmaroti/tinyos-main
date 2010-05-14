@@ -47,5 +47,4 @@ implementation {
 	Intersema5543ReaderP.TempRead -> HalIntersema5543C.Temp;
 	Intersema5543ReaderP.PressRead -> HalIntersema5543C.Press;
 	Intersema5543ReaderP.Cal -> HalIntersema5543C.Cal;
-	
 }

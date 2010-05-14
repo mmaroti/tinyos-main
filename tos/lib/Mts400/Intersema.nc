@@ -35,4 +35,3 @@ interface Intersema {
   command error_t read();
   event void readDone(error_t error, int16_t* mesResult);
 }
-

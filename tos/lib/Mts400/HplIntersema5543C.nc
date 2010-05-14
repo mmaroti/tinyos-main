@@ -65,5 +65,3 @@ implementation {
 	HplIntersema5543P.Timer -> Timer;
 	 
 }
-
-

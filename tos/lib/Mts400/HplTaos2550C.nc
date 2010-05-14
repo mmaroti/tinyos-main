@@ -48,11 +48,11 @@ implementation {
 	
 	components Adg715PowerC;
 	HplTaos2550P.ChannelLightPower -> Adg715PowerC.ChannelLightPower;
+
 	components new TimerMilliC()as Timer;
 	HplTaos2550P.Timer -> Timer;
+
 	components new Atm128I2CMasterC();
 	HplTaos2550P.I2CPacket -> Atm128I2CMasterC;
 	HplTaos2550P.I2CResource -> Atm128I2CMasterC;
 }
-
-

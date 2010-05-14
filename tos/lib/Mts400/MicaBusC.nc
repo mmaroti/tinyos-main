@@ -1,4 +1,4 @@
-// $Id: MicaBusC.nc,v 1.2 2010-05-14 11:56:11 zkincses Exp $
+// $Id: MicaBusC.nc,v 1.3 2010-05-14 12:58:25 mmaroti Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -25,16 +25,21 @@ configuration MicaBusC {
     interface GeneralIO as PW5;
     interface GeneralIO as PW6;
     interface GeneralIO as PW7;
+
     interface GeneralIO as Int0;
     interface GeneralIO as Int1;
     interface GeneralIO as Int2;
     interface GeneralIO as Int3;
-    
+
+    /* INT lines used as interrupt source */
+    interface GpioInterrupt as Int0_Interrupt;
+    interface GpioInterrupt as Int1_Interrupt;
+    interface GpioInterrupt as Int2_Interrupt;
     interface GpioInterrupt as Int3_Interrupt;
     
-    interface GeneralIO as USART1_CLK;
-    interface GeneralIO as USART1_RXD;
-    interface GeneralIO as USART1_TXD;
+    interface GeneralIO as UART_CLK;
+    interface GeneralIO as UART_RXD;
+    interface GeneralIO as UART_TXD;
 
     /* Separate interfaces to allow inlining to occur */
     interface MicaBusAdc as Adc0;
@@ -64,13 +69,22 @@ implementation {
   Int2 = Pins.PortE6;
   Int3 = Pins.PortE7;
   
-  USART1_CLK = Pins.PortD5;
-  USART1_RXD = Pins.PortD2;
-  USART1_TXD = Pins.PortD3;
+  UART1_CLK = Pins.PortD5;
+  UART1_RXD = Pins.PortD2;
+  UART1_TXD = Pins.PortD3;
   
+  Atm128GpioInterruptC.Atm128Interrupt->HplAtm128InterruptC.Int4;
+  Int0_Interrupt=Atm128GpioInterruptC.Interrupt;
+
+  Atm128GpioInterruptC.Atm128Interrupt->HplAtm128InterruptC.Int5;
+  Int1_Interrupt=Atm128GpioInterruptC.Interrupt;
+
+  Atm128GpioInterruptC.Atm128Interrupt->HplAtm128InterruptC.Int6;
+  Int2_Interrupt=Atm128GpioInterruptC.Interrupt;
+
   Atm128GpioInterruptC.Atm128Interrupt->HplAtm128InterruptC.Int7;
   Int3_Interrupt=Atm128GpioInterruptC.Interrupt;
-	  
+
   Adc0 = MicaBusP.Adc0;
   Adc1 = MicaBusP.Adc1;
   Adc2 = MicaBusP.Adc2;

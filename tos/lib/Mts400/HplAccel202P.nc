@@ -110,6 +110,3 @@ implementation {
 		signal SplitControl.stopDone(err);
 	}
 }
-
-
-
