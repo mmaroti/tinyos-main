@@ -1,4 +1,4 @@
-// $Id: MicaBusC.nc,v 1.1 2010-03-30 13:24:00 zkincses Exp $
+// $Id: MicaBusC.nc,v 1.2 2010-05-14 11:56:11 zkincses Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -30,7 +30,7 @@ configuration MicaBusC {
     interface GeneralIO as Int2;
     interface GeneralIO as Int3;
     
-    interface HplAtm128Interrupt as Int7;
+    interface GpioInterrupt as Int3_Interrupt;
     
     interface GeneralIO as USART1_CLK;
     interface GeneralIO as USART1_RXD;
@@ -48,7 +48,8 @@ configuration MicaBusC {
   }
 }
 implementation {
-  components HplAtm128GeneralIOC as Pins, HplAtm128InterruptC as IntPin, MicaBusP;
+  components HplAtm128GeneralIOC as Pins, MicaBusP;
+  components HplAtm128InterruptC, new Atm128GpioInterruptC();
 
   PW0 = Pins.PortC0;
   PW1 = Pins.PortC1;
@@ -67,8 +68,9 @@ implementation {
   USART1_RXD = Pins.PortD2;
   USART1_TXD = Pins.PortD3;
   
-  Int7=IntPin.Int7;
-
+  Atm128GpioInterruptC.Atm128Interrupt->HplAtm128InterruptC.Int7;
+  Int3_Interrupt=Atm128GpioInterruptC.Interrupt;
+	  
   Adc0 = MicaBusP.Adc0;
   Adc1 = MicaBusP.Adc1;
   Adc2 = MicaBusP.Adc2;
