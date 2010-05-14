@@ -1,4 +1,4 @@
-// $Id: MicaBusC.nc,v 1.3 2010-05-14 12:58:25 mmaroti Exp $
+// $Id: MicaBusC.nc,v 1.4 2010-05-14 13:16:47 zkincses Exp $
 /*
  * Copyright (c) 2005-2006 Intel Corporation
  * All rights reserved.
@@ -54,7 +54,7 @@ configuration MicaBusC {
 }
 implementation {
   components HplAtm128GeneralIOC as Pins, MicaBusP;
-  components HplAtm128InterruptC, new Atm128GpioInterruptC();
+  components HplAtm128InterruptC;
 
   PW0 = Pins.PortC0;
   PW1 = Pins.PortC1;
@@ -69,21 +69,25 @@ implementation {
   Int2 = Pins.PortE6;
   Int3 = Pins.PortE7;
   
-  UART1_CLK = Pins.PortD5;
-  UART1_RXD = Pins.PortD2;
-  UART1_TXD = Pins.PortD3;
-  
-  Atm128GpioInterruptC.Atm128Interrupt->HplAtm128InterruptC.Int4;
-  Int0_Interrupt=Atm128GpioInterruptC.Interrupt;
+  UART_CLK = Pins.PortD5;
+  UART_RXD = Pins.PortD2;
+  UART_TXD = Pins.PortD3;
 
-  Atm128GpioInterruptC.Atm128Interrupt->HplAtm128InterruptC.Int5;
-  Int1_Interrupt=Atm128GpioInterruptC.Interrupt;
+  components new Atm128GpioInterruptC() as Atm128GpioInterrupt0C;
+  Atm128GpioInterrupt0C.Atm128Interrupt->HplAtm128InterruptC.Int4;
+  Int0_Interrupt=Atm128GpioInterrupt0C.Interrupt;
 
-  Atm128GpioInterruptC.Atm128Interrupt->HplAtm128InterruptC.Int6;
-  Int2_Interrupt=Atm128GpioInterruptC.Interrupt;
+  components new Atm128GpioInterruptC() as Atm128GpioInterrupt1C;
+  Atm128GpioInterrupt1C.Atm128Interrupt->HplAtm128InterruptC.Int5;
+  Int1_Interrupt=Atm128GpioInterrupt1C.Interrupt;
 
-  Atm128GpioInterruptC.Atm128Interrupt->HplAtm128InterruptC.Int7;
-  Int3_Interrupt=Atm128GpioInterruptC.Interrupt;
+  components new Atm128GpioInterruptC() as Atm128GpioInterrupt2C;
+  Atm128GpioInterrupt2C.Atm128Interrupt->HplAtm128InterruptC.Int6;
+  Int2_Interrupt=Atm128GpioInterrupt2C.Interrupt;
+
+  components new Atm128GpioInterruptC() as Atm128GpioInterrupt3C;
+  Atm128GpioInterrupt3C.Atm128Interrupt->HplAtm128InterruptC.Int7;
+  Int3_Interrupt=Atm128GpioInterrupt3C.Interrupt;
 
   Adc0 = MicaBusP.Adc0;
   Adc1 = MicaBusP.Adc1;
