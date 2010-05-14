@@ -37,7 +37,7 @@
  * Sensirion SHT11 driver.
  *
  * @author Gilman Tolle <gtolle@archrock.com>
- * @version $Revision: 1.4 $ $Date: 2010-03-30 13:24:00 $
+ * @version $Revision: 1.5 $ $Date: 2010-05-14 12:01:14 $
  */
 
 configuration HplSensirionSht11C {
@@ -61,10 +61,7 @@ implementation {
 	components new TimerMilliC();
 	HplSensirionSht11P.Timer -> TimerMilliC;
 
-	components new Atm128GpioInterruptC() as  InterruptDATAC;
-	InterruptDATAC.Atm128Interrupt -> MicaBusC.Int7;
-
-	InterruptDATA = InterruptDATAC.Interrupt;
+	InterruptDATA = MicaBusC.Int3_Interrupt;
 
 	components new FcfsArbiterC( "Sht11.Resource" ) as Arbiter;
 	Resource = Arbiter;
