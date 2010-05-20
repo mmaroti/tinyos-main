@@ -38,18 +38,14 @@ void CalibrationWidget::on_startButton_clicked()
         if ( application.dataRecorder.size() < WINDOW*6 ) {
             message = "Error: Not enough data for calibration! Please Load a longer record!";
         } else {
-            if ( calibrationModule->Calibrate() == "1" ) {
-                for (int i = 0; i < 6; i++){
+            message = calibrationModule->Calibrate();
+            if ( message == "1" ) {
+                for (int i = 0; i < 6; i++) {
                     message.append(calibrationModule->at(calibrationModule->atIdleSides(i)).toString());
                     message.append("\n");
-                    }
-                QString fn = QFileDialog::getSaveFileName(  this, "Choose a filename to save under", "c:/", "CSV (*.csv)");
-                if ( !fn.isEmpty() ) {
-                   // application.dataRecorder.saveSamples( fn );
-                    calibrationModule->saveCalibratedData( fn );
                 }
             } else {
-                message = "Calibration Error!";
+                message.insert(0, "Calibration Error! ");
             }
         }
     } else {
@@ -59,4 +55,11 @@ void CalibrationWidget::on_startButton_clicked()
     message.clear();
     calibrationModule->clearWindows();
     calibrationModule->clearIdleSides();
+}
+
+void CalibrationWidget::on_saveButton_clicked() {
+    QString fn = QFileDialog::getSaveFileName(  this, "Choose a filename to save under", "c:/", "CSV (*.csv)");
+    if ( !fn.isEmpty() ) {
+        calibrationModule->saveCalibratedData( fn );
+    }
 }

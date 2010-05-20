@@ -3,6 +3,7 @@
 # -------------------------------------------------
 TEMPLATE = app
 TARGET = TestShimmer
+
 # QMAKE_LIBDIR += c:\Octave\3.2.4_gcc-4.4.0\lib\octave-3.2.4\
 # LIBS += -lliboctave -lliboctinterp
 # INCLUDEPATH += c:\Octave\3.2.4_gcc-4.4.0\include\octave-3.2.4\octave\
@@ -25,7 +26,10 @@ SOURCES += src/DataRecorder.cpp \
     src/PlotScrollArea.cpp \
     src/CalibrationWidget.cpp \
     src/ConsoleWidget.cpp \
-    src/CalibrationModule.cpp
+    src/LinearEquations.cpp \
+    src/CalibrationModule.cpp \
+    src/CalibratedDataWidget.cpp \
+    src/CalibratedDataPlot.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -36,10 +40,14 @@ HEADERS += src/DataRecorder.h \
     src/PlotScrollArea.h \
     src/CalibrationWidget.h \
     src/ConsoleWidget.h \
-    src/CalibrationModule.h
+    src/LinearEquations.h \
+    src/CalibrationModule.h \
+    src/CalibratedDataWidget.h \
+    src/CalibratedDataPlot.h
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/RawDataWidget.ui \
+    src/CalibratedDataWidget.ui \
     src/CalibrationWidget.ui \
     src/ConsoleWidget.ui
 RESOURCES += src/Resources.qrc
