@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>456</width>
+    <width>500</width>
     <height>389</height>
    </rect>
   </property>
@@ -15,7 +15,11 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0,0">
    <item>
-    <widget class="PlotScrollArea" name="scrollArea" native="true"/>
+    <widget class="PlotScrollArea" name="scrollArea" native="true">
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QWidget" name="widget_2" native="true">
@@ -347,14 +351,20 @@
       <item>
        <widget class="QPushButton" name="loadButton">
         <property name="text">
-         <string>Load</string>
+         <string>(L)oad</string>
+        </property>
+        <property name="shortcut">
+         <string>L</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="saveButton">
         <property name="text">
-         <string>Save</string>
+         <string>(S)ave</string>
+        </property>
+        <property name="shortcut">
+         <string>S</string>
         </property>
        </widget>
       </item>
@@ -374,14 +384,20 @@
       <item>
        <widget class="QPushButton" name="clearButton">
         <property name="text">
-         <string>Clear</string>
+         <string>(C)lear</string>
+        </property>
+        <property name="shortcut">
+         <string>C</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="recordButton">
         <property name="text">
-         <string>Record</string>
+         <string>(R)ecord</string>
+        </property>
+        <property name="shortcut">
+         <string>R</string>
         </property>
        </widget>
       </item>

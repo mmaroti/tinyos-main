@@ -2,6 +2,7 @@
 #define RAWDATAWIDGET_H
 
 #include <QWidget>
+#include "CalibratedDataPlot.h"
 
 class Application;
 class DataRecorder;

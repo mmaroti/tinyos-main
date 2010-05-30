@@ -12,7 +12,7 @@ RawDataPlot::RawDataPlot(PlotScrollArea *parent, Application &app) : QWidget(par
 	application(app)
 {
 	scrollArea = parent;
-        graphs = XACCEL | YACCEL | ZACCEL | XGYRO | YGYRO | ZGYRO | GRID | TIME | TEMP;
+        graphs = XACCEL | YACCEL | ZACCEL | XGYRO | YGYRO | ZGYRO | GRID | TIME;
 
 	connect(&app.dataRecorder, SIGNAL(sampleAdded()), this, SLOT(onSampleAdded()));
 	connect(&app.dataRecorder, SIGNAL(samplesCleared()), this, SLOT(onSamplesCleared()));

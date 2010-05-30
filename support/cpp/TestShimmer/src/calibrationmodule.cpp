@@ -1,19 +1,24 @@
 #include "CalibrationModule.h"
 #include "DataRecorder.h"
 #include <QtDebug>
-#include "qfile.h"
+#include <qfile.h>
 #include "LinearEquations.h"
+#include "tnt_math_utils.h"
+#include <cmath>
 
 using namespace std;
 
 CalibrationModule::CalibrationModule(Application &app) : application(app)
 {
-    xMin = 9999; yMin = 9999; zMin = 9999;
-    xMax = 0; yMax = 0; zMax = 0;
-    xDiff = 0; yDiff = 0; zDiff = 0;
+    xMin = 9999; yMin = 9999; zMin = 9999; xGyrMin = 9999; yGyrMin = 9999, zGyrMin = 9999;
+    xMax = 0; yMax = 0; zMax = 0; xGyrMax = 0; yGyrMax = 0; zGyrMax = 0;
+    xDiff = 0; yDiff = 0; zDiff = 0; xGyrDiff = 0; yGyrDiff = 0; zGyrDiff = 0;
     xAvg = 0.0; yAvg = 0.0; zAvg = 0.0;
     xMinAvg = 9999.99; xMaxAvg = 0.0; yMinAvg = 9999.99; yMaxAvg = 0.0; zMinAvg = 9999.99; zMaxAvg = 0.0;
+    xGyrAvg = 0.0; yGyrAvg = 0.0; zGyrAvg = 0.0;
+    xMinGyrAvg = 9999.99; xMaxGyrAvg = 0.0; yMinGyrAvg = 9999.99; yMaxGyrAvg = 0.0; zMinGyrAvg = 9999.99; zMaxGyrAvg = 0.0;
     xSum = 0; ySum = 0; zSum = 0;
+    xGyrSum = 0; yGyrSum = 0; zGyrSum = 0;
 }
 
 CalibrationModule::~CalibrationModule()
@@ -37,7 +42,7 @@ IdleWindow::IdleWindow()
 
 QString CalibrationModule::Calibrate()
 {
-    int xAccel,yAccel,zAccel;
+    int xAccel,yAccel,zAccel, xGyro, yGyro, zGyro;
 
 
     for(int j = 0; j < application.dataRecorder.size()-WINDOW; j+=10) {
@@ -45,37 +50,54 @@ QString CalibrationModule::Calibrate()
             xAccel = application.dataRecorder.at(i).xAccel;
             yAccel = application.dataRecorder.at(i).yAccel;
             zAccel = application.dataRecorder.at(i).zAccel;
+            xGyro  = application.dataRecorder.at(i).xGyro;
+            yGyro  = application.dataRecorder.at(i).yGyro;
+            zGyro  = application.dataRecorder.at(i).zGyro;
 
             if(xAccel > xMax) xMax = xAccel; if(xAccel < xMin) xMin = xAccel;
             if(yAccel > yMax) yMax = yAccel; if(yAccel < yMin) yMin = yAccel;
             if(zAccel > zMax) zMax = zAccel; if(zAccel < zMin) zMin = zAccel;
-            xSum = xSum + xAccel;
-            ySum = ySum + yAccel;
-            zSum = zSum + zAccel;
+
+            if(xGyro > xGyrMax) xGyrMax = xGyro; if(xGyro < xGyrMin) xGyrMin = xGyro;
+            if(yGyro > yGyrMax) yGyrMax = yGyro; if(yGyro < yGyrMin) yGyrMin = yGyro;
+            if(zGyro > zGyrMax) zGyrMax = zGyro; if(zGyro < zGyrMin) zGyrMin = zGyro;
+
+            xSum += xAccel; xGyrSum += xGyro;
+            ySum += yAccel; yGyrSum += yGyro;
+            zSum += zAccel; zGyrSum += zGyro;
         }
-        xAvg = (float) xSum/WINDOW;
-        yAvg = (float) ySum/WINDOW;
-        zAvg = (float) zSum/WINDOW;
+        xAvg = (float) xSum/WINDOW; yAvg = (float) ySum/WINDOW; zAvg = (float) zSum/WINDOW;
+        xGyrAvg = (float) xGyrSum/WINDOW; yGyrAvg = (float) yGyrSum/WINDOW; zGyrAvg = (float) zGyrSum/WINDOW;
+
         if(xAvg > xMaxAvg) xMaxAvg = xAvg; if(xAvg < xMinAvg) xMinAvg = xAvg;
         if(yAvg > yMaxAvg) yMaxAvg = yAvg; if(yAvg < yMinAvg) yMinAvg = yAvg;
         if(zAvg > zMaxAvg) zMaxAvg = zAvg; if(zAvg < zMinAvg) zMinAvg = zAvg;
-        xDiff = xMax - xMin;
-        yDiff = yMax - yMin;
-        zDiff = zMax - zMin;
-        if( (xDiff < MAXDIFF) && (yDiff < MAXDIFF) && (zDiff < MAXDIFF) ){
+
+        if(xGyrAvg > xMaxGyrAvg) xMaxGyrAvg = xGyrAvg; if(xGyrAvg < xMinGyrAvg) xMinGyrAvg = xGyrAvg;
+        if(yGyrAvg > yMaxGyrAvg) yMaxGyrAvg = yGyrAvg; if(yGyrAvg < yMinGyrAvg) yMinGyrAvg = yGyrAvg;
+        if(zGyrAvg > zMaxGyrAvg) zMaxGyrAvg = zGyrAvg; if(zGyrAvg < zMinGyrAvg) zMinGyrAvg = zGyrAvg;
+
+        xDiff = xMax - xMin; xGyrDiff = xGyrMax - xGyrMin;
+        yDiff = yMax - yMin; yGyrDiff = yGyrMax - yGyrMin;
+        zDiff = zMax - zMin; zGyrDiff = zGyrMax - zGyrMin;
+
+        if( (xDiff < MAXDIFF) && (yDiff < MAXDIFF) && (zDiff < MAXDIFF) && (xGyrDiff < MAXDIFF) && (yGyrDiff < MAXDIFF) && (zGyrDiff < MAXDIFF) ){
             IdleWindow idleWindow;
 
             idleWindow.xMax = xMax; idleWindow.xMin = xMin; idleWindow.xAvg = xAvg;
             idleWindow.yMax = yMax; idleWindow.yMin = yMin; idleWindow.yAvg = yAvg;
             idleWindow.zMax = zMax; idleWindow.zMin = zMin; idleWindow.zAvg = zAvg;
+            idleWindow.xGyroAvg = xGyrAvg; idleWindow.yGyroAvg = yGyrAvg; idleWindow.zGyroAvg = zGyrAvg;
             idleWindows.append(idleWindow);
         }
 
-        xMin = 9999; yMin = 9999; zMin = 9999;
-        xMax = 0; yMax = 0; zMax = 0;
-        xDiff = 0; yDiff = 0; zDiff = 0;
+        xMin = 9999; yMin = 9999; zMin = 9999; xGyrMin = 9999; yGyrMin = 9999, zGyrMin = 9999;
+        xMax = 0; yMax = 0; zMax = 0; xGyrMax = 0; yGyrMax = 0; zGyrMax = 0;
+        xDiff = 0; yDiff = 0; zDiff = 0; xGyrDiff = 0; yGyrDiff = 0; zGyrDiff = 0;
         xAvg = 0.0; yAvg = 0.0; zAvg = 0.0;
+        xGyrAvg = 0.0; yGyrAvg = 0.0; zGyrAvg = 0.0;
         xSum = 0; ySum = 0; zSum = 0;
+        xGyrSum = 0; yGyrSum = 0; zGyrSum = 0;
     }
 
     if (idleWindows.size() < 6){
@@ -142,16 +164,38 @@ QString CalibrationModule::Classify()
     }
     xMinAvg = 9999.99; xMaxAvg = 0.0; yMinAvg = 9999.99; yMaxAvg = 0.0; zMinAvg = 9999.99; zMaxAvg = 0.0;
 
-    for (int i = 0; i < 6; i++) {
+    for ( int i = 0; i < 6; i++ ) {
         if ( idleSidesMins[i] == -1 ) {
             return "Calibration is missing the mote being idle on one of its sides! (Please load a record with the mote being idle on each side for at least 2 seconds!)";
         }
     }
 
+    double xGyrAvgSum = 0;
+    double yGyrAvgSum = 0;
+    double zGyrAvgSum = 0;
+    for ( int i = 1; i < 6 ; i++ ) {
+        if ( fabs(idleWindows[idleSidesMins[i-1]].xGyroAvg - idleWindows[idleSidesMins[i]].xGyroAvg) > MAXDIFF ) {
+            if ( fabs(idleWindows[idleSidesMins[i-1]].yGyroAvg - idleWindows[idleSidesMins[i]].yGyroAvg) > MAXDIFF ) {
+                if ( fabs(idleWindows[idleSidesMins[i-1]].zGyroAvg - idleWindows[idleSidesMins[i]].zGyroAvg) > MAXDIFF ) {
+                    return "Gyroscope is not idle. Your mote might have been spinning while recording the calibration data. Please ensure your mote is completly idle.";
+                }
+            }
+        } else {
+            xGyrAvgSum += idleWindows[idleSidesMins[i-1]].xGyroAvg;
+            yGyrAvgSum += idleWindows[idleSidesMins[i-1]].yGyroAvg;
+            zGyrAvgSum += idleWindows[idleSidesMins[i-1]].zGyroAvg;
+        }
+    }
+    xGyrAvgSum += idleWindows[idleSidesMins[5]].xGyroAvg;
+    yGyrAvgSum += idleWindows[idleSidesMins[5]].yGyroAvg;
+    zGyrAvgSum += idleWindows[idleSidesMins[5]].zGyroAvg;
+
+    gyroMinAvgs[0] = xGyrAvgSum / 6.0;
+    gyroMinAvgs[1] = yGyrAvgSum / 6.0;
+    gyroMinAvgs[2] = zGyrAvgSum / 6.0;
+
     return LSF();
 }
-
-#include "tnt_math_utils.h"
 
 QString CalibrationModule::LSF() {
 
@@ -445,148 +489,102 @@ QString CalibrationModule::LSF() {
     equation18->setCoefficient("b3", 1);
     linearEquations.addEquation(equation18);
 
-//    linearEquations.printStatistics();
+//  linearEquations.printStatistics();
 
     Solution* solution = linearEquations.solveWithSVD(0.0);
-    solution->print();
+//  solution->print();
 
-    application.settings.beginWriteArray("calibrationData");
-    for (unsigned int i = 0; i < linearEquations.getVariableCount(); i++) {
-        application.settings.setArrayIndex(i);
-        application.settings.setValue("calibrationData", solution->getValueAt(i));
-    }
-    application.settings.endArray();
+    QString returnMessage = "";
 
-    int size = application.settings.beginReadArray("calibrationData");
-    for (int i = 0; i < size; ++i) {
-        application.settings.setArrayIndex(i);
-
-        qDebug() << application.settings.value("calibrationData");
-        calibrationData[i] = application.settings.value("calibrationData").toDouble();
-    }
-    application.settings.endArray();
-
-    //linearEquations.~LinearEquations();
-
-
-
-    /*
-    TNT::Array1D<double> b(18);
-
-    b[0] = GRAV; b[1] = 0.0; b [2] = 0.0; b[3] = -GRAV; b[4] = 0.0; b [5] = 0.0;
-    b[6] = 0.0; b[7] = GRAV; b [8] = 0.0; b[9] = 0.0; b[10] = -GRAV; b [11] = 0.0;
-    b[12] = 0.0; b[13] = 0.0; b [14] = GRAV; b[15] = 0.0; b[16] = 0.0; b [17] = -GRAV;
-
-    TNT::Array2D<double> A(18,12);
-    for (int i = 0; i < 6; i++) {
-        for (int j = 0; j < 3; j++) {
-            if ( j == 0) {
-                A[i*3+j][0] = idleWindows[idleSidesMins[i]].xAvg;
-                A[i*3+j][1] = idleWindows[idleSidesMins[i]].yAvg;
-                A[i*3+j][2] = idleWindows[idleSidesMins[i]].zAvg;
-                A[i*3+j][3] = 0.0; A[i*3+j][4] = 0.0; A[i*3+j][5] = 0.0;
-                A[i*3+j][6] = 0.0; A[i*3+j][7] = 0.0; A[i*3+j][8] = 0.0;
-                A[i*3+j][9] = 1.0;
-                A[i*3+j][10] = 0.0;
-                A[i*3+j][11] = 0.0;
-            } else if ( j == 1) {
-                A[i*3+j][0] = 0.0; A[i*3+j][1] = 0.0; A[i*3+j][2] = 0.0;
-                A[i*3+j][3] = idleWindows[idleSidesMins[i]].xAvg;
-                A[i*3+j][4] = idleWindows[idleSidesMins[i]].yAvg;
-                A[i*3+j][5] = idleWindows[idleSidesMins[i]].zAvg;
-                A[i*3+j][6] = 0.0; A[i*3+j][7] = 0.0; A[i*3+j][8] = 0.0;
-                A[i*3+j][9] = 0.0;
-                A[i*3+j][10] = 1.0;
-                A[i*3+j][11] = 0.0;
-            } else if (j == 2) {
-                A[i*3+j][0] = 0.0; A[i*3+j][1] = 0.0; A[i*3+j][2] = 0.0;
-                A[i*3+j][3] = 0.0; A[i*3+j][4] = 0.0; A[i*3+j][5] = 0.0;
-                A[i*3+j][6] = idleWindows[idleSidesMins[i]].xAvg;
-                A[i*3+j][7] = idleWindows[idleSidesMins[i]].yAvg;
-                A[i*3+j][8] = idleWindows[idleSidesMins[i]].zAvg;
-                A[i*3+j][9] = 0.0;
-                A[i*3+j][10] = 0.0;
-                A[i*3+j][11] = 1.0;
-            }
-        }
-    }
-
-    printMatrix2D(A);
-    printMatrix1D(b);
-
-    TNT::Array1D<double> x(9);
-    JAMA::QR<double> qr(A);
-
-    TNT::Array2D<double> q,r;
-    q = qr.getQ().copy();
-    r = qr.getR().copy();
-    printMatrix2D(q);
-    printMatrix2D(r);
-    x = qr.solve(b).copy();
-
-    printMatrix1D(x);
-
-    application.settings.beginWriteArray("calibrationData");
-    for (int i = 0; i < x.dim(); i++) {
-        application.settings.setArrayIndex(i);
-        application.settings.setValue("calibrationData", x[i]);
-    }
-    application.settings.endArray();
-
-    int size = application.settings.beginReadArray("calibrationData");
-    for (int i = 0; i < size; ++i) {
-        application.settings.setArrayIndex(i);
-
-        qDebug() << application.settings.value("calibrationData");
-        calibrationData[i] = application.settings.value("calibrationData").toDouble();
-    }
-    application.settings.endArray();
-
-    if ( x.dim() == 0) {
-        return "LSF error...";
+    if ( solution->getMaximumError() > 0.1 ) {
+        returnMessage = "Maximum Error is too great! ( > 0.1 )  \n";
+        return returnMessage;
     } else {
-        return "1";
-    }*/
-    return "1";
+        application.settings.beginWriteArray("calibrationData");
+        for (unsigned int i = 0; i < linearEquations.getVariableCount(); i++) {
+            application.settings.setArrayIndex(i);
+            application.settings.setValue("calibrationData", solution->getValueAt(i));
+        }
+        application.settings.endArray();
+
+        application.settings.beginReadArray("calibrationData");
+        returnMessage.append("\nCalibration Data: \n");
+
+        application.settings.setArrayIndex(0);
+        returnMessage.append("a11 ");
+        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
+        calibrationData[0] = application.settings.value("calibrationData").toDouble();
+
+        application.settings.setArrayIndex(1);
+        returnMessage.append("a12 ");
+        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
+        calibrationData[1] = application.settings.value("calibrationData").toDouble();
+
+        application.settings.setArrayIndex(2);
+        returnMessage.append("a13 ");
+        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
+        calibrationData[2] = application.settings.value("calibrationData").toDouble();
+
+        application.settings.setArrayIndex(3);
+        returnMessage.append("a21 ");
+        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
+        calibrationData[3] = application.settings.value("calibrationData").toDouble();
+
+        application.settings.setArrayIndex(4);
+        returnMessage.append("a22 ");
+        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
+        calibrationData[4] = application.settings.value("calibrationData").toDouble();
+
+        application.settings.setArrayIndex(5);
+        returnMessage.append("a23 ");
+        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
+        calibrationData[5] = application.settings.value("calibrationData").toDouble();
+
+        application.settings.setArrayIndex(6);
+        returnMessage.append("a31 ");
+        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
+        calibrationData[6] = application.settings.value("calibrationData").toDouble();
+
+        application.settings.setArrayIndex(7);
+        returnMessage.append("a32 ");
+        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
+        calibrationData[7] = application.settings.value("calibrationData").toDouble();
+
+        application.settings.setArrayIndex(8);
+        returnMessage.append("a33 ");
+        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
+        calibrationData[8] = application.settings.value("calibrationData").toDouble();
+
+        application.settings.setArrayIndex(9);
+        returnMessage.append("b1 ");
+        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
+        calibrationData[9] = application.settings.value("calibrationData").toDouble();
+
+        application.settings.setArrayIndex(10);
+        returnMessage.append("b2 ");
+        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
+        calibrationData[10] = application.settings.value("calibrationData").toDouble();
+
+        application.settings.setArrayIndex(11);
+        returnMessage.append("b3 ");
+        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
+        calibrationData[11] = application.settings.value("calibrationData").toDouble();
+
+        application.settings.endArray();
+
+        return returnMessage;
+    }
 }
 
 QString IdleWindow::toString() const
 {
     QString s = "Idle Window: \n";
-    //QString x = "";
 
-    //x+= QString::number(xAvg*100);
     s += "xAvg:" + QString::number(xAvg)
          + "  yAvg:" + QString::number(yAvg)
          + "  zAvg:" + QString::number(zAvg);
 
         return s + "\n";
-        //return x + "\n";
-}
-
-void CalibrationModule::saveCalibratedData( QString filename )
-{
-    QFile f( filename );
-
-    if( !f.open( QIODevice::WriteOnly ) )
-      {
-          return;
-      }
-
-    QTextStream ts( &f );
-    double xtemp, ytemp, ztemp;
-    ts << "Accel_X,Accel_Y,Accel_Z" << endl;
-    for (int i = 0; i < application.dataRecorder.size(); i++) {
-        xtemp = application.dataRecorder.at(i).xAccel * calibrationData[0] + application.dataRecorder.at(i).yAccel * calibrationData[1] + application.dataRecorder.at(i).zAccel * calibrationData[2] + calibrationData[9];
-        ytemp = application.dataRecorder.at(i).xAccel * calibrationData[3] + application.dataRecorder.at(i).yAccel * calibrationData[4] + application.dataRecorder.at(i).zAccel * calibrationData[5] + calibrationData[10];
-        ztemp = application.dataRecorder.at(i).xAccel * calibrationData[6] + application.dataRecorder.at(i).yAccel * calibrationData[7] + application.dataRecorder.at(i).zAccel * calibrationData[8] + calibrationData[11];
-        ts << xtemp << "," << ytemp << "," << ztemp << endl;
-    }
-
-
-    ts.flush();
-    f.close();
-
 }
 
 void CalibrationModule::clearWindows()

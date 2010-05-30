@@ -4,6 +4,7 @@
 #include "Application.h"
 #include "QtDebug"
 #include <qfiledialog.h>
+#include "cmath"
 
 CalibratedDataWidget::CalibratedDataWidget(QWidget *parent, Application &app) :
     QWidget(parent),
@@ -33,44 +34,35 @@ void CalibratedDataWidget::changeEvent(QEvent *e)
         }
 }
 
-void CalibratedDataWidget::on_recordButton_clicked()
-{
-        QString text = ui->recordButton->text();
-        if( text == "Record" )
-        {
-                ui->recordButton->setText("Stop");
-                connect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)), &application.dataRecorder, SLOT(onReceiveMessage(ActiveMessage)));
-        }
-        else
-        {
-                ui->recordButton->setText("Record");
-                disconnect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)), &application.dataRecorder, SLOT(onReceiveMessage(ActiveMessage)));
-        }
-}
-
-void CalibratedDataWidget::on_clearButton_clicked()
-{
-//	ui->recordButton->setText("Record");
-//	disconnect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)), &application.dataRecorder, SLOT(onReceiveMessage(ActiveMessage)));
-
-        application.dataRecorder.clearMessages();
-}
-
-void CalibratedDataWidget::on_loadButton_clicked()
-{
-    QString file = QFileDialog::getOpenFileName(this, "Select one or more files to open", "c:/");
-    if ( !file.isEmpty() ) {
-        application.dataRecorder.loadSamples( file );
-    }
-    plot->CalibratedDataPlot::onSampleAdded();
-
-}
-
-void CalibratedDataWidget::on_saveButton_clicked()
+void CalibratedDataWidget::on_exportButton_clicked()
 {
     QString fn = QFileDialog::getSaveFileName(  this, "Choose a filename to save under", "c:/", "CSV (*.csv)");
     if ( !fn.isEmpty() ) {
-        application.dataRecorder.saveSamples( fn );
+       
+        QFile f( fn );
+    
+        if( !f.open( QIODevice::WriteOnly ) )
+          {
+              return;
+          }
+
+        QTextStream ts( &f );
+        double xtemp, ytemp, ztemp, avgtemp, xyAngle, yzAngle, zxAngle;
+        ts << "Accel_X,Accel_Y,Accel_Z,AVG_Accel,XY_Angle,YZ_Angle,ZX_Angle" << endl;
+        for (int i = 0; i < application.dataRecorder.size(); i++) {
+            xtemp = application.dataRecorder.at(i).xAccel * plot->calibrationDataAt(0) + application.dataRecorder.at(i).yAccel * plot->calibrationDataAt(1) + application.dataRecorder.at(i).zAccel * plot->calibrationDataAt(2) + plot->calibrationDataAt(9);
+            ytemp = application.dataRecorder.at(i).xAccel * plot->calibrationDataAt(3) + application.dataRecorder.at(i).yAccel * plot->calibrationDataAt(4) + application.dataRecorder.at(i).zAccel * plot->calibrationDataAt(5) + plot->calibrationDataAt(10);
+            ztemp = application.dataRecorder.at(i).xAccel * plot->calibrationDataAt(6) + application.dataRecorder.at(i).yAccel * plot->calibrationDataAt(7) + application.dataRecorder.at(i).zAccel * plot->calibrationDataAt(8) + plot->calibrationDataAt(11);
+            avgtemp = sqrt( pow(xtemp, 2.0) + pow(ytemp, 2.0) + pow(ztemp, 2.0) );
+            xyAngle = plot->calculateAngle(xtemp,ytemp);
+            yzAngle = plot->calculateAngle(ytemp,ztemp);
+            zxAngle = plot->calculateAngle(ztemp,xtemp);
+
+            ts << xtemp << "," << ytemp << "," << ztemp << "," << avgtemp << "," << xyAngle << "," << yzAngle << "," << zxAngle << endl;
+        }
+    
+        ts.flush();
+        f.close();
     }
 
 }
@@ -90,31 +82,22 @@ void CalibratedDataWidget::on_zAccel_clicked()
         plot->setGraphs(CalibratedDataPlot::ZACCEL, ui->zAccel->checkState());
 }
 
-
-
-void CalibratedDataWidget::on_xGyro_clicked()
+void CalibratedDataWidget::on_avgAccel_clicked()
 {
-        plot->setGraphs(CalibratedDataPlot::XGYRO, ui->xGyro->checkState());
+        plot->setGraphs(CalibratedDataPlot::AVGACC, ui->avgAccel->checkState());
 }
 
-void CalibratedDataWidget::on_yGyro_clicked()
+void CalibratedDataWidget::on_xyangle_clicked()
 {
-        plot->setGraphs(CalibratedDataPlot::YGYRO, ui->yGyro->checkState());
+        plot->setGraphs(CalibratedDataPlot::XYANGLE, ui->xyangle->checkState());
 }
 
-void CalibratedDataWidget::on_zGyro_clicked()
+void CalibratedDataWidget::on_yzangle_clicked()
 {
-        plot->setGraphs(CalibratedDataPlot::ZGYRO, ui->zGyro->checkState());
+        plot->setGraphs(CalibratedDataPlot::YZANGLE, ui->yzangle->checkState());
 }
 
-void CalibratedDataWidget::on_voltage_clicked()
+void CalibratedDataWidget::on_zxangle_clicked()
 {
-        plot->setGraphs(CalibratedDataPlot::VOLTAGE, ui->voltage->checkState());
+        plot->setGraphs(CalibratedDataPlot::ZXANGLE, ui->zxangle->checkState());
 }
-
-void CalibratedDataWidget::on_temp_clicked()
-{
-        plot->setGraphs(CalibratedDataPlot::TEMP, ui->temp->checkState());
-}
-
-

@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'RawDataWidget.ui'
 **
-** Created: Tue May 18 15:47:08 2010
+** Created: Tue May 25 16:54:15 2010
 **      by: Qt User Interface Compiler version 4.6.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -54,11 +54,12 @@ public:
     {
         if (RawDataWidget->objectName().isEmpty())
             RawDataWidget->setObjectName(QString::fromUtf8("RawDataWidget"));
-        RawDataWidget->resize(456, 389);
+        RawDataWidget->resize(500, 389);
         verticalLayout = new QVBoxLayout(RawDataWidget);
         verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
         scrollArea = new PlotScrollArea(RawDataWidget);
         scrollArea->setObjectName(QString::fromUtf8("scrollArea"));
+        scrollArea->setCursor(QCursor(Qt::CrossCursor));
 
         verticalLayout->addWidget(scrollArea);
 
@@ -219,10 +220,14 @@ public:
         zGyro->setText(QApplication::translate("RawDataWidget", "z-gyro", 0, QApplication::UnicodeUTF8));
         voltage->setText(QApplication::translate("RawDataWidget", "voltage", 0, QApplication::UnicodeUTF8));
         temp->setText(QApplication::translate("RawDataWidget", "temp", 0, QApplication::UnicodeUTF8));
-        loadButton->setText(QApplication::translate("RawDataWidget", "Load", 0, QApplication::UnicodeUTF8));
-        saveButton->setText(QApplication::translate("RawDataWidget", "Save", 0, QApplication::UnicodeUTF8));
-        clearButton->setText(QApplication::translate("RawDataWidget", "Clear", 0, QApplication::UnicodeUTF8));
-        recordButton->setText(QApplication::translate("RawDataWidget", "Record", 0, QApplication::UnicodeUTF8));
+        loadButton->setText(QApplication::translate("RawDataWidget", "(L)oad", 0, QApplication::UnicodeUTF8));
+        loadButton->setShortcut(QApplication::translate("RawDataWidget", "L", 0, QApplication::UnicodeUTF8));
+        saveButton->setText(QApplication::translate("RawDataWidget", "(S)ave", 0, QApplication::UnicodeUTF8));
+        saveButton->setShortcut(QApplication::translate("RawDataWidget", "S", 0, QApplication::UnicodeUTF8));
+        clearButton->setText(QApplication::translate("RawDataWidget", "(C)lear", 0, QApplication::UnicodeUTF8));
+        clearButton->setShortcut(QApplication::translate("RawDataWidget", "C", 0, QApplication::UnicodeUTF8));
+        recordButton->setText(QApplication::translate("RawDataWidget", "(R)ecord", 0, QApplication::UnicodeUTF8));
+        recordButton->setShortcut(QApplication::translate("RawDataWidget", "R", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };

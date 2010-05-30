@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'MainWindow.ui'
 **
-** Created: Tue May 18 15:47:08 2010
+** Created: Wed May 26 15:46:05 2010
 **      by: Qt User Interface Compiler version 4.6.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -78,8 +78,8 @@ public:
         calibratedTab = new QWidget();
         calibratedTab->setObjectName(QString::fromUtf8("calibratedTab"));
         verticalLayout_6 = new QVBoxLayout(calibratedTab);
-        verticalLayout_6->setSpacing(6);
-        verticalLayout_6->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_6->setSpacing(0);
+        verticalLayout_6->setContentsMargins(0, 0, 0, 0);
         verticalLayout_6->setObjectName(QString::fromUtf8("verticalLayout_6"));
         tabWidget->addTab(calibratedTab, QString());
         calibrationTab = new QWidget();
@@ -110,7 +110,7 @@ public:
 
         retranslateUi(MainWindow);
 
-        tabWidget->setCurrentIndex(2);
+        tabWidget->setCurrentIndex(0);
 
 
         QMetaObject::connectSlotsByName(MainWindow);
@@ -121,7 +121,7 @@ public:
         MainWindow->setWindowTitle(QApplication::translate("MainWindow", "TestShimmer", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(connectTab), QApplication::translate("MainWindow", "Connect", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(rawTab), QApplication::translate("MainWindow", "Raw data", 0, QApplication::UnicodeUTF8));
-        tabWidget->setTabText(tabWidget->indexOf(calibratedTab), QApplication::translate("MainWindow", "Calibrated data", 0, QApplication::UnicodeUTF8));
+        tabWidget->setTabText(tabWidget->indexOf(calibratedTab), QApplication::translate("MainWindow", "Acceleration", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(calibrationTab), QApplication::translate("MainWindow", "Calibration", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(consoleTab), QApplication::translate("MainWindow", "Console", 0, QApplication::UnicodeUTF8));
     } // retranslateUi

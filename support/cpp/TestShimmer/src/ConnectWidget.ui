@@ -58,7 +58,10 @@
       <item>
        <widget class="QPushButton" name="refreshButton">
         <property name="text">
-         <string>Refresh</string>
+         <string>(R)efresh</string>
+        </property>
+        <property name="shortcut">
+         <string>R</string>
         </property>
        </widget>
       </item>
@@ -126,14 +129,20 @@
       <item>
        <widget class="QPushButton" name="connectButton">
         <property name="text">
-         <string>Connect</string>
+         <string>(C)onnect</string>
+        </property>
+        <property name="shortcut">
+         <string>C</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="disconnectButton">
         <property name="text">
-         <string>Disconnect</string>
+         <string>(D)isconnect</string>
+        </property>
+        <property name="shortcut">
+         <string>D</string>
         </property>
        </widget>
       </item>

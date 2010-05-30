@@ -35,7 +35,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="connectTab">
        <attribute name="title">
@@ -62,9 +62,16 @@
       </widget>
       <widget class="QWidget" name="calibratedTab">
        <attribute name="title">
-        <string>Calibrated data</string>
+        <string>Acceleration</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_6"/>
+       <layout class="QVBoxLayout" name="verticalLayout_6">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="margin">
+         <number>0</number>
+        </property>
+       </layout>
       </widget>
       <widget class="QWidget" name="calibrationTab">
        <attribute name="title">

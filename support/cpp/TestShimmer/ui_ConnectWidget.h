@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'ConnectWidget.ui'
 **
-** Created: Tue May 18 15:47:08 2010
+** Created: Tue May 25 16:46:52 2010
 **      by: Qt User Interface Compiler version 4.6.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -148,10 +148,13 @@ public:
     {
         ConnectWidget->setWindowTitle(QApplication::translate("ConnectWidget", "Form", 0, QApplication::UnicodeUTF8));
         groupBox->setTitle(QApplication::translate("ConnectWidget", "Motes", 0, QApplication::UnicodeUTF8));
-        refreshButton->setText(QApplication::translate("ConnectWidget", "Refresh", 0, QApplication::UnicodeUTF8));
+        refreshButton->setText(QApplication::translate("ConnectWidget", "(R)efresh", 0, QApplication::UnicodeUTF8));
+        refreshButton->setShortcut(QApplication::translate("ConnectWidget", "R", 0, QApplication::UnicodeUTF8));
         label->setText(QApplication::translate("ConnectWidget", "Baudrate:", 0, QApplication::UnicodeUTF8));
-        connectButton->setText(QApplication::translate("ConnectWidget", "Connect", 0, QApplication::UnicodeUTF8));
-        disconnectButton->setText(QApplication::translate("ConnectWidget", "Disconnect", 0, QApplication::UnicodeUTF8));
+        connectButton->setText(QApplication::translate("ConnectWidget", "(C)onnect", 0, QApplication::UnicodeUTF8));
+        connectButton->setShortcut(QApplication::translate("ConnectWidget", "C", 0, QApplication::UnicodeUTF8));
+        disconnectButton->setText(QApplication::translate("ConnectWidget", "(D)isconnect", 0, QApplication::UnicodeUTF8));
+        disconnectButton->setShortcut(QApplication::translate("ConnectWidget", "D", 0, QApplication::UnicodeUTF8));
         comPorts->setTitle(QApplication::translate("ConnectWidget", "COM ports", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 

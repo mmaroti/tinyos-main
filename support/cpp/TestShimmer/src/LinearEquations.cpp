@@ -156,7 +156,11 @@ Equation::Equation(LinearEquations* equs) {
     coefficients.reserve(lEsystem->getVariableCount() + 10);
 }
 
-unsigned int Equation::getVariableIndex(QString name){
+Equation::~Equation() {
+
+}
+
+unsigned int Equation::getVariableIndex(QString name) {
     unsigned int n = lEsystem->getVariable(name);
     while ( coefficients.size() <= n ) {
         coefficients.push_back(0.0);
@@ -192,7 +196,6 @@ void Equation::multiply(double value) {
 }
 
 double Equation::getSignedError(const Solution* solution) {
-    // vector<double> values = solution->values; //???
     double e = constant;
 
     int i = coefficients.size();
@@ -226,6 +229,10 @@ Solution::Solution( TNT::Array2D<double> &X, LinearEquations *equs ) {
 
     for(unsigned int i = 0; i < values.size(); ++i)
             values.at(i) = X[i][0];
+}
+
+Solution::~Solution() {
+
 }
 
 const Equation* Solution::getMaximumErrorEquation() {
@@ -267,7 +274,7 @@ double Solution::getAverageError() {
     double d = 0.0;
 
     QList<Equation*>::iterator iter;
-    //Equation::const_iterator iter = equations.iterator();
+
     for( iter = lEsystem->getEquations().begin(); iter != lEsystem->getEquations().end(); ++iter ) {
         d += (*iter)->getAbsoluteError(this);
     }

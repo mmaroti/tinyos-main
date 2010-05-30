@@ -26,18 +26,16 @@ private:
         CalibratedDataPlot *plot;
 
 private slots:
-        void on_temp_clicked();
-        void on_voltage_clicked();
-        void on_zGyro_clicked();
-        void on_yGyro_clicked();
-        void on_xGyro_clicked();
+
         void on_zAccel_clicked();
         void on_yAccel_clicked();
         void on_xAccel_clicked();
-        void on_clearButton_clicked();
-        void on_recordButton_clicked();
-        void on_loadButton_clicked();
-        void on_saveButton_clicked();
+        void on_avgAccel_clicked();
+        void on_xyangle_clicked();
+        void on_yzangle_clicked();
+        void on_zxangle_clicked();
+
+        void on_exportButton_clicked();
 };
 
 #endif // CALIBRATEDDATAWIDGET_H

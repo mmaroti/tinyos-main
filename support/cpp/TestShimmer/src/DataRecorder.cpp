@@ -1,4 +1,3 @@
-
 #include "DataRecorder.h"
 #include <QtDebug>
 #include <qfile.h>
@@ -189,6 +188,6 @@ void DataRecorder::loadSamples( QString filename )
         }
         // Close the file
         f.close();
-
     }
+    emit sampleAdded();
 }

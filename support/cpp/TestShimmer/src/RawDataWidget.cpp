@@ -37,14 +37,16 @@ void RawDataWidget::changeEvent(QEvent *e)
 void RawDataWidget::on_recordButton_clicked()
 {
 	QString text = ui->recordButton->text();
-	if( text == "Record" )
+        if( text == "(R)ecord" )
 	{
-		ui->recordButton->setText("Stop");
+                ui->recordButton->setText("S(t)op");
+                ui->recordButton->setShortcut(Qt::Key_T);
 		connect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)), &application.dataRecorder, SLOT(onReceiveMessage(ActiveMessage)));
 	}
 	else
 	{
-		ui->recordButton->setText("Record");
+                ui->recordButton->setText("(R)ecord");
+                ui->recordButton->setShortcut(Qt::Key_R);
 		disconnect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)), &application.dataRecorder, SLOT(onReceiveMessage(ActiveMessage)));
 	}
 }
@@ -63,8 +65,7 @@ void RawDataWidget::on_loadButton_clicked()
     if ( !file.isEmpty() ) {
         application.dataRecorder.loadSamples( file );
     }
-    plot->RawDataPlot::onSampleAdded();
-
+    //plot->RawDataPlot::onSampleAdded();
 }
 
 void RawDataWidget::on_saveButton_clicked()

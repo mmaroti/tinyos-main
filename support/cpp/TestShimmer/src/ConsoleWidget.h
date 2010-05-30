@@ -17,6 +17,9 @@ public:
     ~ConsoleWidget();
     void loadConsoleData();
 
+public slots:
+    void on_recieveConsolSignal(QString);
+
 protected:
     void changeEvent(QEvent *e);
 

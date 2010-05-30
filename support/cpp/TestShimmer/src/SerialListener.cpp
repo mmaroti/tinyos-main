@@ -186,7 +186,7 @@ void SerialListener::receiveTosPacket(const QByteArray & packet)
 		msg.type = packet.at(7) & 0xFF;
 		msg.payload.append(packet.data() + 8, length);
 
-//		qDebug() << "msg " + msg.toString();
+//              qDebug() << "msg " + msg.toString();
 		emit receiveMessage(msg);
 	}
 }

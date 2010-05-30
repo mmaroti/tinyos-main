@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'CalibratedDataWidget.h'
 **
-** Created: Tue May 18 15:52:00 2010
+** Created: Wed May 26 01:53:10 2010
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.6.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_CalibratedDataWidget[] = {
        4,       // revision
        0,       // classname
        0,    0, // classinfo
-      12,   14, // methods
+       8,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -32,29 +32,23 @@ static const uint qt_meta_data_CalibratedDataWidget[] = {
 
  // slots: signature, parameters, type, tag, flags
       22,   21,   21,   21, 0x08,
-      40,   21,   21,   21, 0x08,
-      61,   21,   21,   21, 0x08,
-      80,   21,   21,   21, 0x08,
-      99,   21,   21,   21, 0x08,
-     118,   21,   21,   21, 0x08,
-     138,   21,   21,   21, 0x08,
-     158,   21,   21,   21, 0x08,
-     178,   21,   21,   21, 0x08,
-     203,   21,   21,   21, 0x08,
-     229,   21,   21,   21, 0x08,
-     253,   21,   21,   21, 0x08,
+      42,   21,   21,   21, 0x08,
+      62,   21,   21,   21, 0x08,
+      82,   21,   21,   21, 0x08,
+     104,   21,   21,   21, 0x08,
+     125,   21,   21,   21, 0x08,
+     146,   21,   21,   21, 0x08,
+     167,   21,   21,   21, 0x08,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_CalibratedDataWidget[] = {
-    "CalibratedDataWidget\0\0on_temp_clicked()\0"
-    "on_voltage_clicked()\0on_zGyro_clicked()\0"
-    "on_yGyro_clicked()\0on_xGyro_clicked()\0"
-    "on_zAccel_clicked()\0on_yAccel_clicked()\0"
-    "on_xAccel_clicked()\0on_clearButton_clicked()\0"
-    "on_recordButton_clicked()\0"
-    "on_loadButton_clicked()\0on_saveButton_clicked()\0"
+    "CalibratedDataWidget\0\0on_zAccel_clicked()\0"
+    "on_yAccel_clicked()\0on_xAccel_clicked()\0"
+    "on_avgAccel_clicked()\0on_xyangle_clicked()\0"
+    "on_yzangle_clicked()\0on_zxangle_clicked()\0"
+    "on_exportButton_clicked()\0"
 };
 
 const QMetaObject CalibratedDataWidget::staticMetaObject = {
@@ -86,21 +80,17 @@ int CalibratedDataWidget::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
-        case 0: on_temp_clicked(); break;
-        case 1: on_voltage_clicked(); break;
-        case 2: on_zGyro_clicked(); break;
-        case 3: on_yGyro_clicked(); break;
-        case 4: on_xGyro_clicked(); break;
-        case 5: on_zAccel_clicked(); break;
-        case 6: on_yAccel_clicked(); break;
-        case 7: on_xAccel_clicked(); break;
-        case 8: on_clearButton_clicked(); break;
-        case 9: on_recordButton_clicked(); break;
-        case 10: on_loadButton_clicked(); break;
-        case 11: on_saveButton_clicked(); break;
+        case 0: on_zAccel_clicked(); break;
+        case 1: on_yAccel_clicked(); break;
+        case 2: on_xAccel_clicked(); break;
+        case 3: on_avgAccel_clicked(); break;
+        case 4: on_xyangle_clicked(); break;
+        case 5: on_yzangle_clicked(); break;
+        case 6: on_zxangle_clicked(); break;
+        case 7: on_exportButton_clicked(); break;
         default: ;
         }
-        _id -= 12;
+        _id -= 8;
     }
     return _id;
 }

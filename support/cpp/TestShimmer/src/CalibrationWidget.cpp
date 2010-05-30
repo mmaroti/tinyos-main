@@ -12,6 +12,17 @@ CalibrationWidget::CalibrationWidget(QWidget *parent, Application &app) :
 {
     ui->setupUi(this);
     calibrationModule = new CalibrationModule(app);
+
+    QString message = "";
+    int size = application.settings.beginReadArray("calibrationData");
+    for (int i = 0; i < size; ++i) {
+        application.settings.setArrayIndex(i);
+
+        message.append( application.settings.value("calibrationData").toString() + "\n" );
+        calibrationModule->setCalibrationDataAt(i, application.settings.value("calibrationData").toDouble() );
+    }
+    application.settings.endArray();
+    ui->calibrationResults->setText(message);
 }
 
 CalibrationWidget::~CalibrationWidget()
@@ -39,14 +50,18 @@ void CalibrationWidget::on_startButton_clicked()
             message = "Error: Not enough data for calibration! Please Load a longer record!";
         } else {
             message = calibrationModule->Calibrate();
-            if ( message == "1" ) {
-                for (int i = 0; i < 6; i++) {
-                    message.append(calibrationModule->at(calibrationModule->atIdleSides(i)).toString());
-                    message.append("\n");
-                }
-            } else {
-                message.insert(0, "Calibration Error! ");
+            for (int i = 0; i < 6; i++) {
+                message.append(calibrationModule->at(calibrationModule->atIdleSides(i)).toString());
+                message.append("\n");
             }
+            message.append("Gyroscope avarages: \n");
+            for (int i = 0; i < 3; i++) {                
+                message.append(QString::number(calibrationModule->getGyroAvgAt(i)));
+                message.append("\n");
+            }
+            application.showConsolMessage(message);
+            message = "Done. See Console for details.";
+
         }
     } else {
         message = "Please select a module!";
@@ -55,11 +70,4 @@ void CalibrationWidget::on_startButton_clicked()
     message.clear();
     calibrationModule->clearWindows();
     calibrationModule->clearIdleSides();
-}
-
-void CalibrationWidget::on_saveButton_clicked() {
-    QString fn = QFileDialog::getSaveFileName(  this, "Choose a filename to save under", "c:/", "CSV (*.csv)");
-    if ( !fn.isEmpty() ) {
-        calibrationModule->saveCalibratedData( fn );
-    }
 }

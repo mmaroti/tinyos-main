@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>471</width>
+    <width>509</width>
     <height>277</height>
    </rect>
   </property>
@@ -62,7 +62,10 @@
          <item>
           <widget class="QPushButton" name="startButton">
            <property name="text">
-            <string>Start</string>
+            <string>(S)tart</string>
+           </property>
+           <property name="shortcut">
+            <string>S</string>
            </property>
           </widget>
          </item>
@@ -158,19 +161,6 @@
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
        <widget class="QTextBrowser" name="calibrationResults"/>
-      </item>
-      <item>
-       <widget class="QWidget" name="widget_3" native="true">
-        <layout class="QHBoxLayout" name="horizontalLayout_4">
-         <item>
-          <widget class="QPushButton" name="saveButton">
-           <property name="text">
-            <string>Save Calibrated Data</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
       </item>
      </layout>
     </widget>

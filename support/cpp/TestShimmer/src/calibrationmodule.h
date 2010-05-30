@@ -22,20 +22,22 @@
 
 class Application;
 
+/*!
+  A structure to store the averages in the actual WINDOW length data-window.
+  We only create this structure, if we consider the mote to be idle by the data in this window.
+*/
 struct IdleWindow
 {
         IdleWindow();
         QString toString() const;
 
-        int xMin;
-        int xMax;
+        int xMin, xMax;
         double xAvg;
-        int yMin;
-        int yMax;
+        int yMin, yMax;
         double yAvg;
-        int zMin;
-        int zMax;
+        int zMin, zMax;
         double zAvg;
+        double xGyroAvg, yGyroAvg, zGyroAvg;
 };
 
 class CalibrationModule : public QObject {
@@ -55,35 +57,39 @@ public:
             return idleWindows;
     }
 
-    int size() const {
-            return idleWindows.size();
-    }
+    int size() const { return idleWindows.size(); }
 
-    const IdleWindow & at(int i) const {
-            return idleWindows[i];
-    }
+    const IdleWindow & at(int i) const { return idleWindows[i]; }
 
-    QString atToString(int i) const {
-            return idleWindows[i].toString();
-    }
+    QString atToString(int i) const { return idleWindows[i].toString(); }
 
     void clearWindows();
 
-    const int & atIdleSides(int i) const {
-            return idleSidesMins[i];
-    }
+    const int & atIdleSides(int i) const { return idleSidesMins[i]; }
+
+    void setCalibrationDataAt(int i, double value) { calibrationData[i] = value; }
+
+    const double & getCalibrationDataAt(int i) const { return calibrationData[i]; }
+
+    const double & getGyroAvgAt( int i ) const { return gyroMinAvgs[i]; }
 
     void clearIdleSides();
 
 private:
     Application &application;
 
-    int xMin, xMax, yMin, yMax, zMin, zMax, xDiff,yDiff,zDiff;
+    int xMin, xMax, yMin, yMax, zMin, zMax, xDiff, yDiff, zDiff;
+    int xGyrMin, xGyrMax, xGyrDiff, yGyrMin, yGyrMax, yGyrDiff, zGyrMin, zGyrMax, zGyrDiff;
     float xAvg, yAvg, zAvg;
     float xMinAvg, xMaxAvg, yMinAvg, yMaxAvg, zMinAvg, zMaxAvg;
+    float xGyrAvg, yGyrAvg, zGyrAvg;
+    float xMinGyrAvg, xMaxGyrAvg, yMinGyrAvg, yMaxGyrAvg, zMinGyrAvg, zMaxGyrAvg;
     long xSum, ySum, zSum;
+    long xGyrSum, yGyrSum, zGyrSum;
+
     QVarLengthArray<IdleWindow> idleWindows;
     int idleSidesMins[6];
+    double gyroMinAvgs[3];
     double calibrationData[12];
 };
 

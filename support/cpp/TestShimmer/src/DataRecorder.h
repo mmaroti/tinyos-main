@@ -1,4 +1,3 @@
-
 #include <QVarLengthArray>
 #include <QObject>
 #include "SerialListener.h"

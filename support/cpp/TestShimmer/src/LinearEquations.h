@@ -2,15 +2,13 @@
 #define LINEAREQUATIONS_H
 
 #include <QObject>
+#include <QDebug>
 #include <qmap.h>
-#include <QGenericMatrix>
-#include <qset.h>
 #include <vector>
 #include <tnt_math_utils.h>
 #include <jama_qr.h>
 #include <jama_svd.h>
 
-class Application;
 class Equation;
 class Solution;
 
@@ -40,9 +38,6 @@ public:
      * Returns the list of equations in the system.
      */
     QList<Equation*>& getEquations() { return equations; }
-
-    //iterator getEquationsBegin() { return equations.begin();}
-    //iterator getEquationsEnd() { return equations.end();}
 
     /*!
      * Returns a new empty equation
@@ -123,6 +118,7 @@ protected:
 
 public:
     Equation(LinearEquations* lEsystem);
+    ~Equation();
 
     double getCoefficient(QString);
     double getCoefficientAt(int i) { return coefficients.at(i); }
@@ -169,6 +165,7 @@ protected:
     vector<double> values;
 public:
     Solution( TNT::Array2D<double>&, LinearEquations* lEsystem );
+    ~Solution();
 
     const double getValueAt(int i) const { return this->values.at(i); }
     const int getValuesSize() const { return this->values.size(); }

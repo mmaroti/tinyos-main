@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'CalibrationWidget.ui'
 **
-** Created: Tue May 18 15:47:08 2010
+** Created: Tue May 25 16:48:53 2010
 **      by: Qt User Interface Compiler version 4.6.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -52,16 +52,13 @@ public:
     QGroupBox *groupBox_3;
     QVBoxLayout *verticalLayout_3;
     QTextBrowser *calibrationResults;
-    QWidget *widget_3;
-    QHBoxLayout *horizontalLayout_4;
-    QPushButton *saveButton;
 
     void setupUi(QWidget *CalibrationWidget)
     {
         if (CalibrationWidget->objectName().isEmpty())
             CalibrationWidget->setObjectName(QString::fromUtf8("CalibrationWidget"));
         CalibrationWidget->setEnabled(true);
-        CalibrationWidget->resize(471, 277);
+        CalibrationWidget->resize(509, 277);
         horizontalLayout_3 = new QHBoxLayout(CalibrationWidget);
         horizontalLayout_3->setObjectName(QString::fromUtf8("horizontalLayout_3"));
         groupBox = new QGroupBox(CalibrationWidget);
@@ -148,18 +145,6 @@ public:
 
         verticalLayout_3->addWidget(calibrationResults);
 
-        widget_3 = new QWidget(groupBox_3);
-        widget_3->setObjectName(QString::fromUtf8("widget_3"));
-        horizontalLayout_4 = new QHBoxLayout(widget_3);
-        horizontalLayout_4->setObjectName(QString::fromUtf8("horizontalLayout_4"));
-        saveButton = new QPushButton(widget_3);
-        saveButton->setObjectName(QString::fromUtf8("saveButton"));
-
-        horizontalLayout_4->addWidget(saveButton);
-
-
-        verticalLayout_3->addWidget(widget_3);
-
 
         horizontalLayout_3->addWidget(groupBox_3);
 
@@ -174,12 +159,12 @@ public:
         CalibrationWidget->setWindowTitle(QApplication::translate("CalibrationWidget", "Form", 0, QApplication::UnicodeUTF8));
         groupBox->setTitle(QApplication::translate("CalibrationWidget", "Modules", 0, QApplication::UnicodeUTF8));
         stationaryButton->setText(QApplication::translate("CalibrationWidget", "Stationary", 0, QApplication::UnicodeUTF8));
-        startButton->setText(QApplication::translate("CalibrationWidget", "Start", 0, QApplication::UnicodeUTF8));
+        startButton->setText(QApplication::translate("CalibrationWidget", "(S)tart", 0, QApplication::UnicodeUTF8));
+        startButton->setShortcut(QApplication::translate("CalibrationWidget", "S", 0, QApplication::UnicodeUTF8));
         groupBox_2->setTitle(QApplication::translate("CalibrationWidget", "Directions", 0, QApplication::UnicodeUTF8));
         pushButton_3->setText(QApplication::translate("CalibrationWidget", "Previous", 0, QApplication::UnicodeUTF8));
         pushButton_2->setText(QApplication::translate("CalibrationWidget", "Next", 0, QApplication::UnicodeUTF8));
         groupBox_3->setTitle(QApplication::translate("CalibrationWidget", "Results", 0, QApplication::UnicodeUTF8));
-        saveButton->setText(QApplication::translate("CalibrationWidget", "Save Calibrated Data", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };
