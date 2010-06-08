@@ -24,11 +24,16 @@
  *
  *  @author Hu Siquan <husq@xbow.com> 
  *
- *  $Id: MicP.nc,v 1.1 2010-02-02 14:22:17 zkincses Exp $
+ *  $Id: MicP.nc,v 1.2 2010-06-08 01:29:26 mmaroti Exp $
  */
 
 #include "Timer.h"
 #include "I2C.h"
+
+// The MTS300 does not have an external pullup resistor for I2C
+#if !defined(ATM128_I2C_EXTERNAL_PULLDOWN) || !(ATM128_I2C_EXTERNAL_PULLDOWN)
+#error You must set ATM128_I2C_EXTERNAL_PULLDOWN=1
+#endif
 
 module MicP
 {
