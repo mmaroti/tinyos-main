@@ -1,4 +1,4 @@
-/// $Id: HplAtm128AdcP.nc,v 1.1 2009-12-29 09:28:08 mmaroti Exp $
+/// $Id: HplAtm128AdcP.nc,v 1.2 2010-06-09 20:31:35 mmaroti Exp $
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
@@ -101,11 +101,16 @@ implementation {
   }
   async command void HplAtm128Adc.enableInterruption() { SET_BIT(ADCSRA, ADIE); }
   async command void HplAtm128Adc.disableInterruption() { CLR_BIT(ADCSRA, ADIE); }
+#ifdef __AVR_ATmega1281__
   async command void HplAtm128Adc.setContinuous() {
     ((Atm128Adcsrb_t*)&ADCSRB)->adts = 0;
     SET_BIT(ADCSRA, ADATE);
   }
   async command void HplAtm128Adc.setSingle() { CLR_BIT(ADCSRA, ADATE); }
+#else
+  async command void HplAtm128Adc.setContinuous() { SET_BIT(ADCSRA, ADFR); }
+  async command void HplAtm128Adc.setSingle() { CLR_BIT(ADCSRA, ADFR); }
+#endif
   async command void HplAtm128Adc.resetInterrupt() { SET_BIT(ADCSRA, ADIF); }
   async command void HplAtm128Adc.startConversion() { SET_BIT(ADCSRA, ADSC); }
 
@@ -127,6 +132,7 @@ implementation {
   AVR_ATOMIC_HANDLER(SIG_ADC) {
     uint16_t data = call HplAtm128Adc.getValue();
 
+// We do all processing in interrupt context
 //    __nesc_enable_interrupt();
     signal HplAtm128Adc.dataReady(data);
   }

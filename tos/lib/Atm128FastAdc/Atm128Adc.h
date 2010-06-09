@@ -1,4 +1,4 @@
-// $Id: Atm128Adc.h,v 1.1 2009-12-29 23:11:30 mmaroti Exp $
+// $Id: Atm128Adc.h,v 1.2 2010-06-09 20:31:35 mmaroti Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -60,10 +60,10 @@
 
 /* Voltage Reference Settings */
 enum {
-    ATM128_ADC_VREF_OFF = 0, //!< VR+ = AREF   and VR- = GND
-    ATM128_ADC_VREF_AVCC = 1,//!< VR+ = AVcc   and VR- = GND
-    ATM128_ADC_VREF_RSVD,
-    ATM128_ADC_VREF_2_56 = 3,//!< VR+ = 2.56V  and VR- = GND
+    ATM128_ADC_VREF_OFF = 0,	//!< VR+ = AREF  and VR- = GND
+    ATM128_ADC_VREF_AVCC = 1,	//!< VR+ = AVcc  and VR- = GND
+    ATM128_ADC_VREF_1_1 = 2,	//!< VR+ = 1.1V  and VR- = GND
+    ATM128_ADC_VREF_2_56 = 3,	//!< VR+ = 2.56V and VR- = GND
 };
 
 /* Voltage Reference Settings */
@@ -165,6 +165,8 @@ enum {
     ATM128_ADC_INT_ENABLE_ON,
 };
 
+#ifdef __AVR_ATmega1281__
+
 /* ADC Multiplexer Selection Register */
 typedef struct
 {
@@ -186,6 +188,20 @@ typedef struct
     uint8_t resv2 : 1;  //!< Reserved
 } Atm128Adcsrb_t;
 
+#else // ATmega128
+
+/* ADC Multiplexer Selection Register */
+typedef struct
+{
+    uint8_t adps  : 3;  //!< ADC Prescaler Select Bits
+    uint8_t adie  : 1;  //!< ADC Interrupt Enable
+    uint8_t adif  : 1;  //!< ADC Interrupt Flag
+    uint8_t adfr  : 1;  //!< ADC Free Running Select
+    uint8_t adsc  : 1;  //!< ADC Start Conversion
+    uint8_t aden  : 1;  //!< ADC Enable
+} Atm128Adcsra_t;
+
+#endif
 
 typedef uint8_t Atm128_ADCH_t;         //!< ADC data register high
 typedef uint8_t Atm128_ADCL_t;         //!< ADC data register low
@@ -198,4 +214,3 @@ typedef uint8_t Atm128_ADCL_t;         //!< ADC data register low
 #define UQ_ATM128ADC_ADAPTER "atm128adc.adapter"
 
 #endif //_H_Atm128ADC_h
-
