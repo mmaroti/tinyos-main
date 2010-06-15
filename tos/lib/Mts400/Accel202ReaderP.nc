@@ -31,38 +31,52 @@
 * Author: Zoltan Kincses
 */
 
-#include"Intersema5534.h"
-#include"Adg715.h"
+generic module Accel202ReaderP()
+{
+	provides interface Read<uint16_t> as X_Axis;
+	provides interface Read<uint16_t> as Y_Axis;
 
-configuration HplIntersema5534C {
-  provides interface Resource[ uint8_t id ];
+	uses interface Resource as X_Resoure;
+	uses interface Resource as Y_Resoure;
+	uses interface Read<uint16_t> as XRead;
+	uses interface Read<uint16_t> as YRead;
 }
-implementation {
-	components HplIntersema5534P;
-	components new FcfsArbiterC( UQ_INTERSEMA5534 ) as Arbiter;
-	Resource = Arbiter;
-  
-	components new SplitControlPowerManagerC();
-	SplitControlPowerManagerC.SplitControl -> HplIntersema5534P;
-	SplitControlPowerManagerC.ArbiterInfo -> Arbiter.ArbiterInfo;
-	SplitControlPowerManagerC.ResourceDefaultOwner -> Arbiter.ResourceDefaultOwner;
+implementation
+{
+	command error_t X_Axis.read() {
+		return call X_Resoure.request();
+	}
+
+	event void X_Resoure.granted() {
+		error_t result;
+		if ((result = call XRead.read()) != SUCCESS) {
+			call X_Resoure.release();
+			signal X_Axis.readDone( result, 0 );
+		}
+	}
+
+	event void XRead.readDone( error_t result, uint16_t val ) {
+		call X_Resoure.release();
+		signal X_Axis.readDone( result, val );
+	}
+
+	command error_t Y_Axis.read() {
+		return call Y_Resoure.request();
+	}
+
+	event void Y_Resoure.granted() {
+		error_t result;
+		if ((result = call YRead.read()) != SUCCESS) {
+			call Y_Resoure.release();
+			signal Y_Axis.readDone( result, 0 );
+		}
+	}
+
+	event void YRead.readDone( error_t result, uint16_t val ) {
+		call Y_Resoure.release();
+		signal Y_Axis.readDone( result, val );
+	}
 	
-	components Adg715C;
-	HplIntersema5534P.ChannelPressurePower -> Adg715C.ChannelPressurePower;
-	HplIntersema5534P.ChannelPressureClock -> Adg715C.ChannelPressureClock;
-	HplIntersema5534P.ChannelPressureDin -> Adg715C.ChannelPressureDin;
-	HplIntersema5534P.ChannelPressureDout -> Adg715C.ChannelPressureDout;
-	
-	HplIntersema5534P.Resource -> Adg715C.Resource[ unique(UQ_ADG715)];
-		
-	components MicaBusC;
-    
-	HplIntersema5534P.SPI_CLK -> MicaBusC.USART1_CLK;
-	HplIntersema5534P.SPI_SI -> MicaBusC.USART1_RXD;
-	HplIntersema5534P.SPI_SO -> MicaBusC.USART1_TXD;
-	
-	components new TimerMilliC() as Timer;
-	
-	HplIntersema5534P.Timer -> Timer;
-	 
+	default event void X_Axis.readDone( error_t result, uint16_t val ) { }
+  	default event void Y_Axis.readDone( error_t result, uint16_t val ) { }	
 }

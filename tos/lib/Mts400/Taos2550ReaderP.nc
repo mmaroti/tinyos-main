@@ -31,38 +31,54 @@
 * Author: Zoltan Kincses
 */
 
-#include"Intersema5534.h"
-#include"Adg715.h"
+generic module Taos2550ReaderP()
+{
+	provides interface Read<uint16_t> as VisibleLight;
+	provides interface Read<uint16_t> as InfraredLight;
 
-configuration HplIntersema5534C {
-  provides interface Resource[ uint8_t id ];
+	uses interface Resource as VLResource;
+	uses interface Resource as IRResource;
+	uses interface Read<uint16_t> as VLRead;
+	uses interface Read<uint16_t> as IRRead;
+	
+	uses interface DiagMsg;
 }
-implementation {
-	components HplIntersema5534P;
-	components new FcfsArbiterC( UQ_INTERSEMA5534 ) as Arbiter;
-	Resource = Arbiter;
-  
-	components new SplitControlPowerManagerC();
-	SplitControlPowerManagerC.SplitControl -> HplIntersema5534P;
-	SplitControlPowerManagerC.ArbiterInfo -> Arbiter.ArbiterInfo;
-	SplitControlPowerManagerC.ResourceDefaultOwner -> Arbiter.ResourceDefaultOwner;
+implementation
+{
+	command error_t VisibleLight.read() {
+		return call VLResource.request();;
+	}
+
+	event void VLResource.granted() {
+		error_t result;
+		if ((result = call VLRead.read()) != SUCCESS) {
+			call VLResource.release();
+			signal VisibleLight.readDone( result, 0 );
+		}
+	}
+
+	event void VLRead.readDone( error_t result, uint16_t val ) {
+		call VLResource.release();
+		signal VisibleLight.readDone( result, val );
+	}
+
+	command error_t InfraredLight.read() {
+		return call IRResource.request();
+	}
+
+	event void IRResource.granted() {
+		error_t result;
+		if ((result = call IRRead.read()) != SUCCESS) {
+			call IRResource.release();
+			signal InfraredLight.readDone( result, 0 );
+		}
+	}
+
+	event void IRRead.readDone( error_t result, uint16_t val ) {
+		call IRResource.release();
+		signal InfraredLight.readDone( result, val );
+	}
 	
-	components Adg715C;
-	HplIntersema5534P.ChannelPressurePower -> Adg715C.ChannelPressurePower;
-	HplIntersema5534P.ChannelPressureClock -> Adg715C.ChannelPressureClock;
-	HplIntersema5534P.ChannelPressureDin -> Adg715C.ChannelPressureDin;
-	HplIntersema5534P.ChannelPressureDout -> Adg715C.ChannelPressureDout;
-	
-	HplIntersema5534P.Resource -> Adg715C.Resource[ unique(UQ_ADG715)];
-		
-	components MicaBusC;
-    
-	HplIntersema5534P.SPI_CLK -> MicaBusC.USART1_CLK;
-	HplIntersema5534P.SPI_SI -> MicaBusC.USART1_RXD;
-	HplIntersema5534P.SPI_SO -> MicaBusC.USART1_TXD;
-	
-	components new TimerMilliC() as Timer;
-	
-	HplIntersema5534P.Timer -> Timer;
-	 
+	default event void VisibleLight.readDone( error_t result, uint16_t val ) { }
+  	default event void InfraredLight.readDone( error_t result, uint16_t val ) { }
 }

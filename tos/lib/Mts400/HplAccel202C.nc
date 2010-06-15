@@ -31,38 +31,28 @@
 * Author: Zoltan Kincses
 */
 
-#include"Intersema5534.h"
+#include"Accel202.h"
 #include"Adg715.h"
 
-configuration HplIntersema5534C {
+configuration HplAccel202C {
   provides interface Resource[ uint8_t id ];
 }
 implementation {
-	components HplIntersema5534P;
-	components new FcfsArbiterC( UQ_INTERSEMA5534 ) as Arbiter;
+	components HplAccel202P;
+	components new FcfsArbiterC( UQ_ACCEL202 ) as Arbiter;
 	Resource = Arbiter;
   
 	components new SplitControlPowerManagerC();
-	SplitControlPowerManagerC.SplitControl -> HplIntersema5534P;
+	SplitControlPowerManagerC.SplitControl -> HplAccel202P;
 	SplitControlPowerManagerC.ArbiterInfo -> Arbiter.ArbiterInfo;
 	SplitControlPowerManagerC.ResourceDefaultOwner -> Arbiter.ResourceDefaultOwner;
 	
 	components Adg715C;
-	HplIntersema5534P.ChannelPressurePower -> Adg715C.ChannelPressurePower;
-	HplIntersema5534P.ChannelPressureClock -> Adg715C.ChannelPressureClock;
-	HplIntersema5534P.ChannelPressureDin -> Adg715C.ChannelPressureDin;
-	HplIntersema5534P.ChannelPressureDout -> Adg715C.ChannelPressureDout;
-	
-	HplIntersema5534P.Resource -> Adg715C.Resource[ unique(UQ_ADG715)];
-		
-	components MicaBusC;
-    
-	HplIntersema5534P.SPI_CLK -> MicaBusC.USART1_CLK;
-	HplIntersema5534P.SPI_SI -> MicaBusC.USART1_RXD;
-	HplIntersema5534P.SPI_SO -> MicaBusC.USART1_TXD;
-	
-	components new TimerMilliC() as Timer;
-	
-	HplIntersema5534P.Timer -> Timer;
-	 
+	HplAccel202P.DcDcBoost33Channel -> Adg715C.DcDcBoost33Channel;
+	HplAccel202P.ChannelAccelPower -> Adg715C.ChannelAccelPower;
+	HplAccel202P.ChannelAccel_X -> Adg715C.ChannelAccel_X;
+	HplAccel202P.ChannelAccel_Y -> Adg715C.ChannelAccel_Y;
+	HplAccel202P.Resource -> Adg715C.Resource[ unique(UQ_ADG715)];
 }
+
+

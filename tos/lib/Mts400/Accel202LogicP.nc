@@ -31,38 +31,75 @@
 * Author: Zoltan Kincses
 */
 
-#include"Intersema5534.h"
-#include"Adg715.h"
-
-configuration HplIntersema5534C {
-  provides interface Resource[ uint8_t id ];
+generic module Accel202LogicP()
+{
+	provides interface Read<uint16_t> as XAxis;
+	provides interface Read<uint16_t> as YAxis;
+	uses interface Resource;
+	uses interface Atm128AdcSingle;
+	uses interface MicaBusAdc as XADC;
+	uses interface MicaBusAdc as YADC;
 }
-implementation {
-	components HplIntersema5534P;
-	components new FcfsArbiterC( UQ_INTERSEMA5534 ) as Arbiter;
-	Resource = Arbiter;
-  
-	components new SplitControlPowerManagerC();
-	SplitControlPowerManagerC.SplitControl -> HplIntersema5534P;
-	SplitControlPowerManagerC.ArbiterInfo -> Arbiter.ArbiterInfo;
-	SplitControlPowerManagerC.ResourceDefaultOwner -> Arbiter.ResourceDefaultOwner;
+implementation
+{
+	enum{
+		ADCX=1,
+		ADCY,
+	};
+
+	task void read();
+	task void failTask();
 	
-	components Adg715C;
-	HplIntersema5534P.ChannelPressurePower -> Adg715C.ChannelPressurePower;
-	HplIntersema5534P.ChannelPressureClock -> Adg715C.ChannelPressureClock;
-	HplIntersema5534P.ChannelPressureDin -> Adg715C.ChannelPressureDin;
-	HplIntersema5534P.ChannelPressureDout -> Adg715C.ChannelPressureDout;
+	error_t performCommand(uint8_t);
 	
-	HplIntersema5534P.Resource -> Adg715C.Resource[ unique(UQ_ADG715)];
-		
-	components MicaBusC;
+	uint8_t cmd,readData;
+
+	command error_t XAxis.read() {
+		return performCommand(ADCX);
+	}
+	  
+	command error_t YAxis.read() {
+		return performCommand(ADCY);
+	}
+
+	error_t performCommand(uint8_t Command) {
+		cmd=Command;
+		return call Resource.request(); 
+    }
     
-	HplIntersema5534P.SPI_CLK -> MicaBusC.USART1_CLK;
-	HplIntersema5534P.SPI_SI -> MicaBusC.USART1_RXD;
-	HplIntersema5534P.SPI_SO -> MicaBusC.USART1_TXD;
+    event void Resource.granted(){
+		if(cmd==ADCX){
+			call Atm128AdcSingle.getData(call XADC.getChannel(),ATM128_ADC_VREF_OFF,FALSE,ATM128_ADC_PRESCALE);
+		}else {
+			call Atm128AdcSingle.getData(call YADC.getChannel(),ATM128_ADC_VREF_OFF,FALSE,ATM128_ADC_PRESCALE);
+		}	
+	}
 	
-	components new TimerMilliC() as Timer;
+	async event void Atm128AdcSingle.dataReady(uint16_t data, bool precise){
+		call Resource.release();
+		if (precise){
+			atomic readData=data;
+			post read();
+		}else {
+			post failTask();
+		}
+	}
 	
-	HplIntersema5534P.Timer -> Timer;
-	 
+	task void read(){
+		atomic{
+			if(cmd==ADCX){
+				signal XAxis.readDone(SUCCESS,readData);
+			}else {
+				signal YAxis.readDone(SUCCESS,readData);
+			}
+		}
+	}
+	
+	task void failTask(){
+		if(cmd==ADCX){
+			signal XAxis.readDone(FAIL,0);
+		}else{
+			signal YAxis.readDone(FAIL,0);
+		}
+	}
 }

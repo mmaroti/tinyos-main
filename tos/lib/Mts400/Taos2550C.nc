@@ -31,38 +31,25 @@
 * Author: Zoltan Kincses
 */
 
-#include"Intersema5534.h"
-#include"Adg715.h"
+#include "Taos2550.h"
 
-configuration HplIntersema5534C {
-  provides interface Resource[ uint8_t id ];
+generic configuration Taos2550C() {
+	provides interface Read<uint16_t> as VisibleLight;
+	provides interface Read<uint16_t> as InfraredLight;
 }
 implementation {
-	components HplIntersema5534P;
-	components new FcfsArbiterC( UQ_INTERSEMA5534 ) as Arbiter;
-	Resource = Arbiter;
-  
-	components new SplitControlPowerManagerC();
-	SplitControlPowerManagerC.SplitControl -> HplIntersema5534P;
-	SplitControlPowerManagerC.ArbiterInfo -> Arbiter.ArbiterInfo;
-	SplitControlPowerManagerC.ResourceDefaultOwner -> Arbiter.ResourceDefaultOwner;
+	components new Taos2550ReaderP();
 	
-	components Adg715C;
-	HplIntersema5534P.ChannelPressurePower -> Adg715C.ChannelPressurePower;
-	HplIntersema5534P.ChannelPressureClock -> Adg715C.ChannelPressureClock;
-	HplIntersema5534P.ChannelPressureDin -> Adg715C.ChannelPressureDin;
-	HplIntersema5534P.ChannelPressureDout -> Adg715C.ChannelPressureDout;
+	VisibleLight = Taos2550ReaderP.VisibleLight;
+	InfraredLight = Taos2550ReaderP.InfraredLight;
 	
-	HplIntersema5534P.Resource -> Adg715C.Resource[ unique(UQ_ADG715)];
-		
-	components MicaBusC;
-    
-	HplIntersema5534P.SPI_CLK -> MicaBusC.USART1_CLK;
-	HplIntersema5534P.SPI_SI -> MicaBusC.USART1_RXD;
-	HplIntersema5534P.SPI_SO -> MicaBusC.USART1_TXD;
+	components HalTaos2550C;
 	
-	components new TimerMilliC() as Timer;
+	enum {	VL_KEY = unique(UQ_TAOS2550)};
+	enum {	IRL_KEY = unique(UQ_TAOS2550)};
 	
-	HplIntersema5534P.Timer -> Timer;
-	 
+	Taos2550ReaderP.VLResource -> HalTaos2550C.Resource[ VL_KEY ];
+	Taos2550ReaderP.VLRead -> HalTaos2550C.VLight;
+	Taos2550ReaderP.IRResource -> HalTaos2550C.Resource[ IRL_KEY];
+	Taos2550ReaderP.IRRead -> HalTaos2550C.IRLight;
 }
