@@ -39,40 +39,34 @@ module EchoRangerM
 	provides
 	{
 		interface Read<echorange_t*> as EchoRanger;
+
+		interface Get<uint16_t*> as LastBuffer;
+		interface Get<echorange_t*> as LastRange;
 	}
 
 	uses
 	{
 		interface Boot;
 		interface Leds;
-		interface AMSend;
 		interface GeneralIO as SounderPin;
 		interface ReadStream<uint16_t> as MicRead;
 		interface MicSetting;
 		interface Alarm<TMicro, uint16_t> as Alarm;
 		interface LocalTime<TMicro>;
+		interface Read<uint16_t> as ReadTemp;
 	}
 }
 
 implementation
 {
-	enum
-	{
-		SAMPLING = 56,		// sampling rate in microsec (17723 Hz)
-		BUFFER = 1024,		// size of buffer, must be at least 4
-		BEEP = 500,		// the length of beep in microsec
-		SILENCE = 16,		// number of samples before echo
-		MATCH = 16,		// number of samples matching the sine wave
-		SENDSIZE = 50,		// number of samples in a single message
-	};
-
 	event void Boot.booted()
 	{
 		call SounderPin.clr();
 		call MicSetting.gainAdjust(0xff);
 	}
 
-	uint16_t buffer[BUFFER];
+	uint16_t buffer[ECHORANGER_BUFFER];
+	echorange_t range;
 
 	uint8_t state;
 	enum
@@ -90,14 +84,23 @@ implementation
 			call Leds.led0On();
 
 			state = STATE_WARMUP;
-			call MicRead.postBuffer(buffer + BUFFER - 2, 2);
-			call MicRead.postBuffer(buffer, BUFFER);
-			call MicRead.read(SAMPLING);
+			call MicRead.postBuffer(buffer + ECHORANGER_BUFFER - 2, 2);
+			call MicRead.postBuffer(buffer, ECHORANGER_BUFFER);
+			call MicRead.read(ECHORANGER_SAMPLING);
+
+			range.temperature = 0xFFFF;
+			call ReadTemp.read();
 
 			return SUCCESS;
 		}
 		else
 			return FAIL;
+	}
+
+	event void ReadTemp.readDone(error_t result, uint16_t value)
+	{
+		if( state == STATE_WARMUP && result == SUCCESS )
+			range.temperature = value;
 	}
 
  	event void MicRead.bufferDone(error_t result, uint16_t* bufPtr, uint16_t count)
@@ -106,7 +109,7 @@ implementation
 		{
 			state = STATE_LISTEN;
 
-			call Alarm.start(BEEP);
+			call Alarm.start(ECHORANGER_BEEP);
 			call Leds.led1On();
 			call SounderPin.set();
 		}
@@ -134,112 +137,126 @@ implementation
 		return SUCCESS;
 	}
 
-	echorange_t range;
-
-	uint16_t getAverage()
+	void calcAverage()
 	{
 		uint32_t sum = 0;
 		uint16_t i;
 
-		for(i = 0; i < BUFFER; ++i)
+		for(i = 0; i < ECHORANGER_BUFFER; ++i)
 			sum += buffer[i];
 
-		return (uint16_t)(sum / BUFFER);
+		range.average = sum / ECHORANGER_BUFFER;
 	}
 
-	uint16_t getVolume(uint16_t start, uint8_t length)
+	// must be 16 samples after start and 16 samples before end
+	int16_t getScore(uint16_t start)
 	{
-		uint16_t volume = 0;
-		int16_t sample;
-
-		while( --length >= 0 )
+		int16_t score = 0;
+		int16_t s;
+		uint16_t i;
+		
+		for(i = start - 16; i < start; ++i)
 		{
-			sample = buffer[start++] - range.average;
-
-			if( sample < 0 )
-				sample = -sample;
-
-			volume += sample;
-		}
-
-		return volume;
-	}
-
-	int16_t matchTable[MATCH] = {70, 56, -323, -57, 500, -59, -447, 258, 407, -411, -283, 227, 329, -154, -402, 114};
-
-	uint16_t getMatch(uint16_t start)
-	{
-		int16_t sample;
-		int16_t theory;
-		uint16_t index;
-		uint16_t match;
-		uint16_t volume;
-
-		match = getVolume(start - SILENCE, SILENCE);
-
-		volume = getVolume(start, 16);
-
-		for(index = start; index < start + 16; ++index)
-		{
-			sample = buffer[index] - range.average;
-			theory = ((uint32_t)(matchTable[index - start]) * volume) >> 8;
-
-			if( sample > theory )
-				match += sample - theory;
+			s = buffer[i] - range.average;
+			if( s >= 0 )
+				score -= s;
 			else
-				match += theory - sample;
+				score += s;
 		}
 
-		return match;		
+		score <<= 2;
+		
+		// filter coefficients: { 1, 0, -3, 0, 4, 0, -3, 2, 3, -3, -2, 2, 3, -1, -3, 1 }
+		// filter indices:        0, 1,  2, 3, 4, 5,  6, 7, 8,  9, 10,11,12, 13, 14,15
+		
+		// coef 1
+		s = buffer[start] - buffer[start+13] + buffer[start+15];
+		score += s;
+
+		// coef 2
+		s = buffer[start+7] - buffer[start+10] + buffer[start+11];
+		score += s << 1;
+
+		// coef 3
+		s = - buffer[start+2] - buffer[start+6] + buffer[start+8] - buffer[start+9] + buffer[start+12] - buffer[start+14];
+		score += s + (s << 1);
+
+		// coef 4
+		s = buffer[start+4];
+		score += s << 2;
+
+		// compensate for the average value
+		score -= range.average * (1-1+1+2-2+2-3-3+3-3+3-3+4);
+
+		return score;
+	}
+
+	bool overlaps(uint16_t index, uint16_t r)
+	{
+		int16_t s = index - r;
+		return -16 <= s && s <= 16;
+	}
+
+	void findBestScore(uint8_t scan)
+	{
+		uint16_t i;
+		uint16_t r = 0;
+		int16_t m = -32767;
+		int16_t a;
+
+		for(i = 16; i <= ECHORANGER_BUFFER - 16; ++i)
+		{
+			if( scan >= 1 && overlaps(i, range.range1) )
+				continue;
+			else if( scan >= 2 && overlaps(i, range.range2) )
+				continue;
+
+			a = getScore(i);
+			if( m < a )
+			{
+				m = a;
+				r = i;
+			}
+		}
+
+		if( scan == 0 )
+		{
+			range.range1 = r;
+			range.score1 = m;
+		}
+		else if( scan == 1 )
+		{
+			range.range2 = r;
+			range.score2 = m;
+		}
+		else
+		{
+			range.range3 = r;
+			range.score3 = m;
+		}
 	}
 
 	task void process()
 	{
-		range.sequence += 1;
+		range.seqno += 1;
 		range.timestamp = call LocalTime.get();
-		range.average = getAverage();
+		calcAverage();
+
+		findBestScore(0);
+		findBestScore(1);
+		findBestScore(2);
 
 		state = STATE_READY;
 		signal EchoRanger.readDone(SUCCESS, &range);
 	}
 
-// -----------------------
-
-	typedef struct report_t
+	command uint16_t* LastBuffer.get()
 	{
-		uint16_t index;
-		uint16_t data[SENDSIZE];
-	} report_t;
-
-	uint16_t reportIndex;
-	message_t reportMsg;
-
-	task void reportTask()
-	{
-		report_t* report;
-		uint8_t i;
-
-		if( reportIndex <= BUFFER - SENDSIZE )
-		{
-			report = (call AMSend.getPayload(&reportMsg, sizeof(report_t)));
-
-			report->index = reportIndex;
-			for(i = 0; i < SENDSIZE; ++i)
-				report->data[i] = buffer[reportIndex++];
-
-			if( call AMSend.send(0xFFFF, &reportMsg, sizeof(report_t)) != SUCCESS )
-				state = STATE_READY;
-		}
-		else
-			state = STATE_READY;
+		return buffer;
 	}
 
- 	event void AMSend.sendDone(message_t* msg, error_t error)
+	command echorange_t* LastRange.get()
 	{
-		if( error == SUCCESS )
-			call Leds.led2Toggle();
-
-		post reportTask();
-  	}
-
+		return &range;
+	}
 }

@@ -49,7 +49,7 @@ implementation
 {
 	enum
 	{
-		ECHO_TIMER = 4 * 1024,	// every 4 seconds
+		ECHO_TIMER = 5 * 1024,	// every 5 seconds
 	};
 
 	event void Boot.booted()

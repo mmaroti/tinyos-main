@@ -38,6 +38,9 @@ configuration EchoRangerC
 	provides
 	{
 		interface Read<echorange_t*> as EchoRanger;
+
+		interface Get<uint16_t*> as LastBuffer;
+		interface Get<echorange_t*> as LastRange;
 	}
 }
 
@@ -48,18 +51,20 @@ implementation
 	components LedsC;
 	components new AlarmOne16C() as AlarmC;
 	components new MicStreamC();
-	components new AMSenderC(0x77);
 	components MicaBusC;
 	components LocalTimeMicroC;
+	components new TempC() as TempC;
 
 	EchoRangerM.Boot -> MainC;
 	EchoRangerM.Leds -> LedsC;
-	EchoRangerM.AMSend -> AMSenderC;
 	EchoRangerM.MicRead ->	MicStreamC;
 	EchoRangerM.MicSetting -> MicStreamC;
 	EchoRangerM.Alarm -> AlarmC;
 	EchoRangerM.SounderPin -> MicaBusC.PW2;	// from SounderC
 	EchoRangerM.LocalTime -> LocalTimeMicroC;
+	EchoRangerM.ReadTemp -> TempC;
 
 	EchoRanger = EchoRangerM;
+	LastBuffer = EchoRangerM;
+	LastRange = EchoRangerM;
 }
