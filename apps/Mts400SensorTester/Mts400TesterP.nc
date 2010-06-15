@@ -71,8 +71,7 @@ implementation {
 	
 	event void Y_Axis.readDone(error_t err, uint16_t data){
 		AccelY_data=data;
-		call Intersema.read();		// This sensor is not working properly (Intersema.readDone() event is not signalled)
-		call Temperature.read();	// so Temperature.read() must be called here
+		call Intersema.read();
 	}
 	
 	event void Intersema.readDone(error_t err, int16_t* data){
@@ -94,7 +93,6 @@ implementation {
 	event void VisibleLight.readDone(error_t err, uint16_t data){
 		VisLight_data=data;
 		call InfraredLight.read();
-		call Leds.led2Toggle();
 	}
 	
 	message_t message;

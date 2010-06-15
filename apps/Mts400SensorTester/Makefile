@@ -1,5 +1,5 @@
 COMPONENT=Mts400TesterC
-CFLAGS += -I$(TOSDIR)/sensorboards/mts400
+CFLAGS += -I$(SZTETOSDIR)/lib/Mts400
 CFLAGS += -I$(TOSDIR)/chips/sht11
 
 BUILD_EXTRA_DEPS = DataMsg.java

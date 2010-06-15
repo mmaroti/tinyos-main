@@ -39,7 +39,7 @@ implementation {
 	components MainC;
 	components LedsC;
 	components new Accel202C();
-	components new Intersema5543C();
+	components new Intersema5534C();
 	components new SensirionSht11C();
 	components new Taos2550C();
 	components ActiveMessageC;
@@ -52,7 +52,7 @@ implementation {
 	App.SplitControl -> ActiveMessageC;
 	App.X_Axis -> Accel202C.X_Axis;
 	App.Y_Axis -> Accel202C.Y_Axis;
-	App.Intersema -> Intersema5543C.Intersema;
+	App.Intersema -> Intersema5534C.Intersema;
 	App.Temperature -> SensirionSht11C.Temperature;
 	App.Humidity -> SensirionSht11C.Humidity;
 	App.VisibleLight -> Taos2550C.VisibleLight;
