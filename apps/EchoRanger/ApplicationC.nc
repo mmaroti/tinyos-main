@@ -1,4 +1,5 @@
-/** Copyright (c) 2010, University of Szeged
+/*
+* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,21 +29,26 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklos Maroti
+* Author:Andras Biro
 */
 
-configuration ApplicationC
-{
+#include "StorageVolumes.h"
+configuration ApplicationC{
 }
-
-implementation
-{
-	components MainC, LedsC, new TimerMilliC(), ActiveMessageC;
-	components ApplicationM, EchoRangerC;
-
-	ApplicationM.Boot -> MainC;
-	ApplicationM.Leds -> LedsC;
-	ApplicationM.TimerMilli -> TimerMilliC;
-	ApplicationM.AMControl -> ActiveMessageC;
-	ApplicationM.EchoRanger -> EchoRangerC;
+implementation{
+	components new StreamStorageC(VOLUME_STOR), StreamStorageP, StorageFrameC,StorageFrameP;
+	components new TimerMilliC() as SensorTimer, EchoRangerC;
+	components ApplicationM as App, MainC, LedsC, StreamUploaderC, StreamUploaderP, LocalTimeMilliC;
+	StorageFrameP.StreamStorage->StreamStorageC;
+	StreamUploaderP.StreamStorage -> StreamStorageC;
+	App.StreamStorage->StorageFrameC;
+	App.SplitControl->StreamStorageC;
+	App.Boot -> MainC.Boot;
+	App.Leds->LedsC;
+	App.StdControl -> StreamUploaderC;
+	App.LocalTime->LocalTimeMilliC;
+	App.SensorTimer -> SensorTimer;
+	App.Read -> EchoRangerC;
+	App.LastBuffer -> EchoRangerC;
+	App.LastRange -> EchoRangerC;
 }

@@ -1,4 +1,5 @@
-/** Copyright (c) 2010, University of Szeged
+/*
+* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,54 +29,101 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklos Maroti
+* Author:Andras Biro
 */
-
 #include "EchoRanger.h"
-
-module ApplicationM
-{
-	uses
-	{
+#ifndef SAMP_T
+	#define SAMP_T 6000U
+#endif
+module ApplicationM{
+	uses {
+		interface SplitControl;
+		interface StreamStorage;
 		interface Boot;
 		interface Leds;
-		interface Timer<TMilli> as TimerMilli;
-		interface SplitControl as AMControl;
-		interface Read<echorange_t*> as EchoRanger;
+		interface StdControl;
+		interface LocalTime<TMilli>;
+		interface Timer<TMilli> as SensorTimer; 
+		interface Read<echorange_t*>; 
+		interface Get<uint16_t*> as LastBuffer;
+		interface Get<echorange_t*> as LastRange;
 	}
 }
+implementation{
+	
+	uint8_t counter=0;
 
-implementation
-{
-	enum
-	{
-		ECHO_TIMER = 5 * 1024,	// every 5 seconds
-	};
-
-	event void Boot.booted()
-	{
-		call AMControl.start();
-	}
-
-	event void AMControl.startDone(error_t err)
-	{
-		if( err == SUCCESS )
-			call TimerMilli.startPeriodic(ECHO_TIMER);
-		else
-			call AMControl.start();
-	}
-
-	event void AMControl.stopDone(error_t err)
-	{
-	}
-
-	event void TimerMilli.fired()
-	{
-		call Leds.led0Toggle();
-		call EchoRanger.read();
+	event void Boot.booted(){
+		call Leds.set(7);
+		call SplitControl.start();	
 	}
 	
- 	event void EchoRanger.readDone(error_t result, echorange_t* range)
-	{
+	event void StreamStorage.eraseDone(error_t error){
+		call Leds.set(0);
+		call StdControl.start();
+		call SensorTimer.startPeriodic(SAMP_T);
 	}
+	
+	event void SplitControl.startDone(error_t error){
+		if(error==FAIL){
+			call StreamStorage.erase();
+		}else {
+			call Leds.set(0);
+			call StdControl.start();
+			call SensorTimer.startPeriodic(SAMP_T);
+		}
+	}
+	
+	event void SensorTimer.fired(){
+		call Leds.led1Toggle();
+		call Read.read();
+	}
+	
+	event void Read.readDone(error_t result, echorange_t* range){
+		if(result==SUCCESS)
+			call StreamStorage.appendWithID(0x00,range, sizeof(echorange_t));
+			//call StreamStorage.append(range, sizeof(echorange_t));
+	}
+	
+
+	event void StreamStorage.appendDone(void* buf, uint16_t  len, error_t error){
+		counter++;
+		if(counter>4)
+			counter=0;
+		else if(counter==4){
+			uint16_t* buffer=call LastBuffer.get();
+			call StreamStorage.append(buffer, 4);
+		}
+	}
+	
+	event void StreamStorage.appendDoneWithID(void* buf, uint16_t  len, error_t error){
+		counter++;
+		if(counter>4)
+			counter=0;
+		else if(counter==4){
+			uint16_t* buffer=call LastBuffer.get();
+			call StreamStorage.appendWithID(0x11,buffer, sizeof(uint16_t)*ECHORANGER_BUFFER);
+			//call StreamStorage.appendWithID(0x11,buffer, 10);
+		}
+	}	
+	
+	event void StreamStorage.syncDone(error_t error){
+		// TODO Auto-generated method stub
+	}
+
+	event void SplitControl.stopDone(error_t error){
+		// TODO Auto-generated method stub
+	}
+
+	event void StreamStorage.getMinAddressDone(uint32_t addr){
+		// TODO Auto-generated method stub
+	}
+
+	event void StreamStorage.readDone(void *buf, uint8_t len, error_t error){
+		// TODO Auto-generated method stub
+	}
+
+	
+
+	
 }
