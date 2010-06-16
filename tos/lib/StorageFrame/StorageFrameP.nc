@@ -46,14 +46,16 @@ implementation{
 	uint16_t writelen;
 	int16_t current;
 	uint8_t writeid;
+	bool withid;
 	nx_uint16_t buffer;
 
 	command error_t Framed.appendWithID(nx_uint8_t id, void *buf, uint16_t len){
 		writelen=len;
 		current=-2;
 		writeid=id;
+		withid=TRUE;
 		writebuf=buf;
-		buffer=FRAMEBYTE;
+		buffer=FRAMEBYTE<<8;
 		call StreamStorage.append(&buffer, 1);
 		return SUCCESS;
 	}
@@ -62,7 +64,7 @@ implementation{
 		writelen=len;
 		current=-1;
 		buffer=FRAMEBYTE<<8;
-		writeid=0;
+		withid=FALSE;
 		writebuf=buf;
 		call StreamStorage.append(&buffer, 1);
 		return SUCCESS;
@@ -95,7 +97,7 @@ implementation{
 			buffer=FRAMEBYTE<<8;
 			call StreamStorage.append(&buffer, 1);	
 		} else {
-			if(writeid==0)
+			if(!withid)
 				signal Framed.appendDone(writebuf, writelen, SUCCESS);
 			else
 				signal Framed.appendDoneWithID(writebuf, writelen, SUCCESS);
