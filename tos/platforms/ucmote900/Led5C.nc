@@ -34,11 +34,12 @@
 * 
 */
 #include <Leds.h>
-configuration Led5C {
+generic configuration Led5C(bool inverting) {
   provides interface Led5;
 }
 implementation {
-  components Led5M, PlatformLedsC;
+  components PlatformLedsC;
+  components new Led5M(inverting);
 
   Led5 = Led5M;
 
