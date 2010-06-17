@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'RawDataWidget.ui'
 **
-** Created: Tue May 25 16:54:15 2010
+** Created: Mon Jun 7 16:25:14 2010
 **      by: Qt User Interface Compiler version 4.6.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!

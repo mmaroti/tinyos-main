@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'CalibratedDataWidget.ui'
 **
-** Created: Wed May 26 01:53:06 2010
+** Created: Mon Jun 7 16:25:14 2010
 **      by: Qt User Interface Compiler version 4.6.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -49,7 +49,7 @@ public:
     {
         if (CalibratedDataWidget->objectName().isEmpty())
             CalibratedDataWidget->setObjectName(QString::fromUtf8("CalibratedDataWidget"));
-        CalibratedDataWidget->resize(500, 389);
+        CalibratedDataWidget->resize(508, 389);
         verticalLayout = new QVBoxLayout(CalibratedDataWidget);
         verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
         scrollArea = new PlotScrollArea(CalibratedDataWidget);
@@ -80,18 +80,39 @@ public:
 
         xyangle = new QCheckBox(widget_2);
         xyangle->setObjectName(QString::fromUtf8("xyangle"));
+        QPalette palette1;
+        QBrush brush2(QColor(14, 0, 120, 255));
+        brush2.setStyle(Qt::SolidPattern);
+        palette1.setBrush(QPalette::Active, QPalette::WindowText, brush2);
+        palette1.setBrush(QPalette::Inactive, QPalette::WindowText, brush2);
+        palette1.setBrush(QPalette::Disabled, QPalette::WindowText, brush1);
+        xyangle->setPalette(palette1);
         xyangle->setChecked(true);
 
         horizontalLayout_2->addWidget(xyangle);
 
         yzangle = new QCheckBox(widget_2);
         yzangle->setObjectName(QString::fromUtf8("yzangle"));
+        QPalette palette2;
+        QBrush brush3(QColor(70, 220, 44, 255));
+        brush3.setStyle(Qt::SolidPattern);
+        palette2.setBrush(QPalette::Active, QPalette::WindowText, brush3);
+        palette2.setBrush(QPalette::Inactive, QPalette::WindowText, brush3);
+        palette2.setBrush(QPalette::Disabled, QPalette::WindowText, brush1);
+        yzangle->setPalette(palette2);
         yzangle->setChecked(true);
 
         horizontalLayout_2->addWidget(yzangle);
 
         zxangle = new QCheckBox(widget_2);
         zxangle->setObjectName(QString::fromUtf8("zxangle"));
+        QPalette palette3;
+        QBrush brush4(QColor(135, 5, 5, 255));
+        brush4.setStyle(Qt::SolidPattern);
+        palette3.setBrush(QPalette::Active, QPalette::WindowText, brush4);
+        palette3.setBrush(QPalette::Inactive, QPalette::WindowText, brush4);
+        palette3.setBrush(QPalette::Disabled, QPalette::WindowText, brush1);
+        zxangle->setPalette(palette3);
         zxangle->setChecked(true);
 
         horizontalLayout_2->addWidget(zxangle);
@@ -107,28 +128,28 @@ public:
 
         yAccel = new QCheckBox(widget_2);
         yAccel->setObjectName(QString::fromUtf8("yAccel"));
-        QPalette palette1;
-        QBrush brush2(QColor(0, 0, 255, 255));
-        brush2.setStyle(Qt::SolidPattern);
-        palette1.setBrush(QPalette::Active, QPalette::WindowText, brush2);
-        palette1.setBrush(QPalette::Inactive, QPalette::WindowText, brush2);
-        QBrush brush3(QColor(118, 116, 108, 255));
-        brush3.setStyle(Qt::SolidPattern);
-        palette1.setBrush(QPalette::Disabled, QPalette::WindowText, brush3);
-        yAccel->setPalette(palette1);
+        QPalette palette4;
+        QBrush brush5(QColor(0, 0, 255, 255));
+        brush5.setStyle(Qt::SolidPattern);
+        palette4.setBrush(QPalette::Active, QPalette::WindowText, brush5);
+        palette4.setBrush(QPalette::Inactive, QPalette::WindowText, brush5);
+        QBrush brush6(QColor(118, 116, 108, 255));
+        brush6.setStyle(Qt::SolidPattern);
+        palette4.setBrush(QPalette::Disabled, QPalette::WindowText, brush6);
+        yAccel->setPalette(palette4);
         yAccel->setChecked(true);
 
         horizontalLayout_2->addWidget(yAccel);
 
         zAccel = new QCheckBox(widget_2);
         zAccel->setObjectName(QString::fromUtf8("zAccel"));
-        QPalette palette2;
-        QBrush brush4(QColor(255, 0, 0, 255));
-        brush4.setStyle(Qt::SolidPattern);
-        palette2.setBrush(QPalette::Active, QPalette::WindowText, brush4);
-        palette2.setBrush(QPalette::Inactive, QPalette::WindowText, brush4);
-        palette2.setBrush(QPalette::Disabled, QPalette::WindowText, brush3);
-        zAccel->setPalette(palette2);
+        QPalette palette5;
+        QBrush brush7(QColor(255, 0, 0, 255));
+        brush7.setStyle(Qt::SolidPattern);
+        palette5.setBrush(QPalette::Active, QPalette::WindowText, brush7);
+        palette5.setBrush(QPalette::Inactive, QPalette::WindowText, brush7);
+        palette5.setBrush(QPalette::Disabled, QPalette::WindowText, brush6);
+        zAccel->setPalette(palette5);
         zAccel->setChecked(true);
 
         horizontalLayout_2->addWidget(zAccel);

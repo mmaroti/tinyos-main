@@ -11,6 +11,7 @@ TARGET = TestShimmer
 INCLUDEPATH += ../TntJama/
 INCLUDEPATH += ../QextSerialPort/
 QMAKE_LIBDIR += ../QextSerialPort/build
+CONFIG(release) += static
 CONFIG(debug) += CONSOLE
 CONFIG(debug, debug|release):LIBS += -lqextserialportd
 else:LIBS += -lqextserialport
@@ -29,7 +30,8 @@ SOURCES += src/DataRecorder.cpp \
     src/LinearEquations.cpp \
     src/CalibrationModule.cpp \
     src/CalibratedDataWidget.cpp \
-    src/CalibratedDataPlot.cpp
+    src/CalibratedDataPlot.cpp \
+    src/PeriodicalCalibrationModule.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -43,7 +45,8 @@ HEADERS += src/DataRecorder.h \
     src/LinearEquations.h \
     src/CalibrationModule.h \
     src/CalibratedDataWidget.h \
-    src/CalibratedDataPlot.h
+    src/CalibratedDataPlot.h \
+    src/PeriodicalCalibrationModule.h
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/RawDataWidget.ui \

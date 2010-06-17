@@ -16,15 +16,15 @@ public:
 
 signals:
 	void showMessageSignal(const QString & msg);
-        void showConsolSignal(const QString & msg);
+        void showConsoleSignal(const QString & msg);
 
 public:
 	void showMessage(const QString & msg) {
 		emit showMessageSignal(msg);
 	}
 
-        void showConsolMessage(const QString & msg) {
-                emit showConsolSignal(msg);
+        void showConsoleMessage(const QString & msg) {
+                emit showConsoleSignal(msg);
         }
 
 public:

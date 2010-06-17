@@ -15,10 +15,9 @@ class ConsoleWidget : public QWidget {
 public:
     ConsoleWidget(QWidget *parent, Application &app);
     ~ConsoleWidget();
-    void loadConsoleData();
 
 public slots:
-    void on_recieveConsolSignal(QString);
+    void onRecieveConsoleSignal(QString);
 
 protected:
     void changeEvent(QEvent *e);

@@ -507,6 +507,13 @@ QString CalibrationModule::LSF() {
         }
         application.settings.endArray();
 
+        application.settings.beginWriteArray("gyroAvgsData");
+        for (unsigned int i = 0; i < 3; i++) {
+            application.settings.setArrayIndex(i);
+            application.settings.setValue("gyroAvgsData", gyroMinAvgs[i]);
+        }
+        application.settings.endArray();
+
         application.settings.beginReadArray("calibrationData");
         returnMessage.append("\nCalibration Data: \n");
 

@@ -22,15 +22,6 @@ ConsoleWidget::~ConsoleWidget()
     delete ui;
 }
 
-void ConsoleWidget::loadConsoleData()
-{
-    QFile file( "c:/Users/rpeti/Desktop/1.csv" ); // Read the text from a file
-    if (file.open(QIODevice::ReadOnly )) {
-          QTextStream stream( &file );
-          ui->textEdit->setText( stream.readAll() );
-    }
-}
-
 void ConsoleWidget::changeEvent(QEvent *e)
 {
     QWidget::changeEvent(e);
@@ -43,6 +34,6 @@ void ConsoleWidget::changeEvent(QEvent *e)
     }
 }
 
-void ConsoleWidget::on_recieveConsolSignal(QString msg) {
+void ConsoleWidget::onRecieveConsoleSignal(QString msg) {
     ui->textEdit->setText(msg);
 }

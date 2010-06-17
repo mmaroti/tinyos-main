@@ -13,7 +13,7 @@ CalibratedDataWidget::CalibratedDataWidget(QWidget *parent, Application &app) :
 {
         ui->setupUi(this);
         plot = new CalibratedDataPlot(ui->scrollArea, app);
-        ui->scrollArea->setWidget(plot);
+        ui->scrollArea->setWidget(plot);        
 }
 
 CalibratedDataWidget::~CalibratedDataWidget()
@@ -69,35 +69,40 @@ void CalibratedDataWidget::on_exportButton_clicked()
 
 void CalibratedDataWidget::on_xAccel_clicked()
 {
-        plot->setGraphs(CalibratedDataPlot::XACCEL, ui->xAccel->checkState());
+    plot->setGraphs(CalibratedDataPlot::XACCEL, ui->xAccel->checkState());
 }
 
 void CalibratedDataWidget::on_yAccel_clicked()
 {
-        plot->setGraphs(CalibratedDataPlot::YACCEL, ui->yAccel->checkState());
+    plot->setGraphs(CalibratedDataPlot::YACCEL, ui->yAccel->checkState());
 }
 
 void CalibratedDataWidget::on_zAccel_clicked()
 {
-        plot->setGraphs(CalibratedDataPlot::ZACCEL, ui->zAccel->checkState());
+    plot->setGraphs(CalibratedDataPlot::ZACCEL, ui->zAccel->checkState());
 }
 
 void CalibratedDataWidget::on_avgAccel_clicked()
 {
-        plot->setGraphs(CalibratedDataPlot::AVGACC, ui->avgAccel->checkState());
+    plot->setGraphs(CalibratedDataPlot::AVGACC, ui->avgAccel->checkState());
 }
 
 void CalibratedDataWidget::on_xyangle_clicked()
 {
-        plot->setGraphs(CalibratedDataPlot::XYANGLE, ui->xyangle->checkState());
+    plot->setGraphs(CalibratedDataPlot::XYANGLE, ui->xyangle->checkState());
 }
 
 void CalibratedDataWidget::on_yzangle_clicked()
 {
-        plot->setGraphs(CalibratedDataPlot::YZANGLE, ui->yzangle->checkState());
+    plot->setGraphs(CalibratedDataPlot::YZANGLE, ui->yzangle->checkState());
 }
 
 void CalibratedDataWidget::on_zxangle_clicked()
 {
-        plot->setGraphs(CalibratedDataPlot::ZXANGLE, ui->zxangle->checkState());
+    plot->setGraphs(CalibratedDataPlot::ZXANGLE, ui->zxangle->checkState());
+}
+
+void CalibratedDataWidget::newCalibrationOccured()
+{
+    plot->onNewCalibration();
 }

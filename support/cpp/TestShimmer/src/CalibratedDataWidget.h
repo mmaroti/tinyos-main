@@ -36,6 +36,8 @@ private slots:
         void on_zxangle_clicked();
 
         void on_exportButton_clicked();
+
+        void newCalibrationOccured();
 };
 
 #endif // CALIBRATEDDATAWIDGET_H

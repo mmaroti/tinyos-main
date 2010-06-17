@@ -14,7 +14,7 @@ CalibratedDataPlot::CalibratedDataPlot(PlotScrollArea *parent, Application &app)
         application(app)
 {
         scrollArea = parent;
-        graphs = XACCEL | YACCEL | ZACCEL | TIME | GRID | AVGACC | XYANGLE | YZANGLE | ZXANGLE;
+        graphs = XACCEL | YACCEL | ZACCEL | TIME | GRID | AVGACC | XYANGLE | YZANGLE | ZXANGLE | XGYRO;
 
         connect(&app.dataRecorder, SIGNAL(sampleAdded()), this, SLOT(onSampleAdded()));
         connect(&app.dataRecorder, SIGNAL(samplesCleared()), this, SLOT(onSamplesCleared()));
@@ -24,6 +24,14 @@ CalibratedDataPlot::CalibratedDataPlot(PlotScrollArea *parent, Application &app)
             application.settings.setArrayIndex(i);
 
             calibrationData[i] = application.settings.value("calibrationData").toDouble();
+        }
+        application.settings.endArray();
+
+        size = application.settings.beginReadArray("gyroCalibrationData");
+        for (int i = 0; i < size; ++i) {
+            application.settings.setArrayIndex(i);
+
+            gyroCalibrationData[i] = application.settings.value("gyroCalibrationData").toDouble();
         }
         application.settings.endArray();
 
@@ -55,7 +63,7 @@ void CalibratedDataPlot::paintEvent(QPaintEvent *event)
         QRect rect = event->rect();
 
         // to see which area is beeing refreshed
-        //	painter.drawLine(rect.left(), rect.top(), rect.right(), rect.bottom());
+                //painter.drawLine(rect.left(), rect.top(), rect.right(), rect.bottom());
 
         const DataRecorder &dataRecorder = application.dataRecorder;
 
@@ -192,6 +200,17 @@ void CalibratedDataPlot::paintEvent(QPaintEvent *event)
                     }
                 }
             }
+
+            if( (graphs & XGYRO) != 0 )
+            {
+                painter.setPen(QPen(Qt::magenta, 2, Qt::SolidLine));
+                double xtemp1, xtemp2;
+                for(int i = x0 + 1; i < x1; ++i) {
+                    xtemp1 = (application.dataRecorder.at(i-1).xGyro * gyroCalibrationData[0] + application.dataRecorder.at(i-1).yGyro * gyroCalibrationData[1] + application.dataRecorder.at(i-1).zGyro * gyroCalibrationData[2]);
+                    xtemp2 = (application.dataRecorder.at(i).xGyro * gyroCalibrationData[0] + application.dataRecorder.at(i).yGyro * gyroCalibrationData[1] + application.dataRecorder.at(i).zGyro * gyroCalibrationData[2]);
+                    painter.drawLine(getPoint(i-1, xtemp1 * 512/GRAV + 2048), getPoint(i, xtemp2 * 512/GRAV + 2048));
+                }
+            }
         }
 
         if( (graphs & GRID) != 0 )
@@ -269,6 +288,27 @@ void CalibratedDataPlot::onSamplesCleared()
         scrollArea->setWidgetRect(QRect(0, 0, plotWidth, 1000));
         scrollArea->ensureVisible(plotWidth,0,1,1);
         QWidget::update(0, 0, parentWidget()->width(), parentWidget()->height());
+}
+
+void CalibratedDataPlot::onNewCalibration()
+{
+    int size = application.settings.beginReadArray("calibrationData");
+    for (int i = 0; i < size; ++i) {
+        application.settings.setArrayIndex(i);
+
+        calibrationData[i] = application.settings.value("calibrationData").toDouble();
+    }
+    application.settings.endArray();
+
+    size = application.settings.beginReadArray("gyroCalibrationData");
+    for (int i = 0; i < size; ++i) {
+        application.settings.setArrayIndex(i);
+
+        gyroCalibrationData[i] = application.settings.value("gyroCalibrationData").toDouble();
+    }
+    application.settings.endArray();
+
+    QWidget::update();
 }
 
 void CalibratedDataPlot::setGraphs(int graphs, bool on)

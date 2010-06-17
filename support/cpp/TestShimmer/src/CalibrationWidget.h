@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "CalibrationModule.h"
+#include "PeriodicalCalibrationModule.h"
 
 class Application;
 
@@ -23,9 +24,13 @@ private:
     Ui::CalibrationWidget *ui;
     Application &application;
     CalibrationModule *calibrationModule;
+    PeriodicalCalibrationModule *periodicalCalibrationModule;
 
 private slots:
     void on_startButton_clicked();
+
+signals:
+    void calibrationDone();
 };
 
 #endif // CALIBRATIONWIDGET_H

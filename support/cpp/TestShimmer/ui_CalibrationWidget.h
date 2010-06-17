@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'CalibrationWidget.ui'
 **
-** Created: Tue May 25 16:48:53 2010
+** Created: Mon Jun 7 16:25:14 2010
 **      by: Qt User Interface Compiler version 4.6.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -34,6 +34,7 @@ public:
     QGroupBox *groupBox;
     QVBoxLayout *verticalLayout;
     QRadioButton *stationaryButton;
+    QRadioButton *periodicalButton;
     QSpacerItem *verticalSpacer;
     QWidget *widget;
     QHBoxLayout *horizontalLayout;
@@ -69,6 +70,11 @@ public:
         stationaryButton->setObjectName(QString::fromUtf8("stationaryButton"));
 
         verticalLayout->addWidget(stationaryButton);
+
+        periodicalButton = new QRadioButton(groupBox);
+        periodicalButton->setObjectName(QString::fromUtf8("periodicalButton"));
+
+        verticalLayout->addWidget(periodicalButton);
 
         verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
@@ -159,6 +165,7 @@ public:
         CalibrationWidget->setWindowTitle(QApplication::translate("CalibrationWidget", "Form", 0, QApplication::UnicodeUTF8));
         groupBox->setTitle(QApplication::translate("CalibrationWidget", "Modules", 0, QApplication::UnicodeUTF8));
         stationaryButton->setText(QApplication::translate("CalibrationWidget", "Stationary", 0, QApplication::UnicodeUTF8));
+        periodicalButton->setText(QApplication::translate("CalibrationWidget", "Periodical", 0, QApplication::UnicodeUTF8));
         startButton->setText(QApplication::translate("CalibrationWidget", "(S)tart", 0, QApplication::UnicodeUTF8));
         startButton->setShortcut(QApplication::translate("CalibrationWidget", "S", 0, QApplication::UnicodeUTF8));
         groupBox_2->setTitle(QApplication::translate("CalibrationWidget", "Directions", 0, QApplication::UnicodeUTF8));

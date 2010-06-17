@@ -27,6 +27,7 @@ public:
                 XYANGLE = 0x0010,
                 YZANGLE = 0x0020,
                 ZXANGLE = 0x0040,
+                XGYRO   = 0x0080,
                 GRID = 0x0100,
                 TIME = 0x0200
         };
@@ -35,6 +36,7 @@ public:
         int getGraphs() const { return graphs; }
         double calibrationDataAt(int i) { return calibrationData[i]; }
         double calculateAngle( double acceleration1, double acceleration2 );
+        void onNewCalibration();
 
 protected:
         virtual void paintEvent(QPaintEvent *event);
@@ -52,6 +54,7 @@ private:
         int parentHeight;
         int plotWidth;
 
+        double gyroCalibrationData[9];
         double calibrationData[12];
         QPoint getPoint(int x, int y);
         QPoint getSample(int x, int y);
