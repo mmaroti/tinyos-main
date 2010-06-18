@@ -50,6 +50,53 @@ public class dataFile {
 	private ArrayList<Gap> gaps = new ArrayList<Gap>();
 	private File gapFile, timestamps; 
 
+	public Byte[] readNextFrame(byte[] buffer, int i, byte frame, byte escape, byte xorescaped){
+		if(i>=buffer.length)
+			return null;
+		while(buffer[i]!=frame||i>=buffer.length){//find the first framing byte
+			i++;
+			while(gaps.contains(i)){
+				i++;
+			}
+		}
+		while(buffer[i]==frame||i>=buffer.length){//if there's more than one framing byte next to each other, find the last
+			i++;
+			while(gaps.contains(i)){
+				i++;
+			}
+		}
+		//now in the buffer[i] we've got the fist byte of the real data (after the frame)
+		ArrayList<Byte> onemeas=new ArrayList<Byte>();
+		while(buffer[i]!=frame){
+			if(gaps.contains(i)||i>=buffer.length)//if there is a gap in the middle of the frame, than drop it, try, the next frame
+				return readNextFrame(buffer, i, frame, escape, xorescaped);
+			if(buffer[i]==escape){
+				i++;
+				buffer[i]=(byte) (buffer[i]^xorescaped);
+			}
+			onemeas.add(buffer [i]);
+			i++;
+		}
+		return (Byte[])(onemeas.toArray());
+	}
+	
+	public ArrayList<Byte[]> getFrames(byte frame, byte escape, byte xorescaped) throws IOException{
+		byte[] buffer=new byte[(int) dataFile.length()];//TODO: 2GB limit: is it a problem?
+		synchronized (dataFile) {
+			dataFile.seek(0);
+			dataFile.readFully(buffer);
+		}
+		int pointer=0;
+		ArrayList<Byte[]>ret=new ArrayList<Byte[]>();
+		while(pointer<=dataFile.length()){
+			Byte[] nextframe=readNextFrame(buffer, pointer, frame, escape, xorescaped);
+			if(nextframe!=null)
+				ret.add(nextframe);
+		}
+		return ret;
+	}
+	
+	
 	public File getTimestamps() {
 		return timestamps;
 	}
@@ -212,6 +259,10 @@ public class dataFile {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public void close() throws IOException{
+		dataFile.close();
 	}
 	
 	public static class Gap {
