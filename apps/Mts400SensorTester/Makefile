@@ -1,6 +1,5 @@
 COMPONENT=Mts400TesterC
-CFLAGS += -I$(TOSDIR)/sensorboard/mts400
-CFLAGS += -I$(TOSDIR)/chips/sht11
+SENSORBOARD=mts400
 
 BUILD_EXTRA_DEPS = DataMsg.java
 CLEAN_EXTRA = $(BULID_EXTRA_DEPS)
