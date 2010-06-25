@@ -40,10 +40,10 @@ implementation {
 
   components new TimerMilliC() as Timer;
   components new TimerMilliC() as TTimer;
-  components new AMReceiverC(AM_CTRLMSG_T)    as RxBase;
-  components new AMSenderC(AM_RESPONSEMSG_T)  as TxBase;
-  components new DirectAMSenderC(AM_TESTMSG_T)      as TxTest;
-  components new AMReceiverC(AM_TESTMSG_T)    as RxTest;
+  components new AMReceiverC(AM_CTRLMSG_T)    	as RxBase;
+  components new AMSenderC(AM_RESPONSEMSG_T)  	as TxBase;
+  components new DirectAMSenderC(AM_TESTMSG_T)	as TxTest;
+  components new AMReceiverC(AM_TESTMSG_T)    	as RxTest;
   components ActiveMessageC;
 
 #if defined(PLATFORM_MICA2) || defined(PLATFORM_MICA2DOT)

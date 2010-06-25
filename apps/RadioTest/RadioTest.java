@@ -123,7 +123,7 @@ public class RadioTest {
         int lchance = cl.hasOption("lc") 
                                 ? Integer.parseInt(cl.getOptionValue("lc")) 
                                 : default_lastchance_msec;
-        if ( lchance <= 0 )
+        if ( lchance < 0 )
           throw new MissingOptionException("Invalid last chance time specified!");        
 
         int lplwui = cl.hasOption("lpl") ? Integer.parseInt(cl.getOptionValue("lpl")) : 0;

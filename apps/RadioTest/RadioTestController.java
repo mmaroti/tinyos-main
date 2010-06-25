@@ -68,7 +68,6 @@ public class RadioTestController implements MessageListener {
 	public RadioTestController(final short p)
 	{
 		mif = new MoteIF();
-    mif.registerListener(new CtrlMsgT(),this);
     mif.registerListener(new ResponseMsgT(),this);
     stage = 0;
     pidx = p;
@@ -82,11 +81,14 @@ public class RadioTestController implements MessageListener {
     cmsg.set_type((short)20);
 		try {
 			mif.send(MoteIF.TOS_BCAST_ADDR,cmsg);
+			Thread.sleep((int)(500));
       // We should go to pre-setup stage
       stage = 0;
       System.out.println("OK");
 		} catch(IOException e) {
 		  System.out.println("FAIL");
+    } catch ( InterruptedException e ) {
+      System.err.println("FAIL");
     }
 	}
 
@@ -132,14 +134,7 @@ public class RadioTestController implements MessageListener {
         // send CTRL_SETUP_SYN and wait for RESP_SETUP_ACK at most MAXTIMEOUT secs at most MAXPROBES times
         for( short probe = 0; !handshake && probe < MAXPROBES ; ++probe ) {
           mif.send(currentMote+1,cmsg2);
-          
-          // if RESP_SETUP_NOACK received
-          if ( answered.await(MAXTIMEOUT,TimeUnit.MILLISECONDS) && !handshake ) {
-            System.out.print("\nMOTE UNCONFIGURED : " + (currentMote+1) + " (Maybe not in IDLE state?)");
-            mif.send(currentMote+1,cmsg);
-            Thread.sleep((int)(500));
-          }
-            
+          answered.await(MAXTIMEOUT,TimeUnit.MILLISECONDS);
         }
         if ( !handshake ) {
           System.out.println("\nTIMEOUT, MOTE : " + (currentMote+1) + ", quitting.");
@@ -256,10 +251,6 @@ public class RadioTestController implements MessageListener {
       // refer to RadioTest.h RESP_SETUP_ACK
       if ( rmsg.get_type() == 2 && stage == 0 ) {
         handshake = true;
-        answered.signal();
-
-      // refer to RadioTest.h RESP_SETUP_NOACK
-      } else if ( rmsg.get_type() == 3 && stage == 0 ) {
         answered.signal();
 
       // refer to RadioTest.h RESP_DATA_OK

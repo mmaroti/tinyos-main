@@ -37,7 +37,7 @@
 #define RADIO_TEST_H
 
 #define MAX_EDGE_COUNT 6
-#define MAX_NODE_COUNT 3
+#define MAX_NODE_COUNT 4
 
 #if MAX_EDGE_COUNT <= 8
   typedef uint8_t pending_t;
@@ -61,7 +61,7 @@ enum {
   STATE_LASTCHANCE  = 0x5,
   STATE_FINISHED    = 0x6,
   STATE_UPLOADING   = 0x7,
-
+  
   // Policy flags
   USE_ACK           = 0x1,
   USE_DADDR         = 0x2,
@@ -76,7 +76,6 @@ enum {
   CTRL_SETUP        = 0,
   CTRL_SETUP_SYN    = 1,
   RESP_SETUP_ACK    = 2,
-  RESP_SETUP_NOACK  = 3,
 
   CTRL_START        = 10,
   CTRL_RESET        = 20,
