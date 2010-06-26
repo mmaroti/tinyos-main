@@ -34,7 +34,7 @@ public class TestFastSerial implements PacketListenerIF
     static final int PACKET_LENGTH_FIELD = 5;
     static final int PACKET_DATA_FIELD = 8;
     static final byte AM_TEST_MSG = (byte)0x72;
-    
+
     protected PhoenixSource forwarder;
     
     public TestFastSerial(PhoenixSource forwarder)
@@ -70,6 +70,7 @@ public class TestFastSerial implements PacketListenerIF
 		listener.run();
 	}
 
+	long lastTime = System.currentTimeMillis();
 	int packetCount = 0;
 	int byteCount = 0;
 	int missingCount = 0;
@@ -94,11 +95,15 @@ public class TestFastSerial implements PacketListenerIF
 	{
 		public void run()
 		{
+			long time = System.currentTimeMillis();
+			double rate = (time != lastTime) ? (1000.0 / (time - lastTime)) : 0;
+
 			System.out.println(timestamp.format(new java.util.Date()) + " " 
-				+ packetCount + " pkts/sec " 
-				+ byteCount + " bytes/sec "
+				+ Math.round(packetCount*rate) + " pkts/sec " 
+				+ Math.round(byteCount*rate) + " bytes/sec "
 				+ missingCount + " missing pkts");
 
+			lastTime = time;
 			packetCount = 0;
 			byteCount = 0;
 			missingCount = 0;
@@ -115,7 +120,9 @@ public class TestFastSerial implements PacketListenerIF
 
 			try
 			{
+				System.out.print("sending ...");
 				forwarder.writePacket(packet);
+				System.out.println(" done");
 			}
 			catch( IOException e )
 			{
