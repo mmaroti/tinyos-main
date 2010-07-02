@@ -1,5 +1,4 @@
 #include <iostream>
-#include "mapping.hpp"
 #include "linpol.hpp"
 
 using namespace std;
@@ -17,6 +16,10 @@ int main() {
 	b.set_coefficient("x0", 1.0);
 
 	a = b;
+
+	linpol c("y1", 2.0);
+
+	c = a = b;
 
 	return 0;
 }

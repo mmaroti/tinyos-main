@@ -11,9 +11,13 @@ public:
 
 	linpol(const linpol& other);
 
-	linpol& operator=(const linpol& rhs);
+	linpol(const std::string& name, double value);
 
 	void set_coefficient(const std::string& name, double value);
+
+	linpol& operator=(const linpol& rhs);
+
+	friend const linpol operator+(const linpol& rhs, const linpol& lhs);
 
 	~linpol();
 

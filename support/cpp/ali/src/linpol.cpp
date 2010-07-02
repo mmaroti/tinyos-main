@@ -45,6 +45,13 @@ linpol::linpol(const linpol& other) : val(new double[size]) {
 		val[i] = other.val[i];
 }
 
+linpol::linpol(const string& name, double value) : val(new double[size]) {
+
+	assert(size > 0);
+
+	set_coefficient(name, value);
+}
+
 linpol& linpol::operator=(const linpol& rhs) {
 
 	assert(size > 0);
@@ -53,6 +60,12 @@ linpol& linpol::operator=(const linpol& rhs) {
 		val[i] = rhs.val[i];
 
 	return *this;
+}
+
+const linpol operator+(const linpol& lhs, const linpol& rhs) {
+
+	// FIXME
+	return linpol();
 }
 
 linpol::~linpol() {
@@ -85,6 +98,9 @@ void linpol::set_coefficient(const string& name, double value) {
 
 	val[index] = value;
 }
+
+
+
 
 
 
