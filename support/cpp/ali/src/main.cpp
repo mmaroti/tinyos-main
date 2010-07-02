@@ -1,14 +1,22 @@
 #include <iostream>
-#include <vector>
-#include <cassert>
+#include "mapping.hpp"
+#include "linpol.hpp"
+
 using namespace std;
 
 int main() {
-	string m("Hello World!");
-	cout <<  m << endl;
-	vector<int> v;
-    v.push_back(2);
-    v.push_back(1);
-    assert(false);
+
+	string arr[] = { "x0", "y1" };
+
+	linpol::init_varnames(arr);
+
+	linpol a;
+
+	linpol b(a);
+
+	b.set_coefficient("x0", 1.0);
+
+	a = b;
+
 	return 0;
 }
