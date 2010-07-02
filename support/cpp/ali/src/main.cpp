@@ -5,21 +5,40 @@ using namespace std;
 
 int main() {
 
-	string arr[] = { "x0", "y1" };
+	string arr[] = { "x1", "x2", "x3" };
 
-	linpol::init_varnames(arr);
+	linpol::init_varnames(arr, sizeof(arr)/sizeof(string));
 
 	linpol a;
 
+	linpol::print_varnames();
+
 	linpol b(a);
 
-	b.set_coefficient("x0", 1.0);
+	b.set_coefficient("x1", 1.0);
 
 	a = b;
 
-	linpol c("y1", 2.0);
+	linpol c("x2", 2.0);
 
-	c = a = b;
+	a = b = c;
+
+	a.set_constant(1.0);
+
+	b.set_coefficient("x3", 3.0);
+
+	c = a+b;
+
+	a+=b;
+
+	b = -a;
+
+	linpol d(a*b*c);
+
+	cout << "a" << endl << a << endl;
+	cout << "b" << endl << b << endl;
+	cout << "c" << endl << c << endl;
+	cout << "d" << endl << d << endl;
 
 	return 0;
 }

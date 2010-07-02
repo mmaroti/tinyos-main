@@ -15,23 +15,31 @@ void error(const char* msg) {
 	exit(EXIT_FAILURE);
 }
 
-void linpol::init_varnames(const string arr[]) {
+void linpol::init_varnames(const string arr[], int length) {
 
 	assert(size == 0);
+	assert(length > 0);
 
-	const int n = sizeof(arr)/sizeof(string);
+	size = length+1;
 
-	vars = new string[n];
+	vars = new string[size];
 
-	size = n;
+	vars[0] = string("");
 
-	for (int i=0; i<n; ++i)
-		vars[i] = arr[i];
+	for (int i=1; i<size; ++i)
+		vars[i] = arr[i-1];
+}
+
+void linpol::print_varnames() {
+
+	for (int i=0; i<size; ++i)
+		cout << vars[i] << endl;
+	cout << endl;
 }
 
 linpol::linpol() : val(new double[size]) {
 
-	assert(size > 0);
+	assert(size > 1);
 
 	for (int i=0; i<size; ++i)
 		val[i] = 0.0;
@@ -39,7 +47,7 @@ linpol::linpol() : val(new double[size]) {
 
 linpol::linpol(const linpol& other) : val(new double[size]) {
 
-	assert(size > 0);
+	assert(size > 1);
 
 	for (int i=0; i<size; ++i)
 		val[i] = other.val[i];
@@ -47,14 +55,17 @@ linpol::linpol(const linpol& other) : val(new double[size]) {
 
 linpol::linpol(const string& name, double value) : val(new double[size]) {
 
-	assert(size > 0);
+	assert(size > 1);
+
+	for (int i=0; i<size; ++i)
+		val[i] = 0.0;
 
 	set_coefficient(name, value);
 }
 
 linpol& linpol::operator=(const linpol& rhs) {
 
-	assert(size > 0);
+	assert(size > 1);
 
 	for (int i=0; i<size; ++i)
 		val[i] = rhs.val[i];
@@ -62,10 +73,73 @@ linpol& linpol::operator=(const linpol& rhs) {
 	return *this;
 }
 
+linpol& linpol::operator+=(const linpol& rhs) {
+
+	assert(size > 1);
+
+	for (int i=0; i<size; ++i)
+		val[i] += rhs.val[i];
+
+	return *this;
+}
+
 const linpol operator+(const linpol& lhs, const linpol& rhs) {
 
-	// FIXME
-	return linpol();
+	// TODO The arrays should be read only once, a private ctor?
+	linpol result(lhs);
+	result += rhs;
+	return result;
+}
+
+linpol& linpol::operator-=(const linpol& rhs) {
+
+	assert(size > 1);
+
+	for (int i=0; i<size; ++i)
+		val[i] -= rhs.val[i];
+
+	return *this;
+}
+
+const linpol operator-(const linpol& lhs, const linpol& rhs) {
+
+	linpol result(lhs);
+	result -= rhs;
+	return result;
+}
+
+const linpol operator-(const linpol& pol) {
+
+	assert(linpol::size > 1);
+
+	linpol result;
+
+	for (int i=0; i<linpol::size; ++i)
+		result.val[i] = - pol.val[i];
+
+	return result;
+}
+
+const linpol operator*(const linpol& lhs, const linpol& rhs) {
+
+	assert(linpol::size > 1);
+
+	linpol result;
+	// c = a*b
+	const double* const a = lhs.val;
+	const double* const b = rhs.val;
+
+	double* const c = result.val;
+
+	const double a0 = a[0];
+	const double b0 = b[0];
+
+	c[0] = a0*b0;
+
+	for (int i=1; i<linpol::size; ++i)
+		c[i] = a0*b[i] + b0*a[i];
+
+	return result;
 }
 
 linpol::~linpol() {
@@ -75,9 +149,9 @@ linpol::~linpol() {
 
 int linpol::find_index(const string& name) {
 
-	assert(size > 0);
+	assert(size > 1);
 
-	for (int i=0; i<size; ++i) {
+	for (int i=1; i<size; ++i) {
 
 		if (vars[i] == name)
 			return i;
@@ -88,20 +162,37 @@ int linpol::find_index(const string& name) {
 	return -1;
 }
 
+void linpol::set_constant(double value) {
+
+	assert(size > 1);
+
+	val[0] = value;
+}
+
 void linpol::set_coefficient(const string& name, double value) {
 
-	assert(size > 0);
+	assert(size > 1);
 
 	const int index = find_index(name);
 
-	assert ( (0<=index) && (index<size) );
+	assert ( (0<index) && (index<size) );
 
 	val[index] = value;
 }
 
+std::ostream& linpol::print(std::ostream& os) const {
 
+	assert(size > 1);
 
+	for (int i=0; i<size; ++i)
+		os << vars[i] << '\t' << val[i] << endl;
 
+	os << endl;
 
+	return os;
+}
 
+std::ostream& operator<<(std::ostream& os, const linpol& a) {
 
+	return a.print(os);
+}
