@@ -34,6 +34,17 @@
 public class Gap {
 		private long start, end;
 		private boolean unrepairable;
+		
+		public Gap(long start, long end){
+			new Gap(start, end, false);
+		}
+		
+		public Gap(long start, long end,boolean unrepairable){
+			this.start=start;
+			this.end=end;
+			this.unrepairable=unrepairable;
+		}
+		
 		public long getStart() {
 			return start;
 		}
