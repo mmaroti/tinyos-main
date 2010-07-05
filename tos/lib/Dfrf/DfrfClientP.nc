@@ -23,23 +23,23 @@
 
 #include "Dfrf.h"
 
-generic module DfrfClientP(typedef payload_t, uint8_t uniqueLength, uint16_t bufferSize) {
+generic module DfrfClientP(uint8_t payloadlength, uint8_t uniqueLength, uint16_t bufferSize) {
   provides {
     interface StdControl;
-    interface DfrfSend<payload_t>;
-    interface DfrfReceive<payload_t>;
+    interface DfrfSend;
+    interface DfrfReceive;
   }
   uses {
     interface DfrfControl as SubDfrfControl;
-    interface DfrfSend<uint8_t> as SubDfrfSend;
-    interface DfrfReceive<uint8_t> as SubDfrfReceive;
+    interface DfrfSend as SubDfrfSend;
+    interface DfrfReceive as SubDfrfReceive;
   }
 } implementation {
 
-  uint8_t routingBuffer[sizeof(dfrf_desc_t) + bufferSize * (sizeof(payload_t) + sizeof(dfrf_block_t))];
+  uint8_t routingBuffer[sizeof(dfrf_desc_t) + bufferSize * (payloadlength + sizeof(dfrf_block_t))];
 
   command error_t StdControl.start() {
-    return call SubDfrfControl.init(sizeof(payload_t), uniqueLength, routingBuffer, sizeof(routingBuffer));
+    return call SubDfrfControl.init(payloadlength, uniqueLength, routingBuffer, sizeof(routingBuffer));
   }
 
   command error_t StdControl.stop() {
@@ -47,15 +47,15 @@ generic module DfrfClientP(typedef payload_t, uint8_t uniqueLength, uint16_t buf
     return SUCCESS;
   }
 
-  command error_t DfrfSend.send(payload_t* data) {
+  command error_t DfrfSend.send(void* data) {
     return call SubDfrfSend.send((uint8_t*)data);
   }
 
-  event bool SubDfrfReceive.receive(uint8_t *data) {
-    return signal DfrfReceive.receive((payload_t*)data);
+  event bool SubDfrfReceive.receive(void *data) {
+    return signal DfrfReceive.receive(data);
   }
 
-  default event bool DfrfReceive.receive(payload_t* data) { return TRUE; }
+  default event bool DfrfReceive.receive(void* data) { return TRUE; }
 
 }
 

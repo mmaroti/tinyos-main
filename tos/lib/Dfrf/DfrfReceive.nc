@@ -23,7 +23,7 @@
  *   @author Janos Sallai
  */
 
-interface DfrfReceive<payload_t>
+interface DfrfReceive
 {
 	/**
 	 * Fired when new data is avaliable at this node. Applications
@@ -35,5 +35,5 @@ interface DfrfReceive<payload_t>
 	 * @return FALSE if the data should not be sent forward, TRUE
 	 *	otherwise. Most applications should always return TRUE.
 	 */
-	event bool receive(payload_t* data);
+	event bool receive(void* data);
 }

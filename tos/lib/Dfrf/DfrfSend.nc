@@ -23,7 +23,7 @@
  *   @author Janos Sallai
  */
 
-interface DfrfSend<packet_t>
+interface DfrfSend
 {
 	/**
 	 * Sends this data according to the flooding policy. The length
@@ -35,5 +35,5 @@ interface DfrfSend<packet_t>
 	 * @return SUCCESS if the data was succesfully scheduled to be sent,
 	 *	FAIL if the same data is already scheduled.
 	 */
-	command error_t send(packet_t *data);
+	command error_t send(void *data);
 }

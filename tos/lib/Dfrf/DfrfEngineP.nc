@@ -44,8 +44,8 @@ module DfrfEngineP
 	provides
 	{
 		interface DfrfControl[uint8_t id];
-		interface DfrfSend<uint8_t> as DfrfSend[uint8_t appId];
-		interface DfrfReceive<uint8_t> as DfrfReceive[uint8_t appId];
+		interface DfrfSend as DfrfSend[uint8_t appId];
+		interface DfrfReceive as DfrfReceive[uint8_t appId];
 	}
 	uses
 	{
@@ -330,11 +330,6 @@ implementation
 				// if there is at least one block to be sent
 				if( call Packet.payloadLength(&txMsg) > sizeof(dfrf_msg_t) )
 				{
-					uint8_t j;
-					for(j=0;j<i;j++)
-						printf("%x ", txMsg.data[j]);
-					printf(" (%u)\n",i);
-
 					if( call AMSend.send(TOS_BCAST_ADDR, &txMsg, call Packet.payloadLength(&txMsg)) != SUCCESS )
 						post sendMsg();
 					else
@@ -517,7 +512,7 @@ implementation
 	/** Find the actual block in a descriptor based on the match of unique data
 	*   part, the new block gets assigned 0x00 priority and is sent from a task.
 	*/
-	command error_t DfrfSend.send[uint8_t id](uint8_t *data)
+	command error_t DfrfSend.send[uint8_t id](void *data)
 	{
 	  struct descriptor *desc = getDescriptor(id);
 
@@ -606,5 +601,5 @@ implementation
 	default command bool DfrfPolicy.accept[uint8_t id](uint16_t location) { return FALSE; }
 	default command uint8_t DfrfPolicy.received[uint8_t id](uint16_t location, uint8_t priority) { return 0xFF; }
 	default command uint8_t DfrfPolicy.age[uint8_t id](uint8_t priority) { return priority; }
-	default event bool DfrfReceive.receive[uint8_t id](uint8_t *data) { return FALSE; }
+	default event bool DfrfReceive.receive[uint8_t id](void *data) { return FALSE; }
 }

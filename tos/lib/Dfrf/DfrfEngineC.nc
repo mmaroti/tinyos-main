@@ -24,8 +24,8 @@
 configuration DfrfEngineC {
   provides {
     interface DfrfControl[uint8_t appId];
-    interface DfrfSend<uint8_t> as DfrfSend[uint8_t appId];
-    interface DfrfReceive<uint8_t> as DfrfReceive[uint8_t appId];
+    interface DfrfSend as DfrfSend[uint8_t appId];
+    interface DfrfReceive as DfrfReceive[uint8_t appId];
   }
   uses {
     interface DfrfPolicy[uint8_t appId];
