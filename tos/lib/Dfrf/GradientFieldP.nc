@@ -21,50 +21,69 @@
  * Author: Miklos Maroti, Gabor Pap, Janos Sallai
  */
 
-#include "GradientField.h"
+//#include "GradientField.h"
 
-module GradientFieldP
+
+
+generic module GradientFieldP(typedef payload_t)
 {
 	provides
 	{
+		interface DfrfSend as Send;
+		interface DfrfReceive as Receive;
 		interface GradientField;
 	}
 	uses
 	{
-		interface StdControl as DfrfControl;
 		interface AMPacket;
-		interface Timer<TMilli>;
-		interface DfrfSend<gradient_field_packet_t>;
-		interface DfrfReceive<gradient_field_packet_t>;
+		interface DfrfSend;
+		interface DfrfReceive;
 		interface Leds;
 	}
 }
 
 implementation
 {
+	typedef nx_struct gradientfield_packet {
+		nx_uint16_t rootAddress;	// address of the root of the gradient field
+		payload_t payload;
+		nx_uint8_t hopCount;	// hop count of the sender
+	} gradient_field_packet_t;
+	
+	
 	uint16_t rootAddress = 0xffff;
 	uint16_t effectiveRootAddress = 0xffff;
 	uint16_t hopCountSum;
 	uint16_t effectiveHopCountSum;
 	uint8_t  msgCount;
 	uint8_t  effectiveMsgCount;
-	uint8_t  lastSeq = 0xff;
 
 
 	/**** hop count ****/
-
-	command void GradientField.beacon()
-	{
+	
+	command error_t Send.send(void *send){
+		error_t err;
+		gradient_field_packet_t data;
+		
 		rootAddress = effectiveRootAddress = call AMPacket.address();
 
 		hopCountSum = effectiveHopCountSum = 0;
-		msgCount = effectiveMsgCount = 0;
+		msgCount = effectiveMsgCount = 0;		
+		
+		
+		data.rootAddress = rootAddress;
+		data.hopCount = 0;
+		data.payload=*((payload_t*)send);
+		
 
-		lastSeq |= 0x0F;
-
-		call DfrfControl.start();
-		call Timer.startPeriodic(512);
-		call Leds.led0Toggle();
+		err=call DfrfSend.send(&data);
+		call Leds.set(7);
+		return err;
+	}
+	
+	command void GradientField.beacon(){
+		payload_t dummy;
+		call Send.send(&dummy);
 	}
 
 	command am_addr_t GradientField.rootAddress()
@@ -98,17 +117,17 @@ implementation
 
 	/**** implementation ****/
 
-	event bool DfrfReceive.receive(gradient_field_packet_t* data, uint32_t eventTime)
+	event bool DfrfReceive.receive(void* raw_data)
 	{
-		call Leds.led1Toggle();
+		gradient_field_packet_t *data=(gradient_field_packet_t*)raw_data;
 
 		// detect a new beaconing round
-		if(( lastSeq & 0xf0 ) != ( data->seq & 0xf0 )) {
+		if(( rootAddress ) != ( data->rootAddress  )) {
 			rootAddress = data->rootAddress;
 			msgCount = 0;
 		}
 
-		lastSeq = data->seq;
+
 		hopCountSum += ++(data->hopCount);
 		++msgCount;
 
@@ -118,27 +137,10 @@ implementation
 			effectiveRootAddress = rootAddress;
 			effectiveHopCountSum = hopCountSum;
 		}
+		
+		signal Receive.receive(&(data->payload));
 
 		return TRUE;
 	}
 
-	event void Timer.fired()
-	{
-
-		gradient_field_packet_t data;
-		data.seq = ++lastSeq;
-		data.rootAddress = rootAddress;
-		data.hopCount = 0;
-
-		call Leds.led2Toggle();
-
-		call DfrfSend.send(&data, 0);
-
-		if( (lastSeq & 0x0F) == 0x0F ) {
-			call Timer.stop();
-			call DfrfControl.stop();
-
-			call Leds.set(7);
-		}
-	}
 }
