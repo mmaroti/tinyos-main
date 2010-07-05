@@ -45,6 +45,11 @@ linpol::linpol() : val(new double[size]) {
 		val[i] = 0.0;
 }
 
+linpol::linpol(bool dummy) : val(new double[size]) {
+
+	assert(size > 1);
+}
+
 linpol::linpol(const linpol& other) : val(new double[size]) {
 
 	assert(size > 1);
@@ -85,9 +90,13 @@ linpol& linpol::operator+=(const linpol& rhs) {
 
 const linpol operator+(const linpol& lhs, const linpol& rhs) {
 
-	// TODO The arrays should be read only once, a private ctor?
-	linpol result(lhs);
-	result += rhs;
+	assert(linpol::size > 1);
+
+	linpol result(false);
+
+	for (int i=0; i<linpol::size; ++i)
+		result.val[i] = lhs.val[i]+rhs.val[i];
+
 	return result;
 }
 
@@ -103,8 +112,13 @@ linpol& linpol::operator-=(const linpol& rhs) {
 
 const linpol operator-(const linpol& lhs, const linpol& rhs) {
 
-	linpol result(lhs);
-	result -= rhs;
+	assert(linpol::size > 1);
+
+	linpol result(false);
+
+	for (int i=0; i<linpol::size; ++i)
+		result.val[i] = lhs.val[i]-rhs.val[i];
+
 	return result;
 }
 
@@ -112,7 +126,7 @@ const linpol operator-(const linpol& pol) {
 
 	assert(linpol::size > 1);
 
-	linpol result;
+	linpol result(false);
 
 	for (int i=0; i<linpol::size; ++i)
 		result.val[i] = - pol.val[i];
@@ -124,7 +138,8 @@ const linpol operator*(const linpol& lhs, const linpol& rhs) {
 
 	assert(linpol::size > 1);
 
-	linpol result;
+	linpol result(false);
+
 	// c = a*b
 	const double* const a = lhs.val;
 	const double* const b = rhs.val;

@@ -25,7 +25,9 @@ int main() {
 
 	a.set_constant(1.0);
 
-	b.set_coefficient("x3", 3.0);
+	const double x = 3.0;
+
+	b.set_coefficient("x3", x);
 
 	c = a+b;
 

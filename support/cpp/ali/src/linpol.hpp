@@ -8,6 +8,7 @@ class linpol {
 
 public:
 
+	// Initializes all elements to zero
 	linpol();
 
 	linpol(const linpol& other);
@@ -20,11 +21,15 @@ public:
 
 	linpol& operator=(const linpol& rhs);
 
-	friend const linpol operator-(const linpol& pol);
-
 	linpol& operator+=(const linpol& rhs);
 
 	linpol& operator-=(const linpol& rhs);
+
+	friend const linpol operator-(const linpol& pol);
+
+	friend const linpol operator+(const linpol& lhs, const linpol& rhs);
+
+	friend const linpol operator-(const linpol& lhs, const linpol& rhs);
 
 	friend const linpol operator*(const linpol& lhs, const linpol& rhs);
 
@@ -38,6 +43,9 @@ public:
 
 private:
 
+	// Leaves the elements uninitialized -- messing with the fire
+	explicit linpol(bool dummy);
+
 	int find_index(const std::string& name);
 
 	double* const val;
@@ -46,10 +54,6 @@ private:
 
 	static std::string* vars;
 };
-
-const linpol operator+(const linpol& lhs, const linpol& rhs);
-
-const linpol operator-(const linpol& lhs, const linpol& rhs);
 
 std::ostream& operator<<(std::ostream& os, const linpol& a);
 
