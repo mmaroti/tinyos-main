@@ -37,7 +37,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.ArrayList;
 
 public class RawPacketConsumer{
@@ -96,7 +95,7 @@ public class RawPacketConsumer{
 		return ret;
 	}
 	
-	public RawPacketConsumer(String path,byte frame, byte escape, byte xorescaped) throws IOException{
+	public RawPacketConsumer(String path,byte frame, byte escape, byte xorescaped) throws FileNotFoundException{
 		if(path.endsWith(".bin")){
 			path.lastIndexOf('/');
 			nodeid=Integer.parseInt(path.substring(path.lastIndexOf('/')+1, path.length()-4));
@@ -111,25 +110,41 @@ public class RawPacketConsumer{
 		this(path,(byte)0x5e,(byte)0x5d,(byte)0x20);
 		
 	}
-	private void initDataFile(String path, String gapPath, int nodeid) throws IOException{
-			this.dataFile=new File(path);			
+	private void initDataFile(String path, String gapPath, int nodeid) throws FileNotFoundException{
+			this.dataFile=new File(path);
+			if(dataFile.exists())
+				System.out.print("Found datafile from #"+nodeid+".");
+			else
+				throw new FileNotFoundException();
 			this.nodeid=nodeid;
-			System.out.print("Found datafile from #"+nodeid+". opening file:");
 			maxaddress=dataFile.length()-1;
 			System.out.print("maxaddress="+maxaddress);
+			gapFile=new File(gapPath);
 			if(gapFile.exists()){
-				BufferedReader input =  new BufferedReader(new FileReader(this.gapFile));
-				String line=null;
-				while (( line = input.readLine()) != null){
-					System.out.print("\n New gap:"+line);
-					String[] vars=line.split(" ");
-					if(vars.length!=3){
-						//TODO error handling
+				BufferedReader input;
+				try {
+					input = new BufferedReader(new FileReader(this.gapFile));
+					String line=null;
+					while (( line = input.readLine()) != null){
+						System.out.print("\n New gap:"+line);
+						String[] vars=line.split(" ");
+						if(vars.length!=3){
+							//TODO error handling
+						}
+						if(vars[2]=="T")
+							addGap(Long.parseLong(vars[0]), Long.parseLong(vars[1]),true);
+						else
+							addGap(Long.parseLong(vars[0]), Long.parseLong(vars[1]),false);
 					}
-					if(vars[2]=="T")
-						addGap(Long.parseLong(vars[0]), Long.parseLong(vars[1]),true);
-					else
-						addGap(Long.parseLong(vars[0]), Long.parseLong(vars[1]),false);
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}else {
 				System.out.print("\nGapfile doesn't exist");
