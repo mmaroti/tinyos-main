@@ -21,6 +21,9 @@ public:
 
 	linpol& operator=(const linpol& rhs);
 
+	// Out of necessity, only works with rhs = 0
+	linpol& operator=(double rhs);
+
 	linpol& operator+=(const linpol& rhs);
 
 	linpol& operator-=(const linpol& rhs);

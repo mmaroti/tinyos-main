@@ -78,6 +78,19 @@ linpol& linpol::operator=(const linpol& rhs) {
 	return *this;
 }
 
+linpol& linpol::operator=(double rhs) {
+
+	assert(size > 1);
+
+	if (rhs != 0.0)
+		error("operator= works only with rhs = 0");
+
+	for (int i=0; i<size; ++i)
+		val[i] = 0.0;
+
+	return *this;
+}
+
 linpol& linpol::operator+=(const linpol& rhs) {
 
 	assert(size > 1);

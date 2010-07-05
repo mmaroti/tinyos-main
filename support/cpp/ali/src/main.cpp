@@ -1,7 +1,9 @@
 #include <iostream>
 #include "linpol.hpp"
+#include "tnt.h"
 
 using namespace std;
+using namespace TNT;
 
 int main() {
 
@@ -41,6 +43,32 @@ int main() {
 	cout << "b" << endl << b << endl;
 	cout << "c" << endl << c << endl;
 	cout << "d" << endl << d << endl;
+
+	//==========================================================================
+
+	Matrix<linpol> A(2,3);
+
+	A[0][0] = linpol("x1", 2.0);
+	A[0][1] = linpol("x2", 3.0);
+	A[0][2] = linpol("x3", 4.0);
+
+	A[1][0] = d;
+	A[1][1] = a;
+	A[1][2] = c;
+
+	Matrix<linpol> B(A);
+
+	Matrix<linpol> C = transpose(B);
+
+	B = A*C;
+
+	cout << "B: " << endl << B << endl;
+
+	B = A;
+
+	B = A-B;
+
+	cout << "B: " << endl << B << endl;
 
 	return 0;
 }
