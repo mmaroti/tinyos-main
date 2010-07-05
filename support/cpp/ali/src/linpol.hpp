@@ -4,20 +4,21 @@
 #include <iosfwd>
 #include <string>
 
+class linvars;
+
 class linpol {
 
 public:
 
-	// Initializes all elements to zero
-	linpol();
+	linpol() : val(0), names(0) { }
+
+	explicit linpol(const linvars* const name);
 
 	linpol(const linpol& other);
 
-	linpol(const std::string& name, double value);
+	linpol& set_constant(double value);
 
-	void set_constant(double value);
-
-	void set_coefficient(const std::string& name, double value);
+	linpol& set_coefficient(const std::string& name, double value);
 
 	linpol& operator=(const linpol& rhs);
 
@@ -40,22 +41,13 @@ public:
 
 	std::ostream& print(std::ostream& os) const;
 
-	static void init_varnames(const std::string[], int length);
-
-	static void print_varnames();
-
 private:
 
-	// Leaves the elements uninitialized -- messing with the fire
-	explicit linpol(bool dummy);
+	void init_if_needed(const linpol& other);
 
-	int find_index(const std::string& name);
+	double* val;
 
-	double* const val;
-
-	static int size;
-
-	static std::string* vars;
+	const linvars* names;
 };
 
 std::ostream& operator<<(std::ostream& os, const linpol& a);

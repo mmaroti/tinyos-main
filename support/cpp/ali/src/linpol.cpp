@@ -1,101 +1,96 @@
 #include <cassert>
 #include <iostream>
-#include <cstdlib>
+#include "linvars.hpp"
 #include "linpol.hpp"
+#include "utility.hpp"
 
 using namespace std;
 
-int linpol::size(0);
+linpol::linpol(const linvars* const vars) {
 
-string* linpol::vars(0);
+	const int n = vars->size();
 
-void error(const char* msg) {
+	val = new double[n];
 
-	cerr << "Error: " << msg << "!" << endl;
-	exit(EXIT_FAILURE);
-}
+	names = vars;
 
-void linpol::init_varnames(const string arr[], int length) {
-
-	assert(size == 0);
-	assert(length > 0);
-
-	size = length+1;
-
-	vars = new string[size];
-
-	vars[0] = string("");
-
-	for (int i=1; i<size; ++i)
-		vars[i] = arr[i-1];
-}
-
-void linpol::print_varnames() {
-
-	for (int i=0; i<size; ++i)
-		cout << vars[i] << endl;
-	cout << endl;
-}
-
-linpol::linpol() : val(new double[size]) {
-
-	assert(size > 1);
-
-	for (int i=0; i<size; ++i)
+	for (int i=0; i<n; ++i)
 		val[i] = 0.0;
 }
 
-linpol::linpol(bool dummy) : val(new double[size]) {
+linpol::linpol(const linpol& other) : val(0), names(0) {
 
-	assert(size > 1);
+	if (other.names != 0) {
+
+		const int n = other.names->size();
+
+		val = new double[n];
+
+		names = other.names;
+
+		for (int i=0; i<n; ++i)
+			val[i] = other.val[i];
+	}
 }
 
-linpol::linpol(const linpol& other) : val(new double[size]) {
+void linpol::init_if_needed(const linpol& other) {
 
-	assert(size > 1);
+	assert(other.names != 0);
 
-	for (int i=0; i<size; ++i)
-		val[i] = other.val[i];
-}
+	if (names==0) {
 
-linpol::linpol(const string& name, double value) : val(new double[size]) {
+		const int n = other.names->size();
 
-	assert(size > 1);
+		val = new double[n];
 
-	for (int i=0; i<size; ++i)
-		val[i] = 0.0;
+		names = other.names;
 
-	set_coefficient(name, value);
+		for (int i=0; i<n; ++i)
+			val[i] = 0.0;
+	}
+
+	assert(names==other.names);
 }
 
 linpol& linpol::operator=(const linpol& rhs) {
 
-	assert(size > 1);
+	if (rhs.names != 0) {
 
-	for (int i=0; i<size; ++i)
-		val[i] = rhs.val[i];
+		init_if_needed(rhs);
+
+		const int n = rhs.names->size();
+
+		for (int i=0; i<n; ++i)
+			val[i] = rhs.val[i];
+	}
 
 	return *this;
 }
 
+// TODO Automatic type conversion?
 linpol& linpol::operator=(double rhs) {
-
-	assert(size > 1);
 
 	if (rhs != 0.0)
 		error("operator= works only with rhs = 0");
 
-	for (int i=0; i<size; ++i)
-		val[i] = 0.0;
+	if (val !=0 ) {
+
+		const int n = names->size();
+
+		for (int i=0; i<n; ++i)
+			val[i] = 0.0;
+	}
 
 	return *this;
 }
 
 linpol& linpol::operator+=(const linpol& rhs) {
 
-	assert(size > 1);
+	init_if_needed(rhs);
 
-	for (int i=0; i<size; ++i)
+	const int n = rhs.names->size();
+
+	for (int i=0; i<n; ++i)
 		val[i] += rhs.val[i];
 
 	return *this;
@@ -103,21 +98,20 @@ linpol& linpol::operator+=(const linpol& rhs) {
 
 const linpol operator+(const linpol& lhs, const linpol& rhs) {
 
-	assert(linpol::size > 1);
+	linpol result(lhs);
 
-	linpol result(false);
-
-	for (int i=0; i<linpol::size; ++i)
-		result.val[i] = lhs.val[i]+rhs.val[i];
+	result += rhs;
 
 	return result;
 }
 
 linpol& linpol::operator-=(const linpol& rhs) {
 
-	assert(size > 1);
+	init_if_needed(rhs);
 
-	for (int i=0; i<size; ++i)
+	const int n = rhs.names->size();
+
+	for (int i=0; i<n; ++i)
 		val[i] -= rhs.val[i];
 
 	return *this;
@@ -125,23 +119,22 @@ linpol& linpol::operator-=(const linpol& rhs) {
 
 const linpol operator-(const linpol& lhs, const linpol& rhs) {
 
-	assert(linpol::size > 1);
+	linpol result(lhs);
 
-	linpol result(false);
-
-	for (int i=0; i<linpol::size; ++i)
-		result.val[i] = lhs.val[i]-rhs.val[i];
+	result -= rhs;
 
 	return result;
 }
 
 const linpol operator-(const linpol& pol) {
 
-	assert(linpol::size > 1);
+	assert(pol.names!=0);
 
-	linpol result(false);
+	linpol result(pol.names);
 
-	for (int i=0; i<linpol::size; ++i)
+	const int n = pol.names->size();
+
+	for (int i=0; i<n; ++i)
 		result.val[i] = - pol.val[i];
 
 	return result;
@@ -149,9 +142,9 @@ const linpol operator-(const linpol& pol) {
 
 const linpol operator*(const linpol& lhs, const linpol& rhs) {
 
-	assert(linpol::size > 1);
+	assert ( (lhs.names != 0) && (rhs.names != 0));
 
-	linpol result(false);
+	linpol result(lhs.names);
 
 	// c = a*b
 	const double* const a = lhs.val;
@@ -164,7 +157,9 @@ const linpol operator*(const linpol& lhs, const linpol& rhs) {
 
 	c[0] = a0*b0;
 
-	for (int i=1; i<linpol::size; ++i)
+	const int n = result.names->size();
+
+	for (int i=1; i<n; ++i)
 		c[i] = a0*b[i] + b0*a[i];
 
 	return result;
@@ -175,45 +170,45 @@ linpol::~linpol() {
 	delete[] val;
 }
 
-int linpol::find_index(const string& name) {
+linpol& linpol::set_constant(double value) {
 
-	assert(size > 1);
-
-	for (int i=1; i<size; ++i) {
-
-		if (vars[i] == name)
-			return i;
-	}
-
-	error("variable name not found, maybe a typo");
-	// Control never reaches this line
-	return -1;
-}
-
-void linpol::set_constant(double value) {
-
-	assert(size > 1);
+	assert( names!=0 );
 
 	val[0] = value;
+
+	return *this;
 }
 
-void linpol::set_coefficient(const string& name, double value) {
+linpol& linpol::set_coefficient(const string& name, double value) {
 
-	assert(size > 1);
+	assert( names!=0 );
 
-	const int index = find_index(name);
+	const int index = names->find_index(name);
+
+	const int size = names->size();
 
 	assert ( (0<index) && (index<size) );
 
 	val[index] = value;
+
+	return *this;
 }
 
 std::ostream& linpol::print(std::ostream& os) const {
 
-	assert(size > 1);
+	if (names==0) {
 
-	for (int i=0; i<size; ++i)
-		os << vars[i] << '\t' << val[i] << endl;
+		os << "not initialized" << endl;
+	}
+	else {
+
+		const int size = names->size();
+
+		const string* const vars = names->varnames();
+
+		for (int i=0; i<size; ++i)
+			os << vars[i] << '\t' << val[i] << endl;
+	}
 
 	os << endl;
 

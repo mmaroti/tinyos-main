@@ -1,5 +1,6 @@
 #include <iostream>
 #include "linpol.hpp"
+#include "linvars.hpp"
 #include "tnt.h"
 
 using namespace std;
@@ -9,11 +10,11 @@ int main() {
 
 	string arr[] = { "x1", "x2", "x3" };
 
-	linpol::init_varnames(arr, sizeof(arr)/sizeof(string));
+	linvars names(arr, sizeof(arr)/sizeof(string));
 
-	linpol a;
+	linpol a(&names);
 
-	linpol::print_varnames();
+	cout << names << endl;
 
 	linpol b(a);
 
@@ -21,7 +22,7 @@ int main() {
 
 	a = b;
 
-	linpol c("x2", 2.0);
+	linpol c;
 
 	a = b = c;
 
@@ -46,11 +47,11 @@ int main() {
 
 	//==========================================================================
 
-	Matrix<linpol> A(2,3);
+	Matrix<linpol> A(2,3,linpol(&names));
 
-	A[0][0] = linpol("x1", 2.0);
-	A[0][1] = linpol("x2", 3.0);
-	A[0][2] = linpol("x3", 4.0);
+	A[0][0] = linpol(&names).set_coefficient("x1", 2.0).set_constant(1.0);
+	A[0][1] = linpol(&names).set_coefficient("x2", 3.0).set_constant(5.0);
+	A[0][2] = linpol(&names).set_coefficient("x3", 4.0).set_constant(3.0);
 
 	A[1][0] = d;
 	A[1][1] = a;
