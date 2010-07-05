@@ -32,7 +32,7 @@
 * Author:Andras Biro
 */
 #ifndef SAMP_T
-	#define SAMP_T 60000U
+	#define SAMP_T 61140U
 #endif
 module SSTest_MTS400C{
 	uses {
@@ -49,7 +49,7 @@ module SSTest_MTS400C{
 	}
 }
 implementation{
-	typedef nx_struct asdf{
+	typedef nx_struct{
 		nx_uint16_t temp;
 		nx_uint16_t humi;
 		nx_uint8_t light;
