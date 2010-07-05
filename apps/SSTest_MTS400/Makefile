@@ -1,14 +1,15 @@
 COMPONENT=SSTest_MTS400_App
 BUILD_EXTRA_DEPS += ctrlMsg.java dataMsg.java ctrltsMsg.java BinReader.class StreamDownloader.class StreamEraser.class
 CLEAN_EXTRA      = ctrlMsg.java dataMsg.java ctrltsMsg.java *.class
-CFLAGS += -I$(TOSDIR)/chips/sht11
-CFLAGS += -I$(SZTETOSDIR)/lib/Mts400
+SENSORBOARD = mts400
+# CFLAGS += -I$(TOSDIR)/chips/sht11
+# CFLAGS += -I$(SZTETOSDIR)/lib/Mts400
 CFLAGS += -I$(SZTETOSDIR)/lib/FastSerial
 CFLAGS += -I$(SZTETOSDIR)/lib/StreamStorage
 CFLAGS += -I$(SZTETOSDIR)/lib/StorageFrame
 CFLAGS += -I$(SZTETOSDIR)/lib/StreamUploader
-#sampling time in ms, default: 60000U
-#CFLAGS += -DSAMP_T=60000U
+#sampling time in ms, default: 61140U (1s=1024ms, so it's 1 minute)
+#CFLAGS += -DSAMP_T=61440U
 #short waiting time for the radio in ms, default: 1000U
 #CFLAGS += -DRADIO_SHORT=1000U
 #long waiting time for the radio in s, default: 60U
@@ -27,8 +28,8 @@ dataMsg.java: $(SZTETOSDIR)/lib/StreamUploader/StreamUploader.h
 	mig -target=$(PLATFORM) -java-classname=dataMsg java $(SZTETOSDIR)/lib/StreamUploader/StreamUploader.h data_msg_t -o $@
 BinReader.class: BinReader.java dataFile.java
 	javac BinReader.java 
-StreamDownloader.class: StreamDownloader.java dataFile.java ctrlMsg.java dataMsg.java ctrltsMsg.java
-	javac StreamDownloader.java 
+StreamDownloader.class: StreamDownloader.java ctrlMsg.java dataMsg.java ctrltsMsg.java
+	javac -cp $(CLASSPATH):$(SZTETOSROOT)/support/java/DataProcess StreamDownloader.java 
 StreamEraser.class: StreamEraser.java ctrlMsg.java dataMsg.java ctrltsMsg.java
 	javac StreamEraser.java 
 include $(MAKERULES)
