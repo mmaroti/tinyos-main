@@ -3,11 +3,18 @@
 
 using namespace std;
 
+enum {
+	CONST,
+	X,
+	Y,
+	SIZE
+};
+
 int main() {
 
-	affine a;
+	affine<SIZE> a;
 
-	affine b(a);
+	affine<SIZE> b(a);
 
 	a=b;
 
@@ -19,7 +26,13 @@ int main() {
 	b[X] = -1.0;
 	b[Y] = -2.0;
 
+	for (int i=0; i<1000; ++i) {
+		a = ((a+b)-b);
+	}
+
 	cout << ((a+b)-b) << endl;
+
+	b = a*b;
 
 	return 0;
 }
