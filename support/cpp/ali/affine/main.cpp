@@ -1,7 +1,9 @@
 #include <iostream>
 #include "affine.hpp"
+#include "tnt.h"
 
 using namespace std;
+using namespace TNT;
 
 enum {
 	CONST,
@@ -33,6 +35,34 @@ int main() {
 	cout << ((a+b)-b) << endl;
 
 	b = a*b;
+
+	cout << b << endl;
+
+	//=====
+
+	Matrix< affine<SIZE> > A(2,3);
+
+	A[0][0] = a;
+	A[0][1] = b;
+	A[0][2] = a;
+
+	A[1][0] = b;
+	A[1][1] = a;
+	A[1][2] = b;
+
+	Matrix< affine<SIZE> > B(A);
+
+	Matrix< affine<SIZE> > C = transpose(B);
+
+	B = A*C;
+
+	cout << "B = A*C: " << endl << B << endl;
+
+	B = A;
+
+	B = A-B;
+
+	cout << "B: " << endl << B << endl;
 
 	return 0;
 }

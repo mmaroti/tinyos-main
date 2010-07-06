@@ -21,6 +21,9 @@ public:
 
 	affine& operator=(const affine& rhs);
 
+	// Out of necessity, only works with rhs = 0
+	affine& operator=(double rhs);
+
 	template <int N>
 	friend const affine<N> operator+(const affine<N>& lhs, const affine<N>& rhs);
 
@@ -67,6 +70,17 @@ affine<SIZE>& affine<SIZE>::operator=(const affine<SIZE>& rhs) {
 }
 
 template <int SIZE>
+affine<SIZE>& affine<SIZE>::operator=(double rhs) {
+
+	assert (rhs == 0);
+
+	for (int i=0; i<=SIZE; ++i)
+		val[i] = 0.0;
+
+	return *this;
+}
+
+template <int SIZE>
 double affine<SIZE>::operator[](int i) const {
 
 	assert( (0<=i) && (i<=SIZE) );
@@ -100,7 +114,8 @@ const affine<SIZE> operator+(const affine<SIZE>& lhs, const affine<SIZE>& rhs) {
 
 	const double* const x = lhs.val;
 	const double* const y = rhs.val;
-	      double* const z = result.val;
+
+	double* const z = result.val;
 
 	double d(0.0);
 
@@ -125,69 +140,14 @@ const affine<SIZE> operator+(const affine<SIZE>& lhs, const affine<SIZE>& rhs) {
 }
 
 template <int SIZE>
-const affine<SIZE> operator*(const affine<SIZE>& lhs, const affine<SIZE>& rhs) {
-
-	affine<SIZE> result;
-
-	const double* const x = lhs.val;
-	const double* const y = rhs.val;
-	      double* const z = result.val;
-
-	double sx(0.0);
-	double sy(0.0);
-
-	for (int i=1; i<SIZE; ++i) {
-
-		sx = q_succ(sx + std::fabs(x[i]));
-		sy = q_succ(sy + std::fabs(y[i]));
-	}
-
-	double s1(0.0);
-	double s2(0.0);
-
-	double e1(0.0);
-	double e2(0.0);
-
-	for (int i=1; i<SIZE; ++i) {
-
-		double xy = x[i]*y[i];
-
-		double xy_L = q_pred(xy);
-		double xy_U = q_succ(xy);
-
-		if (xy_L > 0.0) {
-
-			double a = q_pred(s1 + xy_L);
-			double b = q_succ(s1 + xy_U);
-			s1 += xy;
-			e1 = q_succ(e1+q_succ(max(b-s1,s1-a)));
-		}
-		else if (xy_U < 0.0) {
-
-			double a = q_pred(s2 + xy_L);
-			double b = q_succ(s2 + xy_U);
-			s2 += xy;
-			e2 = q_succ(e2+q_succ(max(b-s2,s2-a)));
-		}
-		// else ???
-
-	}
-
-	for (int i=1; i<SIZE; ++i) {
-
-	}
-
-	return result;
-}
-
-template <int SIZE>
 const affine<SIZE> operator-(const affine<SIZE>& lhs, const affine<SIZE>& rhs) {
 
 	affine<SIZE> result;
 
 	const double* const x = lhs.val;
 	const double* const y = rhs.val;
-	      double* const z = result.val;
+
+	double* const z = result.val;
 
 	double d(0.0);
 
@@ -205,6 +165,63 @@ const affine<SIZE> operator-(const affine<SIZE>& lhs, const affine<SIZE>& rhs) {
 
 	d = q_succ(d + x[SIZE]);
 	d = q_succ(d + y[SIZE]);
+
+	z[SIZE] = d;
+
+	return result;
+}
+
+template <int SIZE>
+const affine<SIZE> operator*(const affine<SIZE>& lhs, const affine<SIZE>& rhs) {
+
+	using std::fabs;
+
+	affine<SIZE> result;
+
+	const double* const x = lhs.val;
+	const double* const y = rhs.val;
+
+	double rx(fabs(x[1]));
+	double ry(fabs(y[1]));
+
+	for (int i=2; i<=SIZE; ++i) {
+
+		rx = q_succ(rx + fabs(x[i]));
+		ry = q_succ(ry + fabs(y[i]));
+	}
+
+	double dr = q_succ(rx*ry);
+
+	const double x0 = x[0];
+	const double y0 = y[0];
+
+	double z0 = x0*y0;
+
+	double z0_pre = q_pred(z0);
+	double z0_suc = q_succ(z0);
+
+	double d = q_succ(max(z0_suc-z0, z0-z0_pre));
+
+	double* const z = result.val;
+
+	z[0] = z0;
+
+	for (int i=1; i<SIZE; ++i) {
+
+		double xy0 = y0*x[i];
+		double yx0 = x0*y[i];
+
+		double zL = q_pred(q_pred(xy0)+q_pred(yx0));
+		double zU = q_succ(q_succ(xy0)+q_succ(yx0));
+
+		double zi = xy0+yx0;
+
+		z[i] = zi;
+
+		d = q_succ(d+q_succ(max(zU-zi, zi-zL)));
+	}
+
+	d = q_succ(d+dr);
 
 	z[SIZE] = d;
 
