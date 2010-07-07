@@ -47,7 +47,7 @@ public class GapConsumer{
 			initGapFile(gapPath);		
 	}
 	
-	private void initGapFile(String gapPath) throws FileNotFoundException{			
+	private void initGapFile(String gapPath){			
 			gapFile=new File(gapPath);
 			if(gapFile.exists()){
 				BufferedReader input;
@@ -77,8 +77,7 @@ public class GapConsumer{
 				}
 			}else {
 				System.out.println("Gapfile doesn't exist");
-				}
-		
+			}	
 	}
 	
 	private void addGap(long start, long end, boolean unrepairable) {
