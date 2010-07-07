@@ -31,24 +31,18 @@
 *
 * Author:Andras Biro, Miklos Toth
 */
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
 public class RawPacketConsumer{
 	private File dataFile;
 	private ArrayList<Byte[]>frames=new ArrayList<Byte[]>();
-	private ArrayList<Gap> gaps = new ArrayList<Gap>();
-    
-	private long maxaddress;
+	private ArrayList<Gap> gaps = new ArrayList<Gap>();    
 	private int nodeid;	
 
-	
-	private File gapFile; 	
 
 	public Byte[] readNextFrame(byte[] buffer, int i, byte frame, byte escape, byte xorescaped){
 		if(i>=buffer.length)
@@ -65,7 +59,7 @@ public class RawPacketConsumer{
 				i++;
 			}
 		}
-		//now in the buffer[i] we've got the fist byte of the real data (after the frame)
+		//now in the buffer[i] we've got the first byte of the real data (after the frame)
 		ArrayList<Byte> onemeas=new ArrayList<Byte>();
 		while(buffer[i]!=frame){
 			if(gaps.contains(i)||i>=buffer.length)//if there is a gap in the middle of the frame, than drop it, try, the next frame
@@ -77,7 +71,8 @@ public class RawPacketConsumer{
 			onemeas.add(buffer [i]);
 			i++;
 		}
-		return (Byte[])(onemeas.toArray());
+		Byte[] a=new Byte[onemeas.size()] ;
+		return (Byte[])(onemeas.toArray(a));
 	}
 	
 	public ArrayList<Byte[]> makeFrames(byte frame, byte escape, byte xorescaped) throws IOException{
@@ -95,68 +90,30 @@ public class RawPacketConsumer{
 		return ret;
 	}
 	
-	public RawPacketConsumer(String path,byte frame, byte escape, byte xorescaped) throws FileNotFoundException{
+	public RawPacketConsumer(String path, ArrayList<Gap> gaps, byte frame, byte escape, byte xorescaped) throws IOException{
 		if(path.endsWith(".bin")){
 			path.lastIndexOf('/');
-			nodeid=Integer.parseInt(path.substring(path.lastIndexOf('/')+1, path.length()-4));
-			String gapPath=path.substring(0, path.length()-4)+".gap";
-			initDataFile(path, gapPath, nodeid);
-						
+			nodeid=Integer.parseInt(path.substring(path.lastIndexOf('/')+1, path.length()-4));			
+			initDataFile(path, nodeid);
+			this.gaps=gaps;
+			frames=	makeFrames(frame, escape, xorescaped);		
 		} else
 			throw new FileNotFoundException();
 	}
 	
-	public RawPacketConsumer(String path) throws IOException{
-		this(path,(byte)0x5e,(byte)0x5d,(byte)0x20);
+	public RawPacketConsumer(String path,ArrayList<Gap> gaps) throws IOException{
+		this(path,gaps,(byte)0x5e,(byte)0x5d,(byte)0x20);
 		
 	}
-	private void initDataFile(String path, String gapPath, int nodeid) throws FileNotFoundException{
+	private void initDataFile(String path, int nodeid) throws FileNotFoundException{
 			this.dataFile=new File(path);
 			if(dataFile.exists())
 				System.out.print("Found datafile from #"+nodeid+".");
 			else
 				throw new FileNotFoundException();
 			this.nodeid=nodeid;
-			maxaddress=dataFile.length()-1;
-			System.out.print("maxaddress="+maxaddress);
-			gapFile=new File(gapPath);
-			if(gapFile.exists()){
-				BufferedReader input;
-				try {
-					input = new BufferedReader(new FileReader(this.gapFile));
-					String line=null;
-					while (( line = input.readLine()) != null){
-						System.out.print("\n New gap:"+line);
-						String[] vars=line.split(" ");
-						if(vars.length!=3){
-							//TODO error handling
-						}
-						if(vars[2]=="T")
-							addGap(Long.parseLong(vars[0]), Long.parseLong(vars[1]),true);
-						else
-							addGap(Long.parseLong(vars[0]), Long.parseLong(vars[1]),false);
-					}
-				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (NumberFormatException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}else {
-				System.out.print("\nGapfile doesn't exist");
-				}
-			System.out.println("\nFile opened");
-		
-	}
-	
-	private void addGap(long start, long end, boolean unrepairable) {
-		gaps.add(new Gap(start,end,unrepairable));
-		
-	}	
+			System.out.println("\nFile opened");		
+	}		
 	
 	public ArrayList<Gap> getGaps() {
 		return gaps;
@@ -170,17 +127,9 @@ public class RawPacketConsumer{
 	public ArrayList<Byte[]> getFrames() {
 		return frames;
 	}
-	
-	public long getMaxaddress() {
-		return maxaddress;
-	}
 
 	public int getNodeid() {
 		return nodeid;
-	}
-
-	public File getGapFile() {
-		return gapFile;
 	}
 	
 	public File getDataFile() {

@@ -1,5 +1,3 @@
-import java.util.Hashtable;
-
 /*
 * Copyright (c) 2010, University of Szeged
 * All rights reserved.
@@ -33,47 +31,9 @@ import java.util.Hashtable;
 *
 * Author:Miklos Toth
 */
-public class FrameType {
-		private Variable[] variables ;
-		private int size;
-		private Hashtable<String, Integer> id;		
-		private String name;		
-		
-		public FrameType(){
-			
-		}
-		public FrameType(Variable[] variables, int size, String name, Hashtable<String, Integer> id){
-			this.name=name;
-			this.size=size;
-			this.id=id;
-			this.variables= new Variable[variables.length];
-			for (int i=0;i<variables.length;i++)
-				this.variables[i]=new Variable(variables[i]);
-		}
-		public String getName() {
-			return name;
-		}
-		public void setName(String name) {
-			this.name = name;
-		}
-		
-		public Variable[] getVariables() {
-			return variables;
-		}
-		public void setVariables(Variable[] variables) {
-			this.variables = variables;
-		}
-		public int getSize() {
-			return size;
-		}
-		public void setSize(int size) {
-			this.size = size;
-		}
-		public Hashtable<String, Integer> getId() {
-			return id;
-		}
-		public void setId(Hashtable<String, Integer> id) {
-			this.id = id;
-		}
-			
-		}
+public interface Value {
+	
+	public void getValue(byte[] bin);
+	public String toString();
+
+}

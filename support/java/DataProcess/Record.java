@@ -1,4 +1,4 @@
-import java.util.Hashtable;
+import java.util.ArrayList;
 
 /*
 * Copyright (c) 2010, University of Szeged
@@ -33,47 +33,22 @@ import java.util.Hashtable;
 *
 * Author:Miklos Toth
 */
-public class FrameType {
-		private Variable[] variables ;
-		private int size;
-		private Hashtable<String, Integer> id;		
-		private String name;		
-		
-		public FrameType(){
-			
-		}
-		public FrameType(Variable[] variables, int size, String name, Hashtable<String, Integer> id){
-			this.name=name;
-			this.size=size;
-			this.id=id;
-			this.variables= new Variable[variables.length];
-			for (int i=0;i<variables.length;i++)
-				this.variables[i]=new Variable(variables[i]);
-		}
-		public String getName() {
-			return name;
-		}
-		public void setName(String name) {
-			this.name = name;
-		}
-		
-		public Variable[] getVariables() {
-			return variables;
-		}
-		public void setVariables(Variable[] variables) {
-			this.variables = variables;
-		}
-		public int getSize() {
-			return size;
-		}
-		public void setSize(int size) {
-			this.size = size;
-		}
-		public Hashtable<String, Integer> getId() {
-			return id;
-		}
-		public void setId(Hashtable<String, Integer> id) {
-			this.id = id;
-		}
-			
-		}
+public class Record {
+ FrameType type;
+ ArrayList<Value[]> frames;
+ 
+ public Record(){
+	 frames=new ArrayList<Value[]>();
+	 
+ }
+ 
+// public Value makeValue(byte[] bin){     //Factory
+//		if (name.equals("uint16_t")){
+//			return new IntValue(bin);
+//		}
+//		else if (name.equals("uint32_t")){
+//			return new LongValue(bin);
+//		}
+//		else return new IntValue(bin);
+//	}
+}
