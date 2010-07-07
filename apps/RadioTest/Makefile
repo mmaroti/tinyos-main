@@ -7,11 +7,11 @@ CFLAGS += -DCC2420_DEF_CHANNEL=11
 CFLAGS += -DLOW_POWER_LISTENING
 CFLAGS += -DTOSH_DATA_LENGTH=50
 
-setup_t.py: RadioTest.h
-	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=setup_t RadioTest.h setup_t -o $@
+#setup_t.py: RadioTest.h
+#	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=setup_t RadioTest.h setup_t -o $@
 
-ctrlmsg_t.py: RadioTest.h
-	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=ctrlmsg_t RadioTest.h ctrlmsg_t -o $@
+#ctrlmsg_t.py: RadioTest.h
+#	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=ctrlmsg_t RadioTest.h ctrlmsg_t -o $@
 
 StatT.java: RadioTest.h
 	mig -target=$(PLATFORM) -java-classname=StatT java RadioTest.h stat_t -o $@
