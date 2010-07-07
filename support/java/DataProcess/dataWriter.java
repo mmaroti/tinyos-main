@@ -58,12 +58,12 @@ public class dataWriter {
 	}
 	
 	public dataWriter(int nodeid, byte frame, byte escape, byte xorescaped) throws IOException{
-		RawPacketConsumer rpc;
+		GapConsumer gapc;
 		try {
-			rpc = new RawPacketConsumer(nodeidToPath(nodeid,".bin"), frame, escape, xorescaped);
-			gaps=rpc.getGaps();
-			gapFile=rpc.getGapFile();
-			dataFile=new RandomAccessFile(rpc.getDataFile(),"rws");
+			gapc = new GapConsumer(nodeidToPath(nodeid,".gap"));
+			gaps=gapc.getGaps();
+			gapFile=gapc.getGapFile();
+			dataFile=new RandomAccessFile(nodeidToPath(nodeid,".bin"),"rws");
 		} catch (FileNotFoundException e) {
 			gaps=new ArrayList<Gap>();
 			gapFile=new File(nodeidToPath(nodeid,".gap"));
