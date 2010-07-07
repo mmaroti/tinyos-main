@@ -1,9 +1,11 @@
 #include <iostream>
 #include "affine.hpp"
 #include "tnt.h"
+//#include "jama_qr.h"
 
 using namespace std;
 using namespace TNT;
+//using namespace JAMA;
 
 enum {
 	CONST,
@@ -38,6 +40,8 @@ int main() {
 
 	cout << b << endl;
 
+	b[SIZE] = 1.0e-14;
+
 	//=====
 
 	Matrix< affine<SIZE> > A(2,3);
@@ -60,9 +64,23 @@ int main() {
 
 	B = A;
 
-	B = A-B;
+	cout << "===========================================" << endl;
+
+	cout << "A: " << endl << A << endl;
 
 	cout << "B: " << endl << B << endl;
+
+	B = A-B;
+
+	cout << "A-B: " << endl << B << endl;
+
+	//==========================================================================
+
+	Array2D< affine<SIZE> > P(3, 3);
+	Array2D< affine<SIZE> > q(3, 1);
+
+    //QR< affine<SIZE> > qr(P);
+    //Array2D< affine<SIZE> > X = qr.solve(q);
 
 	return 0;
 }

@@ -5,6 +5,8 @@
 #include <cmath>
 #include <cassert>
 
+// These two are implemented in the fi_lib ANSI C library, visit:
+// http://www.math.uni-wuppertal.de/org/WRST/software/filib.html
 extern "C" {
 	double q_pred(double);
 	double q_succ(double);
@@ -197,14 +199,14 @@ const affine<SIZE> operator*(const affine<SIZE>& lhs, const affine<SIZE>& rhs) {
 
 	double z0 = x0*y0;
 
+	double* const z = result.val;
+
+	z[0] = z0;
+
 	double z0_pre = q_pred(z0);
 	double z0_suc = q_succ(z0);
 
 	double d = q_succ(max(z0_suc-z0, z0-z0_pre));
-
-	double* const z = result.val;
-
-	z[0] = z0;
 
 	for (int i=1; i<SIZE; ++i) {
 
