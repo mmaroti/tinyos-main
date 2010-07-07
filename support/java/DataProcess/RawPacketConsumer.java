@@ -44,35 +44,40 @@ public class RawPacketConsumer{
 	private int nodeid;	
 
 
-	public Byte[] readNextFrame(byte[] buffer, int i, byte frame, byte escape, byte xorescaped){
-		if(i>=buffer.length)
+	public Byte[] readNextFrame(byte[] buffer, int offset, byte frame, byte escape, byte xorescaped){
+		if(offset>=buffer.length)
 			return null;
-		while(buffer[i]!=frame||i>=buffer.length){//find the first framing byte
-			i++;
-			while(gaps.contains(i)){
-				i++;
+		try{
+			while(buffer[offset]!=frame||offset>=buffer.length){//find the first framing byte
+				offset++;
+				while(gaps.contains(offset)){
+					offset++;
+				}
 			}
-		}
-		while(buffer[i]==frame||i>=buffer.length){//if there's more than one framing byte next to each other, find the last
-			i++;
-			while(gaps.contains(i)){
-				i++;
+			while(buffer[offset]==frame||offset>=buffer.length){//if there's more than one framing byte next to each other, find the last
+				offset++;
+				while(gaps.contains(offset)){
+					offset++;
+				}
 			}
-		}
-		//now in the buffer[i] we've got the first byte of the real data (after the frame)
-		ArrayList<Byte> onemeas=new ArrayList<Byte>();
-		while(buffer[i]!=frame){
-			if(gaps.contains(i)||i>=buffer.length)//if there is a gap in the middle of the frame, than drop it, try, the next frame
-				return readNextFrame(buffer, i, frame, escape, xorescaped);
-			if(buffer[i]==escape){
-				i++;
-				buffer[i]=(byte) (buffer[i]^xorescaped);
+			//now in the buffer[offset] we've got the first byte of the real data (after the frame)
+			ArrayList<Byte> onemeas=new ArrayList<Byte>();
+			while(buffer[offset]!=frame){
+				if(gaps.contains(offset)||offset>=buffer.length)//if there is a gap in the middle of the frame, than drop it, try, the next frame
+					return readNextFrame(buffer, offset, frame, escape, xorescaped);
+				if(buffer[offset]==escape){
+					offset++;
+					buffer[offset]=(byte) (buffer[offset]^xorescaped);
+				}
+				onemeas.add(buffer [offset]);
+				offset++;
 			}
-			onemeas.add(buffer [i]);
-			i++;
+			Byte[] a=new Byte[onemeas.size()] ;
+			return (Byte[])(onemeas.toArray(a));
+		} catch(IndexOutOfBoundsException e){
+			return null;			
 		}
-		Byte[] a=new Byte[onemeas.size()] ;
-		return (Byte[])(onemeas.toArray(a));
+		
 	}
 	
 	public ArrayList<Byte[]> makeFrames(byte frame, byte escape, byte xorescaped) throws IOException{
@@ -80,12 +85,13 @@ public class RawPacketConsumer{
 		FileInputStream filereader=new FileInputStream(dataFile);
 		filereader.read(buffer);
 		filereader.close();
-		int pointer=0;
+		int offset=0;
 		ArrayList<Byte[]>ret=new ArrayList<Byte[]>();
-		while(pointer<=dataFile.length()){
-			Byte[] nextframe=readNextFrame(buffer, pointer, frame, escape, xorescaped);
-			if(nextframe!=null)
-				ret.add(nextframe);
+		Byte[] nextframe = readNextFrame(buffer, offset, frame, escape, xorescaped);
+		while(nextframe!=null){
+			offset+=nextframe.length;
+			ret.add(nextframe);
+			nextframe = readNextFrame(buffer, offset, frame, escape, xorescaped);
 		}
 		return ret;
 	}
