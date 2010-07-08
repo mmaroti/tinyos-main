@@ -51,7 +51,7 @@ public class StreamDownloader implements MessageListener {
 	private int listenonly;
 	private int maxnode;
 	private HashSet<Integer> currently_handled = new HashSet<Integer>();
-	public static final int MIN_DOWNLOAD_SIZE=3;//=dataMsg.numElements_data()*4;
+	public static final int MIN_DOWNLOAD_SIZE=dataMsg.numElements_data()*4;
 	private static final byte FRAME=0x5e;
 	private static final byte ESCAPE=0x5d;
 	private static final byte XORESCAPE=0x20;
