@@ -49,7 +49,7 @@ public class dataWriter {
 	private int nodeid;
 	private long lastModified;
 
-	public String nodeidToPath(Integer nodeid,String postfix){
+	public static String nodeidToPath(Integer nodeid,String postfix){
 		String path=nodeid.toString();
 		while (path.length()<5) {
 			path='0'+path;
