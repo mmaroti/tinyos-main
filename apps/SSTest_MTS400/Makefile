@@ -27,7 +27,7 @@ ctrltsMsg.java: $(SZTETOSDIR)/lib/StreamUploader/StreamUploader.h
 dataMsg.java: $(SZTETOSDIR)/lib/StreamUploader/StreamUploader.h
 	mig -target=$(PLATFORM) -java-classname=dataMsg java $(SZTETOSDIR)/lib/StreamUploader/StreamUploader.h data_msg_t -o $@
 BinReader.class: BinReader.java dataFile.java
-	javac BinReader.java 
+	javac -cp $(CLASSPATH):$(SZTETOSROOT)/support/java/DataProcess BinReader.java 
 StreamDownloader.class: StreamDownloader.java ctrlMsg.java dataMsg.java ctrltsMsg.java
 	javac -cp $(CLASSPATH):$(SZTETOSROOT)/support/java/DataProcess StreamDownloader.java 
 StreamEraser.class: StreamEraser.java ctrlMsg.java dataMsg.java ctrltsMsg.java

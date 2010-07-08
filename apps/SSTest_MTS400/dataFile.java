@@ -102,22 +102,21 @@ public class dataFile {
 	}
 	
 	public dataFile(String path) throws IOException{
-		if(path.endsWith("data.bin")){
-			path.lastIndexOf('/');
-			int nodeid=Integer.parseInt(path.substring(path.lastIndexOf('/')+1, path.length()-8));
+		if(path.endsWith(".bin")){
+			int nodeid=Integer.parseInt(path.substring(path.lastIndexOf('/')+1, path.lastIndexOf('.')));
 			String dir=path.substring(0, path.lastIndexOf('/')+1);
-			File file=new File(dir+String.valueOf(nodeid)+"data.bin");
-			gapFile = new File(dir+String.valueOf(nodeid)+"gaps.txt");
-			timestamps = new File(dir+String.valueOf(nodeid)+"timestamps.txt");
+			File file=new File(dir+dataWriter.nodeidToPath(nodeid, ".bin"));
+			gapFile = new File(dir+dataWriter.nodeidToPath(nodeid, ".gap"));
+			timestamps = new File(dir+dataWriter.nodeidToPath(nodeid, ".ts"));
 			initDataFile(file, gapFile, timestamps, nodeid);
 		} else
 			throw new FileNotFoundException();
 	}
 	
 	public dataFile(int nodeid) throws IOException{
-		File file=new File(String.valueOf(nodeid)+"data.bin");
-		gapFile = new File(String.valueOf(nodeid)+"gaps.txt");
-		timestamps = new File(String.valueOf(nodeid)+"timestamps.txt");
+		File file=new File(dataWriter.nodeidToPath(nodeid, ".bin"));
+		gapFile = new File(dataWriter.nodeidToPath(nodeid, ".gap"));
+		timestamps = new File(dataWriter.nodeidToPath(nodeid, ".ts"));
 		initDataFile(file, gapFile, timestamps, nodeid);
 	}
 	
@@ -183,7 +182,7 @@ public class dataFile {
 		newGap.end = end;
 		newGap.unrepairable = unrepairable;
 		gaps.add(newGap);
-		writeGapFile();
+		//writeGapFile();
 	}
 
 	public void removeGap(int index) {
@@ -262,6 +261,7 @@ public class dataFile {
 	}
 	
 	public void close() throws IOException{
+		writeGapFile();
 		dataFile.close();
 	}
 	
