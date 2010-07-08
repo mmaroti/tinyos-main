@@ -32,6 +32,7 @@ generic module GradientFieldP(typedef payload_t)
 		interface DfrfSend as Send;
 		interface DfrfReceive as Receive;
 		interface GradientField;
+		interface Get<uint16_t> as GetRank; //just for testing! use gradientfield interface
 	}
 	uses
 	{
@@ -143,4 +144,8 @@ implementation
 		return TRUE;
 	}
 
+
+	command uint16_t GetRank.get(){
+		return call GradientField.hopCount();
+	}
 }
