@@ -28,7 +28,7 @@ typedef double NT;
 //==============================================================================
 
 const int n_vars = 12;
-						// R
+				// R
 T R_11(n_vars);
 T R_12(n_vars);
 T R_13(n_vars);
@@ -40,7 +40,7 @@ T R_23(n_vars);
 T R_31(n_vars);
 T R_32(n_vars);
 T R_33(n_vars);
-						// R0
+				// R0
 T R0_11(n_vars);
 T R0_12(n_vars);
 T R0_13(n_vars);
@@ -52,7 +52,7 @@ T R0_23(n_vars);
 T R0_31(n_vars);
 T R0_32(n_vars);
 T R0_33(n_vars);
-						// Rn
+				// Rn
 T Rn_11(n_vars);
 T Rn_12(n_vars);
 T Rn_13(n_vars);
@@ -64,7 +64,7 @@ T Rn_23(n_vars);
 T Rn_31(n_vars);
 T Rn_32(n_vars);
 T Rn_33(n_vars);
-						// G
+				// G
 T G_11(n_vars);
 T G_12(n_vars);
 T G_13(n_vars);
@@ -76,7 +76,7 @@ T G_23(n_vars);
 T G_31(n_vars);
 T G_32(n_vars);
 T G_33(n_vars);
-						// A
+				// A
 NT A_11(n_vars);
 NT A_12(n_vars);
 NT A_13(n_vars);
@@ -88,7 +88,7 @@ NT A_23(n_vars);
 NT A_31(n_vars);
 NT A_32(n_vars);
 NT A_33(n_vars);
-						// C
+				// C
 T C_11(n_vars);
 T C_12(n_vars);
 T C_13(n_vars);
@@ -100,7 +100,7 @@ T C_23(n_vars);
 T C_31(n_vars);
 T C_32(n_vars);
 T C_33(n_vars);
-						// Cc
+				// Cc
 T Cc_11(n_vars);
 T Cc_12(n_vars);
 T Cc_13(n_vars);
@@ -112,23 +112,23 @@ T Cc_23(n_vars);
 T Cc_31(n_vars);
 T Cc_32(n_vars);
 T Cc_33(n_vars);
-						// b
+				// b
 NT b1(n_vars);
 NT b2(n_vars);
 NT b3(n_vars);
-						// d
+				// d
 T d1(n_vars);
 T d2(n_vars);
 T d3(n_vars);
-						// dc
+				// dc
 T dc1(n_vars);
 T dc2(n_vars);
 T dc3(n_vars);
-						// g
+				// g
 T gx(n_vars);
 T gy(n_vars);
 T gz(n_vars);
-						// sum
+				// sum
 T sx(n_vars);
 T sy(n_vars);
 T sz(n_vars);
@@ -149,14 +149,14 @@ NT* ax(0);
 NT* ay(0);
 NT* az(0);
 
-const int N(100);
+const int N(250);
 
 void init() {
 
-	half = NT(0.5);
-	one = NT(1);
+	half  = NT(0.5);
+	one   = NT(1);
 	three = NT(3);
-	dt = NT(0.0314159265359);
+	dt    = NT(0.00314159265359);
 	g_ref = NT(9.81);
 
 	//--------------------------------------------
@@ -244,9 +244,9 @@ void init() {
 
 	for (int i=0; i<N; ++i) {
 
-		wx[i] = NT( 1.0);
-		wy[i] = NT( 1.0);
-		wz[i] = NT( 1.0);
+		wx[i] = NT(1.0);
+		wy[i] = NT(1.0);
+		wz[i] = NT(1.0);
 
 		ax[i] = NT(0);
 		ay[i] = NT(0);
@@ -327,6 +327,22 @@ void update_R() {
 
 void normalize_R() {
 
+	//==============================================================================
+#ifdef USING_DOUBLE
+	T err11 = R_13*R_13+R_12*R_12+R_11*R_11 - one;
+	T err12 = R_23*R_13+R_22*R_12+R_21*R_11;
+	T err13 = R_33*R_13+R_32*R_12+R_31*R_11;
+
+	T err21 = R_13*R_23+R_12*R_22+R_11*R_21;
+	T err22 = R_23*R_23+R_22*R_22+R_21*R_21 - one;
+	T err23 = R_33*R_23+R_32*R_22+R_31*R_21;
+
+	T err31 = R_13*R_33+R_12*R_32+R_11*R_31;
+	T err32 = R_23*R_33+R_22*R_32+R_21*R_31;
+	T err33 = R_33*R_33+R_32*R_32+R_31*R_31 - one;
+#endif
+	//==============================================================================
+
 	T half_error = (R_11*R_21+R_12*R_22+R_13*R_23)*half;
 
 	Rn_11 = R_11-half_error*R_21;
@@ -356,6 +372,35 @@ void normalize_R() {
 	R_31 = C3*Rn_31;
 	R_32 = C3*Rn_32;
 	R_33 = C3*Rn_33;
+
+	//==============================================================================
+#ifdef USING_DOUBLE
+	T drr11 = R_13*R_13+R_12*R_12+R_11*R_11 - one;
+	T drr12 = R_23*R_13+R_22*R_12+R_21*R_11;
+	T drr13 = R_33*R_13+R_32*R_12+R_31*R_11;
+
+	T drr21 = R_13*R_23+R_12*R_22+R_11*R_21;
+	T drr22 = R_23*R_23+R_22*R_22+R_21*R_21 - one;
+	T drr23 = R_33*R_23+R_32*R_22+R_31*R_21;
+
+	T drr31 = R_13*R_33+R_12*R_32+R_11*R_31;
+	T drr32 = R_23*R_33+R_22*R_32+R_21*R_31;
+	T drr33 = R_33*R_33+R_32*R_32+R_31*R_31 - one;
+
+	cout << scientific ;
+	cout << err11 << "\t" << drr11 << endl;
+	cout << err12 << "\t" << drr12 << endl;
+	cout << err13 << "\t" << drr13 << endl;
+
+	cout << err21 << "\t" << drr21 << endl;
+	cout << err22 << "\t" << drr22 << endl;
+	cout << err23 << "\t" << drr23 << endl;
+
+	cout << err31 << "\t" << drr31 << endl;
+	cout << err32 << "\t" << drr32 << endl;
+	cout << err33 << "\t" << drr33 << endl;
+#endif
+	//==============================================================================
 
 	return;
 }
