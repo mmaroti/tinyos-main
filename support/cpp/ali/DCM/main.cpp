@@ -1,240 +1,272 @@
+
+
+//#define USING_HESS_TYPE
+#ifdef USING_HESS_TYPE
 #include <hess_ari.hpp>     // Hessian differentiation arithmetic
-
 using namespace cxsc;
-using namespace std;
+typedef HessType T;
+typedef HTvector TV;
+typedef interval NT;
+typedef ivector  NTV;
+typedef imatrix  NTM;
 
-const int n_vars = 12;
-						// R
-HessType R_11(n_vars);
-HessType R_12(n_vars);
-HessType R_13(n_vars);
-
-HessType R_21(n_vars);
-HessType R_22(n_vars);
-HessType R_23(n_vars);
-
-HessType R_31(n_vars);
-HessType R_32(n_vars);
-HessType R_33(n_vars);
-						// R0
-HessType R0_11(n_vars);
-HessType R0_12(n_vars);
-HessType R0_13(n_vars);
-
-HessType R0_21(n_vars);
-HessType R0_22(n_vars);
-HessType R0_23(n_vars);
-
-HessType R0_31(n_vars);
-HessType R0_32(n_vars);
-HessType R0_33(n_vars);
-						// Rn
-HessType Rn_11(n_vars);
-HessType Rn_12(n_vars);
-HessType Rn_13(n_vars);
-
-HessType Rn_21(n_vars);
-HessType Rn_22(n_vars);
-HessType Rn_23(n_vars);
-
-HessType Rn_31(n_vars);
-HessType Rn_32(n_vars);
-HessType Rn_33(n_vars);
-						// G
-HessType G_11(n_vars);
-HessType G_12(n_vars);
-HessType G_13(n_vars);
-
-HessType G_21(n_vars);
-HessType G_22(n_vars);
-HessType G_23(n_vars);
-
-HessType G_31(n_vars);
-HessType G_32(n_vars);
-HessType G_33(n_vars);
-						// A
-interval A_11(n_vars);
-interval A_12(n_vars);
-interval A_13(n_vars);
-
-interval A_21(n_vars);
-interval A_22(n_vars);
-interval A_23(n_vars);
-
-interval A_31(n_vars);
-interval A_32(n_vars);
-interval A_33(n_vars);
-						// C
-HessType C_11(n_vars);
-HessType C_12(n_vars);
-HessType C_13(n_vars);
-
-HessType C_21(n_vars);
-HessType C_22(n_vars);
-HessType C_23(n_vars);
-
-HessType C_31(n_vars);
-HessType C_32(n_vars);
-HessType C_33(n_vars);
-						// Cc
-HessType Cc_11(n_vars);
-HessType Cc_12(n_vars);
-HessType Cc_13(n_vars);
-
-HessType Cc_21(n_vars);
-HessType Cc_22(n_vars);
-HessType Cc_23(n_vars);
-
-HessType Cc_31(n_vars);
-HessType Cc_32(n_vars);
-HessType Cc_33(n_vars);
-						// b
-interval b1(n_vars);
-interval b2(n_vars);
-interval b3(n_vars);
-						// d
-HessType d1(n_vars);
-HessType d2(n_vars);
-HessType d3(n_vars);
-						// dc
-HessType dc1(n_vars);
-HessType dc2(n_vars);
-HessType dc3(n_vars);
-						// g
-HessType gx(n_vars);
-HessType gy(n_vars);
-HessType gz(n_vars);
-						// sum
-HessType sx(n_vars);
-HessType sy(n_vars);
-HessType sz(n_vars);
+#endif
 
 //==============================================================================
 
-HessType one(n_vars);
-HessType dt(n_vars);
-HessType g_ref(n_vars);
+#define USING_DOUBLE
+#ifdef USING_DOUBLE
+#include <iostream>
+using namespace std;
 
-HessType* wx(0);
-HessType* wy(0);
-HessType* wz(0);
+typedef double T;
+typedef double* TV;
+typedef double NT;
 
-interval* ax(0);
-interval* ay(0);
-interval* az(0);
+#endif
 
-const int N(10);
+//==============================================================================
+
+const int n_vars = 12;
+						// R
+T R_11(n_vars);
+T R_12(n_vars);
+T R_13(n_vars);
+
+T R_21(n_vars);
+T R_22(n_vars);
+T R_23(n_vars);
+
+T R_31(n_vars);
+T R_32(n_vars);
+T R_33(n_vars);
+						// R0
+T R0_11(n_vars);
+T R0_12(n_vars);
+T R0_13(n_vars);
+
+T R0_21(n_vars);
+T R0_22(n_vars);
+T R0_23(n_vars);
+
+T R0_31(n_vars);
+T R0_32(n_vars);
+T R0_33(n_vars);
+						// Rn
+T Rn_11(n_vars);
+T Rn_12(n_vars);
+T Rn_13(n_vars);
+
+T Rn_21(n_vars);
+T Rn_22(n_vars);
+T Rn_23(n_vars);
+
+T Rn_31(n_vars);
+T Rn_32(n_vars);
+T Rn_33(n_vars);
+						// G
+T G_11(n_vars);
+T G_12(n_vars);
+T G_13(n_vars);
+
+T G_21(n_vars);
+T G_22(n_vars);
+T G_23(n_vars);
+
+T G_31(n_vars);
+T G_32(n_vars);
+T G_33(n_vars);
+						// A
+NT A_11(n_vars);
+NT A_12(n_vars);
+NT A_13(n_vars);
+
+NT A_21(n_vars);
+NT A_22(n_vars);
+NT A_23(n_vars);
+
+NT A_31(n_vars);
+NT A_32(n_vars);
+NT A_33(n_vars);
+						// C
+T C_11(n_vars);
+T C_12(n_vars);
+T C_13(n_vars);
+
+T C_21(n_vars);
+T C_22(n_vars);
+T C_23(n_vars);
+
+T C_31(n_vars);
+T C_32(n_vars);
+T C_33(n_vars);
+						// Cc
+T Cc_11(n_vars);
+T Cc_12(n_vars);
+T Cc_13(n_vars);
+
+T Cc_21(n_vars);
+T Cc_22(n_vars);
+T Cc_23(n_vars);
+
+T Cc_31(n_vars);
+T Cc_32(n_vars);
+T Cc_33(n_vars);
+						// b
+NT b1(n_vars);
+NT b2(n_vars);
+NT b3(n_vars);
+						// d
+T d1(n_vars);
+T d2(n_vars);
+T d3(n_vars);
+						// dc
+T dc1(n_vars);
+T dc2(n_vars);
+T dc3(n_vars);
+						// g
+T gx(n_vars);
+T gy(n_vars);
+T gz(n_vars);
+						// sum
+T sx(n_vars);
+T sy(n_vars);
+T sz(n_vars);
+
+//==============================================================================
+
+T half(n_vars);
+T one(n_vars);
+T three(n_vars);
+T dt(n_vars);
+T g_ref(n_vars);
+
+T* wx(0);
+T* wy(0);
+T* wz(0);
+
+NT* ax(0);
+NT* ay(0);
+NT* az(0);
+
+const int N(100);
 
 void init() {
 
-	one = interval(1);
-	dt = interval(1.0/200.0);
-	g_ref = interval(9.81);
+	half = NT(0.5);
+	one = NT(1);
+	three = NT(3);
+	dt = NT(0.0314159265359);
+	g_ref = NT(9.81);
 
 	//--------------------------------------------
 
-	wx = new HessType[N];
+	wx = new T[N];
+
+	wy = new T[N];
+
+	wz = new T[N];
+
+#ifdef USING_HESS_TYPE
 
 	for (int i=0; i<N; ++i)
 		Resize(wx[i], n_vars);
 
-	wy = new HessType[N];
-
 	for (int i=0; i<N; ++i)
 		Resize(wy[i], n_vars);
-
-	wz = new HessType[N];
 
 	for (int i=0; i<N; ++i)
 		Resize(wz[i], n_vars);
 
+#endif
+
 	//--------------------------------------------------
 
-	ax = new interval[n_vars];
-	ay = new interval[n_vars];
-	az = new interval[n_vars];
+	ax = new NT[N];
+	ay = new NT[N];
+	az = new NT[N];
 
 	//---------------------------------------------------
 
-	A_11 = interval(1.0);
-	A_12 = interval(0.1);
-	A_13 = interval(0.2);
+	A_11 = NT(1.0);
+	A_12 = NT(0.0);
+	A_13 = NT(0.0);
 
-	A_21 = interval(0.3);
-	A_22 = interval(1.0);
-	A_23 = interval(0.1);
+	A_21 = NT(0.0);
+	A_22 = NT(1.0);
+	A_23 = NT(0.0);
 
-	A_31 = interval(0.2);
-	A_32 = interval(0.1);
-	A_33 = interval(1.0);
+	A_31 = NT(0.0);
+	A_32 = NT(0.0);
+	A_33 = NT(1.0);
 
 	//----------------------------------------------
 
-	Cc_11 = interval(1.0);
-	Cc_12 = interval(0.1);
-	Cc_13 = interval(0.2);
+	Cc_11 = NT(1.0);
+	Cc_12 = NT(0.0);
+	Cc_13 = NT(0.0);
 
-	Cc_21 = interval(0.3);
-	Cc_22 = interval(1.0);
-	Cc_23 = interval(0.1);
+	Cc_21 = NT(0.0);
+	Cc_22 = NT(1.0);
+	Cc_23 = NT(0.0);
 
-	Cc_31 = interval(0.2);
-	Cc_32 = interval(0.1);
-	Cc_33 = interval(1.0);
-
-	//-----------------------------------------------
-
-	b1 = interval(0.1);
-	b2 = interval(0.2);
-	b3 = interval(0.3);
+	Cc_31 = NT(0.0);
+	Cc_32 = NT(0.0);
+	Cc_33 = NT(1.0);
 
 	//-----------------------------------------------
 
-	dc1 = interval(0.3);
-	dc2 = interval(0.1);
-	dc3 = interval(0.2);
+	b1 = NT(0.0);
+	b2 = NT(0.0);
+	b3 = NT(0.0);
+
+	//-----------------------------------------------
+
+	dc1 = NT(0.0);
+	dc2 = NT(0.0);
+	dc3 = NT(0.0);
 
 	//---------------------------------------------------
 
-	R0_11 = interval(1.0);
-	R0_12 = interval(0.0);
-	R0_13 = interval(0.0);
+	R0_11 = NT(1.0);
+	R0_12 = NT(0.0);
+	R0_13 = NT(0.0);
 
-	R0_21 = interval(0.0);
-	R0_22 = interval(1.0);
-	R0_23 = interval(0.0);
+	R0_21 = NT(0.0);
+	R0_22 = NT(1.0);
+	R0_23 = NT(0.0);
 
-	R0_31 = interval(0.0);
-	R0_32 = interval(0.0);
-	R0_33 = interval(1.0);
+	R0_31 = NT(0.0);
+	R0_32 = NT(0.0);
+	R0_33 = NT(1.0);
 
 	//---------------------------------------------------
 
 	for (int i=0; i<N; ++i) {
 
-		wx[i] = interval( 1.0+0.1*i);
-		wy[i] = interval(-0.5+0.2*i);
-		wz[i] = interval( 0.7-0.3*i);
+		wx[i] = NT( 1.0);
+		wy[i] = NT( 1.0);
+		wz[i] = NT( 1.0);
 
-		ax[i] = interval(0.2+0.1*i);
-		ay[i] = interval(0.8-0.1*i);
-		az[i] = 9.81 + interval(0.1*i);
+		ax[i] = NT(0);
+		ay[i] = NT(0);
+		az[i] = 9.81;
 	}
 
 }
 
 void set_sum_and_R0() {
 
-	sx = interval(0);
-	sy = interval(0);
-	sz = interval(0);
+	sx = NT(0);
+	sy = NT(0);
+	sz = NT(0);
 
 	R_11 = R0_11; R_12 = R0_12; R_13 = R0_13;
 	R_21 = R0_21; R_22 = R0_22; R_23 = R0_23;
 	R_31 = R0_31; R_32 = R0_32; R_33 = R0_33;
 }
 
-void compute_G(int i, const HTvector& x) {
+void compute_G(int i, const TV& x) {
 
 	C_11 = Cc_11 + x[1];
 	C_12 = Cc_12 + x[2];
@@ -252,9 +284,9 @@ void compute_G(int i, const HTvector& x) {
 	d2 = dc2 + x[11];
 	d3 = dc3 + x[12];
 
-	HessType w_x = (C_11*wx[i]+C_12*wy[i]+C_13*wz[i]+d1)*dt;
-	HessType w_y = (C_21*wx[i]+C_22*wy[i]+C_23*wz[i]+d2)*dt;
-	HessType w_z = (C_31*wx[i]+C_32*wy[i]+C_33*wz[i]+d3)*dt;
+	T w_x = (C_11*wx[i]+C_12*wy[i]+C_13*wz[i]+d1)*dt;
+	T w_y = (C_21*wx[i]+C_22*wy[i]+C_23*wz[i]+d2)*dt;
+	T w_z = (C_31*wx[i]+C_32*wy[i]+C_33*wz[i]+d3)*dt;
 
 	G_11 =  one;
 	G_12 = -w_z;
@@ -290,6 +322,42 @@ void update_R() {
 	R_21 = Rn_21; R_22 = Rn_22; R_23 = Rn_23;
 	R_31 = Rn_31; R_32 = Rn_32; R_33 = Rn_33;
 
+	return;
+}
+
+void normalize_R() {
+
+	T half_error = (R_11*R_21+R_12*R_22+R_13*R_23)*half;
+
+	Rn_11 = R_11-half_error*R_21;
+	Rn_12 = R_12-half_error*R_22;
+	Rn_13 = R_13-half_error*R_23;
+
+	Rn_21 = R_21-half_error*R_11;
+	Rn_22 = R_22-half_error*R_12;
+	Rn_23 = R_23-half_error*R_13;
+
+	Rn_31 = Rn_12*Rn_23-Rn_13*Rn_22;
+	Rn_32 = Rn_13*Rn_21-Rn_11*Rn_23;
+	Rn_33 = Rn_11*Rn_22-Rn_12*Rn_21;
+
+	T C1 = half*(three-(Rn_11*Rn_11+Rn_12*Rn_12+Rn_13*Rn_13));
+	T C2 = half*(three-(Rn_21*Rn_21+Rn_22*Rn_22+Rn_23*Rn_23));
+	T C3 = half*(three-(Rn_31*Rn_31+Rn_32*Rn_32+Rn_33*Rn_33));
+
+	R_11 = C1*Rn_11;
+	R_12 = C1*Rn_12;
+	R_13 = C1*Rn_13;
+
+	R_21 = C2*Rn_21;
+	R_22 = C2*Rn_22;
+	R_23 = C2*Rn_23;
+
+	R_31 = C3*Rn_31;
+	R_32 = C3*Rn_32;
+	R_33 = C3*Rn_33;
+
+	return;
 }
 
 void compute_g(int i) {
@@ -307,7 +375,7 @@ void sum_Ri_gi() {
 	return;
 }
 
-HessType f(const HTvector& x)
+T f(const TV& x)
 {
 
 	set_sum_and_R0();
@@ -318,7 +386,7 @@ HessType f(const HTvector& x)
 
 		update_R(); // R(i)=R(i-1)*G(i-1)
 
-		// TODO Normalize
+		normalize_R();
 
 		compute_g(i);
 
@@ -326,7 +394,7 @@ HessType f(const HTvector& x)
 
 	}
 
-	return sqr(sx)+sqr(sy)+sqr(sz/N-g_ref);
+	return sx*sx + sy*sy + (sz/N-g_ref)*(sz/N-g_ref);
 }
 
 int main ()
@@ -334,19 +402,33 @@ int main ()
 
 	init();
 
-	interval  fx;
-	ivector   x(n_vars), Gfx(n_vars);
-	imatrix   Hfx(n_vars, n_vars);
+#ifdef USING_HESS_TYPE
+
+	NT  fx;
+	NTV x(n_vars), Gfx(n_vars);
+	NTM Hfx(n_vars, n_vars);
 
 	for (int i=1; i<=n_vars; ++i)
-		x[i] = interval(-0.9 + i*0.11);
-
+		x[i] = NT(0.0);
 
 	fghEvalH(f,x,fx,Gfx,Hfx);
 
-    cout << "x: " << endl << x << endl;
-    cout << "f(x):	" << endl << fx << endl;
-    cout << "Gf(x): " << endl << Gfx << endl;
+	cout << "x: " << endl << x << endl;
+	cout << "f(x):	" << endl << fx << endl;
+	cout << "Gf(x): " << endl << Gfx << endl;
+
+#endif
+
+#ifdef USING_DOUBLE
+
+	TV x = new T[n_vars+1];
+
+	for (int i=1; i<=n_vars; ++i)
+		x[i] = T(0.0);
+
+	T fx = f(x);
+
+#endif
 
 	return 0;
 }
