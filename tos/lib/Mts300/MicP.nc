@@ -24,7 +24,7 @@
  *
  *  @author Hu Siquan <husq@xbow.com> 
  *
- *  $Id: MicP.nc,v 1.2 2010-06-08 01:29:26 mmaroti Exp $
+ *  $Id: MicP.nc,v 1.3 2010-07-09 15:39:38 andrasbiro Exp $
  */
 
 #include "Timer.h"
@@ -52,6 +52,7 @@ module MicP
 implementation 
 {
   uint8_t gainData[2];
+  uint8_t lastGain = 64;
   
   command error_t SplitControl.start()
   {
@@ -62,7 +63,7 @@ implementation
     call MicMuxSel.clr();
 		
     call MicSetting.muxSel(1);  // Set the mux so that raw microhpone output is selected
-    call MicSetting.gainAdjust(64);  // Set the gain of the microphone.
+    call MicSetting.gainAdjust(lastGain);  // Set the gain of the microphone.
 
     call Timer.startOneShot(1200); 
     return SUCCESS;
@@ -77,7 +78,6 @@ implementation
     call AlertInterrupt.disable();
     call MicPower.clr();
     call MicPower.makeInput();
-
     signal SplitControl.stopDone(SUCCESS);
     return SUCCESS;
   }
@@ -113,6 +113,7 @@ implementation
   
   command error_t MicSetting.gainAdjust(uint8_t val)
   {
+    lastGain = val;
     gainData[0] = 0;    // pot subaddr
     gainData[1] = val;  // value to write
     return call I2CResource.request();
