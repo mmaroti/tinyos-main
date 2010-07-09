@@ -1,4 +1,4 @@
-
+#include <fstream>
 
 //#define USING_HESS_TYPE
 #ifdef USING_HESS_TYPE
@@ -149,17 +149,29 @@ NT* ax(0);
 NT* ay(0);
 NT* az(0);
 
-const int N(2000);
+int N(-1);
 
-void init() {
+void init(const char* filename) {
 
 	half  = NT(0.5);
 	one   = NT(1);
 	three = NT(3);
-	dt    = NT(0.001);
+	dt    = NT(10.0/2048.0);
 	g_ref = NT(9.81);
 
-	//--------------------------------------------
+	//--------------------------------------------------------------------------
+
+	ifstream in(filename);
+
+	if (!in.good())
+		throw "Failed to open input file";
+
+	in >> N;
+
+	if (N<1)
+		throw "Invalid length!";
+
+	//--------------------------------------------------------------------------
 
 	wx = new T[N];
 
@@ -242,15 +254,24 @@ void init() {
 
 	//---------------------------------------------------
 
+	double dummy(0.0);
+
 	for (int i=0; i<N; ++i) {
 
-		wx[i] = NT(3.141592653589793);
-		wy[i] = NT(0.0);
-		wz[i] = NT(0.0);
+		in >> ax[i];
+		in >> ay[i];
+		in >> az[i];
 
-		ax[i] = NT(0);
-		ay[i] = NT(0);
-		az[i] = 9.81;
+		in >> dummy; in >> dummy; in >> dummy; in >> dummy;
+
+
+		in >> wx[i];
+		in >> wy[i];
+		in >> wz[i];
+
+		if (!in.good())
+			throw "Error reading input file";
+
 	}
 
 }
@@ -327,8 +348,7 @@ void update_R() {
 
 void normalize_R() {
 
-	//==========================================================================
-#ifdef USING_DOUBLE
+#ifdef COMPUTE_ERROR
 	T err11 = R_13*R_13+R_12*R_12+R_11*R_11 - one;
 	T err12 = R_23*R_13+R_22*R_12+R_21*R_11;
 	T err13 = R_33*R_13+R_32*R_12+R_31*R_11;
@@ -341,7 +361,6 @@ void normalize_R() {
 	T err32 = R_23*R_33+R_22*R_32+R_21*R_31;
 	T err33 = R_33*R_33+R_32*R_32+R_31*R_31 - one;
 #endif
-	//==========================================================================
 
 	T half_error = (R_11*R_21+R_12*R_22+R_13*R_23)*half;
 
@@ -373,8 +392,7 @@ void normalize_R() {
 	R_32 = C3*Rn_32;
 	R_33 = C3*Rn_33;
 
-	//==========================================================================
-#ifdef USING_DOUBLE
+#ifdef COMPUTE_ERROR
 	T drr11 = R_13*R_13+R_12*R_12+R_11*R_11 - one;
 	T drr12 = R_23*R_13+R_22*R_12+R_21*R_11;
 	T drr13 = R_33*R_13+R_32*R_12+R_31*R_11;
@@ -400,7 +418,6 @@ void normalize_R() {
 	cout << err32 << "\t" << drr32 << endl;
 	cout << err33 << "\t" << drr33 << endl;
 #endif
-	//==========================================================================
 
 	return;
 }
@@ -413,10 +430,21 @@ void compute_g(int i) {
 }
 
 void sum_Ri_gi() {
+
+	T acc_x = R_11*gx+R_12*gy+R_13*gz;
+	T acc_y = R_21*gx+R_22*gy+R_23*gz;
+	T acc_z = R_31*gx+R_32*gy+R_33*gz;
+
+#ifdef USING_DOUBLE
+
+	cout << acc_x << ' ' << acc_y << ' ' << acc_z << endl;
+
+#endif
+
 	// TODO Scaling factor?
-	sx = sx + (R_11*gx+R_12*gy+R_13*gz);
-	sy = sy + (R_21*gx+R_22*gy+R_23*gz);
-	sz = sz + (R_31*gx+R_32*gy+R_33*gz);
+	sx = sx + acc_x;
+	sy = sy + acc_y;
+	sz = sz + acc_z;
 	return;
 }
 
@@ -442,10 +470,13 @@ T f(const TV& x)
 	return sx*sx + sy*sy + (sz/N-g_ref)*(sz/N-g_ref);
 }
 
-int main ()
+int main (int argc, char* argv[])
 {
 
-	init();
+	if (argc!=2)
+		throw "Please specify input file!";
+
+	init(argv[1]);
 
 #ifdef USING_HESS_TYPE
 
