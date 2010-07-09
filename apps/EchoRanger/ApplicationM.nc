@@ -33,7 +33,7 @@
 */
 #include "EchoRanger.h"
 #ifndef SAMP_T
-	#define SAMP_T 6000U
+	#define SAMP_T 60000U
 #endif
 module ApplicationM{
 	uses {
@@ -75,7 +75,6 @@ implementation{
 	}
 	
 	event void SensorTimer.fired(){
-		call Leds.led1Toggle();
 		call Read.read();
 	}
 	
@@ -85,17 +84,6 @@ implementation{
 			//call StreamStorage.append(range, sizeof(echorange_t));
 	}
 	
-
-	event void StreamStorage.appendDone(void* buf, uint16_t  len, error_t error){
-		counter++;
-		if(counter>4)
-			counter=0;
-		else if(counter==4){
-			uint16_t* buffer=call LastBuffer.get();
-			call StreamStorage.append(buffer, 4);
-		}
-	}
-	
 	event void StreamStorage.appendDoneWithID(void* buf, uint16_t  len, error_t error){
 		counter++;
 		if(counter>4)
@@ -103,10 +91,12 @@ implementation{
 		else if(counter==4){
 			uint16_t* buffer=call LastBuffer.get();
 			call StreamStorage.appendWithID(0x11,buffer, sizeof(uint16_t)*ECHORANGER_BUFFER);
-			//call StreamStorage.appendWithID(0x11,buffer, 10);
 		}
 	}	
 	
+	event void StreamStorage.appendDone(void* buf, uint16_t  len, error_t error){
+	}
+
 	event void StreamStorage.syncDone(error_t error){
 		// TODO Auto-generated method stub
 	}
