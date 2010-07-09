@@ -149,14 +149,14 @@ NT* ax(0);
 NT* ay(0);
 NT* az(0);
 
-const int N(250);
+const int N(100);
 
 void init() {
 
 	half  = NT(0.5);
 	one   = NT(1);
 	three = NT(3);
-	dt    = NT(0.00314159265359);
+	dt    = NT(0.01);
 	g_ref = NT(9.81);
 
 	//--------------------------------------------
@@ -244,9 +244,9 @@ void init() {
 
 	for (int i=0; i<N; ++i) {
 
-		wx[i] = NT(1.0);
-		wy[i] = NT(1.0);
-		wz[i] = NT(1.0);
+		wx[i] = NT(3.14159265359);
+		wy[i] = NT(3.14159265359);
+		wz[i] = NT(3.14159265359);
 
 		ax[i] = NT(0);
 		ay[i] = NT(0);
