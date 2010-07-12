@@ -17,6 +17,7 @@ typedef imatrix  NTM;
 #define USING_DOUBLE
 #ifdef USING_DOUBLE
 #include <iostream>
+#include <iomanip>
 using namespace std;
 
 typedef double T;
@@ -305,6 +306,10 @@ void compute_G(int i, const TV& x) {
 	d2 = dc2 + x[11];
 	d3 = dc3 + x[12];
 
+	cout << endl;
+	cout << "gyro x, y, z" << endl;
+	cout << wx[i] << '\t' << wy[i] << '\t' << wz[i] << endl;
+
 	T w_x = (C_11*wx[i]+C_12*wy[i]+C_13*wz[i]+d1)*dt;
 	T w_y = (C_21*wx[i]+C_22*wy[i]+C_23*wz[i]+d2)*dt;
 	T w_z = (C_31*wx[i]+C_32*wy[i]+C_33*wz[i]+d3)*dt;
@@ -321,6 +326,11 @@ void compute_G(int i, const TV& x) {
 	G_32 =  w_x;
 	G_33 =  one;
 
+	cout << endl;
+	cout << "G_ij" << endl;
+	cout << G_11 << '\t' << G_12 << '\t' << G_13 << endl;
+	cout << G_21 << '\t' << G_22 << '\t' << G_23 << endl;
+	cout << G_31 << '\t' << G_32 << '\t' << G_33 << endl;
 }
 
 void update_R() {
@@ -419,6 +429,12 @@ void normalize_R() {
 	cout << err33 << "\t" << drr33 << endl;
 #endif
 
+	cout << endl;
+	cout << "R_ij" << endl;
+	cout << R_11 << '\t' << R_12 << '\t' << R_13 << endl;
+	cout << R_21 << '\t' << R_22 << '\t' << R_23 << endl;
+	cout << R_31 << '\t' << R_32 << '\t' << R_33 << endl;
+
 	return;
 }
 
@@ -427,6 +443,10 @@ void compute_g(int i) {
 	gx = A_11*ax[i]+A_12*ay[i]+A_13*az[i]+b1;
 	gy = A_21*ax[i]+A_22*ay[i]+A_23*az[i]+b2;
 	gz = A_31*ax[i]+A_32*ay[i]+A_33*az[i]+b3;
+
+	cout << endl;
+	cout << "a(i)" << endl;
+	cout << gx << '\t' << gy << '\t' << gz << endl;
 }
 
 void sum_Ri_gi() {
@@ -437,6 +457,8 @@ void sum_Ri_gi() {
 
 #ifdef USING_DOUBLE
 
+	cout << endl;
+	cout << "R(i)*a(i)" << endl;
 	cout << acc_x << ' ' << acc_y << ' ' << acc_z << endl;
 
 #endif
@@ -454,6 +476,11 @@ T f(const TV& x)
 	set_sum_and_R0();
 
 	for (int i=1; i<N; ++i) {
+
+		cout << setprecision(4);
+		cout << fixed ;
+		cout << "-----------------------------------------------------" << endl;
+		cout << "Step #" << i << endl;
 
 		compute_G(i-1, x);
 
