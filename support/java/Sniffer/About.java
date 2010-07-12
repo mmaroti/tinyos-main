@@ -10,10 +10,10 @@ import javax.swing.*;
  */
 
 /**
- * @author Ember
- *
+ * @Nemeth Gabor, Nyilas Sandor Karoly
+ *A class gives information about the version
  */
-public class About{				//Not so important... About some informations
+public class About{				
 
 	/**
 	 * 

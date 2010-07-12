@@ -1,8 +1,12 @@
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Event;
+import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.File;
 
 import javax.swing.BorderFactory;
@@ -17,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 
 /**
@@ -33,86 +38,104 @@ public class SnifferGraph implements DataBase{
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+		
+	JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
 	
-	JFrame snfG = new JFrame("Sniffer Package viewer");			//A snfG Frame to be a working space for this project
+	JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+	JPanel northPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+	JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+	JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
 	
-	JPanel backgPanel = new JPanel();							//A backgPanel to be a table on the working space there will take place the timeLine and other stuff
+	JFrame snfG = new JFrame((String)Labels.frame_name);
 	
-	JMenuBar menubar = new JMenuBar();							//A menubar to have more operation available for the users in the future
+	JPanel backgPanel = new JPanel();
 	
-    JMenu file = new JMenu("File");								//The first menu on the bar								
+	JMenuBar menubar = new JMenuBar();
+	XmlRead xmlRead = new XmlRead();
+	
+    JMenu file = new JMenu("File");
     
-    JMenuItem fileClose = new JMenuItem("Exit");				//fileClose,About,Open,Openoption,Createoption,save  menu items for the first menu on the bar.
-    JMenuItem about = new JMenuItem("About");
-    JMenuItem open = new JMenuItem("Load packages...");
-    JMenuItem openOption = new JMenuItem("Open Option");	
-    JMenuItem createOption = new JMenuItem("Creat");
-    JMenuItem save = new JMenuItem("Save");
+    JMenuItem fileClose = new JMenuItem(Labels.menu_exit);
+    JMenuItem about = new JMenuItem(Labels.menu_about);
+    JMenuItem open = new JMenuItem(Labels.menu_load_packages);
+    JMenuItem openConfiguration = new JMenuItem(Labels.menu_open_conf);	
+    JMenuItem createConfiguration = new JMenuItem(Labels.menu_creat);
+    JMenuItem save = new JMenuItem(Labels.menu_save);
     
-    JButton start = new JButton("Start");						//Some newlish main buttons to be used. 
-    JButton clear = new JButton("Clear");
+    JButton start = new JButton(Labels.button_start);
+    JButton clear = new JButton(Labels.button_clear);
     
-    JTextField startStop = new JTextField("Stop");				//Some TextField for the status bar
-    JTextField resived = new JTextField("Resived packages: ");
-    JTextField chanelT = new JTextField("Chanel: ");
+    JTextField startStop = new JTextField(Labels.txfield_pause);
+    JTextField resived = new JTextField(Labels.txfield_resived);
+    JTextField chanelT = new JTextField(Labels.txfield_chanelT);
     JTextField resevedPack = new JTextField("0");
     JTextField chanel = new JTextField("1L");
-    JTextField loadedFileT = new JTextField("Loaded: ");
-    JTextField loadedFile = new JTextField("\"none\"");
+    JTextField loadedFileT = new JTextField(Labels.txfield_loadedFileT);
+    JTextField loadedFile = new JTextField(xmlRead.filename);
+    JTextField saved = new JTextField(xmlRead.filename);
     
-    public static JTextField verticalText[] = new JTextField[100];	//This is the nubmers for the timeLine this will be easily can be used for ruler
-    static TimeLineDraw timeLine = new TimeLineDraw();				//This is the timeLine will be on the table
+    public static JTextField verticalText[] = new JTextField[100];
+    static TimeLineDraw timeLine = new TimeLineDraw();
     
-    JScrollBar scrollbar = new JScrollBar(JScrollBar.HORIZONTAL);	//A scrollbar to have more operations and to be more transparent if we will use this program for a "long" time maybe
+    JScrollBar scrollbar = new JScrollBar(JScrollBar.HORIZONTAL);
     
-    JCheckBox box1 = new JCheckBox();								//Furthermore checkboxes to be able choose what would we like to see on the table
-    JCheckBox box2 = new JCheckBox();
-    JCheckBox box3 = new JCheckBox();
-    JCheckBox box4 = new JCheckBox();
-    JCheckBox box5 = new JCheckBox();
+   
     
-    JFileChooser fc = new JFileChooser();				//We have a file open operation int the so early state version: ß
-
-	private void startStopProcess() {					//To be able to start listen for the Sniffer project
+    JCheckBox box[] = new JCheckBox[xmlRead.number];
+    
+    JFileChooser fc = new JFileChooser();
+	/**
+	 * This function gives information about the start button status.
+	 */
+	private void startStopProcess() {					
 		// TODO Auto-generated method stub
-		if(start.getActionCommand().equals("Start")){	//Start operation
-			start.setText("Stop");
+		if(start.getActionCommand().equals(Labels.button_start)){	
+			start.setText(Labels.button_stop);
 			startProcess();
 		}
 		else{
-			start.setText("Start");						//Else Stop operation  and change text on the button aswell
+			start.setText(Labels.button_start);						
 			stopProcess();
 		}
 	}
-
-	private void stopProcess() {						//Two processes to have a sign to be able to see if the operation is halt or running
+	/**
+	 * This function gives information about the process is stopped.
+	 */
+	private void stopProcess() {						
 		System.out.println("Process leált.");
-		startStop.setText("Pause");
+		startStop.setText(Labels.txfield_pause);
 		// TODO Auto-generated method stub
 		
 	}
-
+	/**
+	 * This function gives information about the process is working.
+	 */
 	private void startProcess() {						
 		System.out.println("Process indult.");
-		startStop.setText("Work");
+		startStop.setText(Labels.txfield_working);
 		// TODO Auto-generated method stub
 		
 	}
-
-	private void clearWork() {							//An operation to get to the start
+	/**
+	 * This function resets the current session.
+	 */
+	private void clearWork() {							
 		System.out.println("clear");
 		stopProcess();
+		
 		baseSetings();
 		// TODO Auto-generated method stub
 		
 	}
-
-    protected void openHisoty() {						//IF we try to open a configuration file
+	/**
+	 * This function loads a saved session.
+	 */
+    protected void openHistory() {						
     	System.out.println("open");
-    	int returnVal = fc.showSaveDialog(openOption);	
+    	int returnVal = fc.showSaveDialog(openConfiguration);	
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
             @SuppressWarnings("unused")
-			File file = fc.getSelectedFile();			//The selected one will be loaded
+			File file = fc.getSelectedFile();			
             //open a history file
         } else {
             //cancel
@@ -120,14 +143,18 @@ public class SnifferGraph implements DataBase{
 		// TODO Auto-generated method stub
 		
 	}
-    
-	protected void createOption() {						//operation to generate xml configuration file
+	/**
+	 * This function crates a new configuration file.
+	 */
+	protected void createConfiguration() {						
 		System.out.println("createop");
 		// TODO Auto-generated method stub
 		
 	}
-
-	protected void saveHisoty() {						//To save the information in the current session
+	/**
+	 * This function saves the current session.
+	 */
+	protected void saveHistory() {						
 		System.out.println("save");
 		int returnVal = fc.showSaveDialog(save);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -139,10 +166,12 @@ public class SnifferGraph implements DataBase{
         }
 		// TODO Auto-generated method stub
 	}
-
-	private void openOption() {							//To be able to open configuration xml files
+	/**
+	 * This function opens a configuration xml file.
+	 */
+	private void openConfiguration() {							
 		System.out.println("openop");
-		int returnVal = fc.showSaveDialog(openOption);
+		int returnVal = fc.showSaveDialog(openConfiguration);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
             @SuppressWarnings("unused")
 			File file = fc.getSelectedFile();
@@ -152,140 +181,172 @@ public class SnifferGraph implements DataBase{
         }
 		// TODO Auto-generated method stub
 	}
-
+	/**
+	 * Class constructor
+	 */
 	public SnifferGraph() {
 		
-		snfG.setLayout(null);										//Automated arrange options get disable to have a unique designed arrange
 		backgPanel.setLayout(null);
         
-        createActionListeners();									//Call Create Action Listeners function
+        createActionListeners();									
         
-        backgPanel.setBackground(Color.white);						//Set the background color white because the grey is not enough good for us
-        backgPanel.setBorder(BorderFactory.createEtchedBorder());	//A Stylish border
+        backgPanel.setBackground(Color.white);						
+        backgPanel.setBorder(BorderFactory.createEtchedBorder());	
 
-        scrollbar.addAdjustmentListener(new MyAction());			//Call the MyAction function for the Listeners
-        scrollbar.setMaximum(screenWidth-110);						//Maximum value for the scroll bar
+        scrollbar.addAdjustmentListener(new MyAction());			
+        scrollbar.setMaximum(screenWidth+10000-110);						
         
-        menuCreat();												//Call Menu Create , Adding , Edit Tables , Base Settings , Set Tool Tips , Create Time Line function
+        menuCreat();												
         editables();										
         baseSetings();										
         adding();											
         setTooltips();													
         createTimeLine();
+		createBoxes();
+        setMnemonics();
         
-        snfG.setSize(screenWidth, screenHeight);					//frame should appear on the maximum screen size.
-        snfG.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);		//Default Close Operation
+        snfG.setSize(800, 600);					
+        snfG.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);		
         snfG.setExtendedState(snfG.getExtendedState() | Frame.MAXIMIZED_BOTH);	
         snfG.setVisible(true);
    }
+   
+   private void createBoxes() {
+		int height = JCHECKBOX_FIRS_SIZE;
+		for(int i = 0; i < xmlRead.number; i++){
+			box[i]= new JCheckBox(xmlRead.cimkek.get(i));
+			box[i].setToolTipText(xmlRead.title.get(i));
+			box[i].setSelected(true);
+			box[i].setBounds(3, height+=HORISONTAL_JCB_SPEACE, JCHECKBOX_SIZE_X, JCHECKBOX_SIZE_Y);
+			backgPanel.add(box[i]);
+		}
+	}
 
 
+	/**
+	 * This function specifies the Hot keys and the Mnemonic chars in JMenubar .
+	 */
+	private void setMnemonics() {
+		fileClose.setMnemonic('x');
+        fileClose.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X,Event.CTRL_MASK));
+        open.setMnemonic('o');
+        open.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O,Event.CTRL_MASK));
+        save.setMnemonic('s');
+        save.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,Event.CTRL_MASK));
+        openConfiguration.setMnemonic('O');
+        openConfiguration.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O,Event.SHIFT_MASK));
+        createConfiguration.setMnemonic('C');
+        createConfiguration.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C,Event.SHIFT_MASK));
+        about.setMnemonic('A');
+        about.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,Event.ALT_MASK));
 
-	private void createTimeLine() {											//Number signs numbers to be the rulers
+	}
+	/**
+	 * This function draws the JtextFields under the TimeLine.
+	 */
+	private void createTimeLine() {											
+		
 		// TODO Auto-generated method stub
 		for(int i = 1; i <= 100; i++){
-			verticalText[i-1] = new JTextField(i<10 ? ("00" + String.valueOf(i)) : ("0" + String.valueOf(i)));
+			verticalText[i-1] = new JTextField( i<10 ? ("00" + String.valueOf(i)) : ("0" + String.valueOf(i)));
 		}
-		int k = 22;
+		int k = 122;
 		for(int i = 0;i < 100; i++){
-			verticalText[i].setBounds(k, 80, 30, 30);						//set the align on self frame
+			verticalText[i].setBounds(k, 80, 30, 30);						
 			k+=70;
 			verticalText[i].setBorder(null);
-			backgPanel.add(verticalText[i]);								//write i on the panel
+			backgPanel.add(verticalText[i]);								
 		}
 		
 	}
-
+	/**
+	 * This function specifies which objects added to the file menu.
+	 */
 	private void menuCreat() {
 		file.add(open);
         file.add(save);
-        file.add(new JSeparator());											//Separator for the unique aligns
+        file.add(new JSeparator());											
         
-        file.add(createOption);
-        file.add(openOption);
-        file.add(new JSeparator());											//separator
-        
-        file.add(about);													//Add About Menu Item for file Menu
-        file.add(new JSeparator());											//separator
-        file.add(fileClose);												//fileClose getting added to the file menu
+        file.add(createConfiguration);
+        file.add(openConfiguration);
+        file.add(new JSeparator());
+        //---------------- SEPARATOR
+        file.add(about);													
+        file.add(new JSeparator());
+        //---------------- SEPARATOR
+        file.add(fileClose);												
         
         menubar.add(file);
-        snfG.setJMenuBar(menubar);											//Get Menu bar on the frame
+        snfG.setJMenuBar(menubar);											
 	}
-
+	/**
+	 * This function  specifying tool tips for objects.
+	 * The text displays when the cursor lingers over the component.
+	 */
 	private void setTooltips() {
-		createOption.setToolTipText("Create a new option");					//A lot of ToolTips for advice
-        open.setToolTipText("Open saved packages history");
-        openOption.setToolTipText("Open saved Options");
-        save.setToolTipText("Save package history");
-        start.setToolTipText("Start/Stop listening");
-        about.setToolTipText("Version informacion");
-        clear.setToolTipText("Clearing the workspace");
-        fileClose.setToolTipText("Exit application");
-        box1.setToolTipText("MegNemTudomMicsoda_01");
+		createConfiguration.setToolTipText(Labels.tooltips_create_conf);					
+        open.setToolTipText(Labels.tooltips_open);
+        openConfiguration.setToolTipText(Labels.tooltips_open_conf);
+        save.setToolTipText(Labels.tooltips_save);
+        start.setToolTipText(Labels.tooltips_start);
+        about.setToolTipText(Labels.tooltips_about);
+        clear.setToolTipText(Labels.tooltips_clear);
+        fileClose.setToolTipText(Labels.tooltips_fileClose);
+        /*box1.setToolTipText("MegNemTudomMicsoda_01");
         box2.setToolTipText("MegNemTudomMicsoda_02");
         box3.setToolTipText("MegNemTudomMicsoda_03");
         box4.setToolTipText("MegNemTudomMicsoda_04");
-        box5.setToolTipText("MegNemTudomMicsoda_05");
+        box5.setToolTipText("MegNemTudomMicsoda_05");*/
 	}
-
+	/**
+	 * This Older ß function  specified where to align exactly the objects on the workspace.
+	 */
 	private void baseSetings() {
-		startStop.setBounds(3, STATUSBAR_HEIGHT, 100, 20);								//Set places on the table
-        resived.setBounds(104, STATUSBAR_HEIGHT, 120, 20);
-        resevedPack.setBounds(225, STATUSBAR_HEIGHT, 50, 20);
-        chanelT.setBounds(276, STATUSBAR_HEIGHT, 60, 20);
-        chanel.setBounds(337, STATUSBAR_HEIGHT, 50, 20);
-        loadedFileT.setBounds(388, STATUSBAR_HEIGHT, 70, 20);
-        loadedFile.setBounds(459, STATUSBAR_HEIGHT, 200, 20);
-        start.setBounds((screenWidth-170), 10, BUTTON_WIDTH, BUTTON_HEIGHT);			//Dynamic position sets. Status : ß
-        clear.setBounds((screenWidth-85), 10, BUTTON_WIDTH, BUTTON_HEIGHT);
-        backgPanel.setBounds(BACKG_PANEL_X, BACKG_PANEL_Y, BACKG_WIDTH, BACKG_HEIGHT);
-        
-        scrollbar.setBounds(30, screenHeight-119, screenWidth-40, 15);
-        scrollbar.setValue(0);
-        
-        timeLine.setBounds(TIMELINE_X, TIMELINE_Y, TIMELINE_WIDTH+1000000, TIMELINE_HEIGHT);
-        timeLine.setBackground(Color.white);
-        																				//JCheckBox Dynamic position sets
-        int height = JCHECKBOX_FIRS_SIZE;
-        box1.setBounds(3, height, JCHECKBOX_SIZE, JCHECKBOX_SIZE);
-		box2.setBounds(3, height+=HORISONTAL_JCB_SPEACE, JCHECKBOX_SIZE, JCHECKBOX_SIZE);
-		box3.setBounds(3, height+=HORISONTAL_JCB_SPEACE, JCHECKBOX_SIZE, JCHECKBOX_SIZE);
-		box4.setBounds(3, height+=HORISONTAL_JCB_SPEACE, JCHECKBOX_SIZE, JCHECKBOX_SIZE);
-		box5.setBounds(3, height+=HORISONTAL_JCB_SPEACE, JCHECKBOX_SIZE, JCHECKBOX_SIZE);
-		
-		box1.setSelected(false);
-		box2.setSelected(false);
-		box3.setSelected(false);
-		box4.setSelected(false);
-		box5.setSelected(false);
-        
+		//TODO        
 	}
 
+	/**
+	 * This function  adds objects to southPanel , northPanel , backgPanel , centerPanel or mainPanel.
+	 * To be aligned on our workspace
+	 */
 	private void adding() {
-		snfG.add(start);											//Adding what we need on the work space
-        snfG.add(clear);
-        snfG.add(startStop);
-        snfG.add(resived);
-        snfG.add(resevedPack);
-        snfG.add(chanelT);
-        snfG.add(chanel);
-        snfG.add(loadedFileT);
-        snfG.add(loadedFile);
-        snfG.add(backgPanel);
-        snfG.add(scrollbar);
-        
-        snfG.add(box1);												//Like Checkboxes
-        snfG.add(box2);
-        snfG.add(box3);
-        snfG.add(box4);
-        snfG.add(box5);
-        backgPanel.add(timeLine);
-	}
+		southPanel.add(startStop);
+		southPanel.add(resived);
+		southPanel.add(resevedPack);
+		southPanel.add(chanelT);
+		southPanel.add(chanel);
+		southPanel.add(loadedFileT);
+		southPanel.add(loadedFile);
+		
+		northPanel.add(start);
+		northPanel.add(clear);
+		timeLine.setBounds(TIMELINE_X, TIMELINE_Y, TIMELINE_WIDTH+1000000, TIMELINE_HEIGHT);		
+	    timeLine.setBackground(Color.white);
 
+		/*backgPanel.add(box1);
+		backgPanel.add(box2);
+		backgPanel.add(box3);
+		backgPanel.add(box4);
+		backgPanel.add(box5);*/
+		
+		backgPanel.add(timeLine);
+
+		centerPanel.add(scrollbar, BorderLayout.SOUTH);
+		centerPanel.add(backgPanel, BorderLayout.CENTER);
+		
+		mainPanel.add(southPanel, BorderLayout.SOUTH);
+		mainPanel.add(northPanel, BorderLayout.NORTH);
+		mainPanel.add(leftPanel, BorderLayout.WEST);
+		mainPanel.add(centerPanel, BorderLayout.CENTER);
+		
+		snfG.add(mainPanel);
+	}
+	/**
+	 * This function  specifying Action Listeners.
+	 */
 	private void createActionListeners() {						
 		// TODO Auto-generated method stub
-		fileClose.addActionListener(new ActionListener() {			//Set Aciton Listener functions
+		fileClose.addActionListener(new ActionListener() {			
             public void actionPerformed(ActionEvent event) {
             	System.exit(0);
             }
@@ -311,31 +372,33 @@ public class SnifferGraph implements DataBase{
         
         open.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
-                openHisoty();
+                openHistory();
             }
 		});
         
         save.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
-                saveHisoty();
+                saveHistory();
             }
 		});
         
-        createOption.addActionListener(new ActionListener() {
+        createConfiguration.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
-            	createOption();
+            	createConfiguration();
             }
 		});
         
-        openOption.addActionListener(new ActionListener() {
+        openConfiguration.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
-            	openOption();
+            	openConfiguration();
             }
 		});
 		
 	}
-
-	private void editables() {											//Edit operations to set what we can edit and what is static
+	/**
+	 * This function specifying which JTextfields are edit able or not
+	 */
+	private void editables() {											
 	    startStop.setEditable(false);
 	    resived.setEditable(false);
 	    chanelT.setEditable(false);
@@ -349,6 +412,6 @@ public class SnifferGraph implements DataBase{
 	
 	@SuppressWarnings("unused")
 	public static void main(String[] args) {
-		SnifferGraph aaa = new SnifferGraph();							//A New object of that all !
+		SnifferGraph aaa = new SnifferGraph();							
     } 
 }

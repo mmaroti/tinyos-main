@@ -7,22 +7,22 @@ import javax.swing.JTextField;
 
 public class MyAction implements AdjustmentListener, DataBase {
 
-	TimeLineDraw timeLine = SnifferGraph.timeLine;						//Getting the time line draw
-	JTextField[] verticalText = SnifferGraph.verticalText;				//and the numbers 
+	TimeLineDraw timeLine = SnifferGraph.timeLine;						
+	JTextField[] verticalText = SnifferGraph.verticalText;				
 	
-	public static boolean first = true;									//First run value
+	public static boolean first = true;									
 	
-	public void adjustmentValueChanged(AdjustmentEvent en) {			//On every scroll bar change this will be called
+	public void adjustmentValueChanged(AdjustmentEvent en) {			
 		if(first){
 			first = false;
 		}
 		else{				
 			Rectangle re = timeLine.getBounds();				
-			timeLine.setBounds(TIMELINE_X-en.getValue(), re.y, re.width, re.height); 	//Set the timeLine own  panel size	
-			int k = 22;
-			for(int i = 0; i<verticalText.length; i++){									//write 100 numbers horizontally
+			timeLine.setBounds(TIMELINE_X-en.getValue(), re.y, re.width, re.height); 		
+			int k = 122;
+			for(int i = 0; i<verticalText.length; i++){									
 				Rectangle vt = verticalText[i].getBounds();							
-				verticalText[i].setBounds(k-en.getValue(), vt.y, vt.width, vt.height);	//dynamic positions
+				verticalText[i].setBounds(k-en.getValue(), vt.y, vt.width, vt.height);	
 				k+=70;
 			}
 		}
