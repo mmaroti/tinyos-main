@@ -10,7 +10,7 @@
 
 using namespace Ipopt;
 
-void dbg_objective();
+void dbg_objective(const char* const filename);
 
 class MyADOLC_NLP : public TNLP
 {

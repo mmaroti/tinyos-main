@@ -50,6 +50,8 @@ private:
   T dc1; T dc2; T dc3;
   T gx; T gy; T gz;
   T sx; T sy; T sz;
+  // FIXME
+  T gx0, gy0, gz0;
 
   //============================================================================
 
@@ -265,7 +267,7 @@ private:
   }
 
   T objective() {
-    return (sx/N)*(sx/N) + (sy/N)*(sy/N) + (sz/N+g_ref)*(sz/N+g_ref);
+    return (sx/N-gx0)*(sx/N-gx0) + (sy/N-gy0)*(sy/N-gy0) + (sz/N-gz0)*(sz/N-gz0);
   }
 
 public:
@@ -383,6 +385,10 @@ public:
 		  exit(EXIT_FAILURE);
 		}
 	}
+
+	compute_g(0);
+
+	gx0 = gx; gy0 = gy; gz0 = gz;
   }
 
   T f(const T* const x)  {
@@ -415,12 +421,15 @@ public:
 
 };
 
-void dbg_objective() {
+void dbg_objective(const char* const filename) {
 
 
-  glob<double> obj("lemez", true);
-
+  glob<double> obj(filename, true);
+  /*
   double x[N_VARS];
+
+  for (int i=0; i<N_VARS; ++i)
+	  x[i] = 0.0;
 
   x[0] = -0.356778;
   x[1] = 1.07415;
@@ -433,14 +442,26 @@ void dbg_objective() {
   x[8] = -0.236761;
   x[9] = -2.40383;
   x[10] = -7.99147;
-  x[11] = -0.714655;
+  x[11] = -0.714655;*/
 
-  obj.f(x);
+  double x[] = {
+  0.00863561, -0.0278826,  0.0198411,
+  0.00925871, -2.03525,   -0.0023857,
+  -0.0145452,  0.0442004, -0.0433523,
+  -0.0689957, -0.270561, 0.20561 };
+
+  assert (sizeof(x)/sizeof(double) == N_VARS);
+
+  double z = obj.f(x);
+
+  cout << "===========================================================" << endl;
+  cout << "Objective: " << z << endl;
+  return;
 }
 
 template<class T> bool  MyADOLC_NLP::eval_obj(Index n, const T *x, T& obj_value)
 {
-  static glob<T> gv("lemez");
+  static glob<T> gv("manual");
 
   obj_value = gv.f(x);
 
