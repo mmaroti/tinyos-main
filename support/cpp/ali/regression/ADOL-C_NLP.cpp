@@ -330,7 +330,7 @@ public:
 	Cc_13 = NT(0.0);
 
 	Cc_21 = NT(0.0);
-	Cc_22 = NT(1.0);
+	Cc_22 = NT(-1.0); // <--
 	Cc_23 = NT(0.0);
 
 	Cc_31 = NT(0.0);
@@ -476,11 +476,11 @@ template<class T> bool  MyADOLC_NLP::eval_constraints(Index n, const T *x, Index
 bool MyADOLC_NLP::get_bounds_info(Index n, Number* x_l, Number* x_u,
                             Index m, Number* g_l, Number* g_u)
 {
-  // none of the variables have bounds
-  for (Index i=0; i<n; i++) {
-    x_l[i] = -10.0;
-    x_u[i] =  10.0;
-  }
+
+	for (Index i=0; i<n; i++) {
+		x_l[i] = -1.0;
+		x_u[i] =  1.0;
+	}
 
   // Set the bounds for the constraints
   for (Index i=0; i<m; i++) {
