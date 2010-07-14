@@ -38,29 +38,17 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Hashtable;
 
 public class FrameProcess {
 	private String[] fileNames;
-	private FrameType[] frameTypes;
+	private ArrayList<Variable> frameTypes;
 
 	public FrameProcess(){
-
+		frameTypes= new ArrayList<Variable>();
 	}
-	public void setArgs(String[] args) throws IOException{
-		String frameName="";
-		int frameSize=0;
-		Hashtable<String, Integer> frameId = new Hashtable<String, Integer>();
-		Variable[] frameVariables;
-		int nrType=0, nrVar=0;
-		boolean inType=false;
-		frameVariables = new Variable[50];
-		for (int i=0;i<50;i++){
-			frameVariables[i]=new Variable();
-		}
-		String[] reszek;
-
-
+	public void setArgs(String[] args) throws IOException{		
 		File path = new File(args[0]);
 		if (path.isFile()) {
 			fileNames=new String[1];
@@ -74,125 +62,147 @@ public class FrameProcess {
 					return name.endsWith(".bin");
 				}
 			}; 
-
 			fileNames = path.list(filter); 
 		}
 		else usageThanExit(); //the first argument must be a file or a directory
 		if (args.length>1) {
-			frameTypes=new FrameType[20];	
-			//			try{	}catch (Exception e){
-			//				System.out.println("Error: Wrong struct file, no such file."+ e.getMessage());
-			//			}
-			FileInputStream fstream = new FileInputStream(args[1]);
-			DataInputStream in = new DataInputStream(fstream);
-			BufferedReader br = new BufferedReader(new InputStreamReader(in));
-			String strLine;
-			while ((strLine = br.readLine()) != null)   {
-				if(strLine.contains("struct")){
-					nrVar=0;
-					frameSize=0;
-					frameId=new Hashtable<String, Integer>();
-					frameName="";
-					inType=true;
-					reszek=strLine.split("struct "); //the word after the struct keyword becomes the name of the FrameType
-					if (reszek.length>1){
-						if (reszek[1].endsWith("{")){
-							reszek[1]=reszek[1].substring(0,reszek[1].length()-1); //eliminates "{" from the end of the FrameType
-						}							
-						frameName=reszek[1];
-					}
-					else
-						System.out.println("Error: Wrong struct definition, in the line of typedef."); 
-				}
-				if(strLine.contains("int8_t")){
-					if (inType){
-						reszek=strLine.split("_t ");
-						while(reszek[0].startsWith(" ")){						
-							reszek[0]=reszek[0].substring(1);
-						}
-						while(reszek[1].contains(";")){
-							reszek[1]=reszek[1].substring(0, reszek[1].length()-1);
-						}
-						if(reszek[1].contains("=")){
-							String[] tmp=reszek[1].split("=");
-							frameId.put(tmp[0],Integer.parseInt(tmp[1].substring(2),16));
-							reszek[1]=tmp[0];
-						}						
-						frameVariables[nrVar]=new Variable(reszek[0]+"_t",reszek[1]);						
-						nrVar++;
-						frameSize++;
-
-					}
-				}
-				if(strLine.contains("int16_t")){
-					if (inType){
-						reszek=strLine.split("_t ");
-						while(reszek[0].startsWith(" ")) reszek[0]=reszek[0].substring(1);
-						while(reszek[1].contains(";")) reszek[1]=reszek[1].substring(0, reszek[1].length()-1);
-						frameVariables[nrVar]=new Variable(reszek[0]+"_t",reszek[1]);						
-						nrVar++;
-						frameSize+=2;
-					}
-				}
-				if(strLine.contains("int32_t")){
-					if (inType){
-						reszek=strLine.split("_t ");
-						while(reszek[0].startsWith(" ")) reszek[0]=reszek[0].substring(1);
-						while(reszek[1].contains(";")) reszek[1]=reszek[1].substring(0, reszek[1].length()-1);
-						frameVariables[nrVar]=new Variable(reszek[0]+"_t",reszek[1]);						
-						nrVar++;
-						frameSize+=4;
-					}
-				}
-				if(strLine.contains("}")){							
-
-					frameTypes[nrType]=new FrameType(frameVariables,frameSize,frameName,frameId);
-					//					for (int i=0; i<nrVar; i++){
-					//						System.out.println(frameTypes[nrType].getVariables()[i].getType());
-					//						System.out.println(frameTypes[nrType].getVariables()[i].getName());
-					//					}
-					//					System.out.println(frameTypes[nrType].getName());
-					//					System.out.println(frameTypes[nrType].getSize());
-					//					System.out.println(frameTypes[nrType].getId());
-					nrType++;
-					inType=false;
+			FileInputStream file = new FileInputStream(args[1]);
+			byte[] bArray = new byte[file.available ()];
+			file.read(bArray);
+			file.close ();
+			String strLine = new String (bArray);
+			String[] words;
+			String[] parts = null;			 			//temporary variable for parsing
+			words=strLine.split(";");
+			int wc=0; 							// word counter	
+			while(wc<words.length-1){
+			if(!words[wc].contains("struct")){	//simple variable
+				words[wc]=words[wc].trim();		//removes the white spaces from the beginning and the end of the phrase
+				if(words[wc].contains("int")){  //TODO FIX it
+					frameTypes.add(new IntegerVariable(words[wc]));
 				}
 			}
+			else{								//complex type
+				ArrayList<Variable> frameVariables;
+				String frameName;
+				String frameType=words[wc];
+				int frameSize=0;
+				boolean inType=true;
+				frameVariables =new ArrayList<Variable>();
+				if(words[wc].contains("{ ")){
+				parts=words[wc].split("{ ");
+				}
+				else{
+					parts=new String[1];
+					parts[0]=words[wc];
+				}
+				parts=parts[0].split(" ");
+				frameName=parts[parts.length-1];//the last one is the name of type								
+				while(inType){
+					if(words[wc].contains("{ ")){
+						parts=words[wc].split("{ ");
+						}
+						else{
+							parts=new String[1];
+							parts[0]=words[wc];
+						}
+					String var=parts[parts.length-1].trim();				
+					if(var.endsWith("}")){
+						var=var.substring(0, var.length()-1);
+						inType=false;						
+					}
+					if (var.length()>2){						
+						if(var.contains("int")){ //TODO constant/array/size					
+							frameVariables.add(new IntegerVariable(var));
+							frameSize+=frameVariables.get(frameVariables.size()-1).getSize();
+						}
+					}					
+					wc++;
+				}  	//end of struct
+				
+				frameTypes.add(new Variable(frameVariables,frameType,frameName, frameSize));
+			}  		//end of file
+			}		//end of struct processing 
+			
+				
+				for (int i=0; i<frameTypes.size(); i++){
+					for (int j=0; i<frameTypes.get(i).getStruct().size(); j++){
+					System.out.println(frameTypes.get(i).getStruct().get(j).getType());				
+				}
+				
+			}
+		
+		//TODO new Variable(strLine);			
+	}		
+};
+public static void usageThanExit(){
+	System.out.println("java FrameProcess *.bin structs.txt");
+	System.out.println("java FrameProcess . structs.txt -scans the actual directory for .bin files");
+	System.exit(1);
+}
+/*
+public ArrayList<Record> processFrames(ArrayList<Byte[]> frames){
+	ArrayList<Record> ret=new ArrayList<Record>();
+	for(int i=0; i<frames.size();i++){
+		Byte[] actFrame=frames.get(i);
+		int typeCounter=0;                     //goes throw the items of frameType
+		while(this.frameTypes.size()>typeCounter){
+			// TODO typeCounter++;
+			FrameType actType=frameTypes.get(typeCounter);
+			if(actFrame.length==actType.getSize()){   //the size of this frame = actFrameType size
+				//TODO test ids!!
+				ArrayList<Variable> vars=actType.getVariables();
+				for(int j=0; j<vars.size();j++){     // goes throw every variable in the record
+					Variable actVar =vars.get(j);
+					boolean isLittleEndian=false;
+					boolean is2complement;
+					if (actVar.getType().startsWith("nx_le")){
+						isLittleEndian=true;
+					}
+					if (actVar.getType().contains("uint")){
+						is2complement=false;
+					}
+					else{
+						is2complement=true;
+					}
+					if (actVar.getType().contains("int16_t")){
+						byte[] part=new byte[2];
+						System.arraycopy(actFrame, 0, part, 0, 2);
 
-			in.close();
-
-
-		}		
-	};
-	public static void usageThanExit(){
-		System.out.println("java FrameProcess *.bin structs.txt");
-		System.out.println("java FrameProcess . structs.txt -scans the actual directory for .bin files");
-		System.exit(1);
-	}
-
-	public String[] getFileNames() {
-		return fileNames;
-	}
-
-	public void setFileNames(String[] fileNames) {
-		this.fileNames = fileNames;
-	}
-
-	public static void main(String[] args) throws IOException {
-		FrameProcess fp=new FrameProcess();
-		fp.setArgs(args);
-		for (int i=0; i<fp.fileNames.length;i++){
-			System.out.println("p");
-			String path=fp.fileNames[i];
-			GapConsumer gp=new GapConsumer(path);
-			//RawPacketConsumer rpc= new RawPacketConsumer(path, gp.getGaps());
+					}
+				}
+			}
 		}
-		//		String gapPath=path.substring(0, path.length()-4)+".gap";
-		//		for (int i=0; i<fP.fileNames.length; i++)
-		//			System.out.print(fP.fileNames[i]);
+	} 
 
+	return ret;
+}
+*/
+public String[] getFileNames() {
+	return fileNames;
+}
 
+public void setFileNames(String[] fileNames) {
+	this.fileNames = fileNames;
+}
+
+public static void main(String[] args) throws IOException {
+	FrameProcess fp=new FrameProcess();
+	fp.setArgs(args);
+	for (int i=0; i<fp.fileNames.length;i++){
+		//System.out.println("p");
+		String path=fp.fileNames[i];
+		GapConsumer gp=new GapConsumer(path);
+		RawPacketConsumer rpc= new RawPacketConsumer(path, gp.getGaps());
+		//fp.processFrames(rpc.getFrames());
+		//write out
 	}
+	//		String gapPath=path.substring(0, path.length()-4)+".gap";
+	//		for (int i=0; i<fP.fileNames.length; i++)
+	//			System.out.print(fP.fileNames[i]);
+
+
+}
 
 
 }
