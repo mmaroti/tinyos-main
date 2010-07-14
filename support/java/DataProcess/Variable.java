@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.Hashtable;
+
 /*
  * Copyright (c) 2010, University of Szeged
  * All rights reserved.
@@ -32,35 +35,58 @@
  * Author:Miklos Toth
  */
 public class Variable{
-	private String name;
-	private String type;
-	
-
-	public Variable(){
-
+	public String[] parse(byte[] data, String type) {
+		//TODO for every variable of the struct .parse()
+		
+		return null;
 	}
-	public Variable(Variable v){
-		this.name=v.name;
-		this.type=v.type;	
-	}
+	private ArrayList<Variable> struct;
+	protected int size;
+	protected String type;
+	protected String name;
+	private byte[] data;
 	
-	public Variable(String type, String name){
+	public Variable(ArrayList<Variable> struct, String type, String name, int size){
+		this.struct=new ArrayList<Variable>(struct);
 		this.name=name;
 		this.type=type;
+		this.size=size;
 	}
-		
+	public Variable(String type){			
+	}
+	public Variable(){			
+	}
+	public ArrayList<Variable> getStruct() {
+		return struct;
+	}
+	public void setStruct(ArrayList<Variable> struct) {
+		this.struct = struct;
+	}
+	public int getSize() {
+		return size;
+	}
+	public void setSize(int size) {
+		this.size = size;
+	}
+	public String getType() {
+		return type;
+	}
+	public void setType(String type) {
+		this.type = type;
+	}
 	public String getName() {
 		return name;
 	}
 	public void setName(String name) {
 		this.name = name;
 	}
-
-	public void setType(String type) {
-		this.type = type;
+	public byte[] getData() {
+		return data;
 	}
-	public String getType() {
-		return type;
+	public void setData(byte[] data) {
+		this.data = data;
 	}
 
+
+	
 }
