@@ -1,6 +1,6 @@
 COMPONENT=RadioTestAppC
-BUILD_EXTRA_DEPS = ctrlmsg_t.py setup_t.py CtrlMsgT.java ResponseMsgT.java StatT.java SetupT.java
-CLEAN_EXTRA      = ctrlmsg_t.py setup_t.py CtrlMsgT.java ResponseMsgT.java StatT.java SetupT.java main.elf *.class
+BUILD_EXTRA_DEPS = CtrlMsgT.java ResponseMsgT.java StatT.java SetupT.java
+CLEAN_EXTRA      = CtrlMsgT.java ResponseMsgT.java StatT.java SetupT.java main.elf *.class
 
 CFLAGS += -DCC2420_DEF_CHANNEL=11
 #CFLAGS += -DRF230_DEF_CHANNEL=11

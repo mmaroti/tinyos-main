@@ -230,8 +230,10 @@ implementation {
     
     _ASSERT_( sbitmask > 0 )
     _ASSERT_( (dbgNOTMYEDGES & sbitmask) == 0x0 )
-    _ASSERT_( state == STATE_RUNNING )
-
+   
+    if ( state != STATE_RUNNING )
+      return;
+    
     atomic {
       // Check which edges need to be backlogged
       blogd = pending & sbitmask;
