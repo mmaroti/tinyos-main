@@ -141,7 +141,7 @@ implementation{
 		signal Framed.readDone(buf, len, error);
 	}
 
-	event void StreamStorage.getMinAddressDone(uint32_t addr){
-		signal Framed.getMinAddressDone(addr);
+	event void StreamStorage.getMinAddressDone(uint32_t addr,error_t err){
+		signal Framed.getMinAddressDone(addr,err);
 	}
 }

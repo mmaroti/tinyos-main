@@ -42,7 +42,7 @@ interface StreamStorage{
 	command error_t sync();
 	event void syncDone(error_t error);
 	command error_t getMinAddress();
-	event void getMinAddressDone(uint32_t addr);
+	event void getMinAddressDone(uint32_t addr,error_t error);
 	command uint32_t getMaxAddress();
 	command error_t read(uint32_t addr, void* buf, uint8_t  len);
 	event void readDone(void* buf, uint8_t  len, error_t error);

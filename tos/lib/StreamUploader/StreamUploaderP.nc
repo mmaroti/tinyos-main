@@ -72,27 +72,31 @@ implementation{
 		}
 	}
 	
-	event void StreamStorage.getMinAddressDone(uint32_t addr){
-		ctrl_msg* msg=call Packet.getPayload(&message, sizeof(ctrl_msg));
-		error_t err;
-		call Packet.clear(&message);
-		msg->min_address=addr;
-		msg->max_address=call StreamStorage.getMaxAddress();
-		msg->localtime=call LocalTime.get();
-		call PacketAcknowledgements.requestAck(&message);
-		err=call SplitControl.start();
-		if(err==EALREADY){
-			if(call TimeSyncAMSendMilli.send(BS_ADDR, &message, sizeof(ctrl_msg),msg->localtime)!=SUCCESS){
-				if(call SplitControl.stop()!=SUCCESS){
-					post SCStop();
+	event void StreamStorage.getMinAddressDone(uint32_t addr,error_t error){
+		if(error==SUCCESS){
+			ctrl_msg* msg=call Packet.getPayload(&message, sizeof(ctrl_msg));
+			error_t err;
+			call Packet.clear(&message);
+			msg->min_address=addr;
+			msg->max_address=call StreamStorage.getMaxAddress();
+			msg->localtime=call LocalTime.get();
+			call PacketAcknowledgements.requestAck(&message);
+			err=call SplitControl.start();
+			if(err==EALREADY){
+				if(call TimeSyncAMSendMilli.send(BS_ADDR, &message, sizeof(ctrl_msg),msg->localtime)!=SUCCESS){
+					if(call SplitControl.stop()!=SUCCESS){
+						post SCStop();
+					}
+				}
+			}else if(err!=SUCCESS){
+				if(call SplitControl.start()!=SUCCESS){
+					post SCStart();
 				}
 			}
-		}else if(err!=SUCCESS){
-			if(call SplitControl.start()!=SUCCESS){
-				post SCStart();
+		} else
+			if(call StreamStorage.getMinAddress()==EBUSY){
+				call StorageWaitTimer.startOneShot(10);
 			}
-		}
-			
 	}
 	
 	event void StorageWaitTimer.fired(){

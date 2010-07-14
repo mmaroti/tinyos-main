@@ -105,7 +105,6 @@ implementation{
 		bool valid;
 	} minAddress;
 	
-
 //Start/Stop
 	
 	command error_t SplitControl.start(){
@@ -164,10 +163,6 @@ implementation{
 
 //Write
 	command error_t StreamStorage.append(void *buf, uint16_t len){
-//		#ifdef DEBUG
-//			printf("Start append %d long, status=%d\n", len,status);
-//			printfflush();
-//		#endif	
 		if(status!=NORMAL){
 			if(status==UNINIT)
 				return EOFF;
@@ -176,23 +171,16 @@ implementation{
 		} else if(len>PAGE_SIZE-sizeof(current_addr)){
 			return EINVAL;
 		}else{
+			error_t err;
 			uint32_t offset=call LogWrite.currentOffset();
 			status=WRITE_PENDING_DATA1;
 			writebuffer=buf;
 			writelength=len;
-			write_id=0;
-//			#ifdef DEBUG
-//				printf("@%ld#%ld:%ld\n",call LogWrite.currentOffset(),(call LogWrite.currentOffset())/PAGE_SIZE,(call LogWrite.currentOffset()+len)/PAGE_SIZE);
-//				printfflush();
-//			#endif				
+			write_id=0;			
 			
 			if(((offset/PAGE_SIZE)<((offset+len-1)/PAGE_SIZE))||(offset%PAGE_SIZE)==0||((offset/PAGE_SIZE)%PAGES==0&&(offset%PAGE_SIZE+len+circled)>=PAGE_SIZE)){//data is overlapping to the next page, or we're on the first byte of the page
 				firstwritelength=(PAGE_SIZE-(offset%PAGE_SIZE))%PAGE_SIZE;
-				if((offset/PAGE_SIZE)%PAGES==0&&(offset%PAGE_SIZE+len+1+circled)>=PAGE_SIZE){
-					#ifdef DEBUG
-						printf("finishing volume\n");
-						printfflush();
-					#endif
+				if((offset/PAGE_SIZE)%PAGES==0&&(offset%PAGE_SIZE+len+1+circled)>=PAGE_SIZE){//finishing volume
 					circled++;
 					if(firstwritelength==0)
 						firstwritelength=writelength-1;
@@ -201,25 +189,23 @@ implementation{
 				}
 				if(firstwritelength>0){//if we had any space on this page, fill it
 					status=WRITE_PENDING_DATA1;				
-					call LogWrite.append(writebuffer, firstwritelength);
+					err=call LogWrite.append(writebuffer, firstwritelength);
 				} else {//otherwise we start with the metadata on the next page
 					status=WRITE_PENDING_METADATA;				
-					call LogWrite.append(&current_addr, sizeof(current_addr));
+					err=call LogWrite.append(&current_addr, sizeof(current_addr));
 					
 				}
 			} else {
 				firstwritelength=0;
 				status=WRITE_PENDING_DATA2;
-				call LogWrite.append(writebuffer, writelength);
+				err=call LogWrite.append(writebuffer, writelength);
 			}
-			return SUCCESS;
+			if(err!=SUCCESS)
+				status=NORMAL;
+			return err;
 		}
 	}
 	command error_t StreamStorage.appendWithID(nx_uint8_t id, void *buf, uint16_t  len){
-//		#ifdef DEBUG
-//			printf("Start append %d long, status=%d\n", len,status);
-//			printfflush();
-//		#endif	
 		if(status!=NORMAL){
 			if(status==UNINIT)
 				return EOFF;
@@ -228,22 +214,15 @@ implementation{
 		} else if(len>PAGE_SIZE-5){
 			return EINVAL;
 		}else{
+			error_t err;
 			uint32_t offset=call LogWrite.currentOffset();
 			status=WRITE_PENDING_DATA1;
 			writebuffer=buf;
 			writelength=len;
 			write_id=id;
-//			#ifdef DEBUG
-//				printf("@%ld#%ld:%ld\n",call LogWrite.currentOffset(),(call LogWrite.currentOffset())/PAGE_SIZE,(call LogWrite.currentOffset()+len)/PAGE_SIZE);
-//				printfflush();
-//			#endif	
 			if(((offset/PAGE_SIZE)<((offset+len)/PAGE_SIZE))||(offset%PAGE_SIZE)==0||((offset/PAGE_SIZE)%PAGES==0&&(offset%PAGE_SIZE+len+circled)>=PAGE_SIZE)){//data is overlapping to the next page, or we're on the first byte of the page
 				firstwritelength=(PAGE_SIZE-(offset%PAGE_SIZE))%PAGE_SIZE;
-				if((offset/PAGE_SIZE)%PAGES==0&&(offset%PAGE_SIZE+len+1+circled)>=PAGE_SIZE){
-					#ifdef DEBUG
-						printf("finishing volume\n");
-						printfflush();
-					#endif
+				if((offset/PAGE_SIZE)%PAGES==0&&(offset%PAGE_SIZE+len+1+circled)>=PAGE_SIZE){//finishing volume
 					circled++;
 					if(firstwritelength==0)
 						firstwritelength=writelength-1;
@@ -252,30 +231,25 @@ implementation{
 				}
 				if(firstwritelength>0){//if we had any space on this page, fill it
 					status=WRITE_PENDING_ID;
-					call LogWrite.append(&write_id, sizeof(write_id));			
+					err=call LogWrite.append(&write_id, sizeof(write_id));			
 				} else {//otherwise we start with the metadata on the next page
 					status=WRITE_PENDING_METADATA_ID_UNWRITTEN;				
-					call LogWrite.append(&current_addr, sizeof(current_addr));
+					err=call LogWrite.append(&current_addr, sizeof(current_addr));
 					
 				}
 			} else {
 				firstwritelength=0;
 				status=WRITE_PENDING_ID;
-				call LogWrite.append(&write_id, sizeof(write_id));	
+				err=call LogWrite.append(&write_id, sizeof(write_id));	
 			}
-			return SUCCESS;
+			if(err!=SUCCESS)
+				status=NORMAL;
+			return err;
 		}
 	}
 	
 	event void LogWrite.appendDone(void *buf, storage_len_t len, bool recordsLost, error_t error){
-//		#ifdef DEBUG
-//			uint8_t i;
-//			for(i=0;i<len;i++){
-//				printf("%ld@%ld: %d\n",current_addr,(call LogWrite.currentOffset()-len+i+1),*((uint8_t*)buf+i));
-//			}
-//			printf("\n");
-//			printfflush();
-//		#endif
+		error_t err=SUCCESS;
 		if(error!=SUCCESS){
 			status=NORMAL;
 			if(write_id>0)
@@ -294,20 +268,15 @@ implementation{
 		switch(status){
 			case WRITE_PENDING_DATA1:{//we're done with the first page, now we write the pagestarter metadata
 				status=WRITE_PENDING_METADATA;
-				call LogWrite.append(&current_addr, sizeof(current_addr));
+				err=call LogWrite.append(&current_addr, sizeof(current_addr));
 			}break;
 			case WRITE_PENDING_METADATA:{//we're done with the metadata, now we write the rest of the data, or the ID	
 				status=WRITE_PENDING_DATA2;
-				call LogWrite.append(writebuffer+firstwritelength, writelength-firstwritelength);
-				#ifdef DEBUG
-					printf("starting page at %ld",call LogWrite.currentOffset()-len);
-					printf("\n");
-					printfflush();
-				#endif
+				err=call LogWrite.append(writebuffer+firstwritelength, writelength-firstwritelength);
 			}break;
 			case WRITE_PENDING_METADATA_ID_UNWRITTEN:{//we're done with the metadata, now we write the ID	
 				status=WRITE_PENDING_ID;
-				call LogWrite.append(&write_id, sizeof(write_id));	
+				err=call LogWrite.append(&write_id, sizeof(write_id));	
 			}break;
 			case WRITE_PENDING_DATA2:{//we're done with the data, now we write the ID
 				status=NORMAL;
@@ -321,18 +290,26 @@ implementation{
 					firstwritelength--;//we already wrote the id (1 byte)
 					if(firstwritelength>0){//and we still have empty space on the page
 						status=WRITE_PENDING_DATA1;
-						call LogWrite.append(writebuffer, firstwritelength);
+						err=call LogWrite.append(writebuffer, firstwritelength);
 					} else {
 						status=WRITE_PENDING_METADATA;
-						call LogWrite.append(&current_addr, sizeof(current_addr));
+						err=call LogWrite.append(&current_addr, sizeof(current_addr));
 					}
 				} else {
 					status=WRITE_PENDING_DATA2;
-					call LogWrite.append(writebuffer, writelength);
+					err=call LogWrite.append(writebuffer, writelength);
 				}
 				
 			}break;
 		}
+		if(err!=SUCCESS){
+			status=NORMAL;
+			if(write_id>0)
+				signal StreamStorage.appendDoneWithID(writebuffer, writelength, error);
+			else
+				signal StreamStorage.appendDone(writebuffer, writelength, error);
+			return;
+		} 
 	}	
 //Read
 
@@ -343,6 +320,7 @@ implementation{
 			else
 				return EBUSY;
 		else {
+			error_t err;
 			status=READ_PENDING_SEEK;
 			readbuffer=buf;
 			readlength=len;
@@ -390,21 +368,24 @@ implementation{
 						printfflush();
 					#endif
 					addressTranslation.streamAddress=addr;
-					call LogRead.seek(addressTranslation.logAddress);
+					err=call LogRead.seek(addressTranslation.logAddress);
 			} else {
 				addressTranslation.streamAddress=addr;
 				status=READ_PENDING_SEEK;
 				
 				//we will read the first metadata, to know where should we search
-				call LogRead.seek(SEEK_BEGINNING);
+				err=call LogRead.seek(SEEK_BEGINNING);
 			}
-			return SUCCESS;
+			if(err!=SUCCESS)
+				status=NORMAL;
+			return err;
 		}	
 	}
 	
 
 	
 	event void LogRead.readDone(void *buf, storage_len_t len, error_t error){
+		error_t err=SUCCESS;
 		if(error!=SUCCESS){
 			switch(status){
 				case INIT_STEP:{
@@ -414,6 +395,7 @@ implementation{
 					#endif	
 					status=NORMAL;
 					signal SplitControl.startDone(SUCCESS);
+					return;
 				}break;
 				case READ_PENDING_DATA1:
 				case READ_PENDING_DATA2:{//maybe because the page was synced. try the next page
@@ -421,7 +403,12 @@ implementation{
 							printf("Read error, go to %ld\n",last_page+PAGE_SIZE);
 					#endif
 					status=READ_PENDING_SEEK_STEP_F;
-					call LogRead.seek(last_page+PAGE_SIZE);	
+					err=call LogRead.seek(last_page+PAGE_SIZE);	
+				}break;
+				case GET_MIN:{
+					status=NORMAL;
+					signal StreamStorage.getMinAddressDone(0, error);
+					return;
 				}break;
 				default:{
 					status=NORMAL;
@@ -442,47 +429,47 @@ implementation{
 							printf("SB: %ld, Jump to %ld\n",call LogRead.currentOffset()-len,call LogRead.currentOffset()-len+PAGE_SIZE-(call LogRead.currentOffset()-len)%PAGE_SIZE);
 							printfflush();
 						#endif
-						call LogRead.seek(call LogRead.currentOffset()-len+PAGE_SIZE-(call LogRead.currentOffset()-len)%PAGE_SIZE);
-						return;
-					}
-					addressTranslation.logAddress=call LogRead.currentOffset()-len;
-					#ifdef DEBUG
-						printf("Metadata at %ld: %ld\n",call LogRead.currentOffset()-len,*metadata);
-					#endif
-					last_page=call LogRead.currentOffset()-len;
-					if((addressTranslation.streamAddress-*metadata<=(PAGE_SIZE-sizeof(current_addr)))&&(addressTranslation.streamAddress-*metadata>=0)){
+						err=call LogRead.seek(call LogRead.currentOffset()-len+PAGE_SIZE-(call LogRead.currentOffset()-len)%PAGE_SIZE);
+					}else {
+						addressTranslation.logAddress=call LogRead.currentOffset()-len;
 						#ifdef DEBUG
-							printf("Data is on this page\n");
+							printf("Metadata at %ld: %ld\n",call LogRead.currentOffset()-len,*metadata);
 						#endif
-						addressTranslation.logAddress+=(storage_cookie_t)(addressTranslation.streamAddress-*metadata+sizeof(current_addr));//jump to the data
-						if((addressTranslation.logAddress%PAGE_SIZE)>((addressTranslation.logAddress+readlength)%PAGE_SIZE)){ //the data was cut half with metadata
-							readfirstlength=PAGE_SIZE-(addressTranslation.logAddress%PAGE_SIZE);
-							status=READ_PENDING_DATA1;
-						} else {
-							readfirstlength=0;
-							status=READ_PENDING_DATA2;
-						}	
-					}else{
-						if((int32_t)(addressTranslation.streamAddress-*metadata>0)){//forward
-							status=READ_PENDING_SEEK_STEP_F;
-							//													 	kulombseg		  +				metadata									/PAGE_SIZE egeszresz				
-							addressTranslation.logAddress=addressTranslation.logAddress+(storage_cookie_t)((addressTranslation.streamAddress-*metadata+((addressTranslation.streamAddress-*metadata)/PAGE_SIZE)*sizeof(current_addr))/PAGE_SIZE)*PAGE_SIZE;
+						last_page=call LogRead.currentOffset()-len;
+						if((addressTranslation.streamAddress-*metadata<=(PAGE_SIZE-sizeof(current_addr)))&&(addressTranslation.streamAddress-*metadata>=0)){
 							#ifdef DEBUG
-								printf("Forward\n");
+								printf("Data is on this page\n");
 							#endif
-						}else{//backward	//TODO testing
-							status=READ_PENDING_SEEK_STEP_B;
-							addressTranslation.logAddress=addressTranslation.logAddress-(storage_cookie_t)((*metadata-addressTranslation.streamAddress+((*metadata-addressTranslation.streamAddress)/PAGE_SIZE)*sizeof(current_addr))/PAGE_SIZE+1)*PAGE_SIZE;					
-							#ifdef DEBUG
-								printf("Backward\n");
-							#endif
-						}				
+							addressTranslation.logAddress+=(storage_cookie_t)(addressTranslation.streamAddress-*metadata+sizeof(current_addr));//jump to the data
+							if((addressTranslation.logAddress%PAGE_SIZE)>((addressTranslation.logAddress+readlength)%PAGE_SIZE)){ //the data was cut half with metadata
+								readfirstlength=PAGE_SIZE-(addressTranslation.logAddress%PAGE_SIZE);
+								status=READ_PENDING_DATA1;
+							} else {
+								readfirstlength=0;
+								status=READ_PENDING_DATA2;
+							}	
+						}else{
+							if((int32_t)(addressTranslation.streamAddress-*metadata>0)){//forward
+								status=READ_PENDING_SEEK_STEP_F;
+								//													 	kulombseg		  +				metadata									/PAGE_SIZE egeszresz				
+								addressTranslation.logAddress=addressTranslation.logAddress+(storage_cookie_t)((addressTranslation.streamAddress-*metadata+((addressTranslation.streamAddress-*metadata)/PAGE_SIZE)*sizeof(current_addr))/PAGE_SIZE)*PAGE_SIZE;
+								#ifdef DEBUG
+									printf("Forward\n");
+								#endif
+							}else{//backward	//TODO testing
+								status=READ_PENDING_SEEK_STEP_B;
+								addressTranslation.logAddress=addressTranslation.logAddress-(storage_cookie_t)((*metadata-addressTranslation.streamAddress+((*metadata-addressTranslation.streamAddress)/PAGE_SIZE)*sizeof(current_addr))/PAGE_SIZE+1)*PAGE_SIZE;					
+								#ifdef DEBUG
+									printf("Backward\n");
+								#endif
+							}				
+						}
+						#ifdef DEBUG
+							printf("Jump to %ld\n",addressTranslation.logAddress);
+							printfflush();
+						#endif
+						err=call LogRead.seek(addressTranslation.logAddress);
 					}
-					#ifdef DEBUG
-						printf("Jump to %ld\n",addressTranslation.logAddress);
-						printfflush();
-					#endif
-					call LogRead.seek(addressTranslation.logAddress);
 				}break;
 				case READ_PENDING_SEEK_STEP_F:{
 					nx_uint32_t *metadata=(nx_uint32_t*)buf;//unfortunately, we need this, because the endiannes is unpredictable in the buffer
@@ -498,7 +485,7 @@ implementation{
 							printfflush();
 						#endif
 						addressTranslation.logAddress+=PAGE_SIZE;
-						call LogRead.seek(addressTranslation.logAddress);
+						err=call LogRead.seek(addressTranslation.logAddress);
 					} else if(addressTranslation.streamAddress-*metadata<0)//seems like the data is somewhere before us (which should be impossible), or not in the flash (overwritten?)
 						signal StreamStorage.readDone(readbuffer, readlength, FAIL);
 					else{//the data is on this page
@@ -518,7 +505,7 @@ implementation{
 							printf("Jump to %ld\n",addressTranslation.logAddress);
 							printfflush();
 						#endif
-						call LogRead.seek(addressTranslation.logAddress);
+						err=call LogRead.seek(addressTranslation.logAddress);
 					}
 											
 				}break;
@@ -535,7 +522,7 @@ implementation{
 							printfflush();
 						#endif
 						addressTranslation.logAddress-=PAGE_SIZE;
-						call LogRead.seek(addressTranslation.logAddress);
+						err=call LogRead.seek(addressTranslation.logAddress);
 					} else if(addressTranslation.streamAddress-*metadata>=PAGE_SIZE+len)//seems like the data is somewhere ahead us (which should be impossible), or not in the flash (overwritten?) 
 						signal StreamStorage.readDone(readbuffer, readlength, FAIL);
 					else{//the data is on this page
@@ -555,19 +542,19 @@ implementation{
 							printf("Jump to %ld\n",addressTranslation.logAddress);
 							printfflush();
 						#endif
-						call LogRead.seek(addressTranslation.logAddress);
+						err=call LogRead.seek(addressTranslation.logAddress);
 					}
 											
 				}break;
 				case READ_PENDING_DATA1:{//we read the first half of the data, now we jump over the metadata
 					if(addressTranslation.logAddress+len==call LogRead.currentOffset()){
 						status=READ_PENDING_DATA2;
-						call LogRead.seek(call LogRead.currentOffset()+sizeof(current_addr));	
+						err=call LogRead.seek(call LogRead.currentOffset()+sizeof(current_addr));	
 					} else {//we read something from the next page (incl. metadata), so we're correcting this (this could only happen on a synced page)
 						uint32_t offset=call LogRead.currentOffset();
 						status=READ_PENDING_DATA3;
 						readfirstlength=readfirstlength-offset%PAGE_SIZE;
-						call LogRead.seek(offset-offset%PAGE_SIZE+sizeof(current_addr));
+						err=call LogRead.seek(offset-offset%PAGE_SIZE+sizeof(current_addr));
 					}
 				}break;
 				case READ_PENDING_DATA2:{//we're done
@@ -579,7 +566,7 @@ implementation{
 						uint32_t offset=call LogRead.currentOffset();
 						status=READ_PENDING_DATA3;
 						readfirstlength=readlength-offset%PAGE_SIZE;
-						call LogRead.seek(offset-offset%PAGE_SIZE+sizeof(current_addr));
+						err=call LogRead.seek(offset-offset%PAGE_SIZE+sizeof(current_addr));
 						//call LogRead.seek(offset-4);
 					}
 				}break;
@@ -595,19 +582,19 @@ implementation{
 							printf("SB: %ld, Jump to %ld\n",call LogRead.currentOffset()-len,call LogRead.currentOffset()-len+PAGE_SIZE-(call LogRead.currentOffset()-len)%PAGE_SIZE);
 							printfflush();
 						#endif
-						call LogRead.seek(call LogRead.currentOffset()-len+PAGE_SIZE-(call LogRead.currentOffset()-len)%PAGE_SIZE);
-						return;
-					}
-					#ifdef DEBUG
-						printf("Current addr: %ld; Buffer: %ld\n",call LogRead.currentOffset()-sizeof(buffer),*metadata);
-						printfflush();
-					#endif	
-					current_addr=*metadata;
-					minAddress.address=*metadata;
-					minAddress.valid=TRUE;
-					last_page=call LogRead.currentOffset()-len;
-					status=INIT;
-					call LogRead.seek(last_page+PAGE_SIZE);				
+						err=call LogRead.seek(call LogRead.currentOffset()-len+PAGE_SIZE-(call LogRead.currentOffset()-len)%PAGE_SIZE);
+					} else {
+						#ifdef DEBUG
+							printf("Current addr: %ld; Buffer: %ld\n",call LogRead.currentOffset()-sizeof(buffer),*metadata);
+							printfflush();
+						#endif	
+						current_addr=*metadata;
+						minAddress.address=*metadata;
+						minAddress.valid=TRUE;
+						last_page=call LogRead.currentOffset()-len;
+						status=INIT;
+						err=call LogRead.seek(last_page+PAGE_SIZE);	
+					}			
 				}break;
 				case INIT:{//we read all of the metadata, searching for the last page
 					nx_uint32_t *metadata=(nx_uint32_t*)buf;//unfortunately, we need this, because the endiannes is unpredictable in the buffer
@@ -619,14 +606,14 @@ implementation{
 					if((current_addr!=*metadata)&&(((uint32_t)(*metadata-current_addr))<=PAGE_SIZE)){//than it's a correct page. we should check the next one
 						last_page=call LogRead.currentOffset()-len;
 						current_addr=*metadata;
-						call LogRead.seek(last_page+PAGE_SIZE);	
+						err=call LogRead.seek(last_page+PAGE_SIZE);	
 					} else {
 						#ifdef DEBUG
 							printf("Unexpected metadata (%ld vs %ld) seek to %ld\n",current_addr,*metadata,last_page);
 							printfflush();
 						#endif
 						status=INIT_STEP;
-						call LogRead.seek(last_page);
+						err=call LogRead.seek(last_page);
 					}
 				}break;
 				case INIT_STEP:{
@@ -637,7 +624,7 @@ implementation{
 //									printf("Found valid data at %ld\n",call LogRead.currentOffset());
 //									printfflush();
 //						#endif	
-						call LogRead.read(&buffer,1);
+						err=call LogRead.read(&buffer,1);
 					} else{
 						if(call LogRead.currentOffset()%PAGE_SIZE!=0)
 							current_addr--; //the last byte of a synced page was alway false. TODO NEED FURTHER TESTING!
@@ -668,19 +655,35 @@ implementation{
 							printf("SB: %ld, Jump to %ld\n",call LogRead.currentOffset()-len,call LogRead.currentOffset()-len+PAGE_SIZE-(call LogRead.currentOffset()-len)%PAGE_SIZE);
 							printfflush();
 						#endif
-						call LogRead.seek(call LogRead.currentOffset()-len+PAGE_SIZE-(call LogRead.currentOffset()-len)%PAGE_SIZE);
-						return;
-					}				
-					minAddress.address=*metadata;
-					minAddress.valid=TRUE;
-					status=NORMAL;
-					signal StreamStorage.getMinAddressDone(minAddress.address);
+						err=call LogRead.seek(call LogRead.currentOffset()-len+PAGE_SIZE-(call LogRead.currentOffset()-len)%PAGE_SIZE);
+					}	 else {			
+						minAddress.address=*metadata;
+						minAddress.valid=TRUE;
+						status=NORMAL;
+						signal StreamStorage.getMinAddressDone(minAddress.address, SUCCESS);
+					}
 				}break;
 			}
 		}
+		if(err!=SUCCESS){
+			status=NORMAL;
+			switch(status){
+				case INIT_STEP:{
+					signal SplitControl.startDone(err);
+				}break;
+				case GET_MIN:{
+					signal StreamStorage.getMinAddressDone(0, err);
+				}break;
+				default:{
+					signal StreamStorage.readDone(readbuffer, readlength, err);
+				}break;
+			}
+		}		
+		
 	}
 
 	event void LogRead.seekDone(error_t error){
+		error_t err=SUCCESS;
 		if(error!=SUCCESS){
 			switch(status){
 				case INIT_START:{
@@ -696,7 +699,12 @@ implementation{
 						printf("seek error (%d), seek to %ld\n",error,last_page);
 					#endif
 					status=INIT_STEP;
-					call LogRead.seek(last_page);
+					err=call LogRead.seek(last_page);
+				}break;
+				case GET_MIN:{
+					status=NORMAL;
+					signal StreamStorage.getMinAddressDone(0, err);
+					return;
 				}break;
 				case INIT_STEP:{
 					#ifdef DEBUG
@@ -705,29 +713,45 @@ implementation{
 					#endif
 					status=NORMAL;
 					signal SplitControl.startDone(SUCCESS);	
+					return;
 				}break;
 				default:{
 					status=NORMAL;
 					signal StreamStorage.readDone(readbuffer, readlength, error);
+					return;
 				}
 			}	
 		} else {
 			switch(status){
 				case READ_PENDING_DATA2:
 				case READ_PENDING_DATA3:{
-					call LogRead.read(readbuffer+readfirstlength, readlength-readfirstlength);
+					err=call LogRead.read(readbuffer+readfirstlength, readlength-readfirstlength);
 				}break;
 				case READ_PENDING_DATA1:{
-					call LogRead.read(readbuffer, readfirstlength);
+					err=call LogRead.read(readbuffer, readfirstlength);
 				}break;
 				case INIT_STEP:{
 					last_page=call LogRead.currentOffset();//reusing variable
-					call LogRead.read(&buffer,1);
+					err=call LogRead.read(&buffer,1);
 				}break;
 				default:{
-					call LogRead.read(&buffer, sizeof(buffer));
+					err=call LogRead.read(&buffer, sizeof(buffer));
 				}break;
 			}				
+		}
+		if(err!=SUCCESS){
+			status=NORMAL;
+			switch(status){
+				case INIT_STEP:{
+					signal SplitControl.startDone(err);
+				}break;
+				case GET_MIN:{
+					signal StreamStorage.getMinAddressDone(0, err);
+				}break;
+				default:{
+					signal StreamStorage.readDone(readbuffer, readlength, err);
+				}break;
+			}
 		} 
 	}
 
@@ -737,15 +761,18 @@ implementation{
 
 	command error_t StreamStorage.getMinAddress(){
 		if(minAddress.valid){
-			signal StreamStorage.getMinAddressDone(minAddress.address);
+			signal StreamStorage.getMinAddressDone(minAddress.address,SUCCESS);
 			return SUCCESS;
 		}else {
 			if(status!=NORMAL)
 				return EBUSY;
 			else{
+				error_t err;
 				status=GET_MIN;
-				call LogRead.seek(SEEK_BEGINNING);
-				return SUCCESS;
+				err=call LogRead.seek(SEEK_BEGINNING);
+				if(err!=SUCCESS)
+					status=NORMAL;
+				return err;
 			}
 		}
 	}
@@ -763,8 +790,12 @@ implementation{
 			else
 				return EBUSY;
 		else {
+			error_t err;
 			status=SYNC_PENDING;
-			return call LogWrite.sync();
+			err=call LogWrite.sync();
+			if(err!=SUCCESS)
+				status=NORMAL;
+			return err;
 		}
 	}
 }

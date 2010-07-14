@@ -136,7 +136,7 @@ implementation{
 		// TODO Auto-generated method stub
 	}
 
-	event void StreamStorage.getMinAddressDone(uint32_t addr){
+	event void StreamStorage.getMinAddressDone(uint32_t addr,error_t err){
 		// TODO Auto-generated method stub
 	}
 
