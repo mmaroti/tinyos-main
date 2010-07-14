@@ -67,7 +67,7 @@ implementation
 		uint16_t myLocation = call DfrfPolicy.getLocation();
 
 		if( priority == 0 && myLocation == 0 )
-			return 4;
+			return 6;
 		else if( priority < 7 && myLocation > location )
 			return 7;
 		else if( priority > 7 && myLocation <= location )
