@@ -78,7 +78,6 @@ implementation
 		
 
 		err=call DfrfSend.send(&data);
-		call Leds.set(7);
 		return err;
 	}
 	
