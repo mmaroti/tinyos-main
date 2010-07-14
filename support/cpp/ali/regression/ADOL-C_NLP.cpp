@@ -6,8 +6,8 @@ using namespace Ipopt;
 
 namespace {
 
-  const int N_VARS = 12;
-  const int N_CONS = 0;
+  const int N_VARS = 15;
+  const int N_CONS = 1;
 }
 
 typedef double NT;
@@ -50,8 +50,6 @@ private:
   T dc1; T dc2; T dc3;
   T gx; T gy; T gz;
   T sx; T sy; T sz;
-  // FIXME
-  T gx0, gy0, gz0;
 
   //============================================================================
 
@@ -266,8 +264,8 @@ private:
 	  return;
   }
 
-  T objective() {
-    return (sx/N-gx0)*(sx/N-gx0) + (sy/N-gy0)*(sy/N-gy0) + (sz/N-gz0)*(sz/N-gz0);
+  T objective(const T* const x) {
+    return (sx/N-x[12])*(sx/N-x[12]) + (sy/N-x[13])*(sy/N-x[13]) + (sz/N-x[14])*(sz/N-x[14]);
   }
 
 public:
@@ -386,9 +384,7 @@ public:
 		}
 	}
 
-	compute_g(0);
-
-	gx0 = gx; gy0 = gy; gz0 = gz;
+	// FIXME Estimate initial vector
   }
 
   T f(const T* const x)  {
@@ -416,7 +412,7 @@ public:
 
 	  }
 
-	  return objective();
+	  return objective(x);
   }
 
 };
@@ -470,6 +466,8 @@ template<class T> bool  MyADOLC_NLP::eval_obj(Index n, const T *x, T& obj_value)
 
 template<class T> bool  MyADOLC_NLP::eval_constraints(Index n, const T *x, Index m, T* g)
 {
+	// FIXME Use g_ref instead of 9.81!
+	g[0] = x[12]*x[12] + x[13]*x[13] + x[14]*x[14] - 9.81*9.81;
   return true;
 }
 
@@ -478,8 +476,13 @@ bool MyADOLC_NLP::get_bounds_info(Index n, Number* x_l, Number* x_u,
 {
 
 	for (Index i=0; i<n; i++) {
-		x_l[i] = -1.0;
-		x_u[i] =  1.0;
+		x_l[i] = -10.0;
+		x_u[i] =  10.0;
+	}
+
+	for (int i=12; i<=14; ++i) {
+		x_l[i] = -20.0;
+		x_u[i] =  20.0;
 	}
 
   // Set the bounds for the constraints
@@ -503,6 +506,11 @@ bool MyADOLC_NLP::get_starting_point(Index n, bool init_x, Number* x,
   // set the starting point
   for (Index i=0; i<n; i++)
     x[i] = 0.0;
+
+  // FIXME Use the estimated g vector here!
+  x[12] =  0.0;
+  x[13] =  0.0;
+  x[14] = -9.81;
 
   return true;
 }
