@@ -1,6 +1,0 @@
-
-#ifndef RF230_BASESNIFFER_H
-#define RF230_BASESNIFFER_H
-
-
-#endif
