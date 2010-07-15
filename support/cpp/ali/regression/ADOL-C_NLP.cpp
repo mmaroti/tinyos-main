@@ -13,6 +13,8 @@ double M11, M12, M13;
 double M21, M22, M23;
 double M31, M32, M33;
 
+ofstream out;
+
 double solution[N_VARS];
 
 }
@@ -31,12 +33,29 @@ NT ax0, ay0, az0; // FIXME Hideous...
 
 }
 
+void estimate_a0() {
+
+	using namespace input;
+
+	ax0 = acc_x[0];
+	ay0 = acc_y[0];
+	az0 = acc_z[0];
+
+	NT length = std::sqrt(ax0*ax0+ay0*ay0+az0*az0);
+
+	NT corr = std::fabs(g_ref)/length;
+
+	ax0 *= corr;
+	ay0 *= corr;
+	az0 *= corr;
+}
+
 void init(const char* const filename) {
 
 	using namespace input;
 
 	dt    = NT(10.0/2048.0);
-	g_ref = NT(9.81);
+	g_ref = NT(-9.81);
 
 	//--------------------------------------------------------------------------
 
@@ -90,17 +109,19 @@ void init(const char* const filename) {
 		}
 	}
 
-	ax0 = acc_x[0];
-	ay0 = acc_y[0];
-	az0 = acc_z[0];
+	// -------------------------------------------------------------------------
 
-	NT length = sqrt(ax0*ax0+ay0*ay0+az0*az0);
+	estimate_a0();
 
-	NT corr = g_ref/length;
+	// -------------------------------------------------------------------------
 
-	ax0 *= corr;
-	ay0 *= corr;
-	az0 *= corr;
+	string fname(filename);
+
+	fname.append(".gerr");
+
+	out.open(fname.c_str());
+	out << setprecision(16);
+	out << scientific;
 }
 
 template<typename T>
@@ -131,7 +152,7 @@ private:
 
 	//==========================================================================
 
-	NT half, one, three, dt, g_ref;
+	NT half, one, three, dt;
 
 	NT* wx; NT* wy; NT* wz;
 
@@ -324,6 +345,7 @@ private:
 			cout << endl;
 			cout << "g(i)" << endl;
 			cout << g_x << ' ' << g_y << ' ' << g_z << endl;
+			out << g_x << ' ' << g_y << ' ' << (g_z-input::g_ref) << endl;
 		}
 
 		// TODO Scaling factor?
@@ -347,7 +369,6 @@ public:
 			double* wz,
 			int N,
 			double dt,
-			double g_ref,
 			bool verbose = false)
 	: VERBOSE(verbose)
 	{
@@ -365,10 +386,8 @@ public:
 		this->wz = wz;
 
 		this->dt    = dt;
-		this->g_ref = g_ref;
 
 		this->N = N;
-
 	}
 
 	T f(const T* const x)  {
@@ -405,7 +424,7 @@ void dump(bool use_hardcoded) {
 	using std::pow;
 
 	using namespace input;
-	glob<double> obj(acc_x, acc_y, acc_z, wx, wy, wz, N, dt, g_ref, true);
+	glob<double> obj(acc_x, acc_y, acc_z, wx, wy, wz, N, dt, true);
 
 	// manual2
 	double y[] = {
@@ -508,7 +527,7 @@ void dump_Ri() {
 template<class T> bool  MyADOLC_NLP::eval_obj(Index n, const T *x, T& obj_value)
 {
 	using namespace input;
-	static glob<T> gv(acc_x, acc_y, acc_z, wx, wy, wz, N, dt, g_ref);
+	static glob<T> gv(acc_x, acc_y, acc_z, wx, wy, wz, N, dt);
 
 	obj_value = gv.f(x);
 
