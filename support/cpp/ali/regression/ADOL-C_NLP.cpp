@@ -1,19 +1,106 @@
 #include <fstream>
 #include <iomanip>
-//#include <limits>
 #include "ADOL-C_NLP.hpp"
 
 using namespace Ipopt;
-
-typedef double NT;
 
 namespace {
 
 const int N_VARS = 15;
 const int N_CONS = 1;
 
-NT ax0, ay0, az0;
+double M11, M12, M13;
+double M21, M22, M23;
+double M31, M32, M33;
 
+double solution[N_VARS];
+
+}
+
+typedef double NT;
+
+namespace input {
+
+NT* acc_x; NT* acc_y; NT* acc_z;
+NT* wx; NT* wy; NT* wz;
+int N;
+
+NT dt, g_ref;
+
+NT ax0, ay0, az0; // FIXME Hideous...
+
+}
+
+void init(const char* const filename) {
+
+	using namespace input;
+
+	dt    = NT(10.0/2048.0);
+	g_ref = NT(9.81);
+
+	//--------------------------------------------------------------------------
+
+	std::ifstream in(filename);
+
+	if (!in.good()) {
+		cerr << endl << "Failed to open input file!" << endl;
+		exit(EXIT_FAILURE);
+	}
+
+	cout << "Reading input file: " << filename << endl;
+
+	in >> N;
+
+	if (N<1) {
+		cerr << endl << "Invalid lenght!" << endl;
+		exit(EXIT_FAILURE);
+	}
+
+	// FIXME Resources never released
+	//----------------------------------------------------------------------
+
+	wx = new NT[N];
+	wy = new NT[N];
+	wz = new NT[N];
+
+	acc_x = new NT[N];
+	acc_y = new NT[N];
+	acc_z = new NT[N];
+
+	//---------------------------------------------------
+
+	double dummy(0.0);
+
+	for (int i=0; i<N; ++i) {
+
+		in >> acc_x[i];
+		in >> acc_y[i];
+		in >> acc_z[i];
+
+		in >> dummy; in >> dummy; in >> dummy; in >> dummy;
+
+
+		in >> wx[i];
+		in >> wy[i];
+		in >> wz[i];
+
+		if (!in.good()) {
+			cerr << endl << "Problems on reading from input" << endl;
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	ax0 = acc_x[0];
+	ay0 = acc_y[0];
+	az0 = acc_z[0];
+
+	NT length = sqrt(ax0*ax0+ay0*ay0+az0*az0);
+
+	NT corr = g_ref/length;
+
+	ax0 *= corr;
+	ay0 *= corr;
+	az0 *= corr;
 }
 
 template<typename T>
@@ -24,10 +111,6 @@ private:
 	T R_11, R_12, R_13;
 	T R_21, R_22, R_23;
 	T R_31, R_32, R_33;
-
-	T R0_11, R0_12, R0_13;
-	T R0_21, R0_22, R0_23;
-	T R0_31, R0_32, R0_33;
 
 	T Rn_11, Rn_12, Rn_13;
 	T Rn_21, Rn_22, Rn_23;
@@ -62,13 +145,11 @@ private:
 
 	void set_sum_and_R0() {
 
-		sx = NT(0);
-		sy = NT(0);
-		sz = NT(0);
+		sx = sy = sz = NT(0);
 
-		R_11 = R0_11; R_12 = R0_12; R_13 = R0_13;
-		R_21 = R0_21; R_22 = R0_22; R_23 = R0_23;
-		R_31 = R0_31; R_32 = R0_32; R_33 = R0_33;
+		R_11 = 1.0; R_12 = 0.0; R_13 = 0.0;
+		R_21 = 0.0; R_22 = 1.0; R_23 = 0.0;
+		R_31 = 0.0; R_32 = 0.0; R_33 = 1.0;
 	}
 
 	void compute_G(const int i, const T* const x) {
@@ -89,12 +170,6 @@ private:
 		d2 = x[10];
 		d3 = x[11];
 
-		if (VERBOSE) {
-			cout << endl;
-			cout << "gyro x, y, z" << endl;
-			cout << wx[i] << '\t' << wy[i] << '\t' << wz[i] << endl;
-		}
-
 		T w_x = (C_11*wx[i]+C_12*wy[i]+C_13*wz[i]+d1)*dt;
 		T w_y = (C_21*wx[i]+C_22*wy[i]+C_23*wz[i]+d2)*dt;
 		T w_z = (C_31*wx[i]+C_32*wy[i]+C_33*wz[i]+d3)*dt;
@@ -112,6 +187,9 @@ private:
 		G_33 =  one;
 
 		if (VERBOSE) {
+			cout << endl;
+			cout << "gyro x, y, z" << endl;
+			cout << wx[i] << '\t' << wy[i] << '\t' << wz[i] << endl;
 			cout << endl;
 			cout << "G_ij" << endl;
 			cout << G_11 << '\t' << G_12 << '\t' << G_13 << endl;
@@ -227,35 +305,31 @@ private:
 		return;
 	}
 
-	void compute_a(int i) {
+	void sum_Ri_ai(const int i) {
 
-		ax = acc_x[i];
-		ay = acc_y[i];
-		az = acc_z[i];
+		ax = acc_x[i]; ay = acc_y[i]; az = acc_z[i];
+
+		T a_x = R_11*ax+R_12*ay+R_13*az;
+		T a_y = R_21*ax+R_22*ay+R_23*az;
+		T a_z = R_31*ax+R_32*ay+R_33*az;
 
 		if (VERBOSE) {
 			cout << endl;
 			cout << "a(i)" << endl;
 			cout << ax << '\t' << ay << '\t' << az << endl;
-		}
-	}
 
-	void sum_Ri_ai() {
-
-		T acc_x = R_11*ax+R_12*ay+R_13*az;
-		T acc_y = R_21*ax+R_22*ay+R_23*az;
-		T acc_z = R_31*ax+R_32*ay+R_33*az;
-
-		if (VERBOSE) {
+			T g_x = M11*a_x+M12*a_y+M13*a_z;
+			T g_y = M21*a_x+M22*a_y+M23*a_z;
+			T g_z = M31*a_x+M32*a_y+M33*a_z;
 			cout << endl;
-			cout << "R(i)*a(i)" << endl;
-			cout << acc_x << ' ' << acc_y << ' ' << acc_z << endl;
+			cout << "g(i)" << endl;
+			cout << g_x << ' ' << g_y << ' ' << g_z << endl;
 		}
 
 		// TODO Scaling factor?
-		sx = sx + acc_x;
-		sy = sy + acc_y;
-		sz = sz + acc_z;
+		sx = sx + a_x;
+		sy = sy + a_y;
+		sz = sz + a_z;
 		return;
 	}
 
@@ -265,92 +339,36 @@ private:
 
 public:
 
-	explicit glob(const char* const filename, bool verbose = false) : VERBOSE(verbose) {
+	glob(	double* acc_x,
+			double* acc_y,
+			double* acc_z,
+			double* wx,
+			double* wy,
+			double* wz,
+			int N,
+			double dt,
+			double g_ref,
+			bool verbose = false)
+	: VERBOSE(verbose)
+	{
 
 		half  = NT(0.5);
 		one   = NT(1);
 		three = NT(3);
-		dt    = NT(10.0/2048.0);
-		g_ref = NT(9.81);
 
-		//--------------------------------------------------------------------------
+		this->acc_x = acc_x;
+		this->acc_y = acc_y;
+		this->acc_z = acc_z;
 
-		std::ifstream in(filename);
+		this->wx = wx;
+		this->wy = wy;
+		this->wz = wz;
 
-		if (!in.good()) {
-			cerr << endl << "Failed to open input file!" << endl;
-			exit(EXIT_FAILURE);
-		}
+		this->dt    = dt;
+		this->g_ref = g_ref;
 
-		cout << "Reading input file: " << filename << endl;
+		this->N = N;
 
-		in >> N;
-
-		if (N<1) {
-			cerr << endl << "Invalid lenght!" << endl;
-			exit(EXIT_FAILURE);
-		}
-
-		//----------------------------------------------------------------------
-
-		wx = new NT[N];
-		wy = new NT[N];
-		wz = new NT[N];
-
-		//--------------------------------------------------
-
-		acc_x = new NT[N];
-		acc_y = new NT[N];
-		acc_z = new NT[N];
-
-		//---------------------------------------------------
-
-		R0_11 = NT(1.0);
-		R0_12 = NT(0.0);
-		R0_13 = NT(0.0);
-
-		R0_21 = NT(0.0);
-		R0_22 = NT(1.0);
-		R0_23 = NT(0.0);
-
-		R0_31 = NT(0.0);
-		R0_32 = NT(0.0);
-		R0_33 = NT(1.0);
-
-		//---------------------------------------------------
-
-		double dummy(0.0);
-
-		for (int i=0; i<N; ++i) {
-
-			in >> acc_x[i];
-			in >> acc_y[i];
-			in >> acc_z[i];
-
-			in >> dummy; in >> dummy; in >> dummy; in >> dummy;
-
-
-			in >> wx[i];
-			in >> wy[i];
-			in >> wz[i];
-
-			if (!in.good()) {
-				cerr << endl << "Problems on reading from input" << endl;
-				exit(EXIT_FAILURE);
-			}
-		}
-
-		ax0 = acc_x[0];
-		ay0 = acc_y[0];
-		az0 = acc_z[0];
-
-		NT length = sqrt(ax0*ax0+ay0*ay0+az0*az0);
-
-		NT corr = g_ref/length;
-
-		ax0 *= corr;
-		ay0 *= corr;
-		az0 *= corr;
 	}
 
 	T f(const T* const x)  {
@@ -372,9 +390,7 @@ public:
 
 			normalize_R();
 
-			compute_a(i);
-
-			sum_Ri_ai();
+			sum_Ri_ai(i);
 
 		}
 
@@ -383,36 +399,96 @@ public:
 
 };
 
-void dbg_objective(const char* const filename) {
+void dump(bool use_hardcoded) {
 
+	using std::sqrt;
+	using std::pow;
 
-	glob<double> obj(filename, true);
+	using namespace input;
+	glob<double> obj(acc_x, acc_y, acc_z, wx, wy, wz, N, dt, g_ref, true);
+
+	// manual2
+	double y[] = {
+			0.00847338,
+			-0.0189621,
+			0.00120593,
+			0.00561178,
+			-0.0337569,
+			-0.00391856,
+			0.00880578,
+			0.003009,
+			-0.0290832,
+			-0.0657448,
+			-0.273428,
+			0.183664,
+			4.80704,
+			-6.42853,
+			-5.63937
+	};
+
 	/*
-  double x[N_VARS];
+	// manual
+	double y[] = {
+			0.00675085,
+			-0.0200092,
+			0.00815529,
+			0.00348722,
+			-0.03278,
+			-0.00216696,
+			-0.00196037,
+			0.0210999,
+			-0.0313881,
+			-0.0666635,
+			-0.272655,
+			0.192581,
+			-0.580514,
+			0.365056,
+			-9.786
+	};
+	 */
 
-  for (int i=0; i<N_VARS; ++i)
-	  x[i] = 0.0;
+	//==========================================================================
 
-  x[0] = -0.356778;
-  x[1] = 1.07415;
-  x[2] = -0.782412;
-  x[3] = -0.604513;
-  x[4] = 1.00259;
-  x[5] = -2.40572;
-  x[6] = -0.0529504;
-  x[7] = 0.134043;
-  x[8] = -0.236761;
-  x[9] = -2.40383;
-  x[10] = -7.99147;
-  x[11] = -0.714655;*/
 
-	double x[] = {
-			0.00863561, -0.0278826,  0.0198411,
-			0.00925871, -2.03525,   -0.0023857,
-			-0.0145452,  0.0442004, -0.0433523,
-			-0.0689957, -0.270561, 0.20561 };
+	double* x = y;
 
-	assert (sizeof(x)/sizeof(double) == N_VARS);
+	if (!use_hardcoded) {
+		x = solution;
+	}
+
+	const double ax = x[12];
+	const double ay = x[13];
+	const double az = x[14];
+
+	const double axy = sqrt(pow(ax, 2)+pow(ay, 2));
+
+	// FIXME axy == 0 ?
+
+	const double ux = -ay/axy;
+	const double uy =  ax/axy;
+	//           uz =  0.0;
+
+	const double ux2 = pow(ux, 2);
+	const double uy2 = pow(uy, 2);
+	const double uxy = ux*uy;
+
+	const double a = sqrt(pow(ax, 2)+pow(ay, 2)+pow(az, 2));
+
+	const double c = -az/a;
+
+	const double s = sqrt(1.0-pow(c, 2));
+
+	M11 = ux2+uy2*c;
+	M12 = uxy*(1.0-c);
+	M13 = uy*s;
+
+	M21 = M12;
+	M22 = uy2+ux2*c;
+	M23 =-ux*s;
+
+	M31 =-M13;
+	M32 =-M23;
+	M33 = c;
 
 	double z = obj.f(x);
 
@@ -421,9 +497,18 @@ void dbg_objective(const char* const filename) {
 	return;
 }
 
+void dump_Ri_using_hardcoded() {
+	dump(true);
+}
+
+void dump_Ri() {
+	dump(false);
+}
+
 template<class T> bool  MyADOLC_NLP::eval_obj(Index n, const T *x, T& obj_value)
 {
-	static glob<T> gv("manual");
+	using namespace input;
+	static glob<T> gv(acc_x, acc_y, acc_z, wx, wy, wz, N, dt, g_ref);
 
 	obj_value = gv.f(x);
 
@@ -432,8 +517,9 @@ template<class T> bool  MyADOLC_NLP::eval_obj(Index n, const T *x, T& obj_value)
 
 template<class T> bool  MyADOLC_NLP::eval_constraints(Index n, const T *x, Index m, T* g)
 {
-	// FIXME Use g_ref instead of 9.81!
-	g[0] = x[12]*x[12] + x[13]*x[13] + x[14]*x[14] - 9.81*9.81;
+	// FIXME Hideous
+	using namespace input;
+	g[0] = x[12]*x[12] + x[13]*x[13] + x[14]*x[14] - g_ref*g_ref;
 	return true;
 }
 
@@ -473,7 +559,9 @@ bool MyADOLC_NLP::get_starting_point(Index n, bool init_x, Number* x,
 	for (Index i=0; i<n; i++)
 		x[i] = 0.0;
 
-	// FIXME Use the estimated g vector here!
+	// FIXME Hideous
+	using namespace input;
+
 	x[12] =  ax0;
 	x[13] =  ay0;
 	x[14] =  az0;
@@ -634,6 +722,10 @@ void MyADOLC_NLP::finalize_solution(SolverReturn status,
 		cout << i << '\t' << x[i] << endl;
 	}
 	cout << endl;
+
+	for (int i=0; i<n; ++i) {
+		solution[i] = x[i];
+	}
 
 	// Memory deallocation for ADOL-C variables
 
