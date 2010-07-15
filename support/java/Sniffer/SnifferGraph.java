@@ -1,4 +1,3 @@
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Event;
@@ -8,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -24,6 +24,8 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 
+import config.CreateConfGUI;
+
 /**
  * @author Nemeth Gabor, Nyilas Sandor Karoly
  * This program is created to be the GUI for the Sniffer Wireless Project
@@ -35,10 +37,12 @@ import javax.swing.SwingConstants;
 public class SnifferGraph implements DataBase{	
 	
 	/**
-	 * 
+	 *Global value declarations for 
 	 */
 	private static final long serialVersionUID = 1L;
-		
+	
+	public static ArrayList<JPanel> dataPanel = new ArrayList<JPanel>();
+	
 	JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
 	
 	JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -48,7 +52,7 @@ public class SnifferGraph implements DataBase{
 	
 	JFrame snfG = new JFrame((String)Labels.frame_name);
 	
-	JPanel backgPanel = new JPanel();
+	static JPanel backgPanel = new JPanel();
 	
 	JMenuBar menubar = new JMenuBar();
 	XmlRead xmlRead = new XmlRead();
@@ -81,7 +85,7 @@ public class SnifferGraph implements DataBase{
     
    
     
-    JCheckBox box[] = new JCheckBox[xmlRead.number];
+    JCheckBox box[] = new JCheckBox[xmlRead.number+1];
     
     JFileChooser fc = new JFileChooser();
 	/**
@@ -132,7 +136,7 @@ public class SnifferGraph implements DataBase{
 	 */
     protected void openHistory() {						
     	System.out.println("open");
-    	int returnVal = fc.showSaveDialog(openConfiguration);	
+    	int returnVal = fc.showOpenDialog(openConfiguration);	
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
             @SuppressWarnings("unused")
 			File file = fc.getSelectedFile();			
@@ -149,7 +153,7 @@ public class SnifferGraph implements DataBase{
 	protected void createConfiguration() {						
 		System.out.println("createop");
 		// TODO Auto-generated method stub
-		
+		new CreateConfGUI();
 	}
 	/**
 	 * This function saves the current session.
@@ -171,7 +175,7 @@ public class SnifferGraph implements DataBase{
 	 */
 	private void openConfiguration() {							
 		System.out.println("openop");
-		int returnVal = fc.showSaveDialog(openConfiguration);
+		int returnVal = fc.showOpenDialog(openConfiguration);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
             @SuppressWarnings("unused")
 			File file = fc.getSelectedFile();
@@ -194,8 +198,8 @@ public class SnifferGraph implements DataBase{
         backgPanel.setBorder(BorderFactory.createEtchedBorder());	
 
         scrollbar.addAdjustmentListener(new MyAction());			
-        scrollbar.setMaximum(screenWidth+10000-110);						
-        
+        scrollbar.setMaximum(screenWidth+9999-110);						
+        dataPanelC();
         menuCreat();												
         editables();										
         baseSetings();										
@@ -210,16 +214,74 @@ public class SnifferGraph implements DataBase{
         snfG.setExtendedState(snfG.getExtendedState() | Frame.MAXIMIZED_BOTH);	
         snfG.setVisible(true);
    }
-   
-   private void createBoxes() {
+   /**
+    * At  ß version but this function can crate panels  on our workspace.
+    */
+   private void dataPanelC() {
+		JPanel CDataP;
+		int arrabb = 0;
+		JTextField cell[] = new JTextField[xmlRead.number+1]; 
+		for(int i=0;i<50;i++){
+			CDataP = new JPanel();
+			CDataP.setLayout(null);
+			
+			cell[0] = new JTextField(String.valueOf(Process.whatTimeIsNow()));
+			cell[0].setBounds(1,arrabb,70,20);
+			cell[0].setEditable(false);
+			CDataP.add(cell[0]);
+			
+			arrabb+=HORISONTAL_JCB_SPEACE;
+			for(int b=1 ;b<=xmlRead.number;b++){
+				cell[b] = new JTextField(Process.dataCodeing(i, b-1));
+				cell[b].setBounds(1,arrabb,70,20);
+				cell[b].setEditable(false);
+				CDataP.add(cell[b]);
+				
+				arrabb+=HORISONTAL_JCB_SPEACE;
+			}
+			dataPanel.add(CDataP);
+			arrabb=0;
+		}
+	}
+	/**
+	 * This function creates and specify checkboxes
+	 */
+	private void createBoxes() {
 		int height = JCHECKBOX_FIRS_SIZE;
-		for(int i = 0; i < xmlRead.number; i++){
-			box[i]= new JCheckBox(xmlRead.cimkek.get(i));
-			box[i].setToolTipText(xmlRead.title.get(i));
+		
+		box[0]= new JCheckBox("Catch");											//Elsõ box beálítása. Az az értéket mutatja majd pontosan, hogy mikor érkezett.
+		box[0].setToolTipText("Ekkor érkezett a package");
+		box[0].setSelected(true);
+		box[0].addActionListener(new ActionListener() {			
+        public void actionPerformed(ActionEvent event) {
+        		switching(event);
+        	}
+		});
+		box[0].setBounds(3, height+=HORISONTAL_JCB_SPEACE, JCHECKBOX_SIZE_X, JCHECKBOX_SIZE_Y);
+		backgPanel.add(box[0]);
+		
+		
+		
+		for(int i = 1; i <= xmlRead.number; i++){
+			box[i]= new JCheckBox(xmlRead.cimkek.get(i-1));
+			box[i].setToolTipText(xmlRead.title.get(i-1));
 			box[i].setSelected(true);
+			box[i].addActionListener(new ActionListener() {			
+            public void actionPerformed(ActionEvent event) {
+            		switching(event);
+            	}
+			});
 			box[i].setBounds(3, height+=HORISONTAL_JCB_SPEACE, JCHECKBOX_SIZE_X, JCHECKBOX_SIZE_Y);
 			backgPanel.add(box[i]);
 		}
+	}
+	/**
+	 * Function will used by checkboxes to know what data visible
+	 * @param event
+	 */
+	private void switching(ActionEvent event) {
+		System.out.println(event.getActionCommand()); 
+		// TODO Auto-generated method stub
 	}
 
 
@@ -248,12 +310,12 @@ public class SnifferGraph implements DataBase{
 		
 		// TODO Auto-generated method stub
 		for(int i = 1; i <= 100; i++){
-			verticalText[i-1] = new JTextField( i<10 ? ("00" + String.valueOf(i)) : ("0" + String.valueOf(i)));
+			verticalText[i-1] = new JTextField(Process.makeTimeLineSting(i));
 		}
 		int k = 122;
 		for(int i = 0;i < 100; i++){
-			verticalText[i].setBounds(k, 80, 30, 30);						
-			k+=70;
+			verticalText[i].setBounds(k, 80, 30, 30);
+			k+=100;
 			verticalText[i].setBorder(null);
 			backgPanel.add(verticalText[i]);								
 		}
@@ -292,11 +354,6 @@ public class SnifferGraph implements DataBase{
         about.setToolTipText(Labels.tooltips_about);
         clear.setToolTipText(Labels.tooltips_clear);
         fileClose.setToolTipText(Labels.tooltips_fileClose);
-        /*box1.setToolTipText("MegNemTudomMicsoda_01");
-        box2.setToolTipText("MegNemTudomMicsoda_02");
-        box3.setToolTipText("MegNemTudomMicsoda_03");
-        box4.setToolTipText("MegNemTudomMicsoda_04");
-        box5.setToolTipText("MegNemTudomMicsoda_05");*/
 	}
 	/**
 	 * This Older ß function  specified where to align exactly the objects on the workspace.
@@ -322,15 +379,14 @@ public class SnifferGraph implements DataBase{
 		northPanel.add(clear);
 		timeLine.setBounds(TIMELINE_X, TIMELINE_Y, TIMELINE_WIDTH+1000000, TIMELINE_HEIGHT);		
 	    timeLine.setBackground(Color.white);
-
-		/*backgPanel.add(box1);
-		backgPanel.add(box2);
-		backgPanel.add(box3);
-		backgPanel.add(box4);
-		backgPanel.add(box5);*/
 		
 		backgPanel.add(timeLine);
-
+		int k = DATAPANEL_FIRST_SIZE;
+		for(int i=0;i<dataPanel.size();i++){
+			dataPanel.get(i).setBounds(k, DATAPANEL_Y, DATAPANEL_SIZE_X, ((xmlRead.number+3)*DATAPANEL_SIZE_Y));
+			backgPanel.add(dataPanel.get(i));
+			k+=DATAPANEL_SPEACE;
+		}
 		centerPanel.add(scrollbar, BorderLayout.SOUTH);
 		centerPanel.add(backgPanel, BorderLayout.CENTER);
 		
@@ -412,6 +468,14 @@ public class SnifferGraph implements DataBase{
 	
 	@SuppressWarnings("unused")
 	public static void main(String[] args) {
-		SnifferGraph aaa = new SnifferGraph();							
+		SnifferGraph main = new SnifferGraph();
+		/*JPanel aa = new JPanel();
+		JTextField bb = new JTextField("marsika");
+		aa.setLayout(null);
+		aa.add(bb);
+		aa.setBounds(300,300,300,300);
+		aa.setVisible(true);
+		dataPanel.add(aa);
+		backgPanel.add(dataPanel.get(dataPanel.size()-1));*/
     } 
 }

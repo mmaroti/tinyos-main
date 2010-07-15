@@ -17,7 +17,7 @@ public interface DataBase {
 	
 	public final int JCHECKBOX_FIRS_SIZE = 200;									
 	public final int HORISONTAL_JCB_SPEACE = screenHeight > 768 ? 70 : 40;
-	public final int JCHECKBOX_SIZE_X = 120;
+	public final int JCHECKBOX_SIZE_X = 80;
 	public final int JCHECKBOX_SIZE_Y = 20;
 	
 	public final int BUTTON_WIDTH = screenHeight > 768 ? 75 : 70;				
@@ -34,5 +34,12 @@ public interface DataBase {
 	public final int BACKG_PANEL_Y = 50;
 	public final int BACKG_WIDTH = screenWidth-40;
 	public final int BACKG_HEIGHT = screenHeight-170;
+	
+	public final int DATAPANEL_FIRST_SIZE = 100;
+	public final int DATAPANEL_SPEACE = 100;
+	public final int DATAPANEL_X = 70;
+	public final int DATAPANEL_Y = JCHECKBOX_FIRS_SIZE + HORISONTAL_JCB_SPEACE;
+	public final int DATAPANEL_SIZE_X = 71;
+	public final int DATAPANEL_SIZE_Y = 40;
 	
 }

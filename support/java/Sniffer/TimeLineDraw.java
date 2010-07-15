@@ -21,14 +21,14 @@ public class TimeLineDraw extends JPanel {
             Graphics2D g2d = (Graphics2D) g;
             g2d.setStroke(new BasicStroke(2));
             ArrayList<Graphics2D> verticalLines = new ArrayList<Graphics2D>();
-            for(int i = 0;i<1000;i++){
+            for(int i = 0;i<100;i++){
             	verticalLines.add((Graphics2D) g);
             }
             
             int k=0;
-            for(int i = 0;i<1000;i++){
+            for(int i = 0;i<100;i++){
             	verticalLines.get(i).drawLine(1+k, 1, 1+k, 12);
-            	k+=70;
+            	k+=100;
             }
             
             g2d.setStroke(new BasicStroke(5));									
