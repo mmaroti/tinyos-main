@@ -1,60 +1,65 @@
 #include <fstream>
 #include <iomanip>
-#include <limits>
+//#include <limits>
 #include "ADOL-C_NLP.hpp"
 
 using namespace Ipopt;
+
+typedef double NT;
 
 namespace {
 
 const int N_VARS = 15;
 const int N_CONS = 1;
+
+NT gx0, gy0, gz0;
+
 }
 
-typedef double NT;
+
 
 template<typename T>
 class glob {
 
 private:
 
-	T R_11; T R_12; T R_13;
-	T R_21; T R_22; T R_23;
-	T R_31; T R_32; T R_33;
+	T R_11, R_12, R_13;
+	T R_21, R_22, R_23;
+	T R_31, R_32, R_33;
 
-	T R0_11; T R0_12; T R0_13;
-	T R0_21; T R0_22; T R0_23;
-	T R0_31; T R0_32; T R0_33;
+	T R0_11, R0_12, R0_13;
+	T R0_21, R0_22, R0_23;
+	T R0_31, R0_32, R0_33;
 
-	T Rn_11; T Rn_12; T Rn_13;
-	T Rn_21; T Rn_22; T Rn_23;
-	T Rn_31; T Rn_32; T Rn_33;
+	T Rn_11, Rn_12, Rn_13;
+	T Rn_21, Rn_22, Rn_23;
+	T Rn_31, Rn_32, Rn_33;
 
-	T G_11; T G_12; T G_13;
-	T G_21; T G_22; T G_23;
-	T G_31; T G_32; T G_33;
+	T G_11, G_12, G_13;
+	T G_21, G_22, G_23;
+	T G_31, G_32, G_33;
 
-	NT A_11; NT A_12; NT A_13;
-	NT A_21; NT A_22; NT A_23;
-	NT A_31; NT A_32; NT A_33;
+	NT A_11, A_12, A_13;
+	NT A_21, A_22, A_23;
+	NT A_31, A_32, A_33;
 
-	T C_11; T C_12; T C_13;
-	T C_21; T C_22; T C_23;
-	T C_31; T C_32; T C_33;
+	T C_11, C_12, C_13;
+	T C_21, C_22, C_23;
+	T C_31, C_32, C_33;
 
-	T Cc_11; T Cc_12; T Cc_13;
-	T Cc_21; T Cc_22; T Cc_23;
-	T Cc_31; T Cc_32; T Cc_33;
+	T Cc_11, Cc_12, Cc_13;
+	T Cc_21, Cc_22, Cc_23;
+	T Cc_31, Cc_32, Cc_33;
 
-	NT b1; NT b2; NT b3;
-	T  d1; T  d2; T  d3;
-	T dc1; T dc2; T dc3;
-	T gx; T gy; T gz;
-	T sx; T sy; T sz;
+	NT b1, b2, b3;
+	T  d1,  d2,  d3;
+	T dc1, dc2, dc3;
+	T gx, gy, gz;
+	T sx, sy, sz;
 
 	//==========================================================================
 
-	T half; T one; T three; T dt; NT g_ref;
+	T half, one, three, dt, g_ref;
 
 	NT* wx; NT* wy; NT* wz;
 
@@ -272,6 +277,7 @@ private:
 public:
 
 	explicit glob(const char* const filename, bool verbose = false) : VERBOSE(verbose) {
+
 		half  = NT(0.5);
 		one   = NT(1);
 		three = NT(3);
@@ -385,25 +391,9 @@ public:
 			}
 		}
 
-		// FIXME Estimate initial vector
-//
-//		int i_max = -1;
-//		double err_max = std::numeric_limits<double>::max();
-//
-//		for (int i=0; i<N; ++i) {
-//			double g_err = std::sqrt(ax[i]*ax[i]+ay[i]*ay[i]+az[i]*az[i])-g_ref;
-//			g_err = 10*std::fabs(g_err);
-//			double w_err = std::sqrt(wx[i]*wx[i]+wy[i]*wy[i]+wz[i]*wz[i]);
-//			double total = g_err + w_err;
-//			if (total<err_max) {
-//				err_max = total;
-//				i_max = i;
-//			}
-//		}
-//
-//		cout << "Reference estimate, error: " << err_max << endl;
-//		cout << ax[i_max] << '\t' << ay[i_max] << '\t' << az[i_max] << endl;
-//		cout << wx[i_max] << '\t' << wy[i_max] << '\t' << wz[i_max] << endl;
+		gx0 = ax[0];
+		gy0 = ay[0];
+		gz0 = az[0];
 	}
 
 	T f(const T* const x)  {
@@ -527,9 +517,9 @@ bool MyADOLC_NLP::get_starting_point(Index n, bool init_x, Number* x,
 		x[i] = 0.0;
 
 	// FIXME Use the estimated g vector here!
-	x[12] =  9.81;
-	x[13] =  0.0;
-	x[14] =  0.0;
+	x[12] =  gx0;
+	x[13] =  gy0;
+	x[14] =  gz0;
 
 	return true;
 }
