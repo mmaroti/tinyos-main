@@ -12,7 +12,7 @@ namespace {
 const int N_VARS = 15;
 const int N_CONS = 1;
 
-NT gx0, gy0, gz0;
+NT ax0, ay0, az0;
 
 }
 
@@ -43,16 +43,16 @@ private:
 
 	T  d1,  d2,  d3;
 
-	T gx, gy, gz;
-	T sx, sy, sz;
+	NT ax, ay, az;
+	T  sx, sy, sz;
 
 	//==========================================================================
 
-	T half, one, three, dt, g_ref;
+	NT half, one, three, dt, g_ref;
 
 	NT* wx; NT* wy; NT* wz;
 
-	NT* ax; NT* ay; NT* az;
+	NT* acc_x; NT* acc_y; NT* acc_z;
 
 	int N;
 
@@ -227,24 +227,24 @@ private:
 		return;
 	}
 
-	void compute_g(int i) {
+	void compute_a(int i) {
 
-		gx = ax[i];
-		gy = ay[i];
-		gz = az[i];
+		ax = acc_x[i];
+		ay = acc_y[i];
+		az = acc_z[i];
 
 		if (VERBOSE) {
 			cout << endl;
 			cout << "a(i)" << endl;
-			cout << gx << '\t' << gy << '\t' << gz << endl;
+			cout << ax << '\t' << ay << '\t' << az << endl;
 		}
 	}
 
-	void sum_Ri_gi() {
+	void sum_Ri_ai() {
 
-		T acc_x = R_11*gx+R_12*gy+R_13*gz;
-		T acc_y = R_21*gx+R_22*gy+R_23*gz;
-		T acc_z = R_31*gx+R_32*gy+R_33*gz;
+		T acc_x = R_11*ax+R_12*ay+R_13*az;
+		T acc_y = R_21*ax+R_22*ay+R_23*az;
+		T acc_z = R_31*ax+R_32*ay+R_33*az;
 
 		if (VERBOSE) {
 			cout << endl;
@@ -299,9 +299,9 @@ public:
 
 		//--------------------------------------------------
 
-		ax = new NT[N];
-		ay = new NT[N];
-		az = new NT[N];
+		acc_x = new NT[N];
+		acc_y = new NT[N];
+		acc_z = new NT[N];
 
 		//---------------------------------------------------
 
@@ -323,9 +323,9 @@ public:
 
 		for (int i=0; i<N; ++i) {
 
-			in >> ax[i];
-			in >> ay[i];
-			in >> az[i];
+			in >> acc_x[i];
+			in >> acc_y[i];
+			in >> acc_z[i];
 
 			in >> dummy; in >> dummy; in >> dummy; in >> dummy;
 
@@ -340,9 +340,17 @@ public:
 			}
 		}
 
-		gx0 = ax[0];
-		gy0 = ay[0];
-		gz0 = az[0];
+		ax0 = acc_x[0];
+		ay0 = acc_y[0];
+		az0 = acc_z[0];
+
+		NT length = sqrt(ax0*ax0+ay0*ay0+az0*az0);
+
+		NT corr = g_ref/length;
+
+		ax0 *= corr;
+		ay0 *= corr;
+		az0 *= corr;
 	}
 
 	T f(const T* const x)  {
@@ -364,9 +372,9 @@ public:
 
 			normalize_R();
 
-			compute_g(i);
+			compute_a(i);
 
-			sum_Ri_gi();
+			sum_Ri_ai();
 
 		}
 
@@ -466,9 +474,9 @@ bool MyADOLC_NLP::get_starting_point(Index n, bool init_x, Number* x,
 		x[i] = 0.0;
 
 	// FIXME Use the estimated g vector here!
-	x[12] =  gx0;
-	x[13] =  gy0;
-	x[14] =  gz0;
+	x[12] =  ax0;
+	x[13] =  ay0;
+	x[14] =  az0;
 
 	return true;
 }
