@@ -1,29 +1,6 @@
 #include <iostream>
 
 template <int N>
-class Multiplier {
-
-public:
-
-	Multiplier(const double* const val);
-
-	int size() const { return N; }
-
-private:
-
-	Multiplier(const Multiplier& );
-	Multiplier& operator=(const Multiplier& );
-
-	double v[N];
-};
-
-template <int N>
-Multiplier<N>::Multiplier(const double* const val) {
-	for (int i=0; i<N; ++i)
-		v[i] = val[i];
-}
-
-template <int N, const double* const v>
 class HessType {
 
 public:
@@ -34,84 +11,83 @@ public:
 	HessType& operator=(const HessType& rhs);
 	HessType& operator=(double rhs);
 
+	template <int N_VAR>
+	friend void init_vars(HessType<N_VAR> var[N_VAR], const double* const x);
+
 private:
 
 	void copy(const HessType& other);
-	void copy(double value);
+	void init(double value);
 
 	double f;
 	double g[N];
-	double h[N];
+	double h[N][N];
 };
 
-template <int N, const double* const v>
-void HessType<N, v>::copy(double value) {
+template <int N>
+void HessType<N>::init(double value) {
 	f = value;
 	for (int i=0; i<N; ++i) {
 		g[i] = 0.0;
-		h[i] = 0.0;
+		for (int j=0; j<=i; ++j) {
+			h[i][j] = 0.0;
+		}
 	}
 }
 
-template <int N, const double* const v>
-void HessType<N, v>::copy(const HessType& other) {
+template <int N>
+void HessType<N>::copy(const HessType& other) {
 	f = other.f;
 	for (int i=0; i<N; ++i) {
 		g[i] = other.g[i];
-		h[i] = other.h[i];
+		for (int j=0; j<=i; ++j) {
+			h[i][j] = other.h[i][j];
+		}
 	}
 }
 
-template <int N, const double* const v>
-HessType<N, v>::HessType(double constant) {
-	copy(constant);
+template <int N>
+HessType<N>::HessType(double constant) {
+	init(constant);
 }
 
-template <int N, const double* const v>
-HessType<N, v>::HessType(const HessType& other) {
+template <int N>
+HessType<N>::HessType(const HessType& other) {
 	copy(other);
 }
 
-template <int N, const double* const v>
-HessType<N, v>& HessType<N, v>::operator=(const HessType<N, v>& rhs) {
+template <int N>
+HessType<N>& HessType<N>::operator=(const HessType<N>& rhs) {
 	copy(rhs);
 	return *this;
 }
 
-template <int N, const double* const v>
-HessType<N, v>& HessType<N, v>::operator=(double rhs) {
-	copy(rhs);
+template <int N>
+HessType<N>& HessType<N>::operator=(double rhs) {
+	init(rhs);
 	return *this;
 }
 
-const int N_VARS = 12;
+template <int N_VAR>
+void init_vars(HessType<N_VAR> var[N_VAR], const double* x) {
 
-class Y
-{
-};
-template<class T, T* pT> class X1
-{
-};
-
-
+	var[0].f = x[0];
+}
 
 int main() {
 
-	Y aY;
-
-	X1<Y, &aY> x1;
-
+	const int N_VARS = 2;
 	double v[N_VARS];
-	const double* const array = v;
-	Multiplier<12> x(v);
-	int n = x.size();
-	//HessType<N_VARS, array> a;
-	// FIXME Ctorban meg kell adni, maskeppen nem megy...
-	//HessType<N_VARS, v> b(1.0);
-	//HessType<N_VARS, v> c(a);
-	//a = c;
-	//const double three = 3.0;
-	//c = three;
+
+	HessType<N_VARS> a;
+	HessType<N_VARS> b(1.0);
+	HessType<N_VARS> c(a);
+	a = c;
+	const double three = 3.0;
+	c = three;
+
+	HessType<N_VARS> vars[N_VARS];
+	init_vars(vars, v);
 
 	return 0;
 }
