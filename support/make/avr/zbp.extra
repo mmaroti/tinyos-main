@@ -1,0 +1,14 @@
+#-*-Makefile-*- vim:syntax=make
+#$Id: zbp.extra,v 1.1 2010-07-16 23:43:27 mmaroti Exp $
+
+PROGRAM = zbp
+
+ifneq ($(ZBP),)
+ZBP_PORT = $(ZBP)
+endif
+
+ZBP_BAUDRATE ?= 57600
+
+program: FORCE
+	@echo "    installing $(PLATFORM) binary using zigbit bootloader"
+	java org.szte.wsn.zigbit.Programmer -port $(ZBP_PORT) -baudrate $(ZBP_BAUDRATE) -reset -upload $(INSTALL_SREC)

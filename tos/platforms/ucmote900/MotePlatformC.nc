@@ -11,6 +11,7 @@
  * 
  * @author David Gay
  */
+
 configuration MotePlatformC
 {
   provides interface Init as PlatformInit;
@@ -21,4 +22,6 @@ implementation {
 
   PlatformInit = MotePlatformP;
   SubInit = MotePlatformP.SubInit;
+
+  components SerialResetC;
 }

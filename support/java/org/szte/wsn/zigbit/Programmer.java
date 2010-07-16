@@ -41,10 +41,8 @@ import java.io.IOException;
 import java.util.*;
 import java.io.*;
 
-public class Bootloader implements SerialPortListener
+public class Programmer implements SerialPortListener
 {
-	String port;
-
 	TOSSerial serial;
 	protected InputStream is;
 	protected OutputStream os;
@@ -109,17 +107,87 @@ public class Bootloader implements SerialPortListener
 		}
 	}
 	
-	public void openProgrammer() throws IOException
+	public void openBootloader(String port) throws IOException
 	{
 		closePort();
 		
-		serial = new TOSSerial(port);
+		try
+		{
+			serial = new TOSSerial(port);
+		}
+		catch(Exception e)
+		{
+			System.out.println("Cound not open port: " + port);
+			System.exit(5);
+		}
+		
 		serial.setSerialPortParams(38400, 8, SerialPort.STOPBITS_1, false);
 		serial.addListener(this);
 		serial.notifyOn(SerialPortEvent.DATA_AVAILABLE, true);
 
 		is = serial.getInputStream();
 		os = serial.getOutputStream();
+	}
+
+	public void openTinyOS(String port, int baudrate) throws IOException
+	{
+		closePort();
+		
+		try
+		{
+			serial = new TOSSerial(port);
+		}
+		catch(Exception e)
+		{
+			System.out.println("Cound not open port: " + port);
+			System.exit(7);
+		}
+		
+		serial.setSerialPortParams(baudrate, 8, SerialPort.STOPBITS_1, false);
+		serial.addListener(this);
+		serial.notifyOn(SerialPortEvent.DATA_AVAILABLE, true);
+
+		is = serial.getInputStream();
+		os = serial.getOutputStream();
+	}
+
+	public void resetTinyOS() throws IOException
+	{
+		byte[] req = new byte[] { (byte)0x7e, (byte)0x44, (byte)0x19, (byte)0x72, 'R', 'S', 'T', (byte)0xb9, (byte)0x1e, (byte)0x7e };
+		byte[] ack = new byte[] { (byte)0x7e, (byte)0x45, (byte)0x72, 'Z', 'B', 'P', (byte)0x76, (byte)0x35, (byte)0x7e };
+
+		byte[] response = new byte[ack.length];
+		
+		System.out.print("resetting TinyOS ..");
+		for(int i = 0; i < 5; ++i)
+		{
+			System.out.print('.');
+			
+			writeBytes(req);
+			long deadline = System.currentTimeMillis() + 468;
+			
+			for(;;)
+			{
+				long timeout = deadline - System.currentTimeMillis();
+				if( timeout <= 0 )
+					break;
+				
+				byte[] b = readBytes(1, timeout);
+				if( b != null )
+				{
+					System.arraycopy(response, 1, response, 0, response.length-1);
+					response[response.length-1] = b[0];
+					
+					if( Arrays.equals(response, ack) )
+					{
+						System.out.println(" done");
+						return;
+					}
+				}
+			}
+		}
+		
+		System.out.println(" failed");
 	}
 
 	public void accessBootloder() throws IOException
@@ -136,7 +204,7 @@ public class Bootloader implements SerialPortListener
 			byte[] response = readBytes(4, 500);
 			if( response != null && Arrays.equals(response, ack) )
 			{
-				System.out.println(" connected");
+				System.out.println(" done");
 				return;
 			}
 		}
@@ -198,11 +266,60 @@ public class Bootloader implements SerialPortListener
 	
 	public static void main(String[] args) throws IOException
 	{
-		Bootloader bootloader = new Bootloader();
-		bootloader.port = "com25";
-		bootloader.openProgrammer();
-		bootloader.accessBootloder();
-		bootloader.uploadFile("C:\\tinyos\\tinyos-2.x\\apps\\Blink\\build\\ucmote900\\main.srec");
-		bootloader.closePort();
+		String port = null;
+		int baudrate = 57600;
+		boolean reset = false;
+		String srec = null;
+
+		if( args.length == 0 )
+		{
+			System.out.println("Usage: java org.szte.wsn.zigbit.Programmer <flags>");
+			System.out.println("  where flags are the following");
+			System.out.println("\t-port <name>\t\tsets the communication port (mandatory)");
+			System.out.println("\t-baudrate <rate>\tsets the baudrate of the TinyOS serial");
+			System.out.println("\t-reset\t\t\tsoftware reset through TinyOS serial");
+			System.out.println("\t-upload <srec file>\tuploads file through ZigBit bootloader");
+			System.exit(0);
+		}
+		
+		for(int i = 0; i < args.length; ++i)
+		{
+			if( args[i].equals("-port") )
+				port = args[++i];
+			else if( args[i].equals("-baudrate") )
+				baudrate = Integer.parseInt(args[++i]);
+			else if( args[i].equals("-reset") )
+				reset = true;
+			else if( args[i].equals("-upload") )
+				srec = args[++i];
+			else
+			{
+				System.out.println("Incorrect option: " + args[i]);
+				System.exit(6);
+			}
+		}
+		
+		if( port == null )
+		{
+			System.out.println("The communication port is not specified");
+			System.exit(6);
+		}
+		
+		Programmer programmer = new Programmer();
+
+		if( reset )
+		{
+			programmer.openTinyOS(port, baudrate);
+			programmer.resetTinyOS();
+			programmer.closePort();
+		}
+		
+		if( srec != null )
+		{
+			programmer.openBootloader(port);
+			programmer.accessBootloder();
+			programmer.uploadFile(srec);
+			programmer.closePort();
+		}
 	}
 }

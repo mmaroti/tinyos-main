@@ -3,7 +3,6 @@
 
   %T/platforms/ucmote900
   %T/platforms/ucmote900/chips/rf212
-  %T/platforms/meshbean/chips/atm1281/usart
   %T/platforms/iris
   %T/platforms/micaz
   %T/platforms/mica

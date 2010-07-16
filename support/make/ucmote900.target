@@ -1,17 +1,8 @@
 #-*-Makefile-*- vim:syntax=make
 
 PLATFORM = ucmote900
-SENSORBOARD ?= 
-PROGRAMMER ?= avrdude
-
-
-ifeq ($(PROGRAMMER),avrdude)
-  PROGRAMMER_PART ?= -pm1281 -U efuse:w:0xff:m
-endif
-
-ifeq ($(PROGRAMMER),uisp)
-  PROGRAMMER_PART ?= -dpart=ATmega1281 --wr_fuse_e=ff
-endif
+SENSORBOARD = ""
+DEFAULT_PROGRAM = zbp
 
 #Setting Fusebits as default
 AVR_FUSE_H ?= 0x99

@@ -23,25 +23,6 @@ implementation
 		PORTC = 0;
 		DDRC = 0xff;
 
-		// set the clock prescaler
-		atomic
-		{
-			// enable changing the prescaler
-			CLKPR = 0x80;
-
-#if MHZ == 8
-			CLKPR = 0x00;
-#elif MHZ == 4
-			CLKPR = 0x01;
-#elif MHZ == 2
-			CLKPR = 0x02;
-#elif MHZ == 1
-			CLKPR = 0x03;
-#else
-	#error "Unsupported MHZ"
-#endif
-		}
-
 		return call SubInit.init();
 	}
 
