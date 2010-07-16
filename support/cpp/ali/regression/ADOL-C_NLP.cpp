@@ -6,8 +6,8 @@ using namespace Ipopt;
 
 namespace {
 
-const int N_VARS = 15;
-const int N_CONS = 1;
+const int N_VARS = 12;
+const int N_CONS = 0;
 
 double M11, M12, M13;
 double M21, M22, M23;
@@ -29,25 +29,6 @@ int N;
 
 NT dt, g_ref;
 
-NT ax0, ay0, az0; // FIXME Hideous...
-
-}
-
-void estimate_a0() {
-
-	using namespace input;
-
-	ax0 = acc_x[0];
-	ay0 = acc_y[0];
-	az0 = acc_z[0];
-
-	NT length = std::sqrt(ax0*ax0+ay0*ay0+az0*az0);
-
-	NT corr = std::fabs(g_ref)/length;
-
-	ax0 *= corr;
-	ay0 *= corr;
-	az0 *= corr;
 }
 
 void init(const char* const filename) {
@@ -111,13 +92,9 @@ void init(const char* const filename) {
 
 	// -------------------------------------------------------------------------
 
-	estimate_a0();
-
-	// -------------------------------------------------------------------------
-
 	string fname(filename);
 
-	fname.append(".gerr");
+	fname.append("_gerr");
 
 	out.open(fname.c_str());
 	out << setprecision(16);
@@ -160,7 +137,7 @@ private:
 
 	int N;
 
-	const bool VERBOSE;
+	bool VERBOSE;
 
 	//==========================================================================
 
@@ -345,7 +322,7 @@ private:
 			cout << endl;
 			cout << "g(i)" << endl;
 			cout << g_x << ' ' << g_y << ' ' << g_z << endl;
-			out << g_x << ' ' << g_y << ' ' << (g_z-input::g_ref) << endl;
+			out  << g_x << ' ' << g_y << ' ' << (g_z-input::g_ref) << endl;
 		}
 
 		// TODO Scaling factor?
@@ -356,7 +333,7 @@ private:
 	}
 
 	T objective(const T* const x) {
-		return (sx/N-x[12])*(sx/N-x[12]) + (sy/N-x[13])*(sy/N-x[13]) + (sz/N-x[14])*(sz/N-x[14]);
+		return -((sx/N)*(sx/N) + (sy/N)*(sy/N) + (sz/N)*(sz/N));
 	}
 
 public:
@@ -368,14 +345,13 @@ public:
 			double* wy,
 			double* wz,
 			int N,
-			double dt,
-			bool verbose = false)
-	: VERBOSE(verbose)
+			double dt)
 	{
 
 		half  = NT(0.5);
 		one   = NT(1);
 		three = NT(3);
+		VERBOSE = false;
 
 		this->acc_x = acc_x;
 		this->acc_y = acc_y;
@@ -385,7 +361,7 @@ public:
 		this->wy = wy;
 		this->wz = wz;
 
-		this->dt    = dt;
+		this->dt = dt;
 
 		this->N = N;
 	}
@@ -416,6 +392,14 @@ public:
 		return objective(x);
 	}
 
+	const T s_x() const { return sx/N; }
+
+	const T s_y() const { return sy/N; }
+
+	const T s_z() const { return sz/N; }
+
+	void set_verbose() { VERBOSE = true; }
+
 };
 
 void dump(bool use_hardcoded) {
@@ -424,7 +408,7 @@ void dump(bool use_hardcoded) {
 	using std::pow;
 
 	using namespace input;
-	glob<double> obj(acc_x, acc_y, acc_z, wx, wy, wz, N, dt, true);
+	glob<double> obj(acc_x, acc_y, acc_z, wx, wy, wz, N, dt);
 
 	// manual2
 	double y[] = {
@@ -475,9 +459,11 @@ void dump(bool use_hardcoded) {
 		x = solution;
 	}
 
-	const double ax = x[12];
-	const double ay = x[13];
-	const double az = x[14];
+	obj.f(x);
+
+	const double ax = obj.s_x();
+	const double ay = obj.s_y();
+	const double az = obj.s_z();
 
 	const double axy = sqrt(pow(ax, 2)+pow(ay, 2));
 
@@ -509,6 +495,8 @@ void dump(bool use_hardcoded) {
 	M32 =-M23;
 	M33 = c;
 
+	obj.set_verbose();
+
 	double z = obj.f(x);
 
 	cout << "===========================================================" << endl;
@@ -536,9 +524,6 @@ template<class T> bool  MyADOLC_NLP::eval_obj(Index n, const T *x, T& obj_value)
 
 template<class T> bool  MyADOLC_NLP::eval_constraints(Index n, const T *x, Index m, T* g)
 {
-	// FIXME Hideous
-	using namespace input;
-	g[0] = x[12]*x[12] + x[13]*x[13] + x[14]*x[14] - g_ref*g_ref;
 	return true;
 }
 
@@ -549,11 +534,6 @@ bool MyADOLC_NLP::get_bounds_info(Index n, Number* x_l, Number* x_u,
 	for (Index i=0; i<n; i++) {
 		x_l[i] = -1.0;
 		x_u[i] =  1.0;
-	}
-
-	for (int i=12; i<=14; ++i) {
-		x_l[i] = -10;
-		x_u[i] =  10;
 	}
 
 	// Set the bounds for the constraints
@@ -577,13 +557,6 @@ bool MyADOLC_NLP::get_starting_point(Index n, bool init_x, Number* x,
 	// set the starting point
 	for (Index i=0; i<n; i++)
 		x[i] = 0.0;
-
-	// FIXME Hideous
-	using namespace input;
-
-	x[12] =  ax0;
-	x[13] =  ay0;
-	x[14] =  az0;
 
 	return true;
 }
