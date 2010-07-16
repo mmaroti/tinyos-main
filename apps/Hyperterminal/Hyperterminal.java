@@ -34,7 +34,7 @@ class Hyperterminal implements MessageListener{
 	    String str=null;
 	    try{
 	    	str = buff.readLine();
-	    	str+=(char)19;
+	    	str+=(char)13;
 	    }catch(IOException e){}; 
    	    asciiCodes= new short[str.length()];
 	   	for ( int i=0; i<str.length(); ++i ){
@@ -47,8 +47,8 @@ class Hyperterminal implements MessageListener{
 		DataMsg recAnswer=(DataMsg)msg;
 		out.print("The received answer is: ");
 		for(int i=0;i<recAnswer.get_length();++i){
-			//out.print((char)recAnswer.getElement_cmd(i)+" ");
-			out.print(recAnswer.getElement_cmd(i)+" ");
+			out.print((char)recAnswer.getElement_cmd(i)+" ");
+			//out.print(recAnswer.getElement_cmd(i)+" ");
 		}
 		out.println();
 	}
