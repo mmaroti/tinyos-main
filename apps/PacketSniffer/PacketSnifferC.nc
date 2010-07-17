@@ -64,7 +64,7 @@ implementation {
   PacketSnifferP.UartReceive    -> Serial;
 
   PacketSnifferP.RadioControl   -> Radio;
-  PacketSnifferP.RadioPacket    -> Radio;
   PacketSnifferP.RadioReceive   -> Radio;
-
+  PacketSnifferP.RadioPacket    -> Radio;
+  PacketSnifferP.SnifferData    -> Radio;
 }

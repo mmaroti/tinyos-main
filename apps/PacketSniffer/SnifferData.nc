@@ -33,17 +33,39 @@
 *         veresskrisztian@gmail.com
 */
 
-#ifndef PACKETSNIFFER_H
-#define PACKETSNIFFER_H
+/**
+  * Basic interface to access different values in the 
+  * message_t structure platform-independently.
+  * 
+  * @author Veress Krisztian
+  * @date   July 17 2010
+  * 
+  */
 
-enum {
-  TOS_SERIAL_PACKET_SNIFFER_ID = 3
-};
-
-typedef nx_struct sniffer_data_t {
-  nx_uint8_t   rssi;
-  nx_uint8_t   lqi;
-  nx_uint32_t  timestamp;
-} sniffer_data_t;
-
-#endif
+interface SnifferData {
+  
+  /**
+    * Retrieve the RSSI value of the received packet
+    *
+    * @param 'message_t* ONE msg'   the packet
+    * @return the packet RSSI value
+    */
+  command uint8_t getPacketRSSI(message_t* msg);
+  
+  /**
+    * Retrieve the LQI value of the received packet
+    *
+    * @param 'message_t* ONE msg'   the packet
+    * @return the link quality indicator value
+    */
+  command uint8_t getPacketLQI(message_t* msg);
+  
+  /**
+    * Retrieve the timestamp value of the received packet
+    *
+    * @param 'message_t* ONE msg'   the packet
+    * @return the reception timestamp
+    */
+  command uint32_t getPacketTimestamp(message_t* msg);
+  
+}

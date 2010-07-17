@@ -33,17 +33,26 @@
 *         veresskrisztian@gmail.com
 */
 
-#ifndef PACKETSNIFFER_H
-#define PACKETSNIFFER_H
 
-enum {
-  TOS_SERIAL_PACKET_SNIFFER_ID = 3
-};
+module SnifferDataP @safe() {
+  provides interface SnifferData;
+  uses {
+    interface PacketField<uint8_t> as PacketRSSI;
+    interface PacketField<uint8_t> as PacketLQI;
+    interface PacketTimeStamp<TRadio, uint32_t> as Timestamp;
+  }
+}
 
-typedef nx_struct sniffer_data_t {
-  nx_uint8_t   rssi;
-  nx_uint8_t   lqi;
-  nx_uint32_t  timestamp;
-} sniffer_data_t;
-
-#endif
+implementation {
+  command uint8_t SnifferData.getPacketRSSI(message_t* msg) {
+    return ( call PacketRSSI.isSet(msg) ) ? call PacketRSSI.get(msg) : (uint8_t)0;
+  }
+ 
+  command uint8_t SnifferData.getPacketLQI(message_t* msg) {
+    return ( call PacketLQI.isSet(msg) ) ? call PacketLQI.get(msg) : (uint8_t)0;
+  }
+  
+  command uint32_t SnifferData.getPacketTimestamp(message_t* msg) {
+    return ( call Timestamp.isValid(msg) ) ? call Timestamp.timestamp(msg) : (uint32_t)0;
+  }
+}

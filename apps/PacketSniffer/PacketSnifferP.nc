@@ -36,21 +36,21 @@
 module PacketSnifferP @safe() {
   uses {
     interface Boot;
+    interface Leds;
+    
     interface SplitControl as SerialControl;
     interface SplitControl as RadioControl;
-    interface Leds;
 
 //  Serial communication    
-    interface Send as UartSend;
+    interface Send    as UartSend;
     interface Receive as UartReceive;
-    
-  //  interface Packet as UartPacket;
 
 //  Radio message detection
     interface Receive as RadioReceive;
 
 //  Packet info
     interface Packet as RadioPacket;
+    interface SnifferData;
   }
 }
 
@@ -118,14 +118,24 @@ implementation
   /** MESSAGE RECEPTION **/
   event message_t* ONE RadioReceive.receive(message_t* ONE msg, void* COUNT(len) payload, uint8_t len) {
 
-    message_t *ret = msg;
+    //uint8_t* pl;
+    message_t *ret = msg;       
     call Leds.led1Toggle();
+  
+    // #1 
+    //  pl = (uint8_t*)msg;
+    //  *(pl+13) = 0xEA;
+     
 
+    // #2
+    //pl = (uint8_t*)payload;  
+    //*pl = 0xEA;
+    
     atomic {
       if (!uartFull){
         ret = uartQueue[uartIn];
         uartQueue[uartIn] = msg;
-
+        
         uartIn = (uartIn + 1) % UART_QUEUE_LEN;
 	
         if (uartIn == uartOut)
@@ -145,20 +155,24 @@ implementation
   task void uartSendTask() {
 
     uint8_t len;
-    //am_id_t id;
-    //am_addr_t addr, src;
     message_t* msg;
 
+    //sniffer_data_t sd, *psd;
+    // Retrieve sniffer information
+    //sd.rssi = call SnifferData.getPacketRSSI(msg);
+    //sd.lqi  = call SnifferData.getPacketLQI(msg);
+    //sd.timestamp = call SnifferData.getPacketTimestamp(msg);
+    
     atomic {
       if (uartIn == uartOut && !uartFull) {
     	  uartBusy = FALSE;
 	      return;
     	}
-    }
-
+    }    
     msg = uartQueue[uartOut];
+    
     len = call RadioPacket.payloadLength(msg);
-//    call UartPacket.clear(msg);
+    call RadioPacket.clear(msg);
 
     if (call UartSend.send(uartQueue[uartOut], len) != SUCCESS)
 	    post uartSendTask();
