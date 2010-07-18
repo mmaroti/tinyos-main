@@ -33,8 +33,8 @@
 *         veresskrisztian@gmail.com
 */
 
-#ifndef PACKETSNIFFER_H
-#define PACKETSNIFFER_H
+#ifndef __PACKETSNIFFER_H__
+#define __PACKETSNIFFER_H__
 
 enum {
   TOS_SERIAL_PACKET_SNIFFER_ID = 3
@@ -45,5 +45,22 @@ typedef nx_struct sniffer_data_t {
   nx_uint8_t   lqi;
   nx_uint32_t  timestamp;
 } sniffer_data_t;
+
+#if defined(PLATFORM_IRIS) || defined(PLATFORM_MULLE)
+  #define RADIO_IS_RF230
+#elif defined(PLATFORM_MICA2) || defined(PLATFORM_MICA2DOT)
+  #error "** THIS PLATFORM IS NOT YET SUPPORTED! **"
+  #define RADIO_IS_CC1000
+#elif defined(PLATFORM_MICAZ) || defined(PLATFORM_TELOSB) || \
+      defined(PLATFORM_SHIMMER) || defined(PLATFORM_SHIMMER2) || \
+      defined(PLATFORM_INTELMOTE2) || defined(PLATFORM_TELOSA)
+  #error "** THIS PLATFORM IS NOT YET SUPPORTED! **"
+  #define RADIO_IS_CC2420
+#elif defined(PLATFORM_EYESIFXV1) || defined(PLATFORM_EYESIFXV2)
+  #error "** THIS PLATFORM IS NOT YET SUPPORTED! **"
+  #define RADIO_IS_TDA5250
+#else
+  #error "** THIS PLATFORM IS UNKNOWN ! **"
+#endif
 
 #endif

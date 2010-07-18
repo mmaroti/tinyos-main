@@ -8,16 +8,20 @@ implementation {
   enum {
     SNIFFER_SIZE = sizeof(sniffer_data_t)
   };
-#if defined(PLATFORM_IRIS) || defined(PLATFORM_MULLE)
-  enum {
-    HEADER_SIZE = sizeof(rf230packet_header_t),
-    FOOTER_SIZE = sizeof(rf230packet_footer_t),
-  };
-#else
-  enum {
-    HEADER_SIZE = sizeof(cc2420_header_t),
-    FOOTER_SIZE = sizeof(cc2420_footer_t),
-  };
+  
+#define MAKE_SIZE_ENUM(TYPE) \
+  enum { HEADER_SIZE = sizeof(TYPE##_header_t), \
+         FOOTER_SIZE = sizeof(TYPE##_footer_t), \
+         MTDATA_SIZE = sizeof(TYPE##_metadata_t) };
+         
+#if defined(RADIO_IS_RF230)
+  MAKE_SIZE_ENUM(rf230packet)
+#elif defined(RADIO_IS_CC2420)
+  MAKE_SIZE_ENUM(cc2420)
+#elif defined(RADIO_IS_CC1000)
+  MAKE_SIZE_ENUM(cc1000)
+#elif defined(RADIO_IS_TDA5250)
+  MAKE_SIZE_ENUM(tda5250)
 #endif
 
   async command uint8_t Info.offset() {

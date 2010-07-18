@@ -33,6 +33,7 @@
 *         veresskrisztian@gmail.com
 */
 
+#include "PacketSniffer.h"
 configuration PacketSnifferC {}
 
 implementation {
@@ -42,16 +43,8 @@ implementation {
   components MainC, LedsC;
   components SerialPacketSnifferC as Serial;
  
-#if defined(PLATFORM_IRIS) || defined(PLATFORM_MULLE)
+#if defined(RADIO_IS_RF230)
   components RF230SnifferStackC as Radio;
-#elif defined(PLATFORM_MICA2) || defined(PLATFORM_MICA2DOT)
-  #error "** THIS PLATFORM IS NOT SUPPORTED YET ! **"
-#elif defined(PLATFORM_MICAZ) || defined(PLATFORM_TELOSB) || defined(PLATFORM_SHIMMER) || defined(PLATFORM_SHIMMER2) || defined(PLATFORM_INTELMOTE2) || defined(PLATFORM_TELOSA)
-  #error "** THIS PLATFORM IS NOT SUPPORTED YET ! **"
-#elif defined(PLATFORM_EYESIFXV1) || defined(PLATFORM_EYESIFXV2)
-  #error "** THIS PLATFORM IS NOT SUPPORTED YET ! **"
-#else
-  #error "This platform is not supported!"
 #endif
   
   components PacketSnifferP;
