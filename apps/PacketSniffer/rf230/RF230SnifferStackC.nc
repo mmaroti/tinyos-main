@@ -35,58 +35,45 @@
 
 configuration RF230SnifferStackC {
   provides {
-    interface SplitControl as RadioControl;
-    interface Packet as RadioPacket;
-    interface Receive as RadioReceive;
-    
-    interface PacketField<uint8_t> as PacketTransmitPower;
-		interface PacketField<uint8_t> as PacketRSSI;
-		interface PacketField<uint8_t> as PacketTimeSyncOffset;
-		interface PacketField<uint8_t> as PacketLinkQuality;
-		
-		interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
-		interface PacketTimeStamp<TRadio, uint32_t> as PacketTimeStampRadio;		
+    interface SplitControl;
+    interface Receive;
+    interface Packet;
+    interface SnifferData;
   }
 }
 
 implementation {
 
 
-// -------- Some component transformation hacks
+// -------- Some interface transformation hacks
 
-  components RadioPacket2PacketP;
-  RadioPacket2PacketP.RadioPacket -> RadioDriverLayerC;
-  RadioPacket = RadioPacket2PacketP;
+  components InterfaceTransformerP;
+  InterfaceTransformerP.RadioState -> RadioDriverLayerC;
+  InterfaceTransformerP.RadioReceive -> RadioDriverLayerC;
+  InterfaceTransformerP.RadioPacket  -> RadioDriverLayerC;
+
+  SplitControl = InterfaceTransformerP;
+  Receive = InterfaceTransformerP;
+  Packet = InterfaceTransformerP;
   
-  components RadioReceive2ReceiveP;
-  RadioReceive2ReceiveP.RadioReceive -> RadioDriverLayerC;
-  RadioReceive2ReceiveP.RadioPacket  -> RadioDriverLayerC;
-  RadioReceive = RadioReceive2ReceiveP;
-  
-  components RadioState2SplitControlP;
-  RadioState2SplitControlP.RadioState -> RadioDriverLayerC;
-  RadioControl = RadioState2SplitControlP;
+// -------- RSSI, LQI, Timestamp
 
-// -------- TX power, LQI, RSSI, Timestamps
-
-  PacketTransmitPower   = RadioDriverLayerC.PacketTransmitPower;
-	PacketRSSI            = RadioDriverLayerC.PacketRSSI;
-	PacketTimeSyncOffset  = RadioDriverLayerC.PacketTimeSyncOffset;
-  PacketLinkQuality     = RadioDriverLayerC.PacketLinkQuality;
-
-	PacketTimeStampRadio  = TimeStampingLayerC;
-	PacketTimeStampMilli  = TimeStampingLayerC;
+  components SnifferDataP;
+  SnifferDataP.PacketRSSI -> RadioDriverLayerC.PacketRSSI;
+  SnifferDataP.PacketLQI -> RadioDriverLayerC.PacketLinkQuality;
+  SnifferDataP.Timestamp -> TimeStampingLayerC.PacketTimeStampRadio;
+  SnifferData = SnifferDataP;
 
 // -------- TimeStamping
 
-	components TimeStampingLayerC;
-	TimeStampingLayerC.LocalTimeRadio -> RadioDriverLayerC;
-	TimeStampingLayerC.SubPacket      -> MetadataFlagsLayerC;
+  components TimeStampingLayerC;
+  TimeStampingLayerC.LocalTimeRadio -> RadioDriverLayerC;
+  TimeStampingLayerC.SubPacket      -> MetadataFlagsLayerC;
 
 // -------- MetadataFlags
 
-	components MetadataFlagsLayerC;
-	MetadataFlagsLayerC.SubPacket -> RadioDriverLayerC;
+  components MetadataFlagsLayerC;
+  MetadataFlagsLayerC.SubPacket -> RadioDriverLayerC;
 
 // -------- Timestamping Layer
 
