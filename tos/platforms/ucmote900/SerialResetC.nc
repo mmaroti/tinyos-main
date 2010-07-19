@@ -41,8 +41,10 @@ implementation
 { 
 	components SerialResetP, LedsC, SerialDispatcherC, MainC, PlatformSerialC;
 
+#ifdef ZBP_AUTOSTART
 	MainC.SoftwareInit -> SerialDispatcherC;
 	MainC.Boot <- SerialResetP;
+#endif
 
 	SerialResetP.Leds -> LedsC;
 	SerialResetP.Send -> SerialDispatcherC.Send[0x72];
