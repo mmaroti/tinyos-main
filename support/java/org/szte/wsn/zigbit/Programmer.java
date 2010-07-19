@@ -107,7 +107,7 @@ public class Programmer implements SerialPortListener
 		}
 	}
 	
-	public void openBootloader(String port) throws IOException
+	public void openPort(String port) throws IOException
 	{
 		closePort();
 		
@@ -121,7 +121,6 @@ public class Programmer implements SerialPortListener
 			System.exit(5);
 		}
 		
-		serial.setSerialPortParams(38400, 8, SerialPort.STOPBITS_1, false);
 		serial.addListener(this);
 		serial.notifyOn(SerialPortEvent.DATA_AVAILABLE, true);
 
@@ -129,59 +128,55 @@ public class Programmer implements SerialPortListener
 		os = serial.getOutputStream();
 	}
 
-	public void openTinyOS(String port, int baudrate) throws IOException
+	public void setBaudrate(int baudrate)
 	{
-		closePort();
-		
-		try
-		{
-			serial = new TOSSerial(port);
-		}
-		catch(Exception e)
-		{
-			System.out.println("Cound not open port: " + port);
-			System.exit(7);
-		}
-		
 		serial.setSerialPortParams(baudrate, 8, SerialPort.STOPBITS_1, false);
-		serial.addListener(this);
-		serial.notifyOn(SerialPortEvent.DATA_AVAILABLE, true);
-
-		is = serial.getInputStream();
-		os = serial.getOutputStream();
 	}
-
-	public void resetTinyOS() throws IOException
+	
+	public void resetTinyOS(int baudrate) throws IOException
 	{
 		byte[] req = new byte[] { (byte)0x7e, (byte)0x44, (byte)0x19, (byte)0x72, 'R', 'S', 'T', (byte)0xb9, (byte)0x1e, (byte)0x7e };
 		byte[] ack = new byte[] { (byte)0x7e, (byte)0x45, (byte)0x72, 'Z', 'B', 'P', (byte)0x76, (byte)0x35, (byte)0x7e };
-
 		byte[] response = new byte[ack.length];
 		
-		System.out.print("resetting TinyOS ..");
-		for(int i = 0; i < 5; ++i)
+		int[] baudrates;
+		if( baudrate == 0 )
+			baudrates = new int[] { 57600, 230400, 115200, 38400 };
+		else
+			baudrates = new int[] { baudrate };
+		
+		System.out.print("Resetting TinyOS ..");
+		for(int i = 0; i < 3; ++i)
 		{
-			System.out.print('.');
-			
-			writeBytes(req);
-			long deadline = System.currentTimeMillis() + 468;
-			
-			for(;;)
+			for(int j = 0; j < baudrates.length; ++j)
 			{
-				long timeout = deadline - System.currentTimeMillis();
-				if( timeout <= 0 )
-					break;
-				
-				byte[] b = readBytes(1, timeout);
-				if( b != null )
+				setBaudrate(baudrates[j]);
+
+				for(int k = 0; k < 2; ++k)
 				{
-					System.arraycopy(response, 1, response, 0, response.length-1);
-					response[response.length-1] = b[0];
-					
-					if( Arrays.equals(response, ack) )
+					System.out.print('.');
+			
+					writeBytes(req);
+					long deadline = System.currentTimeMillis() + 200;
+			
+					for(;;)
 					{
-						System.out.println(" done");
-						return;
+						long timeout = deadline - System.currentTimeMillis();
+						if( timeout <= 0 )
+							break;
+				
+						byte[] b = readBytes(1, timeout);
+						if( b != null )
+						{
+							System.arraycopy(response, 1, response, 0, response.length-1);
+							response[response.length-1] = b[0];
+					
+							if( Arrays.equals(response, ack) )
+							{
+								System.out.println(" done");
+								return;
+							}
+						}
 					}
 				}
 			}
@@ -195,7 +190,7 @@ public class Programmer implements SerialPortListener
 		byte[] req = new byte[] { (byte)0xB2, (byte)0xA5, (byte)0x65, (byte)0x4B };
 		byte[] ack = new byte[] { (byte)0x69, (byte)0xD3, (byte)0xD2, (byte)0x26 };
 		
-		System.out.print("connecting to bootloader ..");
+		System.out.print("Connecting to bootloader ..");
 		for(int i = 0; i < 20; ++i)
 		{
 			System.out.print('.');
@@ -224,7 +219,7 @@ public class Programmer implements SerialPortListener
 		byte[] ack = new byte[] { (byte)0x4D, (byte)0x5A, (byte)0x9A, (byte)0xB4 };
 		byte[] nak = new byte[] { (byte)0x2D, (byte)0x59, (byte)0x5A, (byte)0xB2 };
 		
-		System.out.print("writing " + lines.size() + " pages ...");
+		System.out.print("Writing " + lines.size() + " pages to flash ...");
 		
 		for(int i = 0; i < lines.size(); ++i)
 		{
@@ -267,7 +262,7 @@ public class Programmer implements SerialPortListener
 	public static void main(String[] args) throws IOException
 	{
 		String port = null;
-		int baudrate = 57600;
+		int baudrate = 0;
 		boolean reset = false;
 		String srec = null;
 
@@ -276,7 +271,7 @@ public class Programmer implements SerialPortListener
 			System.out.println("Usage: java org.szte.wsn.zigbit.Programmer <flags>");
 			System.out.println("  where flags are the following");
 			System.out.println("\t-port <name>\t\tsets the communication port (mandatory)");
-			System.out.println("\t-baudrate <rate>\tsets the baudrate of the TinyOS serial");
+			System.out.println("\t-baudrate <rate>\tsets the baudrate of TinyOS serial (0=auto)");
 			System.out.println("\t-reset\t\t\tsoftware reset through TinyOS serial");
 			System.out.println("\t-upload <srec file>\tuploads file through ZigBit bootloader");
 			System.exit(0);
@@ -309,14 +304,15 @@ public class Programmer implements SerialPortListener
 
 		if( reset )
 		{
-			programmer.openTinyOS(port, baudrate);
-			programmer.resetTinyOS();
+			programmer.openPort(port);
+			programmer.resetTinyOS(baudrate);
 			programmer.closePort();
 		}
 		
 		if( srec != null )
 		{
-			programmer.openBootloader(port);
+			programmer.openPort(port);
+			programmer.setBaudrate(38400);
 			programmer.accessBootloder();
 			programmer.uploadFile(srec);
 			programmer.closePort();
