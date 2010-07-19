@@ -1,4 +1,5 @@
 #include "HessType.hpp"
+#include "GradType.hpp"
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -405,56 +406,43 @@ public:
 
 };
 
+template <typename T>
+void benchmark(const char* name, const char* expr, const int repetition) {
+
+	cout << "Running " << name << " benchmark" << endl;
+
+	using namespace input;
+
+	glob<T > gv(acc_x, acc_y, acc_z, wx, wy, wz, N, dt);
+
+	T x[N_VARS];
+	for (int i=0; i<N_VARS; ++i)
+		x[i] = 0.001;
+
+	clock_t start = clock();
+
+	for (int i=0; i<repetition; ++i) {
+		gv.f(x);
+	}
+
+	clock_t finish = clock();
+
+	const double diff = ((double)(finish - start))/CLOCKS_PER_SEC;
+
+	cout << "Computed " << expr << " " << repetition << " times," << flush;
+	cout << " took " << diff << " s" << endl;
+}
+
 int main() {
 
 	init("manual");
 
-	using namespace input;
-	static glob<HessType<N_VARS> > gv(acc_x, acc_y, acc_z, wx, wy, wz, N, dt);
+	benchmark<double>("double", "function value", 5000);
 
-	HessType<N_VARS> x[N_VARS];
-	for (int i=0; i<N_VARS; ++i)
-		x[i] = 0.001;
+	benchmark<GradType<N_VARS> >("GradType", "gradient", 100);
 
-	cout << "f(0): " << gv.f(x) << endl;
+	benchmark<HessType<N_VARS> >("HessType", "Hessian", 10);
 
-	time_t start, end;
-
-	const int rep = 30;
-
-	time (&start);
-
-	for (int i=0; i<rep; ++i) {
-		gv.f(x);
-	}
-	time (&end);
-
-	const double dif = difftime (end, start);
-
-	cout << "Computed " << rep << " times, took " << dif << " seconds" << endl;
-
-/*
-	const int N_VARS = 2;
-	double v[] = { 3.0, 5.0 };
-
-	HessType<N_VARS> a;
-	HessType<N_VARS> b(1.0);
-	HessType<N_VARS> c(a);
-	a = c;
-	const double three = 3.0;
-	c = three;
-
-	HessType<N_VARS> vars[N_VARS];
-	init_vars(vars, v);
-
-	c =  -c;
-	b = a+c;
-	c = b-a;
-	c = a*b;
-	c = a/b;
-
-	std::cout << "c: " << c << std::endl;
-*/
 	return 0;
 }
 
