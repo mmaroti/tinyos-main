@@ -7,6 +7,7 @@ CFLAGS += -I$(SZTETOSDIR)/lib/StorageFrame
 CFLAGS += -I$(SZTETOSDIR)/lib/StreamUploader
 SENSORBOARD=mts300
 CFLAGS += -DMTS300CB
+
 ERParser.class: ERParser.java
 	javac -cp $(CLASSPATH):$(SZTETOSROOT)/support/java/DataProcess ERParser.java 
 
