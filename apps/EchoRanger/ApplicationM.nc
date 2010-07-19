@@ -31,10 +31,12 @@
 *
 * Author:Andras Biro
 */
+
 #include "EchoRanger.h"
 #ifndef SAMP_T
 	#define SAMP_T 60000U
 #endif
+
 module ApplicationM{
 	uses {
 		interface SplitControl;
@@ -49,6 +51,7 @@ module ApplicationM{
 		interface Get<echorange_t*> as LastRange;
 	}
 }
+
 implementation{
 	
 	uint8_t counter=0;
@@ -105,15 +108,11 @@ implementation{
 		// TODO Auto-generated method stub
 	}
 
-	event void StreamStorage.getMinAddressDone(uint32_t addr){
+	event void StreamStorage.getMinAddressDone(uint32_t addr, error_t error){
 		// TODO Auto-generated method stub
 	}
 
 	event void StreamStorage.readDone(void *buf, uint8_t len, error_t error){
 		// TODO Auto-generated method stub
 	}
-
-	
-
-	
 }

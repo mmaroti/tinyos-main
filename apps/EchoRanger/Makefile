@@ -1,4 +1,4 @@
-COMPONENT=EchoRangerAppC
+COMPONENT=ApplicationC
 BUILD_EXTRA_DEPS += ERParser.class
 CFLAGS += -I$(SZTETOSDIR)/sensorboards/Mts300
 CFLAGS += -I$(SZTETOSDIR)/lib/Atm128FastAdc

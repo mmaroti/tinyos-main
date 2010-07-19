@@ -148,70 +148,42 @@ implementation
 		range.average = sum / ECHORANGER_BUFFER;
 	}
 
-	// must be 16 samples after start and 16 samples before end
+	// must be 8 samples before end
 	int16_t getScore(uint16_t start)
 	{
-		int16_t score = 0;
-		int16_t s;
-		uint16_t i;
-		
-		for(i = start - 16; i < start; ++i)
-		{
-			s = buffer[i] - range.average;
-			if( s >= 0 )
-				score -= s;
-			else
-				score += s;
-		}
+		int16_t a = buffer[start+0] - buffer[start+2] + buffer[start+4] - buffer[start+6];
+		int16_t b = buffer[start+1] - buffer[start+3] + buffer[start+5] - buffer[start+7];
 
-		score <<= 2;
-		
-		// filter coefficients: { 1, 0, -3, 0, 4, 0, -3, 2, 3, -3, -2, 2, 3, -1, -3, 1 }
-		// filter indices:        0, 1,  2, 3, 4, 5,  6, 7, 8,  9, 10,11,12, 13, 14,15
-		
-		// coef 1
-		s = buffer[start] - buffer[start+13] + buffer[start+15];
-		score += s;
+		if( a < 0 )
+			a = -a;
 
-		// coef 2
-		s = buffer[start+7] - buffer[start+10] + buffer[start+11];
-		score += s << 1;
+		if( b < 0 )
+			b = -a;
 
-		// coef 3
-		s = - buffer[start+2] - buffer[start+6] + buffer[start+8] - buffer[start+9] + buffer[start+12] - buffer[start+14];
-		score += s + (s << 1);
-
-		// coef 4
-		s = buffer[start+4];
-		score += s << 2;
-
-		// compensate for the average value
-		score -= range.average * (1-1+1+2-2+2-3-3+3-3+3-3+4);
-
-		return score;
+		return a > b ? a : b;
 	}
 
 	bool overlaps(uint16_t index, uint16_t r)
 	{
 		int16_t s = index - r;
-		return -16 <= s && s <= 16;
+		return -32 <= s && s <= 32;
 	}
 
 	void findBestScore(uint8_t scan)
 	{
 		uint16_t i;
+		int16_t a;
 		uint16_t r = 0;
 		int16_t m = -32767;
-		int16_t a;
 
-		for(i = 16; i <= ECHORANGER_BUFFER - 16; ++i)
+		for(i = 8; i < ECHORANGER_BUFFER - 8; ++i)
 		{
 			if( scan >= 1 && overlaps(i, range.range1) )
 				continue;
 			else if( scan >= 2 && overlaps(i, range.range2) )
 				continue;
 
-			a = getScore(i);
+			a = getScore(i) - getScore(i-8);
 			if( m < a )
 			{
 				m = a;
