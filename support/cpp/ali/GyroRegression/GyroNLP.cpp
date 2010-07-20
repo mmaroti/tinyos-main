@@ -15,11 +15,12 @@ class ObjDouble {
 
 public:
 
-	ObjDouble(const input& data, ostream& os) :
-		obj(ObjEval<double> (os, data))
+	ObjDouble(const input& data, ostream& os) :	obj(ObjEval<double> (os, data))
 	{
 
 	}
+
+	double evaluate(const double* x) { return obj.f(x); }
 
 	// TODO Implement dump of M*R(i)
 
@@ -38,9 +39,24 @@ public:
 
 	}
 
+	void evaluate(const double* x, double* grad_f) {
+
+		GradType<NUMBER_OF_VARIABLES> vars[NUMBER_OF_VARIABLES];
+
+		init_vars(vars, x);
+
+		const GradType<NUMBER_OF_VARIABLES> result = obj.f(vars);
+
+		const double* const g = result.gradient();
+
+		for (int i=0; i<NUMBER_OF_VARIABLES; ++i)
+			grad_f[i] = g[i];
+	}
+
 private:
 
 	ObjEval<GradType<NUMBER_OF_VARIABLES> > obj;
+
 };
 
 GyroNLP::GyroNLP(const input& data, ostream& os) :
@@ -123,22 +139,26 @@ void GyroNLP::finalize_solution(SolverReturn status,
 	for (int i=0; i<n; ++i) {
 		solution[i] = x[i];
 	}
+
+	cout << endl << "Solution vector:" << endl;
+	for (int i=0; i<n; ++i) {
+		cout << i << '\t' << x[i] << endl;
+	}
+	cout << endl;
 }
 
 
 bool GyroNLP::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 {
-	// FIXME
-	//eval_obj(n,x,obj_value);
-
+	// TODO new_x -> caching?
+	obj_value = obj->evaluate(x);
 	return true;
 }
 
 bool GyroNLP::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 {
-	// FIXME
-	//gradient(tag_f,n,x,grad_f);
-
+	// TODO new_x -> caching?
+	grad->evaluate(x, grad_f);
 	return true;
 }
 
