@@ -29,29 +29,51 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Author:Miklos Toth
+ * Author:Miklos Toth, Andras Biro
  */
 public class IntegerParser extends PacketParser{
 	String type;
+	int size;
 	boolean isLittleEndian=false;
-	boolean is2complement;
+	boolean signed; 
 	/**
 	 * sets the flags according to the type
+	 * sets the size according to the type
 	 * @param name integer variable name
 	 * @param type integer variable type
 	 */
 	public IntegerParser(String name, String type){
 		this.name=name;
 		this.type=type;
-		if (type.startsWith("nx_le")){
-			isLittleEndian=true;
+		isLittleEndian=type.startsWith("nx_le");
+		signed=!type.contains("uint");
+		if(this.type.contains("int8_t")){
+			size=1;
 		}
-		if (type.contains("uint")){
-			is2complement=false;
+		else if(this.type.contains("int16_t")){
+			size=2;
 		}
-		else{
-			is2complement=true;
-		}		
+		else
+			size=4;
+		
+	}
+	
+	public String[] parse2(byte[] packet)
+	{
+		long ret = 0;
+		
+		for(int i = 0; i < packet.length; ++i)
+		{
+			long a = packet[isLittleEndian ? i : packet.length-1-i];
+
+			if( !signed || i < packet.length - 1 )
+					a &= 0xFF;
+
+			a <<= (i<<3);
+			ret |= a;
+		}
+		
+		return new String[] { Long.toString(ret) };
 	}
 	
 	@Override
@@ -67,7 +89,7 @@ public class IntegerParser extends PacketParser{
 				ret|=packet[i] << ((packet.length-i-1)*8)&((0xff<<(packet.length-i-1)*8));
 		}
 		boolean negative=false;
-		if(is2complement){
+		if(signed){
 			if(isLittleEndian){
 				if(packet[packet.length-1]<0)
 					negative=true;
@@ -78,10 +100,7 @@ public class IntegerParser extends PacketParser{
 		}
 		if(negative)
 			ret=(-1&~((1<<packet.length*8)-1))|ret; //add the missing leading sign bits
-		String[] strArray;
-		strArray= new String[1];
-		strArray[0]=""+ret;
-		return strArray;
+		return new String[] { Long.toString(ret) };
 	}
 
 	@Override
@@ -89,16 +108,8 @@ public class IntegerParser extends PacketParser{
 	 * @return the size of the integer
 	 */
 	public int getPacketLength() {
-		if(this.type.contains("int8_t")){
-			return 1;
-		}
-		if(this.type.contains("int16_t")){
-			return 2;
-		}
-		if(this.type.contains("int32_t")){
-			return 4;
-		}
-		return 0;
+		
+		return size; //TODO throw illegal state exception if size< 1
 	}
 
 	@Override
@@ -106,10 +117,7 @@ public class IntegerParser extends PacketParser{
 	 * @return type
 	 */
 	public String[] getFields() {
-		String[] ret;
-		ret =new String[1];
-		ret[0]=type;
-		return ret;
+		return new String[] {type};
 	}
 
 }
