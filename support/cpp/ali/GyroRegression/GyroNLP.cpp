@@ -15,7 +15,8 @@ class ObjDouble {
 
 public:
 
-	ObjDouble(const input& data, ostream& os) :	obj(ObjEval<double> (os, data))
+	ObjDouble(const input& data, ostream& os, bool verbose)
+		: obj(ObjEval<double> (data, os, verbose))
 	{
 
 	}
@@ -33,8 +34,8 @@ class ObjGrad {
 
 public:
 
-	ObjGrad(const input& data, ostream& os) :
-		obj(ObjEval<GradType<NUMBER_OF_VARIABLES> > (os, data))
+	ObjGrad(const input& data, ostream& os, bool verbose) :
+		obj(ObjEval<GradType<NUMBER_OF_VARIABLES> > (data, os, verbose))
 	{
 
 	}
@@ -59,11 +60,10 @@ private:
 
 };
 
-GyroNLP::GyroNLP(const input& data, ostream& os) :
-		out(os),
+GyroNLP::GyroNLP(const input& data, ostream& os, bool verbose) :
 		solution(new double[N_VARS]),
-		obj(new ObjDouble(data, os)),
-		grad(new  ObjGrad(data, os))
+		obj(new ObjDouble(data, os, verbose)),
+		grad(new  ObjGrad(data, os, verbose))
 {
 
 }

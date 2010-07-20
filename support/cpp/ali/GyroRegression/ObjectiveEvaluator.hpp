@@ -15,7 +15,6 @@ class ObjEval {
 
 private:
 
-	std::ostream& out;
 	std::ostream& log;
 
 	T R_11, R_12, R_13;
@@ -243,7 +242,7 @@ private:
 			log << endl;
 			log << "g(i)" << endl;
 			log << g_x << ' ' << g_y << ' ' << g_z << endl;
-			out  << g_x << ' ' << g_y << ' ' << (g_z-g_ref) << endl;
+			//out  << g_x << ' ' << g_y << ' ' << (g_z-g_ref) << endl;
 		}
 
 		// TODO Scaling factor?
@@ -259,25 +258,26 @@ private:
 
 public:
 
-	ObjEval(std::ostream& os, const input& data) : out(os), log(os)
+	ObjEval(const input& data, std::ostream& os, bool verbose)
+		: log(os)
 	{
 
 		half  = NT(0.5);
 		one   = NT(1);
 		three = NT(3);
-		VERBOSE = false;
+		VERBOSE = verbose;
 
-		this->acc_x = data.acc_x;
-		this->acc_y = data.acc_y;
-		this->acc_z = data.acc_z;
+		acc_x = data.acc_x;
+		acc_y = data.acc_y;
+		acc_z = data.acc_z;
 
-		this->wx = data.wx;
-		this->wy = data.wy;
-		this->wz = data.wz;
+		wx = data.wx;
+		wy = data.wy;
+		wz = data.wz;
 
-		this->dt = data.dt;
+		dt = data.dt;
 
-		this->N = data.N;
+		N = data.N;
 
 		g_ref = data.g_ref;
 	}
@@ -314,6 +314,7 @@ public:
 
 	const T s_z() const { return sz/N; }
 
+	// FIXME
 	void set_verbose() { VERBOSE = true; }
 
 };

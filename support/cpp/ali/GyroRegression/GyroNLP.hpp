@@ -14,7 +14,7 @@ class GyroNLP : public TNLP
 {
 public:
 
-	GyroNLP(const input& data, std::ostream& os);
+	GyroNLP(const input& data, std::ostream& os, bool verbose);
 
 	virtual ~GyroNLP();
 
@@ -59,8 +59,6 @@ private:
 
 	static const int N_VARS;
 	static const int N_CONS;
-
-	std::ostream& out;
 
 	double* const solution;
 

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdexcept>
 #include "IpIpoptApplication.hpp"
 #include "GyroNLP.hpp"
 #include "Optimizer.hpp"
@@ -6,27 +7,24 @@
 using namespace std;
 using namespace Ipopt;
 
-bool Optimizer::run() {
+Optimizer::Optimizer(const input& data, std::ostream& os, bool verbose) {
 
 	SmartPtr<IpoptApplication> app = new IpoptApplication();
 
 	ApplicationReturnStatus status(app->Initialize());
 
 	if (status != Solve_Succeeded) {
-		cerr << "Error during initialization of IPOPT!" << endl;
-		return false;
+		throw runtime_error("Error during initialization of IPOPT!");
 	}
 
-	SmartPtr<TNLP> nlp = new GyroNLP(data, os);
+	SmartPtr<TNLP> nlp = new GyroNLP(data, os, verbose);
 
 	status = app->OptimizeTNLP(nlp);
 
-	if (status != Solve_Succeeded) {
-		cerr << "Error during optimization!" << endl;
-		return false;
+	if (status != Solve_Succeeded && status != Solved_To_Acceptable_Level) {
+		throw runtime_error("Error during optimization!");
 	}
 
 	// FIXME
 
-	return true;
 }

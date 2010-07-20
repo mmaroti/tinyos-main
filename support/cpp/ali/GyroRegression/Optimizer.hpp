@@ -2,27 +2,17 @@
 #define OPTIMIZER_HPP_
 
 #include <iosfwd>
-#include "InputData.hpp"
+
+struct input;
 
 class Optimizer {
 
 public:
 
-	Optimizer(const input& data, std::ostream& os) :
-			data(data), os(os)
-	{
-
-	}
-
-	Optimizer(const char* filename, std::ostream& os);
-
-	// Returns true if OK
-	bool run();
+	Optimizer(const input& data, std::ostream& os, bool verbose = false);
 
 private:
 
-	input data;
-	std::ostream& os;
 };
 
 #endif
