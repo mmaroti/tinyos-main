@@ -151,6 +151,7 @@ public class ERParser {
 				} else
 				    badframes++;
 			}
+			System.out.println("Bad frames: "+badframes);
 			wfWriter.close();
 			esWriter.close();
 		} catch (IOException e) {
