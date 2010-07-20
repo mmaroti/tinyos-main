@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /*
  * Copyright (c) 2010, University of Szeged
@@ -42,23 +43,19 @@ public class StructParser extends PacketParser {
 	 */
 	@Override
 	public String[] parse(byte[] packet) {
-		ArrayList<String> ret;						//temporary String[] to return;
-		String[] stringParts;						//String[] of one PacketParser
-		byte[] packetPart;							//bytes of one PacketParser
-		packetPart=new byte[packet.length];	
-		int pointer=0; 					//shows which is the first unprocessed byte
-		ret=new ArrayList<String>(); 
-		for(int i=0;i<packetStruct.length;i++){  //every PacketParser
+		ArrayList<String> ret=new ArrayList<String>();		//temporary String[] to return;
+		
+		int pointer=0; 						//shows which is the first unprocessed byte
+				
+		for(int i=0;i<packetStruct.length;i++){  			//every PacketParser
+			
 			int length=packetStruct[i].getPacketLength();
-			System.arraycopy(packet,pointer,packetPart,0,length);
-			stringParts=packetStruct[i].parse(packetPart);
-			for(int j=0;j<stringParts.length;j++){  //every words of the PacketParser
-				ret.add(stringParts[j]);
-			}
+			byte[] packetPart=new byte[length];				//bytes of one PacketParser			
+			System.arraycopy(packet,pointer,packetPart,0,length);			
+			ret.addAll(Arrays.asList(packetStruct[i].parse(packetPart))); 		
 			pointer+=length;
 		}
-		String[] retur = new String[ret.size()];
-		return ret.toArray(retur);
+		return ret.toArray(new String[ret.size()]);
 	}
 
 	@Override
@@ -68,7 +65,7 @@ public class StructParser extends PacketParser {
 	public int getPacketLength() {
 		int ret=0;
 		for(int i=0;i<packetStruct.length;i++){  //every PacketParser
-		ret+=packetStruct[i].getPacketLength();
+			ret+=packetStruct[i].getPacketLength();
 		}
 		return ret;
 	}
@@ -80,15 +77,10 @@ public class StructParser extends PacketParser {
 	 */
 	public String[] getFields() {
 		ArrayList<String> ret;		//temporary String[] to return;
-		String[] stringParts;		//String[] of one PacketParser
 		ret=new ArrayList<String>(); 
 		for(int i=0;i<packetStruct.length;i++){  //every PacketParser
-			stringParts=packetStruct[i].getFields();
-			for(int j=0;j<stringParts.length;j++){  //every words of the PacketParser
-				ret.add(stringParts[j]);
-			}			
+			ret.addAll(Arrays.asList(packetStruct[i].getFields()));		
 		}
-		String[] retur = new String[ret.size()];
-		return ret.toArray(retur);
+		return ret.toArray(new String[ret.size()]);
 	}
 }
