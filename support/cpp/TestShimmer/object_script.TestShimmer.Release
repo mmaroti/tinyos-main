@@ -26,7 +26,6 @@ INPUT(
 ./release\moc_ConsoleWidget.o
 ./release\moc_LinearEquations.o
 ./release\moc_CalibrationModule.o
-./release\moc_PeriodicalCalibrationModule.o
 ./release\moc_DataWidget.o
 ./release\moc_DataPlot.o
 ./release\moc_TurntableCalibrationModule.o
