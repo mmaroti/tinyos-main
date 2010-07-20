@@ -14,8 +14,6 @@ class ObjEval {
 
 private:
 
-	std::ostream& log;
-
 	T R_11, R_12, R_13;
 	T R_21, R_22, R_23;
 	T R_31, R_32, R_33;
@@ -46,15 +44,22 @@ private:
 
 	//==========================================================================
 
-	NT half, one, three, dt;
+	const NT* const acc_x;
+	const NT* const acc_y;
+	const NT* const acc_z;
 
-	NT* wx; NT* wy; NT* wz;
+	const NT* const wx;
+	const NT* const wy;
+	const NT* const wz;
 
-	NT* acc_x; NT* acc_y; NT* acc_z;
+	const NT dt;
+	const int N;
 
-	int N;
+	const NT g_ref;
 
-	NT g_ref;
+	std::ostream& log;
+
+	const NT half, one, three;
 
 	bool VERBOSE;
 
@@ -230,6 +235,11 @@ private:
 		T a_y = R_21*ax+R_22*ay+R_23*az;
 		T a_z = R_31*ax+R_32*ay+R_33*az;
 
+		// TODO Scaling factor?
+		sx = sx + a_x;
+		sy = sy + a_y;
+		sz = sz + a_z;
+
 		if (VERBOSE) {
 			log << endl;
 			log << "a(i)" << endl;
@@ -244,10 +254,6 @@ private:
 			//out  << g_x << ' ' << g_y << ' ' << (g_z-g_ref) << endl;
 		}
 
-		// TODO Scaling factor?
-		sx = sx + a_x;
-		sy = sy + a_y;
-		sz = sz + a_z;
 		return;
 	}
 
@@ -257,28 +263,27 @@ private:
 
 public:
 
-	ObjEval(const input& data, std::ostream& os, bool verbose)
-		: log(os)
+	ObjEval(const input& data, std::ostream& os, bool verbose) :
+
+		acc_x(data.acc_x),
+		acc_y(data.acc_y),
+		acc_z(data.acc_z),
+
+		wx(data.wx),
+		wy(data.wy),
+		wz(data.wz),
+
+		dt(data.dt),
+
+		N(data.N),
+
+		g_ref(data.g_ref),
+		log(os),
+		half(NT(0.5)),
+		one(NT(1)),
+		three(NT(3))
 	{
-
-		half  = NT(0.5);
-		one   = NT(1);
-		three = NT(3);
 		VERBOSE = verbose;
-
-		acc_x = data.acc_x;
-		acc_y = data.acc_y;
-		acc_z = data.acc_z;
-
-		wx = data.wx;
-		wy = data.wy;
-		wz = data.wz;
-
-		dt = data.dt;
-
-		N = data.N;
-
-		g_ref = data.g_ref;
 	}
 
 	T f(const T* const x)  {
@@ -318,7 +323,6 @@ public:
 	void unset_verbose() { VERBOSE = false; }
 
 };
-
 
 #endif
 

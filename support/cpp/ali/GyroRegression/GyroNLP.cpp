@@ -4,6 +4,7 @@
 
 using namespace std;
 
+// FIXME Move everything into its own namespace
 const int NUMBER_OF_VARIABLES(12);
 
 const int GyroNLP::N_VARS(NUMBER_OF_VARIABLES);

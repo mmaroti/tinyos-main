@@ -19,6 +19,7 @@ Optimizer::Optimizer(const input& data, std::ostream& os, bool verbose) {
 
 	SmartPtr<TNLP> nlp = new GyroNLP(data, os, verbose);
 
+	// FIXME Make bfgs default!
 	status = app->OptimizeTNLP(nlp);
 
 	if (status != Solve_Succeeded && status != Solved_To_Acceptable_Level) {
