@@ -1,6 +1,6 @@
 package org.szte.wsn.echoranger;
 
-import DataProcess.*;
+import org.szte.wsn.downloader.*;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
