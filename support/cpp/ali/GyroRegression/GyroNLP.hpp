@@ -8,21 +8,13 @@ using namespace Ipopt;
 
 class ObjDouble;
 class ObjGrad;
+struct input;
 
 class GyroNLP : public TNLP
 {
 public:
 
-	GyroNLP(double* ax,
-					double* ay,
-					double* az,
-					double* wx,
-					double* wy,
-					double* wz,
-					int N,
-					double dt,
-					double g_ref,
-					std::ostream& os);
+	GyroNLP(const input& data, std::ostream& os);
 
 	virtual ~GyroNLP();
 
@@ -67,19 +59,6 @@ private:
 
 	static const int N_VARS;
 	static const int N_CONS;
-
-	double* const acc_x;
-	double* const acc_y;
-	double* const acc_z;
-
-	double* const wx;
-	double* const wy;
-	double* const wz;
-
-	const int N;
-
-	const double dt;
-	const double g_ref;
 
 	std::ostream& out;
 

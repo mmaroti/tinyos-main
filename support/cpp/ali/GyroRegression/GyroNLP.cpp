@@ -15,16 +15,8 @@ class ObjDouble {
 
 public:
 
-	ObjDouble(double* ax,
-				double* ay,
-				double* az,
-				double* wx,
-				double* wy,
-				double* wz,
-				int N,
-				double dt,
-				double g_ref,
-				ostream& os) : obj(ObjEval<double> (os, ax, ay, az, wx, wy, wz, N, g_ref, dt))
+	ObjDouble(const input& data, ostream& os) :
+		obj(ObjEval<double> (os, data))
 	{
 
 	}
@@ -38,16 +30,8 @@ class ObjGrad {
 
 public:
 
-	ObjGrad(double* ax,
-				double* ay,
-				double* az,
-				double* wx,
-				double* wy,
-				double* wz,
-				int N,
-				double dt,
-				double g_ref,
-				ostream& os) : obj(ObjEval<GradType<NUMBER_OF_VARIABLES> > (os, ax, ay, az, wx, wy, wz, N, g_ref, dt))
+	ObjGrad(const input& data, ostream& os) :
+		obj(ObjEval<GradType<NUMBER_OF_VARIABLES> > (os, data))
 	{
 
 	}
@@ -57,29 +41,11 @@ private:
 	ObjEval<GradType<NUMBER_OF_VARIABLES> > obj;
 };
 
-GyroNLP::GyroNLP(double* ax,
-				double* ay,
-				double* az,
-				double* w_x,
-				double* w_y,
-				double* w_z,
-				int N,
-				double dt,
-				double g_ref,
-				ostream& os) :
-		acc_x(ax),
-		acc_y(ay),
-		acc_z(az),
-		wx(w_x),
-		wy(w_y),
-		wz(w_z),
-		N(N),
-		dt(dt),
-		g_ref(g_ref),
+GyroNLP::GyroNLP(const input& data, ostream& os) :
 		out(os),
 		solution(new double[N_VARS]),
-		obj(new ObjDouble(ax, ay, az, w_x, w_y, w_z, N, g_ref, dt, os)),
-		grad(new  ObjGrad(ax, ay, az, w_x, w_y, w_z, N, g_ref, dt, os))
+		obj(new ObjDouble(data, os)),
+		grad(new  ObjGrad(data, os))
 {
 
 }

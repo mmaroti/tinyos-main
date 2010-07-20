@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include "InputData.hpp"
 
 using std::endl;
 
@@ -257,16 +258,7 @@ private:
 
 public:
 
-	ObjEval(std::ostream& os,
-			double* acc_x,
-			double* acc_y,
-			double* acc_z,
-			double* wx,
-			double* wy,
-			double* wz,
-			int N,
-			double g_reference,
-			double dt) : out(os), log(os)
+	ObjEval(std::ostream& os, const input& data) : out(os), log(os)
 	{
 
 		half  = NT(0.5);
@@ -274,19 +266,19 @@ public:
 		three = NT(3);
 		VERBOSE = false;
 
-		this->acc_x = acc_x;
-		this->acc_y = acc_y;
-		this->acc_z = acc_z;
+		this->acc_x = data.acc_x;
+		this->acc_y = data.acc_y;
+		this->acc_z = data.acc_z;
 
-		this->wx = wx;
-		this->wy = wy;
-		this->wz = wz;
+		this->wx = data.wx;
+		this->wy = data.wy;
+		this->wz = data.wz;
 
-		this->dt = dt;
+		this->dt = data.dt;
 
-		this->N = N;
+		this->N = data.N;
 
-		g_ref = g_reference;
+		g_ref = data.g_ref;
 	}
 
 	T f(const T* const x)  {
