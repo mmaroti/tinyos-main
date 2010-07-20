@@ -149,7 +149,13 @@ public class ERParser {
 					}
 					wfWriter.write(wf.toString());
 				} else
-				    badframes++;
+				{
+					String s = "";
+					for(int i = 0; i < currentFrame.length; ++i)
+						s += " " + Integer.toString(currentFrame[i] & 0xFF);
+					System.out.println("badframe of length " + currentFrame.length + ":" + s);
+					badframes++;
+				}
 			}
 			System.out.println("Bad frames: "+badframes);
 			wfWriter.close();
