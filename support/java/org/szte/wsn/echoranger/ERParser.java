@@ -122,6 +122,7 @@ public class ERParser {
 	
 	public ERParser(int nodeid, File esFile, File wfFile){
 		try {
+			int badframes=0;
 			ArrayList<Gap> gaps=(new GapConsumer(nodeidToPath(nodeid, ".gap"))).getGaps();
 			RawPacketConsumer rpc=new RawPacketConsumer(nodeidToPath(nodeid, ".bin"),gaps,(byte)0x5e,(byte)0x5d,(byte)0x20);
 			frames=rpc.getFrames();
@@ -137,8 +138,8 @@ public class ERParser {
 					es.temp=toInt(currentFrame, false, true, 7, 2);
 					es.avg=toInt(currentFrame, false, true, 9, 2);
 					for(int i=0;i<3;i++){
-						es.range[i]=toInt(currentFrame, false, true, 15+2*i, 2);
-						es.score[i]=toInt(currentFrame, true, true, 17+2*i, 2);
+						es.range[i]=toInt(currentFrame, false, true, 11+4*i, 2);
+						es.score[i]=toInt(currentFrame, true, true, 13+4*i, 2);
 					}
 					esWriter.write(es.toString());
 				}else if((currentFrame[0]==0x11)&&(currentFrame.length==2049)){
@@ -147,7 +148,8 @@ public class ERParser {
 						wf.sample[i]=toInt(currentFrame, false, true, 1+2*i, 2);
 					}
 					wfWriter.write(wf.toString());
-				}
+				} else
+				    badframes++;
 			}
 			wfWriter.close();
 			esWriter.close();
