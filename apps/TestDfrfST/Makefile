@@ -1,0 +1,5 @@
+COMPONENT=DfrfSTTestC
+
+CFLAGS += -I$(SZTETOSDIR)/lib/Dfrf
+
+include $(MAKERULES)
