@@ -1,6 +1,9 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
+#define C_HZ 204.8
+#define C_TICKS 2       //constant hz and ticks values to use later
+
 #include <QObject>
 #include <QSettings>
 #include "SerialListener.h"

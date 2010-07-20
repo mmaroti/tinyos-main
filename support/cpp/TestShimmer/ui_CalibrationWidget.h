@@ -1,8 +1,8 @@
 /********************************************************************************
 ** Form generated from reading UI file 'CalibrationWidget.ui'
 **
-** Created: Mon Jun 7 16:25:14 2010
-**      by: Qt User Interface Compiler version 4.6.2
+** Created: Wed Jul 14 13:33:20 2010
+**      by: Qt User Interface Compiler version 4.6.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -35,6 +35,7 @@ public:
     QVBoxLayout *verticalLayout;
     QRadioButton *stationaryButton;
     QRadioButton *periodicalButton;
+    QRadioButton *turntableButton;
     QSpacerItem *verticalSpacer;
     QWidget *widget;
     QHBoxLayout *horizontalLayout;
@@ -75,6 +76,11 @@ public:
         periodicalButton->setObjectName(QString::fromUtf8("periodicalButton"));
 
         verticalLayout->addWidget(periodicalButton);
+
+        turntableButton = new QRadioButton(groupBox);
+        turntableButton->setObjectName(QString::fromUtf8("turntableButton"));
+
+        verticalLayout->addWidget(turntableButton);
 
         verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
@@ -166,6 +172,7 @@ public:
         groupBox->setTitle(QApplication::translate("CalibrationWidget", "Modules", 0, QApplication::UnicodeUTF8));
         stationaryButton->setText(QApplication::translate("CalibrationWidget", "Stationary", 0, QApplication::UnicodeUTF8));
         periodicalButton->setText(QApplication::translate("CalibrationWidget", "Periodical", 0, QApplication::UnicodeUTF8));
+        turntableButton->setText(QApplication::translate("CalibrationWidget", "Turntable", 0, QApplication::UnicodeUTF8));
         startButton->setText(QApplication::translate("CalibrationWidget", "(S)tart", 0, QApplication::UnicodeUTF8));
         startButton->setShortcut(QApplication::translate("CalibrationWidget", "S", 0, QApplication::UnicodeUTF8));
         groupBox_2->setTitle(QApplication::translate("CalibrationWidget", "Directions", 0, QApplication::UnicodeUTF8));

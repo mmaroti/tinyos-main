@@ -162,7 +162,7 @@ Equation::~Equation() {
 
 unsigned int Equation::getVariableIndex(QString name) {
     unsigned int n = lEsystem->getVariable(name);
-    while ( coefficients.size() <= n ) {
+    while ( coefficients.size() < lEsystem->getVariableCount() ) {  // <= n );
         coefficients.push_back(0.0);
     }
     return n;

@@ -201,51 +201,40 @@ QString CalibrationModule::LSF() {
 
     LinearEquations linearEquations;
 
+    linearEquations.getVariable("a11");
+    linearEquations.getVariable("a12");
+    linearEquations.getVariable("a13");
+    linearEquations.getVariable("a21");
+    linearEquations.getVariable("a22");
+    linearEquations.getVariable("a23");
+    linearEquations.getVariable("a31");
+    linearEquations.getVariable("a32");
+    linearEquations.getVariable("a33");
+    linearEquations.getVariable("b1");
+    linearEquations.getVariable("b2");
+    linearEquations.getVariable("b3");
+
     Equation* equation1 = linearEquations.createEquation();
     equation1->setConstant(GRAV);
     equation1->setCoefficient("a11", idleWindows[idleSidesMins[0]].xAvg);
     equation1->setCoefficient("a12", idleWindows[idleSidesMins[0]].yAvg);
     equation1->setCoefficient("a13", idleWindows[idleSidesMins[0]].zAvg);
-    equation1->setCoefficient("a21", 0);
-    equation1->setCoefficient("a22", 0);
-    equation1->setCoefficient("a23", 0);
-    equation1->setCoefficient("a31", 0);
-    equation1->setCoefficient("a32", 0);
-    equation1->setCoefficient("a33", 0);
-    equation1->setCoefficient("b1", 1.0);
-    equation1->setCoefficient("b2", 0);
-    equation1->setCoefficient("b3", 0);
+    equation1->setCoefficient("b1", 1);
     linearEquations.addEquation(equation1);
 
     Equation* equation2 = linearEquations.createEquation();
     equation2->setConstant(0.0);
-    equation2->setCoefficient("a11", 0);
-    equation2->setCoefficient("a12", 0);
-    equation2->setCoefficient("a13", 0);
     equation2->setCoefficient("a21", idleWindows[idleSidesMins[0]].xAvg);
     equation2->setCoefficient("a22", idleWindows[idleSidesMins[0]].yAvg);
     equation2->setCoefficient("a23", idleWindows[idleSidesMins[0]].zAvg);
-    equation2->setCoefficient("a31", 0);
-    equation2->setCoefficient("a32", 0);
-    equation2->setCoefficient("a33", 0);
-    equation2->setCoefficient("b1", 0);
     equation2->setCoefficient("b2", 1);
-    equation2->setCoefficient("b3", 0);
     linearEquations.addEquation(equation2);
 
     Equation* equation3 = linearEquations.createEquation();
     equation3->setConstant(0.0);
-    equation3->setCoefficient("a11", 0);
-    equation3->setCoefficient("a12", 0);
-    equation3->setCoefficient("a13", 0);
-    equation3->setCoefficient("a21", 0);
-    equation3->setCoefficient("a22", 0);
-    equation3->setCoefficient("a23", 0);
     equation3->setCoefficient("a31", idleWindows[idleSidesMins[0]].xAvg);
     equation3->setCoefficient("a32", idleWindows[idleSidesMins[0]].yAvg);
     equation3->setCoefficient("a33", idleWindows[idleSidesMins[0]].zAvg);
-    equation3->setCoefficient("b1", 0);
-    equation3->setCoefficient("b2", 0);
     equation3->setCoefficient("b3", 1);
     linearEquations.addEquation(equation3);
 
@@ -254,46 +243,22 @@ QString CalibrationModule::LSF() {
     equation4->setCoefficient("a11", idleWindows[idleSidesMins[1]].xAvg);
     equation4->setCoefficient("a12", idleWindows[idleSidesMins[1]].yAvg);
     equation4->setCoefficient("a13", idleWindows[idleSidesMins[1]].zAvg);
-    equation4->setCoefficient("a21", 0);
-    equation4->setCoefficient("a22", 0);
-    equation4->setCoefficient("a23", 0);
-    equation4->setCoefficient("a31", 0);
-    equation4->setCoefficient("a32", 0);
-    equation4->setCoefficient("a33", 0);
-    equation4->setCoefficient("b1", 1.0);
-    equation4->setCoefficient("b2", 0);
-    equation4->setCoefficient("b3", 0);
+    equation4->setCoefficient("b1", 1);
     linearEquations.addEquation(equation4);
 
     Equation* equation5 = linearEquations.createEquation();
     equation5->setConstant(0.0);
-    equation5->setCoefficient("a11", 0);
-    equation5->setCoefficient("a12", 0);
-    equation5->setCoefficient("a13", 0);
     equation5->setCoefficient("a21", idleWindows[idleSidesMins[1]].xAvg);
     equation5->setCoefficient("a22", idleWindows[idleSidesMins[1]].yAvg);
     equation5->setCoefficient("a23", idleWindows[idleSidesMins[1]].zAvg);
-    equation5->setCoefficient("a31", 0);
-    equation5->setCoefficient("a32", 0);
-    equation5->setCoefficient("a33", 0);
-    equation5->setCoefficient("b1", 0);
     equation5->setCoefficient("b2", 1);
-    equation5->setCoefficient("b3", 0);
     linearEquations.addEquation(equation5);
 
     Equation* equation6 = linearEquations.createEquation();
     equation6->setConstant(0.0);
-    equation6->setCoefficient("a11", 0);
-    equation6->setCoefficient("a12", 0);
-    equation6->setCoefficient("a13", 0);
-    equation6->setCoefficient("a21", 0);
-    equation6->setCoefficient("a22", 0);
-    equation6->setCoefficient("a23", 0);
     equation6->setCoefficient("a31", idleWindows[idleSidesMins[1]].xAvg);
     equation6->setCoefficient("a32", idleWindows[idleSidesMins[1]].yAvg);
     equation6->setCoefficient("a33", idleWindows[idleSidesMins[1]].zAvg);
-    equation6->setCoefficient("b1", 0);
-    equation6->setCoefficient("b2", 0);
     equation6->setCoefficient("b3", 1);
     linearEquations.addEquation(equation6);
 
@@ -302,46 +267,22 @@ QString CalibrationModule::LSF() {
     equation7->setCoefficient("a11", idleWindows[idleSidesMins[2]].xAvg);
     equation7->setCoefficient("a12", idleWindows[idleSidesMins[2]].yAvg);
     equation7->setCoefficient("a13", idleWindows[idleSidesMins[2]].zAvg);
-    equation7->setCoefficient("a21", 0);
-    equation7->setCoefficient("a22", 0);
-    equation7->setCoefficient("a23", 0);
-    equation7->setCoefficient("a31", 0);
-    equation7->setCoefficient("a32", 0);
-    equation7->setCoefficient("a33", 0);
-    equation7->setCoefficient("b1", 1.0);
-    equation7->setCoefficient("b2", 0);
-    equation7->setCoefficient("b3", 0);
+    equation7->setCoefficient("b1", 1);
     linearEquations.addEquation(equation7);
 
     Equation* equation8 = linearEquations.createEquation();
     equation8->setConstant(GRAV);
-    equation8->setCoefficient("a11", 0);
-    equation8->setCoefficient("a12", 0);
-    equation8->setCoefficient("a13", 0);
     equation8->setCoefficient("a21", idleWindows[idleSidesMins[2]].xAvg);
     equation8->setCoefficient("a22", idleWindows[idleSidesMins[2]].yAvg);
     equation8->setCoefficient("a23", idleWindows[idleSidesMins[2]].zAvg);
-    equation8->setCoefficient("a31", 0);
-    equation8->setCoefficient("a32", 0);
-    equation8->setCoefficient("a33", 0);
-    equation8->setCoefficient("b1", 0);
     equation8->setCoefficient("b2", 1);
-    equation8->setCoefficient("b3", 0);
     linearEquations.addEquation(equation8);
 
     Equation* equation9 = linearEquations.createEquation();
     equation9->setConstant(0.0);
-    equation9->setCoefficient("a11", 0);
-    equation9->setCoefficient("a12", 0);
-    equation9->setCoefficient("a13", 0);
-    equation9->setCoefficient("a21", 0);
-    equation9->setCoefficient("a22", 0);
-    equation9->setCoefficient("a23", 0);
     equation9->setCoefficient("a31", idleWindows[idleSidesMins[2]].xAvg);
     equation9->setCoefficient("a32", idleWindows[idleSidesMins[2]].yAvg);
     equation9->setCoefficient("a33", idleWindows[idleSidesMins[2]].zAvg);
-    equation9->setCoefficient("b1", 0);
-    equation9->setCoefficient("b2", 0);
     equation9->setCoefficient("b3", 1);
     linearEquations.addEquation(equation9);
 
@@ -350,46 +291,22 @@ QString CalibrationModule::LSF() {
     equation10->setCoefficient("a11", idleWindows[idleSidesMins[3]].xAvg);
     equation10->setCoefficient("a12", idleWindows[idleSidesMins[3]].yAvg);
     equation10->setCoefficient("a13", idleWindows[idleSidesMins[3]].zAvg);
-    equation10->setCoefficient("a21", 0);
-    equation10->setCoefficient("a22", 0);
-    equation10->setCoefficient("a23", 0);
-    equation10->setCoefficient("a31", 0);
-    equation10->setCoefficient("a32", 0);
-    equation10->setCoefficient("a33", 0);
-    equation10->setCoefficient("b1", 1.0);
-    equation10->setCoefficient("b2", 0);
-    equation10->setCoefficient("b3", 0);
+    equation10->setCoefficient("b1", 1);
     linearEquations.addEquation(equation10);
 
     Equation* equation11 = linearEquations.createEquation();
     equation11->setConstant(-GRAV);
-    equation11->setCoefficient("a11", 0);
-    equation11->setCoefficient("a12", 0);
-    equation11->setCoefficient("a13", 0);
     equation11->setCoefficient("a21", idleWindows[idleSidesMins[3]].xAvg);
     equation11->setCoefficient("a22", idleWindows[idleSidesMins[3]].yAvg);
     equation11->setCoefficient("a23", idleWindows[idleSidesMins[3]].zAvg);
-    equation11->setCoefficient("a31", 0);
-    equation11->setCoefficient("a32", 0);
-    equation11->setCoefficient("a33", 0);
-    equation11->setCoefficient("b1", 0);
     equation11->setCoefficient("b2", 1);
-    equation11->setCoefficient("b3", 0);
     linearEquations.addEquation(equation11);
 
     Equation* equation12 = linearEquations.createEquation();
     equation12->setConstant(0.0);
-    equation12->setCoefficient("a11", 0);
-    equation12->setCoefficient("a12", 0);
-    equation12->setCoefficient("a13", 0);
-    equation12->setCoefficient("a21", 0);
-    equation12->setCoefficient("a22", 0);
-    equation12->setCoefficient("a23", 0);
     equation12->setCoefficient("a31", idleWindows[idleSidesMins[3]].xAvg);
     equation12->setCoefficient("a32", idleWindows[idleSidesMins[3]].yAvg);
     equation12->setCoefficient("a33", idleWindows[idleSidesMins[3]].zAvg);
-    equation12->setCoefficient("b1", 0);
-    equation12->setCoefficient("b2", 0);
     equation12->setCoefficient("b3", 1);
     linearEquations.addEquation(equation12);
 
@@ -398,46 +315,22 @@ QString CalibrationModule::LSF() {
     equation13->setCoefficient("a11", idleWindows[idleSidesMins[4]].xAvg);
     equation13->setCoefficient("a12", idleWindows[idleSidesMins[4]].yAvg);
     equation13->setCoefficient("a13", idleWindows[idleSidesMins[4]].zAvg);
-    equation13->setCoefficient("a21", 0);
-    equation13->setCoefficient("a22", 0);
-    equation13->setCoefficient("a23", 0);
-    equation13->setCoefficient("a31", 0);
-    equation13->setCoefficient("a32", 0);
-    equation13->setCoefficient("a33", 0);
-    equation13->setCoefficient("b1", 1.0);
-    equation13->setCoefficient("b2", 0);
-    equation13->setCoefficient("b3", 0);
+    equation13->setCoefficient("b1", 1);
     linearEquations.addEquation(equation13);
 
     Equation* equation14 = linearEquations.createEquation();
     equation14->setConstant(0.0);
-    equation14->setCoefficient("a11", 0);
-    equation14->setCoefficient("a12", 0);
-    equation14->setCoefficient("a13", 0);
     equation14->setCoefficient("a21", idleWindows[idleSidesMins[4]].xAvg);
     equation14->setCoefficient("a22", idleWindows[idleSidesMins[4]].yAvg);
     equation14->setCoefficient("a23", idleWindows[idleSidesMins[4]].zAvg);
-    equation14->setCoefficient("a31", 0);
-    equation14->setCoefficient("a32", 0);
-    equation14->setCoefficient("a33", 0);
-    equation14->setCoefficient("b1", 0);
     equation14->setCoefficient("b2", 1);
-    equation14->setCoefficient("b3", 0);
     linearEquations.addEquation(equation14);
 
     Equation* equation15 = linearEquations.createEquation();
     equation15->setConstant(GRAV);
-    equation15->setCoefficient("a11", 0);
-    equation15->setCoefficient("a12", 0);
-    equation15->setCoefficient("a13", 0);
-    equation15->setCoefficient("a21", 0);
-    equation15->setCoefficient("a22", 0);
-    equation15->setCoefficient("a23", 0);
     equation15->setCoefficient("a31", idleWindows[idleSidesMins[4]].xAvg);
     equation15->setCoefficient("a32", idleWindows[idleSidesMins[4]].yAvg);
     equation15->setCoefficient("a33", idleWindows[idleSidesMins[4]].zAvg);
-    equation15->setCoefficient("b1", 0);
-    equation15->setCoefficient("b2", 0);
     equation15->setCoefficient("b3", 1);
     linearEquations.addEquation(equation15);
 
@@ -446,46 +339,22 @@ QString CalibrationModule::LSF() {
     equation16->setCoefficient("a11", idleWindows[idleSidesMins[5]].xAvg);
     equation16->setCoefficient("a12", idleWindows[idleSidesMins[5]].yAvg);
     equation16->setCoefficient("a13", idleWindows[idleSidesMins[5]].zAvg);
-    equation16->setCoefficient("a21", 0);
-    equation16->setCoefficient("a22", 0);
-    equation16->setCoefficient("a23", 0);
-    equation16->setCoefficient("a31", 0);
-    equation16->setCoefficient("a32", 0);
-    equation16->setCoefficient("a33", 0);
-    equation16->setCoefficient("b1", 1.0);
-    equation16->setCoefficient("b2", 0);
-    equation16->setCoefficient("b3", 0);
+    equation16->setCoefficient("b1", 1);
     linearEquations.addEquation(equation16);
 
     Equation* equation17 = linearEquations.createEquation();
     equation17->setConstant(0.0);
-    equation17->setCoefficient("a11", 0);
-    equation17->setCoefficient("a12", 0);
-    equation17->setCoefficient("a13", 0);
     equation17->setCoefficient("a21", idleWindows[idleSidesMins[5]].xAvg);
     equation17->setCoefficient("a22", idleWindows[idleSidesMins[5]].yAvg);
     equation17->setCoefficient("a23", idleWindows[idleSidesMins[5]].zAvg);
-    equation17->setCoefficient("a31", 0);
-    equation17->setCoefficient("a32", 0);
-    equation17->setCoefficient("a33", 0);
-    equation17->setCoefficient("b1", 0);
     equation17->setCoefficient("b2", 1);
-    equation17->setCoefficient("b3", 0);
     linearEquations.addEquation(equation17);
 
     Equation* equation18 = linearEquations.createEquation();
     equation18->setConstant(-GRAV);
-    equation18->setCoefficient("a11", 0);
-    equation18->setCoefficient("a12", 0);
-    equation18->setCoefficient("a13", 0);
-    equation18->setCoefficient("a21", 0);
-    equation18->setCoefficient("a22", 0);
-    equation18->setCoefficient("a23", 0);
     equation18->setCoefficient("a31", idleWindows[idleSidesMins[5]].xAvg);
     equation18->setCoefficient("a32", idleWindows[idleSidesMins[5]].yAvg);
     equation18->setCoefficient("a33", idleWindows[idleSidesMins[5]].zAvg);
-    equation18->setCoefficient("b1", 0);
-    equation18->setCoefficient("b2", 0);
     equation18->setCoefficient("b3", 1);
     linearEquations.addEquation(equation18);
 
@@ -496,7 +365,7 @@ QString CalibrationModule::LSF() {
 
     QString returnMessage = "";
 
-    if ( solution->getMaximumError() > 0.1 ) {
+    if ( solution->getMaximumError() > 0.2 ) {
         returnMessage = "Maximum Error is too great! ( > 0.1 )  \n";
         return returnMessage;
     } else {

@@ -34,6 +34,7 @@ public:
      */
     QMap<QString, unsigned int>& getVariables() { return variables; };
 
+
     /*!
      * Returns the list of equations in the system.
      */

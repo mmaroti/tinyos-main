@@ -1,8 +1,8 @@
 /********************************************************************************
 ** Form generated from reading UI file 'MainWindow.ui'
 **
-** Created: Mon Jun 7 16:25:14 2010
-**      by: Qt User Interface Compiler version 4.6.2
+** Created: Thu Jul 15 15:46:30 2010
+**      by: Qt User Interface Compiler version 4.6.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -33,14 +33,14 @@ public:
     QTabWidget *tabWidget;
     QWidget *connectTab;
     QVBoxLayout *verticalLayout_3;
-    QWidget *rawTab;
-    QVBoxLayout *verticalLayout;
-    QWidget *calibratedTab;
-    QVBoxLayout *verticalLayout_6;
+    QWidget *plotTab;
+    QVBoxLayout *verticalLayout_7;
     QWidget *calibrationTab;
     QVBoxLayout *verticalLayout_2;
     QWidget *consoleTab;
     QVBoxLayout *verticalLayout_4;
+    QWidget *plot3dTab;
+    QVBoxLayout *verticalLayout_5;
     QMenuBar *menuBar;
     QStatusBar *statusBar;
 
@@ -68,25 +68,18 @@ public:
         verticalLayout_3->setContentsMargins(0, 0, 0, 0);
         verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
         tabWidget->addTab(connectTab, QString());
-        rawTab = new QWidget();
-        rawTab->setObjectName(QString::fromUtf8("rawTab"));
-        verticalLayout = new QVBoxLayout(rawTab);
-        verticalLayout->setSpacing(6);
-        verticalLayout->setContentsMargins(0, 0, 0, 0);
-        verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
-        tabWidget->addTab(rawTab, QString());
-        calibratedTab = new QWidget();
-        calibratedTab->setObjectName(QString::fromUtf8("calibratedTab"));
-        verticalLayout_6 = new QVBoxLayout(calibratedTab);
-        verticalLayout_6->setSpacing(0);
-        verticalLayout_6->setContentsMargins(0, 0, 0, 0);
-        verticalLayout_6->setObjectName(QString::fromUtf8("verticalLayout_6"));
-        tabWidget->addTab(calibratedTab, QString());
+        plotTab = new QWidget();
+        plotTab->setObjectName(QString::fromUtf8("plotTab"));
+        verticalLayout_7 = new QVBoxLayout(plotTab);
+        verticalLayout_7->setSpacing(6);
+        verticalLayout_7->setContentsMargins(0, 0, 0, 0);
+        verticalLayout_7->setObjectName(QString::fromUtf8("verticalLayout_7"));
+        tabWidget->addTab(plotTab, QString());
         calibrationTab = new QWidget();
         calibrationTab->setObjectName(QString::fromUtf8("calibrationTab"));
         verticalLayout_2 = new QVBoxLayout(calibrationTab);
         verticalLayout_2->setSpacing(6);
-        verticalLayout_2->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_2->setContentsMargins(0, 0, 0, 0);
         verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
         tabWidget->addTab(calibrationTab, QString());
         consoleTab = new QWidget();
@@ -96,6 +89,13 @@ public:
         verticalLayout_4->setContentsMargins(11, 11, 11, 11);
         verticalLayout_4->setObjectName(QString::fromUtf8("verticalLayout_4"));
         tabWidget->addTab(consoleTab, QString());
+        plot3dTab = new QWidget();
+        plot3dTab->setObjectName(QString::fromUtf8("plot3dTab"));
+        verticalLayout_5 = new QVBoxLayout(plot3dTab);
+        verticalLayout_5->setSpacing(6);
+        verticalLayout_5->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_5->setObjectName(QString::fromUtf8("verticalLayout_5"));
+        tabWidget->addTab(plot3dTab, QString());
 
         horizontalLayout_2->addWidget(tabWidget);
 
@@ -110,7 +110,7 @@ public:
 
         retranslateUi(MainWindow);
 
-        tabWidget->setCurrentIndex(0);
+        tabWidget->setCurrentIndex(4);
 
 
         QMetaObject::connectSlotsByName(MainWindow);
@@ -120,10 +120,10 @@ public:
     {
         MainWindow->setWindowTitle(QApplication::translate("MainWindow", "TestShimmer", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(connectTab), QApplication::translate("MainWindow", "Connect", 0, QApplication::UnicodeUTF8));
-        tabWidget->setTabText(tabWidget->indexOf(rawTab), QApplication::translate("MainWindow", "Raw data", 0, QApplication::UnicodeUTF8));
-        tabWidget->setTabText(tabWidget->indexOf(calibratedTab), QApplication::translate("MainWindow", "Acceleration", 0, QApplication::UnicodeUTF8));
+        tabWidget->setTabText(tabWidget->indexOf(plotTab), QApplication::translate("MainWindow", "Plot", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(calibrationTab), QApplication::translate("MainWindow", "Calibration", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(consoleTab), QApplication::translate("MainWindow", "Console", 0, QApplication::UnicodeUTF8));
+        tabWidget->setTabText(tabWidget->indexOf(plot3dTab), QApplication::translate("MainWindow", "3D Plot", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };

@@ -7,9 +7,12 @@
 PlotScrollArea::PlotScrollArea(QWidget *parent) :
     QAbstractScrollArea(parent)
 {
-	plotWidget = NULL;
 
+	plotWidget = NULL;
+        cursor.setShape(Qt::CrossCursor);
 	viewport()->setBackgroundRole(QPalette::NoRole);
+        viewport()->setCursor(cursor);
+
 	horizontalScrollBar()->setSingleStep(10);
 	verticalScrollBar()->setSingleStep(10);
 

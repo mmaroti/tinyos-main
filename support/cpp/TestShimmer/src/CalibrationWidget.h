@@ -4,6 +4,7 @@
 #include <QWidget>
 #include "CalibrationModule.h"
 #include "PeriodicalCalibrationModule.h"
+#include "TurntableCalibrationModule.h"
 
 class Application;
 
@@ -25,6 +26,9 @@ private:
     Application &application;
     CalibrationModule *calibrationModule;
     PeriodicalCalibrationModule *periodicalCalibrationModule;
+    TurntableCalibrationModule *turntableCalibrationModule;
+
+    void loadCalibrationResults();
 
 private slots:
     void on_startButton_clicked();

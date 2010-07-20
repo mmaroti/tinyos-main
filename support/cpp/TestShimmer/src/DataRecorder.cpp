@@ -165,7 +165,7 @@ void DataRecorder::saveSamples( QString filename )
       ts << samples[i].toCsvString() << endl;
     }
     ts.flush();
-    f.close();
+    //f.close();
 
 }
 
@@ -181,7 +181,7 @@ void DataRecorder::loadSamples( QString filename )
         QTextStream ts( &f );
         line = ts.readLine(); //skip first line of csv
         line = ts.readLine();
-        while ( !line.isEmpty() ) {
+        while ( !line.isEmpty() && line != "===CALIBRATED DATA===" ) {
             sorok++;
           csvToSample(line);            //convert line string to sample
           line = ts.readLine();         // line of text excluding '\n'          

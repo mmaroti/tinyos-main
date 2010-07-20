@@ -2,6 +2,7 @@
 #define PLOTSCROLLAREA_H
 
 #include <QScrollArea>
+#include <QCursor>
 
 class QWidget;
 class QResizeEvent;
@@ -32,6 +33,7 @@ protected:
 protected:
 	QWidget *plotWidget;
 	QRect plotRect;
+        QCursor cursor;
 };
 
 #endif // PLOTSCROLLAREA_H

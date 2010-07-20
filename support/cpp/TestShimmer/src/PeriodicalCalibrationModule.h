@@ -26,14 +26,19 @@ public:
 
     QString Calibrate(QString rotAxis);
     QString SVD();
+
+    double getCalibratedData(int time, QString axis);
     double calculateAngle(double accel1, double accel2);
+
+    QString printSettingsToConsole(QString settingsData);
+    void ClearWindows();
 private:
     Application &application;
     CalibrationModule &calibrationModule;
 
     double gyroMinAvgs[3];
     QVector<IdleGyroWindow> idleGyroWindows;
-    double gyroCalibrationData[9];
+    double gyroCalibrationData[12];
 };
 
 #endif // PERIODICALCALIBRATIONMODULE_H

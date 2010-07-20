@@ -38,6 +38,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QRadioButton" name="turntableButton">
+        <property name="text">
+         <string>Turntable</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="verticalSpacer">
         <property name="orientation">
          <enum>Qt::Vertical</enum>

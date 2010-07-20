@@ -10,47 +10,56 @@ TARGET = TestShimmer
 # INCLUDEPATH += c:\Octave\3.2.4_gcc-4.4.0\include
 INCLUDEPATH += ../TntJama/
 INCLUDEPATH += ../QextSerialPort/
+INCLUDEPATH += ../qwtplot3d/include
 QMAKE_LIBDIR += ../QextSerialPort/build
+DEFINES += QWT3D_DLL
 CONFIG(release) += static
 CONFIG(debug) += CONSOLE
 CONFIG(debug, debug|release):LIBS += -lqextserialportd
 else:LIBS += -lqextserialport
 win32:LIBS += -lsetupapi
+LIBS += ../qwtplot3d/lib/libqwtplot3d.a
+DEFINES += QT_DLL \
+    QWT3D_DLL
+QT += opengl
+isEmpty( ISQT4 ):CONFIG += opengl
 SOURCES += src/DataRecorder.cpp \
     src/MainWindow.cpp \
     src/main.cpp \
     src/ConnectWidget.cpp \
     src/SerialListener.cpp \
-    src/RawDataWidget.cpp \
-    src/RawDataPlot.cpp \
     src/Application.cpp \
     src/PlotScrollArea.cpp \
     src/CalibrationWidget.cpp \
     src/ConsoleWidget.cpp \
     src/LinearEquations.cpp \
     src/CalibrationModule.cpp \
-    src/CalibratedDataWidget.cpp \
-    src/CalibratedDataPlot.cpp \
-    src/PeriodicalCalibrationModule.cpp
+    src/PeriodicalCalibrationModule.cpp \
+    src/DataWidget.cpp \
+    src/DataPlot.cpp \
+    src/TurntableCalibrationModule.cpp \
+    src/Data3DWidget.cpp \
+    src/Data3DPlot.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
     src/SerialListener.h \
-    src/RawDataWidget.h \
-    src/RawDataPlot.h \
     src/Application.h \
     src/PlotScrollArea.h \
     src/CalibrationWidget.h \
     src/ConsoleWidget.h \
     src/LinearEquations.h \
     src/CalibrationModule.h \
-    src/CalibratedDataWidget.h \
-    src/CalibratedDataPlot.h \
-    src/PeriodicalCalibrationModule.h
+    src/PeriodicalCalibrationModule.h \
+    src/DataWidget.h \
+    src/DataPlot.h \
+    src/TurntableCalibrationModule.h \
+    src/Data3DWidget.h \
+    src/Data3DPlot.h
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
-    src/RawDataWidget.ui \
-    src/CalibratedDataWidget.ui \
     src/CalibrationWidget.ui \
-    src/ConsoleWidget.ui
+    src/ConsoleWidget.ui \
+    src/DataWidget.ui \
+    src/Data3DWidget.ui
 RESOURCES += src/Resources.qrc
