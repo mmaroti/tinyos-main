@@ -39,7 +39,6 @@ generic module GradientFieldP(typedef payload_t)
 		interface AMPacket;
 		interface DfrfSend;
 		interface DfrfReceive;
-		interface Leds;
 	}
 }
 
