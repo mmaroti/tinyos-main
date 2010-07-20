@@ -21,6 +21,8 @@ public:
 
 	}
 
+	// TODO Implement dump of M*R(i)
+
 private:
 
 	ObjEval<double> obj;

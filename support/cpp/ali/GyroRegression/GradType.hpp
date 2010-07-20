@@ -230,6 +230,7 @@ const GradType<N_VAR> operator/(const GradType<N_VAR>& x, const GradType<N_VAR>&
 	return z;
 }
 
+// FIXME
 template <int N_VAR>
 const GradType<N_VAR> operator/(const double x, const GradType<N_VAR>& y) {
 
