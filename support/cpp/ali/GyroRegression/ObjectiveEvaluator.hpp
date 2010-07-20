@@ -2,8 +2,7 @@
 #ifndef OBJECTIVEEVALUATOR_HPP_
 #define OBJECTIVEEVALUATOR_HPP_
 
-#include <iostream>
-#include <iomanip>
+#include <ostream>
 #include "InputData.hpp"
 
 using std::endl;
@@ -40,7 +39,7 @@ private:
 
 	//==========================================================================
 
-	// FIXME
+	// FIXME Implement M calculation
 	NT M11, M12, M13;
 	NT M21, M22, M23;
 	NT M31, M32, M33;
@@ -77,7 +76,7 @@ private:
 		C_13 = x[2];
 
 		C_21 = x[3];
-		C_22 = x[4] - 1.0;  // <-- FIXME
+		C_22 = x[4] - 1.0;  // <-- FIXME Fix in calibration
 		C_23 = x[5];
 
 		C_31 = x[6];
@@ -289,8 +288,8 @@ public:
 		for (int i=1; i<N; ++i) {
 
 			if (VERBOSE) {
-				log << std::setprecision(4);
-				log << std::fixed;
+				// log << std::setprecision(4); TODO on the caller's side
+				// log << std::fixed;
 				log << "-----------------------------------------------------" << endl;
 				log << "Step #" << i << endl;
 			}
@@ -314,8 +313,9 @@ public:
 
 	const T s_z() const { return sz/N; }
 
-	// FIXME
 	void set_verbose() { VERBOSE = true; }
+
+	void unset_verbose() { VERBOSE = false; }
 
 };
 

@@ -39,12 +39,6 @@ public:
 			Index m, Index nele_jac, Index* iRow, Index *jCol,
 			Number* values);
 
-	// FIXME Maybe we do not need this
-	virtual bool eval_h(Index n, const Number* x, bool new_x,
-			Number obj_factor, Index m, const Number* lambda,
-			bool new_lambda, Index nele_hess, Index* iRow,
-			Index* jCol, Number* values);
-
 	virtual void finalize_solution(SolverReturn status,
 			Index n, const Number* x, const Number* z_L, const Number* z_U,
 			Index m, const Number* g, const Number* lambda,

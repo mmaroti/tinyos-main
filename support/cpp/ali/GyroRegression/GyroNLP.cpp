@@ -1,8 +1,6 @@
-#include <iostream>
-#include <cstdlib>
 #include "GyroNLP.hpp"
-#include "ObjectiveEvaluator.hpp"
 #include "GradType.hpp"
+#include "ObjectiveEvaluator.hpp"
 
 using namespace std;
 
@@ -140,11 +138,12 @@ void GyroNLP::finalize_solution(SolverReturn status,
 		solution[i] = x[i];
 	}
 
-	cout << endl << "Solution vector:" << endl;
-	for (int i=0; i<n; ++i) {
-		cout << i << '\t' << x[i] << endl;
-	}
-	cout << endl;
+	// FIXME Implement method for showing solution
+	//cout << endl << "Solution vector:" << endl;
+	//for (int i=0; i<n; ++i) {
+	//	cout << i << '\t' << x[i] << endl;
+	//}
+	//cout << endl;
 }
 
 
@@ -194,38 +193,3 @@ bool GyroNLP::eval_jac_g(Index n, const Number* x, bool new_x,
 
 	return true;
 }
-
-bool GyroNLP::eval_h(Index n, const Number* x, bool new_x,
-		Number obj_factor, Index m, const Number* lambda,
-		bool new_lambda, Index nele_hess, Index* iRow,
-		Index* jCol, Number* values)
-{
-	if (values == NULL) {
-		// return the structure. This is a symmetric matrix, fill the lower left
-		// triangle only.
-
-		// the hessian for this problem is actually dense
-		Index idx=0;
-		for (Index row = 0; row < n; row++) {
-			for (Index col = 0; col <= row; col++) {
-				iRow[idx] = row;
-				jCol[idx] = col;
-				idx++;
-			}
-		}
-
-		assert(idx == nele_hess);
-	}
-	else {
-		// return the values. This is a symmetric matrix, fill the lower left
-		// triangle only
-
-		cerr << "Error: evaluation of the Hessian is not implemented!" << endl;
-		cerr << "Use the following option in the ipopt.opt configuration file:" << endl;
-		cerr << "hessian_approximation limited-memory" << endl;
-		exit(EXIT_FAILURE);
-	}
-
-	return true;
-}
-

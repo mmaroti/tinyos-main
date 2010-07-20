@@ -25,6 +25,6 @@ Optimizer::Optimizer(const input& data, std::ostream& os, bool verbose) {
 		throw runtime_error("Error during optimization!");
 	}
 
-	// FIXME
+	// FIXME Implement M calculation
 
 }

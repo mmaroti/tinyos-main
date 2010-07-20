@@ -3,7 +3,7 @@
 
 struct input {
 
-	// FIXME Try to make them const
+	// TODO Make them const?
 
 	double* acc_x;
 	double* acc_y;
