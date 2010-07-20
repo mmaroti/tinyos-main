@@ -62,7 +62,7 @@ implementation
 	event void Boot.booted()
 	{
 		call SounderPin.clr();
-		call MicSetting.gainAdjust(0xff);
+		call MicSetting.gainAdjust(ECHORANGER_MICGAIN);
 	}
 
 	uint16_t buffer[ECHORANGER_BUFFER];
@@ -86,7 +86,7 @@ implementation
 			state = STATE_WARMUP;
 			call MicRead.postBuffer(buffer + ECHORANGER_BUFFER - 2, 2);
 			call MicRead.postBuffer(buffer, ECHORANGER_BUFFER);
-			call MicRead.read(ECHORANGER_SAMPLING);
+			call MicRead.read(56);	// 17723 Hz
 
 			range.temperature = 0xFFFF;
 			call ReadTemp.read();
@@ -158,7 +158,7 @@ implementation
 			a = -a;
 
 		if( b < 0 )
-			b = -a;
+			b = -b;
 
 		return a > b ? a : b;
 	}
@@ -166,7 +166,7 @@ implementation
 	bool overlaps(uint16_t index, uint16_t r)
 	{
 		int16_t s = index - r;
-		return -32 <= s && s <= 32;
+		return -ECHORANGER_SEPARATION <= s && s <= ECHORANGER_SEPARATION;
 	}
 
 	void findBestScore(uint8_t scan)
@@ -174,37 +174,37 @@ implementation
 		uint16_t i;
 		int16_t a;
 		uint16_t r = 0;
-		int16_t m = -32767;
+		int16_t s = -32767;
 
-		for(i = 8; i < ECHORANGER_BUFFER - 8; ++i)
+		for(i = ECHORANGER_MINRANGE; i <= ECHORANGER_BUFFER - 8; ++i)
 		{
-			if( scan >= 1 && overlaps(i, range.range1) )
+			if( scan >= 1 && overlaps(i, range.range0) )
 				continue;
-			else if( scan >= 2 && overlaps(i, range.range2) )
+			if( scan >= 2 && overlaps(i, range.range1) )
 				continue;
 
 			a = getScore(i) - getScore(i-8);
-			if( m < a )
+			if( s < a )
 			{
-				m = a;
+				s = a;
 				r = i;
 			}
 		}
 
 		if( scan == 0 )
 		{
-			range.range1 = r;
-			range.score1 = m;
+			range.range0 = r;
+			range.score0 = s;
 		}
 		else if( scan == 1 )
 		{
-			range.range2 = r;
-			range.score2 = m;
+			range.range1 = r;
+			range.score1 = s;
 		}
 		else
 		{
-			range.range3 = r;
-			range.score3 = m;
+			range.range2 = r;
+			range.score2 = s;
 		}
 	}
 
@@ -218,6 +218,7 @@ implementation
 		findBestScore(1);
 		findBestScore(2);
 
+		call Leds.led0Off();
 		state = STATE_READY;
 		signal EchoRanger.readDone(SUCCESS, &range);
 	}

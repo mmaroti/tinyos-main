@@ -38,21 +38,24 @@ typedef struct echorange_t
 {
 	uint16_t seqno;
 	uint32_t timestamp;
+	uint16_t duration;
 	uint16_t temperature;
 	uint16_t average;
+	uint16_t range0;
+	int16_t score0;
 	uint16_t range1;
 	int16_t score1;
 	uint16_t range2;
 	int16_t score2;
-	uint16_t range3;
-	int16_t score3;
 } echorange_t;
 
 enum
 {
-	ECHORANGER_SAMPLING = 56,	// sampling rate in microsec (17723 Hz)
+	ECHORANGER_MICGAIN = 16,	// microphone gain
 	ECHORANGER_BUFFER = 1024,	// size of buffer, must be at least 4
-	ECHORANGER_BEEP = 500,		// the length of beep in microsec
+	ECHORANGER_BEEP = 250,		// the length of beep in microseconds
+	ECHORANGER_MINRANGE = 64,	// min range in samples, must be at least 8
+	ECHORANGER_SEPARATION = 32,	// min number of samples between matches
 };
 
 #endif//__ECHORANGER_H__
