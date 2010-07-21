@@ -37,7 +37,16 @@ import java.util.Arrays;
 public class StructParser extends PacketParser {
 
 	private PacketParser[] packetStruct;
-	
+	public StructParser(){
+		
+	}
+	public StructParser(PacketParser[] packetStruct){
+		ArrayList<PacketParser> al=new ArrayList<PacketParser>();
+		for(int i=0;i<packetStruct.length;i++){
+			al.add(packetStruct[i]);
+		}
+		this.packetStruct=al.toArray(new PacketParser[al.size()]);
+	}
 	/**
 	 * Calls parse for every PacketParser in the struct
 	 */
@@ -47,11 +56,12 @@ public class StructParser extends PacketParser {
 		
 		int pointer=0; 						//shows which is the first unprocessed byte
 				
-		for(int i=0;i<packetStruct.length;i++){  			//every PacketParser
-			
+		for(int i=0;i<packetStruct.length;i++)		//every PacketParser
+		{  				
 			int length=packetStruct[i].getPacketLength();
 			byte[] packetPart=new byte[length];				//bytes of one PacketParser			
-			System.arraycopy(packet,pointer,packetPart,0,length);			
+			System.arraycopy(packet,pointer,packetPart,0,length);
+			
 			ret.addAll(Arrays.asList(packetStruct[i].parse(packetPart))); 		
 			pointer+=length;
 		}
@@ -64,7 +74,8 @@ public class StructParser extends PacketParser {
 	 */
 	public int getPacketLength() {
 		int ret=0;
-		for(int i=0;i<packetStruct.length;i++){  //every PacketParser
+		for(int i=0;i<packetStruct.length;i++)		 //every PacketParser
+		{ 
 			ret+=packetStruct[i].getPacketLength();
 		}
 		return ret;
