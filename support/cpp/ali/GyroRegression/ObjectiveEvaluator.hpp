@@ -265,19 +265,19 @@ public:
 
 	ObjEval(const input& data, std::ostream& os, bool verbose) :
 
-		acc_x(data.acc_x),
-		acc_y(data.acc_y),
-		acc_z(data.acc_z),
+		acc_x(data.acc_x()),
+		acc_y(data.acc_y()),
+		acc_z(data.acc_z()),
 
-		wx(data.wx),
-		wy(data.wy),
-		wz(data.wz),
+		wx(data.wx()),
+		wy(data.wy()),
+		wz(data.wz()),
 
-		dt(data.dt),
+		dt(data.dt()),
 
-		N(data.N),
+		N(data.N()),
 
-		g_ref(data.g_ref),
+		g_ref(data.g_ref()),
 		log(os),
 		half(NT(0.5)),
 		one(NT(1)),

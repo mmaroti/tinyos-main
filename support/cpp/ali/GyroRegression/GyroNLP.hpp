@@ -8,7 +8,7 @@ using namespace Ipopt;
 
 class ObjDouble;
 class ObjGrad;
-struct input;
+class input;
 
 class GyroNLP : public TNLP
 {

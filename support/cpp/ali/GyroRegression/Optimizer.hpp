@@ -3,7 +3,7 @@
 
 #include <iosfwd>
 
-struct input;
+class input;
 
 class Optimizer {
 

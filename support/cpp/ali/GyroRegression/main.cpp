@@ -7,12 +7,11 @@ using namespace std;
 
 int main() {
 
-	input data;
-
-	// FIXME Memory leak
-	read_file("manual", data);
+	input data = read_file("manual");
 
 	Optimizer opt(data, cout);
+
+	data.release_resources();
 
 	return 0;
 }

@@ -8,12 +8,10 @@ using namespace std;
 
 typedef double NT;
 
-void read_file(const char* filename, input& data) {
+input read_file(const char* filename) {
 
-	data.dt    = NT(10.0/2048.0);
-	data.g_ref = NT(-9.81);
-
-	//--------------------------------------------------------------------------
+	double dt    = NT(10.0/2048.0);
+	double g_ref = NT(-9.81);
 
 	std::ifstream in(filename);
 
@@ -24,7 +22,7 @@ void read_file(const char* filename, input& data) {
 
 	cout << "Reading input file: " << filename << endl;
 
-	int& N = data.N;
+	int N = -1;
 
 	in >> N;
 
@@ -33,26 +31,13 @@ void read_file(const char* filename, input& data) {
 		exit(EXIT_FAILURE);
 	}
 
-	// FIXME Resources never released
-	//----------------------------------------------------------------------
+	double* wx = new NT[N];
+	double* wy = new NT[N];
+	double* wz = new NT[N];
 
-	double*& wx = data.wx;
-	double*& wy = data.wy;
-	double*& wz = data.wz;
-
-	double*& acc_x = data.acc_x;
-	double*& acc_y = data.acc_y;
-	double*& acc_z = data.acc_z;
-
-	wx = new NT[N];
-	wy = new NT[N];
-	wz = new NT[N];
-
-	acc_x = new NT[N];
-	acc_y = new NT[N];
-	acc_z = new NT[N];
-
-	//---------------------------------------------------
+	double* acc_x = new NT[N];
+	double* acc_y = new NT[N];
+	double* acc_z = new NT[N];
 
 	double dummy(0.0);
 
@@ -74,4 +59,6 @@ void read_file(const char* filename, input& data) {
 			exit(EXIT_FAILURE);
 		}
 	}
+
+	return input(acc_x, acc_y, acc_z, wx, wy, wz, N, dt, g_ref);
 }
