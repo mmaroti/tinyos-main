@@ -1,6 +1,6 @@
 #include <iostream>
+#include <memory>
 #include "Optimizer.hpp"
-#include "InputData.hpp"
 #include "DataImporter.hpp"
 
 using namespace std;
@@ -9,11 +9,11 @@ using namespace gyro;
 
 int main() {
 
-	input data = read_file("manual");
+	auto_ptr<const input> data(read_file("manual"));
 
-	Optimizer opt(data, cout);
+	Optimizer opt(*data, cout);
 
-	data.release_resources();
+	data.reset();
 
 	const double* const x = opt.solution();
 

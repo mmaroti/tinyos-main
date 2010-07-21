@@ -17,8 +17,6 @@ public:
 			double dt,
 			double g_ref);
 
-	input(const input& other);
-
 	const double* acc_x() const { return acc_x_; }
 	const double* acc_y() const { return acc_y_; }
 	const double* acc_z() const { return acc_z_; }
@@ -36,6 +34,7 @@ public:
 
 private:
 
+	input(const input& other);
 	input& operator=(const input& );
 
 	const double* const acc_x_;
