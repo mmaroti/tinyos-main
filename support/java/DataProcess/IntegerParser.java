@@ -57,9 +57,12 @@ public class IntegerParser extends PacketParser{
 			size=4;
 		
 	}
-	
-	public String[] parse2(byte[] packet)
-	{
+	@Override
+	/**
+	 * @return the value of the integer at the first place of the String array
+	 */
+	public String[] parse(byte[] packet)
+	{						//TODO check size
 		long ret = 0;
 		
 		for(int i = 0; i < packet.length; ++i)
@@ -76,33 +79,26 @@ public class IntegerParser extends PacketParser{
 		return new String[] { Long.toString(ret) };
 	}
 	
-	@Override
 	/**
-	 * @return the value of the integer at the first place of the String array
+	 * constructs byte[] from a number represented in String
+	 * @param stringValue constructs byte[] from it 
+	 * @return byte[]
 	 */
-	public String[] parse(byte[] packet) {
-		long ret=0;		//the mask is needed to cut the leading sign bits the java added
-		for(int i=0;i<packet.length;i++){
-			if(isLittleEndian)
-				ret|=(packet[i] << i*8)&(0xff<<(i*8));
-			else
-				ret|=packet[i] << ((packet.length-i-1)*8)&((0xff<<(packet.length-i-1)*8));
+	public byte[] construct(String stringValue)
+	{
+		long longValue=Long.decode(stringValue);
+		
+		byte [] b = new byte[size];
+		
+		for(int i= 0; i < size; i++)
+		{
+			b[isLittleEndian ? i : size-1-i] = (byte)((longValue >> (i * 8))& 0xFF);
 		}
-		boolean negative=false;
-		if(signed){
-			if(isLittleEndian){
-				if(packet[packet.length-1]<0)
-					negative=true;
-			} else {
-				if(packet[0]<0)
-					negative=true;
-			}
-		}
-		if(negative)
-			ret=(-1&~((1<<packet.length*8)-1))|ret; //add the missing leading sign bits
-		return new String[] { Long.toString(ret) };
+		return b;	
+			
 	}
-
+	
+	
 	@Override
 	/**
 	 * @return the size of the integer
