@@ -1,11 +1,11 @@
 #include "GyroNLP.hpp"
 #include "GradType.hpp"
 #include "ObjectiveEvaluator.hpp"
+#include "CompileTimeConstants.hpp"
 
 using namespace std;
 
-// FIXME Move everything into its own namespace
-const int NUMBER_OF_VARIABLES(12);
+namespace gyro {
 
 const int GyroNLP::N_VARS(NUMBER_OF_VARIABLES);
 const int GyroNLP::N_CONS(0);
@@ -60,7 +60,7 @@ private:
 };
 
 GyroNLP::GyroNLP(const input& data, ostream& os, bool verbose) :
-		solution(new double[N_VARS]),
+		minimizer(new double[N_VARS]),
 		obj(new ObjDouble(data, os, verbose)),
 		grad(new  ObjGrad(data, os, verbose))
 {
@@ -69,7 +69,7 @@ GyroNLP::GyroNLP(const input& data, ostream& os, bool verbose) :
 
 GyroNLP::~GyroNLP(){
 
-	delete[] solution;
+	delete[] minimizer;
 	delete obj;
 	delete grad;
 }
@@ -136,15 +136,8 @@ void GyroNLP::finalize_solution(SolverReturn status,
 		IpoptCalculatedQuantities* ip_cq)
 {
 	for (int i=0; i<n; ++i) {
-		solution[i] = x[i];
+		minimizer[i] = x[i];
 	}
-
-	// FIXME Implement method for showing solution
-	//cout << endl << "Solution vector:" << endl;
-	//for (int i=0; i<n; ++i) {
-	//	cout << i << '\t' << x[i] << endl;
-	//}
-	//cout << endl;
 }
 
 
@@ -193,4 +186,6 @@ bool GyroNLP::eval_jac_g(Index n, const Number* x, bool new_x,
 	}
 
 	return true;
+}
+
 }

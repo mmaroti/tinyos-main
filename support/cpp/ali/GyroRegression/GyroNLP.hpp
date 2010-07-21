@@ -6,6 +6,8 @@
 
 using namespace Ipopt;
 
+namespace gyro {
+
 class ObjDouble;
 class ObjGrad;
 class input;
@@ -15,6 +17,8 @@ class GyroNLP : public TNLP
 public:
 
 	GyroNLP(const input& data, std::ostream& os, bool verbose);
+
+	const double* solution() const { return minimizer; }
 
 	virtual ~GyroNLP();
 
@@ -54,10 +58,12 @@ private:
 	static const int N_VARS;
 	static const int N_CONS;
 
-	double* const solution;
+	double* const minimizer;
 
 	ObjDouble* const obj;
 	ObjGrad*   const grad;
 };
+
+}
 
 #endif

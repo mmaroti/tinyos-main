@@ -1,6 +1,8 @@
 #include <stdexcept>
 #include "InputData.hpp"
 
+namespace gyro {
+
 input::input(const double* acc_x,
 			const double* acc_y,
 			const double* acc_z,
@@ -62,4 +64,6 @@ void input::release_resources() {
 	delete[] wx_;
 	delete[] wy_;
 	delete[] wz_;
+}
+
 }

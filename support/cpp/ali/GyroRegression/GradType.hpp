@@ -3,6 +3,8 @@
 
 #include <iosfwd>
 
+namespace gyro {
+
 template <int N>
 class GradType {
 
@@ -200,6 +202,8 @@ const GradType<N_VAR> operator/(const double x, const GradType<N_VAR>& y) {
 	}
 
 	return z;
+}
+
 }
 
 #endif

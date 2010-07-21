@@ -9,6 +9,8 @@ using std::endl;
 
 typedef double NT;
 
+namespace gyro {
+
 template<typename T>
 class ObjEval {
 
@@ -323,6 +325,8 @@ public:
 	void unset_verbose() { VERBOSE = false; }
 
 };
+
+}
 
 #endif
 

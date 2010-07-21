@@ -1,6 +1,8 @@
 #ifndef INPUTDATA_HPP_
 #define INPUTDATA_HPP_
 
+namespace gyro {
+
 class input {
 
 public:
@@ -51,5 +53,7 @@ private:
 
 	bool released;
 };
+
+}
 
 #endif
