@@ -3,7 +3,9 @@
 
 namespace gyro {
 
-input read_file(const char* filename);
+class input;
+
+input* read_file(const char* filename);
 
 }
 

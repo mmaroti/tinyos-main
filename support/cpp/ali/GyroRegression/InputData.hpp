@@ -32,7 +32,7 @@ public:
 	double dt() const    { return dt_; }
 	double g_ref() const { return g_ref_; }
 
-	void release_resources();
+	~input();
 
 private:
 
@@ -50,8 +50,6 @@ private:
 
 	const double dt_;
 	const double g_ref_;
-
-	bool released;
 };
 
 }

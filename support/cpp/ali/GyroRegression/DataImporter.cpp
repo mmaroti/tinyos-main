@@ -10,7 +10,7 @@ typedef double NT;
 
 namespace gyro {
 
-input read_file(const char* filename) {
+input* read_file(const char* filename) {
 
 	double dt    = NT(10.0/2048.0);
 	double g_ref = NT(-9.81);
@@ -62,7 +62,7 @@ input read_file(const char* filename) {
 		}
 	}
 
-	return input(acc_x, acc_y, acc_z, wx, wy, wz, N, dt, g_ref);
+	return new input(acc_x, acc_y, acc_z, wx, wy, wz, N, dt, g_ref);
 }
 
 }
