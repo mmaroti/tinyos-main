@@ -2,6 +2,7 @@
 #include <memory>
 #include "Optimizer.hpp"
 #include "DataImporter.hpp"
+#include "RotationMatrix.hpp"
 
 using namespace std;
 
@@ -11,9 +12,7 @@ int main() {
 
 	auto_ptr<const input> data(read_file("manual"));
 
-	Optimizer opt(*data, cout);
-
-	data.reset();
+	Optimizer opt(*data);
 
 	const double* const x = opt.solution();
 
@@ -24,6 +23,13 @@ int main() {
 
 	cout << "Error in g (in m/s^2) : " << opt.error_in_g() << endl;
 
+	RotationMatrix rot(*data, x);
+
+	data.reset();
+
+	rot.dump_g_err();
+
 	return 0;
+
 }
 
