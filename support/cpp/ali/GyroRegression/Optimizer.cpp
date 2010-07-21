@@ -11,7 +11,11 @@ Optimizer::Optimizer(const input& data, std::ostream& os, bool verbose) {
 
 	SmartPtr<IpoptApplication> app = new IpoptApplication();
 
-	ApplicationReturnStatus status(app->Initialize());
+	app->Options()->SetNumericValue("tol", 1.0e-3);
+	app->Options()->SetStringValue("hessian_approximation", "limited-memory");
+	app->Options()->SetStringValue("limited_memory_update_type", "bfgs");
+
+	ApplicationReturnStatus status(app->Initialize("ipopt.opt"));
 
 	if (status != Solve_Succeeded) {
 		throw runtime_error("Error during initialization of IPOPT!");
@@ -19,7 +23,6 @@ Optimizer::Optimizer(const input& data, std::ostream& os, bool verbose) {
 
 	SmartPtr<TNLP> nlp = new GyroNLP(data, os, verbose);
 
-	// FIXME Make bfgs default!
 	status = app->OptimizeTNLP(nlp);
 
 	if (status != Solve_Succeeded && status != Solved_To_Acceptable_Level) {
