@@ -12,7 +12,7 @@ class Optimizer {
 
 public:
 
-	Optimizer(const input& data, std::ostream& os, bool verbose = false);
+	Optimizer(const input& data, std::ostream& log = std::cout, bool verbose = false);
 
 	const double* solution() const { return minimizer; }
 

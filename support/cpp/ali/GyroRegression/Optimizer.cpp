@@ -45,9 +45,6 @@ Optimizer::Optimizer(const input& data, std::ostream& os, bool verbose) {
 
 	for (int i=0; i<NUMBER_OF_VARIABLES; ++i)
 		minimizer[i] = x[i];
-
-	// FIXME Implement M calculation
-
 }
 
 }

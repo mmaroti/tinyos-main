@@ -61,6 +61,9 @@ private:
 
 	std::ostream& log;
 
+	T* MR;
+	T* g_err;
+
 	const NT half, one, three;
 
 	bool VERBOSE;
@@ -256,6 +259,29 @@ private:
 			//out  << g_x << ' ' << g_y << ' ' << (g_z-g_ref) << endl;
 		}
 
+		if (MR) {
+
+			const int k = 9*i;
+
+			MR[k+0] =  M11*R_11+M12*R_21+M13*R_31;
+			MR[k+1] =  M11*R_12+M12*R_22+M13*R_32;
+			MR[k+2] =  M11*R_13+M12*R_23+M13*R_33;
+
+			MR[k+3] =  M21*R_11+M22*R_21+M23*R_31;
+			MR[k+4] =  M21*R_12+M22*R_22+M23*R_32;
+			MR[k+5] =  M21*R_13+M22*R_23+M23*R_33;
+
+			MR[k+6] =  M31*R_11+M32*R_21+M33*R_31;
+			MR[k+7] =  M31*R_12+M32*R_22+M33*R_32;
+			MR[k+8] =  M31*R_13+M32*R_23+M33*R_33;
+
+			const int m = 3*i;
+
+			g_err[m+0] = MR[k+0]*ax+MR[k+1]*ay+MR[k+2]*az;
+			g_err[m+1] = MR[k+3]*ax+MR[k+4]*ay+MR[k+5]*az;
+			g_err[m+2] = MR[k+6]*ax+MR[k+7]*ay+MR[k+8]*az - g_ref;
+		}
+
 		return;
 	}
 
@@ -281,6 +307,8 @@ public:
 
 		g_ref(data.g_ref()),
 		log(os),
+		MR(0),
+		g_err(0),
 		half(NT(0.5)),
 		one(NT(1)),
 		three(NT(3))
@@ -323,6 +351,16 @@ public:
 	void set_verbose() { VERBOSE = true; }
 
 	void unset_verbose() { VERBOSE = false; }
+
+	void set_M(double* R, double* g_error) {
+
+		M11 = R[0]; M12 = R[1]; M13 = R[2];
+		M21 = R[3]; M22 = R[4]; M23 = R[5];
+		M31 = R[6]; M32 = R[7]; M33 = R[8];
+
+		MR = R;
+		g_err = g_error;
+	}
 
 };
 

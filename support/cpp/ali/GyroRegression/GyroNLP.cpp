@@ -22,8 +22,6 @@ public:
 
 	double evaluate(const double* x) { return obj.f(x); }
 
-	// TODO Implement dump of M*R(i)
-
 private:
 
 	ObjEval<double> obj;
