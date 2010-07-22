@@ -1,3 +1,8 @@
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.regex.Pattern;
+
 /*
  * Copyright (c) 2010, University of Szeged
  * All rights reserved.
@@ -52,11 +57,81 @@ public class PacketTypes {
 	 * @param fileName loads configuration from the fileName
 	 */
 	void loadConfig(String fileName){
-		packetParsers=new PacketParser[2];
-		packetParsers[0]=new SampleParser("a", (byte)17);
-		packetParsers[1]=new SampleParser("b", (byte)18);		
+		FileInputStream file;
+		ArrayList<PacketParser> returnArray=new ArrayList<PacketParser>();
+
+		byte[] bArray=null; 
+		try {
+			file = new FileInputStream(fileName);
+			bArray = new byte[file.available ()];
+			file.read(bArray);
+			file.close ();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		String strLine = new String (bArray);
+		String[] words;
+
+		words=strLine.split(";");					//separates the input into commands
+		int wc=0; 									// word counter	
+		while(wc<words.length-1){
+			words[wc]=words[wc].trim();				//removes the white spaces from the beginning and the end of the phrase
+			if(!words[wc].contains("struct")){			//simple variable
+
+				String[] parts=words[wc].split(" ");
+				String parserName=parts[parts.length-1];
+				String parserType=words[wc].substring(0, (words[wc].length()-parserName.length())).trim();
+				returnArray.add(getPacketParser(returnArray, parserName, parserType));
+			}
+			else{
+				ArrayList<PacketParser> variableArray=new ArrayList<PacketParser>();
+				String[] parts=words[wc].split(" ");
+			    parts[1]=parts[1].replaceAll("[^\\w]", "");
+				String parserName=parts[1];
+			    
+				parts=words[wc].split("\\{");
+				words[wc]=parts[1];
+				while((wc<words.length)&&(!words[wc].contains("}"))){
+					
+					words[wc]=words[wc].trim();
+					parts=words[wc].split(" ");
+					String variableName=parts[parts.length-1];
+					String variableType=words[wc].substring(0, (words[wc].length()-variableName.length())).trim();
+					variableArray.add(getPacketParser(returnArray, variableName, variableType));
+					wc++;
+					
+				}
+				returnArray.add(new StructParser(parserName, variableArray.toArray(new PacketParser[variableArray.size()])));
+				
+			}
+			wc++;
+			
+			
+		}//while ends here
+		packetParsers=returnArray.toArray(new PacketParser[returnArray.size()]);
+	}
+	public PacketParser getPacketParser(ArrayList<PacketParser> returnArray,String name, String type){
+		if(name.contains("=")){
+			String[] parts=name.split("=");
+			return new ConstParser(parts[0], type, parts[1]);
+		}
+		else if(contains(returnArray,type)>-1){
+			return returnArray.get(contains(returnArray,type));
+		}						
+		else	//if(type.contains("int"))
+		{ 		
+			return new IntegerParser(name, type);
+		}
 	}
 	
+	int contains(ArrayList<PacketParser> returnArray,String type) {
+		for(int i=0;i<returnArray.size();i++)
+			if(returnArray.get(i).getName().equals(type))
+				return i;
+		return -1;
+	}
 	/**
 	 * 
 	 * @return returns the PacketParsers which are available 
@@ -64,7 +139,7 @@ public class PacketTypes {
 	PacketParser[] getParsers(){				
 		return packetParsers;
 	}
-	
+
 	/**
 	 * 
 	 * @param name returns the PacketParser from the packetParsers array
@@ -79,3 +154,5 @@ public class PacketTypes {
 		return null;
 	}
 }
+
+//Parse() 
