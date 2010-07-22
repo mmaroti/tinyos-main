@@ -1,0 +1,10 @@
+# acceptable_tol  1.0e-2
+# acceptable_iter  5
+
+print_level 3
+
+tol  1.0e-3
+# hessian_approximation limited-memory
+# hessian_approximation exact
+# limited_memory_update_type    sr1
+
