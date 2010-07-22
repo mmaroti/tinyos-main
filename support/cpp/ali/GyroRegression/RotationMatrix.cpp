@@ -1,5 +1,7 @@
 #include <iostream>
+#include <iomanip>
 #include <cmath>
+#include <cassert>
 #include "ObjectiveEvaluator.hpp"
 #include "RotationMatrix.hpp"
 
@@ -32,7 +34,31 @@ RotationMatrix::~RotationMatrix() {
 	delete[] g_err;
 }
 
-void RotationMatrix::dump_g_err(ostream& log) {
+double RotationMatrix::at(const int measurement, const int i, const int j) const {
+
+	assert(0<=measurement && measurement<N);
+	assert(1<=i && i<=3);
+	assert(1<=j && j<=3);
+
+	const int index = 9*measurement + 3*(i-1) + (j-1);
+	return R[index];
+}
+
+void RotationMatrix::dump_matrices(ostream& log) const {
+
+	log << fixed;
+	log << setprecision(4);
+
+	for (int i=0; i<N; ++i) {
+		log << endl;
+		log << "Sample #" << i << endl;
+		log << this->at(i,1,1) << '\t' << this->at(i,1,2) << '\t' << this->at(i,1,3) << endl;
+		log << this->at(i,2,1) << '\t' << this->at(i,2,2) << '\t' << this->at(i,2,3) << endl;
+		log << this->at(i,3,1) << '\t' << this->at(i,3,2) << '\t' << this->at(i,3,3) << endl;
+	}
+}
+
+void RotationMatrix::dump_g_err(ostream& log) const {
 
 	for (int i=0; i<N; ++i) {
 		const int k = 3*i;

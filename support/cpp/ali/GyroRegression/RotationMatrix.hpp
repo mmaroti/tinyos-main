@@ -16,7 +16,11 @@ public:
 					std::ostream& log = std::cout,
 					bool verbose = false);
 
-	void dump_g_err(std::ostream& log = std::cout);
+	double at(const int measurement, const int i, const int j) const;
+
+	void dump_matrices(std::ostream& log = std::cout) const;
+
+	void dump_g_err(std::ostream& log = std::cout) const;
 
 	~RotationMatrix();
 

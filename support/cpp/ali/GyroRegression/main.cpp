@@ -10,7 +10,7 @@ using namespace gyro;
 
 int main() {
 
-	auto_ptr<const input> data(read_file("manual"));
+	auto_ptr<const input> data(read_file("manual2"));
 
 	Optimizer opt(*data);
 
@@ -27,7 +27,9 @@ int main() {
 
 	data.reset();
 
-	rot.dump_g_err();
+	rot.dump_matrices();
+
+	//rot.dump_g_err();
 
 	return 0;
 
