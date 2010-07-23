@@ -50,60 +50,71 @@ module SimpleFileP
 
 implementation
 {
-	void SIMPLE_ASSERT(bool condition)
-	{
-		if( ! condition )
-			call Leds.led0On();
-	}
-
 	enum
 	{
 		STATE_OFF = 0,
 		STATE_BOOTING = 1,
 		STATE_READY = 2,
+		STATE_FORMAT = 3,
+		STATE_READ = 4,
+		STATE_WRITE = 5,
 	};
 
 	uint8_t state = STATE_OFF;
 	norace bool available = FALSE;
 
-	/*struct buffer
+	// inkabb legyen static (noha sok helyet foglal)
+	struct buffer
 	{
 		uint16_t length;
 		uint8_t data[510];
-	} buffer;*/
+	} buffer;
 
 	uint32_t cardSize;
-	uint32_t position;
+	uint32_t writePos;
+	uint32_t readPos;
 
-	task void findLastSector()
+	// these are set by the user
+	uint8_t *packetPtr;
+	uint16_t packetLen;
+
+	task void executeCommand();
+
+	void findLastSector()
 	{
-		//uint32_t index;
-		uint8_t buffer[512];
-
-		SIMPLE_ASSERT( state == STATE_BOOTING );
-
 		if( ! available )
-			post findLastSector();
+			post executeCommand();
 
 		cardSize = call SD.readCardSize();
+		readPos = 0;
 
-		for(position = 0; position < cardSize; ++position)
+		for(writePos = 0; writePos <= cardSize; ++writePos)
 		{
-			error_t error = call SD.readBlock(position, buffer);
+			error_t error;
+			
+			if( writePos < cardSize )
+				error = call SD.readBlock(writePos, (uint8_t*) &buffer);
+			else
+				error = ESIZE;
+
 			if( error != SUCCESS )
 			{
 				state = STATE_OFF;
-				call SDControl.stop();
-				signal SplitControl.startDone(FAIL);
-				// TODO Should not we exit here?
+
+				// ignore the error, hope it stops properly
+				error = call SDControl.stop();
+				if( error != SUCCESS )
+					call Leds.led0On();
+
+				signal SplitControl.startDone(error);
+
+				return;
 			}
 
-			if(buffer[0] == 0 && buffer[1] == 0)
+			if( buffer.length == 0 )
 				break;
 		}
 		
-		// FIXME What if card is full?
-
 		state = STATE_READY;
 		signal SplitControl.startDone(SUCCESS);
 	}
@@ -120,8 +131,8 @@ implementation
 			return error;
 
 		state = STATE_BOOTING;
-
-		post findLastSector();
+		post executeCommand();
+		return SUCCESS;
 	}
 
 	async event void SD.available()
@@ -134,33 +145,142 @@ implementation
 		available = FALSE;
 	}
 
-	command error_t SplitControl.stop(){
-		// TODO Auto-generated method stub
-		return 1;
+	command error_t SplitControl.stop()
+	{
+		error_t error;
+
+		if( state != STATE_READY )
+			return EBUSY;
+
+		// ignore the error, it is not clear what to do if this fails
+		error = call SDControl.stop();
+		if( error != SUCCESS )
+			call Leds.led0On();
+
+		state = STATE_OFF;
+		return SUCCESS;
 	}
 
-	command error_t SimpleFile.read(uint8_t *packet, uint16_t length){
-		// TODO Auto-generated method stub
-		return 1;
+	void formatDevice()
+	{
+		error_t error;
+
+		buffer.length = 0;
+		error = call SD.writeBlock(0, (uint8_t*) &buffer);
+
+		if( error == SUCCESS )
+		{
+			writePos = 0;
+			readPos = 0;
+		}
+
+		state = STATE_READY;
+		signal SimpleFile.formatDone(error);
 	}
 
-	command error_t SimpleFile.append(uint8_t *packet, uint16_t length){
-		// TODO Auto-generated method stub
-		return 1;
+	command error_t SimpleFile.format()
+	{
+		if( state != STATE_READY )
+			return EBUSY;
+
+		state = STATE_FORMAT;
+		post executeCommand();
+
+		return SUCCESS;
 	}
 
-	command error_t SimpleFile.seek(uint32_t index){
-		// TODO Auto-generated method stub
-		return 1;
+	void readSector()
+	{
+		error_t error;
+		uint16_t i;
+
+		error = call SD.readBlock(readPos, (uint8_t*) &buffer);
+		if( error == SUCCESS )
+		{
+			if( packetLen > buffer.length )
+				packetLen = buffer.length;
+
+			for(i = 0; i < packetLen; ++i)
+				packetPtr[i] = buffer.data[i];
+
+			++readPos;
+		}
+		else
+			packetLen = 0;
+
+		state = STATE_READY;
+		signal SimpleFile.readDone(error, packetLen);
 	}
 
-	command uint32_t SimpleFile.size(){
-		// TODO Auto-generated method stub
-		return 1;
+	command error_t SimpleFile.read(uint8_t *packet, uint16_t length)
+	{
+		if( state != STATE_READY )
+			return EBUSY;
+
+		packetPtr = packet;
+		packetLen = length;
+		state = STATE_READ;
+		return SUCCESS;
 	}
 
-	command error_t SimpleFile.format(){
-		// TODO Auto-generated method stub
-		return 1;
+	void writeSector()
+	{
+		error_t error;
+		uint16_t i;
+
+		for(i = 0; i < packetLen; ++i)
+			buffer.data[i] = packetPtr[i];
+
+		buffer.length = packetLen;
+
+		error = call SD.writeBlock(writePos, (uint8_t*) &buffer);
+		if( error == SUCCESS )
+			++writePos;
+
+		state = STATE_READY;
+		signal SimpleFile.appendDone(error);
+	}
+
+	command error_t SimpleFile.append(uint8_t *packet, uint16_t length)
+	{
+		if( state != STATE_READY )
+			return EBUSY;
+		else if( length > 510 )
+			return ESIZE;
+
+		packetPtr = packet;
+		packetLen = length;
+		state = STATE_WRITE;
+		return SUCCESS;
+	}
+
+	command error_t SimpleFile.seek(uint32_t index)
+	{
+		if( index < writePos )
+		{
+			readPos = index;
+			return SUCCESS;
+		}
+		else
+			return FAIL;
+	}
+
+	command uint32_t SimpleFile.size()
+	{
+		return writePos;
+	}
+
+	task void executeCommand()
+	{
+		if( state == STATE_BOOTING )
+			findLastSector();
+		else if( state == STATE_FORMAT )
+			formatDevice();
+		else if( state == STATE_READ )
+			readSector();
+		else if( state == STATE_WRITE )
+			writeSector();
+		else
+			call Leds.led0On();
 	}
 }

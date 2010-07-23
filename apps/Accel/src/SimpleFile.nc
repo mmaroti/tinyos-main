@@ -33,8 +33,14 @@
 
 interface SimpleFile
 {
+	/**
+	 * Erases all packets.
+	 */
 	command error_t format();
 
+	/**
+	 * Signals after the completion of the format command
+	 */
 	event void formatDone(error_t error);
 
 	/**
