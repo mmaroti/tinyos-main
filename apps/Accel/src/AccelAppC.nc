@@ -2,7 +2,9 @@ configuration AccelAppC{
 	
 }
 implementation{
-	components MainC, AccelP, LedsC;
-	AccelP.Boot -> MainC.Boot;
-	AccelP.Leds -> LedsC.Leds;
+	components MainC, AccelP, LedsC, SimpleFileC;
+	AccelP.Boot -> MainC;
+	AccelP.Leds -> LedsC;
+	AccelP.SF -> SimpleFileC;
+	AccelP.SFCtrl -> SimpleFileC;
 }

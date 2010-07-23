@@ -73,11 +73,11 @@ implementation
 	} buffer;*/
 
 	uint32_t cardSize;
-	uint32_t size;
+	uint32_t position;
 
 	task void findLastSector()
 	{
-		uint32_t index;
+		//uint32_t index;
 		uint8_t buffer[512];
 
 		SIMPLE_ASSERT( state == STATE_BOOTING );
@@ -87,9 +87,9 @@ implementation
 
 		cardSize = call SD.readCardSize();
 
-		for(size = 0; size < cardSize; ++size)
+		for(position = 0; position < cardSize; ++position)
 		{
-			error_t error = call SD.readBlock(size, buffer);
+			error_t error = call SD.readBlock(position, buffer);
 			if( error != SUCCESS )
 			{
 				state = STATE_OFF;
@@ -98,9 +98,11 @@ implementation
 				// TODO Should not we exit here?
 			}
 
-			if( buffer[0] == 0 && buffer[1] == 0)
+			if(buffer[0] == 0 && buffer[1] == 0)
 				break;
 		}
+		
+		// FIXME What if card is full?
 
 		state = STATE_READY;
 		signal SplitControl.startDone(SUCCESS);
