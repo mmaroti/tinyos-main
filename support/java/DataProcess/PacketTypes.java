@@ -1,7 +1,6 @@
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.regex.Pattern;
 
 /*
  * Copyright (c) 2010, University of Szeged
@@ -39,7 +38,7 @@ import java.util.regex.Pattern;
 public class PacketTypes {	
 	PacketParser[] packetParsers;
 	/**
-	 * if no struct file name is provided, structs.txt
+	 * if no structure file name is provided, structs.txt
 	 *  will be loaded from the current directory
 	 */
 	public PacketTypes(){
@@ -83,7 +82,7 @@ public class PacketTypes {
 				String[] parts=words[wc].split(" ");
 				String parserName=parts[parts.length-1];
 				String parserType=words[wc].substring(0, (words[wc].length()-parserName.length())).trim();
-				returnArray.add(getPacketParser(returnArray, parserName, parserType));
+				returnArray.add(PacketParserFactory.getPacketParser(returnArray.toArray(new PacketParser[returnArray.size()]), parserName, parserType));
 			}
 			else{
 				ArrayList<PacketParser> variableArray=new ArrayList<PacketParser>();
@@ -99,7 +98,7 @@ public class PacketTypes {
 					parts=words[wc].split(" ");
 					String variableName=parts[parts.length-1];
 					String variableType=words[wc].substring(0, (words[wc].length()-variableName.length())).trim();
-					variableArray.add(getPacketParser(returnArray, variableName, variableType));
+					variableArray.add(PacketParserFactory.getPacketParser(returnArray.toArray(new PacketParser[returnArray.size()]), variableName, variableType));
 					wc++;
 					
 				}
@@ -112,26 +111,7 @@ public class PacketTypes {
 		}//while ends here
 		packetParsers=returnArray.toArray(new PacketParser[returnArray.size()]);
 	}
-	public PacketParser getPacketParser(ArrayList<PacketParser> returnArray,String name, String type){
-		if(name.contains("=")){
-			String[] parts=name.split("=");
-			return new ConstParser(parts[0], type, parts[1]);
-		}
-		else if(contains(returnArray,type)>-1){
-			return returnArray.get(contains(returnArray,type));
-		}						
-		else	//if(type.contains("int"))
-		{ 		
-			return new IntegerParser(name, type);
-		}
-	}
 	
-	int contains(ArrayList<PacketParser> returnArray,String type) {
-		for(int i=0;i<returnArray.size();i++)
-			if(returnArray.get(i).getName().equals(type))
-				return i;
-		return -1;
-	}
 	/**
 	 * 
 	 * @return returns the PacketParsers which are available 
