@@ -1,6 +1,3 @@
-import java.util.ArrayList;
-import java.util.Arrays;
-
 /*
  * Copyright (c) 2010, University of Szeged
  * All rights reserved.
@@ -34,13 +31,17 @@ import java.util.Arrays;
  *
  * Author:Miklos Toth
  */
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public class StructParser extends PacketParser {
 
 	private PacketParser[] packetStruct;
 	public StructParser(){
 		
 	}
-	public StructParser(PacketParser[] packetStruct){
+	public StructParser(String name, PacketParser[] packetStruct){
+		this.name=name;
 		ArrayList<PacketParser> al=new ArrayList<PacketParser>();
 		for(int i=0;i<packetStruct.length;i++){
 			al.add(packetStruct[i]);
@@ -84,7 +85,7 @@ public class StructParser extends PacketParser {
 	@Override
 	/**
 	 * Calls getFields for every PacketParser in the struct
-	 * @return the types of the fields in String format
+	 * @return the names of the fields in String format
 	 */
 	public String[] getFields() {
 		ArrayList<String> ret;		//temporary String[] to return;

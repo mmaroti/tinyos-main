@@ -29,7 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Author:Miklos Toth, Andras Biro
+ * Author:Miklos Toth
  */
 public class IntegerParser extends PacketParser{
 	String type;
@@ -110,10 +110,10 @@ public class IntegerParser extends PacketParser{
 
 	@Override
 	/**
-	 * @return type
+	 * @return name
 	 */
 	public String[] getFields() {
-		return new String[] {type};
+		return new String[] {name};
 	}
 
 }

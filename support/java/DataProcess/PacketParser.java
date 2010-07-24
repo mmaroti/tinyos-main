@@ -1,3 +1,5 @@
+
+
 /*
  * Copyright (c) 2010, University of Szeged
  * All rights reserved.
@@ -61,7 +63,13 @@ public abstract class PacketParser{
 	
 	/**
 	 * 
-	 * @return the types of the fields in String format
+	 * @return the names of the fields in String format
 	 */
 	public abstract String[] getFields();
+
 }
+
+//getValue? returns the value of a variablename
+
+
+
