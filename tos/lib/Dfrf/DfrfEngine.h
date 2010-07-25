@@ -23,12 +23,8 @@
  *         Janos Sallai
  */
 
-
-#ifndef __DFRF_H__
-#define __DFRF_H__
-
-#include "AM.h"
-#include "DfrfMsg.h"
+#ifndef __DFRFENGINE_H__
+#define __DFRFENGINE_H__
 
 /**
 * Block is an encapsulation of data packet that is routed.
@@ -63,4 +59,21 @@ typedef struct descriptor
     dfrf_block_t blocks[0]; // pointer to the first block in the descriptor
 } dfrf_desc_t;
 
-#endif // __DFRF_H__
+/**
+* These are the actual messages transmitted, which combine several packets
+* of the same application id. 
+*/
+typedef nx_struct dfrf_msg
+{
+	nx_uint8_t appId;	// the application id, distinguishes different applications
+				// using FloodRouting parametrized interface
+	nx_uint16_t location;	// see RoutingPolicy
+	nx_uint8_t data[0];	// actual packets, max length is FLOODROUTING_MAXDATA
+} dfrf_msg_t;
+
+enum
+{
+	AM_DFRF_MSG = 0x82,
+};
+
+#endif// __DFRFENGINE_H__

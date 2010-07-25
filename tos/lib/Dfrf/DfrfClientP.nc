@@ -21,7 +21,7 @@
  * Author: Janos Sallai
  */
 
-#include "Dfrf.h"
+#include "DfrfEngine.h"
 
 generic module DfrfClientP(uint8_t payloadlength, uint8_t uniqueLength, uint16_t bufferSize) {
   provides {
