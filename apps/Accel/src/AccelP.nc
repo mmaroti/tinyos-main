@@ -1,3 +1,5 @@
+#include "CtrlMsg.h"
+
 module AccelP {
    uses interface Boot;
    uses interface Leds;
@@ -10,12 +12,27 @@ implementation{
    
    event void Boot.booted() {
 		// TODO
-		call SFCtrl.start();
+		error_t error;
+		
+		call Leds.set(6);
+		
+		error = call SFCtrl.start();
+		
+		if (error)
+			call Leds.led0On();
+
+		error = call AMControl.start();
+
+		if (error)
+			call Leds.led0On();
 
    }
 
 	event void SFCtrl.startDone(error_t error){
-		// TODO Auto-generated method stub
+		if (error == SUCCESS)
+			call Leds.led2Off();			
+		else
+			call Leds.led0On();
 	}
 	
 	event void SF.formatDone(error_t error){
@@ -39,8 +56,11 @@ implementation{
 	}
 
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len){
-		// FIXME Auto-generated method stub
-		return 0;
+		if (len == sizeof(CtrlMsg)) { // TODO Enough?
+			CtrlMsg* pkt = (CtrlMsg*)payload;
+			call Leds.set(pkt->cmd); // TODO Check if meaningful?
+		}
+		return msg;
 	}
 
 	event void AMControl.stopDone(error_t error){
@@ -48,6 +68,9 @@ implementation{
 	}
 
 	event void AMControl.startDone(error_t error){
-		// TODO Auto-generated method stub
+		if (error == SUCCESS)
+			call Leds.led1Off();			
+		else
+			call Leds.led0On();
 	}
 }
