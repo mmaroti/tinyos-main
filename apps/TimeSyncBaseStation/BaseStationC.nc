@@ -1,4 +1,4 @@
-// $Id: BaseStationC.nc,v 1.1 2010-03-23 02:56:26 andrasbiro Exp $
+// $Id: BaseStationC.nc,v 1.2 2010-07-26 12:50:11 andrasbiro Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -69,7 +69,7 @@ configuration BaseStationC {
 implementation {
   components MainC, BaseStationP, LedsC;
   components ActiveMessageC as Radio, SerialActiveMessageC as Serial;
-  components TimeSyncMessageC, LocalTimeMilliC;
+  components LocalTimeMilliC;
   
   MainC.Boot <- BaseStationP;
 
@@ -87,10 +87,8 @@ implementation {
   BaseStationP.RadioPacket -> Radio;
   BaseStationP.RadioAMPacket -> Radio;
   
-  BaseStationP.TimeSyncPacketMilli -> TimeSyncMessageC.TimeSyncPacketMilli;
-  BaseStationP.TimeSyncPacket -> TimeSyncMessageC.Packet;
-  BaseStationP.TimeSyncAMPacket -> TimeSyncMessageC.AMPacket;
-  BaseStationP.LocalTime -> LocalTimeMilliC;
+  BaseStationP.PacketTimeStampMilli->Radio;
+  BaseStationP.LocalTime->LocalTimeMilliC;
   
   BaseStationP.Leds -> LedsC;
 }

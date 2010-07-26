@@ -1,4 +1,4 @@
-// $Id: BaseStationP.nc,v 1.2 2010-03-28 20:16:52 andrasbiro Exp $
+// $Id: BaseStationP.nc,v 1.3 2010-07-26 12:50:11 andrasbiro Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -33,7 +33,7 @@
  * @author Phil Buonadonna
  * @author Gilman Tolle
  * @author David Gay
- * Revision:	$Id: BaseStationP.nc,v 1.2 2010-03-28 20:16:52 andrasbiro Exp $
+ * Revision:	$Id: BaseStationP.nc,v 1.3 2010-07-26 12:50:11 andrasbiro Exp $
  */ 
 
 /* 
@@ -45,6 +45,8 @@
 
 #include "AM.h"
 #include "Serial.h"
+#include <TimeSyncMessageLayer.h>
+
 module BaseStationP @safe() {
 	uses {
 		interface Boot;
@@ -62,9 +64,7 @@ module BaseStationP @safe() {
 		interface Packet as RadioPacket;
 		interface AMPacket as RadioAMPacket;
 		
-		interface TimeSyncPacket<TMilli, uint32_t> as TimeSyncPacketMilli;
-		interface Packet as TimeSyncPacket;
-		interface AMPacket as TimeSyncAMPacket;
+		interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
 		interface LocalTime<TMilli>;
 
 		interface Leds;
@@ -150,13 +150,17 @@ implementation {
 	message_t * receive(message_t * msg, void * payload, uint8_t len) {
 		message_t * ret = msg;
 		if(call RadioAMPacket.type(msg)==0x3d){
-			if (call TimeSyncPacketMilli.isValid(msg))
+			timesync_footer_t *footer=(timesync_footer_t*)(msg->data + len-sizeof(timesync_footer_t)); 
+//TODO: Remove this:
+			#ifndef RADIO_ALARM_MILLI_EXP
+				#define RADIO_ALARM_MILLI_EXP 7
+			#endif
+			if (call PacketTimeStampMilli.isValid(msg) && footer->timestamp.relative != 0x80000000L)//isValid
 			{
-				len=call TimeSyncPacket.payloadLength(msg);
-				*(nx_uint32_t*)(msg->data + len + 1)=call TimeSyncPacketMilli.eventTime(msg);				
+				*(nx_uint32_t*)(msg->data + len -4)=((int32_t)(footer->timestamp.relative) >> RADIO_ALARM_MILLI_EXP ) + call PacketTimeStampMilli.timestamp(msg);//eventtime				
 			}
 			else {
-				*(nx_uint32_t*)(msg->data + len + 1)=0;		
+				*(nx_uint32_t*)(msg->data + len -4)=0;		
 			}
 		}
 		atomic {
@@ -201,8 +205,8 @@ implementation {
 		call UartAMPacket.setSource(msg, src);
 		if(id==0x3d){
 			nx_uint32_t* footer;
-			id=call TimeSyncAMPacket.type(msg);
-			len=call TimeSyncPacket.payloadLength(msg);
+			len=call RadioPacket.payloadLength(msg) - sizeof(timesync_footer_t);
+			id=((timesync_footer_t*)(msg->data + len))->type;
 			footer = (nx_uint32_t*)(msg->data + len);
 			*footer=call LocalTime.get()-*(nx_uint32_t*)(msg->data + len+1);
 			len=tmpLen=len+4;
