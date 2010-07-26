@@ -41,6 +41,7 @@ module SimpleFileP
 		interface StdControl as SDControl;
 	}
 
+	// TODO A deep format functionality?
 	provides
 	{
 		interface SplitControl;
@@ -48,8 +49,10 @@ module SimpleFileP
 	}
 }
 
+// TODO Document that Led0 ON indicates error
 implementation
 {
+	// TODO Probably a bool would suffice and executeCommand could be eliminated
 	enum
 	{
 		STATE_OFF = 0,
@@ -61,13 +64,13 @@ implementation
 	};
 
 	uint8_t state = STATE_OFF;
-	norace bool available = FALSE;
+	// FIXME Only read once; plus we got available==true with SD card out!
+	bool available = FALSE;
 
-	// inkabb legyen static (noha sok helyet foglal)
 	struct buffer
 	{
 		uint16_t length;
-		uint8_t data[510];
+		uint8_t data[510]; // TODO Eliminate magic number 510
 	} buffer;
 
 	uint32_t cardSize;
@@ -80,43 +83,49 @@ implementation
 
 	task void executeCommand();
 
-	void findLastSector()
+	async event void SD.available()
 	{
+		available = TRUE;
+	}
+
+	async event void SD.unavailable()
+	{
+		available = FALSE;
+	}
+
+	void findLastSector()
+	{				
+		error_t error;
+
 		if( ! available )
-			post executeCommand();
+			post executeCommand(); // TODO What does this mean?
 
 		cardSize = call SD.readCardSize();
 		readPos = 0;
 
-		for(writePos = 0; writePos <= cardSize; ++writePos)
+		for(writePos = 0; writePos < cardSize; ++writePos)
 		{
-			error_t error;
-			
-			if( writePos < cardSize )
-				error = call SD.readBlock(writePos, (uint8_t*) &buffer);
-			else
-				error = ESIZE;
+			// TODO The cast assumes a specific memory layout of buffer - guaranteed?
+			error = call SD.readBlock(writePos, (uint8_t*) &buffer);
 
 			if( error != SUCCESS )
-			{
-				state = STATE_OFF;
+				break;
 
-				// ignore the error, hope it stops properly
-				error = call SDControl.stop();
-				if( error != SUCCESS )
-					call Leds.led0On();
-
-				signal SplitControl.startDone(error);
-
+			if( buffer.length == 0 ) {
+				state = STATE_READY;
+				signal SplitControl.startDone(SUCCESS);
 				return;
 			}
-
-			if( buffer.length == 0 )
-				break;
 		}
-		
-		state = STATE_READY;
-		signal SplitControl.startDone(SUCCESS);
+
+		// Error: either card is full or a readBlock failed
+		state = STATE_OFF;
+		call Leds.led0On();		
+
+		// ignore the error, hope it stops properly
+		call SDControl.stop();
+
+		signal SplitControl.startDone(FAIL);
 	}
 
 	command error_t SplitControl.start()
@@ -135,16 +144,6 @@ implementation
 		return SUCCESS;
 	}
 
-	async event void SD.available()
-	{
-		available = TRUE;
-	}
-
-	async event void SD.unavailable()
-	{
-		available = FALSE;
-	}
-
 	command error_t SplitControl.stop()
 	{
 		error_t error;
@@ -158,6 +157,7 @@ implementation
 			call Leds.led0On();
 
 		state = STATE_OFF;
+		// TODO Return variable error instead?
 		return SUCCESS;
 	}
 
@@ -173,15 +173,15 @@ implementation
 			writePos = 0;
 			readPos = 0;
 		}
-
-		state = STATE_READY;
+		
+		state = STATE_READY; // TODO What if write fails (not EBUSY)?
 		signal SimpleFile.formatDone(error);
 	}
 
 	command error_t SimpleFile.format()
 	{
 		if( state != STATE_READY )
-			return EBUSY;
+			return EBUSY;  // TODO Sure? What if STATE_OFF for example?
 
 		state = STATE_FORMAT;
 		post executeCommand();
@@ -203,7 +203,7 @@ implementation
 			for(i = 0; i < packetLen; ++i)
 				packetPtr[i] = buffer.data[i];
 
-			++readPos;
+			++readPos;	// FIXME readPos < writePos not checked
 		}
 		else
 			packetLen = 0;
@@ -218,8 +218,11 @@ implementation
 			return EBUSY;
 
 		packetPtr = packet;
+		// FIXME Check if length is <= 510?
 		packetLen = length;
 		state = STATE_READ;
+		// FIXME The line below was missing?
+		post executeCommand();
 		return SUCCESS;
 	}
 
@@ -235,7 +238,7 @@ implementation
 
 		error = call SD.writeBlock(writePos, (uint8_t*) &buffer);
 		if( error == SUCCESS )
-			++writePos;
+			++writePos; // FIXME writePos < cardSize
 
 		state = STATE_READY;
 		signal SimpleFile.appendDone(error);
@@ -262,7 +265,7 @@ implementation
 			return SUCCESS;
 		}
 		else
-			return FAIL;
+			return FAIL; // TODO Return a more specific error value?
 	}
 
 	command uint32_t SimpleFile.size()
@@ -270,9 +273,10 @@ implementation
 		return writePos;
 	}
 
+	// TODO Please explain the benefit of this approach
 	task void executeCommand()
 	{
-		if( state == STATE_BOOTING )
+		if     ( state == STATE_BOOTING )
 			findLastSector();
 		else if( state == STATE_FORMAT )
 			formatDevice();
