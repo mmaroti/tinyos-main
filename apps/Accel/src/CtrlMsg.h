@@ -2,7 +2,7 @@
 #define CTRL_MSG_H
 
 enum {
-	AM_CTRLMSG = 9
+	AM_CTRLMSG = 11
 };
 
 typedef nx_struct CtrlMsg {
