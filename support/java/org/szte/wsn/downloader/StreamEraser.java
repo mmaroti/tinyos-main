@@ -62,15 +62,20 @@ public class StreamEraser implements MessageListener {
 		}
 		this.moteIF = new MoteIF(phoenix);
 		this.moteIF.registerListener(new ctrltsMsg(), this);
-		System.out.println("Waiting for node #"+nodeid);
+		if(nodeid!=FIRST_NODE&&nodeid!=ALL_NODE)
+			System.out.println("Waiting for node #"+nodeid);
+		else if(nodeid==FIRST_NODE)
+			System.out.println("Waiting for first node");
+		else if(nodeid==ALL_NODE)
+			System.out.println("Waiting for nodes");
 	}
 
 	public void messageReceived(int to, Message message) {
 		if (message instanceof ctrltsMsg && message.dataLength() == ctrltsMsg.DEFAULT_MESSAGE_SIZE) {
 			ctrltsMsg msg = (ctrltsMsg) message;
 			if(nodeid==FIRST_NODE||nodeid==ALL_NODE||msg.getSerialPacket().get_header_src()==nodeid){
-				if(cmdSent==false){
-					System.out.println("Found node #"+msg.getSerialPacket().get_header_src()+", sending erase command");
+				if(msg.get_max_address()-msg.get_min_address()>200){
+					System.out.println("Found node #"+msg.getSerialPacket().get_header_src()+" data:"+ (msg.get_max_address()-msg.get_min_address())+" , sending erase command");
 					if(nodeid==FIRST_NODE)
 						nodeid=msg.getSerialPacket().get_header_src();
 					ctrlMsg response = new ctrlMsg();
@@ -78,7 +83,24 @@ public class StreamEraser implements MessageListener {
 					response.set_max_address(0);
 					try {
 						moteIF.send(msg.getSerialPacket().get_header_src(), response);
-						cmdSent=true;
+						System.out.println("Deleting local files");
+						File bin=new File(dataWriter.nodeidToPath(nodeid, ".bin"));
+						File ts=new File(dataWriter.nodeidToPath(nodeid, ".gap"));
+						File gap=new File(dataWriter.nodeidToPath(nodeid, ".ts"));
+						if(bin.exists()){
+							bin.delete();
+							System.out.println(bin.getPath()+" deleted");
+						} 
+						if(gap.exists()){
+							gap.delete();
+							System.out.println(gap.getPath()+" deleted");
+						} 
+						if(ts.exists()){
+							ts.delete();
+							System.out.println(ts.getPath()+" deleted");
+						} 
+//						if(nodeid!=ALL_NODE)
+//							cmdSent=true;
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -86,23 +108,6 @@ public class StreamEraser implements MessageListener {
 				} else {
 					System.out.print("New message from node#"+msg.getSerialPacket().get_header_src()+": ");
 					System.out.println("MinAddress: " + msg.get_min_address()+" MaxAddress: "+msg.get_max_address());
-					System.out.println("Deleting local files:");
-					File bin=new File(dataWriter.nodeidToPath(nodeid, ".bin"));
-					File ts=new File(dataWriter.nodeidToPath(nodeid, ".gap"));
-					File gap=new File(dataWriter.nodeidToPath(nodeid, ".ts"));
-					if(bin.exists()){
-						bin.delete();
-						System.out.println(bin.getPath()+" deleted");
-					} 
-					if(gap.exists()){
-						gap.delete();
-						System.out.println(gap.getPath()+" deleted");
-					} 
-					if(ts.exists()){
-						ts.delete();
-						System.out.println(ts.getPath()+" deleted");
-					} 
-
 					if(nodeid!=ALL_NODE)
 						System.exit(0);
 				}
