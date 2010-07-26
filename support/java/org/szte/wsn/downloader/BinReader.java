@@ -74,7 +74,7 @@ public class BinReader {
 		//now in the buffer we've got the fist byte of the real data
 		ArrayList<Integer> onemeas=new ArrayList<Integer>();
 		while(buffer!=FRAME){
-			if(gaps.contains(file_input.getFilePointer())||file_input.getFilePointer()>=file_input.length())//if there is a gap in the middle of the frame, than drop it, try, the next frame
+			if(gaps.contains(file_input.getFilePointer()-1)||file_input.getFilePointer()>=file_input.length())//if there is a gap in the middle of the frame, than drop it, try the next frame
 				return readNextFrame(file_input);
 			if(buffer==ESCAPE)
 				buffer=file_input.read()^XORESCAPE;
@@ -119,6 +119,7 @@ public class BinReader {
 	}
 	
 	public BinReader(String datafile, String outputfile, boolean convert, boolean converttime, boolean rewrite, long errorlimit){
+		int badframes=0;
 		if(!new File(datafile).exists()){
 			System.err.println("Data file doesn't exist");
 			System.exit(1);
@@ -178,7 +179,7 @@ public class BinReader {
 					data.add(de);
 					//System.out.println(frame);
 				} else 
-					System.out.println("Bad frame");
+					badframes++;
 			}
 			int currentfunc=functions.size()-1;
 			long prevtime=Long.MAX_VALUE;
@@ -200,7 +201,7 @@ public class BinReader {
 				String humi=Integer.toString(de.humi);
 				String globaltime=Long.toString(de.globaltime);
 				String localetime=Long.toString(de.localetime);
-				if(converttime){
+				if(converttime&&(de.globaltime!=de.localetime)){
 					globaltime=DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(de.globaltime));
 					//time=new Date(de.time).toString();
 				}	
@@ -217,6 +218,7 @@ public class BinReader {
 		} catch (IOException e) {
 			System.out.println("Error: Can't write output file");
 		}
+		System.out.println("Bad Frames: "+badframes);
 	}
 	
 	public class DataElement{
@@ -235,15 +237,19 @@ public class BinReader {
 	}
 	
 	public static void usageThanExit(){
-		System.out.println("java BinReader [options] [maxtimeerror] <datafile> <outputfile>");
+		System.out.println("java BinReader [options] [maxtimeerror] <datafile>");
 		System.out.println("<datafile>: the binary file to process");
 		System.out.println("<outputfile>: the generated csv file");
 		System.out.println("[maxtimeerror]: The maximum of the enabled error during timesync in seconds");
 		System.out.println("				default:120");
 		System.out.println("options:");
-		System.out.println("	--convert: convert the temperature to celsius and the humidity to percent");
-		System.out.println("	--converttime: convert the time to human readable format");
-		System.out.println("	--rewrite: rewrite the output file if exists");
+		System.out.println("	-c; --convert: convert the temperature to celsius and the humidity to percent");
+		System.out.println("	-t; --converttime: convert the time to human readable format");
+		System.out.println("	-r; --rewrite: rewrite the output file if exists");
+		System.out.println("	-o; --output <filename>: the filename of the generated output");
+		System.out.println("				default: The input filename with csv extension");
+		System.out.println("	-e; --maxtimeerror <number>: The maximum of the enabled error during timesync in seconds");
+		System.out.println("				default:120");
 		System.exit(0);
 	}
 	
@@ -253,23 +259,47 @@ public class BinReader {
 		boolean convert=false;
 		boolean converttime=false;
 		boolean rewrite=false;
+		String output=args[args.length-1].substring(0, args[args.length-1].lastIndexOf('.'))+".csv";
 		long errorlimit=120000;
-		for(int i=0;i<args.length-2;i++){
-			if(args[i].equals("--convert"))
-				convert=true;
-			else if(args[i].equals("--converttime"))
-				converttime=true;
-			else if(args[i].equals("--rewrite"))
-				rewrite=true;
-			else {
-				try{
-					errorlimit=1000*Long.parseLong(args[i]);
-				} catch(NumberFormatException e){
-					BinReader.usageThanExit();
+		for(int i=0;i<args.length-1;i++){
+			if(args[i].startsWith("-")){
+				if(args[i].startsWith("--")||args[i].length()<=2){
+					if(args[i].equals("--convert")||args[i].equals("-c"))
+						convert=true;
+					else if(args[i].equals("--converttime")||args[i].equals("-t"))
+						converttime=true;
+					else if(args[i].equals("--rewrite")||args[i].equals("-r"))
+						rewrite=true;
+					else if(args[i].equals("--maxtimeerror")||args[i].equals("-e")){
+						i++;
+						try{
+							errorlimit=1000*Long.parseLong(args[i]);
+						} catch(NumberFormatException e){
+							BinReader.usageThanExit();
+						}
+					} else if(args[i].equals("--output")||args[i].equals("-o")){
+						i++;
+						output=args[i];
+					}
+				} else {
+					for(int j=1;j<args[i].length();j++){
+						switch(args[i].charAt(j)){
+							case 'c':{
+								convert=true;
+							}break;
+							case 't':{
+								converttime=true;
+							}break;
+							case 'r':{
+								rewrite=true;
+							}break;
+						}
+					}
 				}
 			}
+				
 		}
-		new BinReader(args[args.length-2], args[args.length-1], convert, converttime, rewrite, errorlimit);
+		new BinReader(args[args.length-1], output, convert, converttime, rewrite, errorlimit);
 	}
 
 }
