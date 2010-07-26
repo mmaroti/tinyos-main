@@ -1,4 +1,4 @@
-// $Id: BaseStationP.nc,v 1.3 2010-07-26 12:50:11 andrasbiro Exp $
+// $Id: BaseStationP.nc,v 1.4 2010-07-26 12:56:12 andrasbiro Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -33,7 +33,7 @@
  * @author Phil Buonadonna
  * @author Gilman Tolle
  * @author David Gay
- * Revision:	$Id: BaseStationP.nc,v 1.3 2010-07-26 12:50:11 andrasbiro Exp $
+ * Revision:	$Id: BaseStationP.nc,v 1.4 2010-07-26 12:56:12 andrasbiro Exp $
  */ 
 
 /* 
@@ -46,6 +46,7 @@
 #include "AM.h"
 #include "Serial.h"
 #include <TimeSyncMessageLayer.h>
+#include <RadioConfig.h>
 
 module BaseStationP @safe() {
 	uses {
@@ -151,10 +152,6 @@ implementation {
 		message_t * ret = msg;
 		if(call RadioAMPacket.type(msg)==0x3d){
 			timesync_footer_t *footer=(timesync_footer_t*)(msg->data + len-sizeof(timesync_footer_t)); 
-//TODO: Remove this:
-			#ifndef RADIO_ALARM_MILLI_EXP
-				#define RADIO_ALARM_MILLI_EXP 7
-			#endif
 			if (call PacketTimeStampMilli.isValid(msg) && footer->timestamp.relative != 0x80000000L)//isValid
 			{
 				*(nx_uint32_t*)(msg->data + len -4)=((int32_t)(footer->timestamp.relative) >> RADIO_ALARM_MILLI_EXP ) + call PacketTimeStampMilli.timestamp(msg);//eventtime				
