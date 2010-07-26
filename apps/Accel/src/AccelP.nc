@@ -1,6 +1,8 @@
 module AccelP {
    uses interface Boot;
    uses interface Leds;
+   uses interface SplitControl as AMControl;
+   uses interface Receive;
    uses interface SimpleFile as SF;
    uses interface SplitControl as SFCtrl;
 }
@@ -33,6 +35,19 @@ implementation{
 	}
 
 	event void SFCtrl.stopDone(error_t error){
+		// TODO Auto-generated method stub
+	}
+
+	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len){
+		// FIXME Auto-generated method stub
+		return 0;
+	}
+
+	event void AMControl.stopDone(error_t error){
+		// TODO Auto-generated method stub
+	}
+
+	event void AMControl.startDone(error_t error){
 		// TODO Auto-generated method stub
 	}
 }
