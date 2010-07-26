@@ -3,7 +3,7 @@
 configuration RadioHandlerAppP {
 	
 	provides {
-		interface SplitControl;
+		interface StdControl;
 	}
 
 }
@@ -14,7 +14,7 @@ implementation{
 	components new AMReceiverC(AM_CTRLMSG) as AMRec;
 	components new TimerMilliC() as Timer1;
 	components LedHandlerC;
-	SplitControl = RadioHandlerP;
+	StdControl = RadioHandlerP;
 	RadioHandlerP.AMControl -> ActiveMessageC;
 	RadioHandlerP.Receive -> AMRec;
 	RadioHandlerP.TimerRadio -> Timer1;

@@ -1,4 +1,3 @@
-#include "Timer.h"
 #include "CtrlMsg.h"
 
 module RadioHandlerP{
@@ -11,41 +10,60 @@ module RadioHandlerP{
    }
    
    provides {
-		interface SplitControl;
+		interface StdControl;
    	}
 }
 
 implementation{
 	
-	// State
-	bool SLEEP = TRUE;
-	// Mode
-	// TODO Sleep-awake-continuous
+	enum {
+		SLEEP,
+		AWAKE,
+	};
+	
+	enum {
+		ALTERING,
+		CONTINUOUS
+	};
+	
+	bool state = SLEEP;
+	bool mode  = ALTERING;
 
-	command error_t SplitControl.stop(){
+	command error_t StdControl.stop(){
 		// TODO Finish impl of stop
-		// FIXME signal ?
-		return call AMControl.stop();
+		return FAIL;
 	}
 
-	command error_t SplitControl.start(){
+	command error_t StdControl.start(){
 		// FIXME Finish impl of start
-		// FIXME signal ?
 		return call AMControl.start();
 	}
 	
 
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len){
-		if (len == sizeof(CtrlMsg)) { // TODO Enough?
+		
+		if (len == sizeof(CtrlMsg)) {  // TODO Enough?
+		
 			CtrlMsg* pkt = (CtrlMsg*)payload;
-			//call Leds.set(pkt->cmd); // TODO Check if meaningful?
+			
+			uint8_t newState = pkt->cmd;
+
+			if      (newState == ALTERING)   {
+				mode = ALTERING;
+			}
+			else if (newState == CONTINUOUS) {
+				mode = CONTINUOUS;
+			}
+			// else // TODO Unknown mode received
 		}
+
 		return msg;
 	}
 
-	event void AMControl.stopDone(error_t error){
+	event void AMControl.stopDone(error_t error) {
+
 		if (error == SUCCESS) {
-			SLEEP = TRUE;
+			state = SLEEP;
 			call LedHandler.radioOff();
 			call TimerRadio.startOneShot(10000);
 		}		
@@ -53,9 +71,10 @@ implementation{
 			call LedHandler.error();
 	}
 
-	event void AMControl.startDone(error_t error){
+	event void AMControl.startDone(error_t error) {
+
 		if (error == SUCCESS) {
-			SLEEP = FALSE;
+			state = AWAKE;
 			call LedHandler.radioOn();
 			call TimerRadio.startOneShot(50);
 		}		
@@ -63,16 +82,30 @@ implementation{
 			call LedHandler.error();
 	}
 
+	// FIXME Drift?
 	event void TimerRadio.fired(){
 
 		error_t error;
 
-		if (SLEEP)
+		// S A -> start
+		// S C -> start
+		// A A -> stop
+		// A C -> nothing, stay awake
+
+		if      (state == SLEEP) {
 			error = call AMControl.start();
-		else
+		}
+		else if (state == AWAKE && mode == ALTERING) {
 			error = call AMControl.stop();
-			
-		if (error)
+		}
+		else if (mode == CONTINUOUS) {
+			error = SUCCESS; 
+		}
+		else {
+			error = FAIL; // TODO How can we even get here?
+		}
+
+		if (error != SUCCESS)
 			call LedHandler.error();
 	}
 }

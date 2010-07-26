@@ -6,7 +6,7 @@ module AccelP {
    uses interface LedHandler;
    uses interface SimpleFile as SF;
    uses interface SplitControl as SFCtrl;
-   uses interface SplitControl as RadioHandler;
+   uses interface StdControl as RadioHandler;
 }
 
 implementation{
@@ -55,11 +55,4 @@ implementation{
 		// TODO Auto-generated method stub
 	}
 
-	event void RadioHandler.startDone(error_t error){
-		// TODO Auto-generated method stub
-	}
-
-	event void RadioHandler.stopDone(error_t error){
-		// TODO Auto-generated method stub
-	}
 }
