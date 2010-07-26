@@ -1,8 +1,9 @@
 
 
 module AccelP {
+
    uses interface Boot;
-   uses interface Leds;
+   uses interface LedHandler;
    uses interface SimpleFile as SF;
    uses interface SplitControl as SFCtrl;
    uses interface SplitControl as RadioHandler;
@@ -17,21 +18,21 @@ implementation{
 		error = call SFCtrl.start();
 		
 		if (error)
-			call Leds.led0On();
+			call LedHandler.error();
 
 		error = call RadioHandler.start();
 
 		if (error)
-			call Leds.led0On();
+			call LedHandler.error();
 
    }
 
 	event void SFCtrl.startDone(error_t error){
 
 		if (error == SUCCESS)
-			call Leds.led2Off();			
+			call LedHandler.diskReady();			
 		else
-			call Leds.led0On();
+			call LedHandler.error();
 	}
 	
 	event void SF.formatDone(error_t error){

@@ -42,12 +42,12 @@ configuration SimpleFileC
 
 implementation
 { 
-	components SimpleFileP, LedsC, SDC;
+	components SimpleFileP, LedHandlerC, SDC;
 
 	SplitControl = SimpleFileP;
 	SimpleFile = SimpleFileP;
 
-	SimpleFileP.Leds -> LedsC;
+	SimpleFileP.LedHandler -> LedHandlerC;
 	SimpleFileP.SDControl -> SDC;
 	SimpleFileP.SD -> SDC;
 }

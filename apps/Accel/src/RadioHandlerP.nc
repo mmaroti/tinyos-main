@@ -6,7 +6,7 @@ module RadioHandlerP{
    uses {
 		interface SplitControl as AMControl;
 		interface Receive;
-		interface Leds;
+		interface LedHandler;
 		interface Timer<TMilli> as TimerRadio;
    }
    
@@ -38,7 +38,7 @@ implementation{
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len){
 		if (len == sizeof(CtrlMsg)) { // TODO Enough?
 			CtrlMsg* pkt = (CtrlMsg*)payload;
-			call Leds.set(pkt->cmd); // TODO Check if meaningful?
+			//call Leds.set(pkt->cmd); // TODO Check if meaningful?
 		}
 		return msg;
 	}
@@ -46,21 +46,21 @@ implementation{
 	event void AMControl.stopDone(error_t error){
 		if (error == SUCCESS) {
 			SLEEP = TRUE;
-			call Leds.led1Off();
+			call LedHandler.radioOff();
 			call TimerRadio.startOneShot(10000);
 		}		
 		else
-			call Leds.led0On();
+			call LedHandler.error();
 	}
 
 	event void AMControl.startDone(error_t error){
 		if (error == SUCCESS) {
 			SLEEP = FALSE;
-			call Leds.led1On();
+			call LedHandler.radioOn();
 			call TimerRadio.startOneShot(50);
 		}		
 		else
-			call Leds.led0On();
+			call LedHandler.error();
 	}
 
 	event void TimerRadio.fired(){
@@ -73,6 +73,6 @@ implementation{
 			error = call AMControl.stop();
 			
 		if (error)
-			call Leds.led0On();
+			call LedHandler.error();
 	}
 }

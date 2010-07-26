@@ -1,13 +1,13 @@
 configuration AccelAppC{
 	
 }
+
 implementation{
 
-	components MainC, AccelP, LedsC, SimpleFileC, RadioHandlerAppP;
-
+	components MainC, AccelP, LedHandlerC, SimpleFileC, RadioHandlerAppP;
 
 	AccelP.Boot -> MainC;
-	AccelP.Leds -> LedsC;
+	AccelP.LedHandler -> LedHandlerC;
 
 	AccelP.SF -> SimpleFileC;
 	AccelP.SFCtrl -> SimpleFileC;

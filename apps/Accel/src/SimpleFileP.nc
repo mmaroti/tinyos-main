@@ -36,7 +36,7 @@ module SimpleFileP
 {
 	uses
 	{
-		interface Leds;
+		interface LedHandler;
 		interface SD;
 		interface StdControl as SDControl;
 	}
@@ -120,7 +120,7 @@ implementation
 
 		// Error: either card is full or a readBlock failed
 		state = STATE_OFF;
-		call Leds.led0On();		
+		call LedHandler.error();		
 
 		// ignore the error, hope it stops properly
 		call SDControl.stop();
@@ -154,7 +154,7 @@ implementation
 		// ignore the error, it is not clear what to do if this fails
 		error = call SDControl.stop();
 		if( error != SUCCESS )
-			call Leds.led0On();
+			call LedHandler.error();
 
 		state = STATE_OFF;
 		// TODO Return variable error instead?
@@ -285,6 +285,6 @@ implementation
 		else if( state == STATE_WRITE )
 			writeSector();
 		else
-			call Leds.led0On();
+			call LedHandler.error();
 	}
 }

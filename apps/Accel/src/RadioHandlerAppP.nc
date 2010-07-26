@@ -13,10 +13,10 @@ implementation{
 	components ActiveMessageC;
 	components new AMReceiverC(AM_CTRLMSG) as AMRec;
 	components new TimerMilliC() as Timer1;
-	components LedsC; // TODO A component handling the leds
+	components LedHandlerC;
 	SplitControl = RadioHandlerP;
 	RadioHandlerP.AMControl -> ActiveMessageC;
 	RadioHandlerP.Receive -> AMRec;
 	RadioHandlerP.TimerRadio -> Timer1;
-	RadioHandlerP.Leds -> LedsC;
+	RadioHandlerP.LedHandler -> LedHandlerC;
 }
