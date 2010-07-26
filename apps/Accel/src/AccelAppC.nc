@@ -1,10 +1,12 @@
+#include "CtrlMsg.h"
+
 configuration AccelAppC{
 	
 }
 implementation{
 	components MainC, AccelP, LedsC, SimpleFileC;
 	components ActiveMessageC;
-	components new AMReceiverC(9) as AMRec; // FIXME Magic number
+	components new AMReceiverC(AM_CTRLMSG) as AMRec;
 	AccelP.Boot -> MainC;
 	AccelP.Leds -> LedsC;
 	AccelP.AMControl -> ActiveMessageC;
