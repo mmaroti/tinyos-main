@@ -48,6 +48,8 @@ import net.tinyos.util.PrintStreamMessenger;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.swing.JOptionPane;
+
 public class StreamDownloader implements MessageListener {
 	private MoteIF moteIF;
 	private ArrayList<dataWriter> writers = new ArrayList<dataWriter>();
@@ -90,8 +92,8 @@ public class StreamDownloader implements MessageListener {
 	}
 
 	public void messageReceived(int to, Message message) {
-		if((listenonly<0||message.getSerialPacket().get_header_src()==listenonly)&&currently_handled.size()<maxnode){
-			if (message instanceof ctrltsMsg && message.dataLength() == ctrltsMsg.DEFAULT_MESSAGE_SIZE) {
+		if((listenonly<0||(message.getSerialPacket().get_header_src()==listenonly))){
+			if (message instanceof ctrltsMsg && message.dataLength() == ctrltsMsg.DEFAULT_MESSAGE_SIZE&&currently_handled.size()<maxnode) {
 				long received_t=(new Date()).getTime();
 				ctrltsMsg msg = (ctrltsMsg) message;
 				System.out.println("Ctrl message received from #"+msg.getSerialPacket().get_header_src()+" min:"+msg.get_min_address()+" max:"+msg.get_max_address()+" timestamp:"+(Long)(msg.get_localtime()+msg.get_timestamp()));
@@ -123,9 +125,11 @@ public class StreamDownloader implements MessageListener {
 						else {
 							response.set_min_address(msg.get_min_address());
 						}
-						moteIF.send(currentWriter.getNodeid(), response);
-						currently_handled.add(writers.indexOf(currentWriter));
-						currentWriter.setLastModified(new Date().getTime());
+						if(currently_handled.size()<maxnode){
+							currently_handled.add(writers.indexOf(currentWriter));
+							currentWriter.setLastModified(new Date().getTime());
+							moteIF.send(currentWriter.getNodeid(), response);
+						}
 					} else {//if we don't have to download new data, we try to fill a gap
 						Long[] rep;
 						rep = currentWriter.repairGap(msg.get_min_address());
@@ -133,7 +137,11 @@ public class StreamDownloader implements MessageListener {
 							ctrlMsg response = new ctrlMsg();
 							response.set_min_address(rep[0]);
 							response.set_max_address(rep[1]);
-							moteIF.send(currentWriter.getNodeid(), response);
+							if(currently_handled.size()<maxnode){
+								currently_handled.add(writers.indexOf(currentWriter));
+								currentWriter.setLastModified(new Date().getTime());
+								moteIF.send(currentWriter.getNodeid(), response);
+							}
 						}
 					}
 				} catch (IOException e1) {
@@ -222,9 +230,9 @@ public class StreamDownloader implements MessageListener {
 	}
 
 	public static void main(String[] args) throws Exception {
-		String source = null;
+		String source = "sf@localhost:9002";
 		int listenonly=-1;
-		int maxnode=3;
+		int maxnode=1;
 		if (args.length == 0||args.length == 2||args.length == 4||args.length == 6) {
 			for(int i=0;i<args.length;i+=2){
 				if (args[i].equals("-comm")) {
@@ -240,7 +248,6 @@ public class StreamDownloader implements MessageListener {
 		} else {
 			StreamDownloader.usage();
 		}
-
 		new StreamDownloader(listenonly, maxnode, source, (byte) 10);
 	}
 
