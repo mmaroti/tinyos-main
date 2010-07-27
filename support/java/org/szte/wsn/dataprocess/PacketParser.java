@@ -57,10 +57,22 @@ public abstract class PacketParser{
 	public abstract String[] parse(byte[] packet);
 	
 	/**
+	 * constructs byte[] from String values
+	 * @param stringValue String[]
+	 * @return the data in byte form
+	 */
+	public abstract byte[] construct(String[] stringValue);
+	/**
 	 * 
 	 * @return the length of the packet in bytes 
 	 */
 	public abstract int getPacketLength();
+	
+	/**
+	 * 
+	 * @return the length of the String[]
+	 */
+	public abstract int getStringLength();
 	
 	/**
 	 * 
@@ -69,8 +81,3 @@ public abstract class PacketParser{
 	public abstract String[] getFields();
 
 }
-
-//getValue? returns the value of a variablename
-
-
-
