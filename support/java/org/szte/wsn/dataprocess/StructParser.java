@@ -32,15 +32,19 @@ package org.szte.wsn.dataprocess;
  *
  * Author:Miklos Toth
  */
+
+
 import java.util.ArrayList;
 import java.util.Arrays;
-
 public class StructParser extends PacketParser {
 
 	private PacketParser[] packetStruct;
-	public StructParser(){
-		
-	}
+	
+	/**
+	 * sets the name and packetStruct
+	 * @param name of the PacketParser struct
+	 * @param packetStruct array of PacketParsers
+	 */
 	public StructParser(String name, PacketParser[] packetStruct){
 		this.name=name;
 		ArrayList<PacketParser> al=new ArrayList<PacketParser>();
@@ -89,11 +93,35 @@ public class StructParser extends PacketParser {
 	 * @return the names of the fields in String format
 	 */
 	public String[] getFields() {
-		ArrayList<String> ret;		//temporary String[] to return;
-		ret=new ArrayList<String>(); 
+		ArrayList<String> ret=new ArrayList<String>(); 
+		
 		for(int i=0;i<packetStruct.length;i++){  //every PacketParser
 			ret.addAll(Arrays.asList(packetStruct[i].getFields()));		
 		}
 		return ret.toArray(new String[ret.size()]);
+	}
+	/**
+	 * Calls construct for every PacketParser in the struct
+	 * @return the values of the String[] in byte[] format
+	 */
+	@Override
+	public byte[] construct(String[] stringValue) {
+		ArrayList<Byte> ret=new ArrayList<Byte>(); 
+		int pointer=0;
+		for(int i=0;i<packetStruct.length;i++){  //every PacketParser
+			int length=packetStruct[i].getPacketLength();
+			String[] packetPart=new String[length];				//bytes of one PacketParser			
+			System.arraycopy(stringValue ,pointer,packetPart,0,length);
+			
+			ret.addAll(Arrays.asList(packetStruct[i].construct(packetPart))); 	
+			
+			pointer+=length;
+		}
+		return ret.toArray(new String[ret.size()]);
+	}
+	@Override
+	public int getStringLength() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 }
