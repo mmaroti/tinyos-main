@@ -1,4 +1,3 @@
-package org.szte.wsn.dataprocess;
 /*
  * Copyright (c) 2010, University of Szeged
  * All rights reserved.
@@ -32,6 +31,8 @@ package org.szte.wsn.dataprocess;
  *
  * Author:Miklos Toth
  */
+package org.szte.wsn.dataprocess;
+
 
 
 import java.util.ArrayList;
@@ -53,6 +54,7 @@ public class StructParser extends PacketParser {
 		}
 		this.packetStruct=al.toArray(new PacketParser[al.size()]);
 	}
+	
 	/**
 	 * Calls parse for every PacketParser in the struct
 	 */
@@ -80,10 +82,9 @@ public class StructParser extends PacketParser {
 	 */
 	public int getPacketLength() {
 		int ret=0;
-		for(int i=0;i<packetStruct.length;i++)		 //every PacketParser
-		{ 
+		for(int i=0;i<packetStruct.length;i++)		 //every PacketParser		
 			ret+=packetStruct[i].getPacketLength();
-		}
+	
 		return ret;
 	}
 	
@@ -100,17 +101,18 @@ public class StructParser extends PacketParser {
 		}
 		return ret.toArray(new String[ret.size()]);
 	}
+	
+	@Override
 	/**
 	 * Calls construct for every PacketParser in the struct
 	 * @return the values of the String[] in byte[] format
 	 */
-	@Override
 	public byte[] construct(String[] stringValue) {
 		ArrayList<Byte> ret=new ArrayList<Byte>(); 
 		int pointer=0;
-		for(int i=0;i<packetStruct.length;i++){  //every PacketParser
+		for(int i=0;i<packetStruct.length;i++){ 	 //every PacketParser
 			int length=packetStruct[i].getStringLength();
-			String[] packetPart=new String[length];				//bytes of one PacketParser			
+			String[] packetPart=new String[length];				//String of one PacketParser			
 			System.arraycopy(stringValue ,pointer,packetPart,0,length);
 			for(byte b:packetStruct[i].construct(packetPart))
 				ret.add(b); 	
@@ -122,9 +124,16 @@ public class StructParser extends PacketParser {
 		    }
 		return byteArray;
 	}
+	
 	@Override
+	/**
+	 * @return the length of the String[] which is created during parse
+	 */
 	public int getStringLength() {
-		// TODO Auto-generated method stub
-		return 0;
+		int ret=0;
+		for(PacketParser pp:packetStruct)		 //every PacketParser		
+			ret+=pp.getStringLength();
+		
+		return ret;
 	}
 }

@@ -1,8 +1,5 @@
-package org.szte.wsn.dataprocess;
-
-
-
 /*
+ * 
  * Copyright (c) 2010, University of Szeged
  * All rights reserved.
  *
@@ -35,6 +32,8 @@ package org.szte.wsn.dataprocess;
  *
  * Author:Miklos Toth
  */
+package org.szte.wsn.dataprocess;
+
 /**
  * Factory class to make the right PacketParser according to the parameters
  * 

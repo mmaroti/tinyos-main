@@ -1,8 +1,3 @@
-package org.szte.wsn.dataprocess;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-
 /*
  * Copyright (c) 2010, University of Szeged
  * All rights reserved.
@@ -36,6 +31,12 @@ import java.util.Arrays;
  *
  * Author:Miklos Toth
  */
+package org.szte.wsn.dataprocess;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
+
 /**
  * 
  * PacketParser implementation of PacketParser arrays
@@ -98,15 +99,30 @@ public class ArrayParser extends PacketParser{
 	}
 
 	@Override
+	/**
+	 * Calls construct for every PacketParser in the array
+	 * @return the values of the String[] in byte[] format
+	 */
 	public byte[] construct(String[] stringValue) {
-		// TODO Auto-generated method stub
-		return null;
+		byte[] ret = new byte[packetType.getPacketLength()*size];
+		int pointer=0;
+		int length=packetType.getStringLength();
+		for(int i=0;i<size;i++){ 			 //every PacketParser			
+			String[] packetPart=new String[length];				//String of one PacketParser			
+			System.arraycopy(stringValue ,pointer,packetPart,0,length);
+			for(int j=0; j<packetType.construct(packetPart).length;j++)
+				ret[i*size+j]=packetType.construct(packetPart)[j]; 	
+			pointer+=length;
+		}		    
+		return ret;
 	}
 
 	@Override
-	public int getStringLength() {
-		// TODO Auto-generated method stub
-		return 0;
+	/**
+	 * @return the length of the String[] which is created during parse
+	 */
+	public int getStringLength() {		
+		return packetType.getStringLength()*size;
 	}
 
 }

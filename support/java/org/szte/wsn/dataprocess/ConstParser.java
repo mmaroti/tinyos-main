@@ -1,7 +1,3 @@
-package org.szte.wsn.dataprocess;
-
-import java.util.Arrays;
-
 /*
  * Copyright (c) 2010, University of Szeged
  * All rights reserved.
@@ -35,8 +31,14 @@ import java.util.Arrays;
  *
  * Author:Miklos Toth
  */
+package org.szte.wsn.dataprocess;
+
+import java.util.Arrays;
+
+
 public class ConstParser extends IntegerParser {	
 	byte[] value;	
+	
 	/**
 	 * stores a constant value and compares it to the byte[]
 	 * @param name integer variable name
@@ -62,6 +64,7 @@ public class ConstParser extends IntegerParser {
 		else
 			return null;
 		}
+	
 	@Override
 	/**
 	 * returns the byte[] if it is equal to the value constant

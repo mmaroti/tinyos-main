@@ -1,4 +1,3 @@
-package org.szte.wsn.dataprocess;
 /*
 * Copyright (c) 2010, University of Szeged
 * All rights reserved.
@@ -32,19 +31,36 @@ package org.szte.wsn.dataprocess;
 *
 * Author:Andras Biro, Miklos Toth
 */
+package org.szte.wsn.dataprocess;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class RawPacketConsumer{
+public class RawPacketConsumer implements BinaryInterface{
 	private File dataFile;
 	private ArrayList<Byte[]>frames=new ArrayList<Byte[]>();
 	private ArrayList<Gap> gaps = new ArrayList<Gap>();    
 	private int nodeid;	
 
-
+	public RawPacketConsumer(String path, ArrayList<Gap> gaps, byte frame, byte escape, byte xorescaped) throws IOException{
+		if(path.endsWith(".bin")){
+			path.lastIndexOf('/');
+			nodeid=Integer.parseInt(path.substring(path.lastIndexOf('/')+1, path.length()-4));			
+			initDataFile(path, nodeid);
+			this.gaps=gaps;
+			frames=	makeFrames(frame, escape, xorescaped);		
+		} else
+			throw new FileNotFoundException();
+	}
+	
+	public RawPacketConsumer(String path,ArrayList<Gap> gaps) throws IOException{
+		this(path,gaps,(byte)0x5e,(byte)0x5d,(byte)0x20);
+		
+	}
+	
 	public Byte[] readNextFrame(byte[] buffer, int offset, byte frame, byte escape, byte xorescaped){
 		if(offset>=buffer.length)
 			return null;
@@ -97,21 +113,7 @@ public class RawPacketConsumer{
 		return ret;
 	}
 	
-	public RawPacketConsumer(String path, ArrayList<Gap> gaps, byte frame, byte escape, byte xorescaped) throws IOException{
-		if(path.endsWith(".bin")){
-			path.lastIndexOf('/');
-			nodeid=Integer.parseInt(path.substring(path.lastIndexOf('/')+1, path.length()-4));			
-			initDataFile(path, nodeid);
-			this.gaps=gaps;
-			frames=	makeFrames(frame, escape, xorescaped);		
-		} else
-			throw new FileNotFoundException();
-	}
 	
-	public RawPacketConsumer(String path,ArrayList<Gap> gaps) throws IOException{
-		this(path,gaps,(byte)0x5e,(byte)0x5d,(byte)0x20);
-		
-	}
 	private void initDataFile(String path, int nodeid) throws FileNotFoundException{
 			this.dataFile=new File(path);
 			if(dataFile.exists())
@@ -129,7 +131,7 @@ public class RawPacketConsumer{
 		this.gaps = gaps;
 	}
 	public void setFrames(ArrayList<Byte[]> frames) {
-		this.frames = frames;
+		this.frames = new ArrayList<Byte[]>(frames);
 	}
 	public ArrayList<Byte[]> getFrames() {
 		return frames;
@@ -141,5 +143,19 @@ public class RawPacketConsumer{
 	
 	public File getDataFile() {
 		return dataFile;
+	}
+
+
+
+	@Override
+	public byte[] getSingleFrame() {
+		// not recomended for this type of input
+		return null;
+	}
+
+	@Override
+	public void setSingleFrame(byte[] frames) {
+		// not recomended for this type of input
+		
 	}
 }

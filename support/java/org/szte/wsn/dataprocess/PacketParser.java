@@ -1,6 +1,3 @@
-package org.szte.wsn.dataprocess;
-
-
 /*
  * Copyright (c) 2010, University of Szeged
  * All rights reserved.
@@ -34,6 +31,8 @@ package org.szte.wsn.dataprocess;
  *
  * Author:Miklos Toth
  */
+package org.szte.wsn.dataprocess;
+
 /**
  * abstract class, with necessary methods and fields
  * for the packet parsing
@@ -70,8 +69,7 @@ public abstract class PacketParser{
 	public abstract int getPacketLength();
 	
 	/**
-	 * 
-	 * @return the length of the String[]
+	 * @return the length of the String[] which is created during parse
 	 */
 	public abstract int getStringLength();
 	

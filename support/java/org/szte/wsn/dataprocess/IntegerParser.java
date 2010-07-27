@@ -1,6 +1,3 @@
-package org.szte.wsn.dataprocess;
-
-
 /*
  * Copyright (c) 2010, University of Szeged
  * All rights reserved.
@@ -34,11 +31,14 @@ package org.szte.wsn.dataprocess;
  *
  * Author:Miklos Toth
  */
+package org.szte.wsn.dataprocess;
+
 public class IntegerParser extends PacketParser{
 	String type;
 	int size;
 	boolean isLittleEndian=false;
 	boolean signed; 
+	
 	/**
 	 * sets the flags according to the type
 	 * sets the size according to the type
@@ -60,6 +60,7 @@ public class IntegerParser extends PacketParser{
 			size=4;
 		
 	}
+	
 	@Override
 	/**
 	 * @return the value of the integer at the first place of the String array
@@ -121,7 +122,7 @@ public class IntegerParser extends PacketParser{
 	
 	@Override
 	/**
-	 * @return the size of the String
+	 * @return the length of the String which is created during parse
 	 */
 	public int getStringLength() {
 		
