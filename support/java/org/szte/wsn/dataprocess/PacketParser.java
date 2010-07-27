@@ -62,6 +62,7 @@ public abstract class PacketParser{
 	 * @return the data in byte form
 	 */
 	public abstract byte[] construct(String[] stringValue);
+	
 	/**
 	 * 
 	 * @return the length of the packet in bytes 
