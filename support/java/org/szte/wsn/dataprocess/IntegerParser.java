@@ -1,6 +1,5 @@
 package org.szte.wsn.dataprocess;
 
-import PacketParser;
 
 /*
  * Copyright (c) 2010, University of Szeged

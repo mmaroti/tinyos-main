@@ -109,15 +109,18 @@ public class StructParser extends PacketParser {
 		ArrayList<Byte> ret=new ArrayList<Byte>(); 
 		int pointer=0;
 		for(int i=0;i<packetStruct.length;i++){  //every PacketParser
-			int length=packetStruct[i].getPacketLength();
+			int length=packetStruct[i].getStringLength();
 			String[] packetPart=new String[length];				//bytes of one PacketParser			
 			System.arraycopy(stringValue ,pointer,packetPart,0,length);
-			
-			ret.addAll(Arrays.asList(packetStruct[i].construct(packetPart))); 	
-			
+			for(byte b:packetStruct[i].construct(packetPart))
+				ret.add(b); 	
 			pointer+=length;
 		}
-		return ret.toArray(new String[ret.size()]);
+		 byte[] byteArray = new byte[ret.size()];
+		    for(int i = 0; i<ret.size(); i++){
+		      byteArray[i] = ret.get(i);
+		    }
+		return byteArray;
 	}
 	@Override
 	public int getStringLength() {

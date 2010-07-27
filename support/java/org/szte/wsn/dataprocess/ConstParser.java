@@ -1,5 +1,4 @@
 package org.szte.wsn.dataprocess;
-import IntegerParser;
 
 import java.util.Arrays;
 
