@@ -1,4 +1,10 @@
 package org.szte.wsn.dataprocess;
+
+import ArrayParser;
+import ConstParser;
+import IntegerParser;
+import PacketParser;
+
 /*
  * Copyright (c) 2010, University of Szeged
  * All rights reserved.
@@ -32,11 +38,22 @@ package org.szte.wsn.dataprocess;
  *
  * Author:Miklos Toth
  */
-
+/**
+ * Factory class to make the right PacketParser according to the parameters
+ * 
+ */
 public class PacketParserFactory {
-	public static PacketParser getPacketParser(PacketParser[] packetArray,String name, String type){
+	/**
+	 * 
+	 * @param packetArray existing PacketParsers
+	 * @param name param of the new PacketParser
+	 * @param type param of the new PacketParser
+	 * @return new PacketParser according to the parameters,
+	 *  null if the type doesn't fit on any available PacketParser
+	 */
+	public static PacketParser getPacketParser(PacketParser[] packetArray, String name, String type){
 		int pos=contains(packetArray,type);
-		if(name.contains("=")){
+		if((name.contains("="))&&(type.contains("int"))){
 			String[] parts=name.split("=");
 			return new ConstParser(parts[0], type, parts[1]);
 		}
@@ -44,15 +61,25 @@ public class PacketParserFactory {
 			return packetArray[pos];
 		}	
 		else if(name.contains("[")){
+			//size of the array
 			int size=Integer.parseInt(name.substring(name.indexOf("[")+1,name.indexOf("]")));
-			return new ArrayParser(name, type, packetArray,size);
+			  
+			return new ArrayParser(getPacketParser(packetArray, type, type), size);
 		}
-		else	//if(type.contains("int"))
+		else if(type.contains("int"))
 		{ 		
 			return new IntegerParser(name, type);
 		}
+		else
+			return null;
 	}
-
+/**
+ * 
+ * @param packetArray already existing PacketParsers
+ * @param type searched type
+ * @return the position of this type in the PacketArray, 
+ * or -1 if it isn't in it
+ */
 	public static int contains(PacketParser[] packetArray,String type) {
 		for(int i=0;i<packetArray.length;i++)
 			if(packetArray[i].getName().equals(type))
