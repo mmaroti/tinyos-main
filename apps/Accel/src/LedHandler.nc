@@ -7,6 +7,8 @@ interface LedHandler{
 	
 	command void radioOff();
 	
+	command void msgReceived();
+	
 	command void diskReady();
 
 }

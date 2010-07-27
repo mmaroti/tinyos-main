@@ -15,10 +15,10 @@ implementation{
 		// TODO
 		error_t error;
 		
-		error = call SFCtrl.start();
+		//error = call SFCtrl.start();
 		
-		if (error)
-			call LedHandler.error();
+		//if (error)
+		//	call LedHandler.error();
 
 		error = call RadioHandler.start();
 

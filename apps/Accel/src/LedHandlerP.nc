@@ -23,4 +23,8 @@ implementation{
 	command void LedHandler.error() {
 		call Leds.led0On();
 	}
+
+	command void LedHandler.msgReceived(){
+		call Leds.led2Toggle();
+	}
 }
