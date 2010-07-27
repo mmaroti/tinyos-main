@@ -1,4 +1,6 @@
 package org.szte.wsn.dataprocess;
+import PacketParser;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -35,50 +37,77 @@ import java.util.Arrays;
  *
  * Author:Miklos Toth
  */
-
+/**
+ * 
+ * PacketParser implementation of PacketParser arrays
+ * @author Miklos Toth
+ *
+ */
 public class ArrayParser extends PacketParser{
 	int size;
-	String type;
-	PacketParser[] packetArray;	
-
-	public ArrayParser(String name, String type, PacketParser[] packetArray, int size){
-		this.name=name;
-		this.type=type;
+	PacketParser packetType;		//the type of PacketParser array
+	
+	/**
+	 * sets the size of the new PacketParser array, and creates a sample PacketParser
+	 * @param packetType the type of PacketParser array
+	 * @param size of the array
+	 */
+	public ArrayParser(PacketParser packetType,  int size){
 		this.size=size;
-		ArrayList<PacketParser> al=new ArrayList<PacketParser>();
-		for(int i=0;i<packetArray.length;i++){
-			al.add(packetArray[i]);
-		}
-		this.packetArray=al.toArray(new PacketParser[al.size()]);
+		this.packetType= packetType;
 	}
+	
 	@Override
+	/**
+	 * parses the byte[] into String[] calls the parser of the packetType
+	 * for every byte package
+	 * @param byte[]
+	 * @return String[]
+	 */
 	public String[] parse(byte[] packet) {
 		String[] ret=new String[size];
-		int packetLength=(int)packet.length/size;
-		PacketParser pp=PacketParserFactory.getPacketParser(packetArray, name, type);
+
 		for(int i=0;i<size;i++){
-			byte[] packetPart =new byte[packetLength];
-			System.arraycopy(packet, i*packetLength, packetPart, 0, packetLength);						
-			ret[i]=pp.parse(packetPart)[0];
+			byte[] packetPart =new byte[packetType.getPacketLength()];
+			System.arraycopy(packet, i*packetType.getPacketLength(), packetPart, 0, packetType.getPacketLength());						
+			ret[i]=packetType.parse(packetPart)[0];
 			}
+		
 		return ret;
 	}
 
 	@Override
+	/**
+	 * @return the size of this Packet in bytes
+	 */
 	public int getPacketLength() {
-		PacketParser pp=PacketParserFactory.getPacketParser(packetArray,"", type);
-			return pp.getPacketLength()*size;
+			return packetType.getPacketLength()*size;
 	}
 
 	@Override
+	/**
+	 * returns the type of the fields "size" times, instead of the names,
+	 *  array elements don't have unique names
+	 */
 	public String[] getFields() {
-		ArrayList<String> ret;		//temporary String[] to return;
-		ret=new ArrayList<String>(); 		
-		for(int i=0;i<size;i++){  //every PacketParser
-			PacketParser pp=PacketParserFactory.getPacketParser(packetArray, i+". "+type, type);
-			ret.addAll(Arrays.asList(pp.getFields()));		
-		}
+		ArrayList<String> ret=new ArrayList<String>(); 		//temporary String[] to return;
+		
+		for(int i=0;i<size;i++)
+			ret.addAll(Arrays.asList(packetType.getFields()));		
+		
 		return ret.toArray(new String[ret.size()]);
+	}
+
+	@Override
+	public byte[] construct(String[] stringValue) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int getStringLength() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }

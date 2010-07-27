@@ -1,4 +1,6 @@
 package org.szte.wsn.dataprocess;
+import IntegerParser;
+
 import java.util.Arrays;
 
 /*
@@ -44,15 +46,16 @@ public class ConstParser extends IntegerParser {
 	 */
 	public ConstParser(String name, String type, String value){
 		super(name,type);
-		this.value=super.construct(value);
+		this.value=super.construct(new String[]{value});
 		}
+	
+	@Override
 	/**
 	 * returns the parsed packet if it is equal to the value constant
 	 * otherwise it returns null
 	 * @param packet byte array to process
 	 * @return String array or null
 	 */
-	@Override
 	public String[] parse(byte[] packet) {				
 		
 		if (Arrays.equals(packet, value))
@@ -60,7 +63,18 @@ public class ConstParser extends IntegerParser {
 		else
 			return null;
 		}
-	
-
-
+	@Override
+	/**
+	 * returns the byte[] if it is equal to the value constant
+	 * otherwise it returns null
+	 * @param packet String array to process
+	 * @return byte array or null
+	 */
+	public byte[] construct(String[] stringValue) {				
+		
+		if (Arrays.equals(super.construct(new String[]{stringValue[0]}), value))
+			return super.construct(stringValue);
+		else
+			return null;
+		}
 }
