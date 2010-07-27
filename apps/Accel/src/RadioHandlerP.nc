@@ -1,10 +1,12 @@
 #include "CtrlMsg.h"
+#include "ReportMsg.h"
 
 module RadioHandlerP{
 
    uses {
 		interface SplitControl as AMControl;
 		interface Receive;
+		interface AMSend;
 		interface LedHandler;
 		interface Timer<TMilli> as TimerRadio;
    }
@@ -28,12 +30,43 @@ implementation{
 	
 	bool state = SLEEP;
 	bool mode  = ALTERING;
+	
+	bool sending = FALSE;
+	message_t report;
+	
+	error_t broadcast() {
+
+		error_t error;
+		
+		if (sending) {
+			error =  EBUSY;
+		}
+		else {
+			// TODO Explain why
+    		// Note that we could have avoided using the Packet interface, as it's 
+    		// getPayload command is repeated within AMSend.
+    		ReportMsg* pkt = (ReportMsg*)(call AMSend.getPayload(&report, NULL));
+    		pkt->id = TOS_NODE_ID;
+ 			error = call AMSend.send(AM_BROADCAST_ADDR, &report, sizeof(ReportMsg));
+    		if (error == SUCCESS) {
+      			sending = TRUE;
+    		}
+    	}
+    	return error;
+	}
+	
+	event void AMSend.sendDone(message_t *msg, error_t error){
+		sending = FALSE;
+		// FIXME Resend if failed?
+	}
+	
 
 	command error_t StdControl.stop(){
 		// TODO Finish impl of stop
 		return FAIL;
 	}
 
+	// FIXME StdControl is not an appropriate interface
 	command error_t StdControl.start(){
 		// FIXME Finish impl of start
 		return call AMControl.start();
@@ -65,7 +98,7 @@ implementation{
 		if (error == SUCCESS) {
 			state = SLEEP;
 			call LedHandler.radioOff();
-			call TimerRadio.startOneShot(10000);
+			call TimerRadio.startOneShot(1000);
 		}		
 		else
 			call LedHandler.error();
@@ -77,6 +110,7 @@ implementation{
 			state = AWAKE;
 			call LedHandler.radioOn();
 			call TimerRadio.startOneShot(50);
+			broadcast();
 		}		
 		else
 			call LedHandler.error();
