@@ -49,7 +49,7 @@ public class RawPacketConsumer implements BinaryInterface{
 		if(path.endsWith(".bin")){
 			path.lastIndexOf('/');
 			nodeid=Integer.parseInt(path.substring(path.lastIndexOf('/')+1, path.length()-4));			
-			initDataFile(path, nodeid);
+			initDataFile(path);
 			this.gaps=gaps;
 			frames=	makeFrames(frame, escape, xorescaped);		
 		} else
@@ -114,13 +114,13 @@ public class RawPacketConsumer implements BinaryInterface{
 	}
 	
 	
-	private void initDataFile(String path, int nodeid) throws FileNotFoundException{
+	private void initDataFile(String path) throws FileNotFoundException{
 			this.dataFile=new File(path);
 			if(dataFile.exists())
 				System.out.print("Found datafile from #"+nodeid+".");
 			else
 				throw new FileNotFoundException();
-			this.nodeid=nodeid;
+			
 			System.out.println("\nFile opened");		
 	}		
 	
