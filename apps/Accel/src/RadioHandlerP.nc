@@ -47,6 +47,7 @@ implementation{
     		// getPayload command is repeated within AMSend.
     		ReportMsg* pkt = (ReportMsg*)(call AMSend.getPayload(&report, NULL));
     		pkt->id = TOS_NODE_ID;
+    		pkt->mode = mode;
  			error = call AMSend.send(AM_BROADCAST_ADDR, &report, sizeof(ReportMsg));
     		if (error == SUCCESS) {
       			sending = TRUE;
