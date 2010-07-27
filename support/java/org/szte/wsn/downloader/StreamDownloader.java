@@ -48,8 +48,6 @@ import net.tinyos.util.PrintStreamMessenger;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.swing.JOptionPane;
-
 public class StreamDownloader implements MessageListener {
 	private MoteIF moteIF;
 	private ArrayList<dataWriter> writers = new ArrayList<dataWriter>();

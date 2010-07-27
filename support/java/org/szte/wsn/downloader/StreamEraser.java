@@ -47,7 +47,6 @@ import net.tinyos.util.PrintStreamMessenger;
 public class StreamEraser implements MessageListener {
 	private MoteIF moteIF;
 	private int nodeid;
-	private boolean cmdSent=false;
 	public static final int ALL_NODE=0xffff;
 	public static final int FIRST_NODE=0xffff+1;
 	//private ArrayList<dataFile> files = new ArrayList<dataFile>();
