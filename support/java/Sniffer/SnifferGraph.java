@@ -2,7 +2,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Event;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -39,9 +38,11 @@ public class SnifferGraph implements DataBase{
 	/**
 	 *Global value declarations for 
 	 */
+	
 	private static final long serialVersionUID = 1L;
 	
 	public static ArrayList<JPanel> dataPanel = new ArrayList<JPanel>();
+	public static ArrayList<Mote> motes = new ArrayList<Mote>();
 	
 	JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
 	
@@ -52,10 +53,11 @@ public class SnifferGraph implements DataBase{
 	
 	JFrame snfG = new JFrame((String)Labels.frame_name);
 	
-	static JPanel backgPanel = new JPanel();
+	public static JPanel backgPanel = new JPanel();
 	
 	JMenuBar menubar = new JMenuBar();
-	XmlRead xmlRead = new XmlRead();
+	
+	public static XmlRead xmlRead = new XmlRead();
 	
     JMenu file = new JMenu("File");
     
@@ -78,14 +80,19 @@ public class SnifferGraph implements DataBase{
     JTextField loadedFile = new JTextField(xmlRead.filename);
     JTextField saved = new JTextField(xmlRead.filename);
     
-    public static JTextField verticalText[] = new JTextField[100];
-    static TimeLineDraw timeLine = new TimeLineDraw();
+    public static ArrayList<JTextField> osTime = new ArrayList<JTextField>();
+    public static ArrayList<JTextField> moteTime = new ArrayList<JTextField>();
     
-    JScrollBar scrollbar = new JScrollBar(JScrollBar.HORIZONTAL);
+    public static JTextField osTimeText = new JTextField("OS Time:");
+	public static JTextField moteTimeText = new JTextField("Mote Time:");
+    
+    public static TimeLineDraw timeLine = new TimeLineDraw();
+    
+    static JScrollBar scrollbar = new JScrollBar(JScrollBar.HORIZONTAL);
     
    
     
-    JCheckBox box[] = new JCheckBox[xmlRead.number+1];
+    static JCheckBox box[] = new JCheckBox[xmlRead.number+1];
     
     JFileChooser fc = new JFileChooser();
 	/**
@@ -106,7 +113,7 @@ public class SnifferGraph implements DataBase{
 	 * This function gives information about the process is stopped.
 	 */
 	private void stopProcess() {						
-		System.out.println("Process leált.");
+		System.out.println("Process leï¿½lt.");
 		startStop.setText(Labels.txfield_pause);
 		// TODO Auto-generated method stub
 		
@@ -190,6 +197,7 @@ public class SnifferGraph implements DataBase{
 	 */
 	public SnifferGraph() {
 		
+		
 		backgPanel.setLayout(null);
         
         createActionListeners();									
@@ -198,8 +206,7 @@ public class SnifferGraph implements DataBase{
         backgPanel.setBorder(BorderFactory.createEtchedBorder());	
 
         scrollbar.addAdjustmentListener(new MyAction());			
-        scrollbar.setMaximum(screenWidth+9999-110);						
-        dataPanelC();
+        scrollbar.setMaximum(0);
         menuCreat();												
         editables();										
         baseSetings();										
@@ -211,46 +218,18 @@ public class SnifferGraph implements DataBase{
         
         snfG.setSize(800, 600);					
         snfG.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);		
-        snfG.setExtendedState(snfG.getExtendedState() | Frame.MAXIMIZED_BOTH);	
+        snfG.setExtendedState(snfG.getExtendedState() /*| Frame.MAXIMIZED_BOTH*/);	
         snfG.setVisible(true);
    }
-   /**
-    * At  ß version but this function can crate panels  on our workspace.
-    */
-   private void dataPanelC() {
-		JPanel CDataP;
-		int arrabb = 0;
-		JTextField cell[] = new JTextField[xmlRead.number+1]; 
-		for(int i=0;i<50;i++){
-			CDataP = new JPanel();
-			CDataP.setLayout(null);
-			
-			cell[0] = new JTextField(String.valueOf(Process.whatTimeIsNow()));
-			cell[0].setBounds(1,arrabb,70,20);
-			cell[0].setEditable(false);
-			CDataP.add(cell[0]);
-			
-			arrabb+=HORISONTAL_JCB_SPEACE;
-			for(int b=1 ;b<=xmlRead.number;b++){
-				cell[b] = new JTextField(Process.dataCodeing(i, b-1));
-				cell[b].setBounds(1,arrabb,70,20);
-				cell[b].setEditable(false);
-				CDataP.add(cell[b]);
-				
-				arrabb+=HORISONTAL_JCB_SPEACE;
-			}
-			dataPanel.add(CDataP);
-			arrabb=0;
-		}
-	}
+	
 	/**
 	 * This function creates and specify checkboxes
 	 */
 	private void createBoxes() {
 		int height = JCHECKBOX_FIRS_SIZE;
 		
-		box[0]= new JCheckBox("Catch");											//Elsõ box beálítása. Az az értéket mutatja majd pontosan, hogy mikor érkezett.
-		box[0].setToolTipText("Ekkor érkezett a package");
+		box[0]= new JCheckBox("Catch");											//Elsï¿½ box beï¿½lï¿½tï¿½sa. Az az ï¿½rtï¿½ket mutatja majd pontosan, hogy mikor ï¿½rkezett.
+		box[0].setToolTipText("Ekkor ï¿½rkezett a package");
 		box[0].setSelected(true);
 		box[0].addActionListener(new ActionListener() {			
         public void actionPerformed(ActionEvent event) {
@@ -281,7 +260,10 @@ public class SnifferGraph implements DataBase{
 	 */
 	private void switching(ActionEvent event) {
 		System.out.println(event.getActionCommand()); 
+		Process.reDraw();
 		// TODO Auto-generated method stub
+		scrollbar.setValue(scrollbar.getValue()+1);
+		scrollbar.setValue(scrollbar.getValue()-1);
 	}
 
 
@@ -306,18 +288,38 @@ public class SnifferGraph implements DataBase{
 	/**
 	 * This function draws the JtextFields under the TimeLine.
 	 */
-	private void createTimeLine() {											
+	private void createTimeLine() {	
+		osTimeText.setBorder(null);
+		osTimeText.setBackground(null);
+		osTimeText.setBounds(30, 80, 55, 30);
+		
+		moteTimeText.setBorder(null);
+		moteTimeText.setBackground(null);
+		moteTimeText.setBounds(30, 110, 74, 30);
+		
+		backgPanel.add(osTimeText);
+		backgPanel.add(moteTimeText);
 		
 		// TODO Auto-generated method stub
-		for(int i = 1; i <= 100; i++){
-			verticalText[i-1] = new JTextField(Process.makeTimeLineSting(i));
+		for(int i = 0; i < 100; i++){
+			osTime.add(new JTextField(Process.whatTimeIsNow()));
 		}
-		int k = 122;
+		int k = 100;
 		for(int i = 0;i < 100; i++){
-			verticalText[i].setBounds(k, 80, 30, 30);
+			osTime.get(i).setBounds(k, 80, 75, 30);
 			k+=100;
-			verticalText[i].setBorder(null);
-			backgPanel.add(verticalText[i]);								
+			osTime.get(i).setBorder(null);
+			backgPanel.add(osTime.get(i));								
+		}
+		for(int i = 0; i < 100; i++){
+			moteTime.add(new JTextField(Process.whatMoteTimeNow()));
+		}
+		k = 100;
+		for(int i = 0;i < 100; i++){
+			moteTime.get(i).setBounds(k, 110, 85, 30);
+			k+=100;
+			moteTime.get(i).setBorder(null);
+			backgPanel.add(moteTime.get(i));								
 		}
 		
 	}
@@ -356,7 +358,7 @@ public class SnifferGraph implements DataBase{
         fileClose.setToolTipText(Labels.tooltips_fileClose);
 	}
 	/**
-	 * This Older ß function  specified where to align exactly the objects on the workspace.
+	 * This Older ï¿½ function  specified where to align exactly the objects on the workspace.
 	 */
 	private void baseSetings() {
 		//TODO        
@@ -469,13 +471,15 @@ public class SnifferGraph implements DataBase{
 	@SuppressWarnings("unused")
 	public static void main(String[] args) {
 		SnifferGraph main = new SnifferGraph();
-		/*JPanel aa = new JPanel();
-		JTextField bb = new JTextField("marsika");
-		aa.setLayout(null);
-		aa.add(bb);
-		aa.setBounds(300,300,300,300);
-		aa.setVisible(true);
-		dataPanel.add(aa);
-		backgPanel.add(dataPanel.get(dataPanel.size()-1));*/
-    } 
+		for(int i = 0; i<100; i++){
+			String[] moteLabelNames = {"Elso", "Masodik", "Harmadik", "Negyedik"};
+			motes.add(new Mote(i, ++i, moteLabelNames));
+		}
+		for(int i = 0; i<motes.size();i++){
+			dataPanel.add(motes.get(i).getAPanel(box));
+			dataPanel.get(dataPanel.size()-1).setVisible(true);
+			backgPanel.add(dataPanel.get(dataPanel.size()-1));
+			scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
+		}
+	} 
 }

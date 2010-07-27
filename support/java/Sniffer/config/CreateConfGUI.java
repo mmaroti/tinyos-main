@@ -1,10 +1,8 @@
 package config;
 import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Locale;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -32,9 +30,9 @@ public class CreateConfGUI {
 	
 	public CreateConfGUI(){
 		entity.setLayout(null);
-		input.setBounds(30, 55, 150, 28);
-		ok.setBounds(190, 55, 75, 28);
-		cancel.setBounds(270, 55, 75, 28);
+		input.setBounds(30, 50, 150, 28);
+		ok.setBounds(190, 50, 75, 28);
+		cancel.setBounds(270, 50, 90, 28);
 		
 		entity.add(input);
 		entity.add(ok);
@@ -53,8 +51,8 @@ public class CreateConfGUI {
             }
 		});
 		
-		entity.setSize(400, 200);
-		entity.setLocation((screenWidth/2)-200, (screenHeight/2)-100);
+		entity.setSize(400, 150);
+		entity.setLocation((screenWidth/2)-200, (screenHeight/2)-75);
 		entity.setVisible(true);
 	}
 

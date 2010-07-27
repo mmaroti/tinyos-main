@@ -16,8 +16,15 @@ import javax.swing.JTextField;
 public class MyAction implements AdjustmentListener, DataBase {
 
 	TimeLineDraw timeLine = SnifferGraph.timeLine;						
-	JTextField[] verticalText = SnifferGraph.verticalText;
+	
+	ArrayList<JTextField> osTime = SnifferGraph.osTime;
+	ArrayList<JTextField> moteTime = SnifferGraph.moteTime;
+	
+	JTextField osTimeText = SnifferGraph.osTimeText;
+	JTextField moteTimeText = SnifferGraph.moteTimeText;
+	
 	ArrayList<JPanel> dataPanel = SnifferGraph.dataPanel;
+	ArrayList<Mote> motes = SnifferGraph.motes;
 	
 	public static boolean first = true;									
 	/**
@@ -30,17 +37,25 @@ public class MyAction implements AdjustmentListener, DataBase {
 		else{				
 			Rectangle re = timeLine.getBounds();				
 			timeLine.setBounds(TIMELINE_X-en.getValue(), re.y, re.width, re.height); 		
-			int k = 122;
-			for(int i = 0; i<verticalText.length; i++){									
-				Rectangle vt = verticalText[i].getBounds();							
-				verticalText[i].setBounds(k-en.getValue(), vt.y, vt.width, vt.height);	
+			int k = 100;
+			for(int i = 0; i<osTime.size(); i++){									
+				Rectangle vt = osTime.get(i).getBounds();							
+				osTime.get(i).setBounds(k-en.getValue(), vt.y, vt.width, vt.height);	
+				k+=100;
+			}
+			
+			k = 100;
+			for(int i = 0; i<moteTime.size(); i++){									
+				Rectangle vt = moteTime.get(i).getBounds();							
+				moteTime.get(i).setBounds(k-en.getValue(), vt.y, vt.width, vt.height);	
 				k+=100;
 			}
 			k=100;
+			
 			for(int i = 0; i<dataPanel.size(); i++){
 				Rectangle rt = dataPanel.get(i).getBounds();
-				dataPanel.get(i).setBounds(k-en.getValue(), rt.y, rt.width, rt.height);
-				if(k-en.getValue()<90){
+				dataPanel.get(i).setBounds(motes.get(i).getFirstPos()-en.getValue(), rt.y, rt.width, rt.height);
+				if(motes.get(i).getFirstPos()-en.getValue()<90){
 					dataPanel.get(i).setVisible(false);
 				}
 				else{
@@ -48,6 +63,12 @@ public class MyAction implements AdjustmentListener, DataBase {
 				}
 				k+=100;
 			}
+			
+			
+			Rectangle mr = moteTimeText.getBounds();
+			moteTimeText.setBounds(30-en.getValue(), mr.y, mr.width, mr.height);
+			mr = osTimeText.getBounds();
+			osTimeText.setBounds(30-en.getValue(), mr.y, mr.width, mr.height);
 		}
 	}
 }

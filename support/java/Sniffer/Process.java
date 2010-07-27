@@ -1,6 +1,10 @@
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
 /**
  * 
  * @author Nyilas Sandor Karoly , Nemeth Gabor
@@ -10,6 +14,11 @@ import java.util.GregorianCalendar;
  */
 
 public class Process {
+	
+	static ArrayList<JPanel> dataPanel = SnifferGraph.dataPanel;
+	public static JPanel backgPanel = SnifferGraph.backgPanel;
+	static ArrayList<Mote> motes = SnifferGraph.motes;
+	static JCheckBox box[] = SnifferGraph.box;
 	
 	static Date date = new Date();
 	public static int currentlyMillisec = Integer.valueOf((int) (System.currentTimeMillis()%100));
@@ -41,6 +50,28 @@ public class Process {
 		else if(i<100) return "00" + String.valueOf(i);
 		else if(i<1000) return "0" + String.valueOf(i);
 		return "over";
+	}
+	
+	public static String whatMoteTimeNow(){
+		return "#" + whatTimeIsNow();
+		
+	}
+
+	public static void reDraw() {
+		for(int i = 0; i<dataPanel.size();i++){
+			dataPanel.get(i).setVisible(false);
+			backgPanel.remove(dataPanel.get(i));
+		}
+		int length = dataPanel.size();
+		for(int i = 0; i<length; i++){
+			dataPanel.remove(0);
+		}
+		for(int i = 0; i<motes.size();i++){
+			dataPanel.add(motes.get(i).getAPanel(box));
+			dataPanel.get(dataPanel.size()-1).setVisible(true);
+			backgPanel.add(dataPanel.get(dataPanel.size()-1));
+		}
+		SnifferGraph.scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
 	}
 
 }

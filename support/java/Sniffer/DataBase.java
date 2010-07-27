@@ -15,7 +15,7 @@ public interface DataBase {
 	public final int screenHeight = screenSize.height;							
 	public final int screenWidth = screenSize.width;
 	
-	public final int JCHECKBOX_FIRS_SIZE = 200;									
+	public final int JCHECKBOX_FIRS_SIZE = 200;
 	public final int HORISONTAL_JCB_SPEACE = screenHeight > 768 ? 70 : 40;
 	public final int JCHECKBOX_SIZE_X = 80;
 	public final int JCHECKBOX_SIZE_Y = 20;

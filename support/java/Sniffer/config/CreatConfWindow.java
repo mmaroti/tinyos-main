@@ -12,7 +12,7 @@ import com.generationjava.io.xml.XmlWriter;
 
 /**
  * 
- * @author Németh Gábor , Nyilas Sándor Károly
+ * @authors NÃ©meth GÃ¡bor , Nyilas Sï¿½ndor Kï¿½roly
  *Class creates the window for configuration creation
  */
 public class CreatConfWindow {
@@ -63,9 +63,9 @@ public class CreatConfWindow {
 			generating.setTitle("Input " + szam + " of " +numbersOfEntity);
 			
 			back.setEnabled(false);
-			back.setBounds(230, 220, 75, 28);
-			next.setBounds(310, 220, 75, 28);
-			cancel.setBounds(390, 220, 75, 28);
+			back.setBounds(230, 220, 80, 28);
+			next.setBounds(315, 220, 80, 28);
+			cancel.setBounds(400, 220, 80, 28);
 			generating.add(back);
 			generating.add(next);
 			generating.add(cancel);
@@ -145,7 +145,7 @@ public class CreatConfWindow {
 	 * @throws Exception	error manage
 	 */
 	protected void next(int numbersOfEntity) throws Exception {
-		// TODO Még nincs, input ellenörzés.
+		// TODO MÃ©g nincs, input ellenÃ¶rzÃ©s.
 		String input = startByteIn.getText();
 		if(input.length() == 0){
 			inputs.add("Err - startByte");
@@ -211,11 +211,12 @@ public class CreatConfWindow {
 	private JFrame notValid(int numbersOfEntity) {
 		JTextField errMass = new JTextField("Invaild number, the number is: " + String.valueOf(numbersOfEntity));
 		JButton errOk = new JButton("OK");
-		errMass.setBounds(100, 50, 200, 28);
+		errMass.setBounds(100, 50, 300, 28);
 		errMass.setBorder(null);
 		errMass.setEditable(false);
 		errOk.setBounds(145, 100, 75, 28);
-		generating.setSize(300, 200);
+		generating.setSize(400, 200);
+		generating.setLocation(screenWidth/2-200, screenHeight/2-100);
 		generating.add(errMass);
 		generating.add(errOk);
 		errOk.addActionListener(new ActionListener() {
