@@ -1,4 +1,7 @@
 package org.szte.wsn.dataprocess;
+
+import PacketParser;
+
 /*
  * Copyright (c) 2010, University of Szeged
  * All rights reserved.
@@ -85,9 +88,9 @@ public class IntegerParser extends PacketParser{
 	 * @param stringValue constructs byte[] from it 
 	 * @return byte[]
 	 */
-	public byte[] construct(String stringValue)
+	public byte[] construct(String[] stringValue)
 	{
-		long longValue=Long.decode(stringValue);
+		long longValue=Long.decode(stringValue[0]);
 		
 		byte [] b = new byte[size];
 		
@@ -115,6 +118,15 @@ public class IntegerParser extends PacketParser{
 	 */
 	public String[] getFields() {
 		return new String[] {name};
+	}
+	
+	@Override
+	/**
+	 * @return the size of the String
+	 */
+	public int getStringLength() {
+		
+		return 1;
 	}
 
 }
