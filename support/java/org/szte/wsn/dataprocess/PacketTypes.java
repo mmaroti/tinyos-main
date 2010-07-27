@@ -1,4 +1,6 @@
 package org.szte.wsn.dataprocess;
+
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -57,18 +59,23 @@ public class PacketTypes {
 	 * @param fileName loads configuration from the fileName
 	 */
 	void loadConfig(String fileName){
-		FileInputStream file;
+		
 		ArrayList<PacketParser> returnArray=new ArrayList<PacketParser>();
-
+		
+		FileInputStream file;
 		byte[] bArray=null; 
+		
 		try {
 			file = new FileInputStream(fileName);
 			bArray = new byte[file.available ()];
 			file.read(bArray);
 			file.close ();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} 
+		catch (IOException e) {
+			
+				System.out.println("IO ERROR while opening: "+fileName);
+				e.printStackTrace();
+				System.exit(1);			
 		}
 
 		String strLine = new String (bArray);
@@ -83,13 +90,19 @@ public class PacketTypes {
 				String[] parts=words[wc].split(" ");
 				String parserName=parts[parts.length-1];
 				String parserType=words[wc].substring(0, (words[wc].length()-parserName.length())).trim();
-				returnArray.add(PacketParserFactory.getPacketParser(returnArray.toArray(new PacketParser[returnArray.size()]), parserName, parserType));
+				PacketParser pp=PacketParserFactory.getPacketParser(returnArray.toArray(new PacketParser[returnArray.size()]), parserName, parserType);
+				if(pp!=null)						
+					returnArray.add(pp);
+				else{
+					System.out.println("Error: not existing type: \""+parserType+"\" in "+ fileName);
+					System.exit(1);
+				}
 			}
 			else{
 				ArrayList<PacketParser> variableArray=new ArrayList<PacketParser>();
 				String[] parts=words[wc].split(" ");
-			    parts[1]=parts[1].replaceAll("[^\\w]", "");
-				String parserName=parts[1];
+			    
+				String parserName=parts[1].replaceAll("[^\\w]", "");;
 			    
 				parts=words[wc].split("\\{");
 				words[wc]=parts[1];
@@ -99,12 +112,19 @@ public class PacketTypes {
 					parts=words[wc].split(" ");
 					String variableName=parts[parts.length-1];
 					String variableType=words[wc].substring(0, (words[wc].length()-variableName.length())).trim();
-					variableArray.add(PacketParserFactory.getPacketParser(returnArray.toArray(new PacketParser[returnArray.size()]), variableName, variableType));
+					
+					PacketParser pp=PacketParserFactory.getPacketParser(returnArray.toArray(new PacketParser[returnArray.size()]), variableName, variableType);
+					if(pp!=null)						
+						variableArray.add(pp);
+					else{
+						System.out.println("Error: not existing type: \""+variableType+"\" in "+ fileName);
+						System.exit(1);
+					}
+						
 					wc++;
 					
-				}
-				returnArray.add(new StructParser(parserName, variableArray.toArray(new PacketParser[variableArray.size()])));
-				
+				}				
+				returnArray.add(new StructParser(parserName, variableArray.toArray(new PacketParser[variableArray.size()])));						
 			}
 			wc++;
 			
@@ -135,5 +155,3 @@ public class PacketTypes {
 		return null;
 	}
 }
-
-//Parse() 
