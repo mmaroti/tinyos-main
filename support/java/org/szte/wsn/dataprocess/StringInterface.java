@@ -45,7 +45,7 @@ public interface StringInterface {
 	 * gives an ArrayList of String[] to the writer from the parser to write
 	 * 
 	 */
-	void writePackets(ArrayList<String[]> parsedData, String[] header);
+	void writePackets(ArrayList<String[]> parsedData);
 	
 	/**
 	 * gives a String[] to the writer from the parser to write
