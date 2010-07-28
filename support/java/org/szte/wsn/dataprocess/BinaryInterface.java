@@ -33,6 +33,7 @@
 */
 package org.szte.wsn.dataprocess;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -51,7 +52,7 @@ public interface BinaryInterface {
 	 * sends ArrayList of byte[] to the reader
 	 * @param frames ArrayList<byte[]>
 	 */
-	void writePackets(ArrayList<byte[]> frames);
+	void writePackets(ArrayList<byte[]> frames) throws IOException;
 	
 	/**
 	 * gives a byte[] of one packet to the parser from the reader
@@ -63,6 +64,6 @@ public interface BinaryInterface {
 	 * sends a byte[] to the reader
 	 * @param frames byte[]
 	 */
-	void writePacket(byte[] frames);
+	void writePacket(byte[] frame) throws IOException;
 	//exception
 }
