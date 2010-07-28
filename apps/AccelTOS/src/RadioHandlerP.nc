@@ -63,7 +63,7 @@ implementation{
 	bool state = SLEEP;
 
 	// Mode of the radio
-	uint8_t mode  = ALTERING;
+	uint8_t mode  = CONTINUOUS;
 	
 	// Guards report
 	bool sending = FALSE;
@@ -122,8 +122,9 @@ implementation{
 
 		error_t error = SUCCESS;
 		
-		if (writing)
+		if (writing) {
 			return;
+		}
 		
 		dataPkt.node_id = TOS_NODE_ID;
 		dataPkt.local_time = call LocTime.get();
@@ -139,7 +140,8 @@ implementation{
 	}
 	
 	task void sendFirstPkt() {
-		
+
+		call LedHandler.error();
 	}
 
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len){
@@ -175,6 +177,9 @@ implementation{
 				error = post sendFirstPkt();
 			}
 			// FIXME What if unknown mode received? Or msg corrupted?
+			else {
+				call LedHandler.error();
+			}
 			
 			if (error) {
 				call LedHandler.error();

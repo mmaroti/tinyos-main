@@ -254,6 +254,8 @@ implementation
 		packetPtr = packet;
 		packetLen = length;
 		state = STATE_WRITE;
+		// FIXME The line below was missing?
+		post executeCommand();
 		return SUCCESS;
 	}
 

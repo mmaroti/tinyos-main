@@ -31,7 +31,6 @@
 * Author: Ali Baharev
 */
 
-
 package org.szte.wsn.accel;
 
 /**

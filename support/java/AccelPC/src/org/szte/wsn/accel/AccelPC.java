@@ -47,16 +47,16 @@ final class Sender {
 		moteIF = mif;
 	}
 
-	void switchMode(int moteID, short mode) {
+	void command(int moteID, short command) {
 
-		msg.set_cmd(mode);
+		msg.set_cmd(command);
 		try {
 			moteIF.send(moteID, msg);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println("Setting mote "+moteID+" to mode "+mode);
+		System.out.println("Sending to mote "+moteID+", command "+command);
 	}
 
 }
@@ -73,15 +73,15 @@ final class Receiver implements MessageListener {
 
 	@Override
 	public void messageReceived(int to, Message m) {
-		if (counter%3==0) {
-			ReportMsg msg = (ReportMsg) m;
-			short mode = msg.get_mode()==0?(short)1:0;
-			s.switchMode(msg.get_id(), mode);
-		}
-		else {
-			System.out.println("Skipping message");
-		}
-		++counter;
+//		if (counter%3==0) {
+//			ReportMsg msg = (ReportMsg) m;
+//			short mode = msg.get_mode()==0?(short)1:0;
+//			s.switchMode(msg.get_id(), mode);
+//		}
+//		else {
+//			System.out.println("Skipping message");
+//		}
+//		++counter;
 	}
 	
 }
@@ -127,14 +127,21 @@ public final class AccelPC {
 	private void go() {
 
 		try {
+			
+			s.command(6, (short) 1);
 
-			while (true) {
-				//s.switchMode(6, mode);
-				Thread.sleep(5000);
-			}
+			s.command(6, (short) 2);
 
+			s.command(6, (short) 3);
+
+			s.command(6, (short) 0);
+
+//			while (true) {
+//				//s.switchMode(6, mode);
+//				Thread.sleep(5000);
+//			}
 		}
-		catch (InterruptedException e) {
+		catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
