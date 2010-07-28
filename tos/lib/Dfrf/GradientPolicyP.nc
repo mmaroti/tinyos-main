@@ -24,7 +24,7 @@
 module GradientPolicyP
 {
 	provides interface DfrfPolicy;
-	uses interface GradientField;
+	uses interface Convergecast;
 }
 
 implementation
@@ -37,7 +37,7 @@ implementation
 */
 	command uint16_t DfrfPolicy.getLocation()
 	{
-		return call GradientField.hopCount();
+		return call Convergecast.hopCount();
 	}
 
 	command uint8_t DfrfPolicy.sent(uint8_t priority)

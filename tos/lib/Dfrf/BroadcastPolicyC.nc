@@ -21,11 +21,15 @@
  * Author: Janos Sallai
  */
 
-configuration BroadcastPolicyC {
+configuration BroadcastPolicyC
+{
 	provides interface DfrfPolicy;
-} implementation {
-  components ActiveMessageC, BroadcastPolicyP;
+}
 
-  ActiveMessageC.AMPacket <- BroadcastPolicyP;
-  DfrfPolicy = BroadcastPolicyP;
+implementation
+{
+	components ActiveMessageC, BroadcastPolicyP;
+
+	ActiveMessageC.AMPacket <- BroadcastPolicyP;
+	DfrfPolicy = BroadcastPolicyP;
 }

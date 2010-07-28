@@ -1,0 +1,23 @@
+
+The structure of the Directed Flood Routing Framework (DFRF) is the following:
+
+The DFRF engine is implemented in the Dfrf* files. Normally you would use only 
+the DfrfClientC component, which reserves memory for your packets and gives a 
+convenient DfrfSend and DfrfReceive interfaces. In this case you have to set the 
+routing policy you want to use.
+
+There are several routing policies already implemented: 
+
+1) BroadcastPolicyC gives a policy that can be used to send messages to all 
+nodes in the network. You can always use this policy. 
+
+2) The GradientPolicyC and SpanningTreePolicyC routes messages to a single route 
+node. This routing tree needs to be set up, which is done by sending an 
+arbitrary message with the BroadcastClientC component. With GradientPolicyC 
+every node closer to the root will forward received messages, while with 
+SpanningTreePolicyC only the parent will forward messages towards the root.
+
+A typical usage would be for the root node (e.g. a BaseStation node conneted to 
+a PC) to send a command message with a BroadcastClientC component. This sets up 
+the convergecast routing tree. Then the receiving nodes can reply with the 
+DfrfClientC component and either the GradientPolicyC or SpanningTreePolicyC.
