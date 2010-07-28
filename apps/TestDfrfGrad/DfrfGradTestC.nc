@@ -1,4 +1,4 @@
-// $Id: DfrfGradTestC.nc,v 1.1 2010-07-20 18:23:36 andrasbiro Exp $
+// $Id: DfrfGradTestC.nc,v 1.2 2010-07-28 17:00:34 mmaroti Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -83,16 +83,14 @@ implementation {
   GradientFieldP.DfrfSend -> DfrfFieldService;
   GradientFieldP.DfrfReceive -> DfrfFieldService;
   GradientFieldP.AMPacket -> Radio;
-  DfrfFieldService.Policy -> BroadcastPolicyC;
+  DfrfFieldService.DfrfPolicy -> BroadcastPolicyC;
   
   DfrfGradTestP.FieldSend -> GradientFieldP.Send;
   DfrfGradTestP.FieldReceive -> GradientFieldP.Receive;
-  DfrfGradTestP.DfrfFieldControl->DfrfFieldService;
   
-  DfrfGradTestP.DfrfControl -> DfrfMainService.StdControl;
   DfrfGradTestP.DfrfSend -> DfrfMainService;
   DfrfGradTestP.DfrfReceive -> DfrfMainService;
-  DfrfMainService.Policy -> Policy;
+  DfrfMainService.DfrfPolicy -> Policy;
   Policy.GradientField->GradientFieldP;
   
   MainC.Boot <- DfrfGradTestP;

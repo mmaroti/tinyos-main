@@ -1,4 +1,4 @@
-// $Id: DfrfSTTestC.nc,v 1.1 2010-07-20 18:23:36 andrasbiro Exp $
+// $Id: DfrfSTTestC.nc,v 1.2 2010-07-28 17:00:26 mmaroti Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -85,19 +85,17 @@ implementation {
   BuildSpanningTree.AMPacket -> Radio;
   BuildSpanningTree.DfrfReceive->DfrfFieldService;
   BuildSpanningTree.DfrfSend->DfrfFieldService;
-  DfrfFieldService.Policy->BroadcastPolicyC;
+  DfrfFieldService.DfrfPolicy->BroadcastPolicyC;
   
   Policy.AMPacket->Radio;
   Policy.SpanningTree->BuildSpanningTree;
   
   DfrfSTTestP.FieldSend -> BuildSpanningTree.Send;
   DfrfSTTestP.FieldReceive -> BuildSpanningTree.Receive;
-  DfrfSTTestP.DfrfFieldControl->DfrfFieldService;
   
-  DfrfSTTestP.DfrfControl -> DfrfMainService.StdControl;
   DfrfSTTestP.DfrfSend -> DfrfMainService;
   DfrfSTTestP.DfrfReceive -> DfrfMainService;
-  DfrfMainService.Policy->Policy;
+  DfrfMainService.DfrfPolicy->Policy;
   
   MainC.Boot <- DfrfSTTestP;
 

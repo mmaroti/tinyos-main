@@ -1,4 +1,4 @@
-// $Id: DfrfSTTestP.nc,v 1.1 2010-07-20 18:23:36 andrasbiro Exp $
+// $Id: DfrfSTTestP.nc,v 1.2 2010-07-28 17:00:26 mmaroti Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -33,7 +33,7 @@
  * @author Phil Buonadonna
  * @author Gilman Tolle
  * @author David Gay
- * Revision:	$Id: DfrfSTTestP.nc,v 1.1 2010-07-20 18:23:36 andrasbiro Exp $
+ * Revision:	$Id: DfrfSTTestP.nc,v 1.2 2010-07-28 17:00:26 mmaroti Exp $
  */ 
 
 /* 
@@ -124,8 +124,6 @@ implementation {
 	event void RadioControl.startDone(error_t error) {
 		if(error == SUCCESS) {
 			radioFull = FALSE;
-			call DfrfFieldControl.start();
-			call DfrfControl.start();
 			if(TOS_NODE_ID==0){
 				counter_packet_t data;
 				call RandomSeedInit.init(TOS_NODE_ID);
