@@ -24,21 +24,22 @@
 #include "CounterPacket.h"
 configuration TestBroadcastPolicyAppC {
 } implementation {
-  components TestBroadcastPolicyC as App, MainC, BroadcastPolicyC as Policy, new TimerMilliC() as Timer, LedsC, ActiveMessageC as AM;
-  components new DfrfClientC(APPID_COUNTER, counter_packet_t, sizeof(counter_packet_t), 15) as DfrfService;
+  components TestBroadcastPolicyC as App, MainC, BroadcastPolicyC as DfrfPolicy, new TimerMilliC() as Timer, LedsC, ActiveMessageC as AM;
+  components new DfrfClientC(APPID_COUNTER, sizeof(counter_packet_t), sizeof(counter_packet_t), 15) as DfrfService;
 
   // initialization and startup
   App -> MainC.Boot;
   App.AMControl -> AM.SplitControl;
 
   // routing control/send/receive/policy
-  App.DfrfControl -> DfrfService.StdControl;
   App.DfrfSend -> DfrfService;
   App.DfrfReceive -> DfrfService;
-  DfrfService.Policy -> Policy;
+  DfrfService.DfrfPolicy -> DfrfPolicy;
 
   // app wirings
   App.Timer -> Timer;
   App.Leds -> LedsC;
   App.AMPacket -> AM;
+
+//  components new BroadcastClientC(0x11, nx_uint16_t);
 }

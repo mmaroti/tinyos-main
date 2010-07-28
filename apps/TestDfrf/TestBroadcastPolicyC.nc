@@ -25,9 +25,8 @@ module TestBroadcastPolicyC {
   uses {
     interface Boot;
     interface SplitControl as AMControl;
-    interface StdControl as DfrfControl;
-    interface DfrfSend<counter_packet_t>;
-    interface DfrfReceive<counter_packet_t>;
+    interface DfrfSend;
+    interface DfrfReceive;
     interface Timer<TMilli>;
     interface AMPacket;
     interface Leds;
@@ -41,14 +40,9 @@ module TestBroadcastPolicyC {
   }
 
   event void AMControl.startDone(error_t error_code) {
-    if(call DfrfControl.start() == SUCCESS) {
-      if(call AMPacket.address() == 1) {
-        dbg("TestBroadcastPolicy","Starting send timer\n");
-        call Timer.startPeriodic(768);
-      }
-    } else {
-        call Leds.led0On();
-        dbg("TestBroadcastPolicy","Error starting Dfrf\n");
+    if(call AMPacket.address() == 1) {
+      dbg("TestBroadcastPolicy","Starting send timer\n");
+      call Timer.startPeriodic(768);
     }
   }
 
@@ -71,7 +65,8 @@ module TestBroadcastPolicyC {
     post sendPacket();
   }
 
-  event bool DfrfReceive.receive(counter_packet_t* packet) {
+  event bool DfrfReceive.receive(void* packet_raw) {
+    counter_packet_t *packet = packet_raw;
 
     dbg("TestBroadcastPolicy","Received packet %d @ %d\n", packet->cnt);
     call Leds.set(packet->cnt);
