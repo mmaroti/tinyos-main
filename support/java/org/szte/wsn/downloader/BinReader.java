@@ -259,7 +259,7 @@ public class BinReader {
 		boolean convert=false;
 		boolean converttime=false;
 		boolean rewrite=false;
-		String output=args[args.length-1].substring(0, args[args.length-1].lastIndexOf('.'))+".csv";
+		String output=args[args.length-1].substring(0, args[args.length-1].lastIndexOf('.'))+".txt";
 		long errorlimit=120000;
 		for(int i=0;i<args.length-1;i++){
 			if(args[i].startsWith("-")){
