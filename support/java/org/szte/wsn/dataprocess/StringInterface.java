@@ -51,7 +51,7 @@ public interface StringInterface {
 	 * gives a String[] to the writer from the parser to write
 	 * 
 	 */
-	void writeSinglePacket(String[] parsedData);	
+	void writePacket(String[] parsedData);	
 	
 	/**
 	 * gives an ArrayList of String[] from the writer to the parser
@@ -63,5 +63,5 @@ public interface StringInterface {
 	 * gets a String[] from the writer to the parser
 	 * 
 	 */
-	String[] readSinglePacket();	
+	String[] readPacket();	
 }
