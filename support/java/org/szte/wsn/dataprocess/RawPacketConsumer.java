@@ -151,7 +151,7 @@ public class RawPacketConsumer implements BinaryInterface{
 
 	@Override
 	public byte[] readPacket() {
-		// TODO Auto-generated method stub
+		// TODO Auto-generated method stub //read the next frame
 		return null;
 	}
 

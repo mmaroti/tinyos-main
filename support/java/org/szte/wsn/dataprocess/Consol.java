@@ -35,33 +35,42 @@ package org.szte.wsn.dataprocess;
 
 import java.util.ArrayList;
 
-/**
- * interface of communication between the parsers and writers
- * 
- */
-public interface StringInterface {
+public class Consol implements StringInterface {
+	String separator;
+	
+	public Consol(){
+		separator="	";
+	}
 
-	/**
-	 * gives an ArrayList of String[] to the writer from the parser to write
-	 * 
-	 */
-	void writePackets(ArrayList<String[]> parsedData, String[] header);
-	
-	/**
-	 * gives a String[] to the writer from the parser to write
-	 * 
-	 */
-	void writePacket(String[] parsedData);	
-	
-	/**
-	 * gives an ArrayList of String[] from the writer to the parser
-	 * 
-	 */
-	ArrayList<String[]> readPackets();
-	
-	/**
-	 * gets a String[] from the writer to the parser
-	 * 
-	 */
-	String[] readPacket();	
+	@Override
+	public void writePackets(ArrayList<String[]> parsedData, String[] header) {
+		for(String head:header)
+			System.out.print(head+separator);
+		System.out.println();
+		for(int i=0;i<parsedData.size();i++){
+			for(String data:parsedData.get(i))
+				System.out.print(data+separator);
+		}
+			
+		
+	}
+
+	@Override
+	public void writePacket(String[] parsedData) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public ArrayList<String[]> readPackets() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String[] readPacket() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

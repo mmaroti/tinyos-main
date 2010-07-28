@@ -64,5 +64,5 @@ public interface BinaryInterface {
 	 * @param frames byte[]
 	 */
 	void writePacket(byte[] frames);
-	
+	//exception
 }

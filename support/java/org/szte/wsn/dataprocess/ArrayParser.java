@@ -87,7 +87,7 @@ public class ArrayParser extends PacketParser{
 	@Override
 	/**
 	 * returns the type of the fields "size" times, instead of the names,
-	 *  array elements don't have unique names
+	 * array elements don't have unique names
 	 */
 	public String[] getFields() {
 		ArrayList<String> ret=new ArrayList<String>(); 		//temporary String[] to return;
