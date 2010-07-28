@@ -130,10 +130,14 @@ public class RawPacketConsumer implements BinaryInterface{
 	public void setGaps(ArrayList<Gap> gaps) {
 		this.gaps = gaps;
 	}
-	public void setFrames(ArrayList<Byte[]> frames) {
+	
+	@Override
+	public void writePackets(ArrayList<Byte[]> frames) {
 		this.frames = new ArrayList<Byte[]>(frames);
 	}
-	public ArrayList<Byte[]> getFrames() {
+	
+	@Override
+	public ArrayList<Byte[]> readPackets() {
 		return frames;
 	}
 
@@ -145,17 +149,18 @@ public class RawPacketConsumer implements BinaryInterface{
 		return dataFile;
 	}
 
-
-
 	@Override
-	public byte[] getSingleFrame() {
-		// not recomended for this type of input
+	public byte[] readPacket() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public void setSingleFrame(byte[] frames) {
-		// not recomended for this type of input
+	public void writePacket(byte[] frames) {
+		// TODO Auto-generated method stub
 		
 	}
+
+
+
 }
