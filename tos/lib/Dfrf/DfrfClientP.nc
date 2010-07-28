@@ -18,44 +18,34 @@
  * ON AN "AS IS" BASIS, AND THE VANDERBILT UNIVERSITY HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Author: Janos Sallai
+ * Author: Janos Sallai, Miklos Maroti
  */
 
 #include "DfrfEngine.h"
 
-generic module DfrfClientP(uint8_t payloadlength, uint8_t uniqueLength, uint16_t bufferSize) {
-  provides {
-    interface StdControl;
-    interface DfrfSend;
-    interface DfrfReceive;
-  }
-  uses {
-    interface DfrfControl as SubDfrfControl;
-    interface DfrfSend as SubDfrfSend;
-    interface DfrfReceive as SubDfrfReceive;
-  }
-} implementation {
-
-  uint8_t routingBuffer[sizeof(dfrf_desc_t) + bufferSize * (payloadlength + sizeof(dfrf_block_t))];
-
-  command error_t StdControl.start() {
-    return call SubDfrfControl.init(payloadlength, uniqueLength, routingBuffer, sizeof(routingBuffer));
-  }
-
-  command error_t StdControl.stop() {
-    call SubDfrfControl.stop();
-    return SUCCESS;
-  }
-
-  command error_t DfrfSend.send(void* data) {
-    return call SubDfrfSend.send((uint8_t*)data);
-  }
-
-  event bool SubDfrfReceive.receive(void *data) {
-    return signal DfrfReceive.receive(data);
-  }
-
-  default event bool DfrfReceive.receive(void* data) { return TRUE; }
-
+generic module DfrfClientP(uint8_t payloadLength, uint8_t uniqueLength, uint16_t bufferSize)
+{
+	provides
+	{
+		interface Init;
+	}
+	uses
+	{
+		interface DfrfControl;
+	}
 }
 
+implementation
+{
+	uint8_t routingBuffer[sizeof(dfrf_desc_t) + bufferSize * (payloadLength + sizeof(dfrf_block_t))];
+
+	command error_t Init.init()
+	{
+		/*
+		 * We automatically start this buffer, since there is no point turning this buffer off
+		 * because we do not reuse it for other purposes. If you are tight on memory, then
+		 * you should write your own memory handling and initialize it for routing only when needed.
+		 */
+		return call DfrfControl.init(payloadLength, uniqueLength, routingBuffer, sizeof(routingBuffer));
+	}
+}

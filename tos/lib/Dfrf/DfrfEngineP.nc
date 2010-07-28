@@ -37,15 +37,14 @@
 
 #include "DfrfEngine.h"
 #include <string.h>
-// #define FLOODROUTING_DEBUG
 
 module DfrfEngineP
 {
 	provides
 	{
 		interface DfrfControl[uint8_t id];
-		interface DfrfSend as DfrfSend[uint8_t appId];
-		interface DfrfReceive as DfrfReceive[uint8_t appId];
+		interface DfrfSend[uint8_t appId];
+		interface DfrfReceive[uint8_t appId];
 	}
 	uses
 	{
@@ -54,7 +53,7 @@ module DfrfEngineP
 		interface Timer<TMilli>;
 		interface Leds;
 
-	interface AMSend;
+		interface AMSend;
 		interface Receive;
 		interface Packet;
 	}

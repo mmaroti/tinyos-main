@@ -21,29 +21,37 @@
  * Author: Janos Sallai
  */
 
-configuration DfrfEngineC {
-  provides {
-    interface DfrfControl[uint8_t appId];
-    interface DfrfSend as DfrfSend[uint8_t appId];
-    interface DfrfReceive as DfrfReceive[uint8_t appId];
-  }
-  uses {
-    interface DfrfPolicy[uint8_t appId];
-  }
-} implementation {
+#include "DfrfEngine.h"
 
-  components MainC, DfrfEngineP as Engine, ActiveMessageC, new TimerMilliC() as DfrfTimer, NoLedsC as LedsC;
+configuration DfrfEngineC
+{
+	provides
+	{
+		interface DfrfControl[uint8_t appId];
+		interface DfrfSend[uint8_t appId];
+		interface DfrfReceive[uint8_t appId];
+	}
+	uses
+	{
+		interface DfrfPolicy[uint8_t appId];
+	}
+} 
 
-  DfrfSend = Engine.DfrfSend;
-  DfrfReceive = Engine.DfrfReceive;
+implementation
+{
 
-  Engine.DfrfControl = DfrfControl;
-  Engine.DfrfPolicy = DfrfPolicy;
+	components MainC, DfrfEngineP, ActiveMessageC, new TimerMilliC() as DfrfTimer, NoLedsC as LedsC;
 
-  Engine.Timer -> DfrfTimer;
-  Engine.Leds -> LedsC;
+	DfrfSend = DfrfEngineP.DfrfSend;
+	DfrfReceive = DfrfEngineP.DfrfReceive;
 
-  Engine.AMSend -> ActiveMessageC.AMSend[AM_DFRF_MSG];
-  Engine.Receive -> ActiveMessageC.Receive[AM_DFRF_MSG];
-  Engine.Packet -> ActiveMessageC;
+	DfrfEngineP.DfrfControl = DfrfControl;
+	DfrfEngineP.DfrfPolicy = DfrfPolicy;
+
+	DfrfEngineP.Timer -> DfrfTimer;
+	DfrfEngineP.Leds -> LedsC;
+
+	DfrfEngineP.AMSend -> ActiveMessageC.AMSend[AM_DFRF_MSG];
+	DfrfEngineP.Receive -> ActiveMessageC.Receive[AM_DFRF_MSG];
+	DfrfEngineP.Packet -> ActiveMessageC;
 }

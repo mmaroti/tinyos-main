@@ -21,25 +21,27 @@
  * Author: Janos Sallai
  */
 
-generic configuration DfrfClientC(uint8_t appId, uint8_t payloadlength, uint8_t uniqueLength, uint16_t bufferSize) {
-  provides {
-    interface StdControl;
-    interface DfrfSend;
-    interface DfrfReceive;
-  }
-  uses {
-    interface DfrfPolicy as Policy;
-  }
-} implementation {
-  components new DfrfClientP(payloadlength, uniqueLength, bufferSize) as Client, DfrfEngineC as Engine;
+generic configuration DfrfClientC(uint8_t appId, uint8_t payloadLength, uint8_t uniqueLength, uint16_t bufferSize)
+{
+	provides
+	{
+		interface DfrfSend;
+		interface DfrfReceive;
+	}
+	uses
+	{
+		interface DfrfPolicy;
+	}
+}
 
-  StdControl = Client;
-  Client.SubDfrfControl -> Engine.DfrfControl[appId];
-  Client.SubDfrfSend -> Engine.DfrfSend[appId];
-  Client.SubDfrfReceive -> Engine.DfrfReceive[appId];
+implementation
+{
+	components DfrfEngineC, MainC, new DfrfClientP(payloadLength, uniqueLength, bufferSize);
 
-  DfrfSend = Client.DfrfSend;
-  DfrfReceive = Client.DfrfReceive;
+	MainC.SoftwareInit -> DfrfClientP;
+	DfrfClientP.DfrfControl -> DfrfEngineC.DfrfControl[appId];
 
-  Engine.DfrfPolicy[appId] = Policy;
+	DfrfSend = DfrfEngineC.DfrfSend[appId];
+	DfrfReceive = DfrfEngineC.DfrfReceive[appId];
+	DfrfPolicy = DfrfEngineC.DfrfPolicy[appId];
 }
