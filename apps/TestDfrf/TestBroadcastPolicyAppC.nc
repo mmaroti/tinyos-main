@@ -40,6 +40,4 @@ configuration TestBroadcastPolicyAppC {
   App.Timer -> Timer;
   App.Leds -> LedsC;
   App.AMPacket -> AM;
-
-//  components new BroadcastClientC(0x11, nx_uint16_t);
 }
