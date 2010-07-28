@@ -34,20 +34,22 @@
 package org.szte.wsn.dataprocess;
 
 import java.util.ArrayList;
+import java.io.Console;
 
 public class Consol implements StringInterface {
 	String separator;
+	String[] header;
 	
-	public Consol(){
+	public Consol(String[] header){
+		this.header=header;
 		separator="	";
 	}
 
 	@Override
-	public void writePackets(ArrayList<String[]> parsedData, String[] header) {
-		for(String head:header)
-			System.out.print(head+separator);
-		System.out.println();
-		for(int i=0;i<parsedData.size();i++){
+	public void writePackets(ArrayList<String[]> parsedData) {
+		writePacket(parsedData.get(0));				//writes the header file and the first line
+		
+		for(int i=1;i<parsedData.size();i++){
 			for(String data:parsedData.get(i))
 				System.out.print(data+separator);
 		}
@@ -57,7 +59,13 @@ public class Consol implements StringInterface {
 
 	@Override
 	public void writePacket(String[] parsedData) {
-		// TODO Auto-generated method stub
+		for(String head:header)
+			System.out.print(head+separator);
+		if (header!=null)
+			System.out.println();
+		for(String data:parsedData){			
+				System.out.print(data+separator);
+		}
 		
 	}
 
@@ -69,8 +77,12 @@ public class Consol implements StringInterface {
 
 	@Override
 	public String[] readPacket() {
-		// TODO Auto-generated method stub
-		return null;
+		String[] ret=new String[header.length];
+		Console console = System.console();
+
+		for(int i=0; i<header.length;i++)
+			ret[i]=console.readLine();
+		return ret;
 	}
 
 }
