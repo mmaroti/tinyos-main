@@ -34,6 +34,15 @@
 #ifndef CTRL_MSG_H
 #define CTRL_MSG_H
 
+/** List of commands. */
+enum {
+	ALTERING,
+	CONTINUOUS,
+	FORMAT,
+	APPENDPKT,
+	SENDFIRST
+};
+
 enum {
 	AM_CTRLMSG = 11
 };

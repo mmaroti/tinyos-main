@@ -41,6 +41,7 @@ module RadioHandlerP{
 		interface Receive;
 		interface AMSend;
 		interface LedHandler;
+		interface SimpleFile;
 		interface Timer<TMilli> as WatchDog;
 		interface Timer<TMilli> as ShortPeriod;
    }
@@ -57,14 +58,12 @@ implementation{
 		AWAKE,
 	};
 	
-	enum {
-		ALTERING,
-		CONTINUOUS
-	};
-	
+	// Tracks state of radio
 	bool state = SLEEP;
-	bool mode  = ALTERING;
 	
+	uint8_t mode  = ALTERING;
+	
+	// Guards report
 	bool sending = FALSE;
 	message_t report;
 	
@@ -116,15 +115,15 @@ implementation{
 		
 			CtrlMsg* pkt = (CtrlMsg*)payload;
 			
-			uint8_t newState = pkt->cmd;
+			uint8_t cmd = pkt->cmd;
 			
 			call LedHandler.msgReceived();
 
-			if      (newState == ALTERING)   {
+			if      (cmd == ALTERING)   {
 				mode = ALTERING;
 				call ShortPeriod.startOneShot(50);
 			}
-			else if (newState == CONTINUOUS) {
+			else if (cmd == CONTINUOUS) {
 				mode = CONTINUOUS;
 			}
 			else {// FIXME Unknown mode received
@@ -192,5 +191,21 @@ implementation{
 			if (call AMControl.stop() != SUCCESS)
 				call LedHandler.error();
 		}
+	}
+
+	event void SimpleFile.formatDone(error_t error){
+		// TODO Auto-generated method stub
+	}
+
+	event void SimpleFile.seekDone(error_t error){
+		// TODO Auto-generated method stub
+	}
+
+	event void SimpleFile.appendDone(error_t error){
+		// TODO Auto-generated method stub
+	}
+
+	event void SimpleFile.readDone(error_t error, uint16_t length){
+		// TODO Auto-generated method stub
 	}
 }

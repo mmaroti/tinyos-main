@@ -31,19 +31,19 @@
 * Author: Ali Baharev
 */
 
-configuration AccelAppC{
+configuration AccelAppC {
 	
+	provides interface SimpleFile;
 }
 
 implementation{
 
-	components MainC, AccelP, LedHandlerC, SimpleFileC, RadioHandlerAppP;
+	components MainC, AccelP, LedHandlerC, RadioHandlerC, SimpleFileC;
 
+	SimpleFile = SimpleFileC;
 	AccelP.Boot -> MainC;
 	AccelP.LedHandler -> LedHandlerC;
-
-	AccelP.SF -> SimpleFileC;
 	AccelP.SFCtrl -> SimpleFileC;
-	AccelP.RadioHandler -> RadioHandlerAppP;
+	AccelP.RadioHandler -> RadioHandlerC;
 
 }

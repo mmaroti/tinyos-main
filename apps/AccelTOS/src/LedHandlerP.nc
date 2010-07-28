@@ -50,7 +50,7 @@ implementation{
 	}
 
 	command void LedHandler.diskReady() {
-		call Leds.led2On();
+		call Leds.led2Toggle();
 	}
 
 	command void LedHandler.error() {
