@@ -1,4 +1,3 @@
-package org.szte.wsn.dataprocess;
 /*
 * Copyright (c) 2010, University of Szeged
 * All rights reserved.
@@ -32,6 +31,7 @@ package org.szte.wsn.dataprocess;
 *
 * Author:Andras Biro, Miklos Toth
 */
+package org.szte.wsn.dataprocess;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;

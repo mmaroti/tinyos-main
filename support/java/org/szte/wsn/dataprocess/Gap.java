@@ -1,4 +1,3 @@
-package org.szte.wsn.dataprocess;
 /*
 * Copyright (c) 2010, University of Szeged
 * All rights reserved.
@@ -32,6 +31,7 @@ package org.szte.wsn.dataprocess;
 *
 * Author:Miklos Toth, Andras Biro
 */
+package org.szte.wsn.dataprocess;
 public class Gap {
 		private long start, end;
 		private boolean unrepairable;

@@ -1,10 +1,3 @@
-package org.szte.wsn.dataprocess;
-
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-
 /*
  * Copyright (c) 2010, University of Szeged
  * All rights reserved.
@@ -38,6 +31,13 @@ import java.util.ArrayList;
  *
  * Author:Miklos Toth
  */
+package org.szte.wsn.dataprocess;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+
+
 public class PacketTypes {	
 	PacketParser[] packetParsers;
 	/**
