@@ -1,4 +1,4 @@
-// $Id: DfrfGradTestC.nc,v 1.2 2010-07-28 17:00:34 mmaroti Exp $
+// $Id: DfrfGradTestC.nc,v 1.3 2010-07-28 19:57:37 mmaroti Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -68,30 +68,20 @@
 configuration DfrfGradTestC {
 }
 implementation {
-  components MainC, DfrfGradTestP, LedsC;
+  components MainC, DfrfGradTestP, LedsC, RandomC, ConvergecastC;
   components ActiveMessageC as Radio, SerialActiveMessageC as Serial;
   
-  components GradientPolicyP as Policy;
+  components GradientPolicyC as ConvergecastPolicyC;
   components new DfrfClientC(APPID_COUNTER, sizeof(counter_packet_t), sizeof(counter_packet_t), 15) as DfrfMainService;
-  
-  components new GradientFieldP(counter_packet_t);
-  components BroadcastPolicyC;  
-  components new DfrfClientC(APPID_COUNTER+1, sizeof(counter_packet_t)+3, sizeof(counter_packet_t)+1, 15) as DfrfFieldService;
-  components RandomC;
 
-  // routing control/send/receive/policy
-  GradientFieldP.DfrfSend -> DfrfFieldService;
-  GradientFieldP.DfrfReceive -> DfrfFieldService;
-  GradientFieldP.AMPacket -> Radio;
-  DfrfFieldService.DfrfPolicy -> BroadcastPolicyC;
-  
-  DfrfGradTestP.FieldSend -> GradientFieldP.Send;
-  DfrfGradTestP.FieldReceive -> GradientFieldP.Receive;
+  components new BroadcastClientC(APPID_COUNTER+1, sizeof(counter_packet_t)) as DfrfFieldService;
+
+  DfrfGradTestP.FieldSend -> DfrfFieldService;
+  DfrfGradTestP.FieldReceive -> DfrfFieldService;
   
   DfrfGradTestP.DfrfSend -> DfrfMainService;
   DfrfGradTestP.DfrfReceive -> DfrfMainService;
-  DfrfMainService.DfrfPolicy -> Policy;
-  Policy.GradientField->GradientFieldP;
+  DfrfMainService.DfrfPolicy -> ConvergecastPolicyC;
   
   MainC.Boot <- DfrfGradTestP;
 
@@ -105,7 +95,7 @@ implementation {
   DfrfGradTestP.RadioPacket -> Radio;
   DfrfGradTestP.RadioAMPacket -> Radio;
   
-  DfrfGradTestP.GetRank -> GradientFieldP;
+  DfrfGradTestP.Convergecast -> ConvergecastC;
   DfrfGradTestP.Random -> RandomC;
   DfrfGradTestP.RandomSeedInit -> RandomC.SeedInit;
   

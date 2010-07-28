@@ -1,4 +1,4 @@
-// $Id: DfrfGradTestP.nc,v 1.2 2010-07-28 17:00:34 mmaroti Exp $
+// $Id: DfrfGradTestP.nc,v 1.3 2010-07-28 19:57:37 mmaroti Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -33,7 +33,7 @@
  * @author Phil Buonadonna
  * @author Gilman Tolle
  * @author David Gay
- * Revision:	$Id: DfrfGradTestP.nc,v 1.2 2010-07-28 17:00:34 mmaroti Exp $
+ * Revision:	$Id: DfrfGradTestP.nc,v 1.3 2010-07-28 19:57:37 mmaroti Exp $
  */ 
 
 /* 
@@ -67,7 +67,7 @@ module DfrfGradTestP @safe() {
 		
 		interface DfrfSend as FieldSend;
 		interface DfrfReceive as FieldReceive;
-		interface Get<uint16_t> as GetRank;
+		interface Convergecast;
 
 		interface Leds;
 		interface Random;
@@ -239,7 +239,7 @@ implementation {
 		receive(&msg_temp, &msg_temp.data, sizeof(counter_packet_t));		
 
 		send.src=TOS_NODE_ID;
-		send.data=call GetRank.get();
+		send.data=call Convergecast.hopCount();
 		call DfrfSend.send(&send);
 		return TRUE;
 	}
