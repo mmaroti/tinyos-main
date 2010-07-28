@@ -50,6 +50,7 @@ implementation{
 	components new AMSenderC(AM_CTRLMSG) as AMSender;
 	components new TimerMilliC() as Timer1;
 	components new TimerMilliC() as Timer2;
+	components HilTimerMilliC;
 	components LedHandlerC;
 	StdControl = RadioHandlerP;
 	RadioHandlerP.AMControl -> ActiveMessageC;
@@ -57,6 +58,7 @@ implementation{
 	RadioHandlerP.AMSend -> AMSender;
 	RadioHandlerP.WatchDog -> Timer1;
 	RadioHandlerP.ShortPeriod -> Timer2;
+	RadioHandlerP.LocTime -> HilTimerMilliC;
 	RadioHandlerP.LedHandler -> LedHandlerC;
-	RadioHandlerP.SimpleFile -> AccelAppC;
+	RadioHandlerP.Disk -> AccelAppC;
 }

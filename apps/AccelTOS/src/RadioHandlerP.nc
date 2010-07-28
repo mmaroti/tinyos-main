@@ -41,9 +41,10 @@ module RadioHandlerP{
 		interface Receive;
 		interface AMSend;
 		interface LedHandler;
-		interface SimpleFile;
+		interface SimpleFile as Disk;
 		interface Timer<TMilli> as WatchDog;
 		interface Timer<TMilli> as ShortPeriod;
+		interface LocalTime<TMilli> as LocTime;
    }
    
    provides {
@@ -60,13 +61,22 @@ implementation{
 	
 	// Tracks state of radio
 	bool state = SLEEP;
-	
+
+	// Mode of the radio
 	uint8_t mode  = ALTERING;
 	
 	// Guards report
 	bool sending = FALSE;
 	message_t report;
 	
+	// Guards dataPkt
+	bool writing = FALSE;
+	struct {
+		uint16_t node_id;
+		uint32_t local_time;
+	} dataPkt;
+	// TODO Use nx_unit ?
+
 	error_t broadcast() {
 
 		error_t error;
@@ -108,6 +118,29 @@ implementation{
 		
 	}
 	
+	task void appendPacket() {
+
+		error_t error = SUCCESS;
+		
+		if (writing)
+			return;
+		
+		dataPkt.node_id = TOS_NODE_ID;
+		dataPkt.local_time = call LocTime.get();
+		
+		error = call Disk.append((uint8_t *) &dataPkt, sizeof(dataPkt));
+		
+		if (!error) {
+			writing = TRUE;
+		}
+		else {
+			call LedHandler.error();
+		}
+	}
+	
+	task void sendFirstPkt() {
+		
+	}
 
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len){
 		
@@ -116,6 +149,8 @@ implementation{
 			CtrlMsg* pkt = (CtrlMsg*)payload;
 			
 			uint8_t cmd = pkt->cmd;
+			
+			error_t error = SUCCESS;
 			
 			call LedHandler.msgReceived();
 
@@ -126,7 +161,22 @@ implementation{
 			else if (cmd == CONTINUOUS) {
 				mode = CONTINUOUS;
 			}
-			else {// FIXME Unknown mode received
+			else if (cmd == FORMAT) {
+				if (!writing) {
+					error = call Disk.format();
+					if (!error)
+						writing = TRUE;
+				}
+			}
+			else if (cmd == APPENDPKT) {
+				error = post appendPacket();
+			}
+			else if (cmd == SENDFIRST) {
+				error = post sendFirstPkt();
+			}
+			// FIXME What if unknown mode received? Or msg corrupted?
+			
+			if (error) {
 				call LedHandler.error();
 			}
 		}
@@ -193,19 +243,25 @@ implementation{
 		}
 	}
 
-	event void SimpleFile.formatDone(error_t error){
+	event void Disk.formatDone(error_t error){		
+		writing = FALSE;		
+		call LedHandler.diskReady();		
+		if (error)
+			call LedHandler.error();
+	}
+
+	event void Disk.seekDone(error_t error){
 		// TODO Auto-generated method stub
 	}
 
-	event void SimpleFile.seekDone(error_t error){
-		// TODO Auto-generated method stub
+	event void Disk.appendDone(error_t error){
+		writing = FALSE;		
+		call LedHandler.diskReady();		
+		if (error)
+			call LedHandler.error();
 	}
 
-	event void SimpleFile.appendDone(error_t error){
-		// TODO Auto-generated method stub
-	}
-
-	event void SimpleFile.readDone(error_t error, uint16_t length){
+	event void Disk.readDone(error_t error, uint16_t length){
 		// TODO Auto-generated method stub
 	}
 }
