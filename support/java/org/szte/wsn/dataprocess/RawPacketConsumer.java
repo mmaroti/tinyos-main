@@ -41,7 +41,7 @@ import java.util.ArrayList;
 
 public class RawPacketConsumer implements BinaryInterface{
 	private File dataFile;
-	private ArrayList<Byte[]>frames=new ArrayList<Byte[]>();
+	private ArrayList<byte[]>frames=new ArrayList<byte[]>();
 	private ArrayList<Gap> gaps = new ArrayList<Gap>();    
 	private int nodeid;	
 
@@ -61,7 +61,7 @@ public class RawPacketConsumer implements BinaryInterface{
 		
 	}
 	
-	public Byte[] readNextFrame(byte[] buffer, int offset, byte frame, byte escape, byte xorescaped){
+	public byte[] readNextFrame(byte[] buffer, int offset, byte frame, byte escape, byte xorescaped){
 		if(offset>=buffer.length)
 			return null;
 		try{
@@ -89,22 +89,25 @@ public class RawPacketConsumer implements BinaryInterface{
 				onemeas.add(buffer [offset]);
 				offset++;
 			}
-			Byte[] a=new Byte[onemeas.size()] ;
-			return (Byte[])(onemeas.toArray(a));
+			byte[] ret=new byte[onemeas.size()];
+			for(int j=0;j<ret.length;j++){
+				ret[j]=onemeas.get(j);
+			}
+			return ret;
 		} catch(IndexOutOfBoundsException e){
 			return null;			
 		}
 		
 	}
 	
-	public ArrayList<Byte[]> makeFrames(byte frame, byte escape, byte xorescaped) throws IOException{
+	public ArrayList<byte[]> makeFrames(byte frame, byte escape, byte xorescaped) throws IOException{
 		byte[] buffer=new byte[(int) dataFile.length()];//TODO: 2GB limit: is it a problem?
 		FileInputStream filereader=new FileInputStream(dataFile);
 		filereader.read(buffer);
 		filereader.close();
 		int offset=0;
-		ArrayList<Byte[]>ret=new ArrayList<Byte[]>();
-		Byte[] nextframe = readNextFrame(buffer, offset, frame, escape, xorescaped);
+		ArrayList<byte[]>ret=new ArrayList<byte[]>();
+		byte[] nextframe = readNextFrame(buffer, offset, frame, escape, xorescaped);
 		while(nextframe!=null){
 			offset+=nextframe.length;
 			ret.add(nextframe);
@@ -132,12 +135,12 @@ public class RawPacketConsumer implements BinaryInterface{
 	}
 	
 	@Override
-	public void writePackets(ArrayList<Byte[]> frames) {
-		this.frames = new ArrayList<Byte[]>(frames);
+	public void writePackets(ArrayList<byte[]> frames) {
+		this.frames = new ArrayList<byte[]>(frames);
 	}
 	
 	@Override
-	public ArrayList<Byte[]> readPackets() {
+	public ArrayList<byte[]> readPackets() {
 		return frames;
 	}
 

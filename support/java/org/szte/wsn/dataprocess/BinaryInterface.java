@@ -45,13 +45,13 @@ public interface BinaryInterface {
 	 * gives an ArrayList of byte[] to the parser from the reader
 	 * @return binary data, every ArrayList element is a packet
 	 */
-	ArrayList<Byte[]> readPackets();	
+	ArrayList<byte[]> readPackets();	
 	
 	/**
 	 * sends ArrayList of byte[] to the reader
 	 * @param frames ArrayList<byte[]>
 	 */
-	void writePackets(ArrayList<Byte[]> frames);
+	void writePackets(ArrayList<byte[]> frames);
 	
 	/**
 	 * gives a byte[] of one packet to the parser from the reader
