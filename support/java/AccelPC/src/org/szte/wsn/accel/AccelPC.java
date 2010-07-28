@@ -73,6 +73,17 @@ final class Receiver implements MessageListener {
 
 	@Override
 	public void messageReceived(int to, Message m) {
+		
+		if (m instanceof ReportMsg) {
+			ReportMsg rmsg = (ReportMsg) m;
+			System.out.print("Report from mote "+rmsg.get_id());
+			System.out.println(", state "+rmsg.get_mode());
+		}
+		if (m instanceof DataMsg) {
+			DataMsg dmsg = (DataMsg) m;
+			System.out.print("Data from mote "+dmsg.get_node_id());
+			System.out.println(", local time "+dmsg.get_local_time());
+		}
 //		if (counter%3==0) {
 //			ReportMsg msg = (ReportMsg) m;
 //			short mode = msg.get_mode()==0?(short)1:0;
@@ -95,7 +106,8 @@ public final class AccelPC {
 	public AccelPC(MoteIF mif) {
 		s = new Sender(mif);
 		r = new Receiver(s);
-		mif.registerListener(new ReportMsg(), r);
+		mif.registerListener(new ReportMsg(), r); // FIXME Escape of this...
+		mif.registerListener(new DataMsg(), r);
 	}
 
 	private static void exitFailure(String msg) {
@@ -130,10 +142,12 @@ public final class AccelPC {
 			
 			s.command(6, (short) 1);
 
-			s.command(6, (short) 2);
+			//s.command(6, (short) 2);
 
 			s.command(6, (short) 3);
 
+			s.command(6, (short) 4);
+			
 			s.command(6, (short) 0);
 
 //			while (true) {

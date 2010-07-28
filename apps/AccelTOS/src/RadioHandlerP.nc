@@ -32,6 +32,7 @@
 */
 
 #include "CtrlMsg.h"
+#include "DataMsg.h"
 #include "ReportMsg.h"
 
 module RadioHandlerP{
@@ -65,12 +66,12 @@ implementation{
 	// Mode of the radio
 	uint8_t mode  = CONTINUOUS;
 	
-	// Guards report
+	// Guards message
 	bool sending = FALSE;
-	message_t report;
+	message_t message;
 	
 	// Guards dataPkt
-	bool writing = FALSE;
+	bool diskBusy = FALSE;
 	struct {
 		uint16_t node_id;
 		uint32_t local_time;
@@ -88,10 +89,10 @@ implementation{
 			// TODO Explain why
     		// Note that we could have avoided using the Packet interface, as it's 
     		// getPayload command is repeated within AMSend.
-    		ReportMsg* pkt = (ReportMsg*)(call AMSend.getPayload(&report, NULL));
+    		ReportMsg* pkt = (ReportMsg*)(call AMSend.getPayload(&message, NULL));
     		pkt->id = TOS_NODE_ID;
     		pkt->mode = mode;
- 			error = call AMSend.send(AM_BROADCAST_ADDR, &report, sizeof(ReportMsg));
+ 			error = call AMSend.send(AM_BROADCAST_ADDR, &message, sizeof(ReportMsg));
     		if (error == SUCCESS) {
       			sending = TRUE;
     		}
@@ -122,7 +123,7 @@ implementation{
 
 		error_t error = SUCCESS;
 		
-		if (writing) {
+		if (diskBusy) {
 			return;
 		}
 		
@@ -132,7 +133,7 @@ implementation{
 		error = call Disk.append((uint8_t *) &dataPkt, sizeof(dataPkt));
 		
 		if (!error) {
-			writing = TRUE;
+			diskBusy = TRUE;
 		}
 		else {
 			call LedHandler.error();
@@ -141,7 +142,60 @@ implementation{
 	
 	task void sendFirstPkt() {
 
-		call LedHandler.error();
+		error_t error = SUCCESS;
+		
+		if (diskBusy) {
+			call LedHandler.error(); // FIXME Just for dbg
+			return;
+		}
+		
+		error = call Disk.seek(0);
+		
+		if (!error) {
+			diskBusy = TRUE; // TODO Unlock !
+		}
+		else {
+			call LedHandler.error();
+		}
+	}
+
+	event void Disk.seekDone(error_t error){
+		
+		if (!error) {
+			error = call Disk.read((uint8_t *) &dataPkt, sizeof(dataPkt));
+		}
+		
+		if (error) {
+			call LedHandler.error();
+			diskBusy = FALSE;
+		}
+	}
+	
+	event void Disk.readDone(error_t error, uint16_t length) {
+		
+		if ((!error) && (length == sizeof(dataPkt)) && 
+		    (!sending) && (state==AWAKE))
+		{
+			DataMsg* dmsg = (DataMsg*) call AMSend.getPayload(&message, NULL);
+			dmsg->node_id = dataPkt.node_id;
+			dmsg->local_time = dataPkt.local_time;
+			// FIXME What is the address of the basestation?
+ 			error = call AMSend.send(AM_BROADCAST_ADDR, &message, sizeof(DataMsg));
+    		if (error == SUCCESS) {
+      			sending = TRUE;
+      			call LedHandler.diskReady();
+    		}
+		}
+		else {
+			call LedHandler.error(); // FIXME Just for dbg
+		}
+		
+		if (error) {
+
+			call LedHandler.error();
+		}
+		
+		diskBusy = FALSE;
 	}
 
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len){
@@ -164,10 +218,10 @@ implementation{
 				mode = CONTINUOUS;
 			}
 			else if (cmd == FORMAT) {
-				if (!writing) {
+				if (!diskBusy) {
 					error = call Disk.format();
 					if (!error)
-						writing = TRUE;
+						diskBusy = TRUE;
 				}
 			}
 			else if (cmd == APPENDPKT) {
@@ -249,24 +303,16 @@ implementation{
 	}
 
 	event void Disk.formatDone(error_t error){		
-		writing = FALSE;		
+		diskBusy = FALSE;		
 		call LedHandler.diskReady();		
 		if (error)
 			call LedHandler.error();
-	}
-
-	event void Disk.seekDone(error_t error){
-		// TODO Auto-generated method stub
 	}
 
 	event void Disk.appendDone(error_t error){
-		writing = FALSE;		
+		diskBusy = FALSE;		
 		call LedHandler.diskReady();		
 		if (error)
 			call LedHandler.error();
-	}
-
-	event void Disk.readDone(error_t error, uint16_t length){
-		// TODO Auto-generated method stub
 	}
 }

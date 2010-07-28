@@ -255,8 +255,12 @@ implementation
 		packetLen = length;
 		state = STATE_WRITE;
 		// FIXME The line below was missing?
-		post executeCommand();
+		post executeCommand(); // FIXME What is post fails?
 		return SUCCESS;
+	}
+	
+	task void signalSeekDone() {
+		signal SimpleFile.seekDone(SUCCESS);
 	}
 
 	command error_t SimpleFile.seek(uint32_t index)
@@ -264,7 +268,7 @@ implementation
 		if( index < writePos )
 		{
 			readPos = index;
-			return SUCCESS;
+			return post signalSeekDone(); // FIXME seekDone was never signaled
 		}
 		else
 			return FAIL; // TODO Return a more specific error value?
