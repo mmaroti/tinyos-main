@@ -32,3 +32,9 @@ you can define the ZBP_AUTOSTART variable to get the serial line
 statred automatically:
 
 	CFLAGS += -DZBP_AUTOSTART
+
+You can disable the serial reset functionality alltogether by adding
+this tou your makefile:
+
+	CFLAGS += -DZBP_DISABLE_RESET
+

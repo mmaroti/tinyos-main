@@ -23,5 +23,7 @@ implementation {
   PlatformInit = MotePlatformP;
   SubInit = MotePlatformP.SubInit;
 
+#ifndef ZBP_DISABLE_RESET
   components SerialResetC;
+#endif
 }
