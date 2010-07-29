@@ -40,7 +40,7 @@ public class Debug {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		PacketParser test=new ArrayParser(new IntegerParser("int8_t","int8_t"), 3);
+		PacketParser test=new ArrayParser(new IntegerParser("Vae","int8_t"), 3);
 		byte[] data2=new byte[]{(byte)1,(byte)3,(byte)48};
 		String[] parsed=new String[] {"1","3","48"};
 		Consol cl=new Consol(test.getFields());

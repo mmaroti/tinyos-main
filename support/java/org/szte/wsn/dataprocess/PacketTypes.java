@@ -102,7 +102,7 @@ public class PacketTypes {
 				ArrayList<PacketParser> variableArray=new ArrayList<PacketParser>();
 				String[] parts=words[wc].split(" ");
 			    
-				String parserName=parts[1].replaceAll("[^\\w]", "");;
+				String parserName=parts[parts.length-1].replaceAll("[^\\w]", "");;
 			    
 				parts=words[wc].split("\\{");
 				words[wc]=parts[1];
@@ -124,7 +124,7 @@ public class PacketTypes {
 					wc++;
 					
 				}				
-				returnArray.add(new StructParser(parserName, variableArray.toArray(new PacketParser[variableArray.size()])));						
+				returnArray.add(new StructParser(parserName,"struct", variableArray.toArray(new PacketParser[variableArray.size()])));						
 			}
 			wc++;
 			
@@ -175,7 +175,7 @@ public class PacketTypes {
 			//size of the array
 			int size=Integer.parseInt(name.substring(name.indexOf("[")+1,name.indexOf("]")));
 			  
-			return new ArrayParser(getPacketParser(packetArray, type, type), size);  //név[index] TODO
+			return new ArrayParser(getPacketParser(packetArray, name.substring(0,name.indexOf("[")), type), size);  //deletes the [n] tag to avoid recursion 
 		}
 		else if(type.contains("int"))
 		{ 		

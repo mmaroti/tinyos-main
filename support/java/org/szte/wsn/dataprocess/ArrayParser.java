@@ -92,8 +92,10 @@ public class ArrayParser extends PacketParser{
 	public String[] getFields() {
 		ArrayList<String> ret=new ArrayList<String>(); 		//temporary String[] to return;
 		
-		for(int i=0;i<size;i++)
+		for(int i=0;i<size;i++){
 			ret.addAll(Arrays.asList(packetType.getFields()));		
+			ret.set(ret.size()-1,ret.get(ret.size()-1)+"["+i+"]");  //adds [i] tag to the end of the String
+		}
 		
 		return ret.toArray(new String[ret.size()]);
 	}

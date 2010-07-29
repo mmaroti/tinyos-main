@@ -39,7 +39,12 @@ package org.szte.wsn.dataprocess;
  */
 public abstract class PacketParser{
 	protected String name;
+	protected String type;
 	
+	public String getType() {
+		return type;
+	}
+
 	/**
 	 * 
 	 * @return the name of the PacketParser

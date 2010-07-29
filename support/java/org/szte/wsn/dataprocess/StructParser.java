@@ -40,38 +40,40 @@ import java.util.Arrays;
 public class StructParser extends PacketParser {
 
 	private PacketParser[] packetStruct;
-	
+
 	/**
 	 * sets the name and packetStruct
 	 * @param name of the PacketParser struct
 	 * @param packetStruct array of PacketParsers
 	 */
-	public StructParser(String name, PacketParser[] packetStruct){
+	public StructParser(String name, String type, PacketParser[] packetStruct){
 		this.name=name;
+		this.type=type;
 		ArrayList<PacketParser> al=new ArrayList<PacketParser>();
 		for(int i=0;i<packetStruct.length;i++){
 			al.add(packetStruct[i]);
 		}
 		this.packetStruct=al.toArray(new PacketParser[al.size()]);
 	}
-	
+
 	/**
 	 * Calls parse for every PacketParser in the struct
 	 */
 	@Override
 	public String[] parse(byte[] packet) {
 		ArrayList<String> ret=new ArrayList<String>();		//temporary String[] to return;
-		
+
 		int pointer=0; 						//shows which is the first unprocessed byte
-				
+
 		for(int i=0;i<packetStruct.length;i++)		//every PacketParser
 		{  				
 			int length=packetStruct[i].getPacketLength();
 			byte[] packetPart=new byte[length];				//bytes of one PacketParser			
 			System.arraycopy(packet,pointer,packetPart,0,length);
-			
-			ret.addAll(Arrays.asList(packetStruct[i].parse(packetPart))); 		
 			pointer+=length;
+			if(!packetStruct[i].getType().contains("omit"))
+				ret.addAll(Arrays.asList(packetStruct[i].parse(packetPart))); 		
+
 		}
 		return ret.toArray(new String[ret.size()]);
 	}
@@ -82,12 +84,12 @@ public class StructParser extends PacketParser {
 	 */
 	public int getPacketLength() {
 		int ret=0;
-		for(int i=0;i<packetStruct.length;i++)		 //every PacketParser		
-			ret+=packetStruct[i].getPacketLength();
-	
+		for(int i=0;i<packetStruct.length;i++)			//every PacketParser		
+			ret+=packetStruct[i].getPacketLength(); 	//omit takes no effect here
+
 		return ret;
 	}
-	
+
 	@Override
 	/**
 	 * Calls getFields for every PacketParser in the struct
@@ -95,13 +97,14 @@ public class StructParser extends PacketParser {
 	 */
 	public String[] getFields() {
 		ArrayList<String> ret=new ArrayList<String>(); 
-		
+
 		for(int i=0;i<packetStruct.length;i++){  //every PacketParser
-			ret.addAll(Arrays.asList(packetStruct[i].getFields()));		
+			if(!packetStruct[i].getType().contains("omit"))
+				ret.addAll(Arrays.asList(packetStruct[i].getFields()));		//omitted fields won't be displayed
 		}
 		return ret.toArray(new String[ret.size()]);
 	}
-	
+
 	@Override
 	/**
 	 * Calls construct for every PacketParser in the struct
@@ -110,30 +113,31 @@ public class StructParser extends PacketParser {
 	public byte[] construct(String[] stringValue) {
 		ArrayList<Byte> ret=new ArrayList<Byte>(); 
 		int pointer=0;
-		for(int i=0;i<packetStruct.length;i++){ 	 //every PacketParser
-			int length=packetStruct[i].getStringLength();
-			String[] packetPart=new String[length];				//String of one PacketParser			
-			System.arraycopy(stringValue ,pointer,packetPart,0,length);
-			for(byte b:packetStruct[i].construct(packetPart))
-				ret.add(b); 	
-			pointer+=length;
+		for(PacketParser pp:packetStruct){ 	 //every PacketParser			
+			String[] packetPart=new String[pp.getStringLength()];				//String of one PacketParser			
+			System.arraycopy(stringValue ,pointer,packetPart,0,pp.getStringLength());
+			pointer+=pp.getStringLength();
+			if(!pp.getType().contains("omit"))  		//omitted 
+				for(byte b:pp.construct(packetPart))
+					ret.add(b); 	
+			
 		}
-		 byte[] byteArray = new byte[ret.size()];
-		    for(int i = 0; i<ret.size(); i++){
-		      byteArray[i] = ret.get(i);
-		    }
+		byte[] byteArray = new byte[ret.size()];
+		for(int i = 0; i<ret.size(); i++){
+			byteArray[i] = ret.get(i);
+		}
 		return byteArray;
 	}
-	
+
 	@Override
 	/**
 	 * @return the length of the String[] which is created during parse
 	 */
 	public int getStringLength() {
 		int ret=0;
-		for(PacketParser pp:packetStruct)		 //every PacketParser		
-			ret+=pp.getStringLength();
-		
+		for(PacketParser pp:packetStruct)		//every PacketParser		
+			ret+=pp.getStringLength();			//omit takes no effect here
+
 		return ret;
 	}
 }

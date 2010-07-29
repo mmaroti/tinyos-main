@@ -34,7 +34,6 @@
 package org.szte.wsn.dataprocess;
 
 public class IntegerParser extends PacketParser{
-	String type;
 	int size;
 	boolean isLittleEndian=false;
 	boolean signed; 
