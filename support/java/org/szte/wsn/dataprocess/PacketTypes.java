@@ -40,19 +40,18 @@ import java.util.ArrayList;
 
 public class PacketTypes {	
 	PacketParser[] packetParsers;
-	/**
-	 * if no structure file name is provided, structs.txt
-	 *  will be loaded from the current directory
-	 */
-	public PacketTypes(){
-		this("structs.txt");
-	}
+	
 	/**
 	 * 
 	 * @param fileName location of configuration file
+	 * if no structure file name is provided, structs.txt
+	 *  will be loaded from the current directory
 	 */
-	public PacketTypes(String fileName){		
-		loadConfig(fileName);
+	public PacketTypes(String fileName){	
+		if(fileName.length()>0)
+			loadConfig(fileName);
+		else
+			loadConfig("structs.txt");
 	}
 	/**
 	 * 
