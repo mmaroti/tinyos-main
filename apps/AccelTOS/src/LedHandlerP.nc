@@ -60,4 +60,8 @@ implementation{
 	command void LedHandler.msgReceived(){
 		call Leds.led2Toggle();
 	}
+
+	command void LedHandler.sampling(){
+		call Leds.led2Toggle();
+	}
 }

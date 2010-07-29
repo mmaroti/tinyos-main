@@ -142,14 +142,10 @@ public final class AccelPC {
 			
 			s.command(6, (short) 1);
 
-			s.command(6, (short) 2);
+			s.command(6, (short) 5);
 
-			s.command(6, (short) 3);
+			s.command(6, (short) 6);
 		
-			s.command(6, (short) 3);
-
-			s.command(6, (short) 4);
-			
 			s.command(6, (short) 0);
 			
 //			while (true) {

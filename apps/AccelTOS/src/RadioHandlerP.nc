@@ -44,9 +44,11 @@ module RadioHandlerP{
 		interface AMSend as AMReportMsg;
 		interface LedHandler;
 		interface SimpleFile as Disk;
+		interface Meter;
 		interface Timer<TMilli> as WatchDog;
 		interface Timer<TMilli> as ShortPeriod;
 		interface LocalTime<TMilli> as LocTime;
+		interface DiagMsg;
    }
    
    provides {
@@ -235,6 +237,12 @@ implementation{
 			}
 			else if (cmd == SENDFIRST) {
 				error = post sendFirstPkt();
+			}
+			else if (cmd == STARTSAMPLING) {
+				error = call Meter.startRecording();
+			}
+			else if (cmd == STOPSAMPLING) {
+				error = call Meter.stopRecording();
 			}
 			// FIXME What if unknown mode received? Or msg corrupted?
 			else {

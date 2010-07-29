@@ -32,8 +32,6 @@
 * Author: Miklos Maroti
 */
 
-#include <AM.h>
-
 module BufferedFlashP
 {
 	provides
@@ -43,8 +41,7 @@ module BufferedFlashP
 
 	uses
 	{
-		interface AMSend;
-		interface Packet;
+		interface SimpleFile;
 	}
 }
 
@@ -53,13 +50,18 @@ implementation
 	enum
 	{
 		BUFFER_SIZE = 2,
-		ADDRESS = AM_BROADCAST_ADDR,
+		MAX_DATA_LENGTH = 510
 	};
+	
+	typedef struct buffer_t {
+		uint16_t length;
+		uint8_t data[MAX_DATA_LENGTH];
+	} buffer_t;
 
-	message_t messages[BUFFER_SIZE];
+	buffer_t messages[BUFFER_SIZE];
 
 	uint8_t current;	// the currently recorded message buffer
-	uint8_t position;	// the write position in the current buffer
+	uint16_t position;	// the write position in the current buffer
 	uint8_t pending;	// the number of full messages
 	bool sending;
 
@@ -71,7 +73,7 @@ implementation
 			if( first < 0 )
 				first += BUFFER_SIZE;
 
-			if( call AMSend.send(ADDRESS, messages + first, call Packet.payloadLength(messages + first)) == SUCCESS )
+			if( call SimpleFile.append(messages[first].data, messages[first].length) == SUCCESS )
 				sending = TRUE;
 			else
 				post sendMessage();
@@ -81,9 +83,9 @@ implementation
 	command error_t BufferedFlash.send(void *data, uint8_t length)
 	{
 		if( pending == BUFFER_SIZE )
-			return FAIL;
+			return FAIL; // FIXME EBUSY ?
 
-		if( position + length > TOSH_DATA_LENGTH )
+		if( position + length > MAX_DATA_LENGTH )
 			call BufferedFlash.flush();
 
 		memcpy(messages[current].data + position, data, length);
@@ -92,8 +94,8 @@ implementation
 		return SUCCESS;
 	}
 
-	event void AMSend.sendDone(message_t* msg, error_t error)
-	{
+	event void SimpleFile.appendDone(error_t error){
+		
 		sending = FALSE;
 	
 		if( error == SUCCESS )
@@ -107,7 +109,7 @@ implementation
 		if( position > 0 )
 		{
 			// store the length
-			call Packet.setPayloadLength(messages + current, position);
+			messages[current].length = position;
 
 			position = 0;
 			if( ++current >= BUFFER_SIZE )
@@ -116,5 +118,17 @@ implementation
 			++pending;
 			post sendMessage();
 		}
+	}
+
+	event void SimpleFile.formatDone(error_t error){
+		// TODO Auto-generated method stub
+	}
+
+	event void SimpleFile.seekDone(error_t error){
+		// TODO Auto-generated method stub
+	}
+
+	event void SimpleFile.readDone(error_t error, uint16_t length){
+		// TODO Auto-generated method stub
 	}
 }

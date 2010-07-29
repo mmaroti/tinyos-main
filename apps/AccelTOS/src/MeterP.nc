@@ -38,31 +38,29 @@
 
 module MeterP
 {
+
+	provides interface Meter;
+	
 	uses
 	{
 		interface Boot;
-		interface SplitControl;
 		interface Timer<TMilli>;
 		interface ShimmerAdc;
 
 		interface Init as AccelInit;
 		interface Mma7260 as Accel;
 
-		interface Leds;
+		interface LedHandler;
 //		interface DiagMsg;
 		interface BufferedFlash;
 
-		interface StdControl as Gyro;
+//		interface StdControl as Gyro;
+		interface DiagMsg;
 	}
 }
 
 implementation
 {
-	event void Boot.booted()
-	{
-		call SplitControl.start();
-	}
-
 	uint8_t channels[] = 
 	{ 
 		SHIMMER_ADC_ACCEL_X, 
@@ -79,44 +77,49 @@ implementation
 	{
 		CHANNEL_COUNT = 5, // FIXME Make automatic?
 	};
+	
+	void dump(char* msg) {
+		if( call DiagMsg.record() ) {
+			call DiagMsg.str(msg);
+			call DiagMsg.send();
+		}	
+	}
+	
+	task void startUp() {
 
-	event void SplitControl.startDone(error_t error)
-	{
-		if( error == SUCCESS )
-		{
-			call Leds.led2On();
+		// TODO Error-handling
+		call AccelInit.init();
+		call Accel.setSensitivity(RANGE_4_0G);
+		call Accel.wake(TRUE);
 
-			call AccelInit.init();
-			call Accel.setSensitivity(RANGE_4_0G);
-			call Accel.wake(TRUE);
-
-			call Gyro.start();
-
-			if( call ShimmerAdc.setChannels(channels, CHANNEL_COUNT) != SUCCESS )
-				call Leds.led1On();
-
-			call Timer.startPeriodic(5);
+		if( call ShimmerAdc.setChannels(channels, CHANNEL_COUNT) != SUCCESS ) {
+			call LedHandler.error();
+			dump("startup");
 		}
-		else 
-			call SplitControl.start();
-
+		else {
+			dump("start failed");
+			//post startUp();
+		}
 	}
 
-	event void SplitControl.stopDone(error_t err)
+	event void Boot.booted()
 	{
-	} 
+		post startUp();
+	}
 
-	message_t msgBuffer;
+	//message_t msgBuffer; FIXME Unused?
 
 	event void Timer.fired()
 	{
-		if( call ShimmerAdc.sample() != SUCCESS )
-			call Leds.led1On();
+		if( call ShimmerAdc.sample() != SUCCESS ) {
+			dump("Sample fail");
+			call LedHandler.error();
+		}
 	}
 
 	event void ShimmerAdc.sampleDone(uint32_t timestamp, uint16_t* data)
 	{
-		call Leds.led0Toggle();
+		call LedHandler.sampling();
 
 		call BufferedFlash.send(data - 2, 4 + CHANNEL_COUNT*2); // FIXME Magic numbers
 /*
@@ -130,5 +133,33 @@ implementation
 			call DiagMsg.send();
 		}
 */
+	}
+
+	command error_t Meter.stopRecording(){
+		
+		error_t error = SUCCESS;
+		
+		if (call Timer.isRunning()) {
+			call Timer.stop();
+		}
+		else {
+			error = EALREADY;
+		}
+		
+		return error;		
+	}
+
+	command error_t Meter.startRecording(){
+
+		error_t error = SUCCESS;
+		
+		if (!call Timer.isRunning()) {
+			call Timer.startPeriodic(10); // FIXME Nothing happens for 10 ms?
+		}
+		else {
+			error = EALREADY;
+		}
+		
+		return error;
 	}
 }

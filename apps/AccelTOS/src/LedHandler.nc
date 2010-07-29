@@ -42,5 +42,7 @@ interface LedHandler{
 	command void msgReceived();
 	
 	command void diskReady();
+	
+	command void sampling();
 
 }

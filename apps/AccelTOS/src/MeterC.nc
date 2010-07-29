@@ -33,18 +33,26 @@
 
 configuration MeterC
 { 
+	provides interface Meter;
+
 } 
 
 implementation
 { 
-	components MeterP, ActiveMessageC, new TimerMilliC(), MainC;
-	components LedsC/*, RadioDiagMsgC*/; // FIXME It was unused anyhow...
-
+	components MeterP, /*ActiveMessageC,*/ new TimerMilliC(), MainC;
+	components LedHandlerC , RadioDiagMsgC; // FIXME It was unused anyhow...
+	components SimpleFileC;
+	MeterP.DiagMsg -> RadioDiagMsgC;
+	
+	Meter = MeterP;
+	
   	MeterP.Boot -> MainC;
 	MeterP.Timer -> TimerMilliC;
-	MeterP.Leds -> LedsC;
+	MeterP.LedHandler -> LedHandlerC;
 //	MeterP.DiagMsg -> RadioDiagMsgC;
-	MeterP.SplitControl -> ActiveMessageC;
+//	MeterP.SplitControl -> ActiveMessageC;
+// FIXME Only one component should turn on the disc
+// FIXME Turn off the disc? (Data corruption)
 
 	components ShimmerAdcC;
 	MeterP.ShimmerAdc -> ShimmerAdcC;
@@ -56,9 +64,12 @@ implementation
 //	components Idg300C;
 //	MeterP.Gyro -> Idg300C;
 
+//	components BufferedFlashP; // FIXME Move these to a new configuration!!!
+//	MeterP.BufferedFlash -> BufferedFlashP;
+//	BufferedFlashP.AMSend -> ActiveMessageC.AMSend[0x37];
+//	BufferedFlashP.Packet -> ActiveMessageC;
+
 	components BufferedFlashP; // FIXME Move these to a new configuration!!!
 	MeterP.BufferedFlash -> BufferedFlashP;
-	BufferedFlashP.AMSend -> ActiveMessageC.AMSend[0x37];
-	BufferedFlashP.Packet -> ActiveMessageC;
-
+	BufferedFlashP.SimpleFile -> SimpleFileC;
 }

@@ -31,41 +31,10 @@
 * Author: Ali Baharev
 */
 
-#include "CtrlMsg.h"
-#include "DataMsg.h"
-#include "ReportMsg.h"
-
-configuration RadioHandlerC {
+interface Meter {
 	
-	provides {
-		
-		interface StdControl;
-	}
-
-}
-
-implementation{
-	components AccelAppC;
-	components RadioHandlerP;
-	components ActiveMessageC;
-	components new AMReceiverC(AM_CTRLMSG) as AMRec;
-	components new AMSenderC(AM_REPORTMSG) as Report;
-	components new AMSenderC(AM_DATAMSG) as Data;
-	components new TimerMilliC() as Timer1;
-	components new TimerMilliC() as Timer2;
-	components HilTimerMilliC;
-	components LedHandlerC;
-	components MeterC;
-	StdControl = RadioHandlerP;
-	RadioHandlerP.AMControl -> ActiveMessageC;
-	RadioHandlerP.Receive -> AMRec;
-	RadioHandlerP.AMReportMsg -> Report;
-	RadioHandlerP.AMDataPkt -> Data;
-	RadioHandlerP.WatchDog -> Timer1;
-	RadioHandlerP.ShortPeriod -> Timer2;
-	RadioHandlerP.LocTime -> HilTimerMilliC;
-	RadioHandlerP.LedHandler -> LedHandlerC;
-	RadioHandlerP.Disk -> AccelAppC;
-	RadioHandlerP.Meter -> MeterC;
-
+	command error_t startRecording();
+	
+	command error_t stopRecording();
+	
 }
