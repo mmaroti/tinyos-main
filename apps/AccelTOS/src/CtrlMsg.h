@@ -44,7 +44,7 @@ enum {
 };
 
 enum {
-	AM_CTRLMSG = 11
+	AM_CTRLMSG = 7
 };
 
 typedef nx_struct CtrlMsg {

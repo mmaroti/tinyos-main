@@ -35,7 +35,7 @@
 #define REPORT_MSG_H
 
 enum {
-	AM_REPORTMSG = 11
+	AM_REPORTMSG = 6
 };
 
 typedef nx_struct ReportMsg {

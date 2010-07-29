@@ -46,7 +46,7 @@ public class ReportMsg extends net.tinyos.message.Message {
     public static final int DEFAULT_MESSAGE_SIZE = 3;
 
     /** The Active Message type associated with this message. */
-    public static final int AM_TYPE = 11;
+    public static final int AM_TYPE = 6;
 
     /** Create a new ReportMsg of size 3. */
     public ReportMsg() {

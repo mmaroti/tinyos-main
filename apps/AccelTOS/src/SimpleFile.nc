@@ -59,7 +59,7 @@ interface SimpleFile
 	 * Moves the read pointer to the give packet index, which
 	 * must be between 0 and count-1.
 	 */
-	command error_t seek(uint32_t index);
+	command error_t seek(uint32_t pos);
 
 	/**
 	 * Returns the length of the packet at the given index.

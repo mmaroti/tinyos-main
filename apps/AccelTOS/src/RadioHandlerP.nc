@@ -40,7 +40,8 @@ module RadioHandlerP{
    uses {
 		interface SplitControl as AMControl;
 		interface Receive;
-		interface AMSend;
+		interface AMSend as AMDataPkt;
+		interface AMSend as AMReportMsg;
 		interface LedHandler;
 		interface SimpleFile as Disk;
 		interface Timer<TMilli> as WatchDog;
@@ -89,10 +90,10 @@ implementation{
 			// TODO Explain why
     		// Note that we could have avoided using the Packet interface, as it's 
     		// getPayload command is repeated within AMSend.
-    		ReportMsg* pkt = (ReportMsg*)(call AMSend.getPayload(&message, NULL));
+    		ReportMsg* pkt = (ReportMsg*)(call AMReportMsg.getPayload(&message, NULL));
     		pkt->id = TOS_NODE_ID;
     		pkt->mode = mode;
- 			error = call AMSend.send(AM_BROADCAST_ADDR, &message, sizeof(ReportMsg));
+ 			error = call AMReportMsg.send(AM_BROADCAST_ADDR, &message, sizeof(ReportMsg));
     		if (error == SUCCESS) {
       			sending = TRUE;
     		}
@@ -100,11 +101,16 @@ implementation{
     	return error;
 	}
 	
-	event void AMSend.sendDone(message_t *msg, error_t error){
+	event void AMReportMsg.sendDone(message_t *msg, error_t error){
 		sending = FALSE;
 		// FIXME Resend if failed?
 	}
 	
+	// FIXME Buffer swap ?
+	event void AMDataPkt.sendDone(message_t *msg, error_t error){
+		sending = FALSE;
+		// FIXME Resend if failed?
+	}
 
 	command error_t StdControl.stop(){
 		// TODO Finish impl of stop
@@ -176,11 +182,11 @@ implementation{
 		if ((!error) && (length == sizeof(dataPkt)) && 
 		    (!sending) && (state==AWAKE))
 		{
-			DataMsg* dmsg = (DataMsg*) call AMSend.getPayload(&message, NULL);
+			DataMsg* dmsg = (DataMsg*) call AMDataPkt.getPayload(&message, NULL);
 			dmsg->node_id = dataPkt.node_id;
 			dmsg->local_time = dataPkt.local_time;
 			// FIXME What is the address of the basestation?
- 			error = call AMSend.send(AM_BROADCAST_ADDR, &message, sizeof(DataMsg));
+ 			error = call AMDataPkt.send(AM_BROADCAST_ADDR, &message, sizeof(DataMsg));
     		if (error == SUCCESS) {
       			sending = TRUE;
       			call LedHandler.diskReady();

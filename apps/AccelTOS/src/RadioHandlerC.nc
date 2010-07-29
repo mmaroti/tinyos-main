@@ -32,6 +32,8 @@
 */
 
 #include "CtrlMsg.h"
+#include "DataMsg.h"
+#include "ReportMsg.h"
 
 configuration RadioHandlerC {
 	
@@ -47,7 +49,8 @@ implementation{
 	components RadioHandlerP;
 	components ActiveMessageC;
 	components new AMReceiverC(AM_CTRLMSG) as AMRec;
-	components new AMSenderC(AM_CTRLMSG) as AMSender;
+	components new AMSenderC(AM_REPORTMSG) as Report;
+	components new AMSenderC(AM_DATAMSG) as Data;
 	components new TimerMilliC() as Timer1;
 	components new TimerMilliC() as Timer2;
 	components HilTimerMilliC;
@@ -55,7 +58,8 @@ implementation{
 	StdControl = RadioHandlerP;
 	RadioHandlerP.AMControl -> ActiveMessageC;
 	RadioHandlerP.Receive -> AMRec;
-	RadioHandlerP.AMSend -> AMSender;
+	RadioHandlerP.AMReportMsg -> Report;
+	RadioHandlerP.AMDataPkt -> Data;
 	RadioHandlerP.WatchDog -> Timer1;
 	RadioHandlerP.ShortPeriod -> Timer2;
 	RadioHandlerP.LocTime -> HilTimerMilliC;

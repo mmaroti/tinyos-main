@@ -263,11 +263,12 @@ implementation
 		signal SimpleFile.seekDone(SUCCESS);
 	}
 
-	command error_t SimpleFile.seek(uint32_t index)
+	// FIXME index shadows what???
+	command error_t SimpleFile.seek(uint32_t pos)
 	{
-		if( index < writePos )
+		if( pos < writePos )
 		{
-			readPos = index;
+			readPos = pos;
 			return post signalSeekDone(); // FIXME seekDone was never signaled
 		}
 		else

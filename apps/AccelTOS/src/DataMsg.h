@@ -35,7 +35,7 @@
 #define DATA_MSG_H
 
 enum {
-	AM_DATAMSG = 11
+	AM_DATAMSG = 8
 };
 
 typedef nx_struct DataMsg {
