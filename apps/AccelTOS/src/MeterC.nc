@@ -34,19 +34,19 @@
 configuration MeterC
 { 
 	provides interface Meter;
+	provides interface StdControl;
 
 } 
 
 implementation
 { 
-	components MeterP, /*ActiveMessageC,*/ new TimerMilliC(), MainC;
+	components MeterP, /*ActiveMessageC,*/ new TimerMilliC();
 	components LedHandlerC , RadioDiagMsgC; // FIXME It was unused anyhow...
 	components SimpleFileC;
 	MeterP.DiagMsg -> RadioDiagMsgC;
 	
 	Meter = MeterP;
-	
-  	MeterP.Boot -> MainC;
+	StdControl = MeterP;
 	MeterP.Timer -> TimerMilliC;
 	MeterP.LedHandler -> LedHandlerC;
 //	MeterP.DiagMsg -> RadioDiagMsgC;

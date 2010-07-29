@@ -38,12 +38,13 @@ configuration AccelAppC {
 
 implementation{
 
-	components MainC, AccelP, LedHandlerC, RadioHandlerC, SimpleFileC;
+	components MainC, AccelP, LedHandlerC, RadioHandlerC, SimpleFileC, MeterC;
 
 	SimpleFile = SimpleFileC;
 	AccelP.Boot -> MainC;
 	AccelP.LedHandler -> LedHandlerC;
 	AccelP.SFCtrl -> SimpleFileC;
 	AccelP.RadioHandler -> RadioHandlerC;
+	AccelP.AccelMeter -> MeterC;
 
 }

@@ -39,7 +39,7 @@ configuration RadioHandlerC {
 	
 	provides {
 		
-		interface StdControl;
+		interface SplitControl;
 	}
 
 }
@@ -56,7 +56,7 @@ implementation{
 	components HilTimerMilliC;
 	components LedHandlerC;
 	components MeterC;
-	StdControl = RadioHandlerP;
+	SplitControl = RadioHandlerP;
 	RadioHandlerP.AMControl -> ActiveMessageC;
 	RadioHandlerP.Receive -> AMRec;
 	RadioHandlerP.AMReportMsg -> Report;

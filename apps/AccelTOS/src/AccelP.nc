@@ -36,7 +36,8 @@ module AccelP {
    uses interface Boot;
    uses interface LedHandler;
    uses interface SplitControl as SFCtrl;
-   uses interface StdControl as RadioHandler;
+   uses interface SplitControl as RadioHandler;
+   uses interface StdControl as AccelMeter;
 }
 
 implementation{
@@ -44,11 +45,6 @@ implementation{
    event void Boot.booted() {
 		// TODO
 		error_t error;
-		// FIXME Turn the disk ON when the radio is ready
-		error = call SFCtrl.start();
-		
-		if (error)
-			call LedHandler.error();
 
 		error = call RadioHandler.start();
 
@@ -56,17 +52,33 @@ implementation{
 			call LedHandler.error();
 
    }
+   
+	event void RadioHandler.startDone(error_t error){
+		// FIXME Turn the disk ON when the radio is ready
+		error = call SFCtrl.start();
+		
+		if (error)
+			call LedHandler.error();
+	}
 
 	event void SFCtrl.startDone(error_t error){
 
-		if (error == SUCCESS)
-			call LedHandler.diskReady();			
+		if (error == SUCCESS) {
+			call LedHandler.diskReady();
+			if (call AccelMeter.start()) {
+				call LedHandler.error();
+			}
+		}		
 		else
 			call LedHandler.error();
 	}
 	
 
 	event void SFCtrl.stopDone(error_t error){
+		// TODO Auto-generated method stub
+	}
+
+	event void RadioHandler.stopDone(error_t error){
 		// TODO Auto-generated method stub
 	}
 }

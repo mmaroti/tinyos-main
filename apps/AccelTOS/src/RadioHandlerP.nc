@@ -52,7 +52,7 @@ module RadioHandlerP{
    }
    
    provides {
-		interface StdControl;
+		interface SplitControl;
    	}
 }
 
@@ -112,19 +112,6 @@ implementation{
 	event void AMDataPkt.sendDone(message_t *msg, error_t error){
 		sending = FALSE;
 		// FIXME Resend if failed?
-	}
-
-	command error_t StdControl.stop(){
-		// TODO Finish impl of stop
-		return FAIL;
-	}
-
-	// FIXME StdControl is not an appropriate interface
-	command error_t StdControl.start(){
-		// FIXME Finish impl of start
-
-		return call AMControl.start();
-		
 	}
 	
 	task void appendPacket() {
@@ -279,10 +266,27 @@ implementation{
 			call ShortPeriod.startOneShot(50);
 			if (! call WatchDog.isRunning()) {
 				call WatchDog.startPeriodic(1000);
+				signal SplitControl.startDone(error);
 			}
 		}		
-		else
+		else {
 			call LedHandler.error();
+			signal SplitControl.startDone(error);
+		}
+		// FIXME Would signal even if already started
+		
+	}
+
+	command error_t SplitControl.stop(){
+		// TODO Auto-generated method stub
+		call LedHandler.error();
+		return FAIL;
+	}
+
+	command error_t SplitControl.start(){
+		// FIXME Finish impl of start
+
+		return call AMControl.start();
 	}
 
 	event void WatchDog.fired(){
@@ -329,4 +333,5 @@ implementation{
 		if (error)
 			call LedHandler.error();
 	}
+
 }

@@ -39,11 +39,14 @@
 module MeterP
 {
 
-	provides interface Meter;
+	provides {
+		interface Meter;
+		interface StdControl;
+	}
 	
 	uses
 	{
-		interface Boot;
+//		interface Boot;
 		interface Timer<TMilli>;
 		interface ShimmerAdc;
 
@@ -85,26 +88,38 @@ implementation
 		}	
 	}
 	
-	task void startUp() {
 
-		// TODO Error-handling
-		call AccelInit.init();
-		call Accel.setSensitivity(RANGE_4_0G);
-		call Accel.wake(TRUE);
-
-		if( call ShimmerAdc.setChannels(channels, CHANNEL_COUNT) != SUCCESS ) {
-			call LedHandler.error();
-			dump("startup");
-		}
-		else {
-			dump("start failed");
-			//post startUp();
-		}
+	command error_t StdControl.stop(){
+		// FIXME Implement shut-down
+		call LedHandler.error();
+		return FAIL;
 	}
 
-	event void Boot.booted()
-	{
-		post startUp();
+	command error_t StdControl.start(){
+		
+		error_t error = SUCCESS;
+
+		error = call AccelInit.init();
+		
+		if (error) {
+			call LedHandler.error();
+			dump("AccelInitFail");
+		}
+		else {
+			call Accel.setSensitivity(RANGE_4_0G);
+			call Accel.wake(TRUE);
+			error = call ShimmerAdc.setChannels(channels, CHANNEL_COUNT);
+					
+			if(error) {
+				call LedHandler.error();
+				dump("SetChFail");
+			}
+			else {
+				dump("InitOK");
+			}
+		}
+		
+		return error;
 	}
 
 	//message_t msgBuffer; FIXME Unused?
@@ -162,4 +177,5 @@ implementation
 		
 		return error;
 	}
+
 }
