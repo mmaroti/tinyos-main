@@ -65,15 +65,16 @@ public class StructParser extends PacketParser {
 
 		int pointer=0; 						//shows which is the first unprocessed byte
 
-		for(int i=0;i<packetStruct.length;i++)		//every PacketParser
-		{  				
-			int length=packetStruct[i].getPacketLength();
-			byte[] packetPart=new byte[length];				//bytes of one PacketParser			
-			System.arraycopy(packet,pointer,packetPart,0,length);
-			pointer+=length;
-			if(!packetStruct[i].getType().contains("omit"))
-				ret.addAll(Arrays.asList(packetStruct[i].parse(packetPart))); 		
-
+		for(PacketParser pp:packetStruct){  		
+			byte[] packetPart=new byte[pp.getPacketLength()];				//bytes of one PacketParser			
+			System.arraycopy(packet,pointer,packetPart,0,pp.getPacketLength());
+			pointer+=pp.getPacketLength();
+			
+			if(!pp.getType().contains("omit"))			
+				ret.addAll(Arrays.asList(pp.parse(packetPart))); 		
+			
+			if (pp.parse(packetPart)==null)
+				return null;
 		}
 		return ret.toArray(new String[ret.size()]);
 	}
@@ -84,8 +85,8 @@ public class StructParser extends PacketParser {
 	 */
 	public int getPacketLength() {
 		int ret=0;
-		for(int i=0;i<packetStruct.length;i++)			//every PacketParser		
-			ret+=packetStruct[i].getPacketLength(); 	//omit takes no effect here
+		for(PacketParser pp:packetStruct)			//every PacketParser		
+			ret+=pp.getPacketLength(); 	//omit takes no effect here
 
 		return ret;
 	}
@@ -98,9 +99,9 @@ public class StructParser extends PacketParser {
 	public String[] getFields() {
 		ArrayList<String> ret=new ArrayList<String>(); 
 
-		for(int i=0;i<packetStruct.length;i++){  //every PacketParser
-			if(!packetStruct[i].getType().contains("omit"))
-				ret.addAll(Arrays.asList(packetStruct[i].getFields()));		//omitted fields won't be displayed
+		for(PacketParser pp:packetStruct){  //every PacketParser
+			if(!pp.getType().contains("omit"))
+				ret.addAll(Arrays.asList(pp.getFields()));		//omitted fields won't be displayed
 		}
 		return ret.toArray(new String[ret.size()]);
 	}
@@ -135,7 +136,7 @@ public class StructParser extends PacketParser {
 	 */
 	public int getStringLength() {
 		int ret=0;
-		for(PacketParser pp:packetStruct)		//every PacketParser		
+		for(PacketParser pp:packetStruct)				
 			ret+=pp.getStringLength();			//omit takes no effect here
 
 		return ret;

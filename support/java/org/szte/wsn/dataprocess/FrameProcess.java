@@ -44,13 +44,14 @@ public class FrameProcess {
 	private boolean serialSource=false;
 	private PacketParser[] packetParsers;
 	private BinaryInterface[] readers;
+	private StringInterface writer;
 
 	
 	public void setArgs(String[] args){		
 		if (args.length<2)    //it isn't necessary to give struct file
 			usageThanExit();
 
-		if(args[0].equals("bin")){
+		if(args[0].equals("file")){
 			fileSource=true;
 			File path = new File(args[1]);
 			if (path.isFile()) {
@@ -68,11 +69,16 @@ public class FrameProcess {
 				}; 
 				sourcePath = path.list(filter); 
 			}
+			else{
+				System.out.println("IO ERROR wrong sourcePath:"+args[1]);
+				usageThanExit();
+			}
 		}
-		else if(args[0].equals("serialSource")){
+		else if(args[0].equals("serial")){
 			serialSource=true;
 			sourcePath=new String[]{args[1]};
 		}
+		
 		else usageThanExit(); //the first argument must be a file or a directory
 
 	};
@@ -98,10 +104,11 @@ public class FrameProcess {
 			return new ToSerial[]{ new ToSerial(sourcePath[0])};
 		}
 	public static void usageThanExit(){
+		System.out.println("Usage:");
 		System.out.println("java FrameProcess readMode sourcePath structureFile");
-		System.out.println("java FrameProcess bin 0.bin structs.txt 	-reads 0.bin");
-		System.out.println("java FrameProcess bin . structs.txt		 -scans the actual directory for .bin files");
-		System.out.println("java FrameProcess serialSource /dev/ttyUSB3 structs.txt 	-reads from the serialSource on USB3, ");
+		System.out.println("java FrameProcess file 0.bin structs.txt 		-reads 0.bin");
+		System.out.println("java FrameProcess file . structs.txt			-scans the actual directory for .bin files");
+		System.out.println("java FrameProcess serial /dev/ttyUSB3 structs.txt -reads from the serialSource on USB3, ");
 		System.out.println("readMode and sourcePath is necessary");
 		System.out.println("structFile can be skipped, structs.txt is default");
 		
@@ -115,11 +122,14 @@ public class FrameProcess {
 		
 		fp.packetParsers=new PacketTypes(args.length>2?args[2]:"").getParsers();		
 			
-		fp.readers=fp.getReaders();
-		for(BinaryInterface bIF:fp.readers){
-			
-		}
+		fp.readers=fp.getReaders();		
 		
+		for(BinaryInterface bIF:fp.readers){
+			for (PacketParser pp:fp.packetParsers){
+				fp.writer=new Consol(pp.getFields());
+				fp.writer.writePacket(pp.parse(bIF.readPacket()));
+		}
+	}
 	}
 	
 }

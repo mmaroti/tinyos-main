@@ -101,7 +101,7 @@ public class PacketTypes {
 				ArrayList<PacketParser> variableArray=new ArrayList<PacketParser>();
 				String[] parts=words[wc].split(" ");
 			    
-				String parserName=parts[parts.length-1].replaceAll("[^\\w]", "");;
+				String parserName=parts[1].replaceAll("[^\\w]", "");;
 			    
 				parts=words[wc].split("\\{");
 				words[wc]=parts[1];
