@@ -78,6 +78,8 @@ implementation
 		CHANNEL_COUNT = 5, // FIXME Make automatic?
 	};
 	
+	bool first_run = TRUE;
+	
 	void dump(char* msg) {
 		if( call DiagMsg.record() ) {
 			call DiagMsg.str(msg);
@@ -95,6 +97,14 @@ implementation
 	command error_t StdControl.start(){
 		
 		error_t error = SUCCESS;
+		
+		if (first_run) {
+			first_run = FALSE;
+		}
+		else {
+			call LedHandler.error();
+			dump("SecondRun");
+		}
 
 		error = call AccelInit.init();
 		
