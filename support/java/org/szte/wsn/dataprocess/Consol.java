@@ -59,14 +59,15 @@ public class Consol implements StringInterface {
 
 	@Override
 	public void writePacket(String[] parsedData) {
+		if ((header!=null)&&(parsedData!=null)){
 		for(String head:header)
 			System.out.print(head+separator);
-		if (header!=null)
+		
 			System.out.println();
 		for(String data:parsedData){			
 				System.out.print(data+separator);
 		}
-		
+		}
 	}
 
 	@Override

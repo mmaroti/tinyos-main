@@ -61,24 +61,25 @@ public class StructParser extends PacketParser {
 	 */
 	@Override
 	public String[] parse(byte[] packet) {
-		ArrayList<String> ret=new ArrayList<String>();		//temporary String[] to return;
+		if((packet==null)||(packet.length!=getPacketLength()))
+			return null;
+		else{
+			ArrayList<String> ret=new ArrayList<String>();		//temporary String[] to return;
+			int pointer=0; 						//shows which is the first unprocessed byte
+			for(PacketParser pp:packetStruct){  		
+				byte[] packetPart=new byte[pp.getPacketLength()];				//bytes of one PacketParser			
+				System.arraycopy(packet,pointer,packetPart,0,pp.getPacketLength());
+				pointer+=pp.getPacketLength();
 
-		int pointer=0; 						//shows which is the first unprocessed byte
+				if(!pp.getType().contains("omit"))			
+					ret.addAll(Arrays.asList(pp.parse(packetPart))); 		
 
-		for(PacketParser pp:packetStruct){  		
-			byte[] packetPart=new byte[pp.getPacketLength()];				//bytes of one PacketParser			
-			System.arraycopy(packet,pointer,packetPart,0,pp.getPacketLength());
-			pointer+=pp.getPacketLength();
-			
-			if(!pp.getType().contains("omit"))			
-				ret.addAll(Arrays.asList(pp.parse(packetPart))); 		
-			
-			if (pp.parse(packetPart)==null)
-				return null;
+				if (pp.parse(packetPart)==null)
+					return null;
+			}
+			return ret.toArray(new String[ret.size()]);
 		}
-		return ret.toArray(new String[ret.size()]);
 	}
-
 	@Override
 	/**
 	 * Calls getPacketLength for every PacketParser in the struct
@@ -121,7 +122,7 @@ public class StructParser extends PacketParser {
 			if(!pp.getType().contains("omit"))  		//omitted 
 				for(byte b:pp.construct(packetPart))
 					ret.add(b); 	
-			
+
 		}
 		byte[] byteArray = new byte[ret.size()];
 		for(int i = 0; i<ret.size(); i++){
