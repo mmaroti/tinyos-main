@@ -40,13 +40,13 @@ components NoDiagMsgC;
 		AM_DIAG_MSG = 0xB1,
 	};
 
-	components DiagMsgP, MainC, ActiveMessageC;
+	components DiagMsgP, MainC, new AMSenderC(AM_DIAG_MSG);
 
 	DiagMsg = DiagMsgP.DiagMsg;
 
 	MainC.SoftwareInit -> DiagMsgP.Init;
-	DiagMsgP.AMSend -> ActiveMessageC.AMSend[AM_DIAG_MSG];
-	DiagMsgP.Packet -> ActiveMessageC;
+	DiagMsgP.AMSend -> AMSenderC;
+	DiagMsgP.Packet -> AMSenderC;
 
 #endif
 }

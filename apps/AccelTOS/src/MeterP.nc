@@ -50,7 +50,7 @@ module MeterP
 		interface ShimmerAdc;
 
 		interface Init as AccelInit;
-		interface Mma7260 as Accel;
+		interface Mma_Accel as Accel;
 
 		interface LedHandler;
 		interface BufferedFlash;

@@ -92,7 +92,10 @@ implementation{
 			// TODO Explain why
     		// Note that we could have avoided using the Packet interface, as it's 
     		// getPayload command is repeated within AMSend.
-    		ReportMsg* pkt = (ReportMsg*)(call AMReportMsg.getPayload(&message, NULL));
+    		ReportMsg* pkt = (ReportMsg*)(call AMReportMsg.getPayload(&message, sizeof(ReportMsg*)));
+		if( pkt == NULL )
+			call LedHandler.error();
+
     		pkt->id = TOS_NODE_ID;
     		pkt->mode = mode;
  			error = call AMReportMsg.send(AM_BROADCAST_ADDR, &message, sizeof(ReportMsg));
@@ -171,7 +174,10 @@ implementation{
 		if ((!error) && (length == sizeof(dataPkt)) && 
 		    (!sending) && (state==AWAKE))
 		{
-			DataMsg* dmsg = (DataMsg*) call AMDataPkt.getPayload(&message, NULL);
+			DataMsg* dmsg = (DataMsg*) call AMDataPkt.getPayload(&message, sizeof(DataMsg));
+			if( dmsg == NULL )
+				call LedHandler.error();
+
 			dmsg->node_id = dataPkt.node_id;
 			dmsg->local_time = dataPkt.local_time;
 			// FIXME What is the address of the basestation?

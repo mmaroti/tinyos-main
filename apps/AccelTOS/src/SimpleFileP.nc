@@ -64,7 +64,7 @@ implementation
 
 	uint8_t state = STATE_OFF;
 	// FIXME Only read once; plus we got available==true with SD card out!
-	bool available = FALSE;
+	norace bool available = FALSE;
 
 	struct buffer
 	{
