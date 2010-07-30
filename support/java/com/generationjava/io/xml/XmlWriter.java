@@ -16,7 +16,7 @@ import java.util.Stack;
 public class XmlWriter {
 
     private Writer writer;      // underlying writer
-    private Stack stack;        // of xml entity names
+    private Stack<String> stack;        // of xml entity names
     private StringBuffer attrs; // current attribute string
     private boolean empty;      // is the current node empty
     private boolean closed;     // is the current node closed...
@@ -27,7 +27,7 @@ public class XmlWriter {
     public XmlWriter(Writer writer) {
         this.writer = writer;
         this.closed = true;
-        this.stack = new Stack();
+        this.stack = new Stack<String>();
     }
 
     /**
@@ -79,9 +79,6 @@ public class XmlWriter {
      * @throws Exception 
      */
     public XmlWriter writeAttribute(String attr, String value) throws Exception {
-
-        // maintain api
-        if (false) throw new Exception();
 
         if (this.attrs == null) {
             this.attrs = new StringBuffer();

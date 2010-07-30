@@ -10,7 +10,7 @@ import javax.swing.*;
  */
 
 /**
- * @Nemeth Gabor, Nyilas Sandor Karoly
+ * @author Nemeth Gabor, Nyilas Sandor Karoly
  *A class gives information about the version
  */
 public class About{				
@@ -18,7 +18,7 @@ public class About{
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 	/**
 	 * 
 	 */

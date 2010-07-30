@@ -4,7 +4,7 @@
  */
 
 /**
- * @author Ember
+ * @author Németh Gábor
  *This class contains some default labels for multiple usage
  */
 public final class Labels {

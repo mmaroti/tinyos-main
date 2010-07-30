@@ -9,7 +9,7 @@ import javax.swing.JFrame;
 import javax.swing.JTextField;
 /**
  * 
- * @author Ember
+ * @author Németh Gábor
  *	This class cares  if we want to create configuration XML file to be saved
  *
  */

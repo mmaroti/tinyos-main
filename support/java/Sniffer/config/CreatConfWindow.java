@@ -10,9 +10,10 @@ import javax.swing.*;
 
 import com.generationjava.io.xml.XmlWriter;
 
+
 /**
  * 
- * @authors Németh Gábor , Nyilas S�ndor K�roly
+ * @authors Németh Gábor, Nyilas Sándor Károly
  *Class creates the window for configuration creation
  */
 public class CreatConfWindow {

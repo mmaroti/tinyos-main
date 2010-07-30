@@ -30,7 +30,7 @@ import config.CreateConfGUI;
  * This program is created to be the GUI for the Sniffer Wireless Project
  * 
  * 
- * version: 0.01b
+ * @version 0.3
  */
 
 public class SnifferGraph implements DataBase{	
@@ -113,7 +113,7 @@ public class SnifferGraph implements DataBase{
 	 * This function gives information about the process is stopped.
 	 */
 	private void stopProcess() {						
-		System.out.println("Process le�lt.");
+		System.out.println("Process leált.");
 		startStop.setText(Labels.txfield_pause);
 		// TODO Auto-generated method stub
 		
@@ -228,8 +228,8 @@ public class SnifferGraph implements DataBase{
 	private void createBoxes() {
 		int height = JCHECKBOX_FIRS_SIZE;
 		
-		box[0]= new JCheckBox("Catch");											//Els� box be�l�t�sa. Az az �rt�ket mutatja majd pontosan, hogy mikor �rkezett.
-		box[0].setToolTipText("Ekkor �rkezett a package");
+		box[0]= new JCheckBox("Catch");											//Elso box beálítása. Az az értéket mutatja majd pontosan, hogy mikor érkezett.
+		box[0].setToolTipText("Ekkor érkezett a package");
 		box[0].setSelected(true);
 		box[0].addActionListener(new ActionListener() {			
         public void actionPerformed(ActionEvent event) {
@@ -358,7 +358,7 @@ public class SnifferGraph implements DataBase{
         fileClose.setToolTipText(Labels.tooltips_fileClose);
 	}
 	/**
-	 * This Older � function  specified where to align exactly the objects on the workspace.
+	 * This Older function  specified where to align exactly the objects on the workspace.
 	 */
 	private void baseSetings() {
 		//TODO        
