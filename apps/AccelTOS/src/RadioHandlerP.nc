@@ -256,7 +256,7 @@ implementation{
 
 	event void AMControl.startDone(error_t error) {
 		
-		if (error == SUCCESS) {
+		if ((error == SUCCESS) || (error == EALREADY)) {
 			
 			state = AWAKE;
 			call LedHandler.radioOn();
@@ -266,7 +266,7 @@ implementation{
 			if (! call WatchDog.isRunning()) {
 				call WatchDog.startPeriodic(1000);
 				// FIXME Would signal even if already started
-				signal SplitControl.startDone(error);
+				signal SplitControl.startDone(SUCCESS); // FIXME Sure?
 			}
 			call ShortPeriod.startOneShot(50);
 		}		
