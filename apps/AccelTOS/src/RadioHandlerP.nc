@@ -256,6 +256,7 @@ implementation{
 
 	event void AMControl.startDone(error_t error) {
 		
+		// FIXME Only DiadMsg could have started the radio
 		if ((error == SUCCESS) || (error == EALREADY)) {
 			
 			state = AWAKE;

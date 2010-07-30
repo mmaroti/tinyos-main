@@ -78,7 +78,7 @@ implementation
 		CHANNEL_COUNT = 5, // FIXME Make automatic?
 	};
 	
-	bool first_run = TRUE;
+	uint8_t tracker = 0;
 	
 	void dump(char* msg) {
 		if( call DiagMsg.record() ) {
@@ -86,7 +86,6 @@ implementation
 			call DiagMsg.send();
 		}	
 	}
-	
 
 	command error_t StdControl.stop(){
 		// FIXME Implement shut-down
@@ -98,14 +97,8 @@ implementation
 		
 		error_t error = SUCCESS;
 		
-		if (first_run) {
-			first_run = FALSE;
-		}
-		else {
-			call LedHandler.error();
-			dump("SecondRun");
-		}
-
+		call LedHandler.set(tracker++);		
+		
 		error = call AccelInit.init();
 		
 		if (error) {
@@ -123,6 +116,7 @@ implementation
 			}
 			else {
 				dump("InitOK");
+				call LedHandler.set(tracker++);	
 			}
 		}
 		
@@ -134,20 +128,31 @@ implementation
 	event void Timer.fired()
 	{
 		if( call ShimmerAdc.sample() != SUCCESS ) {
+			call LedHandler.set(1);// FIXME Why does it fail?
 			dump("Sample fail");
-			call LedHandler.error();
+			//call LedHandler.error(); 
 		}
 		else {
-			dump("SamplingStarted");		
+			call LedHandler.set(6);
+			dump("SamplingStarted");
 		}
 
 	}
 
 	event void ShimmerAdc.sampleDone(uint32_t timestamp, uint16_t* data)
 	{
+		error_t error = SUCCESS;
+		
 		call LedHandler.sampling();
+
 		dump("samplingDone");
-		call BufferedFlash.send(data - 2, 4 + CHANNEL_COUNT*2); // FIXME Magic numbers
+
+		error = call BufferedFlash.send(data - 2, 4 + CHANNEL_COUNT*2); // FIXME Magic numbers
+		
+		if (error)
+			call LedHandler.set(2);
+		else
+			call LedHandler.set(0);
 /*
 		if( call DiagMsg.record() )
 		{
@@ -182,7 +187,7 @@ implementation
 		dump("startRecord");
 		
 		if (!call Timer.isRunning()) {
-			call Timer.startPeriodic(10); // FIXME Nothing happens for 10 ms?
+			call Timer.startPeriodic(100); // FIXME Nothing happens for 10 ms?
 		}
 		else {
 			error = EALREADY;

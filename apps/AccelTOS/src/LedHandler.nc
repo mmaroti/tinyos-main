@@ -44,5 +44,7 @@ interface LedHandler{
 	command void diskReady();
 	
 	command void sampling();
+	
+	command void set(uint8_t val);
 
 }

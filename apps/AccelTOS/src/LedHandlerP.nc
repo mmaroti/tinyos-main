@@ -41,6 +41,16 @@ module LedHandlerP {
 
 implementation{
 
+#define DISABLED 1
+#if DISABLED
+	command void LedHandler.radioOn() {	}
+	command void LedHandler.radioOff() { }
+	command void LedHandler.diskReady() { }
+	command void LedHandler.error() { }
+	command void LedHandler.msgReceived(){ }
+	command void LedHandler.sampling(){	}
+	command void LedHandler.set(uint8_t val) {	call Leds.set(val);	}
+#else
 	command void LedHandler.radioOn() {
 		call Leds.led1On();
 	}	
@@ -60,8 +70,15 @@ implementation{
 	command void LedHandler.msgReceived(){
 		call Leds.led2Toggle();
 	}
+	
 
 	command void LedHandler.sampling(){
 		call Leds.led2Toggle();
 	}
+	
+	command void LedHandler.set(uint8_t val) {
+		
+	}
+#endif
+
 }
