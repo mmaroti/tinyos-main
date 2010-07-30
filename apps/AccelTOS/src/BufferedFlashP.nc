@@ -63,7 +63,7 @@ implementation
 	uint8_t current;	// the currently recorded message buffer
 	uint16_t position;	// the write position in the current buffer
 	uint8_t pending;	// the number of full messages
-	bool sending;
+	bool sending; // FIXME Guards what? messages?
 
 	task void sendMessage()
 	{
@@ -86,7 +86,7 @@ implementation
 			return FAIL; // FIXME EBUSY ?
 
 		if( position + length > MAX_DATA_LENGTH )
-			call BufferedFlash.flush();
+			call BufferedFlash.flush(); // Just posts a task and increments current
 
 		memcpy(messages[current].data + position, data, length);
 		position += length;

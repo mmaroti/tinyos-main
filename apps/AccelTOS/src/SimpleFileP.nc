@@ -49,7 +49,6 @@ module SimpleFileP
 	}
 }
 
-// TODO Document that Led0 ON indicates error
 implementation
 {
 	// TODO Probably a bool would suffice and executeCommand could be eliminated
@@ -98,7 +97,7 @@ implementation
 		error_t error;
 
 		if( ! available )
-			post executeCommand(); // TODO What does this mean?
+			post executeCommand(); // TODO What does this mean? Busy wait?
 
 		cardSize = call SD.readCardSize();
 		readPos = 0;
@@ -133,7 +132,7 @@ implementation
 		error_t error;
 
 		if( state != STATE_OFF )
-			return FAIL;
+			return FAIL; // TODO Return more specific error 
 
 		error = call SDControl.start();
 		if( error != SUCCESS )

@@ -262,19 +262,18 @@ implementation{
 			call LedHandler.radioOn();
 			
 			broadcast();
-			
-			call ShortPeriod.startOneShot(50);
+
 			if (! call WatchDog.isRunning()) {
 				call WatchDog.startPeriodic(1000);
+				// FIXME Would signal even if already started
 				signal SplitControl.startDone(error);
 			}
+			call ShortPeriod.startOneShot(50);
 		}		
 		else {
 			call LedHandler.error();
 			signal SplitControl.startDone(error);
 		}
-		// FIXME Would signal even if already started
-		
 	}
 
 	command error_t SplitControl.stop(){
@@ -304,7 +303,7 @@ implementation{
 		else {
 			broadcast();
 			if (mode == ALTERING)
-				call ShortPeriod.startOneShot(200);
+				call ShortPeriod.startOneShot(50); // FIXME What if already running?
 		}
 
 		if (error != SUCCESS)

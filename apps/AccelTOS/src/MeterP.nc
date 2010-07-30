@@ -46,7 +46,6 @@ module MeterP
 	
 	uses
 	{
-//		interface Boot;
 		interface Timer<TMilli>;
 		interface ShimmerAdc;
 
@@ -54,10 +53,8 @@ module MeterP
 		interface Mma7260 as Accel;
 
 		interface LedHandler;
-//		interface DiagMsg;
 		interface BufferedFlash;
 
-//		interface StdControl as Gyro;
 		interface DiagMsg;
 	}
 }
@@ -130,12 +127,16 @@ implementation
 			dump("Sample fail");
 			call LedHandler.error();
 		}
+		else {
+			dump("SamplingStarted");		
+		}
+
 	}
 
 	event void ShimmerAdc.sampleDone(uint32_t timestamp, uint16_t* data)
 	{
 		call LedHandler.sampling();
-
+		dump("samplingDone");
 		call BufferedFlash.send(data - 2, 4 + CHANNEL_COUNT*2); // FIXME Magic numbers
 /*
 		if( call DiagMsg.record() )
@@ -167,6 +168,8 @@ implementation
 	command error_t Meter.startRecording(){
 
 		error_t error = SUCCESS;
+		
+		dump("startRecord");
 		
 		if (!call Timer.isRunning()) {
 			call Timer.startPeriodic(10); // FIXME Nothing happens for 10 ms?

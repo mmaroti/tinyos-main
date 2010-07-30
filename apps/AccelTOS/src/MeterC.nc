@@ -42,17 +42,13 @@ implementation
 { 
 	components MeterP, /*ActiveMessageC,*/ new TimerMilliC();
 	components LedHandlerC , RadioDiagMsgC; // FIXME It was unused anyhow...
-	components SimpleFileC;
+	components SimpleFileC; // FIXME There should be only one SimpleFileC
 	MeterP.DiagMsg -> RadioDiagMsgC;
 	
 	Meter = MeterP;
 	StdControl = MeterP;
 	MeterP.Timer -> TimerMilliC;
 	MeterP.LedHandler -> LedHandlerC;
-//	MeterP.DiagMsg -> RadioDiagMsgC;
-//	MeterP.SplitControl -> ActiveMessageC;
-// FIXME Only one component should turn on the disc
-// FIXME Turn off the disc? (Data corruption)
 
 	components ShimmerAdcC;
 	MeterP.ShimmerAdc -> ShimmerAdcC;
@@ -61,14 +57,8 @@ implementation
 	MeterP.AccelInit -> Mma7260P;
 	MeterP.Accel -> Mma7260P;
 
-//	components Idg300C;
-//	MeterP.Gyro -> Idg300C;
-
-//	components BufferedFlashP; // FIXME Move these to a new configuration!!!
-//	MeterP.BufferedFlash -> BufferedFlashP;
-//	BufferedFlashP.AMSend -> ActiveMessageC.AMSend[0x37];
-//	BufferedFlashP.Packet -> ActiveMessageC;
-
+// FIXME Only one component should turn on the disc
+// FIXME Turn off the disc? (Data corruption)
 	components BufferedFlashP; // FIXME Move these to a new configuration!!!
 	MeterP.BufferedFlash -> BufferedFlashP;
 	BufferedFlashP.SimpleFile -> SimpleFileC;

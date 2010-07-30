@@ -54,9 +54,11 @@ implementation{
    }
    
 	event void RadioHandler.startDone(error_t error){
-		// FIXME Turn the disk ON when the radio is ready
-		error = call SFCtrl.start();
 		
+		if (!error)
+			error = call SFCtrl.start();
+		
+		// TODO Decide who should call LedHandler.error(), caller or callee
 		if (error)
 			call LedHandler.error();
 	}
