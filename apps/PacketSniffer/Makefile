@@ -2,10 +2,20 @@ COMPONENT=PacketSnifferC
 CFLAGS += -DTASKLET_IS_TASK
 CFLAGS += -DTOSH_DATA_LENGTH=110
 #CFLAGS += -DRX_BUFFER_SIZE=30
-CFLAGS += -DUART_QUEUE_LEN=50
-
-# For RF230 components
-PFLAGS += -I./rf230
 
 include $(MAKERULES)
 
+ifeq ($(PLATFORM),iris)
+  PFLAGS += -I./rf230
+  CFLAGS += -DUART_QUEUE_LEN=50
+endif
+
+CFLAGS += -DCC2420_DEF_CHANNEL=11
+ifeq ($(PLATFORM),telosb)
+  PFLAGS += -I./cc2420
+  CFLAGS += -DUART_QUEUE_LEN=50
+endif
+ifeq ($(PLATFORM),telosa)
+  PFLAGS += -I./cc2420
+  CFLAGS += -DUART_QUEUE_LEN=9
+endif
