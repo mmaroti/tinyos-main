@@ -32,7 +32,6 @@
 */
 
 #include "CtrlMsg.h"
-#include "DataMsg.h"
 #include "ReportMsg.h"
 
 configuration RadioHandlerC {
@@ -45,27 +44,43 @@ configuration RadioHandlerC {
 }
 
 implementation{
+	
+	enum {
+		AM_SAMPLEMSG = 0x37
+	};
+	
 	components AccelAppC;
 	components RadioHandlerP;
 	components ActiveMessageC;
+
 	components new AMReceiverC(AM_CTRLMSG) as AMRec;
 	components new AMSenderC(AM_REPORTMSG) as Report;
-	components new AMSenderC(AM_DATAMSG) as Data;
+	//---
+	components new AMSenderC(AM_SAMPLEMSG) as Samples;
+	components BufferedSendP;
+	//---
 	components new TimerMilliC() as Timer1;
 	components new TimerMilliC() as Timer2;
-	components HilTimerMilliC;
+	components new TimerMilliC() as Timer3;
+
 	components LedHandlerC;
 	components MeterC;
+	components RadioDiagMsgC;
+
 	SplitControl = RadioHandlerP;
 	RadioHandlerP.AMControl -> ActiveMessageC;
 	RadioHandlerP.Receive -> AMRec;
 	RadioHandlerP.AMReportMsg -> Report;
-	RadioHandlerP.AMDataPkt -> Data;
+	
+	BufferedSendP.AMSend -> Samples; // FIXME It should go to its own component
+	BufferedSendP.Packet -> Samples;
+	RadioHandlerP.BufferedSend -> BufferedSendP;
+	
 	RadioHandlerP.WatchDog -> Timer1;
 	RadioHandlerP.ShortPeriod -> Timer2;
-	RadioHandlerP.LocTime -> HilTimerMilliC;
+	RadioHandlerP.Download -> Timer3;
 	RadioHandlerP.LedHandler -> LedHandlerC;
 	RadioHandlerP.Disk -> AccelAppC;
 	RadioHandlerP.Meter -> MeterC;
-
+	RadioHandlerP.DiagMsg -> RadioDiagMsgC;
 }

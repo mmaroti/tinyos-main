@@ -32,7 +32,6 @@
 */
 
 #include "CtrlMsg.h"
-#include "DataMsg.h"
 #include "ReportMsg.h"
 
 module RadioHandlerP{
@@ -40,14 +39,14 @@ module RadioHandlerP{
    uses {
 		interface SplitControl as AMControl;
 		interface Receive;
-		interface AMSend as AMDataPkt;
 		interface AMSend as AMReportMsg;
+		interface BufferedSend;
 		interface LedHandler;
 		interface SimpleFile as Disk;
 		interface Meter;
 		interface Timer<TMilli> as WatchDog;
 		interface Timer<TMilli> as ShortPeriod;
-		interface LocalTime<TMilli> as LocTime;
+		interface Timer<TMilli> as Download;
 		interface DiagMsg;
    }
    
@@ -73,13 +72,39 @@ implementation{
 	bool sending = FALSE;
 	message_t message;
 	
-	// Guards dataPkt
+	// Guards sector
 	bool diskBusy = FALSE;
-	struct {
-		uint16_t node_id;
-		uint32_t local_time;
-	} dataPkt;
-	// TODO Use nx_unit ?
+	
+	enum {
+		SAMPLESIZE = 14,
+		END_OF_DATA = 127, // FIXME Magic numbers
+	};
+	
+	enum {
+		MAX_DATA_LEN = 510
+	};
+
+	//uint16_t offset =  0;
+	//uint16_t dataLen = 0;
+	uint8_t sector[MAX_DATA_LEN]; // Guarded by diskBusy
+	uint16_t head = 0;
+	uint16_t tail = 0;
+	bool pending = FALSE;
+
+	void dump(char* msg) {
+		if( call DiagMsg.record() ) {
+			call DiagMsg.str(msg);
+			call DiagMsg.send();
+		}	
+	}
+	
+	void dumpInt(char* msg, uint16_t i) {
+		if( call DiagMsg.record() ) {
+			call DiagMsg.str(msg);
+			call DiagMsg.int16(i);
+			call DiagMsg.send();
+		}		
+	}
 
 	error_t broadcast() {
 
@@ -93,8 +118,8 @@ implementation{
     		// Note that we could have avoided using the Packet interface, as it's 
     		// getPayload command is repeated within AMSend.
     		ReportMsg* pkt = (ReportMsg*)(call AMReportMsg.getPayload(&message, sizeof(ReportMsg*)));
-		if( pkt == NULL )
-			call LedHandler.error();
+			if( pkt == NULL )
+				call LedHandler.error();
 
     		pkt->id = TOS_NODE_ID;
     		pkt->mode = mode;
@@ -111,35 +136,8 @@ implementation{
 		// FIXME Resend if failed?
 	}
 	
-	// FIXME Buffer swap ?
-	event void AMDataPkt.sendDone(message_t *msg, error_t error){
-		sending = FALSE;
-		// FIXME Resend if failed?
-	}
-	
-	task void appendPacket() {
-
-		error_t error = SUCCESS;
+	task void sendSamples() {
 		
-		if (diskBusy) {
-			return;
-		}
-		
-		dataPkt.node_id = TOS_NODE_ID;
-		dataPkt.local_time = call LocTime.get();
-		
-		error = call Disk.append((uint8_t *) &dataPkt, sizeof(dataPkt));
-		
-		if (!error) {
-			diskBusy = TRUE;
-		}
-		else {
-			call LedHandler.error();
-		}
-	}
-	
-	task void sendFirstPkt() {
-
 		error_t error = SUCCESS;
 		
 		if (diskBusy) {
@@ -156,11 +154,11 @@ implementation{
 			call LedHandler.error();
 		}
 	}
-
+	
 	event void Disk.seekDone(error_t error){
 		
 		if (!error) {
-			error = call Disk.read((uint8_t *) &dataPkt, sizeof(dataPkt));
+			error = call Disk.read(sector, MAX_DATA_LEN);
 		}
 		
 		if (error) {
@@ -169,34 +167,85 @@ implementation{
 		}
 	}
 	
-	event void Disk.readDone(error_t error, uint16_t length) {
+	task void sendSampleMsg() {
 		
-		if ((!error) && (length == sizeof(dataPkt)) && 
-		    (!sending) && (state==AWAKE))
-		{
-			DataMsg* dmsg = (DataMsg*) call AMDataPkt.getPayload(&message, sizeof(DataMsg));
-			if( dmsg == NULL )
-				call LedHandler.error();
-
-			dmsg->node_id = dataPkt.node_id;
-			dmsg->local_time = dataPkt.local_time;
-			// FIXME What is the address of the basestation?
- 			error = call AMDataPkt.send(AM_BROADCAST_ADDR, &message, sizeof(DataMsg));
-    		if (error == SUCCESS) {
-      			sending = TRUE;
-      			call LedHandler.diskReady();
-    		}
+		error_t error;
+		pending = FALSE;
+		
+		//if (offset <= dataLen-SAMPLESIZE) {
+		if ((tail-head)>=SAMPLESIZE) {
+			dumpInt("head", head);
+			dumpInt("tail", tail);			
+			//error = call BufferedSend.send(sector+offset, SAMPLESIZE);
+			error = call BufferedSend.send(&(sector[head]), 14);
+			
+			if (!error) {
+				//offset += SAMPLESIZE;
+				head = head + SAMPLESIZE;
+				call LedHandler.sendingToggle();
+				dump("buffSendOK");
+			}
+			else {
+				call LedHandler.errorToggle();
+				dump("buffSendFail");
+			}
+			
+			pending = TRUE;
+//			error = post sendSampleMsg();
+//			if (error)
+//				dump("post1Failed");
 		}
 		else {
-			call LedHandler.error(); // FIXME Just for dbg
+			
+			call BufferedSend.flush();
+			call LedHandler.sendingToggle();
+			dump("endSector");
+			error = call Disk.read(sector, MAX_DATA_LEN);
+			
+			if      (error == EBUSY) {
+				pending = TRUE;
+//				error = post sendSampleMsg();
+//				if (error)
+//					dump("post2Failed");
+			}
+			if (error == END_OF_DATA) {
+				call Download.stop();
+				diskBusy = FALSE;
+				dump("endDisc");
+			}			
+		}
+	}
+	
+	event void Download.fired(){
+
+		if (diskBusy&&pending) {
+			error_t error = post sendSampleMsg();
+			if (error)
+				dump("postTFailed");
+		}
+	}
+	
+	event void Disk.readDone(error_t error, uint16_t length) {
+		
+		if ((!error) && (length>0)) {
+			dumpInt("Len", length);
+			head = 0;
+			tail = length;
+			pending = FALSE;
+			call Download.startPeriodic(50);
+			error = post sendSampleMsg();
+			if (error)
+				dump("postRFailed");
+		}
+		else {
+			dumpInt("readFail", length);
 		}
 		
 		if (error) {
 
 			call LedHandler.error();
+			diskBusy = FALSE; // FIXME How is sector guarded?
 		}
-		
-		diskBusy = FALSE;
 	}
 
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len){
@@ -226,16 +275,20 @@ implementation{
 				}
 			}
 			else if (cmd == APPENDPKT) {
-				error = post appendPacket();
+				//error = post appendPacket();
 			}
 			else if (cmd == SENDFIRST) {
-				error = post sendFirstPkt();
+				//error = post sendFirstPkt();
 			}
 			else if (cmd == STARTSAMPLING) {
 				error = call Meter.startRecording();
 			}
 			else if (cmd == STOPSAMPLING) {
 				error = call Meter.stopRecording();
+			}
+			else if (cmd == SENDSAMPLES) {
+				error = post sendSamples();
+				dump("cmdSendSamp");
 			}
 			// FIXME What if unknown mode received? Or msg corrupted?
 			else {
@@ -339,5 +392,6 @@ implementation{
 		if (error)
 			call LedHandler.error();
 	}
+
 
 }

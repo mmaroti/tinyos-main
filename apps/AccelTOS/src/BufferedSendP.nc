@@ -1,4 +1,5 @@
-/** Copyright (c) 2010, University of Szeged
+/*
+* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,68 +29,92 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Ali Baharev
+* Author: Miklos Maroti
 */
 
-module LedHandlerP {
-	
-	provides interface LedHandler;
-	
-	uses interface Leds;
+#include <AM.h>
 
+module BufferedSendP
+{
+	provides
+	{
+		interface BufferedSend;
+	}
+
+	uses
+	{
+		interface AMSend;
+		interface Packet;
+	}
 }
 
-implementation{
+implementation
+{
+	enum
+	{
+		BUFFER_SIZE = 2,
+		ADDRESS = AM_BROADCAST_ADDR,
+	};
 
-#define DISABLED 0
-#if DISABLED
-	command void LedHandler.radioOn() {	}
-	command void LedHandler.radioOff() { }
-	command void LedHandler.diskReady() { }
-	command void LedHandler.error() { }
-	command void LedHandler.msgReceived(){ }
-	command void LedHandler.sampling(){	}
-	command void LedHandler.errorToggle(){ }
-	command void LedHandler.sendingToggle(){ }
-	command void LedHandler.set(uint8_t val) {	call Leds.set(val);	}
-#else
-	command void LedHandler.radioOn() {
-		call Leds.led1On();
-	}	
+	message_t messages[BUFFER_SIZE];
 
-	command void LedHandler.radioOff() {
-		call Leds.led1Off();
+	uint8_t current;	// the currently recorded message buffer
+	uint8_t position;	// the write position in the current buffer
+	uint8_t pending;	// the number of full messages
+	bool sending;
+
+	task void sendMessage()
+	{
+		if( ! sending && pending > 0 )
+		{
+			int8_t first = current - pending;
+			if( first < 0 )
+				first += BUFFER_SIZE;
+
+			if( call AMSend.send(ADDRESS, messages + first, call Packet.payloadLength(messages + first)) == SUCCESS )
+				sending = TRUE;
+			else
+				post sendMessage();
+		}
 	}
 
-	command void LedHandler.diskReady() {
-		call Leds.led2Toggle();
+	command error_t BufferedSend.send(void *data, uint8_t length)
+	{
+		if( pending == BUFFER_SIZE )
+			return FAIL;
+
+		if( position + length > TOSH_DATA_LENGTH )
+			call BufferedSend.flush();
+
+		memcpy(messages[current].data + position, data, length);
+		position += length;
+
+		return SUCCESS;
 	}
 
-	command void LedHandler.error() {
-		call Leds.led0On();
-	}
-
-	command void LedHandler.msgReceived(){
-		call Leds.led2Toggle();
-	}
+	event void AMSend.sendDone(message_t* msg, error_t error)
+	{
+		sending = FALSE;
 	
+		if( error == SUCCESS )
+			--pending;
+		else
+			post sendMessage();
+	}
 
-	command void LedHandler.sampling(){
-		call Leds.led2Toggle();
-	}
-	
-	command void LedHandler.errorToggle() {
-	    call Leds.led0Toggle();
-	}
-	
-	command void LedHandler.sendingToggle(){
-		call Leds.led2Toggle();		
-	}
-	
-	
-	command void LedHandler.set(uint8_t val) {
-		
-	}
-#endif
+	command void BufferedSend.flush()
+	{
+		if( position > 0 )
+		{
+			// store the length
+			call Packet.setPayloadLength(messages + current, position);
 
+			position = 0;
+			if( ++current >= BUFFER_SIZE )
+				current = 0;
+
+			++pending;
+			post sendMessage();
+		}
+	}
 }

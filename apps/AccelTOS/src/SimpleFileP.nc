@@ -60,6 +60,8 @@ implementation
 		STATE_FORMAT = 3,
 		STATE_READ = 4,
 		STATE_WRITE = 5,
+		END_OF_DATA = 127,
+		BUFFSIZE = 510
 	};
 
 	uint8_t state = STATE_OFF;
@@ -69,7 +71,7 @@ implementation
 	struct buffer
 	{
 		uint16_t length;
-		uint8_t data[510]; // TODO Eliminate magic number 510
+		uint8_t data[BUFFSIZE];
 	} buffer;
 
 	uint32_t cardSize;
@@ -77,6 +79,7 @@ implementation
 	uint32_t readPos;
 
 	// these are set by the user
+	// FIXME Requires client-based locking, can we provide the user with the buffer?
 	uint8_t *packetPtr;
 	uint16_t packetLen;
 
@@ -92,6 +95,7 @@ implementation
 		available = FALSE;
 	}
 
+	// FIXME Assumes a formatted card
 	void findLastSector()
 	{				
 		error_t error;
@@ -195,7 +199,7 @@ implementation
 
 		error = call SD.readBlock(readPos, (uint8_t*) &buffer);
 		if( error == SUCCESS )
-		{
+		{  
 			if( packetLen > buffer.length )
 				packetLen = buffer.length;
 
@@ -215,13 +219,16 @@ implementation
 	{
 		if( state != STATE_READY )
 			return EBUSY;
+		if (length > BUFFSIZE)
+			return ESIZE;
+		if (readPos>=writePos)
+			return END_OF_DATA;
 
 		packetPtr = packet;
-		// FIXME Check if length is <= 510?
 		packetLen = length;
 		state = STATE_READ;
 		// FIXME The line below was missing?
-		post executeCommand();
+		post executeCommand(); // FIXME What if post fails?
 		return SUCCESS;
 	}
 

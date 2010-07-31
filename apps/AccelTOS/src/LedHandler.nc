@@ -47,6 +47,8 @@ interface LedHandler{
 	
 	command void set(uint8_t val);
 	
+	command void sendingToggle();
+	
 	command void errorToggle();
 
 }
