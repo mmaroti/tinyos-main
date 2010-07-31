@@ -54,7 +54,6 @@ typedef nx_struct sniffer_data_t {
 #elif defined(PLATFORM_MICAZ) || defined(PLATFORM_TELOSB) || \
       defined(PLATFORM_SHIMMER) || defined(PLATFORM_SHIMMER2) || \
       defined(PLATFORM_INTELMOTE2) || defined(PLATFORM_TELOSA)
-  #error "** THIS PLATFORM IS NOT YET SUPPORTED! **"
   #define RADIO_IS_CC2420
 #elif defined(PLATFORM_EYESIFXV1) || defined(PLATFORM_EYESIFXV2)
   #error "** THIS PLATFORM IS NOT YET SUPPORTED! **"

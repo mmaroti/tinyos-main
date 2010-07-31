@@ -25,12 +25,12 @@ implementation {
 #endif
 
   async command uint8_t Info.offset() {
-    return sizeof(message_header_t)-HEADER_SIZE;
+    return 0;
   }
   async command uint8_t Info.dataLinkLength(message_t* msg, uint8_t upperLen) {
-    return upperLen + HEADER_SIZE + FOOTER_SIZE + SNIFFER_SIZE;
+    return upperLen + FOOTER_SIZE + SNIFFER_SIZE + sizeof(uart_id_t);
   }
   async command uint8_t Info.upperLength(message_t* msg, uint8_t dataLinkLen) {
-    return dataLinkLen - (HEADER_SIZE + FOOTER_SIZE + SNIFFER_SIZE);
+    return dataLinkLen - (FOOTER_SIZE + SNIFFER_SIZE + sizeof(uart_id_t));
   }
 }

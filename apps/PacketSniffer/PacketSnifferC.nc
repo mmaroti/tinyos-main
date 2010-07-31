@@ -45,6 +45,8 @@ implementation {
  
 #if defined(RADIO_IS_RF230)
   components RF230SnifferStackC as Radio;
+#elif defined(RADIO_IS_CC2420)
+  components CC2420SnifferStackC as Radio;
 #endif
   
   components PacketSnifferP;

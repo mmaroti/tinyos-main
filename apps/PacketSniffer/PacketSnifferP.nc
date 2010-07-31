@@ -59,7 +59,7 @@ implementation
 
   message_t  uartQueueBufs[UART_QUEUE_LEN];
   message_t  * ONE_NOK uartQueue[UART_QUEUE_LEN];
-  uint8_t    uartPayloadLength[UART_QUEUE_LEN];
+  uint8_t    uartPacketLength[UART_QUEUE_LEN];
   
   uint8_t    uartIn, uartOut;
   bool       uartBusy, uartFull;
@@ -95,7 +95,7 @@ implementation
     uint16_t i;
     for (i = 0; i < UART_QUEUE_LEN; i++) {
         uartQueue[i] = &uartQueueBufs[i];
-        uartPayloadLength[i] = 0;
+        uartPacketLength[i] = 0;
     }
     uartIn = uartOut = 0;
     uartBusy = FALSE;
@@ -139,7 +139,7 @@ implementation
       if (!uartFull){
         ret = uartQueue[uartIn];
         uartQueue[uartIn] = msg;
-        uartPayloadLength[uartIn] = len;
+        uartPacketLength[uartIn] = len;
         
         uartIn = (uartIn + 1) % UART_QUEUE_LEN;
   
@@ -171,7 +171,7 @@ implementation
     
     call RadioPacket.clear(msg);
 
-    if (call UartSend.send(uartQueue[uartOut], uartPayloadLength[uartOut]) != SUCCESS)
+    if (call UartSend.send(uartQueue[uartOut], uartPacketLength[uartOut]) != SUCCESS)
       post uartSendTask();
 
   }
