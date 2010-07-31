@@ -41,7 +41,7 @@ module LedHandlerP {
 
 implementation{
 
-#define DISABLED 1
+#define DISABLED 0
 #if DISABLED
 	command void LedHandler.radioOn() {	}
 	command void LedHandler.radioOff() { }
@@ -74,6 +74,10 @@ implementation{
 
 	command void LedHandler.sampling(){
 		call Leds.led2Toggle();
+	}
+	
+	command void LedHandler.errorToggle() {
+	    call Leds.led0Toggle();
 	}
 	
 	command void LedHandler.set(uint8_t val) {

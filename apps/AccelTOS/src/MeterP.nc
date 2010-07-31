@@ -128,12 +128,11 @@ implementation
 	event void Timer.fired()
 	{
 		if( call ShimmerAdc.sample() != SUCCESS ) {
-			call LedHandler.set(1);// FIXME Why does it fail?
+			call LedHandler.errorToggle();// FIXME Why does it fail?
 			dump("Sample fail");
 			//call LedHandler.error(); 
 		}
 		else {
-			call LedHandler.set(6);
 			dump("SamplingStarted");
 		}
 
@@ -150,10 +149,13 @@ implementation
 		error = call BufferedFlash.send(data - 2, 4 + CHANNEL_COUNT*2); // FIXME Magic numbers
 		
 		if (error)
+		  call LedHandler.errorToggle();
+		/*
+		if (error)
 			call LedHandler.set(2);
 		else
 			call LedHandler.set(0);
-/*
+
 		if( call DiagMsg.record() )
 		{
 			call DiagMsg.uint32(timestamp);
@@ -187,7 +189,7 @@ implementation
 		dump("startRecord");
 		
 		if (!call Timer.isRunning()) {
-			call Timer.startPeriodic(100); // FIXME Nothing happens for 10 ms?
+			call Timer.startPeriodic(5); // FIXME Nothing happens for 10 ms?
 		}
 		else {
 			error = EALREADY;
