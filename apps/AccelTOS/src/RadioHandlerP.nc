@@ -170,17 +170,20 @@ implementation{
 	task void sendSampleMsg() {
 		
 		error_t error;
-		
-		//if (offset <= dataLen-SAMPLESIZE) {
+
+		if (pending) {
+			call LedHandler.error();
+			return;
+		}
+
 		if ((tail-head)>=SAMPLESIZE) {
+
 			dumpInt("head", head);
-			dumpInt("tail", tail);			
-			//error = call BufferedSend.send(sector+offset, SAMPLESIZE);
-			error = call BufferedSend.send(&(sector[head]), 14);
+		
+			error = call BufferedSend.send(sector+head, SAMPLESIZE);
 			
 			if (!error) {
-				//offset += SAMPLESIZE;
-				head = head + SAMPLESIZE;
+				head += SAMPLESIZE;
 				call LedHandler.sendingToggle();
 				dump("buffSendOK");
 			}
@@ -190,9 +193,6 @@ implementation{
 			}
 			
 			pending = TRUE;
-//			error = post sendSampleMsg();
-//			if (error)
-//				dump("post1Failed");
 		}
 		else {
 			
@@ -219,10 +219,13 @@ implementation{
 
 		if (diskBusy&&pending) {
 			error_t error = post sendSampleMsg();
-			if (error)
+			if (error) {
 				dump("postTFailed");
-			else
+			}
+			else {
 				pending = FALSE;
+				dump("postDone");
+			}
 		}
 	}
 	
@@ -230,12 +233,13 @@ implementation{
 		
 		if ((!error) && (length>0)) {
 			dumpInt("Len", length);
+			
 			head = 0;
 			tail = length;
-			call Download.startPeriodic(20);
-			error = post sendSampleMsg();
-			if (error)
-				dump("postRFailed");
+			pending = TRUE;
+			
+			if (!call Download.isRunning())
+				 call Download.startPeriodic(50);
 		}
 		else {
 			dumpInt("readFail", length);
