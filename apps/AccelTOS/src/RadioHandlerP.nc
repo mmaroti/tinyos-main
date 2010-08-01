@@ -90,6 +90,8 @@ implementation{
 	uint16_t head = 0;
 	uint16_t tail = 0;
 	bool pending = FALSE;
+	
+	uint8_t cnt = 0;
 
 	void dump(char* msg) {
 		if( call DiagMsg.record() ) {
@@ -181,6 +183,9 @@ implementation{
 			dumpInt("head", head);
 		
 			error = call BufferedSend.send(sector+head, SAMPLESIZE);
+			
+			//if (((++cnt)%16)==0)
+				call BufferedSend.flush(); // FIXME Remove flush if fixed
 			
 			if (!error) {
 				head += SAMPLESIZE;
@@ -365,7 +370,7 @@ implementation{
 			error = call AMControl.start();
 		}
 		else {
-			broadcast();
+			//broadcast(); FIXME Broadcast turned off
 			if (mode == ALTERING)
 				call ShortPeriod.startOneShot(50); // FIXME What if already running?
 		}
