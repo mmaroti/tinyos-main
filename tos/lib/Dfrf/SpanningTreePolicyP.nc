@@ -18,13 +18,13 @@
  * ON AN "AS IS" BASIS, AND THE VANDERBILT UNIVERSITY HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Author: Miklos Maroti, Gabor Pap, Janos Sallai
+ * Author: Miklos Maroti, Gabor Pap, Janos Sallai, Andras Biro
  */
 
 module SpanningTreePolicyP
 {
 	provides interface DfrfPolicy;
-	uses interface SpanningTree;
+	uses interface Convergecast;
 	uses interface AMPacket;
 }
 
@@ -32,16 +32,21 @@ implementation
 {
 	/**** flooding policy ****/
 
+/*
+	0 --sent--> 1 --tick--> 3 --tick--> 4 --sent--> 5 --tick--> 6 --sent--> 7
+	7 --tick--> 9 --tick--> ... --tick--> 65 --tick--> 0xff
+*/
+
 	command uint16_t DfrfPolicy.getLocation()
 	{
-		return call SpanningTree.getParent();
+		return call Convergecast.parent();
 	}
 
 	command uint8_t DfrfPolicy.sent(uint8_t priority)
 	{
-		uint16_t myLocation = call DfrfPolicy.getLocation();
+		uint16_t myLocation = call AMPacket.address();
 
-		if( priority == 4 && myLocation == 0xffff )
+		if( priority == 4 && myLocation == call Convergecast.root() )
 			return 6;
 		else if( priority == 0 || priority == 4 || priority == 6 )
 			return priority + 1;
@@ -52,21 +57,18 @@ implementation
 	command error_t DfrfPolicy.accept(uint16_t location)
 	{
 
-		if( location == call AMPacket.address())//"Luke, I am your father!" (where Luke is the sender)
-			return TRUE;
-		else
-			return FALSE;
+		return TRUE;
 	}
 
 	command uint8_t DfrfPolicy.received(uint16_t location, uint8_t priority)
 	{
-		uint16_t myLocation = call DfrfPolicy.getLocation();
+		uint16_t myLocation = call AMPacket.address();
 	
-		if( priority == 0 && myLocation == 0xffff )
-			return 4;
-		else if( priority < 7 && location != call AMPacket.address() )
+		if( priority == 0 && myLocation == call Convergecast.root() )
+			return 6;
+		else if( priority < 7 && location != myLocation )
 			return 7;
-		else if( priority > 7 && location == call AMPacket.address() )
+		else if( priority > 7 && location == myLocation )
 			return 7;
 		else
 			return priority;
