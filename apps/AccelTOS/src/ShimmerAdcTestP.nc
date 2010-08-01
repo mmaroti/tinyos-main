@@ -100,7 +100,7 @@ implementation
 
 		buffer.timestamp = call LocalTime.get();
 		buffer.samples[0] = ++counter;
-		for(i = 0; i < channelCount; ++i)
+		for(i = 1; i < channelCount; ++i)
 			buffer.samples[i] = i;
 
 		post reportDone();
