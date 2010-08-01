@@ -1,4 +1,4 @@
-//$Id: HilTimerMilliC.nc,v 1.1 2010-07-30 19:42:08 mmaroti Exp $
+//$Id: HilTimerMilliC.nc,v 1.2 2010-08-01 23:52:22 mmaroti Exp $
 
 /* Copyright (c) 2000-2003 The Regents of the University of California.  
  * All rights reserved.
@@ -58,25 +58,31 @@ implementation
 	VirtualizeTimerC.TimerFrom -> AlarmToTimerC;
 
 	components new AlarmToTimerC(TMilli);
-	AlarmToTimerC.Alarm -> AlarmCounterMilliP;
+	AlarmToTimerC.Alarm -> AlarmMilli32P;
 
 	components new CounterToLocalTimeC(TMilli);
 	LocalTime = CounterToLocalTimeC;
-	CounterToLocalTimeC.Counter -> AlarmCounterMilliP;
+	CounterToLocalTimeC.Counter -> CounterMilli32P;
 
 #ifdef TIMER_AT_32KHZ
+	components new TransformAlarmC(TMilli, uint32_t, T32khz, uint16_t, 5) as AlarmMilli32P;
+	AlarmMilli32P.AlarmFrom -> AlarmCounter32khz16P;
+	AlarmMilli32P.Counter -> CounterMilli32P;
 
-	components new TransformAlarmCounterC(TMilli, uint32_t, T32khz, uint32_t, 5, uint8_t) as AlarmCounterMilliP;
-	AlarmCounterMilliP.AlarmFrom -> AlarmCounter32khzP;
-	AlarmCounterMilliP.CounterFrom -> AlarmCounter32khzP;
+	components new TransformCounterC(TMilli, uint32_t, T32khz, uint16_t, 5, uint32_t) as CounterMilli32P;
+	CounterMilli32P.CounterFrom -> AlarmCounter32khz16P;
 
-	components AlarmCounter32khzP;
-	Init = AlarmCounter32khzP;
-
+	components new FastAtm128AlarmAsyncC(T32khz, ATM128_CLK8_NORMAL) as AlarmCounter32khz16P;
+	Init = AlarmCounter32khz16P;
 #else
+	components new TransformAlarmC(TMilli, uint32_t, TMilli, uint16_t, 0) as AlarmMilli32P;
+	AlarmMilli32P.AlarmFrom -> AlarmCounterMilli16P;
+	AlarmMilli32P.Counter -> CounterMilli32P;
 
-	components AlarmCounterMilliP;
-	Init = AlarmCounterMilliP;
+	components new TransformCounterC(TMilli, uint32_t, TMilli, uint16_t, 0, uint16_t) as CounterMilli32P;
+	CounterMilli32P.CounterFrom -> AlarmCounterMilli16P;
 
+	components new FastAtm128AlarmAsyncC(TMilli, ATM128_CLK8_DIVIDE_32) as AlarmCounterMilli16P;
+	Init = AlarmCounterMilli16P;
 #endif
 }

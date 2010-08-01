@@ -31,17 +31,27 @@
 * Author: Miklos Maroti
 */
 
-configuration TestAppC
-{ 
-} 
+#include "HplAtm1281Timer.h"
+
+configuration Atm1281TimerC
+{
+	provides
+	{
+		interface Counter<T32khz, uint16_t> as Counter2;
+		interface Alarm<T32khz, uint16_t> as Alarm2A;
+	}
+}
 
 implementation
 {
-	components MainC, TestAppP, LedsC, McuSleepC, new TimerMilliC();
+	components new AtmAsyncCounterP(T32khz, ATM1281_CLK8_NORMAL, ATM1281_WAVE8_NORMAL | ATM1281_ASYNC_ON), HplAtm1281Timer2P;
+	Counter2 = AtmAsyncCounterP;
+	Alarm2A = AtmAsyncCounterP;
+	AtmAsyncCounterP.Timer -> HplAtm1281Timer2P;
+	AtmAsyncCounterP.Compare -> HplAtm1281Timer2P;
 
-	TestAppP.Boot -> MainC;
-	TestAppP.Leds -> LedsC;
-	TestAppP.Timer -> TimerMilliC;
-
-	McuSleepC.Leds -> LedsC;
+	components LedsC, MainC;
+	AtmAsyncCounterP.Leds -> LedsC;
+	MainC.SoftwareInit -> AtmAsyncCounterP;
+	HplAtm1281Timer2P.Leds -> LedsC;
 }

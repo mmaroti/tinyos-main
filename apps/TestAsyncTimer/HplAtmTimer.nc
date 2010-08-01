@@ -1,4 +1,5 @@
-/** Copyright (c) 2010, University of Szeged
+/*
+* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -31,17 +32,51 @@
 * Author: Miklos Maroti
 */
 
-configuration TestAppC
-{ 
-} 
-
-implementation
+interface HplAtmTimer<timer_t>
 {
-	components MainC, TestAppP, LedsC, McuSleepC, new TimerMilliC();
+// ----- timer counter register (TCNT) 
 
-	TestAppP.Boot -> MainC;
-	TestAppP.Leds -> LedsC;
-	TestAppP.Timer -> TimerMilliC;
+	/* Returns the current counter value */
+	async command timer_t get();
 
-	McuSleepC.Leds -> LedsC;
+	/* Sets the current counter value */
+	async command void set(timer_t value);
+
+// ----- timer interrupt flag register (TIFR), timer overflow flag (TOV)
+
+	/* Signalled when the counter is going from 0xFF to 0x00 */
+	async event void overflow();
+
+	/* Tests if there is a pending overflow interrupt */
+	async command bool test();
+
+	/* Resets a pending interrupt */
+	async command void reset();
+
+// ----- timer interrupt mask register (TIMSK), timer overflow interrupt enable (TOIE)
+
+	/* Enables the overflow interrupt */
+	async command void start();
+
+	/* Disables the overflow interrupt */
+	async command void stop();
+
+	/* Checks is the overflow interrupt is enabled */
+	async command bool isOn();
+
+// ----- timer control register (TCCR), clock select bits (CS)
+
+	/* Sets the prescaler value */
+	async command void setScale(uint8_t scale);
+
+	/* Returns the prescaler value */
+	async command uint8_t getScale();
+
+// ----- timer control register (TCCR), waveform generation mode (WGM)
+
+	/* Sets the waveform generation mode bits */
+	async command void setMode(uint8_t mode);
+
+	/* Returns the waveform generation mode bits */
+	async command uint8_t getMode();
 }
