@@ -66,7 +66,7 @@ implementation
 		current.root = call ActiveMessageAddress.amAddress();
 		current.parent = current.root;
 		current.grandParent = current.root;
-		current.hopCount = 1;
+		current.hopCount = 0;
 
 		*data = current;
 	}
@@ -79,11 +79,12 @@ implementation
 		if( data->hopCount >= 63 )
 			return FALSE;
 
+		data->hopCount += 1;
 		current = *data;
 
 		data->parent = call ActiveMessageAddress.amAddress();
 		data->grandParent = current.parent;
-		data->hopCount += 1;
+		
 
 		return TRUE;
 	}

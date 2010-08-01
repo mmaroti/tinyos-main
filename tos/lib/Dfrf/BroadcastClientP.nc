@@ -70,7 +70,7 @@ implementation
 
 	event bool SubReceive.receive(void *combined_raw)
 	{
-		combined_t *combined = combined;
+		combined_t *combined = combined_raw;
 
 		bool result = call Convergecast.readHeader(&combined->header);
 
