@@ -41,13 +41,20 @@ configuration SimpleFileC
 } 
 
 implementation
-{ 
-	components SimpleFileP, LedHandlerC, SDC;
+{
+#ifdef SHIMMER_MEMORY_FILE
+	components SimpleMemoryFileP as SimpleFileP;
+#else
+	components SimpleFileP, SDC;
+
+	SimpleFileP.SDControl -> SDC;
+	SimpleFileP.SD -> SDC;
+#endif
+
+	components LedHandlerC;
 
 	SplitControl = SimpleFileP;
 	SimpleFile = SimpleFileP;
 
 	SimpleFileP.LedHandler -> LedHandlerC;
-	SimpleFileP.SDControl -> SDC;
-	SimpleFileP.SD -> SDC;
 }
