@@ -5,6 +5,7 @@ CFLAGS += -DDIAGMSG_NONE
 CFLAGS += -DDIAGMSG_RETRY_COUNT=1
 #CFLAGS += -DDIAGMSG_BASE_STATION=0
 #CFLAGS += -I$(TOSDIR)/lib/diagmsg
+CFLAGS += -DSHIMMER_ADC_TEST
 
 BUILD_EXTRA_DEPS = CtrlMsg.class ReportMsg.class
 CLEAN_EXTRA = *.class CtrlMsg.java ReportMsg.java

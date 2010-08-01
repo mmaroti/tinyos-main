@@ -53,16 +53,11 @@ implementation
 {
 	enum
 	{
-		STATE_OFF = 0,
-		STATE_READY = 1,
-		STATE_SAMPLING = 2,
-
 		SAMPLE_COUNT = 16,	// the maximum number of channels
-		BUFFER_COUNT = 2,	// number of recording buffers
 	};
 
-	norace uint8_t state;
-	norace uint8_t channelCount;
+	bool sampling;
+	uint8_t channelCount;
 
 	typedef struct buffer_t
 	{
@@ -70,10 +65,7 @@ implementation
 		uint16_t samples[SAMPLE_COUNT];
 	} buffer_t;
 
-	norace buffer_t buffers[BUFFER_COUNT];
-
-	norace uint8_t current;	// the index of the current buffer
-	uint8_t pending;	// the number of pending buffers to be reported
+	norace buffer_t buffer;
 
 	command error_t Init.init()
 	{
@@ -120,7 +112,7 @@ implementation
 
 		if( count > SAMPLE_COUNT )
 			return ESIZE;
-		if( state == STATE_SAMPLING )
+		if( sampling )
 			return EBUSY;
 
 		channelCount = count;
@@ -133,7 +125,7 @@ implementation
 			DMA_TRIGGER_ADC12IFGx,		// triggered by ADC12
 			DMA_EDGE_SENSITIVE,		// edge sensitive trigger
 			(void*)ADC12MEM0_,		// copy form ADC12 memory regisers
-			(void*)buffers[current].samples,// first buffer
+			(void*)buffer.samples,		// buffer
 			count,				// number of samples
 			DMA_WORD,			// each sample is a word
 			DMA_WORD,			// store the full word
@@ -157,7 +149,6 @@ implementation
 		// get ready for the first transfer
 		call Msp430DmaChannel.startTransfer();
 
-		state = STATE_READY;
 		return SUCCESS;
 	}
 
@@ -166,48 +157,27 @@ implementation
 
 	command error_t ShimmerAdc.sample()
 	{
-		if( state != STATE_READY )
+		if( sampling )
 			return FAIL;
 
-		state |= STATE_SAMPLING;
+		sampling = TRUE;
 		call HplAdc12.startConversion();
 
 		return SUCCESS;
 	}
 
-	task void reportDone();
+	task void reportDone()
+	{
+		// prepare for the next ADC sample
+		call Msp430DmaChannel.repeatTransfer((void*)ADC12MEM0_, buffer.samples, channelCount);
+
+		sampling = FALSE;
+		signal ShimmerAdc.sampleDone(buffer.timestamp, buffer.samples);
+	}
 
 	async event void Msp430DmaChannel.transferDone(error_t success)
 	{
-		buffers[current].timestamp = call LocalTime.get();
-
-		atomic
-		{
-			++pending;
-			if( ++current >= BUFFER_COUNT )
-				current = 0;
-		}
-
-		call Msp430DmaChannel.repeatTransfer((void*)ADC12MEM0_, buffers[current].samples, channelCount);
-
+		buffer.timestamp = call LocalTime.get();
 		post reportDone();
-
-		state = STATE_READY;
-	}
-
-	task void reportDone()
-	{
-		int8_t report;
-
-		atomic
-		{
-			report = current - pending;
-			--pending;
-		}
-
-		if( report < 0 )
-			report += BUFFER_COUNT;
-
-		signal ShimmerAdc.sampleDone(buffers[report].timestamp, buffers[report].samples);		
 	}
 }

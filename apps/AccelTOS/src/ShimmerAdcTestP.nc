@@ -1,4 +1,5 @@
-/** Copyright (c) 2010, University of Szeged
+/*
+* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -31,36 +32,79 @@
 * Author: Miklos Maroti
 */
 
-configuration ShimmerAdcC
+module ShimmerAdcTestP
 {
-	provides
+	provides 
 	{
 		interface ShimmerAdc;
+		interface Init;
+	}
+
+	uses
+	{
 		interface LocalTime<T32khz>;
 	}
-} 
+}
 
 implementation
 {
-#ifdef SHIMMER_ADC_TEST
-	components ShimmerAdcTestP as ShimmerAdcP;
-#else
-	components ShimmerAdcP, HplAdc12P, Msp430DmaC;
+	enum
+	{
+		SAMPLE_COUNT = 16,	// the maximum number of channels
+	};
 
-	ShimmerAdcP.HplAdc12 -> HplAdc12P;
-	ShimmerAdcP.Msp430DmaControl -> Msp430DmaC;
-	ShimmerAdcP.Msp430DmaChannel -> Msp430DmaC.Channel0;
-#endif
+	bool sampling;
+	uint8_t channelCount;
 
-	components MainC;
+	typedef struct buffer_t
+	{
+		uint32_t timestamp;
+		uint16_t samples[16];
+	} buffer_t;
 
-	ShimmerAdc = ShimmerAdcP;
-	LocalTime = CounterToLocalTimeC;
+	norace buffer_t buffer;
 
-	ShimmerAdcP.Init <- MainC.SoftwareInit;
+	command error_t Init.init()
+	{
+		return SUCCESS;
+	}
 
-	components Counter32khz32C as Counter;
-	components new CounterToLocalTimeC(T32khz);
-	CounterToLocalTimeC.Counter -> Counter;
-	ShimmerAdcP.LocalTime -> CounterToLocalTimeC;
+	command error_t ShimmerAdc.setChannels(uint8_t *channels, uint8_t count)
+	{
+		if( count > SAMPLE_COUNT )
+			return ESIZE;
+		if( sampling )
+			return EBUSY;
+
+		channelCount = count;
+
+		return SUCCESS;
+	}
+
+	task void reportDone()
+	{
+		sampling = FALSE;
+		signal ShimmerAdc.sampleDone(buffer.timestamp, buffer.samples);
+	}
+
+	uint16_t counter;
+
+	command error_t ShimmerAdc.sample()
+	{
+		uint8_t i;
+
+		if( sampling )
+			return FAIL;
+
+		sampling = TRUE;
+
+		buffer.timestamp = call LocalTime.get();
+		buffer.samples[0] = ++counter;
+		for(i = 0; i < channelCount; ++i)
+			buffer.samples[i] = i;
+
+		post reportDone();
+
+		return SUCCESS;
+	}
 }
