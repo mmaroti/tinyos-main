@@ -170,7 +170,6 @@ implementation{
 	task void sendSampleMsg() {
 		
 		error_t error;
-		pending = FALSE;
 		
 		//if (offset <= dataLen-SAMPLESIZE) {
 		if ((tail-head)>=SAMPLESIZE) {
@@ -222,6 +221,8 @@ implementation{
 			error_t error = post sendSampleMsg();
 			if (error)
 				dump("postTFailed");
+			else
+				pending = FALSE;
 		}
 	}
 	
@@ -231,8 +232,7 @@ implementation{
 			dumpInt("Len", length);
 			head = 0;
 			tail = length;
-			pending = FALSE;
-			call Download.startPeriodic(50);
+			call Download.startPeriodic(20);
 			error = post sendSampleMsg();
 			if (error)
 				dump("postRFailed");
