@@ -80,11 +80,14 @@ implementation
 
 	command error_t BufferedSend.send(void *data, uint8_t length)
 	{
-		if( pending == BUFFER_SIZE )
+		if( pending >= BUFFER_SIZE )
 			return FAIL;
 
 		if( position + length > TOSH_DATA_LENGTH )
 			call BufferedSend.flush();
+
+		if( pending >= BUFFER_SIZE )
+			return FAIL;
 
 		memcpy(messages[current].data + position, data, length);
 		position += length;
