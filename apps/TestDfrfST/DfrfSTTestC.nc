@@ -1,4 +1,4 @@
-// $Id: DfrfSTTestC.nc,v 1.2 2010-07-28 17:00:26 mmaroti Exp $
+// $Id: DfrfSTTestC.nc,v 1.3 2010-08-01 20:46:03 andrasbiro Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -68,30 +68,15 @@
 configuration DfrfSTTestC {
 }
 implementation {
-  components MainC, DfrfSTTestP, LedsC;
+  components MainC, DfrfSTTestP, LedsC, RandomC, ConvergecastC;
   components ActiveMessageC as Radio, SerialActiveMessageC as Serial;
-  components TimeSyncMessageC, LocalTimeMilliC;
   
-  components SpanningTreePolicyP as Policy;
+  components SpanningTreePolicyC as Policy;
   components new DfrfClientC(APPID_COUNTER, sizeof(counter_packet_t), sizeof(counter_packet_t), 15) as DfrfMainService;
+  components new BroadcastClientC(APPID_COUNTER+1, sizeof(counter_packet_t)) as DfrfFieldService;
   
-  //components new RouteBuilderC(counter_packet_t,15,APPID_COUNTER+1);
-  components new BuildSpanningTree(counter_packet_t);
-  components BroadcastPolicyC;  
-  components new DfrfClientC(APPID_COUNTER+1, sizeof(counter_packet_t)+4, sizeof(counter_packet_t)+2, 15) as DfrfFieldService;
-  components RandomC;
-
-  // routing control/send/receive/policy
-  BuildSpanningTree.AMPacket -> Radio;
-  BuildSpanningTree.DfrfReceive->DfrfFieldService;
-  BuildSpanningTree.DfrfSend->DfrfFieldService;
-  DfrfFieldService.DfrfPolicy->BroadcastPolicyC;
-  
-  Policy.AMPacket->Radio;
-  Policy.SpanningTree->BuildSpanningTree;
-  
-  DfrfSTTestP.FieldSend -> BuildSpanningTree.Send;
-  DfrfSTTestP.FieldReceive -> BuildSpanningTree.Receive;
+  DfrfSTTestP.FieldSend -> DfrfFieldService.DfrfSend;
+  DfrfSTTestP.FieldReceive -> DfrfFieldService.DfrfReceive;
   
   DfrfSTTestP.DfrfSend -> DfrfMainService;
   DfrfSTTestP.DfrfReceive -> DfrfMainService;
@@ -109,7 +94,7 @@ implementation {
   DfrfSTTestP.RadioPacket -> Radio;
   DfrfSTTestP.RadioAMPacket -> Radio;
   
-  DfrfSTTestP.GetRank -> BuildSpanningTree;
+  DfrfSTTestP.Convergecast -> ConvergecastC;
   DfrfSTTestP.Random -> RandomC;
   DfrfSTTestP.RandomSeedInit -> RandomC.SeedInit;
  
