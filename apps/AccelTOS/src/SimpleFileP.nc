@@ -166,10 +166,15 @@ implementation
 
 	void formatDevice()
 	{
+		uint8_t sector;
 		error_t error;
 
 		buffer.length = 0;
-		error = call SD.writeBlock(0, (uint8_t*) &buffer);
+
+		// format first 8 sectors
+		error = SUCCESS;
+		for(sector = 0; sector < 8 && error == SUCCESS; ++sector)
+			error = call SD.writeBlock(0, (uint8_t*) &buffer);
 
 		if( error == SUCCESS )
 		{
