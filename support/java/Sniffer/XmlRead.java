@@ -29,8 +29,6 @@ public class XmlRead {
 	
 	public XmlRead(){
 		try{
-			
-			
 		DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
         File file = new File(Labels.path);

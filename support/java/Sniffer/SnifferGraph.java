@@ -60,22 +60,32 @@ public class SnifferGraph implements DataBase{
 	public static XmlRead xmlRead = new XmlRead();
 	
     JMenu file = new JMenu("File");
+    JMenu conf = new JMenu("Configuration");
+    JMenu sniffer = new JMenu("Sniffer");
+    JMenu help = new JMenu("Help");
     
     JMenuItem fileClose = new JMenuItem(Labels.menu_exit);
     JMenuItem about = new JMenuItem(Labels.menu_about);
-    JMenuItem open = new JMenuItem(Labels.menu_load_packages);
     JMenuItem openConfiguration = new JMenuItem(Labels.menu_open_conf);	
-    JMenuItem createConfiguration = new JMenuItem(Labels.menu_creat);
+    JMenuItem newConfiguration = new JMenuItem(Labels.menu_create);
     JMenuItem save = new JMenuItem(Labels.menu_save);
+    JMenuItem open = new JMenuItem(Labels.menu_load_packages);
+    JMenuItem help_menu = new JMenuItem(Labels.menu_help);
+    JMenuItem save_as = new JMenuItem(Labels.menu_saveas);
+    JMenuItem start_menu = new JMenuItem(Labels.menu_start);
+    JMenuItem stop_menu = new JMenuItem(Labels.menu_stop);
+    JMenuItem set_chn = new JMenuItem(Labels.menu_setchn);
+    JMenuItem set_port = new JMenuItem(Labels.menu_setport);
+    
     
     JButton start = new JButton(Labels.button_start);
     JButton clear = new JButton(Labels.button_clear);
     
     JTextField startStop = new JTextField(Labels.txfield_pause);
-    JTextField resived = new JTextField(Labels.txfield_resived);
-    JTextField chanelT = new JTextField(Labels.txfield_chanelT);
-    JTextField resevedPack = new JTextField("0");
-    JTextField chanel = new JTextField("1L");
+    JTextField recived = new JTextField(Labels.txfield_recived);
+    JTextField channelT = new JTextField(Labels.txfield_channelT);
+    JTextField receivedPack = new JTextField("0");
+    JTextField channel = new JTextField("1L");
     JTextField loadedFileT = new JTextField(Labels.txfield_loadedFileT);
     JTextField loadedFile = new JTextField(xmlRead.filename);
     JTextField saved = new JTextField(xmlRead.filename);
@@ -226,7 +236,7 @@ public class SnifferGraph implements DataBase{
 	 * This function creates and specify checkboxes
 	 */
 	private void createBoxes() {
-		int height = JCHECKBOX_FIRS_SIZE;
+		int height = JCHECKBOX_FIRST_SIZE;
 		
 		box[0]= new JCheckBox("Catch");											//Elso box beálítása. Az az értéket mutatja majd pontosan, hogy mikor érkezett.
 		box[0].setToolTipText("Ekkor érkezett a package");
@@ -236,7 +246,7 @@ public class SnifferGraph implements DataBase{
         		switching(event);
         	}
 		});
-		box[0].setBounds(3, height+=HORISONTAL_JCB_SPEACE, JCHECKBOX_SIZE_X, JCHECKBOX_SIZE_Y);
+		box[0].setBounds(3, height+=HORIZONTAL_JCB_SPACE, JCHECKBOX_SIZE_X, JCHECKBOX_SIZE_Y);
 		backgPanel.add(box[0]);
 		
 		
@@ -250,7 +260,7 @@ public class SnifferGraph implements DataBase{
             		switching(event);
             	}
 			});
-			box[i].setBounds(3, height+=HORISONTAL_JCB_SPEACE, JCHECKBOX_SIZE_X, JCHECKBOX_SIZE_Y);
+			box[i].setBounds(3, height+=HORIZONTAL_JCB_SPACE, JCHECKBOX_SIZE_X, JCHECKBOX_SIZE_Y);
 			backgPanel.add(box[i]);
 		}
 	}
@@ -279,8 +289,8 @@ public class SnifferGraph implements DataBase{
         save.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,Event.CTRL_MASK));
         openConfiguration.setMnemonic('O');
         openConfiguration.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O,Event.SHIFT_MASK));
-        createConfiguration.setMnemonic('C');
-        createConfiguration.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C,Event.SHIFT_MASK));
+        newConfiguration.setMnemonic('C');
+        newConfiguration.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C,Event.SHIFT_MASK));
         about.setMnemonic('A');
         about.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,Event.ALT_MASK));
 
@@ -327,28 +337,52 @@ public class SnifferGraph implements DataBase{
 	 * This function specifies which objects added to the file menu.
 	 */
 	private void menuCreat() {
-		file.add(open);
+		/*file.add(open);
         file.add(save);
         file.add(new JSeparator());											
         
-        file.add(createConfiguration);
+        file.add(newConfiguration);
         file.add(openConfiguration);
         file.add(new JSeparator());
         //---------------- SEPARATOR
         file.add(about);													
         file.add(new JSeparator());
         //---------------- SEPARATOR
-        file.add(fileClose);												
+        file.add(fileClose);*/												
+        
+        file.add(open);
+        file.add(save);
+        file.add(save_as);
+        file.add(new JSeparator());
+        file.add(fileClose);
         
         menubar.add(file);
-        snfG.setJMenuBar(menubar);											
+        
+        conf.add(newConfiguration);
+        conf.add(openConfiguration);
+        
+        menubar.add(conf);
+        
+        sniffer.add(start_menu);
+        sniffer.add(stop_menu);
+        sniffer.add(set_chn);
+        sniffer.add(set_port);
+        
+        menubar.add(sniffer);
+        
+        help.add(about);
+        help.add(help_menu);
+        
+        menubar.add(help);
+        
+        snfG.setJMenuBar(menubar);										
 	}
 	/**
 	 * This function  specifying tool tips for objects.
 	 * The text displays when the cursor lingers over the component.
 	 */
 	private void setTooltips() {
-		createConfiguration.setToolTipText(Labels.tooltips_create_conf);					
+		newConfiguration.setToolTipText(Labels.tooltips_create_conf);					
         open.setToolTipText(Labels.tooltips_open);
         openConfiguration.setToolTipText(Labels.tooltips_open_conf);
         save.setToolTipText(Labels.tooltips_save);
@@ -370,10 +404,10 @@ public class SnifferGraph implements DataBase{
 	 */
 	private void adding() {
 		southPanel.add(startStop);
-		southPanel.add(resived);
-		southPanel.add(resevedPack);
-		southPanel.add(chanelT);
-		southPanel.add(chanel);
+		southPanel.add(recived);
+		southPanel.add(receivedPack);
+		southPanel.add(channelT);
+		southPanel.add(channel);
 		southPanel.add(loadedFileT);
 		southPanel.add(loadedFile);
 		
@@ -387,7 +421,7 @@ public class SnifferGraph implements DataBase{
 		for(int i=0;i<dataPanel.size();i++){
 			dataPanel.get(i).setBounds(k, DATAPANEL_Y, DATAPANEL_SIZE_X, ((xmlRead.number+3)*DATAPANEL_SIZE_Y));
 			backgPanel.add(dataPanel.get(i));
-			k+=DATAPANEL_SPEACE;
+			k+=DATAPANEL_SPACE;
 		}
 		centerPanel.add(scrollbar, BorderLayout.SOUTH);
 		centerPanel.add(backgPanel, BorderLayout.CENTER);
@@ -440,7 +474,7 @@ public class SnifferGraph implements DataBase{
             }
 		});
         
-        createConfiguration.addActionListener(new ActionListener() {
+        newConfiguration.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
             	createConfiguration();
             }
@@ -458,12 +492,12 @@ public class SnifferGraph implements DataBase{
 	 */
 	private void editables() {											
 	    startStop.setEditable(false);
-	    resived.setEditable(false);
-	    chanelT.setEditable(false);
-	    resevedPack.setEditable(false);
-	    resevedPack.setHorizontalAlignment(SwingConstants.TRAILING);
-	    chanel.setEditable(false);
-	    chanel.setHorizontalAlignment(SwingConstants.TRAILING);
+	    recived.setEditable(false);
+	    channelT.setEditable(false);
+	    receivedPack.setEditable(false);
+	    receivedPack.setHorizontalAlignment(SwingConstants.TRAILING);
+	    channel.setEditable(false);
+	    channel.setHorizontalAlignment(SwingConstants.TRAILING);
 	    loadedFileT.setEditable(false);
         loadedFile.setEditable(false);
 	}
@@ -471,7 +505,7 @@ public class SnifferGraph implements DataBase{
 	@SuppressWarnings("unused")
 	public static void main(String[] args) {
 		SnifferGraph main = new SnifferGraph();
-		for(int i = 0; i<100; i++){
+		for(int i = 0; i<1; i++){
 			String[] moteLabelNames = {"Elso", "Masodik", "Harmadik", "Negyedik"};
 			motes.add(new Mote(i, ++i, moteLabelNames));
 		}
@@ -481,5 +515,20 @@ public class SnifferGraph implements DataBase{
 			backgPanel.add(dataPanel.get(dataPanel.size()-1));
 			scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
 		}
+		do{
+			if(RandomString.getAnewInput()){
+				int first = RandomString.getAnumber(motes.get(motes.size()-1).stopTime);
+				int second = RandomString.getAnumber(first);
+				motes.add(new Mote(first, second, RandomString.getRandomMoteStrings(4)));
+				dataPanel.add(motes.get(motes.size()-1).getAPanel(box));
+				dataPanel.get(dataPanel.size()-1).setVisible(true);
+				backgPanel.add(dataPanel.get(dataPanel.size()-1));
+				scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
+				scrollbar.setValue(scrollbar.getValue()+1);
+				scrollbar.setValue(scrollbar.getValue()-1);
+			}
+		}while(true);
+		
+		
 	} 
 }
