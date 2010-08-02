@@ -84,14 +84,10 @@ implementation{
 		MAX_DATA_LEN = 510
 	};
 
-	//uint16_t offset =  0;
-	//uint16_t dataLen = 0;
 	uint8_t sector[MAX_DATA_LEN]; // Guarded by diskBusy
 	uint16_t head = 0;
 	uint16_t tail = 0;
 	bool pending = FALSE;
-	
-	uint8_t cnt = 0;
 
 	void dump(char* msg) {
 		if( call DiagMsg.record() ) {
@@ -184,9 +180,6 @@ implementation{
 		
 			error = call BufferedSend.send(sector+head, SAMPLESIZE);
 			
-			if (((++cnt)%16)==0)
-				call BufferedSend.flush(); // FIXME Remove flush if fixed
-			
 			if (!error) {
 				head += SAMPLESIZE;
 				call LedHandler.sendingToggle();
@@ -208,9 +201,6 @@ implementation{
 			
 			if      (error == EBUSY) {
 				pending = TRUE;
-//				error = post sendSampleMsg();
-//				if (error)
-//					dump("post2Failed");
 			}
 			if (error == END_OF_DATA) {
 				call Download.stop();
@@ -401,6 +391,4 @@ implementation{
 		if (error)
 			call LedHandler.error();
 	}
-
-
 }
