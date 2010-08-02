@@ -39,6 +39,7 @@ configuration AccelAppC {
 implementation{
 
 	components MainC, AccelP, LedHandlerC, RadioHandlerC, SimpleFileC, MeterC;
+	components AssertC;
 
 	SimpleFile = SimpleFileC;
 	AccelP.Boot -> MainC;

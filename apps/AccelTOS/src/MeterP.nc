@@ -189,7 +189,7 @@ implementation
 		dump("startRecord");
 		
 		if (!call Timer.isRunning()) {
-			call Timer.startPeriodic(125); // FIXME Nothing happens for dt ms!
+			call Timer.startPeriodic(5); // FIXME Nothing happens for dt ms!
 		}
 		else {
 			error = EALREADY;

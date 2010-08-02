@@ -33,6 +33,7 @@
 
 #include "CtrlMsg.h"
 #include "ReportMsg.h"
+#include "Assert.h"
 
 module RadioHandlerP{
 
@@ -112,12 +113,8 @@ implementation{
 			error =  EBUSY;
 		}
 		else {
-			// TODO Explain why
-    		// Note that we could have avoided using the Packet interface, as it's 
-    		// getPayload command is repeated within AMSend.
     		ReportMsg* pkt = (ReportMsg*)(call AMReportMsg.getPayload(&message, sizeof(ReportMsg)));
-			if( pkt == NULL )
-				call LedHandler.error();
+			ASSERT(pkt != NULL);
 
     		pkt->id = TOS_NODE_ID;
     		pkt->mode = mode;
@@ -131,7 +128,7 @@ implementation{
 	
 	event void AMReportMsg.sendDone(message_t *msg, error_t error){
 		sending = FALSE;
-		// FIXME Resend if failed?
+		// TODO Resend if failed?
 	}
 	
 	task void sendSamples() {
@@ -139,7 +136,7 @@ implementation{
 		error_t error = SUCCESS;
 		
 		if (diskBusy) {
-			call LedHandler.error(); // FIXME Just for dbg
+			ASSERT(FAIL);
 			return;
 		}
 		
@@ -170,7 +167,7 @@ implementation{
 		error_t error;
 
 		if (pending) {
-			call LedHandler.error();
+			dump("pending");
 			return;
 		}
 
@@ -186,7 +183,6 @@ implementation{
 				dump("buffSendOK");
 			}
 			else {
-				call LedHandler.errorToggle();
 				dump("buffSendFail");
 			}
 			
@@ -213,20 +209,15 @@ implementation{
 	event void Download.fired(){
 
 		if (diskBusy&&pending) {
-			error_t error = post sendSampleMsg();
-			if (error) {
-				dump("postTFailed");
-			}
-			else {
-				pending = FALSE;
-				dump("postDone");
-			}
+			post sendSampleMsg();
+			pending = FALSE;
+			dump("postDone");
 		}
 	}
 	
 	event void Disk.readDone(error_t error, uint16_t length) {
 		
-		if ((!error) && (length>0)) {
+		if (!error) {
 			dumpInt("Len", length);
 			
 			head = 0;
@@ -237,68 +228,56 @@ implementation{
 				 call Download.startPeriodic(50);
 		}
 		else {
-			dumpInt("readFail", length);
-		}
-		
-		if (error) {
-
-			call LedHandler.error();
-			diskBusy = FALSE; // FIXME How is sector guarded?
+			ASSERT(FAIL);
+			diskBusy = FALSE; // TODO Check how sector is guarded?
 		}
 	}
 
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len){
 		
-		if (len == sizeof(CtrlMsg)) {  // TODO Enough?
+		CtrlMsg* pkt = (CtrlMsg*)payload;
 		
-			CtrlMsg* pkt = (CtrlMsg*)payload;
-			
-			uint8_t cmd = pkt->cmd;
-			
-			error_t error = SUCCESS;
-			
-			call LedHandler.msgReceived();
+		uint8_t cmd = pkt->cmd;
+		
+		error_t error = SUCCESS;
+		
+		call LedHandler.msgReceived();
 
-			if      (cmd == ALTERING)   {
-				mode = ALTERING;
-				call ShortPeriod.startOneShot(50);
-			}
-			else if (cmd == CONTINUOUS) {
-				mode = CONTINUOUS;
-			}
-			else if (cmd == FORMAT) {
-				if (!diskBusy) {
-					error = call Disk.format();
-					if (!error)
-						diskBusy = TRUE;
-				}
-			}
-			else if (cmd == APPENDPKT) {
-				//error = post appendPacket();
-			}
-			else if (cmd == SENDFIRST) {
-				//error = post sendFirstPkt();
-			}
-			else if (cmd == STARTSAMPLING) {
-				error = call Meter.startRecording();
-			}
-			else if (cmd == STOPSAMPLING) {
-				error = call Meter.stopRecording();
-			}
-			else if (cmd == SENDSAMPLES) {
-				error = post sendSamples();
-				dump("cmdSendSamp");
-			}
-			// FIXME What if unknown mode received? Or msg corrupted?
-			else {
-				call LedHandler.error();
-			}
-			
-			if (error) {
-				call LedHandler.error();
+		if      (cmd == ALTERING)   {
+			mode = ALTERING;
+			call ShortPeriod.startOneShot(50);
+		}
+		else if (cmd == CONTINUOUS) {
+			mode = CONTINUOUS;
+		}
+		else if (cmd == FORMAT) {
+			if (!diskBusy) {
+				error = call Disk.format();
+				if (!error)
+					diskBusy = TRUE;
 			}
 		}
-
+		else if (cmd == APPENDPKT) {
+			//error = post appendPacket();
+		}
+		else if (cmd == SENDFIRST) {
+			//error = post sendFirstPkt();
+		}
+		else if (cmd == STARTSAMPLING) {
+			error = call Meter.startRecording();
+		}
+		else if (cmd == STOPSAMPLING) {
+			error = call Meter.stopRecording();
+		}
+		else if (cmd == SENDSAMPLES) {
+			error = post sendSamples();
+			dump("cmdSendSamp");
+		}
+		else {
+			ASSERT(FAIL);
+		}
+		
+		ASSERT(error==SUCCESS);
 		return msg;
 	}
 
@@ -315,7 +294,9 @@ implementation{
 	event void AMControl.startDone(error_t error) {
 		
 		// FIXME Only DiadMsg could have started the radio
-		if ((error == SUCCESS) || (error == EALREADY)) {
+		ASSERT(error == SUCCESS);
+		
+		if (error == SUCCESS) {
 			
 			state = AWAKE;
 			call LedHandler.radioOn();
@@ -324,15 +305,11 @@ implementation{
 
 			if (! call WatchDog.isRunning()) {
 				call WatchDog.startPeriodic(1000);
-				// FIXME Would signal even if already started
-				signal SplitControl.startDone(SUCCESS); // FIXME Sure?
 			}
 			call ShortPeriod.startOneShot(50);
 		}		
-		else {
-			call LedHandler.error();
-			signal SplitControl.startDone(error);
-		}
+
+		signal SplitControl.startDone(error);
 	}
 
 	command error_t SplitControl.stop(){
@@ -360,9 +337,9 @@ implementation{
 			error = call AMControl.start();
 		}
 		else {
-			//broadcast(); FIXME Broadcast turned off
+			broadcast();
 			if (mode == ALTERING)
-				call ShortPeriod.startOneShot(50); // FIXME What if already running?
+				call ShortPeriod.startOneShot(50);
 		}
 
 		if (error != SUCCESS)
