@@ -45,6 +45,7 @@ module BufferedSendP
 	{
 		interface AMSend;
 		interface Packet;
+		interface DiagMsg;
 	}
 }
 

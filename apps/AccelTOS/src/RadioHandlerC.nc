@@ -74,6 +74,7 @@ implementation{
 	
 	BufferedSendP.AMSend -> Samples; // FIXME It should go to its own component
 	BufferedSendP.Packet -> Samples;
+	BufferedSendP.DiagMsg -> RadioDiagMsgC;
 	RadioHandlerP.BufferedSend -> BufferedSendP;
 	
 	RadioHandlerP.WatchDog -> Timer1;

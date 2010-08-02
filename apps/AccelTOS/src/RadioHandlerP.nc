@@ -119,7 +119,7 @@ implementation{
 			// TODO Explain why
     		// Note that we could have avoided using the Packet interface, as it's 
     		// getPayload command is repeated within AMSend.
-    		ReportMsg* pkt = (ReportMsg*)(call AMReportMsg.getPayload(&message, sizeof(ReportMsg*)));
+    		ReportMsg* pkt = (ReportMsg*)(call AMReportMsg.getPayload(&message, sizeof(ReportMsg)));
 			if( pkt == NULL )
 				call LedHandler.error();
 
@@ -184,7 +184,7 @@ implementation{
 		
 			error = call BufferedSend.send(sector+head, SAMPLESIZE);
 			
-			//if (((++cnt)%16)==0)
+			if (((++cnt)%16)==0)
 				call BufferedSend.flush(); // FIXME Remove flush if fixed
 			
 			if (!error) {
