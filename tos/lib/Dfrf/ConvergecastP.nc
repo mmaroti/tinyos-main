@@ -56,7 +56,8 @@ implementation
 		current.root = 0xFFFF;
 		current.parent = 0xFFFF;
 		current.grandParent = 0xFFFF;
-
+		current.greatGrandParent = 0xFFFF;
+		current.greatGreatGrandParent = 0xFFFF;
 		return SUCCESS;
 	}
 
@@ -64,11 +65,10 @@ implementation
 	{
 		current.seqNum += 1;
 		current.root = call ActiveMessageAddress.amAddress();
-		current.parent = current.root;
-		current.grandParent = current.root;
 		current.hopCount = 0;
 
 		*data = current;
+		data->parent = current.root;
 	}
 
 	command bool Convergecast.readHeader(convergecast_t* data)
@@ -84,6 +84,8 @@ implementation
 
 		data->parent = call ActiveMessageAddress.amAddress();
 		data->grandParent = current.parent;
+		data->greatGrandParent = current.grandParent;
+		data->greatGreatGrandParent = current.greatGrandParent;
 		
 
 		return TRUE;
@@ -99,6 +101,16 @@ implementation
 		return current.parent;
 	}
 
+	command am_addr_t Convergecast.greatGrandParent()
+	{
+		return current.greatGrandParent;
+	}
+	
+	command am_addr_t Convergecast.greatGreatGrandParent()
+	{
+		return current.greatGreatGrandParent;
+	}
+	
 	command am_addr_t Convergecast.grandParent()
 	{
 		return current.grandParent;

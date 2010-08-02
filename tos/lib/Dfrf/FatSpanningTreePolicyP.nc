@@ -21,7 +21,7 @@
  * Author: Miklos Maroti, Gabor Pap, Janos Sallai, Andras Biro
  */
 
-module SpanningTreePolicyP
+module FatSpanningTreePolicyP
 {
 	provides interface DfrfPolicy;
 	uses interface Convergecast;
@@ -39,14 +39,13 @@ implementation
 
 	command uint16_t DfrfPolicy.getLocation()
 	{
-		return call Convergecast.parent();
+		return call Convergecast.grandParent();
 	}
 
 	command uint8_t DfrfPolicy.sent(uint8_t priority)
 	{
-		uint16_t myLocation = call AMPacket.address();
 
-		if( priority == 4 && myLocation == call Convergecast.root() )
+		if( priority == 4 && call AMPacket.address() == call Convergecast.root() )
 			return 6;
 		else if( priority == 0 || priority == 4 || priority == 6 )
 			return priority + 1;
@@ -56,19 +55,28 @@ implementation
 
 	command bool DfrfPolicy.accept(uint16_t location)
 	{
-
-		return TRUE;
+		if(location == call AMPacket.address()||
+		   location == call Convergecast.parent()||
+		   location == call Convergecast.grandParent()||
+		   location == call Convergecast.greatGrandParent()||
+		   location == call Convergecast.greatGreatGrandParent())
+		{
+		  return TRUE;
+		}
+		else
+		{
+ 		  return FALSE;
+		}
 	}
 
 	command uint8_t DfrfPolicy.received(uint16_t location, uint8_t priority)
 	{
-		uint16_t myLocation = call AMPacket.address();
-	
-		if( priority == 0 && myLocation == call Convergecast.root() )
+	  
+		if( priority == 0 && call AMPacket.address() == call Convergecast.root() )
 			return 6;
-		else if( priority < 7 && location != myLocation )
+		else if( priority < 7 && (location == call Convergecast.greatGrandParent() || location == call Convergecast.greatGreatGrandParent() ))
 			return 7;
-		else if( priority > 7 && location == myLocation )
+		else if( priority > 7 && (location == call AMPacket.address() ||location == call Convergecast.parent() || location == call Convergecast.grandParent()))
 			return 7;
 		else
 			return priority;

@@ -52,7 +52,7 @@ implementation
 			return priority;
 	}
 
-	command error_t DfrfPolicy.accept(uint16_t location)
+	command bool DfrfPolicy.accept(uint16_t location)
 	{
 		uint16_t myLocation = call DfrfPolicy.getLocation();
 

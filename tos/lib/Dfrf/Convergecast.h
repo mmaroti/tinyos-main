@@ -42,6 +42,8 @@ typedef nx_struct convergecast_t
 	nx_am_addr_t root;		// address of the root 
 	nx_am_addr_t parent;		// address of the sender 
 	nx_am_addr_t grandParent;	// parent of the sender
+	nx_am_addr_t greatGrandParent;	// grandparent of the sender
+	nx_am_addr_t greatGreatGrandParent;	// great-grandparent of the sender
 	nx_uint8_t hopCount;		// hop count of the sender (max 64)
 } convergecast_t;
 

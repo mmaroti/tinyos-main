@@ -28,53 +28,22 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklos Maroti
+* Author: Andras Biro
 */
 
-#include "Convergecast.h"
-
-interface Convergecast
+configuration FatSpanningTreePolicyC
 {
-	/**
-	 * Write a convergecast header that declares this node to be the 
-	 * root. This message should be broadcasted to all other nodes.
-	 */
-	command void writeHeader(convergecast_t *header);
+	provides
+	{
+		interface DfrfPolicy;
+	}
+}
 
-	/**
-	 * Should be called when the beacon message is received.
-	 */
-	command bool readHeader(convergecast_t *header);
-
-	/**
-	 * Returns the node ID of current root of the network, or
-	 * <code>0xFFFF</code> if no root was detected.
-	 */
-	command am_addr_t root();
-
-	/**
-	 * Returns the node ID of the parent of this node.
-	 */
-	command am_addr_t parent();
-
-	/**
-	 * Returns the node ID of the grand parent of this node.
-	 */
-	command am_addr_t grandParent();
+implementation
+{
+	components ConvergecastC, FatSpanningTreePolicyP, ActiveMessageC;
 	
-	/**
-	 * Returns the node ID of the great-grand parent of this node.
-	 */
-	command am_addr_t greatGrandParent();
-
-	/**
-	 * Returns the node ID of the great-great-grand parent of this node.
-	 */
-	command am_addr_t greatGreatGrandParent();
-	
-	/**
-	 * Returns the hopcount from this node to the root. The
-	 * root has hopcount zero.
-	 */
-	command uint8_t hopCount();
+	DfrfPolicy = FatSpanningTreePolicyP;
+	FatSpanningTreePolicyP.Convergecast -> ConvergecastC;
+	FatSpanningTreePolicyP.AMPacket -> ActiveMessageC;
 }
