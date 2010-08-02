@@ -31,6 +31,8 @@
 * Author: Miklos Maroti
 */
 
+#include <message.h>
+
 configuration TestAppC
 { 
 } 
