@@ -32,6 +32,8 @@
 * Author: Miklos Maroti, Ali Baharev
 */
 
+#include "Assert.h"
+
 module SimpleFileP
 {
 	uses
@@ -88,6 +90,7 @@ implementation
 	async event void SD.available()
 	{
 		available = TRUE;
+		post executeCommand();
 	}
 
 	async event void SD.unavailable()
@@ -99,9 +102,6 @@ implementation
 	void findLastSector()
 	{				
 		error_t error;
-
-		if( ! available )
-			post executeCommand(); // TODO What does this mean? Busy wait?
 
 		cardSize = call SD.readCardSize();
 		readPos = 0;
@@ -294,6 +294,12 @@ implementation
 	// TODO Please explain the benefit of this approach
 	task void executeCommand()
 	{
+		if( ! available )
+		{
+			call LedHandler.error();
+			return;
+		}
+
 		if     ( state == STATE_BOOTING )
 			findLastSector();
 		else if( state == STATE_FORMAT )
@@ -302,7 +308,9 @@ implementation
 			readSector();
 		else if( state == STATE_WRITE )
 			writeSector();
+		else if( state == STATE_READY )
+			;
 		else
-			call LedHandler.error();
+			ASSERT(FALSE);
 	}
 }
