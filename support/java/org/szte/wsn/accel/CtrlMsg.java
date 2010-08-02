@@ -31,6 +31,7 @@
 * Author: Ali Baharev
 */
 
+
 package org.szte.wsn.accel;
 
 /**
@@ -45,7 +46,7 @@ public class CtrlMsg extends net.tinyos.message.Message {
     public static final int DEFAULT_MESSAGE_SIZE = 1;
 
     /** The Active Message type associated with this message. */
-    public static final int AM_TYPE = 11;
+    public static final int AM_TYPE = 7;
 
     /** Create a new CtrlMsg of size 1. */
     public CtrlMsg() {
