@@ -59,52 +59,23 @@ public class ToSerial implements BinaryInterface{
 		} else {
 			phoenix = BuildSource.makePhoenix(source, PrintStreamMessenger.err);
 		}
-		phoenix.registerPacketListener(new Listener());
+		phoenix.registerPacketListener(new Listener());		
+		phoenix.run();
 	}
 	
-
+	
 	public ToSerial(){
 		new ToSerial(null);
-	}
-	
-	@Override
-	public ArrayList<byte[]> readPackets() {
-		
-		while(readbuffer.isEmpty()){
-			try {
-				Thread.sleep(10);
-			} 
-			catch (InterruptedException e) {
-				return null;
-			}
-		}
-		ArrayList<byte[]> ret;
-		synchronized (readbuffer) {
-			ret = new ArrayList<byte[]>(readbuffer);
-			readbuffer.clear();
-		}
-		return ret;
-	}
-
-	@Override
-	public void writePackets(ArrayList<byte[]> frames) throws IOException {
-		for(byte[] frame:frames){
-			phoenix.writePacket(frame);
-		}
 	}
 
 	@Override
 	public byte[] readPacket() {
-		while(readbuffer.isEmpty()){
-			try {
-				wait(10);
-			} catch (InterruptedException e) {
-				return null;
-			}
-		}
-		byte[] ret =readbuffer.get(0);
-		readbuffer.remove(0);
-		return ret;
+		if(readbuffer.isEmpty()){
+			byte[] ret =readbuffer.get(0);
+			readbuffer.remove(0);
+			return ret;
+		} else
+			return null;
 	}
 
 	@Override
