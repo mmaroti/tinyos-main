@@ -37,6 +37,8 @@
 // FIXME Make it possible to start everything from sector N
 #include "Assert.h"
 
+// FIXME Code duplication (SimpleMemoryFileP)!
+
 module SimpleFileP
 {
 	uses
@@ -56,7 +58,6 @@ module SimpleFileP
 
 implementation
 {
-	// TODO Probably a bool would suffice and executeCommand could be eliminated
 	enum
 	{
 		STATE_OFF = 0,
@@ -287,6 +288,7 @@ implementation
 		}
 		else
 			return FAIL; // TODO Return a more specific error value?
+
 	}
 
 	command uint32_t SimpleFile.size()
@@ -294,7 +296,6 @@ implementation
 		return writePos;
 	}
 
-	// TODO Please explain the benefit of this approach
 	task void executeCommand()
 	{
 		if( ! available )
