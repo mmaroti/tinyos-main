@@ -254,7 +254,7 @@ public class BinReader {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		if(args.length<1||args[args.length-2].startsWith("--")||args[args.length-1].startsWith("--"))
+		if(args.length<1||args[args.length-1].startsWith("-"))
 			BinReader.usageThanExit();
 		boolean convert=false;
 		boolean converttime=false;
