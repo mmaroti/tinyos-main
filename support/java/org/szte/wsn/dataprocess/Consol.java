@@ -35,17 +35,23 @@ package org.szte.wsn.dataprocess;
 
 import java.util.ArrayList;
 import java.io.Console;
-
+/**
+ * 
+ * @author Miklos Toth
+ *	implements StringInterface
+ *	writes and reads Console
+ */
 public class Consol implements StringInterface {
 	String separator;
 	String[] header;
 
 	public Consol(String[] header){
 		this.header=header;
-		separator="	";
+		separator="	";  //default separator is Tabulator
 	}
 
 	@Override
+	
 	public void writePackets(ArrayList<String[]> parsedData) {
 		writePacket(parsedData.get(0));				//writes the header file and the first line
 		if(parsedData.size()>1){

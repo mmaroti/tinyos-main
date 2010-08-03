@@ -43,7 +43,7 @@ import net.tinyos.util.PrintStreamMessenger;
 public class ToSerial implements BinaryInterface{
 	
 	private PhoenixSource phoenix;
-	ArrayList<byte[]> readbuffer=new ArrayList<byte[]>();
+	private ArrayList<byte[]> readbuffer=new ArrayList<byte[]>();
 	
 	public class Listener implements PacketListenerIF{
 		@Override
@@ -53,7 +53,6 @@ public class ToSerial implements BinaryInterface{
 	}
 	
 	public ToSerial(String source){
-		PhoenixSource phoenix;
 		//TODO: Maybe we should process the error messages
 		if (source == null) {
 			phoenix = BuildSource.makePhoenix(PrintStreamMessenger.err);
@@ -70,10 +69,12 @@ public class ToSerial implements BinaryInterface{
 	
 	@Override
 	public ArrayList<byte[]> readPackets() {
+		
 		while(readbuffer.isEmpty()){
 			try {
-				wait(10);
-			} catch (InterruptedException e) {
+				Thread.sleep(10);
+			} 
+			catch (InterruptedException e) {
 				return null;
 			}
 		}

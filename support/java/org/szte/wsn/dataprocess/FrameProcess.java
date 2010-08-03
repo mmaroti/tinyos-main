@@ -48,7 +48,7 @@ public class FrameProcess {
 
 	
 	public void setArgs(String[] args){		
-		if (args.length<2)    //it isn't necessary to give struct file
+		if (args.length<3)    //it isn't necessary to give struct file
 			usageThanExit();
 
 		if(args[0].equals("file")){
@@ -73,6 +73,8 @@ public class FrameProcess {
 				System.out.println("IO ERROR wrong sourcePath:"+args[1]);
 				usageThanExit();
 			}
+			//if(args[2].equals(console))
+			
 		}
 		else if(args[0].equals("serial")){
 			serialSource=true;
