@@ -32,9 +32,8 @@
  * Author: Miklos Toth
  */
 package org.szte.wsn.dataprocess;
+import java.util.Scanner;
 
-import java.util.ArrayList;
-import java.io.Console;
 /**
  * 
  * @author Miklos Toth
@@ -43,54 +42,42 @@ import java.io.Console;
  */
 public class Console implements StringInterface {
 	String separator;
-	String[] header;
 
-	public Console(String[] header){
-		this.header=header;
+	public Console(){
 		separator="	";  //default separator is Tabulator
 	}
 
-	@Override
-	
-	public void writePackets(ArrayList<String[]> parsedData) {
-		writePacket(parsedData.get(0));				//writes the header file and the first line
-		if(parsedData.size()>1){
-			System.out.println("");
-			for(int i=1;i<parsedData.size();i++){
-				for(String data:parsedData.get(i))
-					System.out.print(data+separator);
-				System.out.println("");
-			}
-		}	
-
-	}
 
 	@Override
-	public void writePacket(String[] parsedData) {
-		if ((header!=null)&&(parsedData!=null)){
-			for(String head:header)
+	/**
+	 * implements writePacket for Console application
+	 * 
+	 */
+	public void writePacket(PacketParser parser,String[] parsedData) {
+		if (parsedData!=null){
+			for(String head:parser.getFields())
 				System.out.print(head+separator);
 
 			System.out.println();
+			
 			for(String data:parsedData){			
 				System.out.print(data+separator);
 			}
 		}
 	}
 
-	@Override
-	public ArrayList<String[]> readPackets() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	@Override
-	public String[] readPacket() {
-		String[] ret=new String[header.length];
-		Console console = System.console();
+	/**
+	 * implements readPacket for Console application
+	 */
+	public String[] readPacket(PacketParser parser) {
+		String[] ret=new String[parser.getFields().length];
+		Scanner in = new Scanner(System.in);
 
-		for(int i=0; i<header.length;i++)
-			ret[i]=console.readLine();
+		for(int i=0; i<parser.getFields().length;i++)
+			ret[i]=in.nextLine();
+		in.close();  
 		return ret;
 	}
 
