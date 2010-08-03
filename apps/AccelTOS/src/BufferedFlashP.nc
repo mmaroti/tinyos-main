@@ -82,14 +82,22 @@ implementation
 
 	command error_t BufferedFlash.send(void *data, uint8_t length)
 	{
-		if( pending == BUFFER_SIZE )
-			return FAIL; // FIXME EBUSY ?
+		if( pending >= BUFFER_SIZE )
+			return EBUSY;
 
 		if( position + length > MAX_DATA_LENGTH )
+		{
 			call BufferedFlash.flush(); // Just posts a task and increments current
+
+			if( pending >= BUFFER_SIZE )
+				return FAIL;
+		}
 
 		memcpy(messages[current].data + position, data, length);
 		position += length;
+
+		if( position == MAX_DATA_LENGTH )
+			call BufferedFlash.flush();
 
 		return SUCCESS;
 	}

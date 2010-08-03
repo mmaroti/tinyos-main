@@ -58,13 +58,8 @@ module RadioHandlerP{
 
 implementation{
 	
-	enum {
-		SLEEP,
-		AWAKE,
-	};
-	
 	// Tracks state of radio
-	bool state = SLEEP;
+	bool radioOn = FALSE;
 
 	// Mode of the radio
 	uint8_t mode  = CONTINUOUS;
@@ -72,7 +67,6 @@ implementation{
 	// Guards message
 	bool sending = FALSE;
 	message_t message;
-
 
 	enum {
 		SAMPLESIZE = 14,
@@ -313,7 +307,7 @@ implementation{
 	event void AMControl.stopDone(error_t error) {
 
 		if (error == SUCCESS) {
-			state = SLEEP;
+			radioOn = FALSE;
 			call LedHandler.radioOff();
 		}		
 		else {
@@ -327,7 +321,7 @@ implementation{
 		
 		if (error == SUCCESS) {
 			
-			state = AWAKE;
+			radioOn = TRUE;
 			call LedHandler.radioOn();
 			
 			broadcast();
@@ -358,7 +352,7 @@ implementation{
 		// A A -> stop
 		// A C -> nothing, stay awake
 
-		if (state == SLEEP) {
+		if ( !radioOn ) {
 			error_t error = call AMControl.start();
 			ASSERT(error==SUCCESS);
 		}
@@ -371,7 +365,7 @@ implementation{
 	
 	event void ShortPeriod.fired() {
 
-		if (state == AWAKE && mode == ALTERING) {
+		if (radioOn && mode == ALTERING) {
 
 			if (call AMControl.stop() != SUCCESS)
 				call LedHandler.error();
