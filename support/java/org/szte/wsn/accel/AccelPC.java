@@ -84,17 +84,7 @@ final class Receiver implements MessageListener {
 			System.out.print("Data from mote "+dmsg.get_node_id());
 			System.out.println(", local time "+dmsg.get_local_time());
 		}
-//		if (counter%3==0) {
-//			ReportMsg msg = (ReportMsg) m;
-//			short mode = msg.get_mode()==0?(short)1:0;
-//			s.switchMode(msg.get_id(), mode);
-//		}
-//		else {
-//			System.out.println("Skipping message");
-//		}
-//		++counter;
 	}
-	
 }
 
 public final class AccelPC {
@@ -102,6 +92,13 @@ public final class AccelPC {
 	private final Sender s;
 	
 	private final Receiver r;
+
+	private static final short ALTERING      = 0;
+	private static final short CONTINUOUS    = 1;
+	private static final short FORMAT        = 2;
+	private static final short STARTSAMPLING = 5;
+	private static final short STOPSAMPLING  = 6;
+	private static final short SENDSAMPLES   = 7;
 
 	public AccelPC(MoteIF mif) {
 		s = new Sender(mif);
@@ -140,17 +137,19 @@ public final class AccelPC {
 
 		try {
 			
-			s.command(6, (short) 1);
+			final int MOTE_ID = 6;
 			
-			s.command(6, (short) 2);
-
-			s.command(6, (short) 5);
-
-			s.command(6, (short) 6);
+			s.command(MOTE_ID, CONTINUOUS);
 			
-			s.command(6, (short) 7);
+			s.command(MOTE_ID, FORMAT);
+
+			s.command(MOTE_ID, STARTSAMPLING);
+
+			s.command(MOTE_ID, STOPSAMPLING);
+			
+			s.command(MOTE_ID, SENDSAMPLES);
 		
-			s.command(6, (short) 0);
+			s.command(MOTE_ID, ALTERING);
 			
 //			while (true) {
 //				//s.switchMode(6, mode);
