@@ -31,7 +31,9 @@
  *
  * Author:Miklos Toth
  */
-package org.szte.wsn.dataprocess;
+package org.szte.wsn.dataprocess.parser;
+
+import org.szte.wsn.dataprocess.PacketParser;
 
 public class IntegerParser extends PacketParser{
 	int size;

@@ -31,11 +31,18 @@
  *
  * Author:Miklos Toth
  */
-package org.szte.wsn.dataprocess;
+package org.szte.wsn.dataprocess.file;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+
+import org.szte.wsn.dataprocess.BinaryInterface;
+import org.szte.wsn.dataprocess.Console;
+import org.szte.wsn.dataprocess.PacketParser;
+import org.szte.wsn.dataprocess.PacketTypes;
+import org.szte.wsn.dataprocess.StringInterface;
+import org.szte.wsn.dataprocess.ToSerial;
 
 
 public class FrameProcess {
@@ -129,7 +136,7 @@ public class FrameProcess {
 		for(BinaryInterface bIF:fp.readers){
 			for (PacketParser pp:fp.packetParsers){
 
-				fp.writer=new Consol(pp.getFields());
+				fp.writer=new Console(pp.getFields());
 				ArrayList<String[]> output=new ArrayList<String[]>();
 				for(byte data[]:bIF.readPackets()){
 					if(pp.parse(data)!=null)

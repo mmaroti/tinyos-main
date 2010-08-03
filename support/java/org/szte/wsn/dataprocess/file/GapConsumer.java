@@ -31,7 +31,7 @@
 *
 * Author:Andras Biro, Miklos Toth
 */
-package org.szte.wsn.dataprocess;
+package org.szte.wsn.dataprocess.file;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;

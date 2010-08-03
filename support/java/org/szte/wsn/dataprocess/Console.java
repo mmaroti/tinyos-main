@@ -41,11 +41,11 @@ import java.io.Console;
  *	implements StringInterface
  *	writes and reads Console
  */
-public class Consol implements StringInterface {
+public class Console implements StringInterface {
 	String separator;
 	String[] header;
 
-	public Consol(String[] header){
+	public Console(String[] header){
 		this.header=header;
 		separator="	";  //default separator is Tabulator
 	}

@@ -31,12 +31,14 @@
  *
  * Author:Miklos Toth
  */
-package org.szte.wsn.dataprocess;
+package org.szte.wsn.dataprocess.parser;
 
 
 
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import org.szte.wsn.dataprocess.PacketParser;
 public class StructParser extends PacketParser {
 
 	private PacketParser[] packetStruct;

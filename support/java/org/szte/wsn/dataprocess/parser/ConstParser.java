@@ -31,7 +31,7 @@
  *
  * Author:Miklos Toth
  */
-package org.szte.wsn.dataprocess;
+package org.szte.wsn.dataprocess.parser;
 
 import java.util.Arrays;
 

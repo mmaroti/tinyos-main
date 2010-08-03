@@ -31,13 +31,15 @@
 *
 * Author:Andras Biro, Miklos Toth
 */
-package org.szte.wsn.dataprocess;
+package org.szte.wsn.dataprocess.file;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+
+import org.szte.wsn.dataprocess.BinaryInterface;
 
 public class RawPacketConsumer implements BinaryInterface{
 	private File dataFile;

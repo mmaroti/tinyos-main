@@ -41,19 +41,6 @@ import java.util.ArrayList;
  * 
  */
 public interface BinaryInterface {
-
-	/**
-	 * gives an ArrayList of byte[] to the parser from the reader
-	 * @return binary data, every ArrayList element is a packet
-	 */
-	ArrayList<byte[]> readPackets();	
-	
-	/**
-	 * sends ArrayList of byte[] to the reader
-	 * @param frames ArrayList<byte[]>
-	 */
-	void writePackets(ArrayList<byte[]> frames) throws IOException;
-	
 	/**
 	 * gives a byte[] of one packet to the parser from the reader
 	 * @return binary data, of a packet
@@ -64,6 +51,6 @@ public interface BinaryInterface {
 	 * sends a byte[] to the reader
 	 * @param frames byte[]
 	 */
-	void writePacket(byte[] frame) throws IOException;
+	void writePacket(PacketParser parser, byte[] frame) throws IOException;
 	//exception
 }

@@ -37,6 +37,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.szte.wsn.dataprocess.parser.ArrayParser;
+import org.szte.wsn.dataprocess.parser.ConstParser;
+import org.szte.wsn.dataprocess.parser.IntegerParser;
+import org.szte.wsn.dataprocess.parser.StructParser;
+
 
 public class PacketTypes {	
 	PacketParser[] packetParsers;

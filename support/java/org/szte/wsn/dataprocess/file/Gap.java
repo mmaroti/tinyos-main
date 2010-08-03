@@ -31,7 +31,7 @@
 *
 * Author:Miklos Toth, Andras Biro
 */
-package org.szte.wsn.dataprocess;
+package org.szte.wsn.dataprocess.file;
 public class Gap {
 		private long start, end;
 		private boolean unrepairable;

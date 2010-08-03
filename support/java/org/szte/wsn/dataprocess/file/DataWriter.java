@@ -31,7 +31,7 @@
 *
 * Author:Andras Biro
 */
-package org.szte.wsn.dataprocess;
+package org.szte.wsn.dataprocess.file;
 
 import java.io.BufferedWriter;
 import java.io.File;
