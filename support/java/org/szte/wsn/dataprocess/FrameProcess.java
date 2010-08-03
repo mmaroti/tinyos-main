@@ -126,8 +126,15 @@ public class FrameProcess {
 		
 		for(BinaryInterface bIF:fp.readers){
 			for (PacketParser pp:fp.packetParsers){
+
 				fp.writer=new Consol(pp.getFields());
-				fp.writer.writePacket(pp.parse(bIF.readPacket()));
+				ArrayList<String[]> output=new ArrayList<String[]>();
+				for(byte data[]:bIF.readPackets()){
+					if(pp.parse(data)!=null)
+					output.add(pp.parse(data));
+				}
+				if(output.size()>0)					
+					fp.writer.writePackets(output);
 		}
 	}
 	}

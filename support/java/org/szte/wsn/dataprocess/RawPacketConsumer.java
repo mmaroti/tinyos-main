@@ -44,6 +44,7 @@ public class RawPacketConsumer implements BinaryInterface{
 	private ArrayList<byte[]>frames=new ArrayList<byte[]>();
 	private ArrayList<Gap> gaps = new ArrayList<Gap>();    
 	private int nodeid;	
+	private int actualFrame;
 
 	public RawPacketConsumer(String path, ArrayList<Gap> gaps, byte frame, byte escape, byte xorescaped) throws IOException{
 		if(path.endsWith(".bin")){
@@ -51,7 +52,8 @@ public class RawPacketConsumer implements BinaryInterface{
 			nodeid=Integer.parseInt(path.substring(path.lastIndexOf('/')+1, path.length()-4));			
 			initDataFile(path);
 			this.gaps=gaps;
-			frames=	makeFrames(frame, escape, xorescaped);		
+			frames=	makeFrames(frame, escape, xorescaped);	
+			actualFrame=0;
 		} else
 			throw new FileNotFoundException();
 	}
@@ -154,8 +156,11 @@ public class RawPacketConsumer implements BinaryInterface{
 
 	@Override
 	public byte[] readPacket() {
-		// TODO Auto-generated method stub //read the next frame
-		return null;
+		if (actualFrame<frames.size())			
+			return frames.get(actualFrame++);			
+		
+		else
+			return null;
 	}
 
 	@Override
