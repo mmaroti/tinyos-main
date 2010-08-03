@@ -33,8 +33,6 @@
 */
 package org.szte.wsn.dataprocess;
 
-import java.util.ArrayList;
-
 /**
  * interface of communication between the parsers and writers
  * 
@@ -42,22 +40,10 @@ import java.util.ArrayList;
 public interface StringInterface {
 
 	/**
-	 * gives an ArrayList of String[] to the writer from the parser to write
-	 * 
-	 */
-	void writePackets(ArrayList<String[]> parsedData);
-	
-	/**
 	 * gives a String[] to the writer from the parser to write
 	 * 
 	 */
-	void writePacket(String[] parsedData);	
-	
-	/**
-	 * gives an ArrayList of String[] from the writer to the parser
-	 * 
-	 */
-	ArrayList<String[]> readPackets();
+	void writePacket(String[] parsedData);		
 	
 	/**
 	 * gets a String[] from the writer to the parser

@@ -34,7 +34,6 @@
 package org.szte.wsn.dataprocess;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 /**
  * interface of communication between the data readers and parsers
