@@ -79,7 +79,7 @@ public class FrameProcess {
 			sourcePath=new String[]{args[1]};
 		}
 		
-		else usageThanExit(); //the first argument must be a file or a directory
+		else usageThanExit(); //the first argument must be the type of the source
 
 	};
 	public BinaryInterface[] getReaders(){

@@ -52,9 +52,11 @@ public class ArrayParser extends PacketParser{
 	 * @param packetType the type of PacketParser array
 	 * @param size of the array
 	 */
-	public ArrayParser(PacketParser packetType,  int size){
+	public ArrayParser(PacketParser packetType,  int size){		
 		this.size=size;
 		this.packetType= packetType;
+		this.name=packetType.name;
+		this.type=packetType.type;
 	}
 	
 	@Override

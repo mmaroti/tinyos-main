@@ -99,12 +99,13 @@ public class PacketTypes {
 			}
 			else{
 				ArrayList<PacketParser> variableArray=new ArrayList<PacketParser>();
-				String[] parts=words[wc].split(" ");
+				String[] parts=words[wc].split("\\{");
+				
+				parts=parts[0].split(" ");
+				String parserName=parts[parts.length-1].replaceAll("[^\\w]", "");;
 			    
-				String parserName=parts[1].replaceAll("[^\\w]", "");;
-			    
-				parts=words[wc].split("\\{");
-				words[wc]=parts[1];
+				
+				words[wc]=words[wc].split("\\{")[1];
 				while((wc<words.length)&&(!words[wc].contains("}"))){
 					
 					words[wc]=words[wc].trim();
