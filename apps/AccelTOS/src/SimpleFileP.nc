@@ -32,6 +32,9 @@
 * Author: Miklos Maroti, Ali Baharev
 */
 
+// FIXME Introduce a function to read from a position, it is in RadioHandler now 
+
+// FIXME Make it possible to start everything from sector N
 #include "Assert.h"
 
 module SimpleFileP

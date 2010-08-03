@@ -72,22 +72,25 @@ implementation{
 	// Guards message
 	bool sending = FALSE;
 	message_t message;
-	
-	// Guards sector
-	bool diskBusy = FALSE;
-	
+
+
 	enum {
 		SAMPLESIZE = 14,
-		END_OF_DATA = 127, // FIXME Magic numbers
+		END_OF_DATA = 127, // FIXME Magic numbers, not updated automagically
 	};
 	
 	enum {
 		MAX_DATA_LEN = 510
 	};
-
-	uint8_t sector[MAX_DATA_LEN]; // Guarded by diskBusy
+	
+	// Guards sector[]
+	bool diskBusy = FALSE;
+	
+	uint8_t sector[MAX_DATA_LEN];
 	uint16_t head = 0;
 	uint16_t tail = 0;
+	
+	// Schedules a sendSampleMsg task
 	bool pending = FALSE;
 
 	void dump(char* msg) {
@@ -140,13 +143,14 @@ implementation{
 			return;
 		}
 		
+		// FIXME This ugliness together with the locking should be pushed to SimpleFileP
 		error = call Disk.seek(0);
 		
 		if (!error) {
 			diskBusy = TRUE; // TODO Unlock !
 		}
 		else {
-			call LedHandler.error();
+			ASSERT(FAIL);
 		}
 	}
 	
@@ -157,61 +161,8 @@ implementation{
 		}
 		
 		if (error) {
-			call LedHandler.error();
+			ASSERT(FAIL);
 			diskBusy = FALSE;
-		}
-	}
-	
-	task void sendSampleMsg() {
-		
-		error_t error;
-
-		if (pending) {
-			dump("pending");
-			return;
-		}
-
-		if ((tail-head)>=SAMPLESIZE) {
-
-			dumpInt("head", head);
-		
-			error = call BufferedSend.send(sector+head, SAMPLESIZE);
-			
-			if (!error) {
-				head += SAMPLESIZE;
-				call LedHandler.sendingToggle();
-				dump("buffSendOK");
-			}
-			else {
-				dump("buffSendFail");
-			}
-			
-			pending = TRUE;
-		}
-		else {
-			
-			call BufferedSend.flush();
-			call LedHandler.sendingToggle();
-			dump("endSector");
-			error = call Disk.read(sector, MAX_DATA_LEN);
-			
-			if      (error == EBUSY) {
-				pending = TRUE;
-			}
-			if (error == END_OF_DATA) {
-				call Download.stop();
-				diskBusy = FALSE;
-				dump("endDisc");
-			}			
-		}
-	}
-	
-	event void Download.fired(){
-
-		if (diskBusy&&pending) {
-			post sendSampleMsg();
-			pending = FALSE;
-			dump("postDone");
 		}
 	}
 	
@@ -229,7 +180,83 @@ implementation{
 		}
 		else {
 			ASSERT(FAIL);
-			diskBusy = FALSE; // TODO Check how sector is guarded?
+			diskBusy = FALSE;
+		}
+	}
+	
+	task void sendSampleMsg();
+	
+	// FIXME Proper speed of downloading?
+	event void Download.fired(){
+
+		if (diskBusy&&pending) {
+			post sendSampleMsg();
+			pending = FALSE;
+			dump("postDone");
+		}
+	}
+	
+	void sendNextMessage() {
+
+		error_t error;
+		
+		dumpInt("head", head);
+		// FIXME What if msg never reaches destination, ACK?
+		error = call BufferedSend.send(sector+head, SAMPLESIZE);
+		
+		if (!error) {
+			head += SAMPLESIZE;
+			call LedHandler.sendingToggle();
+			dump("buffSendOK");
+		}
+		else {
+			dump("buffSendFail");
+		}
+		
+		pending = TRUE;
+	}
+	
+	void getNextSector() {
+		
+		error_t error;
+		
+		call BufferedSend.flush();
+		call LedHandler.sendingToggle();
+		dump("endSector");
+		
+		error = call Disk.read(sector, MAX_DATA_LEN);
+		
+		if      (error == EBUSY) {			
+			pending = TRUE;
+		}		
+		else if (error == END_OF_DATA) {			
+			call Download.stop();
+			// TODO On updating the source check how sector is guarded!
+			diskBusy = FALSE;
+			dump("endDisc");
+		}
+		else if (error==SUCCESS) {
+			;
+		}
+		else {
+			ASSERT(FAIL);
+		}
+	}
+	
+	task void sendSampleMsg() {
+
+		if (pending) {
+			ASSERT(FAIL);
+			return;
+		}
+
+		if ((tail-head)>=SAMPLESIZE) {
+
+			sendNextMessage();
+		}
+		else {
+			ASSERT(tail==head);
+			getNextSector();
 		}
 	}
 
@@ -243,6 +270,8 @@ implementation{
 		
 		call LedHandler.msgReceived();
 
+		// FIXME What if diskBusy?
+		// TODO New command cancel download?
 		if      (cmd == ALTERING)   {
 			mode = ALTERING;
 			call ShortPeriod.startOneShot(50);
@@ -287,13 +316,13 @@ implementation{
 			state = SLEEP;
 			call LedHandler.radioOff();
 		}		
-		else
+		else {
 			call LedHandler.error();
+		}
 	}
 
 	event void AMControl.startDone(error_t error) {
 		
-		// FIXME Only DiadMsg could have started the radio
 		ASSERT(error == SUCCESS);
 		
 		if (error == SUCCESS) {
@@ -313,37 +342,31 @@ implementation{
 	}
 
 	command error_t SplitControl.stop(){
-		// TODO Auto-generated method stub
+		// TODO Not implemented yet
 		call LedHandler.error();
 		return FAIL;
 	}
 
 	command error_t SplitControl.start(){
-		// FIXME Finish impl of start
 
 		return call AMControl.start();
 	}
 
 	event void WatchDog.fired(){
-
-		error_t error = SUCCESS;
-
 		// S A -> start
 		// S C -> start
 		// A A -> stop
 		// A C -> nothing, stay awake
 
-		if      (state == SLEEP) {
-			error = call AMControl.start();
+		if (state == SLEEP) {
+			error_t error = call AMControl.start();
+			ASSERT(error==SUCCESS);
 		}
 		else {
 			broadcast();
 			if (mode == ALTERING)
 				call ShortPeriod.startOneShot(50);
 		}
-
-		if (error != SUCCESS)
-			call LedHandler.error();
 	}
 	
 	event void ShortPeriod.fired() {
@@ -355,14 +378,14 @@ implementation{
 		}
 	}
 
-	event void Disk.formatDone(error_t error){		
+	event void Disk.formatDone(error_t error) {		
 		diskBusy = FALSE;		
 		call LedHandler.diskReady();		
 		if (error)
 			call LedHandler.error();
 	}
 
-	event void Disk.appendDone(error_t error){
+	event void Disk.appendDone(error_t error) {
 		diskBusy = FALSE;		
 		call LedHandler.diskReady();		
 		if (error)

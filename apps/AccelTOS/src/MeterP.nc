@@ -35,6 +35,7 @@
 #include <message.h>
 #include <Mma7260.h>
 #include "ShimmerAdc.h"
+#include "Assert.h"
 
 module MeterP
 {
@@ -66,9 +67,6 @@ implementation
 		SHIMMER_ADC_ACCEL_X, 
 		SHIMMER_ADC_ACCEL_Y,
 		SHIMMER_ADC_ACCEL_Z,
-//		SHIMMER_ADC_GYRO_X, 
-//		SHIMMER_ADC_GYRO_Y,
-//		SHIMMER_ADC_GYRO_Z,
 		SHIMMER_ADC_BATTERY,
 		SHIMMER_ADC_TEMP,
 	};
@@ -123,19 +121,16 @@ implementation
 		return error;
 	}
 
-	//message_t msgBuffer; FIXME Unused?
+	//message_t msgBuffer; FIXME Unused in TestShimmer?
 
 	event void Timer.fired()
 	{
 		if( call ShimmerAdc.sample() != SUCCESS ) {
-			call LedHandler.errorToggle();// FIXME Why does it fail?
-			dump("Sample fail");
-			//call LedHandler.error(); 
+			ASSERT(FAIL);
 		}
 		else {
 			dump("SamplingStarted");
 		}
-
 	}
 
 	event void ShimmerAdc.sampleDone(uint32_t timestamp, uint16_t* data)
@@ -148,28 +143,11 @@ implementation
 
 		error = call BufferedFlash.send(data - 2, 4 + CHANNEL_COUNT*2); // FIXME Magic numbers
 		
-		if (error)
-		  call LedHandler.errorToggle();
-		/*
-		if (error)
-			call LedHandler.set(2);
-		else
-			call LedHandler.set(0);
-
-		if( call DiagMsg.record() )
-		{
-			call DiagMsg.uint32(timestamp);
-			call DiagMsg.uint16(data[0]);
-			call DiagMsg.uint16(data[1]);
-			call DiagMsg.uint16(data[2]);
-			call DiagMsg.uint16(data[3]);
-			call DiagMsg.send();
-		}
-*/
+		ASSERT(error==SUCCESS);
 	}
 
 	command error_t Meter.stopRecording(){
-		
+		// FIXME What if sampleDone is pending?
 		error_t error = SUCCESS;
 		
 		if (call Timer.isRunning()) {
