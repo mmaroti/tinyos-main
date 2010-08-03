@@ -56,8 +56,8 @@ public class ArrayParser extends PacketParser{
 	public ArrayParser(PacketParser packetType,  int size){		
 		this.size=size;
 		this.packetType= packetType;
-		this.name=packetType.name;
-		this.type=packetType.type;
+		this.name=packetType.getName();
+		this.type=packetType.getType();
 	}
 	
 	@Override

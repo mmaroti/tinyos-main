@@ -137,16 +137,7 @@ public class RawPacketConsumer implements BinaryInterface{
 	public void setGaps(ArrayList<Gap> gaps) {
 		this.gaps = gaps;
 	}
-	
-	@Override
-	public void writePackets(ArrayList<byte[]> frames) {
-		this.frames = new ArrayList<byte[]>(frames);
-	}
-	
-	@Override
-	public ArrayList<byte[]> readPackets() {
-		return frames;
-	}
+
 
 	public int getNodeid() {
 		return nodeid;

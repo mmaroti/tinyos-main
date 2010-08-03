@@ -129,7 +129,7 @@ public class FrameProcess {
 		FrameProcess fp=new FrameProcess();
 		fp.setArgs(args);
 		
-		fp.packetParsers=new PacketTypes(args.length>2?args[2]:"").getParsers();		
+		fp.packetParsers=new PacketTypes(args.length>2?args[2]:"").PacketPagetParsers();		
 			
 		fp.readers=fp.getReaders();		
 		
