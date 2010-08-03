@@ -50,6 +50,6 @@ public interface BinaryInterface {
 	 * sends a byte[] to the reader
 	 * @param frames byte[]
 	 */
-	void writePacket(PacketParser parser, byte[] frame) throws IOException;
+	void writePacket(byte[] frame) throws IOException;
 	//exception
 }

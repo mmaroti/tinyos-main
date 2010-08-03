@@ -49,5 +49,5 @@ public interface StringInterface {
 	 * gets a String[] from the writer to the parser
 	 * 
 	 */
-	String[] readPacket();	
+	String[] readPacket(PacketParser parser);	
 }
