@@ -37,9 +37,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.szte.wsn.dataprocess.parser.ArrayParser;
-import org.szte.wsn.dataprocess.parser.ConstParser;
-import org.szte.wsn.dataprocess.parser.IntegerParser;
+
 import org.szte.wsn.dataprocess.parser.StructParser;
 
 
@@ -94,7 +92,7 @@ public class PacketTypes {
 				String[] parts=words[wc].split(" ");
 				String parserName=parts[parts.length-1];
 				String parserType=words[wc].substring(0, (words[wc].length()-parserName.length())).trim();
-				PacketParser pp=getPacketParser(returnArray.toArray(new PacketParser[returnArray.size()]), parserName, parserType);
+				PacketParser pp=PacketParserFactory.getPacketParser(returnArray.toArray(new PacketParser[returnArray.size()]), parserName, parserType);
 				if(pp!=null)						
 					returnArray.add(pp);
 				else{
@@ -118,7 +116,7 @@ public class PacketTypes {
 					String variableName=parts[parts.length-1];
 					String variableType=words[wc].substring(0, (words[wc].length()-variableName.length())).trim();
 					
-					PacketParser pp=getPacketParser(returnArray.toArray(new PacketParser[returnArray.size()]), variableName, variableType);
+					PacketParser pp=PacketParserFactory.getPacketParser(returnArray.toArray(new PacketParser[returnArray.size()]), variableName, variableType);
 					if(pp!=null)						
 						variableArray.add(pp);
 					else{
@@ -159,47 +157,5 @@ public class PacketTypes {
 		}			
 		return null;
 	}
-	/**
-	 * 
-	 * @param packetArray existing PacketParsers
-	 * @param name param of the new PacketParser
-	 * @param type param of the new PacketParser
-	 * @return new PacketParser according to the parameters,
-	 *  null if the type doesn't fit on any available PacketParser
-	 */
-	public static PacketParser getPacketParser(PacketParser[] packetArray, String name, String type){
-		int pos=contains(packetArray,type);
-		if((name.contains("="))&&(type.contains("int"))){
-			String[] parts=name.split("=");
-			return new ConstParser(parts[0], type, parts[1]);
-		}
-		else if(pos>-1){
-			return packetArray[pos];
-		}	
-		else if(name.contains("[")){
-			//size of the array
-			int size=Integer.parseInt(name.substring(name.indexOf("[")+1,name.indexOf("]")));
-			  
-			return new ArrayParser(getPacketParser(packetArray, name.substring(0,name.indexOf("[")), type), size);  //deletes the [n] tag to avoid recursion 
-		}
-		else if(type.contains("int"))
-		{ 		
-			return new IntegerParser(name, type);
-		}
-		else
-			return null;
-	}
-/**
- * 
- * @param packetArray already existing PacketParsers
- * @param type searched type
- * @return the position of this type in the PacketArray, 
- * or -1 if it isn't in it
- */
-	public static int contains(PacketParser[] packetArray,String type) {
-		for(int i=0;i<packetArray.length;i++)
-			if(packetArray[i].getName().equals(type))
-				return i;
-		return -1;
-	}
+	
 }
