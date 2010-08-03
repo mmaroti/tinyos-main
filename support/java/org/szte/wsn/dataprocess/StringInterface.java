@@ -43,7 +43,7 @@ public interface StringInterface {
 	 * gives a String[] to the writer from the parser to write
 	 * 
 	 */
-	void writePacket(String[] parsedData);		
+	void writePacket(PacketParser parser, String[] parsedData);		
 	
 	/**
 	 * gets a String[] from the writer to the parser
