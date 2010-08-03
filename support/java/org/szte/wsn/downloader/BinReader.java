@@ -247,14 +247,14 @@ public class BinReader {
 		System.out.println("	-t; --converttime: convert the time to human readable format");
 		System.out.println("	-r; --rewrite: rewrite the output file if exists");
 		System.out.println("	-o; --output <filename>: the filename of the generated output");
-		System.out.println("				default: The input filename with csv extension");
+		System.out.println("				default: The input filename with txt extension");
 		System.out.println("	-e; --maxtimeerror <number>: The maximum of the enabled error during timesync in seconds");
 		System.out.println("				default:120");
 		System.exit(0);
 	}
 	
 	public static void main(String[] args) throws Exception {
-		if(args.length<2||args[args.length-2].startsWith("--")||args[args.length-1].startsWith("--"))
+		if(args.length<1||args[args.length-2].startsWith("--")||args[args.length-1].startsWith("--"))
 			BinReader.usageThanExit();
 		boolean convert=false;
 		boolean converttime=false;
