@@ -84,8 +84,8 @@ public class ToSerial implements BinaryInterface{
 		
 	}
 	
-	public static void main(){
-		ToSerial ts=new ToSerial();
+	public static void main(String[] args){
+		ToSerial ts=new ToSerial(args[0]);
 		while(true){
 			byte[] buffer=ts.readPacket();
 			if(buffer!=null){
