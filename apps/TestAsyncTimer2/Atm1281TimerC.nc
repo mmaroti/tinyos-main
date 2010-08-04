@@ -44,14 +44,16 @@ configuration Atm1281TimerC
 
 implementation
 {
-	components new AtmAsyncCounterP(T32khz, ATM1281_CLK8_NORMAL, ATM1281_WAVE8_NORMAL | ATM1281_ASYNC_ON), HplAtm1281Timer2P;
-	Counter2 = AtmAsyncCounterP;
-	Alarm2A = AtmAsyncCounterP;
-	AtmAsyncCounterP.Timer -> HplAtm1281Timer2P;
-	AtmAsyncCounterP.Compare -> HplAtm1281Timer2P;
+	components new AtmAsyncTimerP(T32khz, ATM1281_CLK8_NORMAL, ATM1281_WAVE8_NORMAL | ATM1281_ASYNC_ON), HplAtm1281Timer2P;
+	Counter2 = AtmAsyncTimerP;
+	Alarm2A = AtmAsyncTimerP;
+	AtmAsyncTimerP.Timer -> HplAtm1281Timer2P;
+	AtmAsyncTimerP.Compare -> HplAtm1281Timer2P;
 
-	components LedsC, MainC;
-	AtmAsyncCounterP.Leds -> LedsC;
-	MainC.SoftwareInit -> AtmAsyncCounterP;
+	components LedsC, MainC, McuSleepC;
+	AtmAsyncTimerP.Leds -> LedsC;
+	MainC.SoftwareInit -> AtmAsyncTimerP;
 	HplAtm1281Timer2P.Leds -> LedsC;
+	HplAtm1281Timer2P.McuPowerOverride <- McuSleepC;
+	HplAtm1281Timer2P.McuPowerState -> McuSleepC;
 }

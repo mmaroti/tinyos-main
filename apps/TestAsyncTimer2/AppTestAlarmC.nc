@@ -31,21 +31,21 @@
 * Author: Miklos Maroti
 */
 
-configuration TestApp2C
+configuration AppTestAlarmC
 { 
 } 
 
 implementation
 {
-	components MainC, TestApp2P, LedsC, McuSleepC, DiagMsgC, SerialActiveMessageC,
+	components MainC, AppTestAlarmP, LedsC, McuSleepC, DiagMsgC, SerialActiveMessageC,
 		Atm1281TimerC;
 
-	TestApp2P.Boot -> MainC;
-	TestApp2P.Leds -> LedsC;
-	TestApp2P.DiagMsg -> DiagMsgC;
-	TestApp2P.Alarm -> Atm1281TimerC;
-	TestApp2P.Counter -> Atm1281TimerC;
-	TestApp2P.SplitControl -> SerialActiveMessageC;
+	AppTestAlarmP.Boot -> MainC;
+	AppTestAlarmP.Leds -> LedsC;
+	AppTestAlarmP.DiagMsg -> DiagMsgC;
+	AppTestAlarmP.Alarm -> Atm1281TimerC;
+	AppTestAlarmP.Counter -> Atm1281TimerC;
+	AppTestAlarmP.SplitControl -> SerialActiveMessageC;
 
 	McuSleepC.Leds -> LedsC;
 }

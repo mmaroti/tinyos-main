@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/** Copyright (c) 2009, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -31,17 +31,76 @@
 * Author: Miklos Maroti
 */
 
-configuration TestAppC
-{ 
-} 
+module AppTestCounterP
+{
+	uses
+	{
+		interface Boot;
+		interface Leds;
+
+		interface DiagMsg;
+		interface SplitControl;
+
+		interface Counter<T32khz, uint16_t>;
+	}
+}
 
 implementation
 {
-	components MainC, TestAppP, LedsC, McuSleepC, new TimerMilliC();
+	int16_t minStep;
+	int16_t maxStep;
 
-	TestAppP.Boot -> MainC;
-	TestAppP.Leds -> LedsC;
-	TestAppP.Timer -> TimerMilliC;
+	task void testStep()
+	{
+		uint16_t a,b;
+		int16_t d;
 
-	McuSleepC.Leds -> LedsC;
+		atomic
+		{
+			a = call Counter.get();
+			b = call Counter.get();
+		}
+
+//		if( (a & 0xFF) == 0 )
+		{
+			d = b-a;
+
+			if( d < minStep )
+				minStep = d;
+			if( d > maxStep )
+				maxStep = d;
+		}
+
+		post testStep();
+	}
+
+	task void report()
+	{
+		if( call DiagMsg.record() )
+		{
+			call DiagMsg.str("step");
+			call DiagMsg.int16(minStep);
+			call DiagMsg.int16(maxStep);
+			call DiagMsg.send();
+		}
+
+		minStep = 32767;
+		maxStep = -32767;
+
+	}
+
+	async event void Counter.overflow()
+	{
+		call Leds.led2Toggle();
+		post report();
+	}
+
+	event void Boot.booted()
+	{
+		call SplitControl.start();
+		post testStep();
+	}
+
+	event void SplitControl.startDone(error_t result) { }
+	event void SplitControl.stopDone(error_t result) { }
 }

@@ -31,7 +31,7 @@
 * Author: Miklos Maroti
 */
 
-generic module AtmAsyncCounterP(typedef precision, uint8_t prescaler, uint8_t mode)
+generic module AtmAsyncTimerP(typedef precision, uint8_t prescaler, uint8_t mode)
 {
 	provides
 	{
@@ -65,22 +65,35 @@ implementation
 
 	volatile uint8_t high;
 
+	/*
+	 * Without prescaler the interrupt occurs when the counter goes from 0 to 1,
+	 * so we can have two posible sequences of events
+	 *
+	 *	TST=0, CNT=0, TST=1, CNT=1, TST=1 ... TST=1, CNT=1, TST=0
+	 *	TST=0, CNT=0, TST=0, CNT=1, TST=1 ... TST=1, CNT=1, TST=0
+	 *
+	 * With the prescaler enabled the interrupt occurs while the counter is 0
+	 * (one 32768 HZ tick after the counter became 0), so we have one possibility:
+	 *
+	 *	TST=0, CNT=0, TST=1, CNT=0, TST=1 ... TST=1, CNT=0, TST=0
+	 */
+
 	async command uint16_t Counter.get()
 	{
 		uint8_t a, b;
+		bool c;
 
 		atomic
 		{
 			b = call Timer.get();
+			c = call Timer.test();
 			a = high;
-			if( call Timer.test() )
-			{
-				a += 1;
-				b = call Timer.get();
-			}
 		}
 
-		// overflow occurs when the counter goes from 0 to 1
+		if( c && b != 0 )
+			a += 1;
+
+		// overflow occurs when switching from 0 to 1.
 		b -= 1;
 
 		return (((uint16_t)a) << 8) + b;
@@ -97,7 +110,7 @@ implementation
 	}
 
 	uint16_t alarm;
-	bool started;
+	uint8_t alarmWait;
 
 	// called in atomic context
 	async event void Timer.overflow()
@@ -106,64 +119,77 @@ implementation
 
 		if( high == 0 )
 			signal Counter.overflow();
-
-		if( high == (alarm >> 8) && started )
-		{
-			if( ((uint8_t)alarm) > 3 )
-				call Compare.reset();
-
-			call Compare.start();
-		}
 	}
 
+	default async event void Alarm.fired() { }
+
+	// called in atomic context
 	async event void Compare.fired()
 	{
-		started = FALSE;
-		signal Alarm.fired();
+		uint8_t h = high;
+		if( call Timer.test() )
+			h += 1;
+
+		if( h == (alarm >> 8) )
+		{
+			call Compare.stop();
+			signal Alarm.fired();
+		}
 	}
 
 	async command void Alarm.stop()
 	{
-		call Compare.stop();
-		atomic started = FALSE;
+//		call Compare.stop();
 	}
 
 	async command bool Alarm.isRunning()
 	{
-		atomic return started;
+//		atomic return call Compare.isOn();
+		return FALSE;
+	}
+
+	// callers make sure that time is always in the future
+	void setAlarm(uint16_t time)
+	{
+		call Compare.set((uint8_t)time);
+
+		alarm = time;
+
+//		if( high == (time >> 8) )
+//		{
+			call Compare.start();
+			call Compare.reset();
+//		}
+//		else
+//			call Compare.stop();
 	}
 
 	async command void Alarm.startAt(uint16_t nt0, uint16_t ndt)
 	{
-		uint16_t n, a;
-
-		// current time + time needed to set alarm
-		n = call Counter.get() + 3;
-
-		// the amout of time passed since nt0
-		a = n - nt0;
-
-		// if alarm is set in the past or too close to now
-		if( a >= ndt )
-			a = n;
-		else 
-			a = nt0 + ndt;
-
 		atomic
 		{
-			alarm = a;
-			started = TRUE;
+			// current time + time needed to set alarm
+			uint16_t n = call Counter.get() + 4;
 
-			call Compare.set((uint8_t)alarm);
-			call Compare.reset();
-			if( high == (alarm >> 8) )
-				call Compare.start();
+			// if alarm is set in the future, where n-nt0 is the time passed since nt0
+			if( (uint16_t)(n - nt0) < ndt )
+				n = nt0 + ndt;
+
+			setAlarm(n);
 		}
 	}
 
 	async command void Alarm.start(uint16_t ndt)
 	{
-		call Alarm.startAt(call Counter.get(), ndt);
+		atomic
+		{
+			uint16_t n = call Counter.get();
+
+			// calculate the next alarm
+			n += (4 > ndt) ? 4 : ndt;
+
+			setAlarm(n);
+		}
 	}
 
 	async command uint16_t Alarm.getNow()

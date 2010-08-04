@@ -41,77 +41,116 @@ module HplAtm1281Timer2P @safe()
 		interface HplAtmTimer<uint8_t> as Timer;
 		interface HplAtmCompare<uint8_t> as CompareA;
 //		interface HplAtmCompare<uint8_t> as CompareB;
-//		interface McuPowerOverride;
+		interface McuPowerOverride;
 	}
 
 	uses
 	{
 		interface Leds;
+		interface McuPowerState;
 	}
 }
 
 implementation
 {
-// ----- timer counter register (TCNT) 
+/*
+	Updating certain registers take 1-2 32768 KHz clock ticks if the timer 
+	is running asynchronously, so we have to monitor when these updates are 
+	propagated. We always check ASSR before updating these registers, and we 
+	do not wait for completion after the change to make good use of the 
+	processor time. However, we force the mcu power state calculation and 
+	before entering power down mode we wait for the completion of these 
+	register updates.
+*/
+// ----- TIMER: timer counter register (TCNT)
 
-	async command uint8_t Timer.get() { return TCNT2; }
+	async command uint8_t Timer.get()
+	{
+		atomic
+		{
+//			TCCR2A = TCCR2A;
+//			while( ASSR & (1 << TCR2AUB) )
+//				;
+
+			return TCNT2;
+		}
+	}
 
 	async command void Timer.set(uint8_t value)
 	{
 		atomic
 		{
-			TCNT2 = value;
 			while( ASSR & (1 << TCN2UB) )
 				;
+
+			TCNT2 = value;
 		}
+
+		call McuPowerState.update();
 	}
 
-// ----- timer interrupt flag register (TIFR), timer overflow flag (TOV)
+// ----- TIMER: timer interrupt flag register (TIFR), timer overflow flag (TOV)
 
 	default async event void Timer.overflow() { }
 
 	AVR_ATOMIC_HANDLER(SIG_OVERFLOW2) { signal Timer.overflow(); }
 
 	async command bool Timer.test() { return TIFR2 & (1 << TOV2); }
-	
+
 	async command void Timer.reset() { TIFR2 = 1 << TOV2; }
 
-// ----- timer interrupt mask register (TIMSK), timer overflow interrupt enable (TOIE)
+// ----- TIMER: timer interrupt mask register (TIMSK), timer overflow interrupt enable (TOIE)
 
-	async command void Timer.start() { SET_BIT(TIMSK2, TOIE2); }
+	async command void Timer.start()
+	{
+		SET_BIT(TIMSK2, TOIE2);
 
-	async command void Timer.stop() { CLR_BIT(TIMSK2, TOIE2); }
+		call McuPowerState.update();
+	}
+
+	async command void Timer.stop()
+	{
+		CLR_BIT(TIMSK2, TOIE2);
+
+		call McuPowerState.update();
+	}
 
 	async command bool Timer.isOn() { return TIMSK2 & (1 << TOIE2); }
 
-// ----- timer control register (TCCR), clock select bits (CS)
+// ----- TIMER: timer control register (TCCR), clock select bits (CS)
 
 	async command void Timer.setScale(uint8_t scale)
 	{
 		scale &= 0x07;
+
 		atomic
 		{
-			TCCR2B = (TCCR2B & 0xF8) | scale;
 			while( ASSR & (1 << TCR2BUB) )
 				;
+
+			TCCR2B = (TCCR2B & 0xF8) | scale;
 		}
+
+		call McuPowerState.update();
 	}
 
 	async command uint8_t Timer.getScale() { return TCCR2B & 0x07; }
 
-// ----- timer control register (TCCR), waveform generation mode (WGM)
+// ----- TIMER: timer control register (TCCR), waveform generation mode (WGM)
 
 	async command void Timer.setMode(uint8_t mode)
 	{
 		atomic
 		{
+			while( ASSR & (1 << TCR2AUB | 1 << TCR2BUB) )
+				;
+
 			ASSR = (ASSR & 0x9F) | (mode & 0x60);
 			TCCR2A = (TCCR2A & 0xFC) | (mode & 0x03);
 			TCCR2B = (TCCR2B & 0xF7) | ((mode & 0x04) << 1);
-
-			while( ASSR & (1 << TCR2BUB) )
-				;
 		}
+
+		call McuPowerState.update();
 	}
 
 	async command uint8_t Timer.getMode()
@@ -128,7 +167,7 @@ implementation
 		return (a & 0x60) | (b & 0x03) | ((c >> 1) & 0x04);
 	}
 
-// ----- output compare register (OCR) 
+// ----- COMPAREA: output compare register (OCR)
 
 	async command uint8_t CompareA.get() { return OCR2A; }
 
@@ -136,41 +175,58 @@ implementation
 	{
 		atomic
 		{
-			OCR2A = value;
 			while( ASSR & (1 << OCR2AUB) )
 				;
+
+			OCR2A = value;
 		}
+
+		call McuPowerState.update();
 	}
 
-// ----- timer interrupt flag register (TIFR), output comare match flag (OCF)
+// ----- COMPAREA: timer interrupt flag register (TIFR), output comare match flag (OCF)
 
 	default async event void CompareA.fired() { }
 
 	AVR_ATOMIC_HANDLER(SIG_OUTPUT_COMPARE2A) { signal CompareA.fired(); }
 
 	async command bool CompareA.test() { return TIFR2 & (1 << OCF2A); }
-	
+
 	async command void CompareA.reset() { TIFR2 = 1 << OCF2A; }
 
-// ----- timer interrupt mask register (TIMSK), output compare interrupt enable (OCIE)
+// ----- COMPAREA: timer interrupt mask register (TIMSK), output compare interrupt enable (OCIE)
 
-	async command void CompareA.start() { SET_BIT(TIMSK2, OCIE2A); }
+	async command void CompareA.start()
+	{
+		SET_BIT(TIMSK2, OCIE2A);
 
-	async command void CompareA.stop() { CLR_BIT(TIMSK2, OCIE2A); }
+		call McuPowerState.update();
+	}
+
+	async command void CompareA.stop()
+	{
+		CLR_BIT(TIMSK2, OCIE2A);
+
+		call McuPowerState.update();
+	}
 
 	async command bool CompareA.isOn() { return TIMSK2 & (1 << OCIE2A); }
 
-// ----- timer control register (TCCR), compare output mode (COM)
+// ----- COMPAREA: timer control register (TCCR), compare output mode (COM)
 
 	async command void CompareA.setMode(uint8_t mode)
 	{
 		mode = (mode & 0x03) << 6;
+
 		atomic
 		{
-			TCCR2A = (TCCR2A & 0x3F) | mode;
 			while( ASSR & (1 << TCR2AUB) )
 				;
+
+			TCCR2A = (TCCR2A & 0x3F) | mode;
 		}
+
+		call McuPowerState.update();
 	}
 
 	async command uint8_t CompareA.getMode()
@@ -178,15 +234,33 @@ implementation
 		return (TCCR2A >> 6) & 0x03;
 	}
 
-// ----- timer control register (TCCR), force output compare (FOC)
+// ----- COMPAREA: timer control register (TCCR), force output compare (FOC)
 
 	async command void CompareA.force()
 	{
 		atomic
 		{
-			SET_BIT(TCCR2B, FOC2A);
 			while( ASSR & (1 << TCR2BUB) )
 				;
+
+			SET_BIT(TCCR2B, FOC2A);
 		}
+
+		call McuPowerState.update();
+	}
+
+// ----- MCUPOWER
+
+	async command mcu_power_t McuPowerOverride.lowestState()
+	{
+		// wait for all changes to propagate
+		while( ASSR & (1 << TCN2UB | 1 << OCR2AUB | 1 << OCR2BUB | 1 << TCR2AUB | 1 << TCR2BUB) )
+			;
+
+		// if we need to wake up by this clock
+		if( TIMSK2 & (1 << TOIE2 | 1 << OCIE2A | 1 << OCIE2B) )
+			return ATM128_POWER_SAVE;
+		else
+			return ATM128_POWER_DOWN;
 	}
 }
