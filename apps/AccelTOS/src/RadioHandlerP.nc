@@ -42,15 +42,13 @@ module RadioHandlerP{
 		interface SplitControl as AMControl;
 		interface Receive;
 		interface AMSend as AMReportMsg;
-		interface BufferedSend;
 		interface LedHandler;
-		interface SimpleFile as Disk;
 		interface SplitControl as DiskCtrl;
 		interface StdControl as MeterCtrl;
 		interface StdControl as Sampling;
+		interface Uploader;
 		interface Timer<TMilli> as WatchDog;
 		interface Timer<TMilli> as ShortPeriod;
-		interface Timer<TMilli> as Download;
 		interface DiagMsg;
    }
 }
@@ -68,39 +66,15 @@ implementation{
 	// Guards message
 	bool sending = FALSE;
 	message_t message;
-
-	enum {
-		SAMPLESIZE = 14,
-		END_OF_DATA = 127, // FIXME Magic numbers, not updated automagically
-	};
 	
-	enum {
-		MAX_DATA_LEN = 510
-	};
-	
-	// Guards sector[]
+	// Tracks the state of the disc
 	bool diskBusy = FALSE;
-	
-	uint8_t sector[MAX_DATA_LEN];
-	uint16_t head = 0;
-	uint16_t tail = 0;
-	
-	// Schedules a sendSampleMsg task
-	bool pending = FALSE;
 
 	void dump(char* msg) {
 		if( call DiagMsg.record() ) {
 			call DiagMsg.str(msg);
 			call DiagMsg.send();
 		}	
-	}
-	
-	void dumpInt(char* msg, uint16_t i) {
-		if( call DiagMsg.record() ) {
-			call DiagMsg.str(msg);
-			call DiagMsg.int16(i);
-			call DiagMsg.send();
-		}		
 	}
 	
 	event void Boot.booted(){
@@ -122,6 +96,10 @@ implementation{
 		else {
 			ASSERT(FAIL);
 		}
+	}
+	
+	event void DiskCtrl.stopDone(error_t error){
+		// TODO Auto-generated method stub
 	}
 
 	error_t broadcast() {
@@ -149,132 +127,6 @@ implementation{
 		sending = FALSE;
 		// TODO Resend if failed?
 	}
-	
-	task void sendSamples() {
-		
-		error_t error = SUCCESS;
-		
-		if (diskBusy) {
-			ASSERT(FAIL);
-			return;
-		}
-		
-		// FIXME This ugliness together with the locking should be pushed to SimpleFileP
-		error = call Disk.seek(0);
-		
-		if (!error) {
-			diskBusy = TRUE; // TODO Unlock !
-		}
-		else {
-			ASSERT(FAIL);
-		}
-	}
-	
-	event void Disk.seekDone(error_t error){
-		
-		if (!error) {
-			error = call Disk.read(sector, MAX_DATA_LEN);
-		}
-		
-		if (error) {
-			ASSERT(FAIL);
-			diskBusy = FALSE;
-		}
-	}
-	
-	event void Disk.readDone(error_t error, uint16_t length) {
-		
-		if (!error) {
-			dumpInt("Len", length);
-			
-			head = 0;
-			tail = length;
-			pending = TRUE;
-			
-			if (!call Download.isRunning())
-				 call Download.startPeriodic(50);
-		}
-		else {
-			ASSERT(FAIL);
-			diskBusy = FALSE;
-		}
-	}
-	
-	task void sendSampleMsg();
-	
-	// FIXME Proper speed of downloading?
-	event void Download.fired(){
-
-		if (diskBusy&&pending) {
-			post sendSampleMsg();
-			pending = FALSE;
-			dump("postDone");
-		}
-	}
-	
-	void sendNextMessage() {
-
-		error_t error;
-		
-		dumpInt("head", head);
-		// FIXME What if msg never reaches destination, ACK?
-		error = call BufferedSend.send(sector+head, SAMPLESIZE);
-		
-		if (!error) {
-			head += SAMPLESIZE;
-			call LedHandler.sendingToggle();
-			dump("buffSendOK");
-		}
-		else {
-			dump("buffSendFail");
-		}
-		
-		pending = TRUE;
-	}
-	
-	void getNextSector() {
-		
-		error_t error;
-		
-		call BufferedSend.flush();
-		call LedHandler.sendingToggle();
-		dump("endSector");
-		
-		error = call Disk.read(sector, MAX_DATA_LEN);
-		
-		if      (error == EBUSY) {			
-			pending = TRUE;
-		}		
-		else if (error == END_OF_DATA) {			
-			call Download.stop();
-			// TODO On updating the source check how sector is guarded!
-			diskBusy = FALSE;
-			dump("endDisc");
-		}
-		else if (error==SUCCESS) {
-			;
-		}
-		else {
-			ASSERT(FAIL);
-		}
-	}
-	
-	task void sendSampleMsg() {
-
-		if (pending) {
-			ASSERT(FAIL);
-			return;
-		}
-
-		if ((tail-head)>=SAMPLESIZE) {
-
-			sendNextMessage();
-		}
-		else {
-			ASSERT(tail==head);
-			getNextSector();
-		}
-	}
 
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len){
 		
@@ -297,16 +149,16 @@ implementation{
 		}
 		else if (cmd == FORMAT) {
 			if (!diskBusy) {
-				error = call Disk.format();
+				error = call Uploader.format();
 				if (!error)
 					diskBusy = TRUE;
 			}
 		}
 		else if (cmd == APPENDPKT) {
-			//error = post appendPacket();
+			;
 		}
 		else if (cmd == SENDFIRST) {
-			//error = post sendFirstPkt();
+			;
 		}
 		else if (cmd == STARTSAMPLING) {
 			error = call Sampling.start();
@@ -315,7 +167,7 @@ implementation{
 			error = call Sampling.stop();
 		}
 		else if (cmd == SENDSAMPLES) {
-			error = post sendSamples();
+			error = call Uploader.upload();
 			dump("cmdSendSamp");
 		}
 		else {
@@ -384,21 +236,14 @@ implementation{
 		}
 	}
 
-	event void Disk.formatDone(error_t error) {		
-		diskBusy = FALSE;		
-		call LedHandler.diskReady();		
-		if (error)
-			call LedHandler.error();
+
+	event void Uploader.formatDone(error_t error){
+		ASSERT(!error);
+		diskBusy = FALSE;
 	}
 
-	event void Disk.appendDone(error_t error) {
-		diskBusy = FALSE;		
-		call LedHandler.diskReady();		
-		if (error)
-			call LedHandler.error();
-	}
-
-	event void DiskCtrl.stopDone(error_t error){
-		// TODO Auto-generated method stub
+	event void Uploader.uploadDone(error_t error){
+		ASSERT(!error);
+		diskBusy = FALSE;
 	}
 }

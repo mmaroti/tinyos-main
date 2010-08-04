@@ -31,44 +31,36 @@
 * Author: Ali Baharev
 */
 
-#include "CtrlMsg.h"
-#include "ReportMsg.h"
-
-configuration RadioHandlerC {
-
+configuration UploaderC {
+	
+	provides {
+		interface Uploader;
+	}
 }
 
-implementation{
+implementation {
 	
-	components MainC;
-	components ActiveMessageC;
-	
-	components RadioHandlerP;
-	components AssertC;	
+	enum {
+		AM_SAMPLEMSG = 0x37
+	};
+
+	components UploaderP;
 	components SimpleFileC;
-	components LedHandlerC;
-	components MeterC;
-	components UploaderC;
 	components RadioDiagMsgC;
-
-	components new AMReceiverC(AM_CTRLMSG) as AMRec;
-	components new AMSenderC(AM_REPORTMSG) as Report;
-
+	components BufferedSendP;
+	components LedHandlerC;
+	components new AMSenderC(AM_SAMPLEMSG) as Samples;
 	components new TimerMilliC() as Timer1;
-	components new TimerMilliC() as Timer2;
+	
+	Uploader = UploaderP;
 
-	RadioHandlerP.Boot -> MainC;
-	RadioHandlerP.AMControl -> ActiveMessageC;
-	RadioHandlerP.Receive -> AMRec;
-	RadioHandlerP.AMReportMsg -> Report;
-	
-	RadioHandlerP.DiskCtrl -> SimpleFileC;
-	
-	RadioHandlerP.WatchDog -> Timer1;
-	RadioHandlerP.ShortPeriod -> Timer2;
-	RadioHandlerP.LedHandler -> LedHandlerC;
-	RadioHandlerP.Sampling -> MeterC.Sampling;
-	RadioHandlerP.MeterCtrl -> MeterC.StdControl;
-	RadioHandlerP.DiagMsg -> RadioDiagMsgC;
-	RadioHandlerP.Uploader -> UploaderC;
+	BufferedSendP.AMSend -> Samples; // FIXME It should go to its own component
+	BufferedSendP.Packet -> Samples;
+	BufferedSendP.DiagMsg -> RadioDiagMsgC;
+	UploaderP.BufferedSend -> BufferedSendP;
+	UploaderP.Disk -> SimpleFileC;
+	UploaderP.LedHandler -> LedHandlerC;
+	UploaderP.DiagMsg -> RadioDiagMsgC;
+	UploaderP.UploadTimer -> Timer1;
+
 }

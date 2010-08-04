@@ -31,44 +31,14 @@
 * Author: Ali Baharev
 */
 
-#include "CtrlMsg.h"
-#include "ReportMsg.h"
-
-configuration RadioHandlerC {
-
-}
-
-implementation{
+interface Uploader {
 	
-	components MainC;
-	components ActiveMessageC;
-	
-	components RadioHandlerP;
-	components AssertC;	
-	components SimpleFileC;
-	components LedHandlerC;
-	components MeterC;
-	components UploaderC;
-	components RadioDiagMsgC;
+	command error_t format();
 
-	components new AMReceiverC(AM_CTRLMSG) as AMRec;
-	components new AMSenderC(AM_REPORTMSG) as Report;
-
-	components new TimerMilliC() as Timer1;
-	components new TimerMilliC() as Timer2;
-
-	RadioHandlerP.Boot -> MainC;
-	RadioHandlerP.AMControl -> ActiveMessageC;
-	RadioHandlerP.Receive -> AMRec;
-	RadioHandlerP.AMReportMsg -> Report;
+	event void formatDone(error_t error);
 	
-	RadioHandlerP.DiskCtrl -> SimpleFileC;
+	command error_t upload();
 	
-	RadioHandlerP.WatchDog -> Timer1;
-	RadioHandlerP.ShortPeriod -> Timer2;
-	RadioHandlerP.LedHandler -> LedHandlerC;
-	RadioHandlerP.Sampling -> MeterC.Sampling;
-	RadioHandlerP.MeterCtrl -> MeterC.StdControl;
-	RadioHandlerP.DiagMsg -> RadioDiagMsgC;
-	RadioHandlerP.Uploader -> UploaderC;
+	event void uploadDone(error_t error);
+
 }
