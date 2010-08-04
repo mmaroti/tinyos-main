@@ -80,8 +80,9 @@ public class PacketParserFactory {
 	 * or -1 if it isn't in it
 	 */
 	public static int contains(PacketParser[] packetArray,String type) {
+		String parts[]=type.split(" ");
 		for(int i=0;i<packetArray.length;i++)
-			if(packetArray[i].getName().equals(type))
+			if(packetArray[i].getName().equals(parts[parts.length-1]))
 				return i;
 		return -1;
 	}

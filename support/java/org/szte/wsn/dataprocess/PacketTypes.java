@@ -140,7 +140,7 @@ public class PacketTypes {
 	 * 
 	 * @return returns the PacketParsers which are available 
 	 */
-	PacketParser[] getParsers(){				
+	public PacketParser[] getParsers(){				
 		return packetParsers;
 	}
 
@@ -150,7 +150,7 @@ public class PacketTypes {
 	 *  which has the same name
 	 * @return PacketParser
 	 */
-	PacketParser getParser(String name){
+	public PacketParser getParser(String name){
 		for(int i=0;i<packetParsers.length;i++){
 			if(packetParsers[i].getName()==name)
 				return packetParsers[i];

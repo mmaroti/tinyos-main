@@ -43,10 +43,12 @@ import java.util.Scanner;
 public class Console implements StringInterface {
 	String separator;
 
-	public Console(){
-		separator="	";  //default separator is Tabulator
+	public Console(String separator){
+		this.separator=separator;     
 	}
-
+	public Console(){
+		separator="	";      		//default separator is Tabulator
+	}
 
 	@Override
 	/**
@@ -63,6 +65,7 @@ public class Console implements StringInterface {
 			for(String data:parsedData){			
 				System.out.print(data+separator);
 			}
+			System.out.println();
 		}
 	}
 
