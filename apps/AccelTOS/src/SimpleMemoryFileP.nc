@@ -32,6 +32,8 @@
 * Author: Miklos Maroti, Ali Baharev
 */
 
+// FIXME Code duplication!
+
 module SimpleMemoryFileP
 {
 	uses
@@ -52,12 +54,13 @@ implementation
 	enum
 	{
 		END_OF_DATA = 127,
-		BUFFSIZE = 510,
+		BUFFSIZE = 508,
 		SECTORS = 8,
 	};
 
 	struct buffer
 	{
+		uint16_t formatID;
 		uint16_t length;
 		uint8_t data[BUFFSIZE];
 	};
@@ -66,7 +69,7 @@ implementation
 
 	uint32_t writePos;
 	uint32_t readPos;
-
+	
 	task void startDone()
 	{
 		signal SplitControl.startDone(SUCCESS);

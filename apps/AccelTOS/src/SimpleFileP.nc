@@ -67,7 +67,7 @@ implementation
 		STATE_READ = 4,
 		STATE_WRITE = 5,
 		END_OF_DATA = 127,
-		BUFFSIZE = 510
+		BUFFSIZE = 508
 	};
 
 	uint8_t state = STATE_OFF;
@@ -76,6 +76,7 @@ implementation
 
 	struct buffer
 	{
+		uint16_t formatID;
 		uint16_t length;
 		uint8_t data[BUFFSIZE];
 	} buffer;
@@ -83,6 +84,7 @@ implementation
 	uint32_t cardSize;
 	uint32_t writePos;
 	uint32_t readPos;
+	uint16_t formID;
 
 	// these are set by the user
 	// FIXME Requires client-based locking, can we provide the user with the buffer?
@@ -115,10 +117,14 @@ implementation
 			// TODO The cast assumes a specific memory layout of buffer - guaranteed?
 			error = call SD.readBlock(writePos, (uint8_t*) &buffer);
 
-			if( error != SUCCESS )
+			if (error!=SUCCESS)
 				break;
+				
+			if (writePos==0) {
+				formID = buffer.formatID;	
+			}
 
-			if( buffer.length == 0 ) {
+			if ((formID != buffer.formatID) || (buffer.length == 0)) {
 				state = STATE_READY;
 				signal SplitControl.startDone(SUCCESS);
 				return;
@@ -170,15 +176,13 @@ implementation
 
 	void formatDevice()
 	{
-		uint8_t sector;
 		error_t error;
 
+		++formID;
+		buffer.formatID = formID;
 		buffer.length = 0;
 
-		// format first 8 sectors
-		error = SUCCESS;
-		for(sector = 0; sector < 8 && error == SUCCESS; ++sector)
-			error = call SD.writeBlock(0, (uint8_t*) &buffer);
+		error = call SD.writeBlock(0, (uint8_t*) &buffer); // FIXME the 0. sector was formatted 8 times...
 
 		if( error == SUCCESS )
 		{
@@ -207,18 +211,22 @@ implementation
 		uint16_t i;
 
 		error = call SD.readBlock(readPos, (uint8_t*) &buffer);
-		if( error == SUCCESS )
-		{  
+
+		if (error == SUCCESS) {  
+		
+			ASSERT(buffer.formatID == formID);
+
 			if( packetLen > buffer.length )
 				packetLen = buffer.length;
-
+		
 			for(i = 0; i < packetLen; ++i)
 				packetPtr[i] = buffer.data[i];
 
 			++readPos;	// FIXME readPos < writePos not checked
 		}
-		else
+		else {
 			packetLen = 0;
+		}
 
 		state = STATE_READY;
 		signal SimpleFile.readDone(error, packetLen);
@@ -237,7 +245,7 @@ implementation
 		packetLen = length;
 		state = STATE_READ;
 		// FIXME The line below was missing?
-		post executeCommand(); // FIXME What if post fails?
+		post executeCommand();
 		return SUCCESS;
 	}
 
@@ -245,6 +253,8 @@ implementation
 	{
 		error_t error;
 		uint16_t i;
+		
+		buffer.formatID = formID;
 
 		for(i = 0; i < packetLen; ++i)
 			buffer.data[i] = packetPtr[i];
@@ -263,14 +273,14 @@ implementation
 	{
 		if( state != STATE_READY )
 			return EBUSY;
-		else if( length > 510 )
+		else if( length > BUFFSIZE ) // FIXME Magic number earlier!!!
 			return ESIZE;
 
 		packetPtr = packet;
 		packetLen = length;
 		state = STATE_WRITE;
 		// FIXME The line below was missing?
-		post executeCommand(); // FIXME What is post fails?
+		post executeCommand();
 		return SUCCESS;
 	}
 	
