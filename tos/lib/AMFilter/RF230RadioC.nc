@@ -252,7 +252,11 @@ implementation
 
 // -------- Simulated Topology
 
+#ifdef SIMULATED_TOPOLOGY
 	components SimulatedTopologyLayerC;
+#else
+	components new DummyLayerC() as SimulatedTopologyLayerC;
+#endif
 	SimulatedTopologyLayerC.Config -> RF230RadioP;
 	SimulatedTopologyLayerC.SubReceive -> RF230DriverLayerC;
 

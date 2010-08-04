@@ -36,7 +36,15 @@
 
 interface SimulatedTopologyConfig
 {
+	/**
+	 * This method should return TRUE for packets that
+	 * contain a source address which can be used for
+	 * topology enforcement.
+	 */
 	async command bool isDataFrame(message_t *msg);
 
+	/**
+	 * This command must return the node id of the sender.
+	 */
 	async command am_id_t getSource(message_t *msg);
 }

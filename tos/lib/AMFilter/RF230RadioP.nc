@@ -88,8 +88,12 @@ implementation
 
 	async command uint8_t RF230DriverConfig.headerPreloadLength()
 	{
-		// we need the fcf, dsn, destpan, dest and src
+#ifndef SIMULATED_TOPOLOGY
+		// we need the fcf, dsn, destpan and dest
+		return 7;
+#else		// we need the src address as well
 		return 9;
+#endif
 	}
 
 	async command bool RF230DriverConfig.requiresRssiCca(message_t* msg)
