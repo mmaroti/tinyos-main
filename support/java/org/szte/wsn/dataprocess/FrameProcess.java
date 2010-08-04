@@ -32,106 +32,36 @@
  * Author:Miklos Toth
  */
 package org.szte.wsn.dataprocess;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.util.ArrayList;
 
-import org.szte.wsn.dataprocess.file.GapConsumer;
-import org.szte.wsn.dataprocess.file.RawPacketConsumer;
+import java.io.IOException;
 
 
 public class FrameProcess {
-	private String[] sourcePath;
-	private boolean fileSource=false;
-	private boolean serialSource=false;
 	private PacketParser[] packetParsers;
-	private BinaryInterface[] readers;
+	private BinaryInterface reader;
 	private StringInterface writer;
-
-
-	public void setArgs(String[] args){		
-		if (args.length<3)    //it isn't necessary to give struct file
-			Usage.usageThanExit();
-
-		if(args[0].equals("file")){
-			fileSource=true;
-			File path = new File(args[1]);
-			if (path.isFile()) {
-
-				sourcePath=new String[]{args[1]};
-			}
-			else if (path.isDirectory()){
-
-				FilenameFilter filter = new FilenameFilter() 
-				{ 
-					public boolean accept(File path, String name) 
-					{
-						return name.endsWith(".bin");
-					}
-				}; 
-				sourcePath = path.list(filter); 
-			}
-			else{
-				System.out.println("IO ERROR wrong sourcePath:"+args[1]);
-				Usage.usageThanExit();
-			}
-			//if(args[2].equals(console))
-
-		}
-		else if(args[0].equals("serial")){
-			serialSource=true;
-			sourcePath=new String[]{args[1]};
-		}
-
-		else Usage.usageThanExit(); //the first argument must be the type of the source
-
-	};
-	public BinaryInterface[] getReaders(){
-		if(fileSource){
-			ArrayList<RawPacketConsumer> ret=new ArrayList<RawPacketConsumer>();
-			for (String path:sourcePath){
-
-				GapConsumer gp;
-				try {
-					gp = new GapConsumer(path);
-					ret.add(new RawPacketConsumer(path, gp.getGaps()));
-				} catch (IOException e) {				
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					Usage.usageThanExit();
-				}
-			}
-			return ret.toArray(new BinaryInterface[ret.size()]); 			
-		}
-		else 			//if(serialSource)
-
-			return new ToSerial[]{ new ToSerial(sourcePath[0])};
-	}
-
-
-	public static void main(String[] args) throws IOException {
+	
+	public static void main(String[] args) throws IOException {			//handle exception
 		FrameProcess fp=new FrameProcess();
-		fp.setArgs(args);
 
-		fp.packetParsers=new PacketTypes(args.length>2?args[2]:"").getParsers();		
-
-		fp.readers=fp.getReaders();	
-		fp.writer=new Console();
-
-		for (PacketParser pp:fp.packetParsers){
+		fp.packetParsers=new PacketTypes(args.length>4?args[4]:"").getParsers();		
 		
-//			for(BinaryInterface bIF:fp.readers){
-			BinaryInterface bIF=fp.getReaders()[0];
-//			PacketParser pp=fp.packetParsers[2];
-				byte data[]=bIF.readPacket();
-				while(data!=null){
-					if(pp.parse(data)!=null)
-						fp.writer.writePacket(pp,pp.parse(data));
-					data=bIF.readPacket();
-				}
-			}	
-		
+		if(args.length<4)
+			Usage.usageThanExit();
+		fp.reader=BinaryInterfaceFactory.getBinaryInterface(args[0], args[1]);	
+		fp.writer=StringInterfaceFactory.getStringInterface(args[2], args[3]);
+		if((fp.reader==null)||(fp.writer==null))
+			Usage.usageThanExit();		
+
+		byte data[]=fp.reader.readPacket();
+		while(true){
+			for (PacketParser pp:fp.packetParsers){
+				if(pp.parse(data)!=null)
+					fp.writer.writePacket(pp,pp.parse(data));				
+			}
+			data=fp.reader.readPacket();
+		}	
+
 	}
 
 }

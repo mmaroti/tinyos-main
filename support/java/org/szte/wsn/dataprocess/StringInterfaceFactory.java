@@ -33,16 +33,39 @@
  */
 package org.szte.wsn.dataprocess;
 
-public class Usage {
-	public static void usageThanExit(){
-		System.out.println("Usage:");
-		System.out.println("java FrameProcess readMode sourcePath writeMode destinationPath structureFile");
-		System.out.println("java FrameProcess file 0.bin console stdOut structs.txt 		-reads 0.bin");
-		System.out.println("java FrameProcess file . console stdOut structs.txt			-scans the actual directory for .bin files");
-		System.out.println("java FrameProcess serial serial@/dev/ttyUSB1:57600 console stdOut structs.txt -reads from the serialSource on USB1, ");
-		System.out.println("readMode, sourcePath,writeMode and destinationPath is necessary");
-		System.out.println("structFile can be skipped, structs.txt is default");
+/**
+ * 
+ * @author Mikos Toth
+ * Factory class for the StringInterface interface
+ *
+ */
+public class StringInterfaceFactory {
+	/**
+	 * 
+	 * @param type can be "file" or "console"
+	 * @param source String path of the source
+	 * @return a StringInterface instance with the specified params
+	 */
+	public static StringInterface getStringInterface(String type, String source){
+		if(type.equals("file")){
+			/*
+			try {
+				
+				return new StringInterfaceFile(source, gp.getGaps());
+			}
+			catch (IOException e) {
+				e.printStackTrace();					
+				Usage.usageThanExit();
+				return null;
+			}	
+			*/
+			return null;
+		}
+		
+		else //if (type.equals("console"))
+			return new Console();
 
-		System.exit(1);
 	}
+	
 }
+

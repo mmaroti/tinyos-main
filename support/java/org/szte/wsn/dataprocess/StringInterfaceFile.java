@@ -32,62 +32,79 @@
  * Author: Miklos Toth
  */
 package org.szte.wsn.dataprocess;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.util.Scanner;
 
 /**
  * 
  * @author Miklos Toth
  *	implements StringInterface
- *	writes and reads Console
+ *	writes and reads strings with file
  */
-public class Console implements StringInterface {
+public class StringInterfaceFile implements StringInterface {
 	String separator;
+	String filePath;
 	PacketParser previous;
 
-	public Console(String separator){
-		this.separator=separator;
+	public StringInterfaceFile(String separator, String path){
+		this.separator=separator;  
+		filePath=path;
 		previous=null;
 	}
-	public Console(){
-		this("	");      		//default separator is Tabulator
+	public StringInterfaceFile(){
+		this("	","default.txt");      		//default separator is Tabulator
 	}
 
 	@Override
 	/**
-	 * implements writePacket for Console application
+	 * implements writePacket for file application
 	 * 
 	 */
 	public void writePacket(PacketParser parser,String[] parsedData) {
-		if (parsedData!=null){			
-			if(!parser.equals(previous)){
-				System.out.print(parser.getName()+separator);
-			for(String head:parser.getFields())
-				System.out.print(head+separator);
+		try{
+			BufferedWriter out = new BufferedWriter(new FileWriter(filePath));
 
-			System.out.println();			
+			if (parsedData!=null){
+				out.write(parser.getName()+separator);
+				if(!parser.equals(previous)){					
+					for(String head:parser.getFields())
+						out.write(head+separator);
+					out.write("\n");
+				}
+				out.write(parser.getName()+separator);
+				for(String data:parsedData){			
+					out.write(data+separator);
+				}
+				out.write("\n");
 			}
-			System.out.print(parser.getName()+separator);
-			for(String data:parsedData){			
-				System.out.print(data+separator);
-			}
-			System.out.println();
-		previous=parser;
+
+			out.close();
+
+		}catch (Exception e){		//Catch exception if any
+			System.err.println("Error: " + e.getMessage());
 		}
 	}
 
 
 	@Override
 	/**
-	 * implements readPacket for Console application
+	 * implements readPacket for file application
 	 */
 	public String[] readPacket(PacketParser parser) {
 		String[] ret=new String[parser.getFields().length];
-		Scanner in = new Scanner(System.in);
 
-		for(int i=0; i<parser.getFields().length;i++)
-			ret[i]=in.nextLine();
-		in.close();  
+		try{
+			Scanner in=new Scanner(new File(filePath) );
+			for(int i=0; i<parser.getFields().length;i++)
+				ret[i]=in.nextLine();
+			in.close(); 
+		}catch (Exception e){//Catch exception if any
+			System.err.println("Error: " + e.getMessage());
+		}
 		return ret;
 	}
 
 }
+
