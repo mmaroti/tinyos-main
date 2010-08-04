@@ -60,7 +60,8 @@ public class ToSerial implements BinaryInterface{
 			phoenix = BuildSource.makePhoenix(source, PrintStreamMessenger.err);
 		}
 		phoenix.registerPacketListener(new Listener());		
-		phoenix.run();
+		phoenix.setResurrection();
+		phoenix.start();
 	}
 	
 	
@@ -70,7 +71,7 @@ public class ToSerial implements BinaryInterface{
 
 	@Override
 	public byte[] readPacket() {
-		if(readbuffer.isEmpty()){
+		if(!readbuffer.isEmpty()){
 			byte[] ret =readbuffer.get(0);
 			readbuffer.remove(0);
 			return ret;
