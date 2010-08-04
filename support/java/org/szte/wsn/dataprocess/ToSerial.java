@@ -83,5 +83,15 @@ public class ToSerial implements BinaryInterface{
 		phoenix.writePacket(frame);
 		
 	}
+	
+	public static void main(){
+		ToSerial ts=new ToSerial();
+		while(true){
+			byte[] buffer=ts.readPacket();
+			if(buffer!=null){
+				System.out.println(buffer);
+			}
+		}
+	}
 
 }
