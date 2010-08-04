@@ -52,7 +52,7 @@ public class FrameProcess {
 
 	public void setArgs(String[] args){		
 		if (args.length<3)    //it isn't necessary to give struct file
-			usageThanExit();
+			Usage.usageThanExit();
 
 		if(args[0].equals("file")){
 			fileSource=true;
@@ -74,7 +74,7 @@ public class FrameProcess {
 			}
 			else{
 				System.out.println("IO ERROR wrong sourcePath:"+args[1]);
-				usageThanExit();
+				Usage.usageThanExit();
 			}
 			//if(args[2].equals(console))
 
@@ -84,7 +84,7 @@ public class FrameProcess {
 			sourcePath=new String[]{args[1]};
 		}
 
-		else usageThanExit(); //the first argument must be the type of the source
+		else Usage.usageThanExit(); //the first argument must be the type of the source
 
 	};
 	public BinaryInterface[] getReaders(){
@@ -99,7 +99,7 @@ public class FrameProcess {
 				} catch (IOException e) {				
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-					usageThanExit();
+					Usage.usageThanExit();
 				}
 			}
 			return ret.toArray(new BinaryInterface[ret.size()]); 			
@@ -107,17 +107,6 @@ public class FrameProcess {
 		else 			//if(serialSource)
 
 			return new ToSerial[]{ new ToSerial(sourcePath[0])};
-	}
-	public static void usageThanExit(){
-		System.out.println("Usage:");
-		System.out.println("java FrameProcess readMode sourcePath structureFile");
-		System.out.println("java FrameProcess file 0.bin structs.txt 		-reads 0.bin");
-		System.out.println("java FrameProcess file . structs.txt			-scans the actual directory for .bin files");
-		System.out.println("java FrameProcess serial /dev/ttyUSB3 structs.txt -reads from the serialSource on USB3, ");
-		System.out.println("readMode and sourcePath is necessary");
-		System.out.println("structFile can be skipped, structs.txt is default");
-
-		System.exit(1);
 	}
 
 
