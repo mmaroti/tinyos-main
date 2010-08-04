@@ -33,8 +33,8 @@
 
 configuration MeterC
 { 
-	provides interface Meter;
 	provides interface StdControl;
+	provides interface StdControl as Sampling;
 
 } 
 
@@ -45,8 +45,9 @@ implementation
 	components SimpleFileC; // FIXME There should be only one SimpleFileC
 	MeterP.DiagMsg -> RadioDiagMsgC;
 	
-	Meter = MeterP;
-	StdControl = MeterP;
+	StdControl = MeterP.StdControl;
+	Sampling = MeterP.Sampling;
+	
 	MeterP.Timer -> TimerMilliC;
 	MeterP.LedHandler -> LedHandlerC;
 

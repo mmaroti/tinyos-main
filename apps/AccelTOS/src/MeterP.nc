@@ -41,8 +41,8 @@ module MeterP
 {
 
 	provides {
-		interface Meter;
 		interface StdControl;
+		interface StdControl as Sampling;
 	}
 	
 	uses
@@ -73,10 +73,8 @@ implementation
 
 	enum
 	{
-		CHANNEL_COUNT = 5, // FIXME Make automatic?
+		CHANNEL_COUNT = 5, // FIXME Make automatic, sizeof?
 	};
-	
-	uint8_t tracker = 0;
 	
 	void dump(char* msg) {
 		if( call DiagMsg.record() ) {
@@ -87,7 +85,7 @@ implementation
 
 	command error_t StdControl.stop(){
 		// FIXME Implement shut-down
-		call LedHandler.error();
+		ASSERT(FAIL);
 		return FAIL;
 	}
 
@@ -95,13 +93,10 @@ implementation
 		
 		error_t error = SUCCESS;
 		
-		call LedHandler.set(tracker++);		
-		
 		error = call AccelInit.init();
 		
 		if (error) {
-			call LedHandler.error();
-			dump("AccelInitFail");
+			ASSERT(FAIL);
 		}
 		else {
 			call Accel.setSensitivity(RANGE_4_0G);
@@ -109,12 +104,10 @@ implementation
 			error = call ShimmerAdc.setChannels(channels, CHANNEL_COUNT);
 					
 			if(error) {
-				call LedHandler.error();
-				dump("SetChFail");
+				ASSERT(FAIL);
 			}
 			else {
 				dump("InitOK");
-				call LedHandler.set(tracker++);	
 			}
 		}
 		
@@ -146,7 +139,7 @@ implementation
 		ASSERT(error==SUCCESS);
 	}
 
-	command error_t Meter.stopRecording(){
+	command error_t Sampling.stop(){
 		// FIXME What if sampleDone is pending?
 		error_t error = SUCCESS;
 		
@@ -160,7 +153,7 @@ implementation
 		return error;		
 	}
 
-	command error_t Meter.startRecording(){
+	command error_t Sampling.start(){
 
 		error_t error = SUCCESS;
 		

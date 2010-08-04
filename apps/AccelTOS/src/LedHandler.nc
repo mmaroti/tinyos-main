@@ -45,10 +45,10 @@ interface LedHandler{
 	
 	command void sampling();
 	
-	command void set(uint8_t val);
-	
 	command void sendingToggle();
 	
 	command void errorToggle();
+	
+	command void set(uint8_t val);
 
 }

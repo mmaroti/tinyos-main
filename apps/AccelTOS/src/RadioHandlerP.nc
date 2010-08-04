@@ -38,25 +38,26 @@
 module RadioHandlerP{
 
    uses {
+   		interface Boot;
 		interface SplitControl as AMControl;
 		interface Receive;
 		interface AMSend as AMReportMsg;
 		interface BufferedSend;
 		interface LedHandler;
 		interface SimpleFile as Disk;
-		interface Meter;
+		interface SplitControl as DiskCtrl;
+		interface StdControl as MeterCtrl;
+		interface StdControl as Sampling;
 		interface Timer<TMilli> as WatchDog;
 		interface Timer<TMilli> as ShortPeriod;
 		interface Timer<TMilli> as Download;
 		interface DiagMsg;
    }
-   
-   provides {
-		interface SplitControl;
-   	}
 }
 
 implementation{
+	
+	bool booting = TRUE;
 	
 	// Tracks state of radio
 	bool radioOn = FALSE;
@@ -100,6 +101,27 @@ implementation{
 			call DiagMsg.int16(i);
 			call DiagMsg.send();
 		}		
+	}
+	
+	event void Boot.booted(){
+		
+		error_t error = call AMControl.start();
+		if (error)
+			call LedHandler.error();
+	}
+	
+	event void DiskCtrl.startDone(error_t error){
+		ASSERT(!error);
+
+		call LedHandler.diskReady();
+		
+		error = call MeterCtrl.start();
+		if (!error) {
+			booting = FALSE;
+		}
+		else {
+			ASSERT(FAIL);
+		}
 	}
 
 	error_t broadcast() {
@@ -287,10 +309,10 @@ implementation{
 			//error = post sendFirstPkt();
 		}
 		else if (cmd == STARTSAMPLING) {
-			error = call Meter.startRecording();
+			error = call Sampling.start();
 		}
 		else if (cmd == STOPSAMPLING) {
-			error = call Meter.stopRecording();
+			error = call Sampling.stop();
 		}
 		else if (cmd == SENDSAMPLES) {
 			error = post sendSamples();
@@ -326,24 +348,14 @@ implementation{
 			
 			broadcast();
 
-			if (! call WatchDog.isRunning()) {
+			if (booting) {
 				call WatchDog.startPeriodic(1000);
+				error = call DiskCtrl.start();
+				ASSERT(!error);
 			}
 			call ShortPeriod.startOneShot(50);
 		}		
 
-		signal SplitControl.startDone(error);
-	}
-
-	command error_t SplitControl.stop(){
-		// TODO Not implemented yet
-		call LedHandler.error();
-		return FAIL;
-	}
-
-	command error_t SplitControl.start(){
-
-		return call AMControl.start();
 	}
 
 	event void WatchDog.fired(){
@@ -384,5 +396,9 @@ implementation{
 		call LedHandler.diskReady();		
 		if (error)
 			call LedHandler.error();
+	}
+
+	event void DiskCtrl.stopDone(error_t error){
+		// TODO Auto-generated method stub
 	}
 }

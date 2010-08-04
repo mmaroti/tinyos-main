@@ -35,11 +35,6 @@
 #include "ReportMsg.h"
 
 configuration RadioHandlerC {
-	
-	provides {
-		
-		interface SplitControl;
-	}
 
 }
 
@@ -49,25 +44,27 @@ implementation{
 		AM_SAMPLEMSG = 0x37
 	};
 	
-	components AccelAppC;
+	components MainC;
 	components RadioHandlerP;
 	components ActiveMessageC;
+	components AssertC;
 
 	components new AMReceiverC(AM_CTRLMSG) as AMRec;
 	components new AMSenderC(AM_REPORTMSG) as Report;
-	//---
 	components new AMSenderC(AM_SAMPLEMSG) as Samples;
+
 	components BufferedSendP;
-	//---
+
 	components new TimerMilliC() as Timer1;
 	components new TimerMilliC() as Timer2;
 	components new TimerMilliC() as Timer3;
 
+	components SimpleFileC;
 	components LedHandlerC;
 	components MeterC;
 	components RadioDiagMsgC;
 
-	SplitControl = RadioHandlerP;
+	RadioHandlerP.Boot -> MainC;
 	RadioHandlerP.AMControl -> ActiveMessageC;
 	RadioHandlerP.Receive -> AMRec;
 	RadioHandlerP.AMReportMsg -> Report;
@@ -77,11 +74,14 @@ implementation{
 	BufferedSendP.DiagMsg -> RadioDiagMsgC;
 	RadioHandlerP.BufferedSend -> BufferedSendP;
 	
+	RadioHandlerP.Disk -> SimpleFileC;
+	RadioHandlerP.DiskCtrl -> SimpleFileC;
+	
 	RadioHandlerP.WatchDog -> Timer1;
 	RadioHandlerP.ShortPeriod -> Timer2;
 	RadioHandlerP.Download -> Timer3;
 	RadioHandlerP.LedHandler -> LedHandlerC;
-	RadioHandlerP.Disk -> AccelAppC;
-	RadioHandlerP.Meter -> MeterC;
+	RadioHandlerP.Sampling -> MeterC.Sampling;
+	RadioHandlerP.MeterCtrl -> MeterC.StdControl;
 	RadioHandlerP.DiagMsg -> RadioDiagMsgC;
 }
