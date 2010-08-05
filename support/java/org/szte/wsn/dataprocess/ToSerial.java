@@ -48,7 +48,10 @@ public class ToSerial implements BinaryInterface{
 	public class Listener implements PacketListenerIF{
 		@Override
 		public void packetReceived(byte[] packet) {
-			readbuffer.add(packet);
+			synchronized (readbuffer) {
+				readbuffer.add(packet);
+				readbuffer.notify();
+			}
 		}		
 	}
 	
@@ -71,12 +74,16 @@ public class ToSerial implements BinaryInterface{
 
 	@Override
 	public byte[] readPacket() {
-		if(!readbuffer.isEmpty()){
-			byte[] ret =readbuffer.get(0);
-			readbuffer.remove(0);
-			return ret;
-		} else
-			return null;
+		synchronized (readbuffer) {
+			while(readbuffer.isEmpty()){
+				try {
+					readbuffer.wait();
+				} catch (InterruptedException e) {
+					return null;
+				}
+			}
+			return readbuffer.remove(0);
+		}
 	}
 
 	@Override
