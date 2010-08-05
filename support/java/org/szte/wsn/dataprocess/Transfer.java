@@ -85,7 +85,7 @@ public class Transfer extends Thread  {
 			 toStr=true;		
 		
 		Transfer fp=new Transfer(parsers,bin,str,toStr);
-		fp.run();
+		fp.start();
 	}
 
 }

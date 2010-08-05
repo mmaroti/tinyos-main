@@ -53,7 +53,7 @@ public class BinaryInterfaceFactory {
 		if(type.equals("file")){
 			try {
 				GapConsumer gp=new GapConsumer(source);
-				return new RawPacketConsumer(source, gp.getGaps());
+				return new BinaryInterfaceFile(source, gp.getGaps());
 			}
 			catch (IOException e) {
 				e.printStackTrace();					
@@ -63,7 +63,7 @@ public class BinaryInterfaceFactory {
 		}
 		
 		else //if (type.equals("serial"))
-			return new ToSerial(source);
+			return new BinaryInterfaceSerial(source);
 
 	}
 	

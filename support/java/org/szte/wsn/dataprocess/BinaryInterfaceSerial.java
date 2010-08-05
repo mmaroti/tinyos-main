@@ -40,7 +40,7 @@ import net.tinyos.packet.PacketListenerIF;
 import net.tinyos.packet.PhoenixSource;
 import net.tinyos.util.PrintStreamMessenger;
 
-public class ToSerial implements BinaryInterface{
+public class BinaryInterfaceSerial implements BinaryInterface{
 	
 	private PhoenixSource phoenix;
 	private ArrayList<byte[]> readbuffer=new ArrayList<byte[]>();
@@ -55,7 +55,7 @@ public class ToSerial implements BinaryInterface{
 		}		
 	}
 	
-	public ToSerial(String source){
+	public BinaryInterfaceSerial(String source){
 		//TODO: Maybe we should process the error messages
 		if (source == null) {
 			phoenix = BuildSource.makePhoenix(PrintStreamMessenger.err);
@@ -68,8 +68,8 @@ public class ToSerial implements BinaryInterface{
 	}
 	
 	
-	public ToSerial(){
-		new ToSerial(null);
+	public BinaryInterfaceSerial(){
+		new BinaryInterfaceSerial(null);
 	}
 
 	@Override
@@ -92,14 +92,6 @@ public class ToSerial implements BinaryInterface{
 		
 	}
 	
-	public static void main(String[] args){
-		ToSerial ts=new ToSerial(args[0]);
-		while(true){
-			byte[] buffer=ts.readPacket();
-			if(buffer!=null){
-				System.out.println(buffer);
-			}
-		}
-	}
+
 
 }
