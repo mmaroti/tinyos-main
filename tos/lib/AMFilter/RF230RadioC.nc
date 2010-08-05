@@ -258,7 +258,7 @@ implementation
 	components new DummyLayerC() as SimulatedTopologyLayerC;
 #endif
 	SimulatedTopologyLayerC.Config -> RF230RadioP;
-	SimulatedTopologyLayerC.SubReceive -> RF230DriverLayerC;
+	SimulatedTopologyLayerC -> RF230DriverLayerC.RadioReceive;
 
 // -------- Carrier Sense
 
