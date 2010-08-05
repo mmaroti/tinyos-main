@@ -36,10 +36,10 @@ package org.szte.wsn.dataprocess;
 public class Usage {
 	public static void usageThanExit(){
 		System.out.println("Usage:");
-		System.out.println("java FrameProcess readMode sourcePath writeMode destinationPath structureFile");
-		System.out.println("java FrameProcess file 0.bin console stdOut structs.txt 		-reads 0.bin");
-		System.out.println("java FrameProcess file . console stdOut structs.txt			-scans the actual directory for .bin files");
-		System.out.println("java FrameProcess serial serial@/dev/ttyUSB1:57600 console stdOut structs.txt -reads from the serialSource on USB1, ");
+		System.out.println("java Transfer readMode sourcePath writeMode destinationPath structureFile toString");
+		System.out.println("java Transfer file 0.bin console stdOut structs.txt toString		-reads 0.bin to Console");
+		System.out.println("java Transfer file . console stdOut structs.txt	toString		-scans the actual directory for .bin files");
+		System.out.println("java Transfer serial serial@/dev/ttyUSB1:57600 console stdOut structs.txt -reads from the serialSource on USB1, ");
 		System.out.println("readMode, sourcePath,writeMode and destinationPath is necessary");
 		System.out.println("structFile can be skipped, structs.txt is default");
 

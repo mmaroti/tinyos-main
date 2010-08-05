@@ -35,33 +35,57 @@ package org.szte.wsn.dataprocess;
 
 import java.io.IOException;
 
-
-public class FrameProcess {
+public class Transfer extends Thread  {
 	private PacketParser[] packetParsers;
-	private BinaryInterface reader;
-	private StringInterface writer;
-	
-	public static void main(String[] args) throws IOException {			//handle exception
-		FrameProcess fp=new FrameProcess();
+	private BinaryInterface binary;
+	private StringInterface string;
+	boolean toString;
 
-		fp.packetParsers=new PacketTypes(args.length>4?args[4]:"").getParsers();		
-		
-		if(args.length<4)
+	public Transfer(String binaryType, String binaryPath, String stringType, String stringPath, String structPath, boolean toString){
+		packetParsers=new PacketTypes(structPath).getParsers();
+		binary=BinaryInterfaceFactory.getBinaryInterface(binaryType, binaryPath);	
+		string=StringInterfaceFactory.getStringInterface(stringType, stringPath);
+		this.toString=toString;
+		if((binary==null)||(string==null))
 			Usage.usageThanExit();
-		fp.reader=BinaryInterfaceFactory.getBinaryInterface(args[0], args[1]);	
-		fp.writer=StringInterfaceFactory.getStringInterface(args[2], args[3]);
-		if((fp.reader==null)||(fp.writer==null))
-			Usage.usageThanExit();		
+	}
 
-		byte data[]=fp.reader.readPacket();
-		while(true){
-			for (PacketParser pp:fp.packetParsers){
-				if(pp.parse(data)!=null)
-					fp.writer.writePacket(pp,pp.parse(data));				
-			}
-			data=fp.reader.readPacket();
-		}	
+	public Transfer(PacketParser[] packetParsers, BinaryInterface binary, StringInterface string, boolean toString){
+		this.packetParsers=packetParsers;
+		this.binary=binary;
+		this.string=string;
+		this.toString=toString;
+	}
 
+	@Override
+	public void run(){
+		if(toString){
+			byte data[]=binary.readPacket();
+			while(data!=null){
+				for (PacketParser pp:packetParsers){
+					if(pp.parse(data)!=null)
+						string.writePacket(pp,pp.parse(data));				
+				}
+				data=binary.readPacket();
+			}	
+		}
+		else{
+			//other direction TODO
+		}
+	}
+
+	public static void main(String[] args) throws IOException {			//handle exception		
+		if(args.length<6)
+			Usage.usageThanExit();
+		PacketParser[] parsers=new PacketTypes(args[4]).getParsers();			
+		BinaryInterface bin=BinaryInterfaceFactory.getBinaryInterface(args[0], args[1]);	
+		StringInterface str=StringInterfaceFactory.getStringInterface(args[2], args[3]);
+		boolean toStr=false;
+		if (args[5].equals("toString"))
+			 toStr=true;		
+		
+		Transfer fp=new Transfer(parsers,bin,str,toStr);
+		fp.run();
 	}
 
 }
