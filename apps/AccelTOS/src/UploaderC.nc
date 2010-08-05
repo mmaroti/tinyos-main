@@ -46,7 +46,7 @@ implementation {
 
 	components UploaderP;
 	components SimpleFileC;
-	components RadioDiagMsgC;
+	components DiagMsgC;
 	components BufferedSendP;
 	components LedHandlerC;
 	components new AMSenderC(AM_SAMPLEMSG) as Samples;
@@ -56,11 +56,11 @@ implementation {
 
 	BufferedSendP.AMSend -> Samples; // FIXME It should go to its own component
 	BufferedSendP.Packet -> Samples;
-	BufferedSendP.DiagMsg -> RadioDiagMsgC;
+	BufferedSendP.DiagMsg -> DiagMsgC;
 	UploaderP.BufferedSend -> BufferedSendP;
 	UploaderP.Disk -> SimpleFileC;
 	UploaderP.LedHandler -> LedHandlerC;
-	UploaderP.DiagMsg -> RadioDiagMsgC;
+	UploaderP.DiagMsg -> DiagMsgC;
 	UploaderP.UploadTimer -> Timer1;
 
 }

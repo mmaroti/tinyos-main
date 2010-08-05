@@ -49,7 +49,7 @@ implementation{
 	components LedHandlerC;
 	components MeterC;
 	components UploaderC;
-	components RadioDiagMsgC;
+	components DiagMsgC;
 
 	components new AMReceiverC(AM_CTRLMSG) as AMRec;
 	components new AMSenderC(AM_REPORTMSG) as Report;
@@ -69,6 +69,6 @@ implementation{
 	RadioHandlerP.LedHandler -> LedHandlerC;
 	RadioHandlerP.Sampling -> MeterC.Sampling;
 	RadioHandlerP.MeterCtrl -> MeterC.StdControl;
-	RadioHandlerP.DiagMsg -> RadioDiagMsgC;
+	RadioHandlerP.DiagMsg -> DiagMsgC;
 	RadioHandlerP.Uploader -> UploaderC;
 }

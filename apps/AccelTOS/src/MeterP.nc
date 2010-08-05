@@ -85,7 +85,7 @@ implementation
 
 	command error_t StdControl.stop(){
 		// FIXME Implement shut-down
-		ASSERT(FAIL);
+		ASSERT(FALSE);
 		return FAIL;
 	}
 
@@ -96,7 +96,7 @@ implementation
 		error = call AccelInit.init();
 		
 		if (error) {
-			ASSERT(FAIL);
+			ASSERT(FALSE);
 		}
 		else {
 			call Accel.setSensitivity(RANGE_4_0G);
@@ -104,7 +104,7 @@ implementation
 			error = call ShimmerAdc.setChannels(channels, CHANNEL_COUNT);
 					
 			if(error) {
-				ASSERT(FAIL);
+				ASSERT(FALSE);
 			}
 			else {
 				dump("InitOK");
@@ -119,7 +119,7 @@ implementation
 	event void Timer.fired()
 	{
 		if( call ShimmerAdc.sample() != SUCCESS ) {
-			ASSERT(FAIL);
+			ASSERT(FALSE);
 		}
 		else {
 			dump("SamplingStarted");

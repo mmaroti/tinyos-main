@@ -94,7 +94,7 @@ implementation {
 		}
 		
 		if (error) {
-			ASSERT(FAIL);
+			ASSERT(FALSE);
 			diskBusy = FALSE;
 			signal Uploader.uploadDone(error);
 		}
@@ -113,7 +113,7 @@ implementation {
 				 call UploadTimer.startPeriodic(50);
 		}
 		else {
-			ASSERT(FAIL);
+			ASSERT(FALSE);
 			diskBusy = FALSE;
 			signal Uploader.uploadDone(error);
 		}
@@ -175,14 +175,14 @@ implementation {
 			;
 		}
 		else {
-			ASSERT(FAIL);
+			ASSERT(FALSE);
 		}
 	}
 	
 	task void sendSampleMsg() {
 
 		if (pending) {
-			ASSERT(FAIL);
+			ASSERT(FALSE);
 			return;
 		}
 
@@ -228,7 +228,7 @@ implementation {
 		
 		error_t error = SUCCESS;
 		if (diskBusy) {
-			ASSERT(FAIL);
+			ASSERT(FALSE);
 			return FAIL;
 		}
 		// FIXME This ugliness together with the locking should be pushed to SimpleFileP
@@ -237,7 +237,7 @@ implementation {
 			diskBusy = TRUE; // TODO Unlock !
 		}
 		else {
-			ASSERT(FAIL);
+			ASSERT(FALSE);
 		}
 		return error;
 	}

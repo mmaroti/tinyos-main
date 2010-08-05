@@ -94,7 +94,7 @@ implementation{
 			booting = FALSE;
 		}
 		else {
-			ASSERT(FAIL);
+			ASSERT(FALSE);
 		}
 	}
 	
@@ -171,7 +171,7 @@ implementation{
 			dump("cmdSendSamp");
 		}
 		else {
-			ASSERT(FAIL);
+			ASSERT(FALSE);
 		}
 		
 		ASSERT(error==SUCCESS);

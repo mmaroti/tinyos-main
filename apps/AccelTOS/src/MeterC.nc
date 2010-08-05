@@ -41,9 +41,9 @@ configuration MeterC
 implementation
 { 
 	components MeterP, /*ActiveMessageC,*/ new TimerMilliC();
-	components LedHandlerC , RadioDiagMsgC; // FIXME It was unused anyhow...
+	components LedHandlerC , DiagMsgC;
 	components SimpleFileC; // FIXME There should be only one SimpleFileC
-	MeterP.DiagMsg -> RadioDiagMsgC;
+	MeterP.DiagMsg -> DiagMsgC;
 	
 	StdControl = MeterP.StdControl;
 	Sampling = MeterP.Sampling;
