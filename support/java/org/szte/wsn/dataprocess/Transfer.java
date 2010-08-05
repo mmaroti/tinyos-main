@@ -35,6 +35,9 @@ package org.szte.wsn.dataprocess;
 
 import java.io.IOException;
 
+import org.szte.wsn.dataprocess.string.StringInterfaceFactory;
+import org.szte.wsn.dataprocess.string.StringPacket;
+
 public class Transfer extends Thread  {
 	private PacketParser[] packetParsers;
 	private BinaryInterface binary;
@@ -42,7 +45,7 @@ public class Transfer extends Thread  {
 	boolean toString;
 
 	public Transfer(String binaryType, String binaryPath, String stringType, String stringPath, String structPath, boolean toString){
-		packetParsers=new PacketTypes(structPath).getParsers();
+		packetParsers=new PacketParserFactory(structPath).getParsers();
 		binary=BinaryInterfaceFactory.getBinaryInterface(binaryType, binaryPath);	
 		string=StringInterfaceFactory.getStringInterface(stringType, stringPath);
 		this.toString=toString;
@@ -63,8 +66,10 @@ public class Transfer extends Thread  {
 			byte data[]=binary.readPacket();
 			while(data!=null){
 				for (PacketParser pp:packetParsers){
-					if(pp.parse(data)!=null)
-						string.writePacket(pp,pp.parse(data));				
+					if(pp.parse(data)!=null){
+						string.writePacket(new StringPacket(pp.getName(),pp.getFields(),pp.parse(data)));		
+					}
+								
 				}
 				data=binary.readPacket();
 			}	
@@ -77,7 +82,7 @@ public class Transfer extends Thread  {
 	public static void main(String[] args) throws IOException {			//handle exception		
 		if(args.length<6)
 			Usage.usageThanExit();
-		PacketParser[] parsers=new PacketTypes(args[4]).getParsers();			
+		PacketParser[] parsers=new PacketParserFactory(args[4]).getParsers();			
 		BinaryInterface bin=BinaryInterfaceFactory.getBinaryInterface(args[0], args[1]);	
 		StringInterface str=StringInterfaceFactory.getStringInterface(args[2], args[3]);
 		boolean toStr=false;

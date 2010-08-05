@@ -40,6 +40,11 @@ import net.tinyos.packet.PacketListenerIF;
 import net.tinyos.packet.PhoenixSource;
 import net.tinyos.util.PrintStreamMessenger;
 
+/**
+ * 
+ * @author Andras Biro
+ * BinaryInterface implementation for serial port communication
+ */
 public class BinaryInterfaceSerial implements BinaryInterface{
 	
 	private PhoenixSource phoenix;

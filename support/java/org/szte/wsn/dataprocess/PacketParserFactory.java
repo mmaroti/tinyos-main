@@ -33,15 +33,134 @@
  */
 package org.szte.wsn.dataprocess;
 
-import org.szte.wsn.dataprocess.parser.*;
-/**
- * 
- * @author Mikos Toth
- * Factory class for the PacketParser interface
- *
- */
-public class PacketParserFactory {
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
 
+
+import org.szte.wsn.dataprocess.parser.ArrayParser;
+import org.szte.wsn.dataprocess.parser.ConstParser;
+import org.szte.wsn.dataprocess.parser.IntegerParser;
+import org.szte.wsn.dataprocess.parser.StructParser;
+
+
+public class PacketParserFactory {	
+	PacketParser[] packetParsers;
+	
+	/**
+	 * 
+	 * @param fileName location of configuration file
+	 * if no structure file name is provided, structs.txt
+	 *  will be loaded from the current directory
+	 */
+	public PacketParserFactory(String fileName){	
+		if(fileName.length()>0)
+			loadConfig(fileName);
+		else
+			loadConfig("structs.txt");
+	}
+	/**
+	 * 
+	 * @param fileName loads configuration from the fileName
+	 */
+	void loadConfig(String fileName){
+		
+		ArrayList<PacketParser> returnArray=new ArrayList<PacketParser>();
+		
+		FileInputStream file;
+		byte[] bArray=null; 
+		
+		try {
+			file = new FileInputStream(fileName);
+			bArray = new byte[file.available ()];
+			file.read(bArray);
+			file.close ();
+		} 
+		catch (IOException e) {
+			
+				System.out.println("IO ERROR while opening: "+fileName);
+				e.printStackTrace();
+				System.exit(1);			
+		}
+
+		String strLine = new String (bArray);
+		String[] words;
+
+		words=strLine.split(";");					//separates the input into commands
+		int wc=0; 									// word counter	
+		while(wc<words.length-1){
+			words[wc]=words[wc].trim();				//removes the white spaces from the beginning and the end of the phrase
+			if(!words[wc].contains("struct")){			//simple variable
+
+				String[] parts=words[wc].split(" ");
+				String parserName=parts[parts.length-1];
+				String parserType=words[wc].substring(0, (words[wc].length()-parserName.length())).trim();
+				PacketParser pp=getPacketParser(returnArray.toArray(new PacketParser[returnArray.size()]), parserName, parserType);
+				if(pp!=null)						
+					returnArray.add(pp);
+				else{
+					System.out.println("Error: not existing type: \""+parserType+"\" in "+ fileName);
+					System.exit(1);
+				}
+			}
+			else{
+				ArrayList<PacketParser> variableArray=new ArrayList<PacketParser>();
+				String[] parts=words[wc].split("\\{");
+				
+				parts=parts[0].split(" ");
+				String parserName=parts[parts.length-1].replaceAll("[^\\w]", "");;
+			    
+				
+				words[wc]=words[wc].split("\\{")[1];
+				while((wc<words.length)&&(!words[wc].contains("}"))){
+					
+					words[wc]=words[wc].trim();
+					parts=words[wc].split(" ");
+					String variableName=parts[parts.length-1];
+					String variableType=words[wc].substring(0, (words[wc].length()-variableName.length())).trim();
+					
+					PacketParser pp=getPacketParser(returnArray.toArray(new PacketParser[returnArray.size()]), variableName, variableType);
+					if(pp!=null)						
+						variableArray.add(pp);
+					else{
+						System.out.println("Error: not existing type: \""+variableType+"\" in "+ fileName);
+						System.exit(1);
+					}
+						
+					wc++;
+					
+				}				
+				returnArray.add(new StructParser(parserName,"struct", variableArray.toArray(new PacketParser[variableArray.size()])));						
+			}
+			wc++;
+			
+			
+		}//while ends here
+		packetParsers=returnArray.toArray(new PacketParser[returnArray.size()]);
+	}
+	
+	/**
+	 * 
+	 * @return returns the PacketParsers which are available 
+	 */
+	public PacketParser[] getParsers(){				
+		return packetParsers;
+	}
+
+	/**
+	 * 
+	 * @param name returns the PacketParser from the packetParsers array
+	 *  which has the same name
+	 * @return PacketParser
+	 */
+	public PacketParser getParser(String name){
+		for(int i=0;i<packetParsers.length;i++){
+			if(packetParsers[i].getName()==name)
+				return packetParsers[i];
+		}			
+		return null;
+	}
+	
 	/**
 	 * 
 	 * @param packetArray existing PacketParsers
@@ -72,6 +191,7 @@ public class PacketParserFactory {
 		else
 			return null;
 	}
+	
 	/**
 	 * 
 	 * @param packetArray already existing PacketParsers
@@ -86,4 +206,5 @@ public class PacketParserFactory {
 				return i;
 		return -1;
 	}
+	
 }

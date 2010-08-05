@@ -33,6 +33,8 @@
 */
 package org.szte.wsn.dataprocess;
 
+import org.szte.wsn.dataprocess.string.StringPacket;
+
 /**
  * interface of communication between the parsers and writers
  * 
@@ -40,14 +42,14 @@ package org.szte.wsn.dataprocess;
 public interface StringInterface {
 
 	/**
-	 * gives a String[] to the writer from the parser to write
+	 * gives a StringPacket to the writer from the parser to write
 	 * 
 	 */
-	void writePacket(PacketParser parser, String[] parsedData);		
+	void writePacket(StringPacket packet);		
 	
 	/**
-	 * gets a String[] from the writer to the parser
+	 * gets a StringPacket from the writer to the parser
 	 * 
 	 */
-	String[] readPacket(PacketParser parser);	
+	StringPacket readPacket();	
 }

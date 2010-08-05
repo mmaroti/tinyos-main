@@ -39,7 +39,7 @@ public class Usage {
 		System.out.println("java Transfer readMode sourcePath writeMode destinationPath structureFile toString");
 		System.out.println("java Transfer file 0.bin console stdOut structs.txt toString		-reads 0.bin to Console");
 		System.out.println("java Transfer file . console stdOut structs.txt	toString		-scans the actual directory for .bin files");
-		System.out.println("java Transfer serial serial@/dev/ttyUSB1:57600 console stdOut structs.txt -reads from the serialSource on USB1, ");
+		System.out.println("java Transfer serial serial@/dev/ttyUSB1:57600 console stdOut structs.txt toString -reads from the serialSource on USB1, ");
 		
 		System.exit(1);
 	}
