@@ -40,15 +40,15 @@ import java.util.Scanner;
  *	implements StringInterface
  *	writes and reads Console
  */
-public class Console implements StringInterface {
+public class StringInterfaceConsole implements StringInterface {
 	String separator;
 	PacketParser previous;
 
-	public Console(String separator){
+	public StringInterfaceConsole(String separator){
 		this.separator=separator;
 		previous=null;
 	}
-	public Console(){
+	public StringInterfaceConsole(){
 		this("	");      		//default separator is Tabulator
 	}
 

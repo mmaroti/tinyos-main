@@ -63,7 +63,7 @@ public class StringInterfaceFactory {
 		}
 		
 		else //if (type.equals("console"))
-			return new Console();
+			return new StringInterfaceConsole();
 
 	}
 	
