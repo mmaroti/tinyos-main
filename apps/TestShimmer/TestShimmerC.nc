@@ -51,7 +51,7 @@ implementation
 
 	components Mma7260P;
 	TestShimmerP.AccelInit -> Mma7260P;
-	TestShimmerP.Accel -> Mma7260P;
+	TestShimmerP.Mma_Accel -> Mma7260P;
 
 	components Idg300C;
 	TestShimmerP.Gyro -> Idg300C;

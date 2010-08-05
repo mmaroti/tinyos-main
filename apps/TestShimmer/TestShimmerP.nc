@@ -46,7 +46,7 @@ module TestShimmerP
 		interface ShimmerAdc;
 
 		interface Init as AccelInit;
-		interface Mma7260 as Accel;
+		interface Mma_Accel;
 
 		interface Leds;
 		interface DiagMsg;
@@ -87,8 +87,8 @@ implementation
 			call Leds.led2On();
 
 			call AccelInit.init();
-			call Accel.setSensitivity(RANGE_4_0G);
-			call Accel.wake(TRUE);
+			call Mma_Accel.setSensitivity(RANGE_4_0G);
+			call Mma_Accel.wake(TRUE);
 
 			call Gyro.start();
 
