@@ -141,6 +141,8 @@ public final class AccelPC {
 			
 			s.command(MOTE_ID, CONTINUOUS);
 			
+			//s.command(MOTE_ID, (short) 12);
+			
 			s.command(MOTE_ID, FORMAT);
 
 			s.command(MOTE_ID, STARTSAMPLING);
