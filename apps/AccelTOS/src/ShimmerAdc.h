@@ -1,4 +1,5 @@
-/** Copyright (c) 2010, University of Szeged
+/*
+* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -31,35 +32,23 @@
 * Author: Miklos Maroti
 */
 
-configuration MeterC
-{ 
-	provides interface StdControl;
-	provides interface StdControl as Sampling;
+#ifndef SHIMMER_ADC_H
+#define SHIMMER_ADC_H
 
-} 
+// TODO memctl.eos why is in the loop?
+enum
+{
+	SHIMMER_ADC_ZERO = 17,      // always generates two zero bytes
+	SHIMMER_ADC_TIME = 18,      // time stamp, 4 bytes
+	SHIMMER_ADC_COUNTER = 19,   // automatically incremented counter
+	SHIMMER_ADC_ACCEL_X = 5,
+	SHIMMER_ADC_ACCEL_Y = 4,
+	SHIMMER_ADC_ACCEL_Z = 3,
+	SHIMMER_ADC_GYRO_X = 1,
+	SHIMMER_ADC_GYRO_Y = 6,
+	SHIMMER_ADC_GYRO_Z = 2,
+	SHIMMER_ADC_TEMP = 10,
+	SHIMMER_ADC_BATTERY = 11,
+};
 
-implementation
-{ 
-	components MeterP;
-	components LedHandlerC , DiagMsgC;
-	components SimpleFileC; // FIXME There should be only one SimpleFileC
-	MeterP.DiagMsg -> DiagMsgC;
-	
-	StdControl = MeterP.StdControl;
-	Sampling = MeterP.Sampling;
-	
-	MeterP.LedHandler -> LedHandlerC;
-
-	components ShimmerAdcC;
-	MeterP.ShimmerAdc -> ShimmerAdcC;
-
-	components Mma7260P;
-	MeterP.AccelInit -> Mma7260P;
-	MeterP.Accel -> Mma7260P;
-
-// FIXME Only one component should turn on the disc
-// FIXME Turn off the disc? (Data corruption)
-	components BufferedFlashP; // FIXME Move these to a new configuration!!!
-	MeterP.BufferedFlash -> BufferedFlashP;
-	BufferedFlashP.SimpleFile -> SimpleFileC;
-}
+#endif

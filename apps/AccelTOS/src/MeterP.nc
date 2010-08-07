@@ -47,7 +47,6 @@ module MeterP
 	
 	uses
 	{
-		interface Timer<TMilli>;
 		interface ShimmerAdc;
 
 		interface Init as AccelInit;
@@ -64,6 +63,9 @@ implementation
 {
 	uint8_t channels[] = 
 	{ 
+		//SHIMMER_ADC_ZERO,
+		SHIMMER_ADC_TIME,
+		SHIMMER_ADC_COUNTER,
 		SHIMMER_ADC_ACCEL_X, 
 		SHIMMER_ADC_ACCEL_Y,
 		SHIMMER_ADC_ACCEL_Z,
@@ -116,57 +118,30 @@ implementation
 
 	//message_t msgBuffer; FIXME Unused in TestShimmer?
 
-	event void Timer.fired()
-	{
-		if( call ShimmerAdc.sample() != SUCCESS ) {
-			ASSERT(FALSE);
-		}
-		else {
-			dump("SamplingStarted");
-		}
-	}
-
-	event void ShimmerAdc.sampleDone(uint32_t timestamp, uint16_t* data)
+	event void ShimmerAdc.sampleDone(uint16_t* data, uint8_t length)
 	{
 		error_t error = SUCCESS;
 		
 		call LedHandler.sampling();
 
-		dump("samplingDone");
+		//dump("samplingDone");
 
-		error = call BufferedFlash.send(data - 2, 4 + CHANNEL_COUNT*2); // FIXME Magic numbers
+		error = call BufferedFlash.send(data, 2*length);
 		
 		ASSERT(error==SUCCESS);
 	}
 
 	command error_t Sampling.stop(){
 		// FIXME What if sampleDone is pending?
-		error_t error = SUCCESS;
 		
-		if (call Timer.isRunning()) {
-			call Timer.stop();
-		}
-		else {
-			error = EALREADY;
-		}
-		
-		return error;		
+		return call ShimmerAdc.stopSampling();		
 	}
 
 	command error_t Sampling.start(){
 
-		error_t error = SUCCESS;
-		
 		dump("startRecord");
 		
-		if (!call Timer.isRunning()) {
-			call Timer.startPeriodic(5); // FIXME Nothing happens for dt ms!
-		}
-		else {
-			error = EALREADY;
-		}
-		
-		return error;
+		return call ShimmerAdc.sample(160);
 	}
 
 }

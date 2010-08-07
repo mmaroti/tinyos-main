@@ -52,7 +52,7 @@ implementation {
 	
 	
 	enum {
-		SAMPLESIZE = 14,
+		SAMPLESIZE = 16,
 		END_OF_DATA = 127, // FIXME Magic numbers, not updated automagically
 	};
 	
@@ -71,7 +71,7 @@ implementation {
 	bool pending = FALSE;
 	
 	bool formatting = FALSE;  // FIXME Hideous
-
+	/*
 	void dump(char* msg) {
 		if( call DiagMsg.record() ) {
 			call DiagMsg.str(msg);
@@ -86,7 +86,7 @@ implementation {
 			call DiagMsg.send();
 		}		
 	}
-	
+	*/
 	event void Disk.seekDone(error_t error){
 		
 		if (!error) {
@@ -103,7 +103,7 @@ implementation {
 	event void Disk.readDone(error_t error, uint16_t length) {
 		
 		if (!error) {
-			dumpInt("Len", length);
+			//dumpInt("Len", length);
 			
 			head = 0;
 			tail = length;
@@ -127,7 +127,7 @@ implementation {
 		if (diskBusy&&pending) {
 			post sendSampleMsg();
 			pending = FALSE;
-			dump("postDone");
+			//dump("postDone");
 		}
 	}
 	
@@ -135,17 +135,17 @@ implementation {
 
 		error_t error;
 		
-		dumpInt("head", head);
+		//dumpInt("head", head);
 		// FIXME What if msg never reaches destination, ACK?
 		error = call BufferedSend.send(sector+head, SAMPLESIZE);
 		
 		if (!error) {
 			head += SAMPLESIZE;
 			call LedHandler.sendingToggle();
-			dump("buffSendOK");
+			//dump("buffSendOK");
 		}
 		else {
-			dump("buffSendFail");
+			//dump("buffSendFail");
 		}
 		
 		pending = TRUE;
@@ -157,7 +157,7 @@ implementation {
 		
 		call BufferedSend.flush();
 		call LedHandler.sendingToggle();
-		dump("endSector");
+		//dump("endSector");
 		
 		error = call Disk.read(sector, MAX_DATA_LEN);
 		
@@ -167,7 +167,7 @@ implementation {
 		else if (error == END_OF_DATA) {			
 			call UploadTimer.stop(); // FIXME Never shut down in case of an error
 			// TODO On updating the source check how sector is guarded!
-			dump("endDisc");
+			//dump("endDisc");
 			diskBusy = FALSE;
 			signal Uploader.uploadDone(SUCCESS);
 		}

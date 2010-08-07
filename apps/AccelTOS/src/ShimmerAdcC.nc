@@ -31,35 +31,39 @@
 * Author: Miklos Maroti
 */
 
-configuration MeterC
-{ 
-	provides interface StdControl;
-	provides interface StdControl as Sampling;
-
+configuration ShimmerAdcC
+{
+	provides
+	{
+		interface ShimmerAdc;
+		interface LocalTime<T32khz>;
+	}
 } 
 
 implementation
-{ 
-	components MeterP;
-	components LedHandlerC , DiagMsgC;
-	components SimpleFileC; // FIXME There should be only one SimpleFileC
-	MeterP.DiagMsg -> DiagMsgC;
+{
+#ifdef SHIMMER_ADC_TEST
+	components ShimmerAdcTestP as ShimmerAdcP;
+#else
+	components ShimmerAdcP, HplAdc12P, Msp430DmaC;
+
+	ShimmerAdcP.HplAdc12 -> HplAdc12P;
+	ShimmerAdcP.Msp430DmaControl -> Msp430DmaC;
+	ShimmerAdcP.Msp430DmaChannel -> Msp430DmaC.Channel0;
+#endif
+
+	components MainC;
+
+	ShimmerAdc = ShimmerAdcP;
+	LocalTime = CounterToLocalTimeC;
+
+	ShimmerAdcP.Init <- MainC.SoftwareInit;
+
+	components Counter32khz32C as Counter;
+	components new CounterToLocalTimeC(T32khz);
+	CounterToLocalTimeC.Counter -> Counter;
+	ShimmerAdcP.LocalTime -> CounterToLocalTimeC;
 	
-	StdControl = MeterP.StdControl;
-	Sampling = MeterP.Sampling;
-	
-	MeterP.LedHandler -> LedHandlerC;
-
-	components ShimmerAdcC;
-	MeterP.ShimmerAdc -> ShimmerAdcC;
-
-	components Mma7260P;
-	MeterP.AccelInit -> Mma7260P;
-	MeterP.Accel -> Mma7260P;
-
-// FIXME Only one component should turn on the disc
-// FIXME Turn off the disc? (Data corruption)
-	components BufferedFlashP; // FIXME Move these to a new configuration!!!
-	MeterP.BufferedFlash -> BufferedFlashP;
-	BufferedFlashP.SimpleFile -> SimpleFileC;
+	components new Alarm32khz16C() as Alarm;
+	ShimmerAdcP.Alarm -> Alarm;
 }

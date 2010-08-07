@@ -46,7 +46,7 @@ public class TestShimmer implements PacketListenerIF
 	static final int PACKET_DATA_FIELD = 8;
 
 	static final byte AM_TYPE = (byte)0x37;
-	static final int CHANNEL_COUNT = 5;
+	static final int CHANNEL_COUNT = 6;
 
 	protected PhoenixSource forwarder;
 	

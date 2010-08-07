@@ -1,4 +1,5 @@
-/** Copyright (c) 2010, University of Szeged
+/*
+* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -31,35 +32,16 @@
 * Author: Miklos Maroti
 */
 
-configuration MeterC
-{ 
-	provides interface StdControl;
-	provides interface StdControl as Sampling;
+interface ShimmerAdc
+{
+	/**
+	 * Initializes the ADC/DMA components.
+	 */
+	command error_t setChannels(uint8_t *channels, uint8_t count);
 
-} 
+	command error_t sample(uint16_t period);
 
-implementation
-{ 
-	components MeterP;
-	components LedHandlerC , DiagMsgC;
-	components SimpleFileC; // FIXME There should be only one SimpleFileC
-	MeterP.DiagMsg -> DiagMsgC;
+	event void sampleDone(uint16_t *data, uint8_t length);
 	
-	StdControl = MeterP.StdControl;
-	Sampling = MeterP.Sampling;
-	
-	MeterP.LedHandler -> LedHandlerC;
-
-	components ShimmerAdcC;
-	MeterP.ShimmerAdc -> ShimmerAdcC;
-
-	components Mma7260P;
-	MeterP.AccelInit -> Mma7260P;
-	MeterP.Accel -> Mma7260P;
-
-// FIXME Only one component should turn on the disc
-// FIXME Turn off the disc? (Data corruption)
-	components BufferedFlashP; // FIXME Move these to a new configuration!!!
-	MeterP.BufferedFlash -> BufferedFlashP;
-	BufferedFlashP.SimpleFile -> SimpleFileC;
+	command error_t stopSampling();
 }

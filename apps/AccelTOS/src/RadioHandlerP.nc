@@ -165,6 +165,7 @@ implementation{
 		}
 		else if (cmd == STOPSAMPLING) {
 			error = call Sampling.stop();
+			// FIXME It is OK if fails
 		}
 		else if (cmd == SENDSAMPLES) {
 			error = call Uploader.upload();
