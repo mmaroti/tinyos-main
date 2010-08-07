@@ -61,6 +61,12 @@ module MeterP
 
 implementation
 {
+	
+	enum
+	{
+		CHANNEL_COUNT = 7, // FIXME Make automatic, sizeof?
+	};
+
 	uint8_t channels[] = 
 	{ 
 		//SHIMMER_ADC_ZERO,
@@ -73,10 +79,6 @@ implementation
 		SHIMMER_ADC_TEMP,
 	};
 
-	enum
-	{
-		CHANNEL_COUNT = 5, // FIXME Make automatic, sizeof?
-	};
 	
 	void dump(char* msg) {
 		if( call DiagMsg.record() ) {

@@ -52,7 +52,7 @@ implementation {
 	
 	
 	enum {
-		SAMPLESIZE = 16,
+		SAMPLESIZE = 16, // FIXME Knows message size
 		END_OF_DATA = 127, // FIXME Magic numbers, not updated automagically
 	};
 	
