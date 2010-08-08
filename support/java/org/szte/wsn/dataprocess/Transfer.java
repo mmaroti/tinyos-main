@@ -34,7 +34,6 @@
 package org.szte.wsn.dataprocess;
 
 import java.io.IOException;
-
 import org.szte.wsn.dataprocess.string.StringInterfaceFactory;
 import org.szte.wsn.dataprocess.string.StringPacket;
 
@@ -47,7 +46,7 @@ public class Transfer extends Thread  {
 	public Transfer(String binaryType, String binaryPath, String stringType, String stringPath, String structPath, boolean toString){
 		packetParsers=new PacketParserFactory(structPath).getParsers();
 		binary=BinaryInterfaceFactory.getBinaryInterface(binaryType, binaryPath);	
-		string=StringInterfaceFactory.getStringInterface(stringType, stringPath);
+		string=StringInterfaceFactory.getStringInterface(stringType, stringPath, packetParsers);
 		this.toString=toString;
 		if((binary==null)||(string==null))
 			Usage.usageThanExit();
@@ -69,26 +68,42 @@ public class Transfer extends Thread  {
 					if(pp.parse(data)!=null){
 						string.writePacket(new StringPacket(pp.getName(),pp.getFields(),pp.parse(data)));		
 					}
-								
+
 				}
 				data=binary.readPacket();
 			}	
 		}
-		else{
-			//other direction TODO
-		}
+		else{			//other direction
+			StringPacket sp=string.readPacket();
+			while(sp!=null){
+				PacketParser pp=PacketParserFactory.getParser(sp.getName(), packetParsers);
+				if(pp.construct(sp.getData())!=null){
+					try {
+						binary.writePacket(pp.construct(sp.getData()));
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						Usage.usageThanExit();
+					}		
+				}
+				sp=string.readPacket();
+			}
+			
+		}	
+
 	}
 
-	public static void main(String[] args) throws IOException {			//handle exception		
+
+	public static void main(String[] args) {			//handle exception		
 		if(args.length<6)
 			Usage.usageThanExit();
 		PacketParser[] parsers=new PacketParserFactory(args[4]).getParsers();			
 		BinaryInterface bin=BinaryInterfaceFactory.getBinaryInterface(args[0], args[1]);	
-		StringInterface str=StringInterfaceFactory.getStringInterface(args[2], args[3]);
+		StringInterface str=StringInterfaceFactory.getStringInterface(args[2], args[3],parsers);
 		boolean toStr=false;
 		if (args[5].equals("toString"))
-			 toStr=true;		
-		
+			toStr=true;		
+
 		Transfer fp=new Transfer(parsers,bin,str,toStr);
 		fp.start();
 	}

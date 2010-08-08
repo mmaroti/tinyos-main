@@ -33,6 +33,7 @@
  */
 package org.szte.wsn.dataprocess.string;
 
+import org.szte.wsn.dataprocess.PacketParser;
 import org.szte.wsn.dataprocess.StringInterface;
 
 /**
@@ -48,7 +49,7 @@ public class StringInterfaceFactory {
 	 * @param source String path of the source
 	 * @return a StringInterface instance with the specified params
 	 */
-	public static StringInterface getStringInterface(String type, String source){
+	public static StringInterface getStringInterface(String type, String source, PacketParser[] packetParsers){
 		if(type.equals("file")){
 			/*
 			try {
@@ -65,7 +66,7 @@ public class StringInterfaceFactory {
 		}
 		
 		else //if (type.equals("console"))
-			return new StringInterfaceConsole();
+			return new StringInterfaceConsole(",", packetParsers);
 
 	}
 	

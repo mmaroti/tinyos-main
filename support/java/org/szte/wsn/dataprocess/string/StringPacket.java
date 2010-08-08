@@ -38,8 +38,10 @@ public class StringPacket {
 	private String fields[];
 	private String data[];
 	
-	public StringPacket(){
-		
+	public StringPacket(String name, String[] data ){
+		this.setName(name);
+		this.fields= new String[1];
+		this.setData(data);
 	}
 	
 	public StringPacket(String name, String fields[], String data[]){

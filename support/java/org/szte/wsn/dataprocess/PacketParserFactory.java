@@ -149,17 +149,18 @@ public class PacketParserFactory {
 
 	/**
 	 * 
-	 * @param name returns the PacketParser from the packetParsers array
+	 * @param name returns the PacketParser from the parsers array
 	 *  which has the same name
 	 * @return PacketParser
 	 */
-	public PacketParser getParser(String name){
-		for(int i=0;i<packetParsers.length;i++){
-			if(packetParsers[i].getName()==name)
-				return packetParsers[i];
+	public static PacketParser getParser(String name, PacketParser[] parsers ){
+		for(int i=0;i<parsers.length;i++){
+			if(parsers[i].getName().equals(name))
+				return parsers[i];
 		}			
 		return null;
 	}
+	
 	
 	/**
 	 * 

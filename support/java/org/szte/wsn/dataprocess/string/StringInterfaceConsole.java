@@ -34,7 +34,10 @@
 package org.szte.wsn.dataprocess.string;
 import java.util.Scanner;
 
+import org.szte.wsn.dataprocess.PacketParser;
+import org.szte.wsn.dataprocess.PacketParserFactory;
 import org.szte.wsn.dataprocess.StringInterface;
+import org.szte.wsn.dataprocess.Usage;
 
 /**
  * 
@@ -45,14 +48,14 @@ import org.szte.wsn.dataprocess.StringInterface;
 public class StringInterfaceConsole implements StringInterface {
 	String separator;
 	String previous;
+	PacketParser[] packetParsers;
 
-	public StringInterfaceConsole(String separator){
+	public StringInterfaceConsole(String separator, PacketParser[] packetParsers){
 		this.separator=separator;
+		this.packetParsers=packetParsers;
 		previous="";
 	}
-	public StringInterfaceConsole(){
-		this("	");      		//default separator is Tabulator
-	}
+
 
 	@Override
 	/**
@@ -63,17 +66,17 @@ public class StringInterfaceConsole implements StringInterface {
 		if (packet.getData()!=null){			
 			if(!packet.getName().equals(previous)){
 				System.out.print(packet.getName()+separator);
-			for(String head:packet.getFields())
-				System.out.print(head+separator);
+				for(String head:packet.getFields())
+					System.out.print(head+separator);
 
-			System.out.println();			
+				System.out.println();			
 			}
 			System.out.print(packet.getName()+separator);
 			for(String data:packet.getData()){			
 				System.out.print(data+separator);
 			}
 			System.out.println();
-		previous=packet.getName();
+			previous=packet.getName();
 		}
 	}
 
@@ -83,15 +86,25 @@ public class StringInterfaceConsole implements StringInterface {
 	 * implements readPacket for Console application
 	 */
 	public StringPacket readPacket() {
-		/*
-		String[] ret=new String[parser.getFields().length];
+		StringPacket ret=null;
 		Scanner in = new Scanner(System.in);
-
-		for(int i=0; i<parser.getFields().length;i++)
-			ret[i]=in.nextLine();
+//		for(PacketParser bb:packetParsers)
+//			System.out.println(bb.getName());
+		System.out.println("Give me the name of the struct:");
+		String structName=in.nextLine();
+		PacketParser pp=PacketParserFactory.getParser(structName, packetParsers );
+		if(pp!=null){
+			System.out.println("Give me one data line, seperated with: "+separator);
+			String[] parts=in.nextLine().split(separator);
+			if(parts.length==pp.getFields().length)
+				 ret=new StringPacket(structName,parts);
+			else	
+				Usage.usageThanExit();
+		}
+		else
+			Usage.usageThanExit();
 		in.close();  
-		*/
-		return new StringPacket();
+		return ret;
 	}
 
 }

@@ -107,7 +107,7 @@ public class StringInterfaceFile implements StringInterface {
 		}catch (Exception e){//Catch exception if any
 			System.err.println("Error: " + e.getMessage());
 		}*/
-		return new StringPacket();
+		return new StringPacket(new String(""), null);
 	}
 
 }
