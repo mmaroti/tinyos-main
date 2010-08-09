@@ -35,6 +35,8 @@
 #include "Assert.h"
 #include "ShimmerAdc.h"
 
+#define DEBUGCHN
+
 module ShimmerAdcP
 {
 	provides 
@@ -164,7 +166,7 @@ implementation
 		step += realChannels;
 		
 		ASSERT((QUEUESIZE>=step)&&(step>0));
-		effSize = (QUEUESIZE/step)*step;
+		effSize = QUEUESIZE - (QUEUESIZE % step);
 		
 		dumpInt("step",     step);
 		dumpInt("tsOffset", ts_offset);
@@ -192,8 +194,8 @@ implementation
 		adc12ctl0_t ctl0 = {
 			adc12sc:0,			// start conversion: 0 = no sample-and-conversion-start
 			enc:0,				// enable conversion: 0 = ADC12 disabled
-			adc12tovie:0,			// conversion-time-overflow-interrupt: 0 = interrupt dissabled
-			adc12ovie:0,			// ADC12MEMx overflow-interrupt: 0 = dissabled
+			adc12tovie:0,		// conversion-time-overflow-interrupt: 0 = interrupt dissabled
+			adc12ovie:0,		// ADC12MEMx overflow-interrupt: 0 = dissabled
 			adc12on:1,			// ADC12 on: 1 = on
 			refon:1,			// reference generator: 1 = on
 			r2_5v:1,			// reference generator voltage: 1 = 2.5V
@@ -203,8 +205,8 @@ implementation
 		};     
 
 		adc12ctl1_t ctl1 = {
-			adc12busy:0,			// no operation is active
-			conseq:1,			// conversion mode: sequence of chans
+			adc12busy:0,				// no operation is active
+			conseq:1,					// conversion mode: sequence of chans
 			adc12ssel:SHT_SOURCE_SMCLK,	// SHT_SOURCE_SMCLK=3; ADC12 clocl source
 			adc12div:SHT_CLOCK_DIV_8,	// SHT_CLOCK_DIV_8=7; ADC12 clock div 1
 			issh:0,				// sample-input signal not inverted
@@ -218,6 +220,9 @@ implementation
 			sref:REFERENCE_VREFplus_AVss,	// stabilized reference voltage
 			eos:1				// end of sequence flag: 1 indicates last conversion
 		};
+		
+		bool recording = FALSE;
+		int8_t i, j;
 
 		if( count > SAMPLE_COUNT )
 			return ESIZE;
@@ -251,19 +256,32 @@ implementation
 		call HplAdc12.setCtl0(ctl0);
 		call HplAdc12.setCtl1(ctl1);
 
-		count = nSamples;
-		while( count > 0 )
-		{
-			dumpInt("count", count);
-			dumpInt("channel", channels[count]);
-			memctl.inch = channels[count];
-			call HplAdc12.setMCtl(count, memctl);
+		recording = call DiagMsg.record();
+		
+		for (i=0; i<count; ++i) {
+			
+			j = channels[i];
+			
+			if (j>15)
+				continue;
+			
+			if(recording) {
+				call DiagMsg.uint16(i);
+				call DiagMsg.uint16(channels[i]);
+			}
 
-			// the end of sequence is cleared for all others
+			memctl.inch = j;
 			memctl.eos = 0;
-			--count;
+			if (i==count-1)
+				memctl.eos = 1;
+
+			call HplAdc12.setMCtl(i, memctl);
+
 		}
 
+		if (recording) {
+			call DiagMsg.send();
+		}
 		// get ready for the first transfer
 		call Msp430DmaChannel.startTransfer();
 
@@ -324,6 +342,8 @@ implementation
 	
 	async event void Msp430DmaChannel.transferDone(error_t success)
 	{
+		uint8_t i;
+
 		if (timestampNeeded)
 			*((uint32_t*) (queue+tail+ts_offset)) = call LocalTime.get();
 
@@ -332,6 +352,11 @@ implementation
 
 		if (counterNeeded)
 			queue[tail+cnt_offset] = ++counter;
+			
+#ifdef DEBUGCHN
+		for (i=0; i<nSamples; ++i)
+			queue[tail+offset+i] = i+1;
+#endif
 
 		// prepare for the next ADC sample
 		if (size < effSize) {
