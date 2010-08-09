@@ -5,7 +5,7 @@ public class RandomString {
 	
 	public static boolean getAnewInput(){
 		Random r = new Random();
-		int random = r.nextInt(1000000000);
+		int random = r.nextInt(100000000);
 		if(random<20) return true;
 		return false;
 	}
@@ -15,7 +15,7 @@ public class RandomString {
 		String[] r = new String[mutch];
 		String inputChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 		for(int i = 0; i<mutch; i++){
-			String c = null;
+			String c = "";
 			for(int k = 0; k<10; k++){
 				c = c + inputChars.charAt(rn.nextInt(61));
 			}

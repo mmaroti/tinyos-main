@@ -84,7 +84,7 @@ public class SnifferGraph implements DataBase{
     JTextField startStop = new JTextField(Labels.txfield_pause);
     JTextField recived = new JTextField(Labels.txfield_recived);
     JTextField channelT = new JTextField(Labels.txfield_channelT);
-    JTextField receivedPack = new JTextField("0");
+    JTextField receivedPack = new JTextField("1");
     JTextField channel = new JTextField("1L");
     JTextField loadedFileT = new JTextField(Labels.txfield_loadedFileT);
     JTextField loadedFile = new JTextField(xmlRead.filename);
@@ -105,6 +105,13 @@ public class SnifferGraph implements DataBase{
     static JCheckBox box[] = new JCheckBox[xmlRead.number+1];
     
     JFileChooser fc = new JFileChooser();
+    
+    ToolBarButton exit_toolbar;
+    ToolBarButton about_toolbar;
+    ToolBarButton creat_toolbar;
+    ToolBarButton load_toolbar;
+    ToolBarButton open_conf_toolbar;
+    ToolBarButton save_toolbar;
 	/**
 	 * This function gives information about the start button status.
 	 */
@@ -206,11 +213,7 @@ public class SnifferGraph implements DataBase{
 	 * Class constructor
 	 */
 	public SnifferGraph() {
-		
-		
-		backgPanel.setLayout(null);
-        
-        createActionListeners();									
+		backgPanel.setLayout(null);								
         
         backgPanel.setBackground(Color.white);						
         backgPanel.setBorder(BorderFactory.createEtchedBorder());	
@@ -219,7 +222,9 @@ public class SnifferGraph implements DataBase{
         scrollbar.setMaximum(0);
         menuCreat();												
         editables();										
-        baseSetings();										
+        baseSetings();
+        creatToolBar();
+        createActionListeners();
         adding();											
         setTooltips();													
         createTimeLine();
@@ -232,6 +237,20 @@ public class SnifferGraph implements DataBase{
         snfG.setVisible(true);
    }
 	
+	private void creatToolBar() {
+		exit_toolbar = new ToolBarButton("./src/Icon/Exit.png");
+		exit_toolbar.setToolTipText("Exit");
+		about_toolbar = new ToolBarButton("./src/Icon/About.png");
+		about_toolbar.setToolTipText("About to Sniffer");
+	    creat_toolbar = new ToolBarButton("./src/Icon/Create-Configuration.png");
+	    creat_toolbar.setToolTipText("Creat a new conf file");
+	    load_toolbar = new ToolBarButton("./src/Icon/Load-Packages.png");
+	    load_toolbar.setToolTipText("Load a history");
+	    open_conf_toolbar = new ToolBarButton("./src/Icon/Open-Configuration.png");
+	    open_conf_toolbar.setToolTipText("Open a conf file");
+	    save_toolbar = new ToolBarButton("./src/Icon/Save.png");
+	    save_toolbar.setToolTipText("Save a history");
+	}
 	/**
 	 * This function creates and specify checkboxes
 	 */
@@ -411,8 +430,15 @@ public class SnifferGraph implements DataBase{
 		southPanel.add(loadedFileT);
 		southPanel.add(loadedFile);
 		
+		northPanel.add(load_toolbar);
+		northPanel.add(save_toolbar);
+		northPanel.add(creat_toolbar);
+		northPanel.add(open_conf_toolbar);
+		northPanel.add(about_toolbar);
+		northPanel.add(exit_toolbar);
 		northPanel.add(start);
 		northPanel.add(clear);
+		
 		timeLine.setBounds(TIMELINE_X, TIMELINE_Y, TIMELINE_WIDTH+1000000, TIMELINE_HEIGHT);		
 	    timeLine.setBackground(Color.white);
 		
@@ -438,6 +464,11 @@ public class SnifferGraph implements DataBase{
 	 */
 	private void createActionListeners() {						
 		// TODO Auto-generated method stub
+		exit_toolbar.addActionListener(new ActionListener() {			
+            public void actionPerformed(ActionEvent event) {
+            	System.exit(0);
+            }
+		});
 		fileClose.addActionListener(new ActionListener() {			
             public void actionPerformed(ActionEvent event) {
             	System.exit(0);
@@ -502,7 +533,6 @@ public class SnifferGraph implements DataBase{
         loadedFile.setEditable(false);
 	}
 	
-	@SuppressWarnings("unused")
 	public static void main(String[] args) {
 		SnifferGraph main = new SnifferGraph();
 		for(int i = 0; i<1; i++){
@@ -516,7 +546,7 @@ public class SnifferGraph implements DataBase{
 			scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
 		}
 		do{
-			if(RandomString.getAnewInput()){
+			if(main.startStop.getText().equals("Working") && RandomString.getAnewInput()){
 				int first = RandomString.getAnumber(motes.get(motes.size()-1).stopTime);
 				int second = RandomString.getAnumber(first);
 				motes.add(new Mote(first, second, RandomString.getRandomMoteStrings(4)));
@@ -526,6 +556,7 @@ public class SnifferGraph implements DataBase{
 				scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
 				scrollbar.setValue(scrollbar.getValue()+1);
 				scrollbar.setValue(scrollbar.getValue()-1);
+				main.receivedPack.setText(String.valueOf(Integer.parseInt(main.receivedPack.getText())+1));
 			}
 		}while(true);
 		

@@ -2,7 +2,11 @@ import java.awt.*;
 import javax.swing.*;
 
 public class ToolBarButton extends JButton {
-  private static final Insets margins =
+  /**
+	 * 
+	 */
+	private static final long serialVersionUID = 11L;
+private static final Insets margins =
     new Insets(0, 0, 0, 0);
 
   public ToolBarButton(Icon icon) {
