@@ -1,4 +1,5 @@
 
+
 /**
  * 
  */
@@ -15,8 +16,14 @@ public final class Labels {
 	public static final String menu_about = "About";
 	public static final String menu_load_packages = "Load packages...";
 	public static final String menu_open_conf = "Open Configuration";
-	public static final String menu_creat = "Creat";
+	public static final String menu_create = "Create";
 	public static final String menu_save = "Save";
+	public static final String menu_help = "Help";
+	public static final String menu_saveas = "Save as...";
+	public static final String menu_start = "Start";
+	public static final String menu_stop = "Stop";
+	public static final String menu_setchn = "Set channel";
+	public static final String menu_setport = "Set port";
 	
 	public static final String button_start = "Start";
 	public static final String button_stop = "Stop";
@@ -24,8 +31,8 @@ public final class Labels {
 	
 	public static final String txfield_working = "Working";
 	public static final String txfield_pause = "Pause";
-	public static final String txfield_resived = "Resived packages: ";
-	public static final String txfield_chanelT = "Chanel: ";
+	public static final String txfield_recived = "Recived packages: ";
+	public static final String txfield_channelT = "Channel: ";
 	public static final String txfield_loadedFileT = "Loaded: ";
 	public static final String txfield_untitled = "untitled";
 	

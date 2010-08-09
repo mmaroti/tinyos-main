@@ -8,7 +8,8 @@ import java.util.ArrayList;
 
 import javax.swing.*;
 
-import com.generationjava.io.xml.XmlWriter;
+import xmlReadWrite.XmlWriter;
+
 
 
 /**
