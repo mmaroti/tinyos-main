@@ -66,4 +66,9 @@ implementation
 	
 	components new Alarm32khz16C() as Alarm;
 	ShimmerAdcP.Alarm -> Alarm;
+	
+	components DiagMsgC;
+	
+	ShimmerAdcP.DiagMsg -> DiagMsgC;
+	
 }

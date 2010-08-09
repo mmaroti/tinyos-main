@@ -50,6 +50,7 @@ module ShimmerAdcP
 		interface Msp430DmaChannel;
 		interface LocalTime<T32khz>;
 		interface Alarm<T32khz,uint16_t> as Alarm;
+		interface DiagMsg;
 	}
 }
 
@@ -61,26 +62,36 @@ implementation
 		QUEUESIZE    = 200
 	};
 
-	uint16_t dt = 160;
+	uint16_t dt = 160; // 204.8 Hz
 	
+	// All norace variables are guarded by sampling
 	bool sampling;
-	norace uint8_t nSamples; // Guarded by sampling
+
+	norace uint8_t nSamples;
 
 	uint8_t head;
-	norace uint8_t tail;      // Guarded by sampling
-	norace uint8_t step;      // Guarded by sampling
-	norace uint8_t offset;    // Guarded by sampling
-	norace uint8_t ts_offset; // Guarded by sampling
-	norace uint8_t cnt_offset;// Guarded by sampling
-	norace uint8_t size;      // Guarded by sampling
-	norace uint8_t effSize;   // Guarded by sampling
+	norace uint8_t tail;
+	norace uint8_t step;
+	norace uint8_t offset;
+	norace uint8_t ts_offset;
+	norace uint8_t cnt_offset;
+	norace uint8_t size;
+	norace uint8_t effSize;
 	
-	norace uint16_t queue[QUEUESIZE];  // Guarded by sampling
+	norace uint16_t queue[QUEUESIZE];
 
-	norace bool leadingZerosNeeded; // Guarded by sampling
-	norace bool timestampNeeded;    // Guarded by sampling
-	norace bool counterNeeded;      // Guarded by sampling
-	norace uint16_t counter;        // Guarded by sampling
+	norace bool leadingZerosNeeded;
+	norace bool timestampNeeded;
+	norace bool counterNeeded;
+	norace uint16_t counter;
+	
+	void dumpInt(char* msg, uint16_t i) {
+		if( call DiagMsg.record() ) {
+			call DiagMsg.str(msg);
+			call DiagMsg.int16(i);
+			call DiagMsg.send();
+		}		
+	}
 	
 	void resetVChannels() {
 		counter = 0;
@@ -155,6 +166,13 @@ implementation
 		ASSERT((QUEUESIZE>=step)&&(step>0));
 		effSize = (QUEUESIZE/step)*step;
 		
+		dumpInt("step",     step);
+		dumpInt("tsOffset", ts_offset);
+		dumpInt("cntOffset",cnt_offset);
+		dumpInt("offset",   offset);
+		dumpInt("realChn",  realChannels);
+		dumpInt("effSize",  effSize);
+
 		return retVal;
 	}
 	
@@ -236,13 +254,14 @@ implementation
 		count = nSamples;
 		while( count > 0 )
 		{
-			--count;
-
+			dumpInt("count", count);
+			dumpInt("channel", channels[count]);
 			memctl.inch = channels[count];
 			call HplAdc12.setMCtl(count, memctl);
 
 			// the end of sequence is cleared for all others
 			memctl.eos = 0;
+			--count;
 		}
 
 		// get ready for the first transfer
@@ -270,7 +289,7 @@ implementation
 
 	async event void Alarm.fired() {
 		
-		call Alarm.startAt(call Alarm.getAlarm(),dt);
+		call Alarm.startAt(call Alarm.getAlarm(), dt);
 		
 		atomic {
 			if( sampling || (size>=effSize)) {// FIXME Should be just == ?
@@ -290,11 +309,13 @@ implementation
 	async event void HplAdc12.conversionDone(uint16_t iv) { }
 	
 	task void reportDone() {
+	  
+		ASSERT(size>0); // FIXME size > 1?
+		atomic {
+			--size;
+		}
 		
 		signal ShimmerAdc.sampleDone(queue+head, step);
-		
-		ASSERT(size>0); // FIXME size > 1?
-		--size;
 		
 		head += step;
 		if (head == effSize)

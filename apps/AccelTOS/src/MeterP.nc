@@ -61,12 +61,10 @@ module MeterP
 
 implementation
 {
-	
-	enum
-	{
-		CHANNEL_COUNT = 7, // FIXME Make automatic, sizeof?
+	enum {
+		CHANNEL_COUNT = 7 // FIXME Should be automatic
 	};
-
+	
 	uint8_t channels[] = 
 	{ 
 		//SHIMMER_ADC_ZERO,
@@ -79,7 +77,6 @@ implementation
 		SHIMMER_ADC_TEMP,
 	};
 
-	
 	void dump(char* msg) {
 		if( call DiagMsg.record() ) {
 			call DiagMsg.str(msg);
@@ -105,6 +102,7 @@ implementation
 		else {
 			call Accel.setSensitivity(RANGE_4_0G);
 			call Accel.wake(TRUE);
+			ASSERT(CHANNEL_COUNT == sizeof(channels));
 			error = call ShimmerAdc.setChannels(channels, CHANNEL_COUNT);
 					
 			if(error) {
