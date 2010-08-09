@@ -101,7 +101,7 @@ implementation{
 	event void DiskCtrl.stopDone(error_t error){
 		// TODO Auto-generated method stub
 	}
-
+/*
 	error_t broadcast() {
 
 		error_t error;
@@ -122,7 +122,7 @@ implementation{
     	}
     	return error;
 	}
-	
+*/	
 	event void AMReportMsg.sendDone(message_t *msg, error_t error){
 		sending = FALSE;
 		// TODO Resend if failed?
@@ -199,7 +199,7 @@ implementation{
 			radioOn = TRUE;
 			call LedHandler.radioOn();
 			
-			broadcast();
+			//broadcast();
 
 			if (booting) {
 				call WatchDog.startPeriodic(1000);
@@ -222,7 +222,7 @@ implementation{
 			ASSERT(error==SUCCESS);
 		}
 		else {
-			broadcast();
+			//broadcast();
 			if (mode == ALTERING)
 				call ShortPeriod.startOneShot(50);
 		}

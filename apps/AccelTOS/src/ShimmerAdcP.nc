@@ -35,7 +35,7 @@
 #include "Assert.h"
 #include "ShimmerAdc.h"
 
-#define DEBUGCHN
+//#define DEBUGCHN
 
 module ShimmerAdcP
 {
@@ -222,7 +222,7 @@ implementation
 		};
 		
 		bool recording = FALSE;
-		int8_t i, j;
+		int8_t i, j, nVirtChn;
 
 		if( count > SAMPLE_COUNT )
 			return ESIZE;
@@ -257,8 +257,8 @@ implementation
 		call HplAdc12.setCtl1(ctl1);
 
 		recording = call DiagMsg.record();
-		
-		for (i=0; i<count; ++i) {
+		nVirtChn = count-nSamples;
+		for (i=nVirtChn; i<count; ++i) {
 			
 			j = channels[i];
 			
@@ -266,8 +266,8 @@ implementation
 				continue;
 			
 			if(recording) {
-				call DiagMsg.uint16(i);
-				call DiagMsg.uint16(channels[i]);
+				call DiagMsg.uint16(i-nVirtChn);
+				call DiagMsg.uint16(j);
 			}
 
 			memctl.inch = j;
@@ -275,7 +275,7 @@ implementation
 			if (i==count-1)
 				memctl.eos = 1;
 
-			call HplAdc12.setMCtl(i, memctl);
+			call HplAdc12.setMCtl(i-nVirtChn, memctl);
 
 		}
 
