@@ -61,7 +61,7 @@ implementation
 	enum
 	{
 		SAMPLE_COUNT = 16,	// the maximum number of channels
-		QUEUESIZE    = 200
+		QUEUESIZE    = 100
 	};
 
 	uint16_t dt = 160; // 204.8 Hz
@@ -240,13 +240,13 @@ implementation
 		resetQueue();
 		nSamples = setupVirtualChannels(channels, count);
 		++size;
-
+		
 		call Msp430DmaChannel.setupTransfer(
 			DMA_BLOCK_TRANSFER,		// copy all samples at once
 			DMA_TRIGGER_ADC12IFGx,		// triggered by ADC12
 			DMA_EDGE_SENSITIVE,		// edge sensitive trigger
 			(void*)ADC12MEM0_,		// copy form ADC12 memory registers
-			(void*)queue+offset,		// buffer
+			queue+offset,		// buffer
 			nSamples,			// number of samples
 			DMA_WORD,			// each sample is a word
 			DMA_WORD,			// store the full word
