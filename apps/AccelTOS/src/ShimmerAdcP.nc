@@ -29,7 +29,7 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklos Maroti
+* Author: Miklos Maroti, Ali Baharev
 */
 
 #include "Assert.h"
@@ -351,8 +351,9 @@ implementation
 	
 	async event void Msp430DmaChannel.transferDone(error_t success)
 	{
+#ifdef DEBUGCHN
 		uint8_t i;
-
+#endif
 		if (timestampNeeded)
 			*((uint32_t*) (queue+tail+ts_offset)) = call LocalTime.get();
 
@@ -382,33 +383,33 @@ implementation
 		post reportDone();
 		
 		sampling = FALSE;
-		// TODO Can the last two lines be swapped? Order of signalling?
+		// TODO Can the last two lines be swapped?
 	}
 
 	task void shutDown() {
-		atomic {
-			if( sampling )
-				post shutDown();
-			else {
-				call Alarm.stop();
-			}
-		}	
-	}
-	// FIXME Make it SplitControl
-	command error_t ShimmerAdc.stopSampling(){
-		atomic {
-			if( sampling ) {
-				post shutDown();
-				return EBUSY;
-			}
-			else {
-				call Alarm.stop();
 
+		bool finished = FALSE;
+		
+		atomic {
+			if(sampling) {
+				post shutDown();
+			}
+			else {
+				call Alarm.stop();
+				finished = TRUE;
 			}
 		}
-		// FIXME
-		// call HplAdc12.stopConversion();
-		// call Msp430DmaChannel.stopTransfer();
-		return SUCCESS;
+		
+		if (finished) {
+			signal ShimmerAdc.stopDone();
+			// FIXME Stop conversion and transfer; Post reportDone?
+			// call HplAdc12.stopConversion();
+			// call Msp430DmaChannel.stopTransfer();
+		}
+	}
+
+	command void ShimmerAdc.stop(){
+
+		post shutDown();
 	}
 }

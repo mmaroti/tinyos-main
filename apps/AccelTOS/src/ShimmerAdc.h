@@ -29,13 +29,12 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklos Maroti
+* Author: Miklos Maroti, Ali Baharev
 */
 
 #ifndef SHIMMER_ADC_H
 #define SHIMMER_ADC_H
 
-// TODO memctl.eos why is in the loop?
 enum
 {
 	SHIMMER_ADC_ZERO = 17,      // always generates two zero bytes

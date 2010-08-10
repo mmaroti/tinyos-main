@@ -28,13 +28,13 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklos Maroti
+* Author: Miklos Maroti, Ali Baharev
 */
 
 configuration MeterC
 { 
 	provides interface StdControl;
-	provides interface StdControl as Sampling;
+	provides interface SplitControl as Sampling;
 
 } 
 
@@ -42,7 +42,7 @@ implementation
 { 
 	components MeterP;
 	components LedHandlerC , DiagMsgC;
-	components SimpleFileC; // FIXME There should be only one SimpleFileC
+	components SimpleFileC;
 	MeterP.DiagMsg -> DiagMsgC;
 	
 	StdControl = MeterP.StdControl;
@@ -57,8 +57,7 @@ implementation
 	MeterP.AccelInit -> Mma7260P;
 	MeterP.Accel -> Mma7260P;
 
-// FIXME Only one component should turn on the disc
-// FIXME Turn off the disc? (Data corruption)
+    // FIXME Turn off the disc? (Data corruption)
 	components BufferedFlashP; // FIXME Move these to a new configuration!!!
 	MeterP.BufferedFlash -> BufferedFlashP;
 	BufferedFlashP.SimpleFile -> SimpleFileC;

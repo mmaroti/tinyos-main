@@ -45,7 +45,7 @@ module RadioHandlerP{
 		interface LedHandler;
 		interface SplitControl as DiskCtrl;
 		interface StdControl as MeterCtrl;
-		interface StdControl as Sampling;
+		interface SplitControl as Sampling;
 		interface Uploader;
 		interface Timer<TMilli> as WatchDog;
 		interface Timer<TMilli> as ShortPeriod;
@@ -138,9 +138,14 @@ implementation{
 		
 		call LedHandler.msgReceived();
 
-		// FIXME What if diskBusy?
 		// TODO New command cancel download?
-		if      (cmd == ALTERING)   {
+		if (cmd == STOPSAMPLING) {
+			error = call Sampling.stop();
+		}
+		else if (diskBusy) {
+			ASSERT(FALSE); // FIXME Just for dbg
+		}
+		else if (cmd == ALTERING)   {
 			mode = ALTERING;
 			call ShortPeriod.startOneShot(50);
 		}
@@ -148,11 +153,9 @@ implementation{
 			mode = CONTINUOUS;
 		}
 		else if (cmd == FORMAT) {
-			if (!diskBusy) {
-				error = call Uploader.format();
-				if (!error)
-					diskBusy = TRUE;
-			}
+			error = call Uploader.format();
+			if (!error)
+				diskBusy = TRUE;
 		}
 		else if (cmd == APPENDPKT) {
 			;
@@ -162,10 +165,8 @@ implementation{
 		}
 		else if (cmd == STARTSAMPLING) {
 			error = call Sampling.start();
-		}
-		else if (cmd == STOPSAMPLING) {
-			error = call Sampling.stop();
-			// FIXME It is OK if fails
+			if (!error)
+				diskBusy = TRUE;
 		}
 		else if (cmd == SENDSAMPLES) {
 			error = call Uploader.upload();
@@ -237,7 +238,6 @@ implementation{
 		}
 	}
 
-
 	event void Uploader.formatDone(error_t error){
 		ASSERT(!error);
 		diskBusy = FALSE;
@@ -246,5 +246,13 @@ implementation{
 	event void Uploader.uploadDone(error_t error){
 		ASSERT(!error);
 		diskBusy = FALSE;
+	}
+
+	event void Sampling.stopDone(error_t error){
+		diskBusy = FALSE;
+	}
+
+	event void Sampling.startDone(error_t error){
+		// FIXME This should be ignored plus sampling may already be in progress... :(
 	}
 }

@@ -29,7 +29,7 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklos Maroti
+* Author: Miklos Maroti, Ali Baharev
 */
 
 #include <message.h>
@@ -42,7 +42,7 @@ module MeterP
 
 	provides {
 		interface StdControl;
-		interface StdControl as Sampling;
+		interface SplitControl as Sampling;
 	}
 	
 	uses
@@ -131,17 +131,30 @@ implementation
 		ASSERT(error==SUCCESS);
 	}
 
-	command error_t Sampling.stop(){
-		// FIXME What if sampleDone is pending?
-		
-		return call ShimmerAdc.stopSampling();		
+	task void signalStartDone() {
+		// FIXME This should be ignored plus sampleDone may arrive earlier... :(
+		signal Sampling.startDone(SUCCESS);		
 	}
 
 	command error_t Sampling.start(){
 
-		dump("startRecord");
+		// It can only fail if the previous sampling is not shut down.
+		error_t error = call ShimmerAdc.sample(160);
 		
-		return call ShimmerAdc.sample(160);
+		if (!error)
+			post signalStartDone();
+
+		return error;
+	}
+	
+	command error_t Sampling.stop(){
+		// FIXME What if sampleDone is pending?
+		call ShimmerAdc.stop();
+		return SUCCESS;
 	}
 
+	event void ShimmerAdc.stopDone(){
+		
+		signal Sampling.stopDone(SUCCESS);
+	}
 }

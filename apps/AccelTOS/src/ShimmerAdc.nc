@@ -29,7 +29,7 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklos Maroti
+* Author: Miklos Maroti, Ali Baharev
 */
 
 interface ShimmerAdc
@@ -43,5 +43,8 @@ interface ShimmerAdc
 
 	event void sampleDone(uint16_t *data, uint8_t length);
 	
-	command error_t stopSampling();
+	command void stop();
+	
+	event void stopDone();
+	
 }
