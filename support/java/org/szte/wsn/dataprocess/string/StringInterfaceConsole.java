@@ -91,16 +91,19 @@ public class StringInterfaceConsole implements StringInterface {
 //		for(PacketParser bb:packetParsers)
 //			System.out.println(bb.getName());
 		System.out.println("Give me the name of the struct:");
+		System.out.flush();
 		String structName=in.nextLine();
 		PacketParser pp=PacketParserFactory.getParser(structName, packetParsers );
 		if(pp!=null){
 			System.out.println("Give me one data line, seperated with: "+separator);
+			System.out.flush();
 			String[] parts=in.nextLine().split(separator);
 			if(parts.length==pp.getFields().length)
 				 ret=new StringPacket(structName,parts);
 			else	
 				Usage.usageThanExit();
 		}
+		
 		else
 			Usage.usageThanExit();
 		in.close();  
