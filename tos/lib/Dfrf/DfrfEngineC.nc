@@ -40,7 +40,8 @@ configuration DfrfEngineC
 implementation
 {
 
-	components MainC, DfrfEngineP, ActiveMessageC, new TimerMilliC() as DfrfTimer, NoLedsC as LedsC;
+	components MainC, DfrfEngineP, new TimerMilliC() as DfrfTimer, NoLedsC as LedsC;
+	components new AMSenderC(AM_DFRF_MSG), new AMReceiverC(AM_DFRF_MSG);
 
 	DfrfSend = DfrfEngineP.DfrfSend;
 	DfrfReceive = DfrfEngineP.DfrfReceive;
@@ -50,8 +51,7 @@ implementation
 
 	DfrfEngineP.Timer -> DfrfTimer;
 	DfrfEngineP.Leds -> LedsC;
-
-	DfrfEngineP.AMSend -> ActiveMessageC.AMSend[AM_DFRF_MSG];
-	DfrfEngineP.Receive -> ActiveMessageC.Receive[AM_DFRF_MSG];
-	DfrfEngineP.Packet -> ActiveMessageC;
+	DfrfEngineP.AMSend -> AMSenderC;
+	DfrfEngineP.Receive -> AMReceiverC;
+	DfrfEngineP.Packet -> AMSenderC;
 }
