@@ -1,3 +1,4 @@
+package org.szte.wsn.SnifferGraph;
 import java.awt.Rectangle;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;

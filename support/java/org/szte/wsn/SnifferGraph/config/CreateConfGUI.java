@@ -1,4 +1,4 @@
-package config;
+package org.szte.wsn.SnifferGraph.config;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;

@@ -4,6 +4,8 @@
  * version: 0.01b
  * */
 
+package org.szte.wsn.SnifferGraph;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;

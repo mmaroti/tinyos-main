@@ -1,3 +1,4 @@
+package org.szte.wsn.SnifferGraph;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 /**

@@ -1,4 +1,4 @@
-
+package org.szte.wsn.SnifferGraph;
 
 import java.awt.BasicStroke;
 import java.awt.Graphics;

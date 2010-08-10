@@ -1,3 +1,4 @@
+package org.szte.wsn.SnifferGraph;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Event;
@@ -23,7 +24,7 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 
-import config.CreateConfGUI;
+import org.szte.wsn.SnifferGraph.config.*;
 
 /**
  * @author Nemeth Gabor, Nyilas Sandor Karoly
