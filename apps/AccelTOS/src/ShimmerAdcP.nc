@@ -95,6 +95,13 @@ implementation
 		}		
 	}
 	
+	void dump(char* msg) {
+		if( call DiagMsg.record() ) {
+			call DiagMsg.str(msg);
+			call DiagMsg.send();
+		}		
+	}
+	
 	void resetVChannels() {
 		counter = 0;
 		leadingZerosNeeded = FALSE;
@@ -307,20 +314,19 @@ implementation
 
 	async event void Alarm.fired() {
 		
-		call Alarm.startAt(call Alarm.getAlarm(), dt);
-		
 		atomic {
-			if( sampling || (size>=effSize)) {// FIXME Should be just == ?
-				// TODO Not necessarily a bug, maybe 'just' data loss
-				//ASSERT(FALSE);
-				return;
+			if (sampling) {
+				dump("StillSampling");
+			}
+			else if (size>=effSize) {// FIXME Should be just == ?
+				dump("BufferFull");				
 			}
 			else {
 				sampling = TRUE;
+				call HplAdc12.startConversion();
 			}
+			call Alarm.startAt(call Alarm.getAlarm(), dt);
 		}
-		
-		call HplAdc12.startConversion();
 	}
 	
 	// we trigger the DMA
@@ -328,16 +334,16 @@ implementation
 	
 	task void reportDone() {
 	  
-		ASSERT(size>0); // FIXME size > 1?
-		atomic {
-			--size;
-		}
-		
 		signal ShimmerAdc.sampleDone(queue+head, step);
 		
 		head += step;
 		if (head == effSize)
 			head = 0;
+			
+		ASSERT(size>0); // FIXME size > 1?
+		atomic {
+			--size;
+		}
 	}
 	
 	async event void Msp430DmaChannel.transferDone(error_t success)
