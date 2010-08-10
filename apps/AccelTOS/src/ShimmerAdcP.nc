@@ -334,16 +334,19 @@ implementation
 	
 	task void reportDone() {
 	  
-		signal ShimmerAdc.sampleDone(queue+head, step);
-		
-		head += step;
-		if (head == effSize)
-			head = 0;
+		// FIXME size > 1?
+	  	while (size > 1) {
+			signal ShimmerAdc.sampleDone(queue+head, step);
 			
-		ASSERT(size>0); // FIXME size > 1?
-		atomic {
-			--size;
+			head += step;
+			if (head == effSize)
+				head = 0;
+				
+			atomic {
+				--size;
+			}
 		}
+		//dumpInt("size", size);
 	}
 	
 	async event void Msp430DmaChannel.transferDone(error_t success)
@@ -382,10 +385,22 @@ implementation
 		// TODO Can the last two lines be swapped? Order of signalling?
 	}
 
-	command error_t ShimmerAdc.stopSampling(){
+	task void shutDown() {
 		atomic {
 			if( sampling )
+				post shutDown();
+			else {
+				call Alarm.stop();
+			}
+		}	
+	}
+	// FIXME Make it SplitControl
+	command error_t ShimmerAdc.stopSampling(){
+		atomic {
+			if( sampling ) {
+				post shutDown();
 				return EBUSY;
+			}
 			else {
 				call Alarm.stop();
 
