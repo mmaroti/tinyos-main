@@ -43,49 +43,58 @@ module AppTestAlarmP
 
 		interface Counter<T32khz, uint16_t>;
 		interface Alarm<T32khz, uint16_t>;
+
+		interface Counter<TMicro, uint16_t> as McuCounter;
 	}
 }
 
 implementation
 {
-	bool reporting = FALSE;
+	enum
+	{
+		STATE_REPORT = 0,
+		STATE_PREPARE = 1,
+		STATE_MEASURE = 2,
+	};
+	
+	norace uint8_t state;
 
-	uint16_t alarmCount;
-	uint16_t targetAlarm;
-	int16_t minError;
-	int16_t maxError;
+	norace uint16_t alarmCount;
+	norace uint16_t targetAlarm;
+	norace int16_t minError;
+	norace int16_t maxError;
+	norace uint16_t mcuTime;
 
 	task void testAlarm();
 
 	async event void Alarm.fired()
 	{
-		int16_t error = call Counter.get() - targetAlarm;
+		if( state == STATE_MEASURE )
+		{
+			int16_t error = call Counter.get() - targetAlarm;
 
-		if( error < minError )
-			minError = error;
-		if( error > maxError )
-			maxError = error;
+			if( error < minError )
+				minError = error;
+			if( error > maxError )
+				maxError = error;
 
-		++alarmCount;
+			++alarmCount;
+		}
 
-		call Leds.led1Toggle();
 		post testAlarm();
 	}
 
 	enum
 	{
 		ALARM_RANDOM = 1,
-		ALARM_RANDOM_OFFSET = 4000,
+		ALARM_RANDOM_OFFSET = 277,
 		ALARM_BASE = 0x30,
-		ALARM_TARGET = 0x70,
+		ALARM_TARGET = 0x101,
 	};
 
 	task void testAlarm()
 	{
 		uint16_t a;
-
-		if( reporting )
-			return;
 
 		if( ALARM_RANDOM )
 		{
@@ -114,49 +123,58 @@ implementation
 
 	task void report()
 	{
-		int16_t a, b;
-		uint16_t c;
-
-		atomic
-		{
-			a = minError;
-			b = maxError;
-			c = alarmCount;
-			minError = 32767;
-			maxError = -32767;
-			alarmCount = 0;
-		}
-
 		if( call DiagMsg.record() )
 		{
 			call DiagMsg.str("error");
-			call DiagMsg.int16(a);
-			call DiagMsg.int16(b);
-			call DiagMsg.uint16(c);
+			call DiagMsg.int16(minError);
+			call DiagMsg.int16(maxError);
+			call DiagMsg.uint16(alarmCount);
+			call DiagMsg.uint16(mcuTime);
 			call DiagMsg.send();
 		}
 
+		minError = 32767;
+		maxError = -32767;
+		alarmCount = 0;
 	}
 
-	task void toggleReporting()
+	task void changeState()
 	{
-		if( reporting )
+		if( state == STATE_REPORT )
 		{
-			call Leds.led2Off();
-			reporting = FALSE;
-			call SplitControl.stop();
-		}
-		else
-		{
-			call Leds.led2On();
-			reporting = TRUE;
+			call Leds.led1On();
 			call SplitControl.start();
+		}
+		else if( state == STATE_PREPARE )
+		{
+			call Leds.led1Off();
+			call SplitControl.stop();
 		}
 	}
 
 	async event void Counter.overflow()
 	{
-		post toggleReporting();
+		if( state == STATE_PREPARE )
+		{
+			mcuTime = call McuCounter.get();
+			state = STATE_MEASURE;
+		}
+		else if( state == STATE_MEASURE )
+		{
+			mcuTime = call McuCounter.get() - mcuTime;
+			state = STATE_REPORT;
+			post changeState();
+		}
+		else if( state == STATE_REPORT )
+		{
+			state = STATE_PREPARE;
+			post changeState();
+		}
+	}
+
+	async event void McuCounter.overflow()
+	{
+		call Leds.led2Toggle();
 	}
 
 	task void busy()
@@ -167,6 +185,7 @@ implementation
 	event void Boot.booted()
 	{
 //		post busy();
+//		post testAlarm();
 	}
 
 	event void SplitControl.startDone(error_t result)
@@ -176,6 +195,5 @@ implementation
 
 	event void SplitControl.stopDone(error_t result)
 	{
-		post testAlarm();
 	}
 }

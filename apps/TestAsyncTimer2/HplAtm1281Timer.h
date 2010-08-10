@@ -35,92 +35,87 @@
 #ifndef __HPLATM1281TIMER_H__
 #define __HPLATM1281TIMER_H__
 
-// ----- 8-bit timer control register (TCCR), clock select bits (CS)
+// ----- HplAtmTimer.setMode values for 8-bit timers
 
 enum
 {
-	ATM1281_CLK8_OFF = 0,
-	ATM1281_CLK8_NORMAL,
-	ATM1281_CLK8_DIVIDE_8,
-	ATM1281_CLK8_DIVIDE_32,
-	ATM1281_CLK8_DIVIDE_64,
-	ATM1281_CLK8_DIVIDE_128,
-	ATM1281_CLK8_DIVIDE_256,
-	ATM1281_CLK8_DIVIDE_1024,
+	// timer control register (TCCR), clock select bits (CS)
+	ATM1281_CLK8_OFF         = 0,
+	ATM1281_CLK8_NORMAL      = 1,
+	ATM1281_CLK8_DIVIDE_8    = 2,
+	ATM1281_CLK8_DIVIDE_32   = 3,
+	ATM1281_CLK8_DIVIDE_64   = 4,
+	ATM1281_CLK8_DIVIDE_128  = 5,
+	ATM1281_CLK8_DIVIDE_256  = 6,
+	ATM1281_CLK8_DIVIDE_1024 = 7,
+
+	// timer control register (TCCR), wave generation mode (WGM)
+	ATM1281_WGM8_NORMAL       = 0 << 3,
+	ATM1281_WGM8_PWM          = 1 << 3,
+	ATM1281_WGM8_CTC          = 2 << 3,
+	ATM1281_WGM8_PWM_FAST     = 3 << 3,
+	ATM1281_WGM8_COMPARE_HIGH = 5 << 3,
+	ATM1281_WGM8_COMPARE_LOW  = 7 << 3,
+
+	// asynchronous status register (ASSR) clock bits (EXCLK and AS2)
+	ATM1281_ASYNC_OFF = 0 << 6,
+	ATM1281_ASYNC_ON  = 1 << 6,
+	ATM1281_ASYNC_EXT = 3 << 6,
 };
 
-// ----- 8-bit timer control register (TCCR), waveform generation mode (WGM)
+// ----- HplAtmCompare.setMode values for 8-bit timers
 
 enum
 {
-	ATM1281_WAVE8_NORMAL = 0,
-	ATM1281_WAVE8_PWM,
-	ATM1281_WAVE8_CTC,
-	ATM1281_WAVE8_PWM_FAST,
+	// timer control register (TCCR), compare output mode (COM)
+	ATM1281_COM8_OFF = 0, 
+	ATM1281_COM8_TOGGLE,
+	ATM1281_COM8_CLEAR,
+	ATM1281_COM8_SET,
 };
 
-// extra flags for Timer.setMode() for the asynchronous timer
+// ----- HplAtmTimer.setMode values for 16-bit timers
+
 enum
 {
-	ATM1281_ASYNC_OFF = 0x00,
-	ATM1281_ASYNC_ON  = 0x20,	// ASSR register AS2 bit
-	AYM1281_ASYNC_EXT = 0x60,	// ASSR register EXCLK bit
+	// timer control register (TCCR), clock select bits (CS)
+	ATM1281_CLK16_OFF           = 0,
+	ATM1281_CLK16_NORMAL        = 1,
+	ATM1281_CLK16_DIVIDE_8      = 2,
+	ATM1281_CLK16_DIVIDE_64     = 3,
+	ATM1281_CLK16_DIVIDE_256    = 4,
+	ATM1281_CLK16_DIVIDE_1024   = 5,
+	ATM1281_CLK16_EXTERNAL_FALL = 6,
+	ATM1281_CLK16_EXTERNAL_RISE = 7,
+
+	// timer control register (TCCR), wave generation mode (WGM)
+	ATM1281_WGM16_NORMAL           = 0 << 3,
+	ATM1281_WGM16_PWM_8BIT         = 1 << 3,
+	ATM1281_WGM16_PWM_9BIT         = 2 << 3,
+	ATM1281_WGM16_PWM_10BIT        = 3 << 3,
+	ATM1281_WGM16_CTC_COMPARE      = 4 << 3,
+	ATM1281_WGM16_PWM_FAST_8BIT    = 5 << 3,
+	ATM1281_WGM16_PWM_FAST_9BIT    = 6 << 3,
+	ATM1281_WGM16_PWM_FAST_10BIT   = 7 << 3,
+	ATM1281_WGM16_PWM_CAPTURE_LOW  = 8 << 3,
+	ATM1281_WGM16_PWM_COMPARE_LOW  = 9 << 3,
+	ATM1281_WGM16_PWM_CAPTURE_HIGH = 10 << 3,
+	ATM1281_WGM16_PWM_COMPARE_HIGH = 11 << 3,
+	ATM1281_WGM16_CTC_CAPTURE      = 12 << 3,
+	ATM1281_WGM16_RESERVED         = 13 << 3,
+	ATM1281_WGM16_PWM_FAST_CAPTURE = 14 << 3,
+	ATM1281_WGM16_PWM_FAST_COMPARE = 15 << 3,
 };
 
-// ----- timer control register (TCCR), compare output mode (COM)
+// ----- HplAtmCompare.setMode values for 16-bit timers
 
 enum
 {
-	ATM1281_COMPARE8_OFF = 0, 
-	ATM1281_COMPARE8_TOGGLE,
-	ATM1281_COMPARE8_CLEAR,
-	ATM1281_COMPARE8_SET,
-};
-
-// ----- 16-bit timer control register (TCCR), clock select bits (CS)
-
-enum
-{
-	ATM1281_CLK16_OFF = 0,
-	ATM1281_CLK16_NORMAL,
-	ATM1281_CLK16_DIVIDE_8,
-	ATM1281_CLK16_DIVIDE_64,
-	ATM1281_CLK16_DIVIDE_256,
-	ATM1281_CLK16_DIVIDE_1024,
-	ATM1281_CLK16_EXTERNAL_FALL,
-	ATM1281_CLK16_EXTERNAL_RISE,
-};
-
-// ----- 16-bit timer control register (TCCR), waveform generation mode (WGM)
-
-enum
-{
-	ATM1281_WAVE16_NORMAL = 0,
-	ATM1281_WAVE16_PWM_8BIT,
-	ATM1281_WAVE16_PWM_9BIT,
-	ATM1281_WAVE16_PWM_10BIT,
-	ATM1281_WAVE16_CTC_COMPARE,
-	ATM1281_WAVE16_PWM_FAST_8BIT,
-	ATM1281_WAVE16_PWM_FAST_9BIT,
-	ATM1281_WAVE16_PWM_FAST_10BIT,
-	ATM1281_WAVE16_PWM_CAPTURE_LOW,
-	ATM1281_WAVE16_PWM_COMPARE_LOW,
-	ATM1281_WAVE16_PWM_CAPTURE_HIGH,
-	ATM1281_WAVE16_PWM_COMPARE_HIGH,
-	ATM1281_WAVE16_CTC_CAPTURE,
-	ATM1281_WAVE16_RESERVED,
-	ATM1281_WAVE16_PWM_FAST_CAPTURE,
-	ATM1281_WAVE16_PWM_FAST_COMPARE,
-};
-
-// ----- 16-bit timer control register (TCCR), compare output mode (COM)
-
-enum
-{
-	ATM1281_COMPARE16_NORMAL = 0,
-	ATM1281_COMPARE16_TOGGLE,
-	ATM1281_COMPARE16_CLEAR,
-	ATM1281_COMPARE16_SET
+	// timer control register (TCCR), compare output mode (COM)
+	ATM1281_COM16_NORMAL = 0,
+	ATM1281_COM16_TOGGLE,
+	ATM1281_COM16_CLEAR,
+	ATM1281_COM16_SET
 };
 
 #endif//__HPLATM1281TIMER_H__

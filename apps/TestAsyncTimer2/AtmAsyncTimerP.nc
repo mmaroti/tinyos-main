@@ -31,7 +31,7 @@
 * Author: Miklos Maroti
 */
 
-generic module AtmAsyncTimerP(typedef precision, uint8_t prescaler, uint8_t mode)
+generic module AtmAsyncTimerP(typedef precision, uint8_t mode)
 {
 	provides
 	{
@@ -43,9 +43,7 @@ generic module AtmAsyncTimerP(typedef precision, uint8_t prescaler, uint8_t mode
 	uses
 	{
 		interface HplAtmTimer<uint8_t> as Timer;
-		interface HplAtmCompare<uint8_t> as Compare;
-
-		interface Leds;
+		interface HplAtmCompare<uint8_t> as CompareA;
 	}
 }
 
@@ -53,11 +51,10 @@ implementation
 {
 	command error_t Init.init()
 	{
-		call Compare.stop();
-		call Compare.setMode(0);
+		call CompareA.stop();
+		call CompareA.setMode(0);
 
 		call Timer.setMode(mode);
-		call Timer.setScale(prescaler);
 		call Timer.start();
 
 		return SUCCESS;
@@ -66,14 +63,14 @@ implementation
 	volatile uint8_t high;
 
 	/*
-	 * Without prescaler the interrupt occurs when the counter goes from 0 to 1,
+	 * Without prescaler the interrupt occurs when the Timer goes from 0 to 1,
 	 * so we can have two posible sequences of events
 	 *
 	 *	TST=0, CNT=0, TST=1, CNT=1, TST=1 ... TST=1, CNT=1, TST=0
 	 *	TST=0, CNT=0, TST=0, CNT=1, TST=1 ... TST=1, CNT=1, TST=0
 	 *
-	 * With the prescaler enabled the interrupt occurs while the counter is 0
-	 * (one 32768 HZ tick after the counter became 0), so we have one possibility:
+	 * With the prescaler enabled the interrupt occurs while the Timer is 0
+	 * (one 32768 HZ tick after the Timer became 0), so we have one possibility:
 	 *
 	 *	TST=0, CNT=0, TST=1, CNT=0, TST=1 ... TST=1, CNT=0, TST=0
 	 */
@@ -124,7 +121,7 @@ implementation
 	default async event void Alarm.fired() { }
 
 	// called in atomic context
-	async event void Compare.fired()
+	async event void CompareA.fired()
 	{
 		uint8_t h = high;
 		if( call Timer.test() )
@@ -132,36 +129,36 @@ implementation
 
 		if( h == (alarm >> 8) )
 		{
-			call Compare.stop();
+			call CompareA.stop();
 			signal Alarm.fired();
 		}
 	}
 
 	async command void Alarm.stop()
 	{
-//		call Compare.stop();
+//		call CompareA.stop();
 	}
 
 	async command bool Alarm.isRunning()
 	{
-//		atomic return call Compare.isOn();
+//		atomic return call CompareA.isOn();
 		return FALSE;
 	}
 
 	// callers make sure that time is always in the future
 	void setAlarm(uint16_t time)
 	{
-		call Compare.set((uint8_t)time);
+		call CompareA.set((uint8_t)time);
 
 		alarm = time;
 
 //		if( high == (time >> 8) )
 //		{
-			call Compare.start();
-			call Compare.reset();
+			call CompareA.start();
+			call CompareA.reset();
 //		}
 //		else
-//			call Compare.stop();
+//			call CompareA.stop();
 	}
 
 	async command void Alarm.startAt(uint16_t nt0, uint16_t ndt)

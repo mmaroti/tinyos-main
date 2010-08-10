@@ -64,19 +64,11 @@ interface HplAtmTimer<timer_t>
 	/* Checks is the overflow interrupt is enabled */
 	async command bool isOn();
 
-// ----- timer control register (TCCR), clock select bits (CS)
+// ----- timer control registers (TCCR), clock select bits (CS) and waveform generation mode (WGM)
 
-	/* Sets the prescaler value */
-	async command void setScale(uint8_t scale);
-
-	/* Returns the prescaler value */
-	async command uint8_t getScale();
-
-// ----- timer control register (TCCR), waveform generation mode (WGM)
-
-	/* Sets the waveform generation mode bits */
+	/* Sets the clock select and waveform generation mode bits */
 	async command void setMode(uint8_t mode);
 
-	/* Returns the waveform generation mode bits */
+	/* Returns the clock select andwaveform generation mode bits */
 	async command uint8_t getMode();
 }

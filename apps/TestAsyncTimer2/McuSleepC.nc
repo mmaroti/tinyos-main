@@ -1,4 +1,4 @@
-/// $Id: McuSleepC.nc,v 1.2 2010-08-04 23:58:15 mmaroti Exp $
+/// $Id: McuSleepC.nc,v 1.3 2010-08-10 01:28:33 mmaroti Exp $
 
 /*
  * Copyright (c) 2005 Stanford University. All rights reserved.
@@ -70,7 +70,7 @@
  * Szewczyk's 1.x code in HPLPowerManagementM.nc.
  *
  * <pre>
- *  $Id: McuSleepC.nc,v 1.2 2010-08-04 23:58:15 mmaroti Exp $
+ *  $Id: McuSleepC.nc,v 1.3 2010-08-10 01:28:33 mmaroti Exp $
  * </pre>
  *
  * @author Philip Levis
@@ -144,24 +144,22 @@ implementation {
     return ATM128_POWER_DOWN;
   }
 
-  norace uint8_t powerState = 0xFF;
+  norace int8_t powerState = -1;
 
   async command void McuSleep.sleep() {
 
-    if( powerState == 0xFF )
-	    powerState = mcombine(getPowerState(), call McuPowerOverride.lowestState());
+    if( powerState < 0 ) {
+      powerState = mcombine(getPowerState(), call McuPowerOverride.lowestState());
+      SMCR = (SMCR & 0xf0) | read_uint8_t(&atm128PowerBits[powerState]);
+    }
 
 #ifdef TOGGLE_ON_SLEEP
-    if( powerState == ATM128_POWER_SAVE )
-      call Leds.led0Off();
+//    if( powerState == ATM128_POWER_SAVE )
+//      call Leds.led0Off();
 #endif
 
-	TCCR2A = TCCR2A;
-	while( ASSR & (1 << TCR2AUB) )
-		;
+    SET_BIT(SMCR, SE);
 
-    SMCR =
-      (SMCR & 0xf0) | 1 << SE | read_uint8_t(&atm128PowerBits[powerState]);
     sei();
     // All of memory may change at this point...
     asm volatile ("sleep" : : : "memory");
@@ -170,14 +168,14 @@ implementation {
     CLR_BIT(SMCR, SE);
 
 #ifdef TOGGLE_ON_SLEEP
-    call Leds.led0On();
+//    call Leds.led0On();
 #endif
 
   }
 
   async command void McuPowerState.update()
   {
-	  powerState = 0xFF;
+	  powerState = -1;
   }
 
   default async command mcu_power_t McuPowerOverride.lowestState() {

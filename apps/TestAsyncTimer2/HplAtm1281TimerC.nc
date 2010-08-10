@@ -31,22 +31,29 @@
 * Author: Miklos Maroti
 */
 
-configuration AppTestAlarmC
-{ 
-} 
+configuration HplAtm1281TimerC
+{
+	provides
+	{
+		interface HplAtmTimer<uint16_t> as Timer1;
+
+		interface HplAtmTimer<uint8_t> as Timer2;
+		interface HplAtmCompare<uint8_t> as Compare2[uint8_t id];
+	}
+}
 
 implementation
 {
-	components MainC, AppTestAlarmP, LedsC, McuSleepC, DiagMsgC, SerialActiveMessageC,
-		Atm1281TimerC;
+	components McuSleepC;
 
-	AppTestAlarmP.Boot -> MainC;
-	AppTestAlarmP.Leds -> LedsC;
-	AppTestAlarmP.DiagMsg -> DiagMsgC;
-	AppTestAlarmP.Alarm -> Atm1281TimerC.Alarm2[0];
-	AppTestAlarmP.Counter -> Atm1281TimerC.Counter2;
-	AppTestAlarmP.McuCounter -> Atm1281TimerC.Counter1;
-	AppTestAlarmP.SplitControl -> SerialActiveMessageC;
+	components HplAtm1281Timer1P;
+	Timer1 = HplAtm1281Timer1P;
+	HplAtm1281Timer1P.McuPowerOverride <- McuSleepC;
+	HplAtm1281Timer1P.McuPowerState -> McuSleepC;
 
-	McuSleepC.Leds -> LedsC;
+	components HplAtm1281Timer2P;
+	Timer2 = HplAtm1281Timer2P;
+	Compare2[0] = HplAtm1281Timer2P.CompareA;
+	HplAtm1281Timer2P.McuPowerOverride <- McuSleepC;
+	HplAtm1281Timer2P.McuPowerState -> McuSleepC;
 }

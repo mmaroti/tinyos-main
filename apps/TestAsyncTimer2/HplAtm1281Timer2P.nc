@@ -46,7 +46,6 @@ module HplAtm1281Timer2P @safe()
 
 	uses
 	{
-		interface Leds;
 		interface McuPowerState;
 	}
 }
@@ -54,26 +53,19 @@ module HplAtm1281Timer2P @safe()
 implementation
 {
 /*
-	Updating certain registers take 1-2 32768 KHz clock ticks if the timer 
-	is running asynchronously, so we have to monitor when these updates are 
-	propagated. We always check ASSR before updating these registers, and we 
-	do not wait for completion after the change to make good use of the 
-	processor time. However, we force the mcu power state calculation and 
-	before entering power down mode we wait for the completion of these 
-	register updates.
+	Updating certain registers takes 1-2 clock ticks at 32768 KHz (regardless of
+	the prescaler) if the timer is running asynchronously, so we have to monitor 
+	when these updates are propagated. We always check ASSR before updating these 
+	registers, and we do not wait for completion after the change to make good use 
+	of the processor time. However, we force the mcu power state calculation and 
+	before entering power down mode we wait for the completion of these register 
+	updates.
 */
-// ----- TIMER: timer counter register (TCNT)
+// ----- TIMER: timer Timer register (TCNT)
 
 	async command uint8_t Timer.get()
 	{
-		atomic
-		{
-//			TCCR2A = TCCR2A;
-//			while( ASSR & (1 << TCR2AUB) )
-//				;
-
-			return TCNT2;
-		}
+		return TCNT2;
 	}
 
 	async command void Timer.set(uint8_t value)
@@ -117,37 +109,24 @@ implementation
 
 	async command bool Timer.isOn() { return TIMSK2 & (1 << TOIE2); }
 
-// ----- TIMER: timer control register (TCCR), clock select bits (CS)
-
-	async command void Timer.setScale(uint8_t scale)
-	{
-		scale &= 0x07;
-
-		atomic
-		{
-			while( ASSR & (1 << TCR2BUB) )
-				;
-
-			TCCR2B = (TCCR2B & 0xF8) | scale;
-		}
-
-		call McuPowerState.update();
-	}
-
-	async command uint8_t Timer.getScale() { return TCCR2B & 0x07; }
-
-// ----- TIMER: timer control register (TCCR), waveform generation mode (WGM)
+// ----- TIMER: timer control register (TCCR), clock select (CS) and waveform generation mode (WGM) bits
 
 	async command void Timer.setMode(uint8_t mode)
 	{
 		atomic
 		{
+			ASSR = (ASSR & ~(0x3 << AS2))
+				| ((mode >> 6) & 0x3) << AS2;
+
 			while( ASSR & (1 << TCR2AUB | 1 << TCR2BUB) )
 				;
 
-			ASSR = (ASSR & 0x9F) | (mode & 0x60);
-			TCCR2A = (TCCR2A & 0xFC) | (mode & 0x03);
-			TCCR2B = (TCCR2B & 0xF7) | ((mode & 0x04) << 1);
+			TCCR2A = (TCCR2A & ~(0x3 << WGM20))
+				| ((mode >> 3) & 0x3) << WGM20;
+
+			TCCR2B = (TCCR2B & ~(0x1 << WGM22 | 0x7 << CS20))
+				| ((mode >> 5) & 0x1) << WGM22
+				| ((mode >> 0) & 0x7) << CS20;
 		}
 
 		call McuPowerState.update();
@@ -164,7 +143,10 @@ implementation
 			c = TCCR2B;
 		}
 
-		return (a & 0x60) | (b & 0x03) | ((c >> 1) & 0x04);
+		return ((a >> AS2) & 0x3) << 6
+			| ((b >> WGM20) & 0x3) << 3
+			| ((c >> WGM22) & 0x1) << 5
+			| ((c >> CS20) & 0x7) << 0;
 	}
 
 // ----- COMPAREA: output compare register (OCR)
@@ -216,14 +198,13 @@ implementation
 
 	async command void CompareA.setMode(uint8_t mode)
 	{
-		mode = (mode & 0x03) << 6;
-
 		atomic
 		{
 			while( ASSR & (1 << TCR2AUB) )
 				;
 
-			TCCR2A = (TCCR2A & 0x3F) | mode;
+			TCCR2A = (TCCR2A & ~(0x3 << COM2A0))
+				| (mode & 0x3) << COM2A0;
 		}
 
 		call McuPowerState.update();
@@ -231,7 +212,7 @@ implementation
 
 	async command uint8_t CompareA.getMode()
 	{
-		return (TCCR2A >> 6) & 0x03;
+		return (TCCR2A >> COM2A0) & 0x3;
 	}
 
 // ----- COMPAREA: timer control register (TCCR), force output compare (FOC)

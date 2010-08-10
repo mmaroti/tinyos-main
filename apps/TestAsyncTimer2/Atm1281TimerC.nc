@@ -37,23 +37,26 @@ configuration Atm1281TimerC
 {
 	provides
 	{
+		interface Counter<TMicro, uint16_t> as Counter1;
+
 		interface Counter<T32khz, uint16_t> as Counter2;
-		interface Alarm<T32khz, uint16_t> as Alarm2A;
+		interface Alarm<T32khz, uint16_t> as Alarm2[uint8_t id];
 	}
 }
 
 implementation
 {
-	components new AtmAsyncTimerP(T32khz, ATM1281_CLK8_NORMAL, ATM1281_WAVE8_NORMAL | ATM1281_ASYNC_ON), HplAtm1281Timer2P;
-	Counter2 = AtmAsyncTimerP;
-	Alarm2A = AtmAsyncTimerP;
-	AtmAsyncTimerP.Timer -> HplAtm1281Timer2P;
-	AtmAsyncTimerP.Compare -> HplAtm1281Timer2P;
+	components HplAtm1281TimerC, MainC;
 
-	components LedsC, MainC, McuSleepC;
-	AtmAsyncTimerP.Leds -> LedsC;
+	components new AtmAsyncTimerP(T32khz, ATM1281_CLK8_NORMAL | ATM1281_WGM8_NORMAL | ATM1281_ASYNC_ON);
+	Counter2 = AtmAsyncTimerP;
+	Alarm2[0] = AtmAsyncTimerP;
+	AtmAsyncTimerP.Timer -> HplAtm1281TimerC.Timer2;
+	AtmAsyncTimerP.CompareA -> HplAtm1281TimerC.Compare2[0];
 	MainC.SoftwareInit -> AtmAsyncTimerP;
-	HplAtm1281Timer2P.Leds -> LedsC;
-	HplAtm1281Timer2P.McuPowerOverride <- McuSleepC;
-	HplAtm1281Timer2P.McuPowerState -> McuSleepC;
+
+	components new AtmSynchTimerP(TMicro, ATM1281_CLK16_DIVIDE_256 | ATM1281_WGM16_NORMAL);
+	Counter1 = AtmSynchTimerP;
+	AtmSynchTimerP.Timer -> HplAtm1281TimerC.Timer1;
+	MainC.SoftwareInit -> AtmSynchTimerP;
 }

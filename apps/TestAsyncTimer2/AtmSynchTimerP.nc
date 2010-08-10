@@ -31,22 +31,49 @@
 * Author: Miklos Maroti
 */
 
-configuration AppTestAlarmC
-{ 
-} 
+generic module AtmSynchTimerP(typedef precision, uint8_t mode)
+{
+	provides
+	{
+		interface Init;
+		interface Counter<precision, uint16_t>;
+	}
+
+	uses
+	{
+		interface HplAtmTimer<uint16_t> as Timer;
+	}
+}
 
 implementation
 {
-	components MainC, AppTestAlarmP, LedsC, McuSleepC, DiagMsgC, SerialActiveMessageC,
-		Atm1281TimerC;
+	command error_t Init.init()
+	{
+		call Timer.setMode(mode);
+		call Timer.start();
 
-	AppTestAlarmP.Boot -> MainC;
-	AppTestAlarmP.Leds -> LedsC;
-	AppTestAlarmP.DiagMsg -> DiagMsgC;
-	AppTestAlarmP.Alarm -> Atm1281TimerC.Alarm2[0];
-	AppTestAlarmP.Counter -> Atm1281TimerC.Counter2;
-	AppTestAlarmP.McuCounter -> Atm1281TimerC.Counter1;
-	AppTestAlarmP.SplitControl -> SerialActiveMessageC;
+		return SUCCESS;
+	}
 
-	McuSleepC.Leds -> LedsC;
+	async command uint16_t Counter.get()
+	{
+		return call Timer.get();
+	}
+
+	default async event void Counter.overflow() { }
+
+	async event void Timer.overflow()
+	{
+		signal Counter.overflow();
+	}
+
+	async command bool Counter.isOverflowPending()
+	{
+		atomic return call Timer.test();
+	}
+
+	async command void Counter.clearOverflow()
+	{
+		call Timer.reset();
+	}
 }
