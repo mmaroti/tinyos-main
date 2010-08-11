@@ -1,4 +1,4 @@
-// $Id: DfrfGradTestC.nc,v 1.3 2010-07-28 19:57:37 mmaroti Exp $
+// $Id: DfrfGradTestC.nc,v 1.4 2010-08-11 09:20:28 andrasbiro Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -84,6 +84,8 @@ implementation {
   DfrfMainService.DfrfPolicy -> ConvergecastPolicyC;
   
   MainC.Boot <- DfrfGradTestP;
+  
+  DfrfGradTestP.Init -> ConvergecastC;
 
   DfrfGradTestP.SerialControl -> Serial;
   DfrfGradTestP.RadioControl -> Radio;

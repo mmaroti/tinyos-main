@@ -1,4 +1,4 @@
-// $Id: DfrfFSTTestC.nc,v 1.1 2010-08-02 12:58:30 andrasbiro Exp $
+// $Id: DfrfFSTTestC.nc,v 1.2 2010-08-11 09:20:28 andrasbiro Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2003 The Regents of the University  of California.  
@@ -83,6 +83,8 @@ implementation {
   DfrfMainService.DfrfPolicy->Policy;
   
   MainC.Boot <- DfrfFSTTestP;
+  
+  DfrfFSTTestP.Init -> ConvergecastC;
 
   DfrfFSTTestP.SerialControl -> Serial;
   DfrfFSTTestP.RadioControl -> Radio;

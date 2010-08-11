@@ -1,4 +1,4 @@
-// $Id: DfrfFSTTestP.nc,v 1.1 2010-08-02 12:58:30 andrasbiro Exp $
+// $Id: DfrfFSTTestP.nc,v 1.2 2010-08-11 09:20:28 andrasbiro Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -33,7 +33,7 @@
  * @author Phil Buonadonna
  * @author Gilman Tolle
  * @author David Gay
- * Revision:	$Id: DfrfFSTTestP.nc,v 1.1 2010-08-02 12:58:30 andrasbiro Exp $
+ * Revision:	$Id: DfrfFSTTestP.nc,v 1.2 2010-08-11 09:20:28 andrasbiro Exp $
  */ 
 
 /* 
@@ -66,6 +66,7 @@ module DfrfFSTTestP @safe() {
 		interface DfrfSend as FieldSend;
 		interface DfrfReceive as FieldReceive;
 		interface Convergecast;
+		interface Init;
 
 		interface Leds;
 		interface Random;
@@ -122,6 +123,7 @@ implementation {
 	event void RadioControl.startDone(error_t error) {
 		if(error == SUCCESS) {
 			radioFull = FALSE;
+			call Init.init();
 			if(TOS_NODE_ID==0){
 				counter_packet_t data;
 				call RandomSeedInit.init(TOS_NODE_ID);
