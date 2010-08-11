@@ -32,7 +32,9 @@
  * Author: Miklos Toth
  */
 package org.szte.wsn.dataprocess.string;
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 import org.szte.wsn.dataprocess.PacketParser;
 import org.szte.wsn.dataprocess.PacketParserFactory;
@@ -87,26 +89,52 @@ public class StringInterfaceConsole implements StringInterface {
 	 */
 	public StringPacket readPacket() {
 		StringPacket ret=null;
-		Scanner in = new Scanner(System.in);
-//		for(PacketParser bb:packetParsers)
-//			System.out.println(bb.getName());
-		System.out.println("Give me the name of the struct:");
-		System.out.flush();
-		String structName=in.nextLine();
-		PacketParser pp=PacketParserFactory.getParser(structName, packetParsers );
-		if(pp!=null){
-			System.out.println("Give me one data line, seperated with: "+separator);
+		try {
+			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+			System.out.println("Give me the name of the struct:");
 			System.out.flush();
-			String[] parts=in.nextLine().split(separator);
-			if(parts.length==pp.getFields().length)
-				 ret=new StringPacket(structName,parts);
-			else	
+			String structName=in.readLine();
+			PacketParser pp=PacketParserFactory.getParser(structName, packetParsers );
+			if(pp!=null){
+				System.out.println("Do you want to give the fields in custom order?(y/n)");
+				String customOrder=in.readLine();
+				if(customOrder.equalsIgnoreCase("n"))
+				{
+				System.out.println("Give me one data line, seperated with: "+separator);
+				System.out.println(pp.getFields().length);
+				System.out.flush();
+				String[] parts=in.readLine().split(separator);
+				if(parts.length==pp.getFields().length)
+					 ret=new StringPacket(structName,parts);
+				else	
+					Usage.usageThanExit();
+				}
+				else{
+					System.out.println("Give me the fields in your custom order, seperated with: "+separator);
+					System.out.flush();
+					String[] fields=in.readLine().split(separator);
+					if(fields.length!=pp.getFields().length)
+						Usage.usageThanExit();
+					System.out.println("Give me the data in the order of the fields above, seperated with: "+separator);
+					String[] data=in.readLine().split(separator);
+					if(data.length!=pp.getFields().length)
+						Usage.usageThanExit();
+					String temp[]=new String[data.length];
+					for(String value:fields){
+						
+					}
+				}
+			}
+			else{
+				System.out.println("Not existing struct.");
 				Usage.usageThanExit();
+			}
 		}
-		
-		else
+		catch (IOException e)
+		{
+			e.printStackTrace();
 			Usage.usageThanExit();
-		in.close();  
+		} 		
 		return ret;
 	}
 
