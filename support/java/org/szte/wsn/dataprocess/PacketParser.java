@@ -73,10 +73,6 @@ public abstract class PacketParser{
 	 */
 	public abstract int getPacketLength();
 	
-	/**
-	 * @return the length of the String[] which is created during parse
-	 */
-	public abstract int getStringLength();
 	
 	/**
 	 * 

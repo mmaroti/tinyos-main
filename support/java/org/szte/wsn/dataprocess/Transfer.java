@@ -77,7 +77,7 @@ public class Transfer extends Thread  {
 			StringPacket sp=string.readPacket();
 			while(sp!=null){
 				PacketParser pp=PacketParserFactory.getParser(sp.getName(), packetParsers);
-				if(pp.construct(sp.getData())!=null){
+				
 					try {
 						binary.writePacket(pp.construct(sp.getData()));
 					} catch (IOException e) {
@@ -85,7 +85,7 @@ public class Transfer extends Thread  {
 						e.printStackTrace();
 						Usage.usageThanExit();
 					}		
-				}
+				
 				sp=string.readPacket();
 			}
 			
@@ -95,6 +95,7 @@ public class Transfer extends Thread  {
 
 
 	public static void main(String[] args) {			//handle exception		
+		/*
 		if(args.length<6)
 			Usage.usageThanExit();
 		PacketParser[] parsers=new PacketParserFactory(args[4]).getParsers();			
@@ -106,6 +107,14 @@ public class Transfer extends Thread  {
 
 		Transfer fp=new Transfer(parsers,bin,str,toStr);
 		fp.start();
+		*/
+		PacketParser[] parsers=new PacketParserFactory("structs.txt").getParsers();			
+		BinaryInterface bin=BinaryInterfaceFactory.getBinaryInterface("binary", "serial@/dev/ttyUSB1:57600");	
+		StringInterface str=StringInterfaceFactory.getStringInterface("console", "",parsers);
+		Transfer fp=new Transfer(parsers,bin,str,false);
+		Transfer fp2=new Transfer(parsers,bin,str,true);
+		fp.start();
+		fp2.start();
 	}
 
 }

@@ -97,6 +97,4 @@ public class BinaryInterfaceSerial implements BinaryInterface{
 		
 	}
 	
-
-
 }
