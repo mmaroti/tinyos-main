@@ -379,9 +379,10 @@ implementation
 
 	event void AMSend.sendDone(message_t* p, error_t success)
 	{
-		if( success != SUCCESS )
+		if( success != SUCCESS ){
+			clearSending();
 			post sendMsg();
-		else
+		}else
 			post sendMsgDone();
 	}
 
@@ -443,7 +444,7 @@ implementation
 	**/
 	event message_t* Receive.receive(message_t* p, void* payload, uint8_t len)
 	{
-		call Leds.led2On();
+		call Leds.led2Toggle();
 
 		if( !isProcessing() )
 		{
