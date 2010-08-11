@@ -37,6 +37,7 @@ import java.io.IOException;
 import org.szte.wsn.dataprocess.string.StringInterfaceFactory;
 import org.szte.wsn.dataprocess.string.StringPacket;
 
+
 public class Transfer extends Thread  {
 	private PacketParser[] packetParsers;
 	private BinaryInterface binary;
@@ -81,7 +82,7 @@ public class Transfer extends Thread  {
 					try {
 						binary.writePacket(pp.construct(sp.getData()));
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
+
 						e.printStackTrace();
 						Usage.usageThanExit();
 					}		
@@ -94,7 +95,7 @@ public class Transfer extends Thread  {
 	}
 
 
-	public static void main(String[] args) {			//handle exception		
+	public static void main(String[] args) {	
 		/*
 		if(args.length<6)
 			Usage.usageThanExit();
@@ -114,6 +115,7 @@ public class Transfer extends Thread  {
 		Transfer fp=new Transfer(parsers,bin,str,false);
 		Transfer fp2=new Transfer(parsers,bin,str,true);
 		fp.start();
+		
 		fp2.start();
 	}
 
