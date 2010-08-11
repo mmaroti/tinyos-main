@@ -53,6 +53,7 @@ implementation
 
 	command error_t Init.init()
 	{
+		current.hopCount = 0xFF;
 		current.root = 0xFFFF;
 		current.parent = 0xFFFF;
 		current.grandParent = 0xFFFF;
