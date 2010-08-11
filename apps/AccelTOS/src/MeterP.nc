@@ -122,7 +122,7 @@ implementation
 	{
 		error_t error = SUCCESS;
 		
-		call LedHandler.sampling();
+		//call LedHandler.sampling();
 
 		//dump("samplingDone");
 

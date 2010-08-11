@@ -219,7 +219,7 @@ implementation {
 	event void Disk.appendDone(error_t error) {
 
 		diskBusy = FALSE;
-		call LedHandler.diskReady();
+		//call LedHandler.diskReady(); // FIXME Fan out ?
 		if (error)
 			call LedHandler.error();
 	}

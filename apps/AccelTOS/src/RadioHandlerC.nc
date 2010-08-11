@@ -54,7 +54,7 @@ implementation{
 	components new AMReceiverC(AM_CTRLMSG) as AMRec;
 	components new AMSenderC(AM_REPORTMSG) as Report;
 
-	components new TimerMilliC() as Timer1;
+	//components new TimerMilliC() as Timer1;
 	components new TimerMilliC() as Timer2;
 
 	RadioHandlerP.Boot -> MainC;
@@ -64,7 +64,7 @@ implementation{
 	
 	RadioHandlerP.DiskCtrl -> SimpleFileC;
 	
-	RadioHandlerP.WatchDog -> Timer1;
+	//RadioHandlerP.WatchDog -> Timer1;
 	RadioHandlerP.ShortPeriod -> Timer2;
 	RadioHandlerP.LedHandler -> LedHandlerC;
 	RadioHandlerP.Sampling -> MeterC.Sampling;

@@ -47,7 +47,7 @@ module RadioHandlerP{
 		interface StdControl as MeterCtrl;
 		interface SplitControl as Sampling;
 		interface Uploader;
-		interface Timer<TMilli> as WatchDog;
+		//interface Timer<TMilli> as WatchDog;
 		interface Timer<TMilli> as ShortPeriod;
 		interface DiagMsg;
    }
@@ -127,6 +127,16 @@ implementation{
 		sending = FALSE;
 		// TODO Resend if failed?
 	}
+	
+	task void turnRadioOff() {
+		error_t error = call AMControl.stop();
+		if (!error) {
+			radioOn = FALSE;
+		}		
+		else {
+			call LedHandler.error();
+		}
+	}
 
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len){
 		
@@ -141,6 +151,9 @@ implementation{
 		// TODO New command cancel download?
 		if (cmd == STOPSAMPLING) {
 			error = call Sampling.stop();
+		}
+		else if (cmd == RADIOOFF) {
+			post turnRadioOff();
 		}
 		else if (diskBusy) {
 			ASSERT(FALSE); // FIXME Just for dbg
@@ -183,7 +196,7 @@ implementation{
 	event void AMControl.stopDone(error_t error) {
 
 		if (error == SUCCESS) {
-			radioOn = FALSE;
+			ASSERT(!radioOn);
 			call LedHandler.radioOff();
 		}		
 		else {
@@ -203,16 +216,15 @@ implementation{
 			//broadcast();
 
 			if (booting) {
-				call WatchDog.startPeriodic(1000);
+				//call WatchDog.startPeriodic(1000);
 				error = call DiskCtrl.start();
 				ASSERT(!error);
 			}
 			call ShortPeriod.startOneShot(50);
 		}		
-
 	}
 
-	event void WatchDog.fired(){
+/*	event void WatchDog.fired(){
 		// S A -> start
 		// S C -> start
 		// A A -> stop
@@ -227,14 +239,18 @@ implementation{
 			if (mode == ALTERING)
 				call ShortPeriod.startOneShot(50);
 		}
-	}
+	}*/
 	
 	event void ShortPeriod.fired() {
 
 		if (radioOn && mode == ALTERING) {
 
-			if (call AMControl.stop() != SUCCESS)
+			if (call AMControl.stop() != SUCCESS) {
 				call LedHandler.error();
+			}
+			else {
+				radioOn = FALSE;
+			}
 		}
 	}
 
