@@ -32,24 +32,24 @@
 * Author:Andras Biro
 */
 
-#include "Storage.h"
-generic configuration StreamStorageC(uint8_t client_id){
+#include "StorageVolumes.h"
+#include "StreamStorage.h"
+configuration StreamStorageArbC{
 	provides {
-		interface StreamStorage;
-		interface SplitControl;
-		interface Resource;
-		interface ResourceRequested;
+		interface Resource[uint8_t uid];
 		interface ArbiterInfo;
+		interface ResourceRequested[uint8_t];
+		interface LogRead;
+		interface LogWrite;
 	}
 }
 implementation{
-	      
-	components StreamStorageP, StreamStorageArbC;
-	StreamStorageP.LogRead -> StreamStorageArbC;
-	StreamStorageP.LogWrite -> StreamStorageArbC;
-	StreamStorage=StreamStorageP.StreamStorage;
-	SplitControl=StreamStorageP.SplitControl;
-	Resource=StreamStorageArbC.Resource[client_id];
-	ResourceRequested=StreamStorageArbC.ResourceRequested[client_id];
-	ArbiterInfo=StreamStorageArbC.ArbiterInfo;
+	
+	components new SimpleFcfsArbiterC(UQ_STREAMSTORAGE) as Arbiter, new LogStorageC(VOLUME_STREAMSTORAGE, TRUE);
+	
+	Resource=Arbiter;
+	ResourceRequested=Arbiter;
+	ArbiterInfo=Arbiter;
+	LogRead=LogStorageC;
+	LogWrite=LogStorageC;
 }
