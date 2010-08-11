@@ -32,12 +32,10 @@
 * Author: Miklos Maroti, Ali Baharev
 */
 
-// FIXME Introduce a function to read from a position, it is in RadioHandler now 
+// TODO Introduce a function to read from a position, it is in RadioHandler now 
 
-// FIXME Make it possible to start everything from sector N
+// TODO Make it possible to start everything from sector N
 #include "Assert.h"
-
-// FIXME Code duplication (SimpleMemoryFileP)!
 
 module SimpleFileP
 {
@@ -67,16 +65,17 @@ implementation
 		STATE_READ = 4,
 		STATE_WRITE = 5,
 		END_OF_DATA = 127,
-		BUFFSIZE = 508
+		BUFFSIZE = 506
 	};
 
 	uint8_t state = STATE_OFF;
-	// FIXME Only read once; plus we got available==true with SD card out!
+	// FIXME We got available==true with SD card out!
 	norace bool available = FALSE;
 
 	struct buffer
 	{
 		uint16_t formatID;
+		uint16_t moteID;
 		uint16_t length;
 		uint8_t data[BUFFSIZE];
 	} buffer;
@@ -114,7 +113,6 @@ implementation
 
 		for(writePos = 0; writePos < cardSize; ++writePos)
 		{
-			// TODO The cast assumes a specific memory layout of buffer - guaranteed?
 			error = call SD.readBlock(writePos, (uint8_t*) &buffer);
 
 			if (error!=SUCCESS)
@@ -162,7 +160,7 @@ implementation
 		error_t error;
 
 		if( state != STATE_READY )
-			return EBUSY;
+			return FAIL;  // TODO A more specific error code?
 
 		// ignore the error, it is not clear what to do if this fails
 		error = call SDControl.stop();
@@ -180,9 +178,10 @@ implementation
 
 		++formID;
 		buffer.formatID = formID;
-		buffer.length = 0;
+		buffer.moteID   = TOS_NODE_ID;
+		buffer.length   = 0;
 
-		error = call SD.writeBlock(0, (uint8_t*) &buffer); // FIXME the 0. sector was formatted 8 times...
+		error = call SD.writeBlock(0, (uint8_t*) &buffer);
 
 		if( error == SUCCESS )
 		{
@@ -197,7 +196,7 @@ implementation
 	command error_t SimpleFile.format()
 	{
 		if( state != STATE_READY )
-			return EBUSY;  // TODO Sure? What if STATE_OFF for example?
+			return FAIL;  // TODO A more specific error code?
 
 		state = STATE_FORMAT;
 		post executeCommand();
@@ -215,6 +214,7 @@ implementation
 		if (error == SUCCESS) {  
 		
 			ASSERT(buffer.formatID == formID);
+			ASSERT(buffer.moteID == TOS_NODE_ID);
 
 			if( packetLen > buffer.length )
 				packetLen = buffer.length;
@@ -244,7 +244,7 @@ implementation
 		packetPtr = packet;
 		packetLen = length;
 		state = STATE_READ;
-		// FIXME The line below was missing?
+
 		post executeCommand();
 		return SUCCESS;
 	}
@@ -255,6 +255,7 @@ implementation
 		uint16_t i;
 		
 		buffer.formatID = formID;
+		buffer.moteID = TOS_NODE_ID;
 
 		for(i = 0; i < packetLen; ++i)
 			buffer.data[i] = packetPtr[i];
@@ -273,13 +274,15 @@ implementation
 	{
 		if( state != STATE_READY )
 			return EBUSY;
-		else if( length > BUFFSIZE ) // FIXME Magic number earlier!!!
+		else if( length > BUFFSIZE )
 			return ESIZE;
+		else if (writePos == cardSize)
+			return FAIL;
 
 		packetPtr = packet;
 		packetLen = length;
 		state = STATE_WRITE;
-		// FIXME The line below was missing?
+
 		post executeCommand();
 		return SUCCESS;
 	}
@@ -294,10 +297,10 @@ implementation
 		if( pos < writePos )
 		{
 			readPos = pos;
-			return post signalSeekDone(); // FIXME seekDone was never signaled
+			return post signalSeekDone();
 		}
 		else
-			return FAIL; // TODO Return a more specific error value?
+			return ESIZE;
 
 	}
 

@@ -54,13 +54,14 @@ implementation
 	enum
 	{
 		END_OF_DATA = 127,
-		BUFFSIZE = 508,
+		BUFFSIZE = 506,
 		SECTORS = 8,
 	};
 
 	struct buffer
 	{
-		uint16_t formatID;
+		uint16_t formatID; // ignored
+		uint16_t moteID; 	// ignored
 		uint16_t length;
 		uint8_t data[BUFFSIZE];
 	};
@@ -70,16 +71,30 @@ implementation
 	uint32_t writePos;
 	uint32_t readPos;
 	
+	void format() {
+		uint16_t i, j;
+		uint8_t* data;
+		readPos = 0;
+		writePos = 0;
+		for (i=0; i<SECTORS; ++i) {
+			buffers[i].formatID = 0;
+			buffers[i].length = 0;
+			data = buffers[i].data;
+			for (j=0; j<BUFFSIZE; ++j) {
+				data[j] = 0;
+			}
+		}
+	}
+
 	task void startDone()
 	{
+		format(); // BUG writePos was not set to zero in the original implementation
 		signal SplitControl.startDone(SUCCESS);
 	}
 
 	command error_t SplitControl.start()
 	{
-		readPos = 0;
 		post startDone();
-
 		return SUCCESS;
 	}
 
@@ -91,21 +106,18 @@ implementation
 	command error_t SplitControl.stop()
 	{
 		post stopDone();
-
 		return SUCCESS;
 	}
 
 	task void formatDone()
 	{
+		format();
 		signal SimpleFile.formatDone(SUCCESS);
 	}
 
 	command error_t SimpleFile.format()
 	{
-		writePos = 0;
-		readPos = 0;
 		post formatDone();
-
 		return SUCCESS;
 	}
 
@@ -135,6 +147,7 @@ implementation
 			packet[i] = buffers[readPos].data[i];
 
 		++readPos;
+
 		post readDone();
 
 		return SUCCESS;
