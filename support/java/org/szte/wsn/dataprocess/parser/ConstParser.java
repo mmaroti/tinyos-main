@@ -37,8 +37,12 @@ import java.util.Arrays;
 
 
 public class ConstParser extends IntegerParser {	
-	byte[] value;	
+	private byte[] value;	
 	
+	public byte[] getValue() {
+		return value;
+	}
+
 	/**
 	 * stores a constant value and compares it to the byte[]
 	 * @param name integer variable name
@@ -79,4 +83,6 @@ public class ConstParser extends IntegerParser {
 		else
 			return null;
 		}
+	
+	
 }

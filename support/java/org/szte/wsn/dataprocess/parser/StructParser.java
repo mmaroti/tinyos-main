@@ -117,31 +117,29 @@ public class StructParser extends PacketParser {
 	public byte[] construct(String[] stringValue) {
 		ArrayList<Byte> ret=new ArrayList<Byte>(); 
 		int pointer=0;
-		for(PacketParser pp:packetStruct){ 	 //every PacketParser			
-			String[] packetPart=new String[pp.getStringLength()];				//String of one PacketParser			
-			System.arraycopy(stringValue ,pointer,packetPart,0,pp.getStringLength());
-			pointer+=pp.getStringLength();
+		for(PacketParser pp:packetStruct){ 	 //every PacketParser	
 			if(!pp.getType().contains("omit"))  		//omitted 
+			{
+			String[] packetPart=new String[pp.getFields().length];				//String of one PacketParser			
+			System.arraycopy(stringValue ,pointer,packetPart,0,pp.getFields().length);
+			pointer+=pp.getFields().length;
+			
 				for(byte b:pp.construct(packetPart))
-					ret.add(b); 	
-
+					ret.add(b); 
+			}
+			else 
+				if(pp instanceof ConstParser ){
+						for(byte b:pp.construct(pp.parse(((ConstParser) pp).getValue())))
+						ret.add(b); 
+				} 
 		}
+		
 		byte[] byteArray = new byte[ret.size()];
 		for(int i = 0; i<ret.size(); i++){
 			byteArray[i] = ret.get(i);
 		}
+		
 		return byteArray;
 	}
 
-	@Override
-	/**
-	 * @return the length of the String[] which is created during parse
-	 */
-	public int getStringLength() {
-		int ret=0;
-		for(PacketParser pp:packetStruct)				
-			ret+=pp.getStringLength();			//omit takes no effect here
-
-		return ret;
-	}
 }

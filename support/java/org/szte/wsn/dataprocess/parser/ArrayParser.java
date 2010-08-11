@@ -111,7 +111,7 @@ public class ArrayParser extends PacketParser{
 	public byte[] construct(String[] stringValue) {
 		byte[] ret = new byte[packetType.getPacketLength()*size];
 		int pointer=0;
-		int length=packetType.getStringLength();
+		int length=packetType.getFields().length;
 		for(int i=0;i<size;i++){ 			 //every PacketParser			
 			String[] packetPart=new String[length];				//String of one PacketParser			
 			System.arraycopy(stringValue ,pointer,packetPart,0,length);
@@ -122,12 +122,5 @@ public class ArrayParser extends PacketParser{
 		return ret;
 	}
 
-	@Override
-	/**
-	 * @return the length of the String[] which is created during parse
-	 */
-	public int getStringLength() {		
-		return packetType.getStringLength()*size;
-	}
 
 }

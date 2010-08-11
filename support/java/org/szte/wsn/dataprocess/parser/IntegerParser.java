@@ -121,13 +121,4 @@ public class IntegerParser extends PacketParser{
 		return new String[] {name};
 	}
 	
-	@Override
-	/**
-	 * @return the length of the String which is created during parse
-	 */
-	public int getStringLength() {
-		
-		return 1;
-	}
-
 }
