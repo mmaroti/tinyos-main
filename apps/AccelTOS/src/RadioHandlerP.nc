@@ -47,7 +47,7 @@ module RadioHandlerP{
 		interface StdControl as MeterCtrl;
 		interface SplitControl as Sampling;
 		interface Uploader;
-		//interface Timer<TMilli> as WatchDog;
+		interface Timer<TMilli> as WatchDog;
 		interface Timer<TMilli> as ShortPeriod;
 		interface DiagMsg;
    }
@@ -101,7 +101,7 @@ implementation{
 	event void DiskCtrl.stopDone(error_t error){
 		// TODO Auto-generated method stub
 	}
-/*
+
 	error_t broadcast() {
 
 		error_t error;
@@ -122,14 +122,15 @@ implementation{
     	}
     	return error;
 	}
-*/	
+	
 	event void AMReportMsg.sendDone(message_t *msg, error_t error){
 		sending = FALSE;
 		// TODO Resend if failed?
 	}
 	
 	task void turnRadioOff() {
-		error_t error = call AMControl.stop();
+
+		error_t error = call AMControl.stop(); // FIXME What if already turned off
 		if (!error) {
 			radioOn = FALSE;
 		}		
@@ -148,11 +149,13 @@ implementation{
 		
 		call LedHandler.msgReceived();
 
-		// TODO New command cancel download?
+		// TODO New command to cancel upload?
 		if (cmd == STOPSAMPLING) {
 			error = call Sampling.stop();
 		}
 		else if (cmd == RADIOOFF) {
+			call WatchDog.stop();
+			mode = RADIOOFF;
 			post turnRadioOff();
 		}
 		else if (diskBusy) {
@@ -213,10 +216,10 @@ implementation{
 			radioOn = TRUE;
 			call LedHandler.radioOn();
 			
-			//broadcast();
+			broadcast();
 
 			if (booting) {
-				//call WatchDog.startPeriodic(1000);
+				call WatchDog.startPeriodic(2000);
 				error = call DiskCtrl.start();
 				ASSERT(!error);
 			}
@@ -224,22 +227,27 @@ implementation{
 		}		
 	}
 
-/*	event void WatchDog.fired(){
+	event void WatchDog.fired(){
 		// S A -> start
 		// S C -> start
 		// A A -> stop
 		// A C -> nothing, stay awake
-
-		if ( !radioOn ) {
-			error_t error = call AMControl.start();
-			ASSERT(error==SUCCESS);
+		
+		error_t error;
+		
+		if (mode == RADIOOFF) {
+			call WatchDog.stop();
+		}
+		else if (!radioOn) {
+			error = call AMControl.start();
+			ASSERT(!error);
 		}
 		else {
-			//broadcast();
+			broadcast();
 			if (mode == ALTERING)
 				call ShortPeriod.startOneShot(50);
 		}
-	}*/
+	}
 	
 	event void ShortPeriod.fired() {
 

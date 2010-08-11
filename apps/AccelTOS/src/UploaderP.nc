@@ -57,7 +57,7 @@ implementation {
 	};
 	
 	enum {
-		MAX_DATA_LEN = 508 // FIXME It should not know this implementation detail
+		MAX_DATA_LEN = 506 // FIXME It should not know this implementation detail
 	};
 	
 	// Guards sector[]

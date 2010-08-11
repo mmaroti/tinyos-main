@@ -50,7 +50,7 @@ implementation
 	enum
 	{
 		BUFFER_SIZE = 2,
-		MAX_DATA_LENGTH = 508 // FIXME It should not know this implementation detail
+		MAX_DATA_LENGTH = 506 // FIXME It should not know this implementation detail
 	};
 	
 	typedef struct buffer_t {
