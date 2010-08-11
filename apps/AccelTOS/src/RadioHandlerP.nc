@@ -55,6 +55,11 @@ module RadioHandlerP{
 
 implementation{
 	
+	enum {
+		SHORTPERIOD = 50,
+		WATCHDOG    = 61440
+	};
+	
 	bool booting = TRUE;
 	
 	// Tracks state of radio
@@ -163,7 +168,7 @@ implementation{
 		}
 		else if (cmd == ALTERING)   {
 			mode = ALTERING;
-			call ShortPeriod.startOneShot(50);
+			call ShortPeriod.startOneShot(SHORTPERIOD);
 		}
 		else if (cmd == CONTINUOUS) {
 			mode = CONTINUOUS;
@@ -214,16 +219,16 @@ implementation{
 		if (error == SUCCESS) {
 			
 			radioOn = TRUE;
-			call LedHandler.radioOn();
+			//call LedHandler.radioOn();
 			
 			broadcast();
 
 			if (booting) {
-				call WatchDog.startPeriodic(2000);
+				call WatchDog.startPeriodic(WATCHDOG);
 				error = call DiskCtrl.start();
 				ASSERT(!error);
 			}
-			call ShortPeriod.startOneShot(50);
+			call ShortPeriod.startOneShot(SHORTPERIOD);
 		}		
 	}
 
@@ -245,7 +250,7 @@ implementation{
 		else {
 			broadcast();
 			if (mode == ALTERING)
-				call ShortPeriod.startOneShot(50);
+				call ShortPeriod.startOneShot(SHORTPERIOD);
 		}
 	}
 	

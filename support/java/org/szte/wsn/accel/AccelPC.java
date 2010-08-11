@@ -34,6 +34,9 @@
 
 package org.szte.wsn.accel;
 
+import java.text.*;
+import java.util.*;
+
 import net.tinyos.util.*;
 import net.tinyos.message.*;
 import net.tinyos.packet.*;
@@ -53,7 +56,7 @@ final class Sender {
 		try {
 			moteIF.send(moteID, msg);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 		System.out.println("Sending to mote "+moteID+", command "+command);
@@ -64,6 +67,8 @@ final class Sender {
 final class Receiver implements MessageListener {
 	
 	private final Sender s;
+
+    private final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	
 	int counter = 0;
 	
@@ -76,7 +81,8 @@ final class Receiver implements MessageListener {
 		
 		if (m instanceof ReportMsg) {
 			ReportMsg rmsg = (ReportMsg) m;
-			System.out.print("Report from mote "+rmsg.get_id());
+			System.out.print(sdf.format(new Date()));
+			System.out.print(" Report from mote "+rmsg.get_id());
 			System.out.println(", state "+rmsg.get_mode());
 		}
 		if (m instanceof DataMsg) {
@@ -99,6 +105,7 @@ public final class AccelPC {
 	private static final short STARTSAMPLING = 5;
 	private static final short STOPSAMPLING  = 6;
 	private static final short SENDSAMPLES   = 7;
+	private static final short RADIOOFF      = 8;
 
 	public AccelPC(MoteIF mif) {
 		s = new Sender(mif);
@@ -137,7 +144,7 @@ public final class AccelPC {
 
 		try {
 			
-			final int MOTE_ID = 6;
+			final int MOTE_ID = 5;
 			
 			s.command(MOTE_ID, CONTINUOUS);
 			
@@ -146,10 +153,14 @@ public final class AccelPC {
 			s.command(MOTE_ID, FORMAT);
 
 			s.command(MOTE_ID, STARTSAMPLING);
+			
+			//s.command(MOTE_ID, RADIOOFF);
 
 			s.command(MOTE_ID, STOPSAMPLING);
 			
 			s.command(MOTE_ID, SENDSAMPLES);
+			
+			//s.command(MOTE_ID, RADIOOFF);
 		
 			s.command(MOTE_ID, ALTERING);
 			
@@ -159,7 +170,7 @@ public final class AccelPC {
 //			}
 		}
 		catch (Exception e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 	}
