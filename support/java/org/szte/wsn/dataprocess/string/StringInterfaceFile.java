@@ -32,13 +32,14 @@
  * Author: Miklos Toth
  */
 package org.szte.wsn.dataprocess.string;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.util.Scanner;
+
+import java.io.FileNotFoundException;
+import java.io.RandomAccessFile;
 
 import org.szte.wsn.dataprocess.PacketParser;
+import org.szte.wsn.dataprocess.PacketParserFactory;
 import org.szte.wsn.dataprocess.StringInterface;
+
 
 /**
  * 
@@ -48,17 +49,24 @@ import org.szte.wsn.dataprocess.StringInterface;
  */
 public class StringInterfaceFile implements StringInterface {
 	String separator;
-	String filePath;
 	String previous;
+	PacketParser[] packetParsers;
+	long readPointer;
+	RandomAccessFile file;
 
-	public StringInterfaceFile(String separator, String path){
+	public StringInterfaceFile(String separator, String path, PacketParser[] packetParsers ){
 		this.separator=separator;  
-		filePath=path;
+		this.packetParsers=packetParsers;
 		previous="";
+		readPointer=0;
+		try {
+			file=new RandomAccessFile(path, "rw");
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}	;
 	}
-	public StringInterfaceFile(){
-		this("	","default.txt");      		//default separator is Tabulator
-	}
+	
 
 	@Override
 	/**
@@ -66,24 +74,26 @@ public class StringInterfaceFile implements StringInterface {
 	 * 
 	 */
 	public void writePacket(StringPacket packet) {
-		try{
-			BufferedWriter out = new BufferedWriter(new FileWriter(filePath));
-
+		try{			
 			if (packet.getData()!=null){
-				out.write(packet.getName()+separator);
-				if(!packet.equals(previous)){					
+				file.seek(file.length());
+				
+				if(!packet.getName().equals(previous)){	
+					file.writeBytes(packet.getName()+separator);
 					for(String head:packet.getFields())
-						out.write(head+separator);
-					out.write("\n");
+						file.writeBytes(head+separator);
+					file.seek(file.getFilePointer()-separator.length()); //deletes the last separator
+					file.writeBytes("\n");
 				}
-				out.write(packet.getName()+separator);
+				file.writeBytes(packet.getName()+separator);
 				for(String data:packet.getData()){			
-					out.write(data+separator);
+					file.writeBytes(data+separator);
 				}
-				out.write("\n");
+				file.seek(file.getFilePointer()-separator.length()); //deletes the last separator
+				file.writeBytes("\n");
+				previous=packet.getName();
 			}
 
-			out.close();
 
 		}catch (Exception e){		//Catch exception if any
 			System.err.println("Error: " + e.getMessage());
@@ -95,20 +105,47 @@ public class StringInterfaceFile implements StringInterface {
 	/**
 	 * implements readPacket for file application
 	 */
-	public StringPacket readPacket() {
-		/*
-		String[] ret=new String[packet.getFields().length];
-
+	public StringPacket readPacket() {	
+		StringPacket ret=null;
 		try{
-			Scanner in=new Scanner(new File(filePath) );
-			for(int i=0; i<packet.getFields().length;i++)
-				ret[i]=in.nextLine();
-			in.close(); 
+			file.seek(readPointer);
+			String line=file.readLine();
+			readPointer+=line.length();
+			String[] parts=line.split(separator);
+			
+			String structName=parts[0];
+			PacketParser pp=PacketParserFactory.getParser(structName, packetParsers );
+			String[] fields;
+			if(!pp.getName().equals(previous))
+			{
+				fields=new String[pp.getFields().length];
+				System.arraycopy(parts, 1, fields, 0, parts.length-1);
+			}
+			else{
+				fields=pp.getFields();
+			}
+			line=file.readLine();
+			readPointer+=line.length();
+			parts=line.split(separator);
+			
+			String[] data=new String[pp.getFields().length];
+			System.arraycopy(parts, 1, data, 0, parts.length-1);
+			
+			String temp[]=new String[data.length];
+			for(int i=0;i<fields.length;i++)
+				temp[i]="";
+			for(int j=0;j<fields.length;j++)
+				for(int i=0;i<fields.length;i++)
+					if(fields[j].equals(pp.getFields()[i]))
+						temp[j]=data[i];								
+			 ret=new StringPacket(structName,temp);
+			
+
 		}catch (Exception e){//Catch exception if any
 			System.err.println("Error: " + e.getMessage());
-		}*/
-		return new StringPacket(new String(""), null);
+		}
+		return ret;
+	
 	}
-
 }
 

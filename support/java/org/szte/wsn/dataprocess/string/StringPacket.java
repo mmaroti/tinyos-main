@@ -33,6 +33,11 @@
 */
 package org.szte.wsn.dataprocess.string;
 
+/**
+ * 
+ * @author Miklos Toth
+ * string communication package
+ */
 public class StringPacket {
 	private String name;
 	private String fields[];

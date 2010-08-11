@@ -100,17 +100,22 @@ public class StringInterfaceConsole implements StringInterface {
 				String customOrder=in.readLine();
 				if(customOrder.equalsIgnoreCase("n"))
 				{
-				System.out.println("Give me one data line, seperated with: "+separator);
-				System.out.println(pp.getFields().length);
-				System.out.flush();
-				String[] parts=in.readLine().split(separator);
-				if(parts.length==pp.getFields().length)
-					 ret=new StringPacket(structName,parts);
-				else	
-					Usage.usageThanExit();
+					System.out.println("Give me one data line, with "+pp.getFields().length+" values seperated with: "+separator);
+					System.out.flush();
+					String[] parts=in.readLine().split(separator);
+					if(parts.length==pp.getFields().length)
+						ret=new StringPacket(structName,parts);
+					else{
+						System.out.print("Input error");
+						Usage.usageThanExit();
+					}	
+						
 				}
 				else{
 					System.out.println("Give me the fields in your custom order, seperated with: "+separator);
+					for(String str:pp.getFields())
+						System.out.print(str+",");
+					
 					System.out.flush();
 					String[] fields=in.readLine().split(separator);
 					if(fields.length!=pp.getFields().length)
@@ -120,9 +125,13 @@ public class StringInterfaceConsole implements StringInterface {
 					if(data.length!=pp.getFields().length)
 						Usage.usageThanExit();
 					String temp[]=new String[data.length];
-					for(String value:fields){
-						
-					}
+					for(int i=0;i<fields.length;i++)
+						temp[i]="";
+					for(int j=0;j<fields.length;j++)
+						for(int i=0;i<fields.length;i++)
+							if(fields[j].equals(pp.getFields()[i]))
+								temp[j]=data[i];								
+					ret=new StringPacket(structName,temp);
 				}
 			}
 			else{

@@ -51,18 +51,8 @@ public class StringInterfaceFactory {
 	 */
 	public static StringInterface getStringInterface(String type, String source, PacketParser[] packetParsers){
 		if(type.equals("file")){
-			/*
-			try {
-				
-				return new StringInterfaceFile(source, gp.getGaps());
-			}
-			catch (IOException e) {
-				e.printStackTrace();					
-				Usage.usageThanExit();
-				return null;
-			}	
-			*/
-			return null;
+			return new StringInterfaceFile(",", source, packetParsers);
+			
 		}
 		
 		else //if (type.equals("console"))
