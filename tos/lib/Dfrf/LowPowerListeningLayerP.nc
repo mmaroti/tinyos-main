@@ -173,8 +173,9 @@ implementation
 		}
 		else if( state == SEND_TIMER )
 		{
-			if((!call Config.needsAutoAckRequest(txMsg))&&
+			if((call Config.needsAutoAckRequest(txMsg))||
 			   (uint32_t)(call Timer.getNow()-lastSend+call Config.getListenLength())>call LowPowerListening.getRemoteWakeupInterval(txMsg)){
+				
 				transmitInterval = call LowPowerListening.getRemoteWakeupInterval(txMsg);
 	
 				if( transmitInterval > 0 )
