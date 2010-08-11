@@ -37,13 +37,28 @@ import java.io.IOException;
 import org.szte.wsn.dataprocess.string.StringInterfaceFactory;
 import org.szte.wsn.dataprocess.string.StringPacket;
 
-
+/**
+ * 
+ * @author Miklos Toth
+ * Thread that controls communication
+ *  between binary and string interfaces
+ * 
+ */
 public class Transfer extends Thread  {
 	private PacketParser[] packetParsers;
 	private BinaryInterface binary;
 	private StringInterface string;
 	boolean toString;
 
+	/**
+	 * Sets the interfaces from String parameters
+	 * @param binaryType
+	 * @param binaryPath
+	 * @param stringType
+	 * @param stringPath
+	 * @param structPath
+	 * @param toString if true writes from binary to string, else writes from string to binary 
+	 */
 	public Transfer(String binaryType, String binaryPath, String stringType, String stringPath, String structPath, boolean toString){
 		packetParsers=new PacketParserFactory(structPath).getParsers();
 		binary=BinaryInterfaceFactory.getBinaryInterface(binaryType, binaryPath);	
@@ -53,6 +68,13 @@ public class Transfer extends Thread  {
 			Usage.usageThanExit();
 	}
 
+	/**
+	 * Sets the interfaces from complex parameters
+	 * @param packetParsers
+	 * @param binary
+	 * @param string
+	 * @param toString
+	 */
 	public Transfer(PacketParser[] packetParsers, BinaryInterface binary, StringInterface string, boolean toString){
 		this.packetParsers=packetParsers;
 		this.binary=binary;
@@ -61,6 +83,9 @@ public class Transfer extends Thread  {
 	}
 
 	@Override
+	/**
+	 * implements the communication in both directions
+	 */
 	public void run(){
 		if(toString){
 			byte data[]=binary.readPacket();
@@ -99,22 +124,18 @@ public class Transfer extends Thread  {
 		/*
 		if(args.length<6)
 			Usage.usageThanExit();
-		PacketParser[] parsers=new PacketParserFactory(args[4]).getParsers();			
-		BinaryInterface bin=BinaryInterfaceFactory.getBinaryInterface(args[0], args[1]);	
-		StringInterface str=StringInterfaceFactory.getStringInterface(args[2], args[3],parsers);
 		boolean toStr=false;
 		if (args[5].equals("toString"))
-			toStr=true;		
-
-		Transfer fp=new Transfer(parsers,bin,str,toStr);
+			toStr=true;
+		Transfer fp=new Transfer(args[0],args[1],args[2],args[3],args[4],toStr);
 		fp.start();
 		*/
 		PacketParser[] parsers=new PacketParserFactory("structs.txt").getParsers();			
-		BinaryInterface bin=BinaryInterfaceFactory.getBinaryInterface("binary", "serial@/dev/ttyUSB1:57600");	
-		StringInterface str=StringInterfaceFactory.getStringInterface("console", "",parsers);
-		Transfer fp=new Transfer(parsers,bin,str,false);
+		BinaryInterface bin=BinaryInterfaceFactory.getBinaryInterface("file", "00006.bin");	
+		StringInterface str=StringInterfaceFactory.getStringInterface("file", "out2.txt",parsers);
+		//Transfer fp=new Transfer(parsers,bin,str,false);
 		Transfer fp2=new Transfer(parsers,bin,str,true);
-		fp.start();
+		//fp.start();
 		
 		fp2.start();
 	}
