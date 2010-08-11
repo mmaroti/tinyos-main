@@ -32,11 +32,12 @@
 * Author:Andras Biro
 */
 
-#include "StorageVolumes.h"
+//#include "StorageVolumes.h"
+#include "StreamStorage.h"
 configuration SSTest_MTS400_App{
 }
 implementation{
-	components new StreamStorageC(VOLUME_STOR), StorageFrameC,StorageFrameP;
+	components new StreamStorageC(unique(UQ_STREAMSTORAGE)) as StreamStorageC, StorageFrameC,StorageFrameP;
 	components new TimerMilliC() as SensorTimer,new SensirionSht11C(), new Taos2550C();
 	components SSTest_MTS400C as App, MainC, LedsC, StreamUploaderC, StreamUploaderP, LocalTimeMilliC;
 	StorageFrameP.StreamStorage->StreamStorageC;
