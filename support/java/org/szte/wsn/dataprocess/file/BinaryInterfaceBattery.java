@@ -94,6 +94,8 @@ public class BinaryInterfaceBattery implements BinaryInterface{
 		{
 			frames=makeFrames();
 			actualFrame=0;
+			if(frames.get(0)[0]==0)
+				return null;
 			if (frames!=null)
 				return frames.get(actualFrame++);
 			else
