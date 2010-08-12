@@ -39,7 +39,10 @@ SOURCES += src/DataRecorder.cpp \
     src/DataPlot.cpp \
     src/TurntableCalibrationModule.cpp \
     src/Data3DWidget.cpp \
-    src/Data3DPlot.cpp
+    src/Data3DPlot.cpp \
+    src/GLWidget.cpp \
+    src/window.cpp \
+    src/Widget3D.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -55,11 +58,16 @@ HEADERS += src/DataRecorder.h \
     src/DataPlot.h \
     src/TurntableCalibrationModule.h \
     src/Data3DWidget.h \
-    src/Data3DPlot.h
+    src/Data3DPlot.h \
+    src/GLWidget.h \
+    src/window.h \
+    src/Widget3D.h
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \
     src/ConsoleWidget.ui \
     src/DataWidget.ui \
-    src/Data3DWidget.ui
-RESOURCES += src/Resources.qrc
+    src/Data3DWidget.ui \
+    src/Widget3D.ui
+RESOURCES += src/Resources.qrc \
+    src/textures.qrc
