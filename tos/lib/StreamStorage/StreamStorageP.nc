@@ -39,7 +39,9 @@
 #endif
 module StreamStorageP{
 	provides {
-		interface StreamStorage;
+		interface StreamStorageRead;
+		interface StreamStorageWrite;
+		interface StreamStorageErase;
 		interface SplitControl;
 	}
 	uses {
@@ -132,7 +134,7 @@ implementation{
 		
 //Erease
 
-	command error_t StreamStorage.erase(){
+	command error_t StreamStorageErase.erase(){
 		if(status!=NORMAL&&status!=UNINIT){
 			return EBUSY;
 		} else {
@@ -158,11 +160,11 @@ implementation{
 			status=NORMAL;
 		else
 			status=UNINIT;	
-		signal StreamStorage.eraseDone(error);
+		signal StreamStorageErase.eraseDone(error);
 	}
 
 //Write
-	command error_t StreamStorage.append(void *buf, uint16_t len){
+	command error_t StreamStorageWrite.append(void *buf, uint16_t len){
 		if(status!=NORMAL){
 			if(status==UNINIT)
 				return EOFF;
@@ -205,7 +207,7 @@ implementation{
 			return err;
 		}
 	}
-	command error_t StreamStorage.appendWithID(nx_uint8_t id, void *buf, uint16_t  len){
+	command error_t StreamStorageWrite.appendWithID(nx_uint8_t id, void *buf, uint16_t  len){
 		if(status!=NORMAL){
 			if(status==UNINIT)
 				return EOFF;
@@ -253,9 +255,9 @@ implementation{
 		if(error!=SUCCESS){
 			status=NORMAL;
 			if(write_id>0)
-				signal StreamStorage.appendDoneWithID(writebuffer, writelength, error);
+				signal StreamStorageWrite.appendDoneWithID(writebuffer, writelength, error);
 			else
-				signal StreamStorage.appendDone(writebuffer, writelength, error);
+				signal StreamStorageWrite.appendDone(writebuffer, writelength, error);
 			return;
 		} 
 		if(status!=WRITE_PENDING_METADATA&&status!=WRITE_PENDING_METADATA_ID_UNWRITTEN)
@@ -281,9 +283,9 @@ implementation{
 			case WRITE_PENDING_DATA2:{//we're done with the data, now we write the ID
 				status=NORMAL;
 				if(write_id==0)
-					signal StreamStorage.appendDone(writebuffer, writelength, SUCCESS);
+					signal StreamStorageWrite.appendDone(writebuffer, writelength, SUCCESS);
 				else
-					signal StreamStorage.appendDoneWithID(writebuffer, writelength, SUCCESS);
+					signal StreamStorageWrite.appendDoneWithID(writebuffer, writelength, SUCCESS);
 			}break;
 			case WRITE_PENDING_ID:{//we wrote everything
 				if(firstwritelength>0){//we don't have enough space for all the data
@@ -305,15 +307,15 @@ implementation{
 		if(err!=SUCCESS){
 			status=NORMAL;
 			if(write_id>0)
-				signal StreamStorage.appendDoneWithID(writebuffer, writelength, error);
+				signal StreamStorageWrite.appendDoneWithID(writebuffer, writelength, error);
 			else
-				signal StreamStorage.appendDone(writebuffer, writelength, error);
+				signal StreamStorageWrite.appendDone(writebuffer, writelength, error);
 			return;
 		} 
 	}	
 //Read
 
-	command error_t StreamStorage.read(uint32_t addr, void *buf, uint8_t len){
+	command error_t StreamStorageRead.read(uint32_t addr, void *buf, uint8_t len){
 		if(status!=NORMAL)
 			if(status==UNINIT)
 				return EOFF;
@@ -407,7 +409,7 @@ implementation{
 				}break;
 				case GET_MIN:{
 					status=NORMAL;
-					signal StreamStorage.getMinAddressDone(0, error);
+					signal StreamStorageRead.getMinAddressDone(0, error);
 					return;
 				}break;
 				default:{
@@ -416,7 +418,7 @@ implementation{
 							printf("Read error\n");
 							printfflush();
 					#endif	
-					signal StreamStorage.readDone(readbuffer, readlength, error);
+					signal StreamStorageRead.readDone(readbuffer, readlength, error);
 					return;
 				}break;
 			}
@@ -487,7 +489,7 @@ implementation{
 						addressTranslation.logAddress+=PAGE_SIZE;
 						err=call LogRead.seek(addressTranslation.logAddress);
 					} else if(addressTranslation.streamAddress-*metadata<0)//seems like the data is somewhere before us (which should be impossible), or not in the flash (overwritten?)
-						signal StreamStorage.readDone(readbuffer, readlength, FAIL);
+						signal StreamStorageRead.readDone(readbuffer, readlength, FAIL);
 					else{//the data is on this page
 						#ifdef DEBUG
 							printf("Data is on this page\n");
@@ -524,7 +526,7 @@ implementation{
 						addressTranslation.logAddress-=PAGE_SIZE;
 						err=call LogRead.seek(addressTranslation.logAddress);
 					} else if(addressTranslation.streamAddress-*metadata>=PAGE_SIZE+len)//seems like the data is somewhere ahead us (which should be impossible), or not in the flash (overwritten?) 
-						signal StreamStorage.readDone(readbuffer, readlength, FAIL);
+						signal StreamStorageRead.readDone(readbuffer, readlength, FAIL);
 					else{//the data is on this page
 						#ifdef DEBUG
 							printf("Data is on this page\n");
@@ -561,7 +563,7 @@ implementation{
 					if(addressTranslation.logAddress+((readfirstlength>0)?readfirstlength+sizeof(current_addr):0)+len==call LogRead.currentOffset()){
 						addressTranslation.success=TRUE;
 						status=NORMAL;
-						signal StreamStorage.readDone(readbuffer, readlength, SUCCESS);
+						signal StreamStorageRead.readDone(readbuffer, readlength, SUCCESS);
 					} else {//we read something from the next page (incl. metadata), so we're correcting this (this could only happen on a synced page)
 						uint32_t offset=call LogRead.currentOffset();
 						status=READ_PENDING_DATA3;
@@ -573,7 +575,7 @@ implementation{
 				case READ_PENDING_DATA3:{//we're done
 					addressTranslation.success=TRUE;
 					status=NORMAL;
-					signal StreamStorage.readDone(readbuffer, readlength, SUCCESS);
+					signal StreamStorageRead.readDone(readbuffer, readlength, SUCCESS);
 				}
 				case INIT_START:{
 					nx_uint32_t *metadata=(nx_uint32_t*)buf;//unfortunately, we need this, because the endiannes is unpredictable in the buffer
@@ -660,7 +662,7 @@ implementation{
 						minAddress.address=*metadata;
 						minAddress.valid=TRUE;
 						status=NORMAL;
-						signal StreamStorage.getMinAddressDone(minAddress.address, SUCCESS);
+						signal StreamStorageRead.getMinAddressDone(minAddress.address, SUCCESS);
 					}
 				}break;
 			}
@@ -672,10 +674,10 @@ implementation{
 					signal SplitControl.startDone(err);
 				}break;
 				case GET_MIN:{
-					signal StreamStorage.getMinAddressDone(0, err);
+					signal StreamStorageRead.getMinAddressDone(0, err);
 				}break;
 				default:{
-					signal StreamStorage.readDone(readbuffer, readlength, err);
+					signal StreamStorageRead.readDone(readbuffer, readlength, err);
 				}break;
 			}
 		}		
@@ -703,7 +705,7 @@ implementation{
 				}break;
 				case GET_MIN:{
 					status=NORMAL;
-					signal StreamStorage.getMinAddressDone(0, err);
+					signal StreamStorageRead.getMinAddressDone(0, err);
 					return;
 				}break;
 				case INIT_STEP:{
@@ -717,7 +719,7 @@ implementation{
 				}break;
 				default:{
 					status=NORMAL;
-					signal StreamStorage.readDone(readbuffer, readlength, error);
+					signal StreamStorageRead.readDone(readbuffer, readlength, error);
 					return;
 				}
 			}	
@@ -746,22 +748,22 @@ implementation{
 					signal SplitControl.startDone(err);
 				}break;
 				case GET_MIN:{
-					signal StreamStorage.getMinAddressDone(0, err);
+					signal StreamStorageRead.getMinAddressDone(0, err);
 				}break;
 				default:{
-					signal StreamStorage.readDone(readbuffer, readlength, err);
+					signal StreamStorageRead.readDone(readbuffer, readlength, err);
 				}break;
 			}
 		} 
 	}
 
-	command uint32_t StreamStorage.getMaxAddress(){
+	command uint32_t StreamStorageRead.getMaxAddress(){
 		return current_addr;
 	}
 
-	command error_t StreamStorage.getMinAddress(){
+	command error_t StreamStorageRead.getMinAddress(){
 		if(minAddress.valid){
-			signal StreamStorage.getMinAddressDone(minAddress.address,SUCCESS);
+			signal StreamStorageRead.getMinAddressDone(minAddress.address,SUCCESS);
 			return SUCCESS;
 		}else {
 			if(status!=NORMAL)
@@ -780,10 +782,10 @@ implementation{
 
 	event void LogWrite.syncDone(error_t error){
 		status=NORMAL;
-		signal StreamStorage.syncDone(error);	
+		signal StreamStorageWrite.syncDone(error);	
 	}
 
-	command error_t StreamStorage.sync(){
+	command error_t StreamStorageWrite.sync(){
 		if(status!=NORMAL)
 			if(status==UNINIT)
 				return EOFF;
@@ -798,4 +800,12 @@ implementation{
 			return err;
 		}
 	}
+	
+	
+	default event void StreamStorageRead.getMinAddressDone(uint32_t addr,error_t error){}
+	default event void StreamStorageRead.readDone(void* buf, uint8_t  len, error_t error){}
+	default event void StreamStorageErase.eraseDone(error_t error){}
+	default event void StreamStorageWrite.appendDoneWithID(void* buf, uint16_t  len, error_t error){}
+	default event void StreamStorageWrite.appendDone(void* buf, uint16_t  len, error_t error){}
+	default event void StreamStorageWrite.syncDone(error_t error){}
 }

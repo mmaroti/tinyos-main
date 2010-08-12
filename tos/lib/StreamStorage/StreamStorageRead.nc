@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2010, University of Szeged
+* Copyright (c) 2009, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -31,16 +31,11 @@
 *
 * Author:Andras Biro
 */
-#include "StreamStorage.h"
-configuration StorageFrameC{
-	provides interface StreamStorageWrite;
-	provides interface SplitControl;
-}
-implementation{
-	components new StreamStorageC(unique(UQ_STREAMSTORAGE)), StorageFrameP;
-	StorageFrameP.StreamStorageWrite->StreamStorageC;
-	StorageFrameP.Resource->StreamStorageC;
-	
-	SplitControl=StreamStorageC;
-	StreamStorageWrite=StorageFrameP.FramedWrite;
+
+interface StreamStorageRead{
+	command error_t getMinAddress();
+	event void getMinAddressDone(uint32_t addr,error_t error);
+	command uint32_t getMaxAddress();
+	command error_t read(uint32_t addr, void* buf, uint8_t  len);
+	event void readDone(void* buf, uint8_t  len, error_t error);
 }

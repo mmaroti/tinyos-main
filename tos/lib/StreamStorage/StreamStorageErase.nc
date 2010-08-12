@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2010, University of Szeged
+* Copyright (c) 2009, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -31,16 +31,8 @@
 *
 * Author:Andras Biro
 */
-#include "StreamStorage.h"
-configuration StorageFrameC{
-	provides interface StreamStorageWrite;
-	provides interface SplitControl;
-}
-implementation{
-	components new StreamStorageC(unique(UQ_STREAMSTORAGE)), StorageFrameP;
-	StorageFrameP.StreamStorageWrite->StreamStorageC;
-	StorageFrameP.Resource->StreamStorageC;
-	
-	SplitControl=StreamStorageC;
-	StreamStorageWrite=StorageFrameP.FramedWrite;
+
+interface StreamStorageErase{
+	command error_t erase();
+	event void eraseDone(error_t error);
 }

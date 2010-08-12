@@ -36,8 +36,8 @@ module StreamUploaderP{
 	provides interface StdControl;
 	uses {
 		interface Receive;
-	    interface AMSend;
-	    interface Packet;
+		interface AMSend;
+		interface Packet;
   		interface AMPacket;
   		interface StreamStorage;    
   		interface SplitControl;
@@ -46,9 +46,8 @@ module StreamUploaderP{
   		interface Timer<TMilli> as StorageWaitTimer;
   		
 		interface TimeSyncAMSend<TMilli, uint32_t> as TimeSyncAMSendMilli;
-		
+		interface Resource;
 		interface LocalTime<TMilli>;
-		interface Leds;
 	}
 }
 
@@ -70,6 +69,33 @@ implementation{
 		if(call SplitControl.start()!=SUCCESS){
 			post SCStart();
 		}
+	}
+	
+	event void Resource.granted(){
+	    error_t error;
+	    switch(status){
+		case WAIT_FOR_BS:{
+			error=call StreamStorage.getMinAddress();
+		}break;
+		case SEND:{
+			if(minaddress+MESSAGE_SIZE<=maxaddress){
+			  error=call StreamStorage.read(minaddress, buffer, MESSAGE_SIZE);
+			}else{
+			  error=call StreamStorage.read(minaddress, buffer, maxaddress-minaddress)==EBUSY);
+			}
+		}break;
+		case ERASE:{
+			error=call StreamStorage.erase();
+		}break;
+	    }
+	    if(error!=SUCCESS){//TODO
+		case WAIT_FOR_BS:{
+		}break;
+		case SEND:{
+		}break;
+		case ERASE:{
+		}break;
+	    }
 	}
 	
 	event void StreamStorage.getMinAddressDone(uint32_t addr,error_t error){
@@ -137,7 +163,7 @@ implementation{
 					if(call StreamStorage.read(minaddress, buffer, MESSAGE_SIZE)==EBUSY){
 						call StorageWaitTimer.startOneShot(10);
 					}
-				}else{call Leds.led1Toggle();
+				}else{
 					if(call StreamStorage.read(minaddress, buffer, maxaddress-minaddress)==EBUSY){
 						call StorageWaitTimer.startOneShot(10);
 					}
@@ -246,7 +272,6 @@ implementation{
 	event void SplitControl.startDone(error_t error){
 		if(error==SUCCESS){
 			ctrl_msg* msg=call Packet.getPayload(&message, sizeof(ctrl_msg));
-			call Leds.led2On();
 			msg->localtime=call LocalTime.get();
 			if(call TimeSyncAMSendMilli.send(BS_ADDR, &message, sizeof(ctrl_msg),msg->localtime)!=SUCCESS){
 				if(call SplitControl.stop()!=SUCCESS){
@@ -266,7 +291,6 @@ implementation{
 				post SCStop();
 			}
 		}else{		
-			call Leds.led2Off();
 			if(status!=OFF){
 				status=WAIT_FOR_BS;
 				if(bs_lost==NO_BS||bs_lost==BS_OK){//if BS_OK, than it doesn't want any data, so we can sleep longer

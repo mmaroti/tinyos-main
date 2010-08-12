@@ -35,7 +35,9 @@
 #include "Storage.h"
 generic configuration StreamStorageC(uint8_t client_id){
 	provides {
-		interface StreamStorage;
+		interface StreamStorageErase;
+		interface StreamStorageWrite;
+		interface StreamStorageRead;
 		interface SplitControl;
 		interface Resource;
 		interface ResourceRequested;
@@ -47,7 +49,9 @@ implementation{
 	components StreamStorageP, StreamStorageArbC;
 	StreamStorageP.LogRead -> StreamStorageArbC;
 	StreamStorageP.LogWrite -> StreamStorageArbC;
-	StreamStorage=StreamStorageP.StreamStorage;
+	StreamStorageRead=StreamStorageP;
+	StreamStorageWrite=StreamStorageP;
+	StreamStorageErase=StreamStorageP;
 	SplitControl=StreamStorageP.SplitControl;
 	Resource=StreamStorageArbC.Resource[client_id];
 	ResourceRequested=StreamStorageArbC.ResourceRequested[client_id];

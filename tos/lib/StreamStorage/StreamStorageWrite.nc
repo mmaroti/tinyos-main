@@ -32,18 +32,11 @@
 * Author:Andras Biro
 */
 
-interface StreamStorage{
-	command error_t erase();
-	event void eraseDone(error_t error);
+interface StreamStorageWrite{
 	command error_t appendWithID(nx_uint8_t id, void* buf, uint16_t  len);
 	event void appendDoneWithID(void* buf, uint16_t  len, error_t error);
 	command error_t append(void* buf, uint16_t  len);
 	event void appendDone(void* buf, uint16_t  len, error_t error);
 	command error_t sync();
 	event void syncDone(error_t error);
-	command error_t getMinAddress();
-	event void getMinAddressDone(uint32_t addr,error_t error);
-	command uint32_t getMaxAddress();
-	command error_t read(uint32_t addr, void* buf, uint8_t  len);
-	event void readDone(void* buf, uint8_t  len, error_t error);
 }
