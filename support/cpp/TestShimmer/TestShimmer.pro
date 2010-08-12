@@ -10,9 +10,9 @@ TARGET = TestShimmer
 # INCLUDEPATH += c:\Octave\3.2.4_gcc-4.4.0\include
 INCLUDEPATH += ../TntJama/
 INCLUDEPATH += ../QextSerialPort/
-INCLUDEPATH += ../qwtplot3d/include
+#INCLUDEPATH += ../qwtplot3d/include
 QMAKE_LIBDIR += ../QextSerialPort/build
-DEFINES += QWT3D_DLL
+#DEFINES += QWT3D_DLL
 CONFIG(release) += static
 CONFIG(debug) += CONSOLE
 CONFIG(debug, debug|release):LIBS += -lqextserialportd
@@ -20,8 +20,8 @@ else:LIBS += -lqextserialport
 win32:LIBS += -lsetupapi
 
 # LIBS += ../qwtplot3d/lib/libqwtplot3d.a
-DEFINES += QT_DLL \
-    QWT3D_DLL
+DEFINES += QT_DLL
+   # QWT3D_DLL
 QT += opengl
 isEmpty( ISQT4 ):CONFIG += opengl
 SOURCES += src/DataRecorder.cpp \
