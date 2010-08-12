@@ -131,8 +131,8 @@ public class Transfer extends Thread  {
 		fp.start();
 		*/
 		PacketParser[] parsers=new PacketParserFactory("structs.txt").getParsers();			
-		BinaryInterface bin=BinaryInterfaceFactory.getBinaryInterface("file", "00006.bin");	
-		StringInterface str=StringInterfaceFactory.getStringInterface("file", "out2.txt",parsers);
+		BinaryInterface bin=BinaryInterfaceFactory.getBinaryInterface("battery", "test.img");	
+		StringInterface str=StringInterfaceFactory.getStringInterface("console", "test.txt",parsers);
 		//Transfer fp=new Transfer(parsers,bin,str,false);
 		Transfer fp2=new Transfer(parsers,bin,str,true);
 		//fp.start();
