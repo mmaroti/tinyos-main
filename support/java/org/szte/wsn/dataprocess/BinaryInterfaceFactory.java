@@ -61,6 +61,8 @@ public class BinaryInterfaceFactory {
 				return null;
 			}				
 		}
+		if(type.equals("battery"))
+			return new BinaryInterfaceBattery(source);
 		
 		else //if (type.equals("serial"))
 			return new BinaryInterfaceSerial(source);
