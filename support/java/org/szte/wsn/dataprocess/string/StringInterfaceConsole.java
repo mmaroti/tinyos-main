@@ -93,9 +93,12 @@ public class StringInterfaceConsole implements StringInterface {
 			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 			System.out.println("Give me the name of the struct:");
 			System.out.flush();
-			String structName=in.readLine();
-			PacketParser pp=PacketParserFactory.getParser(structName, packetParsers );
+			String structName=in.readLine();			
+			PacketParser pp=PacketParserFactory.getParser(structName, packetParsers );				
 			if(pp!=null){
+				if(pp.getFields().length==0)
+					return new StringPacket(pp.getName(),new String[0]);				
+				
 				System.out.println("Do you want to give the fields in custom order?(y/n)");
 				String customOrder=in.readLine();
 				if(customOrder.equalsIgnoreCase("n"))
