@@ -18,7 +18,7 @@ CONFIG(debug) += CONSOLE
 CONFIG(debug, debug|release):LIBS += -lqextserialportd
 else:LIBS += -lqextserialport
 win32:LIBS += -lsetupapi
-LIBS += ../qwtplot3d/lib/libqwtplot3d.a
+#LIBS += ../qwtplot3d/lib/libqwtplot3d.a
 DEFINES += QT_DLL \
     QWT3D_DLL
 QT += opengl
