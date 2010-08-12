@@ -163,15 +163,15 @@ implementation{
 			mode = RADIOOFF;
 			post turnRadioOff();
 		}
-		else if (diskBusy) {
-			ASSERT(FALSE); // FIXME Just for dbg
-		}
 		else if (cmd == ALTERING)   {
 			mode = ALTERING;
 			call ShortPeriod.startOneShot(SHORTPERIOD);
 		}
 		else if (cmd == CONTINUOUS) {
 			mode = CONTINUOUS;
+		}
+		else if (diskBusy) {
+			ASSERT(FALSE); // FIXME Just for dbg
 		}
 		else if (cmd == FORMAT) {
 			error = call Uploader.format();
