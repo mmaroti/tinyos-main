@@ -1,6 +1,5 @@
 #include <QtGui/QApplication>
 #include "MainWindow.h"
-#include "Data3DPlot.h"
 #include "window.h"
 #include <QDesktopWidget>
 

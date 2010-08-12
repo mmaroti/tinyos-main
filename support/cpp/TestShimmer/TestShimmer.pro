@@ -18,7 +18,8 @@ CONFIG(debug) += CONSOLE
 CONFIG(debug, debug|release):LIBS += -lqextserialportd
 else:LIBS += -lqextserialport
 win32:LIBS += -lsetupapi
-#LIBS += ../qwtplot3d/lib/libqwtplot3d.a
+
+# LIBS += ../qwtplot3d/lib/libqwtplot3d.a
 DEFINES += QT_DLL \
     QWT3D_DLL
 QT += opengl
@@ -38,8 +39,6 @@ SOURCES += src/DataRecorder.cpp \
     src/DataWidget.cpp \
     src/DataPlot.cpp \
     src/TurntableCalibrationModule.cpp \
-    src/Data3DWidget.cpp \
-    src/Data3DPlot.cpp \
     src/GLWidget.cpp \
     src/window.cpp \
     src/Widget3D.cpp
@@ -57,8 +56,6 @@ HEADERS += src/DataRecorder.h \
     src/DataWidget.h \
     src/DataPlot.h \
     src/TurntableCalibrationModule.h \
-    src/Data3DWidget.h \
-    src/Data3DPlot.h \
     src/GLWidget.h \
     src/window.h \
     src/Widget3D.h
@@ -67,7 +64,6 @@ FORMS += src/MainWindow.ui \
     src/CalibrationWidget.ui \
     src/ConsoleWidget.ui \
     src/DataWidget.ui \
-    src/Data3DWidget.ui \
     src/Widget3D.ui
 RESOURCES += src/Resources.qrc \
     src/textures.qrc

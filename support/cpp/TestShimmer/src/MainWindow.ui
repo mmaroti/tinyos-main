@@ -35,7 +35,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>5</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="connectTab">
        <attribute name="title">
@@ -75,12 +75,6 @@
         <string>Console</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_4"/>
-      </widget>
-      <widget class="QWidget" name="plot3dTab">
-       <attribute name="title">
-        <string>3D Plot</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_5"/>
       </widget>
       <widget class="QWidget" name="openglTab">
        <attribute name="title">

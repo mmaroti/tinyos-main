@@ -40,7 +40,6 @@
 #include "CalibrationWidget.h"
 #include "ConsoleWidget.h"
 #include "DataWidget.h"
-#include "Data3DWidget.h"
 #include "Widget3D.h"
 #include "window.h"
 
@@ -57,9 +56,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
         Widget3D* widget3d = new Widget3D(ui->openglTab, app);
         ui->openglTab->layout()->addWidget(widget3d);
-
-        //Data3DWidget* data3dWidget = new Data3DWidget(ui->plot3dTab, app);
-        //ui->plot3dTab->layout()->addWidget(data3dWidget);
 
         DataWidget* dataWidget = new DataWidget(ui->plotTab, app);
         ui->plotTab->layout()->addWidget(dataWidget);
