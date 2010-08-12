@@ -32,77 +32,55 @@
 * Author: Péter Ruzicska
 */
 
-#include <QVarLengthArray>
-#include <QObject>
-#include "SerialListener.h"
+//#include <QPainter>
+//#include <QtDebug>
+//#include <QPaintEvent>
+//#include <QScrollArea>
+#include "Data3DPlot.h"
+#include "Application.h"
+//#include "DataRecorder.h"
+//#include "math.h"
+//#include "PlotScrollArea.h"
 
-#ifndef DATARECORDER_H
-#define DATARECORDER_H
+#include <math.h>
+#include <qapplication.h>
 
-struct Sample
+
+Data3DPlot::Data3DPlot(Application &app) : application(app)
 {
-	Sample();
-	QString toString() const;
-        QString toCsvString() const;
+}
 
-	int time;
-	int xAccel;
-	int yAccel;
-	int zAccel;
-	int xGyro;
-	int yGyro;
-	int zGyro;
-	int voltage;
-	int temp;
-        double XYangle, YZangle, ZXangle;
-};
+Plot::Plot()
+  {
+    setTitle("A Simple SurfacePlot Demonstration");
 
-class DataRecorder : public QObject
-{
-	Q_OBJECT
+    Rosenbrock rosenbrock(*this);
 
-public:
-	DataRecorder();
-	virtual ~DataRecorder();
+    rosenbrock.setMesh(41,31);
+    rosenbrock.setDomain(-1.73,1.5,-1.5,1.5);
+    rosenbrock.setMinZ(-10);
 
-	const QVarLengthArray<Sample> & getSamples() const {
-		return samples;
-	}
+    rosenbrock.create();
 
-	void addSample(const Sample & sample) {
-		samples.append(sample);
-	}
+    setRotation(30,0,15);
+    setScale(1,1,1);
+    setShift(0.15,0,0);
+    setZoom(0.9);
 
-	int size() const {
-		return samples.size();
-	}
+    for (unsigned i=0; i!=coordinates()->axes.size(); ++i)
+    {
+      coordinates()->axes[i].setMajors(7);
+      coordinates()->axes[i].setMinors(4);
+    }
 
-        Sample & setAngle(int i) {
-            return samples[i];
-        }
 
-	const Sample & at(int i) const {
-		return samples[i];
-	}
+    coordinates()->axes[X1].setLabelString("x-axis");
+    coordinates()->axes[Y1].setLabelString("y-axis");
+    //coordinates()->axes[Z1].setLabelString(QChar(0x38f)); // Omega - see http://www.unicode.org/charts/
 
-	int getFirstTime();
-	int getLastTime();
 
-signals:
-	void sampleAdded();
-	void samplesCleared();
+    setCoordinateStyle(BOX);
 
-public slots:
-	void onReceiveMessage(const ActiveMessage & msg);
-
-public:
-	void clearMessages();
-        void saveSamples(QString);
-        void loadSamples(QString);
-        void csvToSample(QString);
-
-protected:
-	QVarLengthArray<Sample> samples;
-
-};
-#endif // DATARECORDER_H
+    updateData();
+    updateGL();
+  }

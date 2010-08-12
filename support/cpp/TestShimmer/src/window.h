@@ -32,77 +32,47 @@
 * Author: Péter Ruzicska
 */
 
-#include <QVarLengthArray>
-#include <QObject>
-#include "SerialListener.h"
+#ifndef WINDOW_H
+#define WINDOW_H
 
-#ifndef DATARECORDER_H
-#define DATARECORDER_H
+#include <QWidget>
 
-struct Sample
+class Application;
+class GLWidget;
+class QSlider;
+class QTimer;
+
+class Window : public QWidget
 {
-	Sample();
-	QString toString() const;
-        QString toCsvString() const;
-
-	int time;
-	int xAccel;
-	int yAccel;
-	int zAccel;
-	int xGyro;
-	int yGyro;
-	int zGyro;
-	int voltage;
-	int temp;
-        double XYangle, YZangle, ZXangle;
-};
-
-class DataRecorder : public QObject
-{
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	DataRecorder();
-	virtual ~DataRecorder();
+    Window(Application &app);
 
-	const QVarLengthArray<Sample> & getSamples() const {
-		return samples;
-	}
+    void setTimer(int time);
+    void stopTimer();
 
-	void addSample(const Sample & sample) {
-		samples.append(sample);
-	}
+private slots:
+    void setCurrentGlWidget();
+    void onRecord();
+    void rotateOneStep();
 
-	int size() const {
-		return samples.size();
-	}
+private:
+    Application &application;
+    enum { NumRows = 1, NumColumns = 1 };
 
-        Sample & setAngle(int i) {
-            return samples[i];
-        }
+    GLWidget *glWidgets[NumRows][NumColumns];
+    GLWidget *currentGlWidget;
 
-	const Sample & at(int i) const {
-		return samples[i];
-	}
+    int timerCounter;
 
-	int getFirstTime();
-	int getLastTime();
-
-signals:
-	void sampleAdded();
-	void samplesCleared();
-
-public slots:
-	void onReceiveMessage(const ActiveMessage & msg);
-
-public:
-	void clearMessages();
-        void saveSamples(QString);
-        void loadSamples(QString);
-        void csvToSample(QString);
+    QSlider *createSlider();
+    QSlider *xSlider;   
 
 protected:
-	QVarLengthArray<Sample> samples;
+    QTimer *timer;
 
 };
-#endif // DATARECORDER_H
+
+#endif
+

@@ -32,77 +32,62 @@
 * Author: Péter Ruzicska
 */
 
-#include <QVarLengthArray>
-#include <QObject>
-#include "SerialListener.h"
+#ifndef DATAWIDGET_H
+#define DATAWIDGET_H
 
-#ifndef DATARECORDER_H
-#define DATARECORDER_H
+#include <QWidget>
+#include "DataPlot.h"
 
-struct Sample
-{
-	Sample();
-	QString toString() const;
-        QString toCsvString() const;
+class Application;
+class DataRecorder;
 
-	int time;
-	int xAccel;
-	int yAccel;
-	int zAccel;
-	int xGyro;
-	int yGyro;
-	int zGyro;
-	int voltage;
-	int temp;
-        double XYangle, YZangle, ZXangle;
-};
+namespace Ui {
+        class DataWidget;
+}
 
-class DataRecorder : public QObject
-{
-	Q_OBJECT
+class DataWidget : public QWidget {
+    Q_OBJECT
 
 public:
-	DataRecorder();
-	virtual ~DataRecorder();
+    DataWidget(QWidget *parent, Application &app);
+    ~DataWidget();
 
-	const QVarLengthArray<Sample> & getSamples() const {
-		return samples;
-	}
-
-	void addSample(const Sample & sample) {
-		samples.append(sample);
-	}
-
-	int size() const {
-		return samples.size();
-	}
-
-        Sample & setAngle(int i) {
-            return samples[i];
-        }
-
-	const Sample & at(int i) const {
-		return samples[i];
-	}
-
-	int getFirstTime();
-	int getLastTime();
-
-signals:
-	void sampleAdded();
-	void samplesCleared();
-
-public slots:
-	void onReceiveMessage(const ActiveMessage & msg);
-
-public:
-	void clearMessages();
-        void saveSamples(QString);
-        void loadSamples(QString);
-        void csvToSample(QString);
+    DataPlot *plot;  //JAVITANI, ennek privatenak kene lennie
 
 protected:
-	QVarLengthArray<Sample> samples;
+        void changeEvent(QEvent *e);
 
+private:
+        Ui::DataWidget *ui;
+        Application &application;
+
+
+private slots:
+        //void on_temp_clicked();
+        //void on_voltage_clicked();
+        void on_rawGyroX_clicked();
+        void on_rawGyroY_clicked();
+        void on_rawGyroZ_clicked();
+        void on_rawAccX_clicked();
+        void on_rawAccY_clicked();
+        void on_rawAccZ_clicked();
+        void on_gyroX_clicked();
+        void on_gyroY_clicked();
+        void on_gyroZ_clicked();
+        void on_accX_clicked();
+        void on_accY_clicked();
+        void on_accZ_clicked();
+        void on_absAcc_clicked();
+        void on_angXY_clicked();
+        void on_angYZ_clicked();
+        void on_angZX_clicked();
+
+        void on_exportBtn_clicked();
+        void on_clearBtn_clicked();
+        void on_recordBtn_clicked();
+        void on_loadBtn_clicked();
+
+        void newCalibrationOccured();
 };
-#endif // DATARECORDER_H
+
+#endif // DATAWIDGET_H

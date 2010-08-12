@@ -52,14 +52,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	ui->connectTab->layout()->addWidget(new ConnectWidget(ui->connectTab, app));
 
-        Window *window = new Window();
-        ui->openglTab->layout()->addWidget(window);
+        //Window *window = new Window(app);
+        //ui->openglTab->layout()->addWidget(window);
 
-        //Widget3D* widget3d = new Widget3D(ui->openglTab, app);
-        //ui->openglTab->layout()->addWidget(widget3d);
+        Widget3D* widget3d = new Widget3D(ui->openglTab, app);
+        ui->openglTab->layout()->addWidget(widget3d);
 
-        Data3DWidget* data3dWidget = new Data3DWidget(ui->plot3dTab, app);
-        ui->plot3dTab->layout()->addWidget(data3dWidget);
+        //Data3DWidget* data3dWidget = new Data3DWidget(ui->plot3dTab, app);
+        //ui->plot3dTab->layout()->addWidget(data3dWidget);
 
         DataWidget* dataWidget = new DataWidget(ui->plotTab, app);
         ui->plotTab->layout()->addWidget(dataWidget);
@@ -76,6 +76,8 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(&app, SIGNAL(showMessageSignal(const QString &)), statusBar(), SLOT(showMessage(QString)) );
         connect(&app, SIGNAL(showConsoleSignal(const QString &)), consoleWidget , SLOT(onRecieveConsoleSignal(QString)) );
         connect(calibrationWidget, SIGNAL(calibrationDone()), dataWidget, SLOT(newCalibrationOccured()) );
+        //connect(dataWidget->plot, SIGNAL(angleChanged(double)), window, SLOT(onAngleChanged(double)));
+
 }
 
 MainWindow::~MainWindow()

@@ -32,77 +32,37 @@
 * Author: Péter Ruzicska
 */
 
-#include <QVarLengthArray>
-#include <QObject>
-#include "SerialListener.h"
+#ifndef WIDGET3D_H
+#define WIDGET3D_H
 
-#ifndef DATARECORDER_H
-#define DATARECORDER_H
+#include <QWidget>
+#include "window.h"
 
-struct Sample
-{
-	Sample();
-	QString toString() const;
-        QString toCsvString() const;
+class Application;
 
-	int time;
-	int xAccel;
-	int yAccel;
-	int zAccel;
-	int xGyro;
-	int yGyro;
-	int zGyro;
-	int voltage;
-	int temp;
-        double XYangle, YZangle, ZXangle;
-};
+namespace Ui {
+    class Widget3D;
+}
 
-class DataRecorder : public QObject
-{
-	Q_OBJECT
+class Widget3D : public QWidget {
+    Q_OBJECT
 
 public:
-	DataRecorder();
-	virtual ~DataRecorder();
-
-	const QVarLengthArray<Sample> & getSamples() const {
-		return samples;
-	}
-
-	void addSample(const Sample & sample) {
-		samples.append(sample);
-	}
-
-	int size() const {
-		return samples.size();
-	}
-
-        Sample & setAngle(int i) {
-            return samples[i];
-        }
-
-	const Sample & at(int i) const {
-		return samples[i];
-	}
-
-	int getFirstTime();
-	int getLastTime();
-
-signals:
-	void sampleAdded();
-	void samplesCleared();
-
-public slots:
-	void onReceiveMessage(const ActiveMessage & msg);
-
-public:
-	void clearMessages();
-        void saveSamples(QString);
-        void loadSamples(QString);
-        void csvToSample(QString);
+    Widget3D(QWidget *parent, Application &app);
+    ~Widget3D();
 
 protected:
-	QVarLengthArray<Sample> samples;
+    void changeEvent(QEvent *e);
+
+private:
+    Ui::Widget3D *ui;
+    Application &application;
+    Window *window;
+
+private slots:
+    void on_playButton_clicked();
+    void on_pauseButton_clicked();
+    void on_stopButton_clicked();
 
 };
-#endif // DATARECORDER_H
+#endif // WIDGET3D_H

@@ -32,77 +32,63 @@
 * Author: Péter Ruzicska
 */
 
-#include <QVarLengthArray>
-#include <QObject>
-#include "SerialListener.h"
 
-#ifndef DATARECORDER_H
-#define DATARECORDER_H
+#ifndef GLWIDGET_H
+#define GLWIDGET_H
 
-struct Sample
+#include <QtGui>
+#include <QGLWidget>
+#include "Application.h"
+
+class Application;
+class QGLShaderProgram;
+
+class GLWidget : public QGLWidget
 {
-	Sample();
-	QString toString() const;
-        QString toCsvString() const;
-
-	int time;
-	int xAccel;
-	int yAccel;
-	int zAccel;
-	int xGyro;
-	int yGyro;
-	int zGyro;
-	int voltage;
-	int temp;
-        double XYangle, YZangle, ZXangle;
-};
-
-class DataRecorder : public QObject
-{
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	DataRecorder();
-	virtual ~DataRecorder();
+    GLWidget(QWidget *parent = 0, QGLWidget *shareWidget = 0);
+    GLWidget(QWidget *parent, QGLWidget *shareWidget, Application &app);
+    ~GLWidget();
 
-	const QVarLengthArray<Sample> & getSamples() const {
-		return samples;
-	}
-
-	void addSample(const Sample & sample) {
-		samples.append(sample);
-	}
-
-	int size() const {
-		return samples.size();
-	}
-
-        Sample & setAngle(int i) {
-            return samples[i];
-        }
-
-	const Sample & at(int i) const {
-		return samples[i];
-	}
-
-	int getFirstTime();
-	int getLastTime();
+    QSize minimumSizeHint() const;
+    QSize sizeHint() const;
+    void rotateBy(double xAngle, double yAngle, double zAngle);
+    void setAngle(double xAngle, double yAngle, double zAngle);
+    void setClearColor(const QColor &color);
 
 signals:
-	void sampleAdded();
-	void samplesCleared();
+    void clicked();
 
 public slots:
-	void onReceiveMessage(const ActiveMessage & msg);
-
-public:
-	void clearMessages();
-        void saveSamples(QString);
-        void loadSamples(QString);
-        void csvToSample(QString);
+        void onSetTime(int time);
 
 protected:
-	QVarLengthArray<Sample> samples;
+    void initializeGL();
+    void paintGL();
+    void resizeGL(int width, int height);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
+    void wheelEvent(QWheelEvent *e);
 
+private:    
+    Application &application;
+    void makeObject();
+
+    QColor clearColor;
+    QPoint lastPos;
+    float scale;
+    double xRot;
+    double yRot;
+    double zRot;
+    GLuint textures[6];
+    QVector<QVector3D> vertices;
+    QVector<QVector2D> texCoords;
+#ifdef QT_OPENGL_ES_2
+    QGLShaderProgram *program;
+#endif
 };
-#endif // DATARECORDER_H
+
+#endif

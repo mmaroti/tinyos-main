@@ -32,77 +32,49 @@
 * Author: Péter Ruzicska
 */
 
-#include <QVarLengthArray>
-#include <QObject>
-#include "SerialListener.h"
+#include "Widget3D.h"
+#include "ui_Widget3D.h"
 
-#ifndef DATARECORDER_H
-#define DATARECORDER_H
-
-struct Sample
+Widget3D::Widget3D(QWidget *parent, Application &app) :
+    QWidget(parent),
+    ui(new Ui::Widget3D),
+    application(app)
 {
-	Sample();
-	QString toString() const;
-        QString toCsvString() const;
+        ui->setupUi(this);
 
-	int time;
-	int xAccel;
-	int yAccel;
-	int zAccel;
-	int xGyro;
-	int yGyro;
-	int zGyro;
-	int voltage;
-	int temp;
-        double XYangle, YZangle, ZXangle;
-};
+        window = new Window(app);
+        ui->verticalLayout->addWidget(window);
+}
 
-class DataRecorder : public QObject
+Widget3D::~Widget3D()
 {
-	Q_OBJECT
+        delete ui;
+}
 
-public:
-	DataRecorder();
-	virtual ~DataRecorder();
-
-	const QVarLengthArray<Sample> & getSamples() const {
-		return samples;
-	}
-
-	void addSample(const Sample & sample) {
-		samples.append(sample);
-	}
-
-	int size() const {
-		return samples.size();
-	}
-
-        Sample & setAngle(int i) {
-            return samples[i];
+void Widget3D::changeEvent(QEvent *e)
+{
+        QWidget::changeEvent(e);
+        switch (e->type())
+        {
+        case QEvent::LanguageChange:
+                ui->retranslateUi(this);
+                break;
+        default:
+                break;
         }
+}
 
-	const Sample & at(int i) const {
-		return samples[i];
-	}
+void Widget3D::on_playButton_clicked()
+{
+    window->setTimer(20);
+}
 
-	int getFirstTime();
-	int getLastTime();
+void Widget3D::on_pauseButton_clicked()
+{
+    window->setTimer(20);
+}
 
-signals:
-	void sampleAdded();
-	void samplesCleared();
-
-public slots:
-	void onReceiveMessage(const ActiveMessage & msg);
-
-public:
-	void clearMessages();
-        void saveSamples(QString);
-        void loadSamples(QString);
-        void csvToSample(QString);
-
-protected:
-	QVarLengthArray<Sample> samples;
-
-};
-#endif // DATARECORDER_H
+void Widget3D::on_stopButton_clicked()
+{
+    window->stopTimer();
+}

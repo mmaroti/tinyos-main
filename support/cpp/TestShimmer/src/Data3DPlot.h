@@ -32,77 +32,51 @@
 * Author: Péter Ruzicska
 */
 
-#include <QVarLengthArray>
-#include <QObject>
-#include "SerialListener.h"
+#ifndef DATA3DPLOT_H
+#define DATA3DPLOT_H
 
-#ifndef DATARECORDER_H
-#define DATARECORDER_H
+#include <QWidget>
+#include <QPen>
+#include "cmath"
+#include "CalibrationModule.h"
+#include "Application.h"
+#include <qwt3d_surfaceplot.h>
+#include <qwt3d_function.h>
 
-struct Sample
+using namespace Qwt3D;
+
+class Application;
+
+class QPen;
+class QTimerEvent;
+
+class Data3DPlot : public QWidget
 {
-	Sample();
-	QString toString() const;
-        QString toCsvString() const;
-
-	int time;
-	int xAccel;
-	int yAccel;
-	int zAccel;
-	int xGyro;
-	int yGyro;
-	int zGyro;
-	int voltage;
-	int temp;
-        double XYangle, YZangle, ZXangle;
+        Q_OBJECT
+public:
+        Data3DPlot( Application &app);
+private:
+        Application &application;
 };
 
-class DataRecorder : public QObject
+class Rosenbrock : public Function
+  {
+  public:
+
+    Rosenbrock(SurfacePlot& pw):Function(pw)
+    {
+    }
+
+    double operator()(double x, double y)
+    {
+      return log((1-x)*(1-x) + 100 * (y - x*x)*(y - x*x)) / 8;
+    }
+  };
+
+class Plot : public SurfacePlot
 {
-	Q_OBJECT
-
 public:
-	DataRecorder();
-	virtual ~DataRecorder();
-
-	const QVarLengthArray<Sample> & getSamples() const {
-		return samples;
-	}
-
-	void addSample(const Sample & sample) {
-		samples.append(sample);
-	}
-
-	int size() const {
-		return samples.size();
-	}
-
-        Sample & setAngle(int i) {
-            return samples[i];
-        }
-
-	const Sample & at(int i) const {
-		return samples[i];
-	}
-
-	int getFirstTime();
-	int getLastTime();
-
-signals:
-	void sampleAdded();
-	void samplesCleared();
-
-public slots:
-	void onReceiveMessage(const ActiveMessage & msg);
-
-public:
-	void clearMessages();
-        void saveSamples(QString);
-        void loadSamples(QString);
-        void csvToSample(QString);
-
-protected:
-	QVarLengthArray<Sample> samples;
-
+  Plot();
 };
-#endif // DATARECORDER_H
+
+#endif // DATA3DPLOT_H
