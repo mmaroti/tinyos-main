@@ -32,25 +32,21 @@
 * Author:Andras Biro
 */
 
-#include "Storage.h"
-
-configuration StreamStorageC{
+module StreamStorageArbP{
 	provides {
-		interface StreamStorageErase;
-		interface StreamStorageWrite;
-		interface StreamStorageRead;
+		interface StreamStorageRead[uint8_t id];
+		interface StreamStorageWrite[uint8_t id];
+		interface StreamStorageErase[uint8_t id];
+	}
+	uses {
+		interface StreamStorageRead as SubRead;
+		interface StreamStorageWrite as SubWrite;
+		interface StreamStorageErase as SubErase;
+
+		interface Boot;
+		interface Resource;
 		interface SplitControl;
 	}
 }
 implementation{
-	      
-	components StreamStorageP, new LogStorageC(VOLUME_STREAMSTORAGE, TRUE);
-
-	StreamStorageP.LogRead -> LogStorageC;
-	StreamStorageP.LogWrite -> LogStorageC;
-
-	StreamStorageRead=StreamStorageP;
-	StreamStorageWrite=StreamStorageP;
-	StreamStorageErase=StreamStorageP;
-	SplitControl=StreamStorageP;
 }

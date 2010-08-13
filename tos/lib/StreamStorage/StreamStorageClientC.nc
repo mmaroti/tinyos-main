@@ -34,23 +34,23 @@
 
 #include "Storage.h"
 
-configuration StreamStorageC{
+generic configuration StreamStorageClientC(){
 	provides {
+		interface Resource;
 		interface StreamStorageErase;
 		interface StreamStorageWrite;
 		interface StreamStorageRead;
-		interface SplitControl;
 	}
 }
 implementation{
-	      
-	components StreamStorageP, new LogStorageC(VOLUME_STREAMSTORAGE, TRUE);
+	enum{
+		CLIENT_ID = unique(UQ_STREAMSTORAGE),
+	};
+	
+	components StreamStorageArbC;
 
-	StreamStorageP.LogRead -> LogStorageC;
-	StreamStorageP.LogWrite -> LogStorageC;
-
-	StreamStorageRead=StreamStorageP;
-	StreamStorageWrite=StreamStorageP;
-	StreamStorageErase=StreamStorageP;
-	SplitControl=StreamStorageP;
+	Resource=StreamStorageArbC[CLIENT_ID];
+	StreamStorageRead=StreamStorageArbC[CLIENT_ID];
+	StreamStorageWrite=StreamStorageArbC[CLIENT_ID];
+	StreamStorageErase=StreamStorageArbC[CLIENT_ID];
 }
