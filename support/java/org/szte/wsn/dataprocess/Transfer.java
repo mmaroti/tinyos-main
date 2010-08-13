@@ -131,11 +131,11 @@ public class Transfer extends Thread  {
 		fp.start();
 		*/
 		PacketParser[] parsers=new PacketParserFactory("structs.txt").getParsers();			
-		BinaryInterface bin=BinaryInterfaceFactory.getBinaryInterface("serial", "serial@/dev/ttyUSB1:57600");	
-		StringInterface str=StringInterfaceFactory.getStringInterface("console", "petika",parsers);
-		Transfer fp=new Transfer(parsers,bin,str,false);
+		BinaryInterface bin=BinaryInterfaceFactory.getBinaryInterface("battery", "log_aug_12");	
+		StringInterface str=StringInterfaceFactory.getStringInterface("file", "log_aug_12.txt",parsers);
+		//Transfer fp=new Transfer(parsers,bin,str,false);
 		Transfer fp2=new Transfer(parsers,bin,str,true);
-		fp.start();
+		//fp.start();
 		
 		fp2.start();
 	}
