@@ -34,7 +34,7 @@
 
 #include "StreamStorage.h"
 
-generic configuration StreamStorageArbC(){
+configuration StreamStorageArbC{
 	provides {
 		interface Resource[uint8_t uid];
 		interface StreamStorageErase[uint8_t uid];
@@ -56,7 +56,7 @@ implementation{
 	StreamStorageArbP.SubRead -> StreamStorageC;
 
 	components new StreamStorageClientC();
-	StreamStoragrArbP.Boot <- MainC;
+	StreamStorageArbP.Boot -> MainC;
 	StreamStorageArbP.Resource -> StreamStorageClientC;
 	StreamStorageArbP.SplitControl -> StreamStorageC;
 }

@@ -32,7 +32,7 @@
 * Author:Andras Biro
 */
 
-#include "Storage.h"
+#include "StreamStorage.h"
 
 generic configuration StreamStorageClientC(){
 	provides {
@@ -49,8 +49,8 @@ implementation{
 	
 	components StreamStorageArbC;
 
-	Resource=StreamStorageArbC[CLIENT_ID];
-	StreamStorageRead=StreamStorageArbC[CLIENT_ID];
-	StreamStorageWrite=StreamStorageArbC[CLIENT_ID];
-	StreamStorageErase=StreamStorageArbC[CLIENT_ID];
+	Resource=StreamStorageArbC.Resource[CLIENT_ID];
+	StreamStorageRead=StreamStorageArbC.StreamStorageRead[CLIENT_ID];
+	StreamStorageWrite=StreamStorageArbC.StreamStorageWrite[CLIENT_ID];
+	StreamStorageErase=StreamStorageArbC.StreamStorageErase[CLIENT_ID];
 }

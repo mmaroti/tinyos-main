@@ -32,7 +32,7 @@
 * Author:Andras Biro
 */
 
-#include "Storage.h"
+#include "StorageVolumes.h"
 
 configuration StreamStorageC{
 	provides {

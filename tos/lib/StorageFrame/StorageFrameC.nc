@@ -34,13 +34,11 @@
 #include "StreamStorage.h"
 configuration StorageFrameC{
 	provides interface StreamStorageWrite;
-	provides interface SplitControl;
 }
 implementation{
-	components new StreamStorageC(unique(UQ_STREAMSTORAGE)), StorageFrameP;
-	StorageFrameP.StreamStorageWrite->StreamStorageC;
-	StorageFrameP.Resource->StreamStorageC;
+	components new StreamStorageClientC(), StorageFrameP;
+	StorageFrameP.StreamStorageWrite->StreamStorageClientC;
+	StorageFrameP.Resource->StreamStorageClientC;
 	
-	SplitControl=StreamStorageC;
 	StreamStorageWrite=StorageFrameP.FramedWrite;
 }

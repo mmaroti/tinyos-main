@@ -48,5 +48,101 @@ module StreamStorageArbP{
 		interface SplitControl;
 	}
 }
+
 implementation{
+	uint8_t userid;
+	
+	command error_t StreamStorageRead.getMinAddress[uint8_t id](){
+	    error_t error=call SubRead.getMinAddress(); 
+	    if(error==SUCCESS)
+			userid=id;
+	    return error;
+	}
+	
+	event void SubRead.getMinAddressDone(uint32_t addr,error_t error){
+	    signal StreamStorageRead.getMinAddressDone[userid](addr,error);
+	}
+	
+	command uint32_t StreamStorageRead.getMaxAddress[uint8_t id](){
+	    return call StreamStorageRead.getMaxAddress[id]();
+	}
+	
+	command error_t StreamStorageRead.read[uint8_t id](uint32_t addr, void* buf, uint8_t  len){
+	    error_t error=call SubRead.read(addr,buf,len); 
+	    if(error==SUCCESS)
+			userid=id;
+	    return error;
+	}
+		
+	event void SubRead.readDone(void* buf, uint8_t  len, error_t error){
+	    signal StreamStorageRead.readDone[userid](buf,len, error);
+	}
+	
+	
+	command error_t StreamStorageWrite.appendWithID[uint8_t id](nx_uint8_t app_id, void* buf, uint16_t  len){
+	    error_t error=call SubWrite.appendWithID(app_id,buf,len); 
+	    if(error==SUCCESS)
+			userid=id;
+	    return error;
+	}
+	
+	event void SubWrite.appendDoneWithID(void* buf, uint16_t  len, error_t error){
+	    signal StreamStorageWrite.appendDoneWithID[userid](buf,len,error);
+	}
+	
+	command error_t StreamStorageWrite.append[uint8_t id](void* buf, uint16_t  len){
+	    error_t error=call SubWrite.append(buf,len); 
+	    if(error==SUCCESS)
+		userid=id;
+	    return error;
+	}
+	
+	event void SubWrite.appendDone(void* buf, uint16_t  len, error_t error){
+	    signal StreamStorageWrite.appendDone[userid](buf,len,error);
+	}
+	
+	command error_t StreamStorageWrite.sync[uint8_t id](){
+	    error_t error=call SubWrite.sync(); 
+	    if(error==SUCCESS)
+		userid=id;
+	    return error;
+	}
+	
+	event void SubWrite.syncDone(error_t error){
+	    signal StreamStorageWrite.syncDone[userid](error);
+	}
+	
+	command error_t StreamStorageErase.erase[uint8_t id](){
+	    error_t error=call SubErase.erase(); 
+	    if(error==SUCCESS)
+		userid=id;
+	    return error;
+	}
+	
+	event void SubErase.eraseDone(error_t error){
+	    signal StreamStorageErase.eraseDone[userid](error);
+	}
+	
+	event void Boot.booted(){
+	    call Resource.request();
+	}
+	
+	event void Resource.granted(){
+	    call SplitControl.start();
+	}
+	
+	event void SplitControl.startDone(error_t error){
+	    if(error!=SUCCESS)
+	      call SplitControl.start();
+	}
+	
+	event void SplitControl.stopDone(error_t error){}
+	
+	default event void StreamStorageErase.eraseDone[uint8_t id](error_t error){}
+	default event void StreamStorageRead.readDone[uint8_t id](void *buf, uint8_t len,error_t error){}
+	default event void StreamStorageRead.getMinAddressDone[uint8_t id](uint32_t addr, error_t error){}
+	default event void StreamStorageWrite.appendDone[uint8_t id](void *buf, uint16_t len, error_t error){}
+	default event void StreamStorageWrite.appendDoneWithID[uint8_t id](void *buf, uint16_t len, error_t error){}
+	default event void StreamStorageWrite.syncDone[uint8_t id](error_t error){}	
 }
+
