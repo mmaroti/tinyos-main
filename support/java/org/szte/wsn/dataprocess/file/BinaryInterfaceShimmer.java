@@ -38,16 +38,20 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.szte.wsn.dataprocess.BinaryInterface;
 
-public class BinaryInterfaceBattery implements BinaryInterface{
+public class BinaryInterfaceShimmer implements BinaryInterface{
 	private File dataFile;
 	private ArrayList<byte[]>frames=new ArrayList<byte[]>();
 	private FileInputStream filereader;
 	private int actualFrame;
+	private byte[] formatId;
+	byte[] header;
+	
 
-	public BinaryInterfaceBattery(String path){
+	public BinaryInterfaceShimmer(String path){
 		this.dataFile=new File(path);
 		try {
 			this.filereader=new FileInputStream(dataFile);
@@ -55,7 +59,9 @@ public class BinaryInterfaceBattery implements BinaryInterface{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		frames=	makeFrames();	
+		frames=	makeFrames();
+		formatId=new byte[2];
+		System.arraycopy(header, 0, formatId, 0, 2);
 		actualFrame=0;		
 	}
 
@@ -71,13 +77,13 @@ public class BinaryInterfaceBattery implements BinaryInterface{
 			e.printStackTrace();
 		}	
 		
-		final int headerLength=4;
-		byte[] header=new byte[headerLength];
+		final int headerLength=6;
+		header=new byte[headerLength];
 		System.arraycopy(buffer,0,header,0,headerLength);
 		int offset=headerLength;
 		ArrayList<byte[]>ret=new ArrayList<byte[]>();
 		for(int i=0;i<31;i++){
-			byte[] nextFrame = new byte[20];
+			byte[] nextFrame = new byte[16+headerLength];
 			System.arraycopy(header, 0, nextFrame, 0, headerLength);
 			System.arraycopy(buffer, offset, nextFrame, headerLength, 16);
 			ret.add(nextFrame);
@@ -94,7 +100,7 @@ public class BinaryInterfaceBattery implements BinaryInterface{
 		{
 			frames=makeFrames();
 			actualFrame=0;
-			if(frames.get(0)[0]==0)
+			if(!Arrays.equals(formatId,new byte[]{header[0],header[1]}))
 				return null;
 			if (frames!=null)
 				return frames.get(actualFrame++);
