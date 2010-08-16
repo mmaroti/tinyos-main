@@ -59,10 +59,10 @@ public class Transfer extends Thread  {
 	 * @param structPath
 	 * @param toString if true writes from binary to string, else writes from string to binary 
 	 */
-	public Transfer(String binaryType, String binaryPath, String stringType, String stringPath, String structPath, boolean toString){
+	public Transfer(String binaryType, String binaryPath, String stringType, String stringPath, String structPath, boolean toString,boolean showName){
 		packetParsers=new PacketParserFactory(structPath).getParsers();
 		binary=BinaryInterfaceFactory.getBinaryInterface(binaryType, binaryPath);	
-		string=StringInterfaceFactory.getStringInterface(stringType, stringPath, packetParsers);
+		string=StringInterfaceFactory.getStringInterface(stringType, stringPath, packetParsers,showName);
 		this.toString=toString;
 		if((binary==null)||(string==null))
 			Usage.usageThanExit();
@@ -130,9 +130,9 @@ public class Transfer extends Thread  {
 		Transfer fp=new Transfer(args[0],args[1],args[2],args[3],args[4],toStr);
 		fp.start();
 		*/
-		PacketParser[] parsers=new PacketParserFactory("structs.txt").getParsers();			
-		BinaryInterface bin=BinaryInterfaceFactory.getBinaryInterface("battery", "log_aug_12");	
-		StringInterface str=StringInterfaceFactory.getStringInterface("file", "log_aug_12.txt",parsers);
+		PacketParser[] parsers=new PacketParserFactory("structs_graph.txt").getParsers();			
+		BinaryInterface bin=BinaryInterfaceFactory.getBinaryInterface("battery", "03_hutobe_be");	
+		StringInterface str=StringInterfaceFactory.getStringInterface("file", "03_hutobe_be.txt",parsers,false);
 		//Transfer fp=new Transfer(parsers,bin,str,false);
 		Transfer fp2=new Transfer(parsers,bin,str,true);
 		//fp.start();
