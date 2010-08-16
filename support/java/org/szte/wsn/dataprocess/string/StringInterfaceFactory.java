@@ -49,11 +49,10 @@ public class StringInterfaceFactory {
 	 * @param source String path of the source
 	 * @return a StringInterface instance with the specified params
 	 */
-	public static StringInterface getStringInterface(String type, String source, PacketParser[] packetParsers){
-		if(type.equals("file")){
-			return new StringInterfaceFile(",", source, packetParsers);
+	public static StringInterface getStringInterface(String type, String source, PacketParser[] packetParsers,boolean showName){
+		if(type.equals("file"))
+			return new StringInterfaceFile(",", source, packetParsers,showName);
 			
-		}
 		
 		else //if (type.equals("console"))
 			return new StringInterfaceConsole(",", packetParsers);

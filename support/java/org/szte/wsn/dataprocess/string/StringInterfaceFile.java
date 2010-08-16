@@ -53,12 +53,14 @@ public class StringInterfaceFile implements StringInterface {
 	PacketParser[] packetParsers;
 	long readPointer;
 	RandomAccessFile file;
+	boolean showName;
 
-	public StringInterfaceFile(String separator, String path, PacketParser[] packetParsers ){
+	public StringInterfaceFile(String separator, String path, PacketParser[] packetParsers, boolean showName ){
 		this.separator=separator;  
 		this.packetParsers=packetParsers;
 		previous="";
 		readPointer=0;
+		this.showName=showName;
 		try {
 			file=new RandomAccessFile(path, "rw");
 		} catch (FileNotFoundException e) {
@@ -79,13 +81,13 @@ public class StringInterfaceFile implements StringInterface {
 				file.seek(file.length());
 				
 				if(!packet.getName().equals(previous)){	
-					file.writeBytes(packet.getName()+separator);
+					if(showName)file.writeBytes(packet.getName()+separator);
 					for(String head:packet.getFields())
 						file.writeBytes(head+separator);
 					file.seek(file.getFilePointer()-separator.length()); //deletes the last separator
 					file.writeBytes("\n");
 				}
-				file.writeBytes(packet.getName()+separator);
+				if(showName)file.writeBytes(packet.getName()+separator);
 				for(String data:packet.getData()){			
 					file.writeBytes(data+separator);
 				}
