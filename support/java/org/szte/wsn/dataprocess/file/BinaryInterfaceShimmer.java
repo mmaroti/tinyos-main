@@ -83,11 +83,18 @@ public class BinaryInterfaceShimmer implements BinaryInterface{
 		int offset=headerLength;
 		ArrayList<byte[]>ret=new ArrayList<byte[]>();
 		for(int i=0;i<31;i++){
-			byte[] nextFrame = new byte[16+headerLength];
+			byte[] nextFrame = new byte[22+headerLength];
 			System.arraycopy(header, 0, nextFrame, 0, headerLength);
-			System.arraycopy(buffer, offset, nextFrame, headerLength, 16);
+			System.arraycopy(buffer, offset, nextFrame, headerLength, 12);
+			offset+=12;
+			
+			byte[] blank=new byte[]{(byte)(0),(byte)(0),(byte)(0),(byte)(0),(byte)(0),(byte)(0)};
+			System.arraycopy(blank,0, nextFrame, headerLength+12, 6);
+			
+			System.arraycopy(buffer, offset, nextFrame, headerLength+12+6, 4);
+			offset+=4;
+			
 			ret.add(nextFrame);
-			offset+=16;
 		}
 		return ret;
 	}
