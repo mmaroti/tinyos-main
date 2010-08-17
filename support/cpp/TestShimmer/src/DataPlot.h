@@ -78,6 +78,10 @@ public:
                 GRID = 0x20000,
                 TIME = 0x40000,
                 TEMP = 0x80000,
+
+                XANG      = 0x100000,
+                YANG      = 0x200000,
+                ZANG      = 0x400000,
         };
 
         void setGraphs(int graphs, bool on);
@@ -94,6 +98,8 @@ public:
 protected:
         virtual void paintEvent(QPaintEvent *event);
         virtual void mousePressEvent(QMouseEvent * event);
+        void mouseMoveEvent(QMouseEvent *event);
+        void mouseReleaseEvent(QMouseEvent *event);
 
         int graphs;
 
@@ -103,6 +109,7 @@ public slots:
 
 signals:
         void angleChanged(double angle);
+        void clicked();
 
 private:
         Application &application;
@@ -110,8 +117,11 @@ private:
         int parentHeight;
         int plotWidth;
 
+        QPainter *painter;
+
         QPoint getPoint(int x, int y);
         QPoint getSample(int x, int y);
+        QPoint lastPos, startPos;
 
         double gyroMinAvgs[3];
         double gyroCalibrationData[12];

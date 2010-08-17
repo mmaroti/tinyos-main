@@ -74,7 +74,7 @@ QPoint DataPlot::getPoint(int x, int y)
 
 void DataPlot::paintEvent(QPaintEvent *event)
 {
-        QPainter painter(this);
+        QPainter painter(this);     //painter = new QPainter(this); //painter(this);
         painter.setRenderHint(QPainter::Antialiasing, true);
 
         parentHeight = parentWidget()->height();
@@ -317,6 +317,48 @@ void DataPlot::paintEvent(QPaintEvent *event)
                     painter.drawLine(getPoint(i-1, xtemp1 * (2048/(4*M_PI)) + 2048), getPoint(i, xtemp2 * (2048/(4*M_PI)) + 2048));
                 }
             }
+
+            if( (graphs & XANG) != 0 )
+            {
+                painter.setPen(QPen(Qt::green, 2, Qt::SolidLine));
+                double xtemp1, xtemp2, alfa1, alfa2;
+                for(int i = x0 + 1; i < x1; ++i) {
+                    xtemp1 = calculateCalibratedValue("xAcc", i-1);
+                    xtemp2 = calculateCalibratedValue("xAcc", i);
+
+                    alfa1 = asinh(xtemp1/GRAV);
+                    alfa2 = asinh(xtemp2/GRAV);
+                    painter.drawLine(getPoint(i-1, alfa1 * 2048/M_PI + 2048), getPoint(i, alfa2 * 2048/M_PI + 2048));
+                }
+            }
+
+            if( (graphs & YANG) != 0 )
+            {
+                painter.setPen(QPen(Qt::green, 2, Qt::SolidLine));
+                double ytemp1, ytemp2, alfa1, alfa2;
+                for(int i = x0 + 1; i < x1; ++i) {
+                    ytemp1 = calculateCalibratedValue("yAcc", i-1);
+                    ytemp2 = calculateCalibratedValue("yAcc", i);
+
+                    alfa1 = asinh(ytemp1/GRAV);
+                    alfa2 = asinh(ytemp2/GRAV);
+                    painter.drawLine(getPoint(i-1, alfa1 * 2048/M_PI + 2048), getPoint(i, alfa2 * 2048/M_PI + 2048));
+                }
+            }
+
+            if( (graphs & ZANG) != 0 )
+            {
+                painter.setPen(QPen(Qt::green, 2, Qt::SolidLine));
+                double ztemp1, ztemp2, alfa1, alfa2;
+                for(int i = x0 + 1; i < x1; ++i) {
+                    ztemp1 = calculateCalibratedValue("zAcc", i-1);
+                    ztemp2 = calculateCalibratedValue("zAcc", i);
+
+                    alfa1 = asinh(ztemp1/GRAV);
+                    alfa2 = asinh(ztemp2/GRAV);
+                    painter.drawLine(getPoint(i-1, alfa1 * 2048/M_PI + 2048), getPoint(i, alfa2 * 2048/M_PI + 2048));
+                }
+            }
         }
 
         if( (graphs & GRID) != 0 )
@@ -434,21 +476,48 @@ void DataPlot::onNewCalibration()
 
 void DataPlot::mousePressEvent(QMouseEvent * event)
 {
-    QPoint sample = getSample(event->pos().x(), event->pos().y());
-    QString message = "Time: " + QString::number(sample.x()/C_HZ, 'f', 1) + " sec  ";
-    if( (graphs & XRAWACC) != 0 || (graphs & YRAWACC) != 0 || (graphs & ZRAWACC) != 0 || (graphs & XRAWGYRO) != 0 || (graphs & YRAWGYRO) != 0 || (graphs & ZRAWGYRO) != 0 ){
-        message.append("Sample: " + QString::number(sample.y()) + " ");
+    startPos = event->pos();
+
+    if (event->buttons() & Qt::LeftButton) {
+        QPoint sample = getSample(event->pos().x(), event->pos().y());
+        QString message = "Time: " + QString::number(sample.x()/C_HZ, 'f', 1) + " sec  ";
+        if( (graphs & XRAWACC) != 0 || (graphs & YRAWACC) != 0 || (graphs & ZRAWACC) != 0 || (graphs & XRAWGYRO) != 0 || (graphs & YRAWGYRO) != 0 || (graphs & ZRAWGYRO) != 0 ){
+            message.append("Sample: " + QString::number(sample.y()) + " ");
+        }
+        if( (graphs & XACC) != 0 || (graphs & YACC) != 0 || (graphs & ZACC) != 0 || (graphs & ABSACC) != 0 ){
+            message.append(" , Acceleration: " + QString::number((double)((sample.y()-2048)/(512/GRAV)), 'f', 2) + " m/s^2");
+        }
+        if( (graphs & XYANG) != 0 || (graphs & YZANG) != 0 || (graphs & ZXANG) != 0 ){
+            message.append(",  Angle: " + QString::number((sample.y()-2048)/(2048/M_PI), 'f', 1) + "rad; "  + QString::number( (sample.y()-2048)/(2048/M_PI)*57.296, 'f', 2 ) + "°.");
+        }
+        if( (graphs & XGYRO) != 0 || (graphs & YGYRO) != 0 || (graphs & ZGYRO) != 0 ){
+            message.append(",  Gyroscope: " + QString::number((sample.y()-2048)/(2048/(4*M_PI)),'f',1) + "rad/sec; " + QString::number( ((sample.y()-2048)/(2048/(4*M_PI)))*RADIAN, 'f', 2 ) + "°/sec; " + QString::number( (((sample.y()-2048)/(2048/(4*M_PI)))*60)/(2*M_PI), 'f', 1 ) + "rpm." );
+        }
+        application.showMessage( message );
+    } else if (event->buttons() & Qt::RightButton) {
+        //painter->backgroundMode(Qt::TransparentMode);
+
     }
-    if( (graphs & XACC) != 0 || (graphs & YACC) != 0 || (graphs & ZACC) != 0 || (graphs & ABSACC) != 0 ){
-        message.append(" , Acceleration: " + QString::number((double)((sample.y()-2048)/(512/GRAV)), 'f', 2) + " m/s^2");
+
+    lastPos = event->pos();
+}
+
+void DataPlot::mouseMoveEvent(QMouseEvent *event)
+{
+    int dx = event->x() - lastPos.x();
+    int dy = event->y() - lastPos.y();
+
+    if (event->buttons() & Qt::LeftButton) {
+
+    } else if (event->buttons() & Qt::RightButton) {
+
     }
-    if( (graphs & XYANG) != 0 || (graphs & YZANG) != 0 || (graphs & ZXANG) != 0 ){
-        message.append(",  Angle: " + QString::number((sample.y()-2048)/(2048/M_PI), 'f', 1) + "rad; "  + QString::number( (sample.y()-2048)/(2048/M_PI)*57.296, 'f', 2 ) + "°.");
-    }
-    if( (graphs & XGYRO) != 0 || (graphs & YGYRO) != 0 || (graphs & ZGYRO) != 0 ){
-        message.append(",  Gyroscope: " + QString::number((sample.y()-2048)/(2048/(4*M_PI)),'f',1) + "rad/sec; " + QString::number( ((sample.y()-2048)/(2048/(4*M_PI)))*RADIAN, 'f', 2 ) + "°/sec; " + QString::number( (((sample.y()-2048)/(2048/(4*M_PI)))*60)/(2*M_PI), 'f', 1 ) + "rpm." );
-    }
-    application.showMessage( message );
+    lastPos = event->pos();
+}
+
+void DataPlot::mouseReleaseEvent(QMouseEvent * /* event */)
+{
+    emit clicked();
 }
 
 void DataPlot::loadSettingsData()

@@ -32,7 +32,7 @@
 * Author: Péter Ruzicska
 */
 
-#include "linearequations.h"
+#include "LinearEquations.h"
 #include "iterator"
 
 LinearEquations::LinearEquations()

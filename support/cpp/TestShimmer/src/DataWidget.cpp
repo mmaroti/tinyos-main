@@ -248,3 +248,18 @@ void DataWidget::on_gyroZ_clicked()
 {
     plot->setGraphs(DataPlot::ZGYRO, ui->gyroZ->checkState());
 }
+
+void DataWidget::on_angX_clicked()
+{
+    plot->setGraphs(DataPlot::XANG, ui->angX->checkState());
+}
+
+void DataWidget::on_angY_clicked()
+{
+    plot->setGraphs(DataPlot::YANG, ui->angY->checkState());
+}
+
+void DataWidget::on_angZ_clicked()
+{
+    plot->setGraphs(DataPlot::ZANG, ui->angZ->checkState());
+}

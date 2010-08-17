@@ -82,6 +82,11 @@ private slots:
         void on_angYZ_clicked();
         void on_angZX_clicked();
 
+        void on_angX_clicked();
+        void on_angY_clicked();
+        void on_angZ_clicked();
+
+
         void on_exportBtn_clicked();
         void on_clearBtn_clicked();
         void on_recordBtn_clicked();
