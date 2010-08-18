@@ -43,7 +43,7 @@ public class GapConsumer{
 	private ArrayList<Gap> gaps = new ArrayList<Gap>();  
 	private File gapFile; 	
 	
-	public GapConsumer(String path) throws IOException{
+	public GapConsumer(String path) {
 			String gapPath=path.substring(0, path.length()-4)+".gap";
 			initGapFile(gapPath);		
 	}
