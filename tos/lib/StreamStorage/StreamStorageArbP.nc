@@ -64,7 +64,7 @@ implementation{
 	}
 	
 	command uint32_t StreamStorageRead.getMaxAddress[uint8_t id](){
-	    return call StreamStorageRead.getMaxAddress[id]();
+	    return call SubRead.getMaxAddress();
 	}
 	
 	command error_t StreamStorageRead.read[uint8_t id](uint32_t addr, void* buf, uint8_t  len){
@@ -132,8 +132,11 @@ implementation{
 	}
 	
 	event void SplitControl.startDone(error_t error){
-	    if(error!=SUCCESS)
+	    if(error!=SUCCESS){
 	      call SplitControl.start();
+	    }else{
+	      call Resource.release();
+	    }
 	}
 	
 	event void SplitControl.stopDone(error_t error){}
