@@ -54,7 +54,7 @@ public class StreamDownloader{
 	private ArrayList<Pong> pongs=new ArrayList<Pong>();
 	private HashSet<Integer> currently_handled = new HashSet<Integer>();
 	private Timer timer=new Timer();
-	private TimerTask startdownload=new StartDownload(pongs);
+	private TimerTask startdownload=null;
 	
 	private final class Pong{
 		private long minaddress, maxaddress;
@@ -88,9 +88,9 @@ public class StreamDownloader{
 
 		@Override
 		public void run() {
+			System.out.println("pong");
 			Pong maxdownloadPong=null;
 			long maxdownload=Long.MIN_VALUE;
-			//TODO: gap javítás
 			if(currently_handled.size()<=maxnode){
 				for(Pong p:pongs){
 					if(!currently_handled.contains(p.getNodeID())){
@@ -100,7 +100,7 @@ public class StreamDownloader{
 								long download;
 								Gap repair=currentwriter.repairGap(p.minaddress);
 								if(repair!=null){
-									download=Long.MAX_VALUE;
+									maxdownload=Long.MAX_VALUE;
 									maxdownloadPong=p;
 									break;
 								}
@@ -165,7 +165,7 @@ public class StreamDownloader{
 			long now=(new Date()).getTime();
 			HashSet<Integer> remove=new HashSet<Integer>();
 			for(Integer i:currently_handled){
-				if(writers.get(i).getLastModified()+timeout<now)
+				if(getWriter(i, writers).getLastModified()+timeout<now)
 					remove.add(i);
 			}
 			currently_handled.removeAll(remove);
@@ -174,9 +174,11 @@ public class StreamDownloader{
 	
 	public final class Ping extends TimerTask {
 		public void run() {
+			System.out.println("ping");
 			try {
 				communication.sendPing();
-				timer.schedule(startdownload, pongwait);
+				startdownload=new StartDownload(pongs);
+				timer.schedule(startdownload, pongwait*1000);
 			} catch (IOException e) {
 				System.err.println("Warning: Can't send ping");
 			}
@@ -192,7 +194,7 @@ public class StreamDownloader{
 		return null;
 		
 	}
-	public StreamDownloader(int listenonly, int maxnode,int pongwait, int pinginterval, int timeout, String source) {
+	public StreamDownloader(int listenonly, int maxnode, int pinginterval, int pongwait, int timeout, String source) {
 		this.listenonly=listenonly;
 		this.maxnode=maxnode;
 		this.timeout=timeout;
@@ -234,11 +236,12 @@ public class StreamDownloader{
 
 	public void newPong(int nodeid, long min_address, long max_address) {
 		if(listenonly<0||listenonly==nodeid){
-			if(new Date().getTime()-startdownload.scheduledExecutionTime()<=pongwait)
+			if(new Date().getTime()-startdownload.scheduledExecutionTime()<=pongwait*1000)
 				pongs.add(new Pong(nodeid, min_address, max_address));
 			else if(currently_handled.contains(nodeid)){
 				pongs.add(new Pong(nodeid, min_address, max_address));
-				startdownload.run();
+				System.out.print("P");
+				new StartDownload(pongs).run();
 			}else
 				System.err.println("Warning: Unhandled pong from "+nodeid+" (timeout)");
 		} else

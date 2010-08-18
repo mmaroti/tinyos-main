@@ -23,7 +23,7 @@ public class Communication  implements MessageListener {
 			DataMsg rec=(DataMsg)m;
 			byte[] data=new byte[rec.get_length()];
 			for(short i=0;i<data.length;i++){
-				data[i]=rec.getElement_data(0);
+				data[i]=rec.getElement_data(i);
 			}
 			sd.newData(rec.getSerialPacket().get_header_src(),rec.get_address(),data);
 		}
