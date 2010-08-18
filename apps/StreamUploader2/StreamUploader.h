@@ -62,7 +62,7 @@ typedef nx_struct ctrl_msg {
 typedef nx_struct data_msg {
 	nx_uint32_t address;
 	nx_uint8_t length;
-	nx_int8_t data[MESSAGE_SIZE];
+	nx_int8_t payload[MESSAGE_SIZE];
 } data_msg;
 
 #endif /* STREAM_UPLOADER_H */
