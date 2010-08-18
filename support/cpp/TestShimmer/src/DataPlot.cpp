@@ -326,8 +326,13 @@ void DataPlot::paintEvent(QPaintEvent *event)
                     xtemp1 = calculateCalibratedValue("xAcc", i-1);
                     xtemp2 = calculateCalibratedValue("xAcc", i);
 
-                    alfa1 = asinh(xtemp1/GRAV);
-                    alfa2 = asinh(xtemp2/GRAV);
+                    double param1, param2;
+                    param1 = xtemp1 / GRAV;
+                    param2 = xtemp2 / GRAV;
+                    if(param1 > 1) param1 = 1; if(param1 < -1) param1 = -1;
+                    if(param2 > 1) param2 = 1; if(param2 < -1) param2 = -1;
+                    alfa1 = asin(param1);
+                    alfa2 = asin(param2);
                     painter.drawLine(getPoint(i-1, alfa1 * 2048/M_PI + 2048), getPoint(i, alfa2 * 2048/M_PI + 2048));
                 }
             }
@@ -340,8 +345,8 @@ void DataPlot::paintEvent(QPaintEvent *event)
                     ytemp1 = calculateCalibratedValue("yAcc", i-1);
                     ytemp2 = calculateCalibratedValue("yAcc", i);
 
-                    alfa1 = asinh(ytemp1/GRAV);
-                    alfa2 = asinh(ytemp2/GRAV);
+                    alfa1 = asin(ytemp1/GRAV);
+                    alfa2 = asin(ytemp2/GRAV);
                     painter.drawLine(getPoint(i-1, alfa1 * 2048/M_PI + 2048), getPoint(i, alfa2 * 2048/M_PI + 2048));
                 }
             }
@@ -354,8 +359,8 @@ void DataPlot::paintEvent(QPaintEvent *event)
                     ztemp1 = calculateCalibratedValue("zAcc", i-1);
                     ztemp2 = calculateCalibratedValue("zAcc", i);
 
-                    alfa1 = asinh(ztemp1/GRAV);
-                    alfa2 = asinh(ztemp2/GRAV);
+                    alfa1 = asin(ztemp1/GRAV);
+                    alfa2 = asin(ztemp2/GRAV);
                     painter.drawLine(getPoint(i-1, alfa1 * 2048/M_PI + 2048), getPoint(i, alfa2 * 2048/M_PI + 2048));
                 }
             }
@@ -487,7 +492,7 @@ void DataPlot::mousePressEvent(QMouseEvent * event)
         if( (graphs & XACC) != 0 || (graphs & YACC) != 0 || (graphs & ZACC) != 0 || (graphs & ABSACC) != 0 ){
             message.append(" , Acceleration: " + QString::number((double)((sample.y()-2048)/(512/GRAV)), 'f', 2) + " m/s^2");
         }
-        if( (graphs & XYANG) != 0 || (graphs & YZANG) != 0 || (graphs & ZXANG) != 0 ){
+        if( (graphs & XYANG) != 0 || (graphs & YZANG) != 0 || (graphs & ZXANG) != 0 || (graphs & XANG) != 0 || (graphs & YANG) != 0 || (graphs & ZANG) != 0 ){
             message.append(",  Angle: " + QString::number((sample.y()-2048)/(2048/M_PI), 'f', 1) + "rad; "  + QString::number( (sample.y()-2048)/(2048/M_PI)*57.296, 'f', 2 ) + "°.");
         }
         if( (graphs & XGYRO) != 0 || (graphs & YGYRO) != 0 || (graphs & ZGYRO) != 0 ){
