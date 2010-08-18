@@ -71,15 +71,11 @@ implementation{
 		ERASE_PENDING_UNINIT,
 		SYNC_PENDING,
 		GET_MIN,
-		#ifdef AT45DB_H
-			PAGE_SIZE=254,
-			ERASE_SIZE=PAGE_SIZE,
-			FIRST_DATA=254,
-		#else
-			PAGE_SIZE=256,
-			ERASE_SIZE=PAGE_SIZE,
-			FIRST_DATA=0,
-		#endif
+		
+		//AT45DB specific settings
+		PAGE_SIZE=254,
+		ERASE_SIZE=PAGE_SIZE,
+		FIRST_DATA=254,
 	};
 	
 	void *writebuffer, *readbuffer;
@@ -126,9 +122,13 @@ implementation{
 		return SUCCESS;	
 	}
 
+	task void signalStopDoneSucces(){
+		signal SplitControl.stopDone(SUCCESS);
+	}
+
 	command error_t SplitControl.stop(){
 		status=UNINIT;
-		signal SplitControl.stopDone(SUCCESS);
+		post signalStopDoneSucces();
 		return SUCCESS;
 	}
 		
@@ -586,14 +586,14 @@ implementation{
 						#endif
 						err=call LogRead.seek(call LogRead.currentOffset()-len+PAGE_SIZE-(call LogRead.currentOffset()-len)%PAGE_SIZE);
 					} else {
-						#ifdef DEBUG
-							printf("Current addr: %ld; Buffer: %ld\n",call LogRead.currentOffset()-sizeof(buffer),*metadata);
-							printfflush();
-						#endif	
 						current_addr=*metadata;
 						minAddress.address=*metadata;
 						minAddress.valid=TRUE;
 						last_page=call LogRead.currentOffset()-len;
+						#ifdef DEBUG
+							printf("CA: %ld; B: %ld, lp: %ld\n",call LogRead.currentOffset()-sizeof(buffer),*metadata,last_page);
+							printfflush();
+						#endif	
 						status=INIT;
 						err=call LogRead.seek(last_page+PAGE_SIZE);	
 					}			
@@ -601,7 +601,7 @@ implementation{
 				case INIT:{//we read all of the metadata, searching for the last page
 					nx_uint32_t *metadata=(nx_uint32_t*)buf;//unfortunately, we need this, because the endiannes is unpredictable in the buffer
 					#ifdef DEBUG
-						printf("Current addr: %ld; Buffer: %ld\n",call LogRead.currentOffset()-sizeof(buffer),*metadata);
+						printf("CA: %ld; B: %ld\n",call LogRead.currentOffset()-sizeof(buffer),*metadata);
 						printfflush();
 					#endif
 					//Strange behavior: if I change the two sides of the AND relation, it will change the result					
@@ -658,7 +658,11 @@ implementation{
 							printfflush();
 						#endif
 						err=call LogRead.seek(call LogRead.currentOffset()-len+PAGE_SIZE-(call LogRead.currentOffset()-len)%PAGE_SIZE);
-					}	 else {			
+					}	 else {	
+						#ifdef DEBUG
+							printf("Minaddr: %ld\n",minAddress.address);
+							printfflush();
+						#endif		
 						minAddress.address=*metadata;
 						minAddress.valid=TRUE;
 						status=NORMAL;
@@ -760,21 +764,41 @@ implementation{
 	command uint32_t StreamStorageRead.getMaxAddress(){
 		return current_addr;
 	}
+	
+	task void getMinAddr(){
+		signal StreamStorageRead.getMinAddressDone(minAddress.address,SUCCESS);
+	}
 
 	command error_t StreamStorageRead.getMinAddress(){
+		#ifdef DEBUG
+			printf("minaddr");
+		#endif
 		if(minAddress.valid){
-			signal StreamStorageRead.getMinAddressDone(minAddress.address,SUCCESS);
+			#ifdef DEBUG
+				printf(" valid %ld\n",minAddress.address);
+				printfflush();
+			#endif
+			//signal StreamStorageRead.getMinAddressDone(minAddress.address,SUCCESS);
+			post getMinAddr();
 			return SUCCESS;
 		}else {
-			if(status!=NORMAL)
+			if(status!=NORMAL){
+				#ifdef DEBUG
+					printf(" busy\n");
+					printfflush();
+				#endif
 				return EBUSY;
-			else{
+			}else{
 				error_t err;
 				status=GET_MIN;
 				err=call LogRead.seek(SEEK_BEGINNING);
 				if(err!=SUCCESS)
 					status=NORMAL;
 				return err;
+				#ifdef DEBUG
+					printf(" started %ld\n",minAddress.address);
+					printfflush();
+				#endif
 			}
 		}
 	}

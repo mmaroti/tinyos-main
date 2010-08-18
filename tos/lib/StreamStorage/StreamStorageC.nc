@@ -53,4 +53,7 @@ implementation{
 	StreamStorageWrite=StreamStorageP;
 	StreamStorageErase=StreamStorageP;
 	SplitControl=StreamStorageP;
+	
+//	components LedsC;
+//	StreamStorageP.Leds->LedsC;
 }
