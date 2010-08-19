@@ -130,14 +130,29 @@ public class Transfer extends Thread  {
 		Transfer fp=new Transfer(args[0],args[1],args[2],args[3],args[4],toStr);
 		fp.start();
 		*/
-		PacketParser[] parsers=new PacketParserFactory("structs_graph.txt").getParsers();			
-		BinaryInterface bin=BinaryInterfaceFactory.getBinaryInterface("battery", "03_hutobe_be");	
-		StringInterface str=StringInterfaceFactory.getStringInterface("file", "03_hutobe_be.txt",parsers,false);
+		PacketParser[] parsers=new PacketParserFactory("structs_graph.txt").getParsers();	
+		
+		String[] name=new String[11];
+		name[0] = "indul_forgat_napra_ki";
+		name[1] = "forgat_naprol_be";
+		name[2] = "hutobe_be";
+		name[3] = "hutobol_ki_forgat";
+		name[4] = "forgat_hutobe_vissza";
+		name[5] = "hutobol_ki_forgat_vissza";
+		name[6] = "hutobol_ki_forgat";
+		name[7] = "forgat_hutobe_be";
+		name[8] = "hutobol_ki_forgat";
+		name[9] = "forgat_asztalon_szobaban";
+		name[10]= "asztalon_forgat";
+		for(int i=0;i<11;i++){
+		BinaryInterface bin=BinaryInterfaceFactory.getBinaryInterface("battery",i+".bin" );	
+		StringInterface str=StringInterfaceFactory.getStringInterface("file", i+name[i]+".csv",parsers,false);
 		//Transfer fp=new Transfer(parsers,bin,str,false);
 		Transfer fp2=new Transfer(parsers,bin,str,true);
 		//fp.start();
 		
 		fp2.start();
+		}
 	}
 
 }
