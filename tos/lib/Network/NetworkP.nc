@@ -130,7 +130,7 @@ implementation{
 	event void SubSend.sendDone(message_t *msg, error_t error){
 		if(error==SUCCESS){
 			call ListenTimer.startOneShot(BEACON_INTERVAL);
-			printf("send done, sleep at %ld (%ld)\n",call ListenTimer.gett0()+call ListenTimer.getdt(), call ListenTimer.getNow());
+			//printf("send done, sleep at %ld (%ld)\n",call ListenTimer.gett0()+call ListenTimer.getdt(), call ListenTimer.getNow());
 		}
 		signal AMSend.sendDone[msg->data[call Packet.payloadLength(msg)-1]](msg, error);
 	}
