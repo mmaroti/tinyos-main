@@ -66,6 +66,7 @@ public class GapConsumer{
 						else
 							addGap(Long.parseLong(vars[0]), Long.parseLong(vars[1]),false);
 					}
+					System.out.println();
 				} catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
