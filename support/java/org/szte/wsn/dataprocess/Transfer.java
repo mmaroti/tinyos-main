@@ -121,15 +121,19 @@ public class Transfer extends Thread  {
 
 
 	public static void main(String[] args) {	
-		/*
+	
 		if(args.length<6)
 			Usage.usageThanExit();
 		boolean toStr=false;
 		if (args[5].equals("toString"))
 			toStr=true;
-		Transfer fp=new Transfer(args[0],args[1],args[2],args[3],args[4],toStr);
+		boolean show=false;
+		if (args[6].equals("showName"))
+			show=true;
+		Transfer fp=new Transfer(args[0],args[1],args[2],args[3],args[4],toStr,show);
 		fp.start();
-		*/
+		
+		/*
 		PacketParser[] parsers=new PacketParserFactory("structs_graph.txt").getParsers();	
 		
 		String[] name=new String[11];
@@ -152,7 +156,8 @@ public class Transfer extends Thread  {
 		//fp.start();
 		
 		fp2.start();
-		}
+		}*/
+		
 	}
 
 }

@@ -61,7 +61,7 @@ public class BinaryInterfaceFactory {
 				return null;
 			}				
 		}
-		if(type.equals("battery"))
+		if(type.equals("shimmer"))
 			return new BinaryInterfaceShimmer(source);
 		
 		else //if (type.equals("serial"))
