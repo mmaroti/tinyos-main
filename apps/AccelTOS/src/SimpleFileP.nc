@@ -102,33 +102,8 @@ implementation
 	{
 		available = FALSE;
 	}
-
-	// FIXME Assumes a formatted card
-	void findLastSector()
-	{				
-		error_t error;
-
-		cardSize = call SD.readCardSize();
-		readPos = 0;
-
-		for(writePos = 0; writePos < cardSize; ++writePos)
-		{
-			error = call SD.readBlock(writePos, (uint8_t*) &buffer);
-
-			if (error!=SUCCESS)
-				break;
-				
-			if (writePos==0) {
-				formID = buffer.formatID;	
-			}
-
-			if ((formID != buffer.formatID) || (buffer.length == 0)) {
-				state = STATE_READY;
-				signal SplitControl.startDone(SUCCESS);
-				return;
-			}
-		}
-
+	
+	void bad() {
 		// Error: either card is full or a readBlock failed
 		state = STATE_OFF;
 		call LedHandler.error();		
@@ -137,6 +112,78 @@ implementation
 		call SDControl.stop();
 
 		signal SplitControl.startDone(FAIL);
+	}
+	
+	void ready() {
+
+		state = STATE_READY;
+
+		signal SplitControl.startDone(SUCCESS);
+	}
+
+	// FIXME Assumes a deep formatted card
+	void findLastSector()
+	{				
+		error_t error;
+		uint32_t low, mid, high;
+
+		cardSize = call SD.readCardSize();
+		readPos = 0;
+		writePos = cardSize;
+		
+		error = call SD.readBlock(0, (uint8_t*) &buffer);
+
+		if (error) {
+			ASSERT(FALSE);
+			bad();
+			return;
+		}
+		
+		formID = buffer.formatID;
+		
+		if (buffer.length == 0) {			
+			ready();
+			return;
+		}
+		
+		
+		low = 1;
+		high = cardSize-1;
+		
+		while (low!=mid && low<=high) {
+			
+			mid = low + ((high-low) >> 1);
+			
+			ASSERT(low<=mid);
+			ASSERT(mid<=high);
+			error = call SD.readBlock(mid, (uint8_t*) &buffer);
+			
+			if (error) {
+				ASSERT(FALSE);
+				bad();
+				return;
+			}
+			
+			if ((formID != buffer.formatID) || (buffer.length == 0)) {
+				
+				high = mid;
+			}
+			else {
+				low = mid+1;
+			}
+			
+		}
+		
+		if ((formID != buffer.formatID) || (buffer.length == 0)) {
+			ASSERT(low==mid && mid==high);
+			writePos = mid;
+			ready();
+		}
+		else {
+			ASSERT((low==mid+1) && mid==high);
+			ASSERT(FALSE);
+			bad();
+		}
 	}
 
 	command error_t SplitControl.start()
