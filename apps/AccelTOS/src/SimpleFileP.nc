@@ -127,7 +127,7 @@ implementation
 		error_t error;
 		uint32_t low, mid, high;
 
-		cardSize = call SD.readCardSize();
+		cardSize = call SD.readCardSize() >> 9;
 		readPos = 0;
 		writePos = cardSize;
 		
@@ -153,9 +153,7 @@ implementation
 		while (low!=mid && low<=high) {
 			
 			mid = low + ((high-low) >> 1);
-			
-			ASSERT(low<=mid);
-			ASSERT(mid<=high);
+
 			error = call SD.readBlock(mid, (uint8_t*) &buffer);
 			
 			if (error) {

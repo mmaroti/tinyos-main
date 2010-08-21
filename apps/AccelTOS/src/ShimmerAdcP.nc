@@ -175,13 +175,13 @@ implementation
 		ASSERT((QUEUESIZE>=step)&&(step>0));
 		effSize = QUEUESIZE - (QUEUESIZE % step);
 		
-		dumpInt("step",     step);
+/*		dumpInt("step",     step);
 		dumpInt("tsOffset", ts_offset);
 		dumpInt("cntOffset",cnt_offset);
 		dumpInt("offset",   offset);
 		dumpInt("realChn",  realChannels);
 		dumpInt("effSize",  effSize);
-
+*/
 		return retVal;
 	}
 	
@@ -263,7 +263,7 @@ implementation
 		call HplAdc12.setCtl0(ctl0);
 		call HplAdc12.setCtl1(ctl1);
 
-		recording = call DiagMsg.record();
+		//recording = call DiagMsg.record();
 		nVirtChn = count-nSamples;
 		for (i=nVirtChn; i<count; ++i) {
 			
@@ -272,11 +272,11 @@ implementation
 			if (j>15)
 				continue;
 			
-			if(recording) {
+/*			if(recording) {
 				call DiagMsg.uint16(i-nVirtChn);
 				call DiagMsg.uint16(j);
 			}
-
+*/
 			memctl.inch = j;
 			memctl.eos = 0;
 			if (i==count-1)
@@ -286,10 +286,10 @@ implementation
 
 		}
 
-		if (recording) {
+/*		if (recording) {
 			call DiagMsg.send();
 		}
-		// get ready for the first transfer
+*/		// get ready for the first transfer
 		call Msp430DmaChannel.startTransfer();
 
 		return SUCCESS;
