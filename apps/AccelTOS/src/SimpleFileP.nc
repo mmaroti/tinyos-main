@@ -141,7 +141,8 @@ implementation
 		
 		formID = buffer.formatID;
 		
-		if (buffer.length == 0) {			
+		if (buffer.length == 0) {
+			writePos = 0;		
 			ready();
 			return;
 		}
