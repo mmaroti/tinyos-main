@@ -1,3 +1,35 @@
+/** Copyright (c) 2010, University of Szeged
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions
+* are met:
+*
+* - Redistributions of source code must retain the above copyright
+* notice, this list of conditions and the following disclaimer.
+* - Redistributions in binary form must reproduce the above
+* copyright notice, this list of conditions and the following
+* disclaimer in the documentation and/or other materials provided
+* with the distribution.
+* - Neither the name of University of Szeged nor the names of its
+* contributors may be used to endorse or promote products derived
+* from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+* COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+* OF THE POSSIBILITY OF SUCH DAMAGE.
+*
+* Author: Ali Baharev
+*/
 
 #include <fstream>
 #include <iostream>
@@ -38,6 +70,7 @@ const char header[] = "Time,sequence_number,Accel_X,Accel_Y,Accel_Z,Gyro_X,Gyro_
 
 vector<list<dat>*> data;
 
+typedef list<dat>::const_iterator cli;
 typedef list<dat>::reverse_iterator rli;
 
 }
@@ -78,7 +111,7 @@ const string time2str(uint32 t) {
 	return os.str();
 }
 
-bool str2ticks(uint32& ticks) {
+bool str2ticks(uint32& ticks, const uint32 max) {
 
 	uint32 hour, min, sec;
 	string sh;
@@ -98,6 +131,11 @@ bool str2ticks(uint32& ticks) {
 	}
 
 	ticks = (3600*TICKS_PER_SEC)*hour + (60*TICKS_PER_SEC)*min + TICKS_PER_SEC*sec;
+
+	if (ticks > max) {
+		cout << "Error: the entered time is greater that the length!" << endl;
+		return true;
+	}
 
 	return false;
 }
@@ -219,6 +257,44 @@ void grab_content(const char* filename) {
 	in = 0;
 }
 
+void dump_data(const char* filename, int index, uint32 start, uint32 end) {
+
+	const list<dat>* const samples = data.at(index-1);
+
+	cli i(samples->begin());
+
+	while (i!=samples->end() && i->time < start) {
+		++i;
+	}
+
+	ostringstream os;
+
+	os << filename << '_' << index << '_' << start << '_' << end << flush;
+
+	ofstream out(os.str().c_str());
+
+	if (!out) {
+		exit("failed to create output file");
+	}
+
+	uint32 lines = 0;
+
+	while (i!=samples->end() && i->time <= end) {
+
+		dat b = *i;
+
+		out << b.time << ',' << b.counter << ',' << b.ax << ',' << b.ay;
+		out << ',' << b.az << ',' << b.volt << ',' << b.temp << endl;
+
+		++i;
+		++lines;
+	}
+
+	out.close();
+
+	cout << lines << " lines written" << endl;
+}
+
 int main(int argc, char* argv[]) {
 
 	if (argc!=2) {
@@ -243,27 +319,35 @@ int main(int argc, char* argv[]) {
 		if (n==-1) {
 			break;
 		}
-		else if (n < 1 || n > data.size()) {
+		else if (n < 1 || n > static_cast<int> (data.size())) {
 			cout << "Error: " << n << " is out of range (" << flush;
 			cout << 1 << ", " << data.size() << ")" << endl;
 			continue;
 		}
 
+		const uint32 ticks = data.at(n-1)->rbegin()->time;
+
 		cout << "Length of #" << n << " is "<< flush;
-		cout << time2str(data.at(n-1)->rbegin()->time) << endl;
+		cout << time2str(ticks) << endl;
 
 
 		cout << "Enter start in hh:mm:ss format" << endl;
 
 		uint32 start;
-		if (str2ticks(start))
+		if (str2ticks(start, ticks))
 			continue;
 
 		cout << "Enter end in hh:mm:ss format" << endl;
 
 		uint32 end;
-		if (str2ticks(end))
+		if (str2ticks(end, ticks))
 			continue;
+
+		if (start >= end) {
+
+			cout << "Error: start must be before end!" << endl;
+			continue;
+		}
 
 		cout << "Cropping from " << time2str(start) << " to " << time2str(end) << endl;
 		cout << "Check the time strings, are they OK? [y,n]" << endl;
@@ -273,8 +357,9 @@ int main(int argc, char* argv[]) {
 		if (c!='y')
 			continue;
 
-		cout << "Writing chopped file" << endl;
+		cout << "Writing cropped file" << endl;
 
+		dump_data(filename, n, start, end);
 	}
 
 	cout << "Terminated ..." << endl;
