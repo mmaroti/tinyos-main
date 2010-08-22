@@ -144,15 +144,15 @@ void check_data_consistency(const dat& b, uint32 lines, uint32 prevTime, uint16 
 
 	uint16 cnt = b.counter;
 
-	if ((cnt-prevCnt != 1) && cnt) {
+	if (!((cnt-prevCnt == 1) || (cnt==0 && prevCnt==0xFFFF))) {
 		cout << "Warning: line " << lines << flush;
 		cout << ", missing " << (cnt-prevCnt-1) << " samples" << endl;
 	}
 
 	uint32 expected = prevTime + SAMPLING_RATE;
-	uint32 dt = (expected>b.time?expected:b.time) - expected;
+	int dt = b.time - expected;
 
-	if (dt > TOLERANCE) {
+	if (abs(dt) > TOLERANCE) {
 		cout << "Warning: line " << lines << flush;
 		cout << ", " << dt << " ticks error" << endl;
 	}
@@ -227,12 +227,18 @@ void grab_content(const char* filename) {
 
 		n = fscanf(in,fmt,&b.time,&b.counter,&b.ax,&b.ay,&b.az,&b.volt,&b.temp);
 
+		++lines;
+
 		if (n!= N_FIELDS) {
 			cout << "Conversion failed on line " << lines << endl;
 			break;
 		}
 
-		++lines;
+		if (b.time==0 && b.counter==0) {
+			cout << "Warning: found a line with zeros, at " << lines;
+			cout << ", reading stopped!" << endl;
+			break;
+		}
 
 		if (b.counter == 1 && prevCnt != 0) {
 

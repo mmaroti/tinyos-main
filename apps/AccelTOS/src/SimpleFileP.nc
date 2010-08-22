@@ -147,9 +147,9 @@ implementation
 			return;
 		}
 		
-		
 		low = 1;
 		high = cardSize-1;
+		mid = 0;
 		
 		while (low!=mid && low<=high) {
 			

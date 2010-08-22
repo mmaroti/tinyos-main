@@ -61,7 +61,7 @@ implementation
 	enum
 	{
 		SAMPLE_COUNT = 16,	// the maximum number of channels
-		QUEUESIZE    = 100
+		QUEUESIZE    = 512
 	};
 
 	uint16_t dt = 160; // 204.8 Hz
@@ -71,14 +71,14 @@ implementation
 
 	norace uint8_t nSamples;
 
-	uint8_t head;
-	norace uint8_t tail;
+	uint16_t head;
+	norace uint16_t tail;
 	norace uint8_t step;
 	norace uint8_t offset;
 	norace uint8_t ts_offset;
 	norace uint8_t cnt_offset;
-	norace uint8_t size;
-	norace uint8_t effSize;
+	norace uint16_t size;
+	norace uint16_t effSize;
 	
 	norace uint16_t queue[QUEUESIZE];
 
@@ -110,7 +110,7 @@ implementation
 	}
 	
 	void resetQueue() {
-		uint8_t i;
+		uint16_t i;
 		head = 0;
 		tail = 0;
 		size = 0;
@@ -228,7 +228,7 @@ implementation
 			eos:1				// end of sequence flag: 1 indicates last conversion
 		};
 		
-		bool recording = FALSE;
+		//bool recording = FALSE;
 		int8_t i, j, nVirtChn;
 
 		if( count > SAMPLE_COUNT )
