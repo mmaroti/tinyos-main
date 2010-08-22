@@ -173,15 +173,15 @@ implementation
 		step += realChannels;
 		
 		ASSERT((QUEUESIZE>=step)&&(step>0));
-		effSize = QUEUESIZE - (QUEUESIZE % step);
+		effSize = QUEUESIZE - (QUEUESIZE%step);
 		
 /*		dumpInt("step",     step);
 		dumpInt("tsOffset", ts_offset);
 		dumpInt("cntOffset",cnt_offset);
 		dumpInt("offset",   offset);
-		dumpInt("realChn",  realChannels);
+		dumpInt("realChn",  realChannels); */
 		dumpInt("effSize",  effSize);
-*/
+
 		return retVal;
 	}
 	
@@ -246,7 +246,7 @@ implementation
 		resetVChannels();
 		resetQueue();
 		nSamples = setupVirtualChannels(channels, count);
-		++size;
+		size+=step;
 		
 		call Msp430DmaChannel.setupTransfer(
 			DMA_BLOCK_TRANSFER,		// copy all samples at once
@@ -335,7 +335,7 @@ implementation
 	task void reportDone() {
 	  
 		// FIXME size > 1?
-	  	while (size > 1) {
+	  	while (size > step) {
 			signal ShimmerAdc.sampleDone(queue+head, step);
 			
 			head += step;
@@ -343,7 +343,7 @@ implementation
 				head = 0;
 				
 			atomic {
-				--size;
+				size-=step;
 			}
 		}
 		//dumpInt("size", size);
@@ -373,7 +373,7 @@ implementation
 			tail += step;
 			if (tail == effSize)
 				tail = 0;
-			++size;
+			size+=step;
 		}
 		else {
 			ASSERT(FALSE);
