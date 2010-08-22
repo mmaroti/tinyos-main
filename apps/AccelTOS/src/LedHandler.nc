@@ -49,6 +49,12 @@ interface LedHandler{
 	
 	command void errorToggle();
 	
+	command void led2On();
+	
+	command void led2Off();
+	
+	command void led12Off();
+	
 	command void set(uint8_t val);
 
 }
