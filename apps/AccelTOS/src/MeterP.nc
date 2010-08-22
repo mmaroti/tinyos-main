@@ -76,6 +76,8 @@ implementation
 		SHIMMER_ADC_BATTERY,
 		SHIMMER_ADC_TEMP,
 	};
+	
+	uint16_t counter = 0;
 
 	void dump(char* msg) {
 		if( call DiagMsg.record() ) {
@@ -122,9 +124,22 @@ implementation
 	{
 		error_t error = SUCCESS;
 		
+		uint16_t rem;
+		
 		//call LedHandler.sampling();
 
 		//dump("samplingDone");
+		
+		++counter;
+		
+		rem = counter & 0x07FF;
+		
+		if (rem==0) {
+			call LedHandler.led2On();
+		}
+		else if (rem==10) {
+			call LedHandler.led2Off();
+		}
 
 		error = call BufferedFlash.send(data, 2*length);
 		

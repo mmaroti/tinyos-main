@@ -47,13 +47,15 @@ implementation{
 	command void LedHandler.radioOff() { }
 	command void LedHandler.diskReady() { }
 	command void LedHandler.error() { }
-	command void LedHandler.msgReceived(){ }
-	command void LedHandler.sampling(){	}
-	command void LedHandler.errorToggle(){ }
-	command void LedHandler.sendingToggle(){ }
-	command void LedHandler.led2On(){ }
-	command void LedHandler.led2Off(){ }
-	command void LedHandler.led12Off(){	}
+	command void LedHandler.msgReceived() { }
+	command void LedHandler.sampling() { }
+	command void LedHandler.errorToggle() { }
+	command void LedHandler.sendingToggle() { }
+	command void LedHandler.led1On() { }
+	command void LedHandler.led1Off() { }
+	command void LedHandler.led2On() { }
+	command void LedHandler.led2Off() { }
+	command void LedHandler.led12Off() {	}
 	command void LedHandler.set(uint8_t val) {	call Leds.set(val);	}
 #else
 	command void LedHandler.radioOn() {
@@ -86,6 +88,14 @@ implementation{
 	
 	command void LedHandler.sendingToggle(){
 		call Leds.led2Toggle();		
+	}
+	
+	command void LedHandler.led1On(){
+		call Leds.led1On();
+	}
+	
+	command void LedHandler.led1Off(){
+		call Leds.led1Off();
 	}
 	
 	command void LedHandler.led2On(){

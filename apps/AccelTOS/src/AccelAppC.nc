@@ -31,34 +31,24 @@
 * Author: Ali Baharev
 */
 
-interface LedHandler{
+configuration AccelAppC {
 	
-	command void error();
+}
+
+implementation {
+
+	components MainC;
+	components AssertC;
+	components AccelAppP;
+	components SimpleFileC;
+	components LedHandlerC;
+	components MeterC;
 	
-	command void radioOn();
-	
-	command void radioOff();
-	
-	command void msgReceived();
-	
-	command void diskReady();
-	
-	command void sampling();
-	
-	command void sendingToggle();
-	
-	command void errorToggle();
-	
-	command void led1On();
-	
-	command void led1Off();
-	
-	command void led2On();
-	
-	command void led2Off();
-	
-	command void led12Off();
-	
-	command void set(uint8_t val);
+	AccelAppP.Boot -> MainC;	
+	AccelAppP.DiskCtrl -> SimpleFileC;	
+	AccelAppP.LedHandler -> LedHandlerC;
+	AccelAppP.Sampling -> MeterC.Sampling;
+	AccelAppP.MeterCtrl -> MeterC.StdControl;
 
 }
+
