@@ -33,31 +33,41 @@
 */
 package org.szte.wsn.dataprocess.file;
 
-import java.io.File;
-import java.io.FileInputStream;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 
 import org.szte.wsn.dataprocess.BinaryInterface;
+import org.szte.wsn.dataprocess.Usage;
 
 public class BinaryInterfaceFile implements BinaryInterface{
-	private File dataFile;
-	private ArrayList<byte[]>frames=new ArrayList<byte[]>();
+	private RandomAccessFile dataFile;
 	private ArrayList<Gap> gaps = new ArrayList<Gap>();    
 	private int nodeid;	
-	private int actualFrame;
+	private int offset;
+	private byte frame;
+	private byte escape;
+	private byte xorescaped;
+	private byte[] buffer;
+	
 
 	public BinaryInterfaceFile(String path, ArrayList<Gap> gaps, byte frame, byte escape, byte xorescaped) throws IOException{
+	
 		if(path.endsWith(".bin")){
 			path.lastIndexOf('/');
 			nodeid=Integer.parseInt(path.substring(path.lastIndexOf('/')+1, path.length()-4));			
 			initDataFile(path);
-			this.gaps=gaps;
-			frames=	makeFrames(frame, escape, xorescaped);	
-			actualFrame=0;
+			this.gaps=gaps;			
+			offset=0;
+			this.frame=frame;
+			this.escape=escape;
+			this.xorescaped=xorescaped;
+			initDataFile(path);
 		} else
 			throw new FileNotFoundException();
+		
 	}
 	
 	public BinaryInterfaceFile(String path,ArrayList<Gap> gaps) throws IOException{
@@ -65,7 +75,8 @@ public class BinaryInterfaceFile implements BinaryInterface{
 		
 	}
 	
-	public byte[] readNextFrame(byte[] buffer, int offset, byte frame, byte escape, byte xorescaped){
+	@Override
+	public byte[] readPacket(){		
 		if(offset>=buffer.length)
 			return null;
 		try{
@@ -85,7 +96,7 @@ public class BinaryInterfaceFile implements BinaryInterface{
 			ArrayList<Byte> onemeas=new ArrayList<Byte>();
 			while(buffer[offset]!=frame){
 				if(gaps.contains(offset)||offset>=buffer.length)//if there is a gap in the middle of the frame, than drop it, try, the next frame
-					return readNextFrame(buffer, offset, frame, escape, xorescaped);
+					return readPacket();
 				if(buffer[offset]==escape){
 					offset++;
 					buffer[offset]=(byte) (buffer[offset]^xorescaped);
@@ -103,32 +114,19 @@ public class BinaryInterfaceFile implements BinaryInterface{
 		}
 		
 	}
+
 	
-	public ArrayList<byte[]> makeFrames(byte frame, byte escape, byte xorescaped) throws IOException{
-		byte[] buffer=new byte[(int) dataFile.length()];//TODO: 2GB limit: is it a problem?
-		FileInputStream filereader=new FileInputStream(dataFile);
-		filereader.read(buffer);
-		filereader.close();
-		int offset=0;
-		ArrayList<byte[]>ret=new ArrayList<byte[]>();
-		byte[] nextframe = readNextFrame(buffer, offset, frame, escape, xorescaped);
-		while(nextframe!=null){
-			offset+=nextframe.length;
-			ret.add(nextframe);
-			nextframe = readNextFrame(buffer, offset, frame, escape, xorescaped);
-		}
-		return ret;
-	}
-	
-	
-	private void initDataFile(String path) throws FileNotFoundException{
-			this.dataFile=new File(path);
-			if(dataFile.exists())
-				System.out.print("Found datafile from #"+nodeid+".");
-			else
-				throw new FileNotFoundException();
-			
-			System.out.println("\nFile opened");		
+	private void initDataFile(String path){
+		try {
+			dataFile=new RandomAccessFile(path, "rw");
+			buffer=new byte[(int) dataFile.length()];//TODO: 2GB limit: is it a problem?
+			dataFile.readFully(buffer);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			System.out.println("Binary file not found.");
+			e.printStackTrace();
+			Usage.usageThanExit();
+		}	;	
 	}		
 	
 	public ArrayList<Gap> getGaps() {
@@ -142,23 +140,32 @@ public class BinaryInterfaceFile implements BinaryInterface{
 	public int getNodeid() {
 		return nodeid;
 	}
-	
-	public File getDataFile() {
-		return dataFile;
-	}
 
-	@Override
-	public byte[] readPacket() {
-		if (actualFrame<frames.size())			
-			return frames.get(actualFrame++);			
-		
-		else
-			return null;
-	}
 
 	@Override
 	public void writePacket(byte[] frames) {
-		// TODO Auto-generated method stub
+		try {
+			dataFile.seek(dataFile.length());
+			ArrayList<Byte> tmp=new ArrayList<Byte>();
+			tmp.add(frame);
+			for(byte part:frames)
+				if((part==frame)||(part==escape)){
+					tmp.add(escape);
+					tmp.add((byte)(part ^ xorescaped));
+					}
+				else
+					tmp.add(part);
+			tmp.add(frame);
+			Byte[] ret1= tmp.toArray(new Byte[tmp.size()]);
+			byte[] ret2=new byte[ret1.length];
+			for(int i=0;i<ret1.length;i++ )
+				ret2[i]=ret1[i].byteValue();				
+			dataFile.write(ret2);
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 
