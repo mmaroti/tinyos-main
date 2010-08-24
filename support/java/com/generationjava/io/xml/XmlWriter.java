@@ -241,7 +241,7 @@ public class XmlWriter {
         
         System.err.println(writer.toString());
         try{
-        FileWriter fstream = new FileWriter("./xml/SavedConfout.xml");
+        FileWriter fstream = new FileWriter("./org/szte/wsn/SnifferGraph/SavedConfout.xml");
         BufferedWriter out = new BufferedWriter(fstream);
        
 		out.write(header());
