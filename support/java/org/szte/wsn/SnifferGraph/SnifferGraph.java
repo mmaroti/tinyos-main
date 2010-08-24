@@ -1,4 +1,43 @@
+/** Copyright (c) 2010, University of Szeged
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions
+* are met:
+*
+* - Redistributions of source code must retain the above copyright
+* notice, this list of conditions and the following disclaimer.
+* - Redistributions in binary form must reproduce the above
+* copyright notice, this list of conditions and the following
+* disclaimer in the documentation and/or other materials provided
+* with the distribution.
+* - Neither the name of University of Szeged nor the names of its
+* contributors may be used to endorse or promote products derived
+* from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+* COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+* OF THE POSSIBILITY OF SUCH DAMAGE.
+*
+* @author Nemeth Gabor, Nyilas Sandor Karoly
+* 
+* This program is created to be the GUI for the Sniffer Wireless Project
+* 
+* 
+* @version 0.3
+*/
+
 package org.szte.wsn.SnifferGraph;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Event;
@@ -26,14 +65,6 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 
 import org.szte.wsn.SnifferGraph.config.*;
-
-/**
- * @author Nemeth Gabor, Nyilas Sandor Karoly
- * This program is created to be the GUI for the Sniffer Wireless Project
- * 
- * 
- * @version 0.3
- */
 
 public class SnifferGraph implements DataBase{	
 	
@@ -170,7 +201,7 @@ public class SnifferGraph implements DataBase{
         } else {
             //cancel
         }
-		// TODO Auto-generated method stub
+		// TODO
 		
 	}
 	/**
@@ -178,7 +209,7 @@ public class SnifferGraph implements DataBase{
 	 */
 	protected void createConfiguration() {						
 		System.out.println("createop");
-		// TODO Auto-generated method stub
+		// TODO
 		new CreateConfGUI();
 	}
 	/**
@@ -416,7 +447,18 @@ public class SnifferGraph implements DataBase{
 	 * This Older function  specified where to align exactly the objects on the workspace.
 	 */
 	private void baseSetings() {
-		//TODO        
+		//TODO
+		for(int i = 0; i<dataPanel.size();i++){
+			dataPanel.get(i).setVisible(false);
+			backgPanel.remove(dataPanel.get(i));
+		}
+		int dataPanelLength = dataPanel.size();
+		for(int i = 0; i<dataPanelLength; i++){
+			dataPanel.remove(0);
+		}
+		
+		scrollbar.setMaximum(DataBase.screenWidth);
+		scrollbar.setValue(0);
 	}
 
 	/**
@@ -549,7 +591,7 @@ public class SnifferGraph implements DataBase{
 			scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
 		}
 		do{
-			if(RandomString.getAnewInput()){
+			if(RandomString.getAnewInput() && main.start.getText().equals("Stop")){
 				int first = RandomString.getAnumber(motes.get(motes.size()-1).stopTime);
 				int second = RandomString.getAnumber(first);
 				motes.add(new Mote(first, second, RandomString.getRandomMoteStrings(4)));
@@ -557,8 +599,9 @@ public class SnifferGraph implements DataBase{
 				dataPanel.get(dataPanel.size()-1).setVisible(true);
 				backgPanel.add(dataPanel.get(dataPanel.size()-1));
 				scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
-				scrollbar.setValue(scrollbar.getValue()+1);
-				scrollbar.setValue(scrollbar.getValue()-1);
+				scrollbar.setValue(scrollbar.getMaximum()-DataBase.screenWidth+400);
+				//scrollbar.setValue(scrollbar.getValue()+1);
+				//scrollbar.setValue(scrollbar.getValue()-1);
 			}
 		}while(true);
 		
