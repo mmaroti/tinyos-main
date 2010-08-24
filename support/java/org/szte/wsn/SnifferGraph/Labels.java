@@ -46,6 +46,6 @@ public final class Labels {
 	public static final String tooltips_clear = "Clearing the workspace";
 	public static final String tooltips_fileClose = "Exit application";
 	
-	public static final String path = "./xml/conf.xml";
+	public static final String path = "./org/szte/wsn/SnifferGraph/xml/conf.xml";
 
 }

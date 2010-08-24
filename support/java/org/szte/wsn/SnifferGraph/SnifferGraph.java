@@ -3,6 +3,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Event;
 import java.awt.FlowLayout;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -234,22 +235,22 @@ public class SnifferGraph implements DataBase{
         
         snfG.setSize(800, 600);					
         snfG.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);		
-        snfG.setExtendedState(snfG.getExtendedState() /*| Frame.MAXIMIZED_BOTH*/);	
+        //snfG.setExtendedState(snfG.getExtendedState() | snfG.MAXIMIZED_BOTH);
         snfG.setVisible(true);
    }
 	
 	private void creatToolBar() {
-		exit_toolbar = new ToolBarButton("./src/Icon/Exit.png");
+		exit_toolbar = new ToolBarButton("./org/szte/wsn/SnifferGraph/icon/Exit.png");
 		exit_toolbar.setToolTipText("Exit");
-		about_toolbar = new ToolBarButton("./src/Icon/About.png");
+		about_toolbar = new ToolBarButton("./org/szte/wsn/SnifferGraph/icon/About.png");
 		about_toolbar.setToolTipText("About to Sniffer");
-	    creat_toolbar = new ToolBarButton("./src/Icon/Create-Configuration.png");
+	    creat_toolbar = new ToolBarButton("./org/szte/wsn/SnifferGraph/icon/Create-Configuration.png");
 	    creat_toolbar.setToolTipText("Creat a new conf file");
-	    load_toolbar = new ToolBarButton("./src/Icon/Load-Packages.png");
+	    load_toolbar = new ToolBarButton("./org/szte/wsn/SnifferGraph/icon/Load-Packages.png");
 	    load_toolbar.setToolTipText("Load a history");
-	    open_conf_toolbar = new ToolBarButton("./src/Icon/Open-Configuration.png");
+	    open_conf_toolbar = new ToolBarButton("./org/szte/wsn/SnifferGraph/icon/Open-Configuration.png");
 	    open_conf_toolbar.setToolTipText("Open a conf file");
-	    save_toolbar = new ToolBarButton("./src/Icon/Save.png");
+	    save_toolbar = new ToolBarButton("./org/szte/wsn/SnifferGraph/icon/Save.png");
 	    save_toolbar.setToolTipText("Save a history");
 	}
 	/**
@@ -536,6 +537,7 @@ public class SnifferGraph implements DataBase{
 	
 	public static void main(String[] args) {
 		SnifferGraph main = new SnifferGraph();
+		main.snfG.setExtendedState(main.snfG.getExtendedState() | Frame.MAXIMIZED_BOTH);
 		for(int i = 0; i<1; i++){
 			String[] moteLabelNames = {"Elso", "Masodik", "Harmadik", "Negyedik"};
 			motes.add(new Mote(i, ++i, moteLabelNames));
@@ -547,7 +549,7 @@ public class SnifferGraph implements DataBase{
 			scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
 		}
 		do{
-			if(main.startStop.getText().equals("Working") && RandomString.getAnewInput()){
+			if(RandomString.getAnewInput()){
 				int first = RandomString.getAnumber(motes.get(motes.size()-1).stopTime);
 				int second = RandomString.getAnumber(first);
 				motes.add(new Mote(first, second, RandomString.getRandomMoteStrings(4)));
@@ -557,10 +559,8 @@ public class SnifferGraph implements DataBase{
 				scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
 				scrollbar.setValue(scrollbar.getValue()+1);
 				scrollbar.setValue(scrollbar.getValue()-1);
-				main.receivedPack.setText(String.valueOf(Integer.parseInt(main.receivedPack.getText())+1));
 			}
 		}while(true);
-		
 		
 	} 
 }
