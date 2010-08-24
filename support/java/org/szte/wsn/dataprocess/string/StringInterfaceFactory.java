@@ -47,15 +47,18 @@ public class StringInterfaceFactory {
 	 * 
 	 * @param type can be "file" or "console"
 	 * @param source String path of the source
+	 * @param packetParsers array of available PacketParsers
+	 * @param separator the string that separates the data in the output
+	 * @param showName controls whether the name of the PacketParser should be written in the file
 	 * @return a StringInterface instance with the specified params
 	 */
-	public static StringInterface getStringInterface(String type, String source, PacketParser[] packetParsers,boolean showName){
+	public static StringInterface getStringInterface(String type, String source, PacketParser[] packetParsers,String separator, boolean showName){
 		if(type.equals("file"))
-			return new StringInterfaceFile(",", source, packetParsers,showName);
+			return new StringInterfaceFile(separator, source, packetParsers,showName);
 			
 		
 		else //if (type.equals("console"))
-			return new StringInterfaceConsole(",", packetParsers);
+			return new StringInterfaceConsole(separator, packetParsers, showName);
 
 	}
 	

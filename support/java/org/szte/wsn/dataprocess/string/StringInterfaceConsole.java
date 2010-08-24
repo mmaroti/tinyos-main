@@ -51,11 +51,13 @@ public class StringInterfaceConsole implements StringInterface {
 	String separator;
 	String previous;
 	PacketParser[] packetParsers;
+	boolean showName;
 
-	public StringInterfaceConsole(String separator, PacketParser[] packetParsers){
+	public StringInterfaceConsole(String separator, PacketParser[] packetParsers, boolean showName){
 		this.separator=separator;
 		this.packetParsers=packetParsers;
 		previous="";
+		this.showName=showName;
 	}
 
 
@@ -67,13 +69,15 @@ public class StringInterfaceConsole implements StringInterface {
 	public void writePacket(StringPacket packet) {
 		if (packet.getData()!=null){			
 			if(!packet.getName().equals(previous)){
-				System.out.print(packet.getName()+separator);
+				if(showName)
+					System.out.print(packet.getName()+separator);
 				for(String head:packet.getFields())
 					System.out.print(head+separator);
 
 				System.out.println();			
 			}
-			System.out.print(packet.getName()+separator);
+			if(showName)
+				System.out.print(packet.getName()+separator);
 			for(String data:packet.getData()){			
 				System.out.print(data+separator);
 			}
@@ -98,7 +102,7 @@ public class StringInterfaceConsole implements StringInterface {
 			if(pp!=null){
 				if(pp.getFields().length==0)
 					return new StringPacket(pp.getName(),new String[0]);				
-				
+
 				System.out.println("Do you want to give the fields in custom order?(y/n)");
 				String customOrder=in.readLine();
 				if(customOrder.equalsIgnoreCase("n"))
@@ -112,13 +116,13 @@ public class StringInterfaceConsole implements StringInterface {
 						System.out.print("Input error");
 						Usage.usageThanExit();
 					}	
-						
+
 				}
 				else{
 					System.out.println("Give me the fields in your custom order, seperated with: "+separator);
 					for(String str:pp.getFields())
 						System.out.print(str+",");
-					
+
 					System.out.flush();
 					String[] fields=in.readLine().split(separator);
 					if(fields.length!=pp.getFields().length)

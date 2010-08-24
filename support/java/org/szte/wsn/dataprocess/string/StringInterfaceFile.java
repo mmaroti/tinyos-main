@@ -40,7 +40,6 @@ import org.szte.wsn.dataprocess.PacketParser;
 import org.szte.wsn.dataprocess.PacketParserFactory;
 import org.szte.wsn.dataprocess.StringInterface;
 
-
 /**
  * 
  * @author Miklos Toth
@@ -48,13 +47,20 @@ import org.szte.wsn.dataprocess.StringInterface;
  *	writes and reads strings with file
  */
 public class StringInterfaceFile implements StringInterface {
-	String separator;
+	String separator;   
 	String previous;
-	PacketParser[] packetParsers;
-	long readPointer;
+	PacketParser[] packetParsers;   //array of the available PacketParsers
+	long readPointer;		//the position of the next byte to read
 	RandomAccessFile file;
-	boolean showName;
+	boolean showName;      //controls whether the name of the PacketParser should be writed in the file
 
+	/**
+	 * 
+	 * @param separator the string that separates the data in the output
+	 * @param path file path String
+	 * @param packetParsers array of the available PacketParsers
+	 * @param showName controls whether the name of the PacketParser should be written in the file
+	 */	
 	public StringInterfaceFile(String separator, String path, PacketParser[] packetParsers, boolean showName ){
 		this.separator=separator;  
 		this.packetParsers=packetParsers;
@@ -63,10 +69,12 @@ public class StringInterfaceFile implements StringInterface {
 		this.showName=showName;
 		try {
 			file=new RandomAccessFile(path, "rw");
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
+		} 
+		catch (FileNotFoundException e) {
+			System.out.println("Unable to open/create string file!");
 			e.printStackTrace();
-		}	;
+		}	
+		
 	}
 	
 
@@ -98,7 +106,7 @@ public class StringInterfaceFile implements StringInterface {
 
 
 		}catch (Exception e){		//Catch exception if any
-			System.err.println("Error: " + e.getMessage());
+			System.err.println("Error writing string file: " + e.getMessage());
 		}
 	}
 
@@ -144,7 +152,8 @@ public class StringInterfaceFile implements StringInterface {
 			
 
 		}catch (Exception e){//Catch exception if any
-			System.err.println("Error: " + e.getMessage());
+			System.err.println("Error reading string file: " + e.getMessage());
+			
 		}
 		return ret;
 	
