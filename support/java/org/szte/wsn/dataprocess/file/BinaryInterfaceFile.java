@@ -34,7 +34,6 @@
 package org.szte.wsn.dataprocess.file;
 
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -45,37 +44,43 @@ import org.szte.wsn.dataprocess.Usage;
 public class BinaryInterfaceFile implements BinaryInterface{
 	private RandomAccessFile dataFile;
 	private ArrayList<Gap> gaps = new ArrayList<Gap>();    
-	private int nodeid;	
 	private int offset;
 	private byte frame;
 	private byte escape;
 	private byte xorescaped;
 	private byte[] buffer;
 	
-
-	public BinaryInterfaceFile(String path, ArrayList<Gap> gaps, byte frame, byte escape, byte xorescaped) throws IOException{
-	
-		if(path.endsWith(".bin")){
-			path.lastIndexOf('/');
-			nodeid=Integer.parseInt(path.substring(path.lastIndexOf('/')+1, path.length()-4));			
-			initDataFile(path);
+	/**
+	 * 
+	 * @param path binary file path
+	 * @param gaps ArrayList of gaps
+	 * @param frame byte code of the frame border
+	 * @param escape byte code of the escaping
+	 * @param xorescaped byte code of the xor
+	 */
+	public BinaryInterfaceFile(String path, ArrayList<Gap> gaps, byte frame, byte escape, byte xorescaped){
 			this.gaps=gaps;			
-			offset=0;
 			this.frame=frame;
 			this.escape=escape;
 			this.xorescaped=xorescaped;
-			initDataFile(path);
-		} else
-			throw new FileNotFoundException();
-		
+			
+			offset=0;
+			initDataFile(path);		
 	}
 	
-	public BinaryInterfaceFile(String path,ArrayList<Gap> gaps) throws IOException{
-		this(path,gaps,(byte)0x5e,(byte)0x5d,(byte)0x20);
-		
+	/**
+	 * 
+	 * @param path binary file path
+	 * @param gaps ArrayList of gaps
+	 */
+	public BinaryInterfaceFile(String path,ArrayList<Gap> gaps){
+		this(path,gaps,(byte)0x5e,(byte)0x5d,(byte)0x20);		
 	}
 	
 	@Override
+	/**
+	 * reads one frame from the binary file
+	 */
 	public byte[] readPacket(){		
 		if(offset>=buffer.length)
 			return null;
@@ -115,7 +120,10 @@ public class BinaryInterfaceFile implements BinaryInterface{
 		
 	}
 
-	
+	/**
+	 * 
+	 * @param path binary file path
+	 */
 	private void initDataFile(String path){
 		try {
 			dataFile=new RandomAccessFile(path, "rw");
@@ -123,26 +131,16 @@ public class BinaryInterfaceFile implements BinaryInterface{
 			dataFile.readFully(buffer);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			System.out.println("Binary file not found.");
+			System.out.println("Binary file could not open/create.");
 			e.printStackTrace();
 			Usage.usageThanExit();
 		}	;	
 	}		
-	
-	public ArrayList<Gap> getGaps() {
-		return gaps;
-	}
-	public void setGaps(ArrayList<Gap> gaps) {
-		this.gaps = gaps;
-	}
-
-
-	public int getNodeid() {
-		return nodeid;
-	}
-
 
 	@Override
+	/**
+	 * writes one frame to the binary file
+	 */
 	public void writePacket(byte[] frames) {
 		try {
 			dataFile.seek(dataFile.length());
