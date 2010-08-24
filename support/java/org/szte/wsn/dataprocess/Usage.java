@@ -36,11 +36,13 @@ package org.szte.wsn.dataprocess;
 public class Usage {
 	public static void usageThanExit(){
 		System.out.println("Usage:");
-		System.out.println("java Transfer readMode sourcePath writeMode destinationPath structureFile toString");
-		System.out.println("java Transfer file 0.bin console stdOut structs.txt toString		-reads 0.bin to Console");
-		System.out.println("java Transfer file . console stdOut structs.txt	toString		-scans the actual directory for .bin files");
-		System.out.println("java Transfer serial serial@/dev/ttyUSB1:57600 console stdOut structs.txt toString -reads from the serialSource on USB1, ");
-		
+		System.out.println("java Transfer readMode sourcePath writeMode destinationPath structureFile toString seperator showname");
+		System.out.println("java Transfer file 0.bin console stdOut structs.txt	toBinary , no		-reads from console writes to 0.bin, separator=, doesn't shows name");
+		System.out.println("java Transfer serial serial@/dev/ttyUSB1:57600 file foo.txt structs.txt toString : showName -reads from the serialSource on USB1, writes to foo.txt, separator=: shows the name of struct ");
+		System.out.println("If you want to write from .bin to a file, than only need 1 argument");
+		System.out.println("java Transfer sourcefile");		
+		System.out.println("java Transfer 0.bin  -reads 0.bin to 0.txt");		
+		System.out.println("java Transfer .  -scans the directory for .bin files, parse them, and writes to txt");	
 		System.exit(1);
 	}
 }

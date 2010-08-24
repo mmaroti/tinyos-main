@@ -50,14 +50,9 @@ public class PacketParserFactory {
 	/**
 	 * 
 	 * @param fileName location of configuration file
-	 * if no structure file name is provided, structs.txt
-	 *  will be loaded from the current directory
 	 */
-	public PacketParserFactory(String fileName){	
-		if(fileName.length()>0)
-			loadConfig(fileName);
-		else
-			loadConfig("structs.txt");
+	public PacketParserFactory(String fileName){			
+			loadConfig(fileName);		
 	}
 	/**
 	 * 

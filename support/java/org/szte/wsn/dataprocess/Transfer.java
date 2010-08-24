@@ -33,6 +33,8 @@
  */
 package org.szte.wsn.dataprocess;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import org.szte.wsn.dataprocess.string.StringInterfaceFactory;
 import org.szte.wsn.dataprocess.string.StringPacket;
@@ -54,19 +56,37 @@ public class Transfer extends Thread  {
 	 * Sets the interfaces from String parameters
 	 * @param binaryType
 	 * @param binaryPath
-	 * @param stringType
+	 * @param stringType 
 	 * @param stringPath
-	 * @param structPath
+	 * @param structPath path of the struct file
 	 * @param toString if true writes from binary to string, else writes from string to binary 
+	 * @param separator the string that separates the data in the output
+	 * @param showName controls whether the name of the PacketParser should be written in the file
 	 */
-	public Transfer(String binaryType, String binaryPath, String stringType, String stringPath, String structPath, boolean toString,boolean showName){
+	public Transfer(String binaryType, String binaryPath, String stringType, String stringPath, String structPath, boolean toString, String separator,boolean showName){
 		packetParsers=new PacketParserFactory(structPath).getParsers();
 		binary=BinaryInterfaceFactory.getBinaryInterface(binaryType, binaryPath);	
-		string=StringInterfaceFactory.getStringInterface(stringType, stringPath, packetParsers,showName);
+		string=StringInterfaceFactory.getStringInterface(stringType, stringPath, packetParsers, separator, showName);
 		this.toString=toString;
 		if((binary==null)||(string==null))
 			Usage.usageThanExit();
 	}
+
+	/**
+	 * Simple constructor to read from a binary file to a string file, uses structs.txt
+	 * @param binaryPath
+	 * @param stringPath
+	 */
+	public Transfer(String binaryPath, String stringPath){
+		packetParsers=new PacketParserFactory("structs.txt").getParsers();
+		binary=BinaryInterfaceFactory.getBinaryInterface("file", binaryPath);	
+		string=StringInterfaceFactory.getStringInterface("file", stringPath, packetParsers, ",", true); 
+		//separates with "," writes the name of the struct
+		this.toString=true;
+		if((binary==null)||(string==null))
+			Usage.usageThanExit();
+	}
+
 
 	/**
 	 * Sets the interfaces from complex parameters
@@ -103,61 +123,69 @@ public class Transfer extends Thread  {
 			StringPacket sp=string.readPacket();
 			while(sp!=null){
 				PacketParser pp=PacketParserFactory.getParser(sp.getName(), packetParsers);
-				
-					try {
-						binary.writePacket(pp.construct(sp.getData()));
-					} catch (IOException e) {
 
-						e.printStackTrace();
-						Usage.usageThanExit();
-					}		
-				
+				try {
+					binary.writePacket(pp.construct(sp.getData()));
+				} catch (IOException e) {
+
+					e.printStackTrace();
+					Usage.usageThanExit();
+				}		
+
 				sp=string.readPacket();
 			}
-			
+
 		}	
 
 	}
 
 
 	public static void main(String[] args) {	
-	
-		if(args.length<6)
+
+		switch (args.length) {
+		case 1:
+			File path = new File(args[0]);
+			String[] fileNames;
+			if (path.isFile()) {
+				fileNames=new String[]{args[0]};				
+			}
+			else if (path.isDirectory()){
+				FilenameFilter filter = new FilenameFilter() 
+				{ 
+					@Override
+					public boolean accept(File path, String name) 
+					{
+						return name.endsWith(".bin");
+					}
+				}; 
+				fileNames = path.list(filter);
+			}
+			else{
+				fileNames=null;
+				Usage.usageThanExit();
+			}
+			for(String file:fileNames){
+				Transfer fp=new Transfer(file,file.substring(0,file.length()-5)+".txt");
+				fp.start();
+			}
+			break;
+
+		case 8:
+			boolean toStr=false;
+			if (args[5].equals("toString"))
+				toStr=true;
+			boolean show=false;
+			if (args[7].equals("showName"))
+				show=true;
+			Transfer fp1=new Transfer(args[0],args[1],args[2],args[3],args[4],toStr,args[6], show);
+			fp1.start();
+			break;
+		default:
 			Usage.usageThanExit();
-		boolean toStr=false;
-		if (args[5].equals("toString"))
-			toStr=true;
-		boolean show=false;
-		if (args[6].equals("showName"))
-			show=true;
-		Transfer fp=new Transfer(args[0],args[1],args[2],args[3],args[4],toStr,show);
-		fp.start();
-		
-		/*
-		PacketParser[] parsers=new PacketParserFactory("structs_graph.txt").getParsers();	
-		
-		String[] name=new String[11];
-		name[0] = "indul_forgat_napra_ki";
-		name[1] = "forgat_naprol_be";
-		name[2] = "hutobe_be";
-		name[3] = "hutobol_ki_forgat";
-		name[4] = "forgat_hutobe_vissza";
-		name[5] = "hutobol_ki_forgat_vissza";
-		name[6] = "hutobol_ki_forgat";
-		name[7] = "forgat_hutobe_be";
-		name[8] = "hutobol_ki_forgat";
-		name[9] = "forgat_asztalon_szobaban";
-		name[10]= "asztalon_forgat";
-		for(int i=0;i<11;i++){
-		BinaryInterface bin=BinaryInterfaceFactory.getBinaryInterface("battery",i+".bin" );	
-		StringInterface str=StringInterfaceFactory.getStringInterface("file", i+name[i]+".csv",parsers,false);
-		//Transfer fp=new Transfer(parsers,bin,str,false);
-		Transfer fp2=new Transfer(parsers,bin,str,true);
-		//fp.start();
-		
-		fp2.start();
-		}*/
-		
+			break;
+		}
+
+
 	}
 
 }

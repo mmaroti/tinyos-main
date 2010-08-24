@@ -33,7 +33,6 @@
  */
 package org.szte.wsn.dataprocess;
 
-import java.io.IOException;
 import org.szte.wsn.dataprocess.file.*;
 
 /**
@@ -51,22 +50,14 @@ public class BinaryInterfaceFactory {
 	 */
 	public static BinaryInterface getBinaryInterface(String type, String source){
 		if(type.equals("file")){
-			try {
 				GapConsumer gp=new GapConsumer(source);
-				return new BinaryInterfaceFile(source, gp.getGaps());
-			}
-			catch (IOException e) {
-				e.printStackTrace();					
-				Usage.usageThanExit();
-				return null;
-			}				
+				return new BinaryInterfaceFile(source, gp.getGaps());				
 		}
 		if(type.equals("shimmer"))
 			return new BinaryInterfaceShimmer(source);
 		
 		else //if (type.equals("serial"))
 			return new BinaryInterfaceSerial(source);
-
 	}
 	
 }
