@@ -25,7 +25,7 @@
 
 #ifndef __DFRFENGINE_H__
 #define __DFRFENGINE_H__
-
+#include "message.h"
 /**
 * Block is an encapsulation of data packet that is routed.
 * Blocks are stored sequentially in a buffer that the user of FloodRouting
@@ -74,6 +74,7 @@ typedef nx_struct dfrf_msg
 enum
 {
 	AM_DFRF_MSG = 0x82,
+	DFRF_DATA_LENGTH=TOSH_DATA_LENGTH-sizeof(dfrf_msg_t)-2,
 };
 
 #endif// __DFRFENGINE_H__

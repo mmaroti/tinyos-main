@@ -51,6 +51,9 @@
 
 interface DfrfPolicy
 {
+  
+	command uint8_t getSendDonePriority();
+	
 	/**
 	 * Fired by the flood routing engine to get the "location" of
 	 * this node. The meaning of the "location" is policy dependent:

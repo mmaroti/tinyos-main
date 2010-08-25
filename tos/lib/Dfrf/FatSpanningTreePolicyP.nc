@@ -34,9 +34,13 @@ implementation
 
 /*
 	0 --sent--> 1 --tick--> 3 --tick--> 4 --sent--> 5 --tick--> 6 --sent--> 7
-	7 --tick--> 9 --tick--> ... --tick--> 65 --tick--> 0xff
+	7 --sendDone--> 9 --tick--> ... --tick--> 65 --tick--> 0xff
 */
 
+	command uint8_t DfrfPolicy.getSendDonePriority(){
+		return 7;
+	}
+	
 	command uint16_t DfrfPolicy.getLocation()
 	{
 		return call Convergecast.grandParent();
@@ -77,7 +81,7 @@ implementation
 		else if( priority < 7 && (location == call Convergecast.greatGrandParent() || location == call Convergecast.greatGreatGrandParent() ))
 			return 7;
 		else if( priority > 7 && (location == call AMPacket.address() ||location == call Convergecast.parent() || location == call Convergecast.grandParent()))
-			return 7;
+			return 9;
 		else
 			return priority;
 	}

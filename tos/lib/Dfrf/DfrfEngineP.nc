@@ -367,9 +367,12 @@ implementation
 			{
 				struct block *block = getBlock(desc, pkt);
 
-				if( block->priority != 0xFF )
+				if( block->priority != 0xFF ){
 					block->priority = call DfrfPolicy.sent[appId](block->priority);
-
+					if(block->priority==call DfrfPolicy.getSendDonePriority[appId]()){
+					  signal DfrfSend.sendDone[appId](block->data);
+					}
+				}
 				pkt = nextPacket(&txMsg, call Packet.payloadLength(&txMsg), pkt, desc->dataLength);
 			}
 		}
@@ -420,6 +423,9 @@ implementation
 				}
 
 				block->priority = call DfrfPolicy.received[appId](msg->location, block->priority);
+				if(block->priority==call DfrfPolicy.getSendDonePriority[appId]()){
+					signal DfrfSend.sendDone[appId](block->data);
+				}
 				if ( (block->priority & 0x01) == 0 )
 					desc->dirty = DIRTY_SENDING;
 				else
@@ -484,6 +490,9 @@ implementation
 					if( block->priority != 0xFF )
 					{
 						block->priority = call DfrfPolicy.age[desc->appId](block->priority);
+						if(block->priority==call DfrfPolicy.getSendDonePriority[desc->appId]()){
+							signal DfrfSend.sendDone[desc->appId](block->data);
+						}
 
 						if( (block->priority & 0x01) == 0 )
 							desc->dirty = DIRTY_SENDING;
@@ -596,10 +605,13 @@ implementation
 		}
 	}
 
+	default command uint8_t DfrfPolicy.getSendDonePriority[uint8_t id]() {return 0;}
+	
 	default command uint16_t DfrfPolicy.getLocation[uint8_t id]() { return 0; }
 	default command uint8_t DfrfPolicy.sent[uint8_t id](uint8_t priority) { return 0xFF; }
 	default command bool DfrfPolicy.accept[uint8_t id](uint16_t location) { return FALSE; }
 	default command uint8_t DfrfPolicy.received[uint8_t id](uint16_t location, uint8_t priority) { return 0xFF; }
 	default command uint8_t DfrfPolicy.age[uint8_t id](uint8_t priority) { return priority; }
 	default event bool DfrfReceive.receive[uint8_t id](void *data) { return FALSE; }
+	default event void DfrfSend.sendDone[uint8_t id](void *data) {  }
 }

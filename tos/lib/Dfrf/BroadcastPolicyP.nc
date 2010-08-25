@@ -66,6 +66,11 @@ module BroadcastPolicyP
 
 implementation
 {
+  
+	command uint8_t DfrfPolicy.getSendDonePriority(){
+		return 7;
+	}
+	
 	//Broadcast policy is not location aware
 	command uint16_t DfrfPolicy.getLocation()
 	{
@@ -87,8 +92,10 @@ implementation
 	{
 		if( priority <= 2 )
 			return 2;
-		else
+		else if(priority<7)
 			return 3;
+		else
+			return 9;
 	}
 
 	command uint8_t DfrfPolicy.age(uint8_t priority)

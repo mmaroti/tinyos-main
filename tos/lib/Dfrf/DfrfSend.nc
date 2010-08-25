@@ -36,4 +36,6 @@ interface DfrfSend
 	 *	FAIL if the same data is already scheduled.
 	 */
 	command error_t send(void *data);
+	
+	event void sendDone(void *data);
 }

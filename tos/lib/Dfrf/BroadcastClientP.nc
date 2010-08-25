@@ -67,6 +67,10 @@ implementation
 		
 		return call SubSend.send(&combined);
 	}
+	
+	event void SubSend.sendDone(void *data){
+		signal DfrfSend.sendDone(data);
+	}
 
 	event bool SubReceive.receive(void *combined_raw)
 	{
@@ -84,4 +88,6 @@ implementation
 	{
 		return TRUE;
 	}
+	
+	default event void DfrfSend.sendDone(void *data){}
 }

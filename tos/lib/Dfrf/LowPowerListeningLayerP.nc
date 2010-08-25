@@ -174,7 +174,7 @@ implementation
 		else if( state == SEND_TIMER )
 		{
 			if((call Config.needsAutoAckRequest(txMsg))||
-			   (uint32_t)(call Timer.getNow()-lastSend+call Config.getListenLength())>call LowPowerListening.getRemoteWakeupInterval(txMsg)){
+			   (uint32_t)(call Timer.getNow()-lastSend+call Config.getListenLength())>call SystemLowPowerListening.getDelayAfterReceive()){
 				
 				transmitInterval = call LowPowerListening.getRemoteWakeupInterval(txMsg);
 	
