@@ -112,7 +112,8 @@ public class Transfer extends Thread  {
 			while(data!=null){
 				for (PacketParser pp:packetParsers){
 					if(pp.parse(data)!=null){
-						string.writePacket(new StringPacket(pp.getName(),pp.getFields(),pp.parse(data)));		
+						string.writePacket(new StringPacket(pp.getName(),pp.getFields(),pp.parse(data)));
+					//if the second parameter is different from pp.getFields than it will control the order of writing	
 					}
 
 				}
