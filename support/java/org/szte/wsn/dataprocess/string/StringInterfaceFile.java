@@ -39,6 +39,8 @@ import java.io.RandomAccessFile;
 import org.szte.wsn.dataprocess.PacketParser;
 import org.szte.wsn.dataprocess.PacketParserFactory;
 import org.szte.wsn.dataprocess.StringInterface;
+import org.szte.wsn.dataprocess.Usage;
+
 
 /**
  * 
@@ -48,7 +50,7 @@ import org.szte.wsn.dataprocess.StringInterface;
  */
 public class StringInterfaceFile implements StringInterface {
 	String separator;   
-	String previous;
+	StringPacket previous;
 	PacketParser[] packetParsers;   //array of the available PacketParsers
 	long readPointer;		//the position of the next byte to read
 	RandomAccessFile file;
@@ -64,7 +66,7 @@ public class StringInterfaceFile implements StringInterface {
 	public StringInterfaceFile(String separator, String path, PacketParser[] packetParsers, boolean showName ){
 		this.separator=separator;  
 		this.packetParsers=packetParsers;
-		previous="";
+		previous=new StringPacket("", new String[]{});
 		readPointer=0;
 		this.showName=showName;
 		try {
@@ -74,9 +76,9 @@ public class StringInterfaceFile implements StringInterface {
 			System.out.println("Unable to open/create string file!");
 			e.printStackTrace();
 		}	
-		
+
 	}
-	
+
 
 	@Override
 	/**
@@ -86,22 +88,33 @@ public class StringInterfaceFile implements StringInterface {
 	public void writePacket(StringPacket packet) {
 		try{			
 			if (packet.getData()!=null){
-				file.seek(file.length());
-				
-				if(!packet.getName().equals(previous)){	
-					if(showName)file.writeBytes(packet.getName()+separator);
+				file.seek(file.length());   //jump to the end of the file
+
+				if(!packet.getName().equals(previous.getName())){	
+					if(showName)
+						file.writeBytes(packet.getName()+separator);
 					for(String head:packet.getFields())
 						file.writeBytes(head+separator);
 					file.seek(file.getFilePointer()-separator.length()); //deletes the last separator
 					file.writeBytes("\n");
 				}
-				if(showName)file.writeBytes(packet.getName()+separator);
+				if(showName)
+					file.writeBytes(packet.getName()+separator);
+				PacketParser pp=PacketParserFactory.getParser(packet.getName(), packetParsers);
+				String[] tmp= new String[pp.getFields().length];
+				if(!pp.getFields().equals(packet.getData()))					
+					for (int i=0;i<pp.getFields().length;i++)
+						for(int j=0;j<pp.getFields().length;j++)
+							if(pp.getFields()[i]==packet.getFields()[j])
+								tmp[j]=packet.getData()[i];
+				packet.setData(tmp);
+				
 				for(String data:packet.getData()){			
 					file.writeBytes(data+separator);
 				}
 				file.seek(file.getFilePointer()-separator.length()); //deletes the last separator
 				file.writeBytes("\n");
-				previous=packet.getName();
+				previous=new StringPacket(packet.getName(), packet.getFields(),new String[]{}); //stores the field order
 			}
 
 
@@ -120,43 +133,49 @@ public class StringInterfaceFile implements StringInterface {
 		try{
 			file.seek(readPointer);
 			String line=file.readLine();
-			readPointer+=line.length();
+			if(line==null)
+				return null;
+			readPointer+=line.length()+1;
 			String[] parts=line.split(separator);
-			
+
 			String structName=parts[0];
 			PacketParser pp=PacketParserFactory.getParser(structName, packetParsers );
+			if(pp==null){
+				System.out.println("Not existing struct!");
+				Usage.usageThanExit();
+			}
 			String[] fields;
-			if(!pp.getName().equals(previous))
+			if(!pp.getName().equals(previous.getName()))   //custom field order
 			{
 				fields=new String[pp.getFields().length];
 				System.arraycopy(parts, 1, fields, 0, parts.length-1);
+				line=file.readLine();
+				readPointer+=line.length()+1;
 			}
 			else{
-				fields=pp.getFields();
-			}
-			line=file.readLine();
-			readPointer+=line.length();
+				fields=previous.getFields();
+			}			
 			parts=line.split(separator);
-			
+
 			String[] data=new String[pp.getFields().length];
 			System.arraycopy(parts, 1, data, 0, parts.length-1);
-			
+
 			String temp[]=new String[data.length];
 			for(int i=0;i<fields.length;i++)
 				temp[i]="";
-			for(int j=0;j<fields.length;j++)
+			for(int j=0;j<fields.length;j++)   //custom sort order
 				for(int i=0;i<fields.length;i++)
 					if(fields[j].equals(pp.getFields()[i]))
 						temp[j]=data[i];								
-			 ret=new StringPacket(structName,temp);
-			
+			ret=new StringPacket(structName,temp);
+			previous=new StringPacket(structName, fields,new String[]{}); //stores the field order
 
 		}catch (Exception e){//Catch exception if any
 			System.err.println("Error reading string file: " + e.getMessage());
-			
+
 		}
 		return ret;
-	
+
 	}
 }
 

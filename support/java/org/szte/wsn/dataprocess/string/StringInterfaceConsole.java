@@ -49,14 +49,14 @@ import org.szte.wsn.dataprocess.StringInterface;
  */
 public class StringInterfaceConsole implements StringInterface {
 	String separator;
-	String previous;
+	StringPacket previous;
 	PacketParser[] packetParsers;
 	boolean showName;
 
 	public StringInterfaceConsole(String separator, PacketParser[] packetParsers, boolean showName){
 		this.separator=separator;
 		this.packetParsers=packetParsers;
-		previous="";
+		previous=new StringPacket("", new String[]{});
 		this.showName=showName;
 	}
 
@@ -68,7 +68,7 @@ public class StringInterfaceConsole implements StringInterface {
 	 */
 	public void writePacket(StringPacket packet) {
 		if (packet.getData()!=null){			
-			if(!packet.getName().equals(previous)){
+			if(!packet.getName().equals(previous.getName())){
 				if(showName)
 					System.out.print(packet.getName()+separator);
 				for(String head:packet.getFields())
@@ -78,11 +78,21 @@ public class StringInterfaceConsole implements StringInterface {
 			}
 			if(showName)
 				System.out.print(packet.getName()+separator);
+			PacketParser pp=PacketParserFactory.getParser(packet.getName(), packetParsers);
+			String[] tmp= new String[pp.getFields().length];
+			if(!pp.getFields().equals(packet.getData()))					
+				for (int i=0;i<pp.getFields().length;i++)
+					for(int j=0;j<pp.getFields().length;j++)
+						if(pp.getFields()[i]==packet.getFields()[j])
+							tmp[j]=packet.getData()[i];
+			packet.setData(tmp);
+			
 			for(String data:packet.getData()){			
 				System.out.print(data+separator);
 			}
 			System.out.println();
-			previous=packet.getName();
+			previous=new StringPacket(packet.getName(), packet.getFields(),new String[]{});
+			//stores the field order
 		}
 	}
 
