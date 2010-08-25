@@ -125,7 +125,8 @@ public class Transfer extends Thread  {
 				PacketParser pp=PacketParserFactory.getParser(sp.getName(), packetParsers);
 
 				try {
-					binary.writePacket(pp.construct(sp.getData()));
+					if(pp.construct(sp.getData())!=null)
+						binary.writePacket(pp.construct(sp.getData()));
 				} catch (IOException e) {
 
 					e.printStackTrace();

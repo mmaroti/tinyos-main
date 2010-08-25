@@ -120,25 +120,25 @@ public class StructParser extends PacketParser {
 		for(PacketParser pp:packetStruct){ 	 //every PacketParser	
 			if(!pp.getType().contains("omit"))  		//omitted 
 			{
-			String[] packetPart=new String[pp.getFields().length];				//String of one PacketParser			
-			System.arraycopy(stringValue ,pointer,packetPart,0,pp.getFields().length);
-			pointer+=pp.getFields().length;
-			
-				for(byte b:pp.construct(packetPart))
-					ret.add(b); 
+				String[] packetPart=new String[pp.getFields().length];				//String of one PacketParser			
+				System.arraycopy(stringValue ,pointer,packetPart,0,pp.getFields().length);
+				pointer+=pp.getFields().length;
+				if(pp.construct(packetPart)!=null)
+					for(byte b:pp.construct(packetPart))
+						ret.add(b); 
 			}
 			else 
 				if(pp instanceof ConstParser ){
-						for(byte b:pp.construct(pp.parse(((ConstParser) pp).getValue())))
+					for(byte b:pp.construct(pp.parse(((ConstParser) pp).getValue())))
 						ret.add(b); 
 				} 
 		}
-		
+
 		byte[] byteArray = new byte[ret.size()];
 		for(int i = 0; i<ret.size(); i++){
 			byteArray[i] = ret.get(i);
 		}
-		
+
 		return byteArray;
 	}
 
