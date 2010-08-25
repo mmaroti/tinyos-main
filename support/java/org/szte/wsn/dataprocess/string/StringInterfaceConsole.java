@@ -39,7 +39,7 @@ import java.io.InputStreamReader;
 import org.szte.wsn.dataprocess.PacketParser;
 import org.szte.wsn.dataprocess.PacketParserFactory;
 import org.szte.wsn.dataprocess.StringInterface;
-import org.szte.wsn.dataprocess.Usage;
+
 
 /**
  * 
@@ -113,8 +113,8 @@ public class StringInterfaceConsole implements StringInterface {
 					if(parts.length==pp.getFields().length)
 						ret=new StringPacket(structName,parts);
 					else{
-						System.out.print("Input error");
-						Usage.usageThanExit();
+						System.out.println("Input error!");
+						System.exit(1);
 					}	
 
 				}
@@ -125,12 +125,16 @@ public class StringInterfaceConsole implements StringInterface {
 
 					System.out.flush();
 					String[] fields=in.readLine().split(separator);
-					if(fields.length!=pp.getFields().length)
-						Usage.usageThanExit();
+					if(fields.length!=pp.getFields().length){
+						System.out.println("Input error!");
+						System.exit(1);
+					}
 					System.out.println("Give me the data in the order of the fields above, seperated with: "+separator);
 					String[] data=in.readLine().split(separator);
-					if(data.length!=pp.getFields().length)
-						Usage.usageThanExit();
+					if(data.length!=pp.getFields().length){
+						System.out.println("Input error!");
+						System.exit(1);
+					}
 					String temp[]=new String[data.length];
 					for(int i=0;i<fields.length;i++)
 						temp[i]="";
@@ -143,13 +147,14 @@ public class StringInterfaceConsole implements StringInterface {
 			}
 			else{
 				System.out.println("Not existing struct.");
-				Usage.usageThanExit();
+				System.exit(1);
 			}
 		}
 		catch (IOException e)
 		{
 			e.printStackTrace();
-			Usage.usageThanExit();
+			System.out.println("Console error!");
+			System.exit(1);
 		} 		
 		return ret;
 	}
