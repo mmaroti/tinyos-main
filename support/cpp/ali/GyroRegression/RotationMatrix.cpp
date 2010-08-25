@@ -46,7 +46,13 @@ RotationMatrix::RotationMatrix(	const input& data,
 		const double* const x,
 		ostream& log,
 		bool verbose) :
-		R(new double[9*data.N()]), g_err(new double[3*data.N()]), N(data.N())
+		R(new double[9*data.N()]),
+		g_err(new double[3*data.N()]),
+		//Rt_g( new double[3*data.N()]),
+		//a(    new double[3*data.N()]),
+		//alpha(new double[3*data.N()]),
+		//beta( new double[3*data.N()]),
+		N(data.N())
 {
 
 	ObjEval<double> obj(data, log, verbose);
@@ -59,6 +65,55 @@ RotationMatrix::RotationMatrix(	const input& data,
 
 	obj.f(x);
 
+	//==========================================================================
+
+	const double g_ref = data.g_ref();
+
+	double  b[4];
+	double nb[4];
+	double beta[4];
+
+	for (int i=0; i<N; ++i) {
+
+		for (int j=1; j<=3; ++j) {
+
+			nb[j] = at(i,3,j);
+
+			if (nb[j] > 1.0)
+				nb[j] = 1.0;
+			else if (nb[j] < -1.0)
+				nb[j] = -1.0;
+
+			beta[j] = asin(nb[j])*(180.0/M_PI);
+
+			b[j] = nb[j]*g_ref;
+		}
+
+		double ax = (data.acc_x()[i])/g_ref;
+		double ay = (data.acc_y()[i])/g_ref;
+		double az = (data.acc_z()[i])/g_ref;
+
+		if      (ax >  1.0) ax =  1.0;
+		else if (ax < -1.0) ax = -1.0;
+
+		if      (ay >  1.0) ay =  1.0;
+		else if (ay < -1.0) ay = -1.0;
+
+		if      (az >  1.0) az =  1.0;
+		else if (az < -1.0) az = -1.0;
+
+		double alpha_x = asin(ax)*(180.0/M_PI);
+		double alpha_y = asin(ay)*(180.0/M_PI);
+		double alpha_z = asin(az)*(180.0/M_PI);
+
+		log << alpha_x << '\t' << alpha_y << '\t' << alpha_z << '\t';
+		log << beta[1] << '\t' << beta[2] << '\t' << beta[3] << '\t';
+		log << endl;
+
+
+	}
+
+	log << endl;
 }
 
 RotationMatrix::~RotationMatrix() {
