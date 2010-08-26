@@ -1,12 +1,3 @@
-package org.szte.wsn.SnifferGraph;
-import java.awt.Rectangle;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
-import java.util.ArrayList;
-
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-
 /** Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
@@ -43,16 +34,22 @@ import javax.swing.JTextField;
  *This Class specifies how to draw  timeLine and VerticalText and DataPanel
  *
  */
+
+package org.szte.wsn.SnifferGraph;
+import java.awt.Rectangle;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
+import java.util.ArrayList;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
 public class MyAction implements AdjustmentListener, DataBase {
 
-	TimeLineDraw timeLine = SnifferGraph.timeLine;						
-	
+	TimeLineDraw timeLine = SnifferGraph.timeLine;
 	ArrayList<JTextField> osTime = SnifferGraph.osTime;
 	ArrayList<JTextField> moteTime = SnifferGraph.moteTime;
-	
 	JTextField osTimeText = SnifferGraph.osTimeText;
 	JTextField moteTimeText = SnifferGraph.moteTimeText;
-	
 	ArrayList<JPanel> dataPanel = SnifferGraph.dataPanel;
 	ArrayList<Mote> motes = SnifferGraph.motes;
 	

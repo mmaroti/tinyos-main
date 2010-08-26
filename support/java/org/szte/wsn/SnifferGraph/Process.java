@@ -1,11 +1,3 @@
-package org.szte.wsn.SnifferGraph;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-
-import javax.swing.JCheckBox;
-import javax.swing.JPanel;
 /** Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
@@ -43,14 +35,21 @@ import javax.swing.JPanel;
  *
  */
 
+package org.szte.wsn.SnifferGraph;
+import java.util.ArrayList;
+import java.util.Calendar;
+//import java.util.Date;
+import java.util.GregorianCalendar;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
+
 public class Process {
 	
-	static ArrayList<JPanel> dataPanel = SnifferGraph.dataPanel;
-	public static JPanel backgPanel = SnifferGraph.backgPanel;
-	static ArrayList<Mote> motes = SnifferGraph.motes;
-	static JCheckBox box[] = SnifferGraph.box;
-	
-	static Date date = new Date();
+	private static ArrayList<JPanel> dataPanel = SnifferGraph.dataPanel;
+	private static JPanel backgPanel = SnifferGraph.backgPanel;
+	private static ArrayList<Mote> motes = SnifferGraph.motes;
+	private static JCheckBox box[] = SnifferGraph.box;
+	//private static Date date = new Date();
 	public static int currentlyMillisec = Integer.valueOf((int) (System.currentTimeMillis()%100));
 	
 	public static String whatTimeIsNow(){
@@ -70,7 +69,6 @@ public class Process {
 	}
 
 	public static String dataCodeing(int i, int j) {
-		
 		return "Meg semmi";
 	}
 
@@ -84,7 +82,6 @@ public class Process {
 	
 	public static String whatMoteTimeNow(){
 		return "#" + whatTimeIsNow();
-		
 	}
 
 	public static void reDraw() {

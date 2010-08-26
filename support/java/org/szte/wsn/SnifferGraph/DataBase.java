@@ -1,6 +1,3 @@
-package org.szte.wsn.SnifferGraph;
-import java.awt.Dimension;
-import java.awt.Toolkit;
 /** Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
@@ -37,6 +34,10 @@ import java.awt.Toolkit;
  * 
  * version: 0.01b
  */
+
+package org.szte.wsn.SnifferGraph;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 
 public interface DataBase {
 	

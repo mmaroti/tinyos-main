@@ -57,7 +57,6 @@ public class XmlRead {
 	public ArrayList<String> title = new ArrayList<String>();
 	public String filename;
 	
-	
 	public XmlRead(){
 		try{
 		DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();

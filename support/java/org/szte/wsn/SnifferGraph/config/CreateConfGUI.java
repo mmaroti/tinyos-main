@@ -1,12 +1,3 @@
-package org.szte.wsn.SnifferGraph.config;
-import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JTextField;
 /**Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
@@ -42,6 +33,15 @@ import javax.swing.JTextField;
  *	This class cares  if we want to create configuration XML file to be saved
  *
  */
+
+package org.szte.wsn.SnifferGraph.config;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JTextField;
 
 public class CreateConfGUI {
 	

@@ -1,6 +1,3 @@
-package org.szte.wsn.SnifferGraph;
-
-
 /** Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
@@ -32,6 +29,8 @@ package org.szte.wsn.SnifferGraph;
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
  */
+
+package org.szte.wsn.SnifferGraph;
 
 /**
  * @author Németh Gábor

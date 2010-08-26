@@ -74,24 +74,22 @@ public class SnifferGraph implements DataBase{
 	
 	private static final long serialVersionUID = 1L;
 	
+	JFrame snfG = new JFrame((String)Labels.frame_name);
+	
 	public static ArrayList<JPanel> dataPanel = new ArrayList<JPanel>();
 	public static ArrayList<Mote> motes = new ArrayList<Mote>();
 	
-	JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+	public static XmlRead xmlRead = new XmlRead();
 	
+	JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
 	JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 	JPanel northPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 	JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 	JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
 	
-	JFrame snfG = new JFrame((String)Labels.frame_name);
-	
 	public static JPanel backgPanel = new JPanel();
 	
 	JMenuBar menubar = new JMenuBar();
-	
-	public static XmlRead xmlRead = new XmlRead();
-	
     JMenu file = new JMenu("File");
     JMenu conf = new JMenu("Configuration");
     JMenu sniffer = new JMenu("Sniffer");
@@ -109,7 +107,6 @@ public class SnifferGraph implements DataBase{
     JMenuItem stop_menu = new JMenuItem(Labels.menu_stop);
     JMenuItem set_chn = new JMenuItem(Labels.menu_setchn);
     JMenuItem set_port = new JMenuItem(Labels.menu_setport);
-    
     
     JButton start = new JButton(Labels.button_start);
     JButton clear = new JButton(Labels.button_clear);
@@ -131,11 +128,9 @@ public class SnifferGraph implements DataBase{
     
     public static TimeLineDraw timeLine = new TimeLineDraw();
     
-    static JScrollBar scrollbar = new JScrollBar(JScrollBar.HORIZONTAL);
+    public static JScrollBar scrollbar = new JScrollBar(JScrollBar.HORIZONTAL);
     
-   
-    
-    static JCheckBox box[] = new JCheckBox[xmlRead.number+1];
+    public static JCheckBox box[] = new JCheckBox[xmlRead.number+1];
     
     JFileChooser fc = new JFileChooser();
     
@@ -145,6 +140,7 @@ public class SnifferGraph implements DataBase{
     ToolBarButton load_toolbar;
     ToolBarButton open_conf_toolbar;
     ToolBarButton save_toolbar;
+    
 	/**
 	 * This function gives information about the start button status.
 	 */
@@ -159,6 +155,7 @@ public class SnifferGraph implements DataBase{
 			stopProcess();
 		}
 	}
+	
 	/**
 	 * This function gives information about the process is stopped.
 	 */
@@ -168,6 +165,7 @@ public class SnifferGraph implements DataBase{
 		// TODO Auto-generated method stub
 		
 	}
+	
 	/**
 	 * This function gives information about the process is working.
 	 */
@@ -177,6 +175,7 @@ public class SnifferGraph implements DataBase{
 		// TODO Auto-generated method stub
 		
 	}
+	
 	/**
 	 * This function resets the current session.
 	 */
@@ -188,6 +187,7 @@ public class SnifferGraph implements DataBase{
 		// TODO Auto-generated method stub
 		
 	}
+	
 	/**
 	 * This function loads a saved session.
 	 */
@@ -204,6 +204,7 @@ public class SnifferGraph implements DataBase{
 		// TODO
 		
 	}
+    
 	/**
 	 * This function crates a new configuration file.
 	 */
@@ -212,6 +213,7 @@ public class SnifferGraph implements DataBase{
 		// TODO
 		new CreateConfGUI();
 	}
+	
 	/**
 	 * This function saves the current session.
 	 */
@@ -227,6 +229,7 @@ public class SnifferGraph implements DataBase{
         }
 		// TODO Auto-generated method stub
 	}
+	
 	/**
 	 * This function opens a configuration xml file.
 	 */
@@ -246,13 +249,14 @@ public class SnifferGraph implements DataBase{
 	 * Class constructor
 	 */
 	public SnifferGraph() {
-		backgPanel.setLayout(null);								
-        
+		
+		backgPanel.setLayout(null);
         backgPanel.setBackground(Color.white);						
         backgPanel.setBorder(BorderFactory.createEtchedBorder());	
 
         scrollbar.addAdjustmentListener(new MyAction());			
         scrollbar.setMaximum(0);
+        
         menuCreat();												
         editables();										
         baseSetings();
@@ -265,8 +269,7 @@ public class SnifferGraph implements DataBase{
         setMnemonics();
         
         snfG.setSize(800, 600);					
-        snfG.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);		
-        //snfG.setExtendedState(snfG.getExtendedState() | snfG.MAXIMIZED_BOTH);
+        snfG.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         snfG.setVisible(true);
    }
 	
@@ -284,6 +287,7 @@ public class SnifferGraph implements DataBase{
 	    save_toolbar = new ToolBarButton("./org/szte/wsn/SnifferGraph/icon/Save.png");
 	    save_toolbar.setToolTipText("Save a history");
 	}
+	
 	/**
 	 * This function creates and specify checkboxes
 	 */
@@ -316,6 +320,7 @@ public class SnifferGraph implements DataBase{
 			backgPanel.add(box[i]);
 		}
 	}
+	
 	/**
 	 * Function will used by checkboxes to know what data visible
 	 * @param event
@@ -327,7 +332,6 @@ public class SnifferGraph implements DataBase{
 		scrollbar.setValue(scrollbar.getValue()+1);
 		scrollbar.setValue(scrollbar.getValue()-1);
 	}
-
 
 	/**
 	 * This function specifies the Hot keys and the Mnemonic chars in JMenubar .
@@ -347,6 +351,7 @@ public class SnifferGraph implements DataBase{
         about.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,Event.ALT_MASK));
 
 	}
+	
 	/**
 	 * This function draws the JtextFields under the TimeLine.
 	 */
@@ -362,7 +367,6 @@ public class SnifferGraph implements DataBase{
 		backgPanel.add(osTimeText);
 		backgPanel.add(moteTimeText);
 		
-		// TODO Auto-generated method stub
 		for(int i = 0; i < 100; i++){
 			osTime.add(new JTextField(Process.whatTimeIsNow()));
 		}
@@ -385,23 +389,11 @@ public class SnifferGraph implements DataBase{
 		}
 		
 	}
+	
 	/**
 	 * This function specifies which objects added to the file menu.
 	 */
 	private void menuCreat() {
-		/*file.add(open);
-        file.add(save);
-        file.add(new JSeparator());											
-        
-        file.add(newConfiguration);
-        file.add(openConfiguration);
-        file.add(new JSeparator());
-        //---------------- SEPARATOR
-        file.add(about);													
-        file.add(new JSeparator());
-        //---------------- SEPARATOR
-        file.add(fileClose);*/												
-        
         file.add(open);
         file.add(save);
         file.add(save_as);
@@ -429,6 +421,7 @@ public class SnifferGraph implements DataBase{
         
         snfG.setJMenuBar(menubar);										
 	}
+	
 	/**
 	 * This function  specifying tool tips for objects.
 	 * The text displays when the cursor lingers over the component.
@@ -443,11 +436,11 @@ public class SnifferGraph implements DataBase{
         clear.setToolTipText(Labels.tooltips_clear);
         fileClose.setToolTipText(Labels.tooltips_fileClose);
 	}
+	
 	/**
-	 * This Older function  specified where to align exactly the objects on the workspace.
-	 */
+	* This Older function  specified where to align exactly the objects on the workspace.
+	*/
 	private void baseSetings() {
-		//TODO
 		for(int i = 0; i<dataPanel.size();i++){
 			dataPanel.get(i).setVisible(false);
 			backgPanel.remove(dataPanel.get(i));
@@ -456,7 +449,6 @@ public class SnifferGraph implements DataBase{
 		for(int i = 0; i<dataPanelLength; i++){
 			dataPanel.remove(0);
 		}
-		
 		scrollbar.setMaximum(DataBase.screenWidth);
 		scrollbar.setValue(0);
 	}
@@ -503,6 +495,8 @@ public class SnifferGraph implements DataBase{
 		
 		snfG.add(mainPanel);
 	}
+	
+	
 	/**
 	 * This function  specifying Action Listeners.
 	 */
@@ -562,6 +556,7 @@ public class SnifferGraph implements DataBase{
 		});
 		
 	}
+	
 	/**
 	 * This function specifying which JTextfields are edit able or not
 	 */
@@ -600,8 +595,7 @@ public class SnifferGraph implements DataBase{
 				backgPanel.add(dataPanel.get(dataPanel.size()-1));
 				scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
 				scrollbar.setValue(scrollbar.getMaximum()-DataBase.screenWidth+400);
-				//scrollbar.setValue(scrollbar.getValue()+1);
-				//scrollbar.setValue(scrollbar.getValue()-1);
+				main.receivedPack.setText(String.valueOf(Integer.parseInt(main.receivedPack.getText())+1));
 			}
 		}while(true);
 		

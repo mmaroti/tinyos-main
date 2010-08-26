@@ -1,15 +1,3 @@
-package org.szte.wsn.SnifferGraph.config;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
-
-import javax.swing.*;
-import com.generationjava.io.xml.*;
-
-
 /** Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
@@ -44,10 +32,20 @@ import com.generationjava.io.xml.*;
  * @authors Németh Gábor, Nyilas Sándor Károly
  *Class creates the window for configuration creation
  */
+
+package org.szte.wsn.SnifferGraph.config;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import javax.swing.*;
+import com.generationjava.io.xml.*;
+
 public class CreatConfWindow {
 	
-	Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();			
-	
+	Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();	
 	public final int screenHeight = screenSize.height;							
 	public final int screenWidth = screenSize.width;
 	
@@ -71,10 +69,12 @@ public class CreatConfWindow {
 	ArrayList<String> inputs = new ArrayList<String>();
 	
 	public static int szam = 1;
+	
 	/**
 	 * Generates windows as much entity we need
 	 * @param input This gives how many entity needed to be created
 	 */
+	
 	public CreatConfWindow(String input){
 		int numbersOfEntity;
 		try{
@@ -229,14 +229,13 @@ public class CreatConfWindow {
 	 */
 	protected void back() {
 		// TODO Auto-generated method stub
-		
 	}
 
-		/**
-		 * This returns if we give valid value for an entity
-		 * @param numbersOfEntity  gives the non-correct value
-		 * @return	The error pane
-		 */
+	/**
+	* This returns if we give valid value for an entity
+	* @param numbersOfEntity  gives the non-correct value
+	* @return	The error pane
+	*/
 	private JFrame notValid(int numbersOfEntity) {
 		JTextField errMass = new JTextField("Invaild number, the number is: " + String.valueOf(numbersOfEntity));
 		JButton errOk = new JButton("OK");

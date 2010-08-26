@@ -1,14 +1,3 @@
-package org.szte.wsn.SnifferGraph;
-import java.awt.Color;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.*;
-
-/**
- * 
- */
-
 /** Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
@@ -42,15 +31,16 @@ import javax.swing.*;
  * @author Nemeth Gabor, Nyilas Sandor Karoly
  *A class gives information about the version
  */
-public class About{				
 
-	/**
-	 * 
-	 */
+package org.szte.wsn.SnifferGraph;
+
+import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.*;
+
+public class About{
 	private static final long serialVersionUID = 2L;
-	/**
-	 * 
-	 */
 	
 	JFrame about = new JFrame("About");
 	JTextField line = new JTextField("  v0.002b  ");

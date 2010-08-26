@@ -29,15 +29,12 @@
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 * */
 
-
 package org.szte.wsn.SnifferGraph;
 import java.awt.Color;
-
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-
 
 public class Mote {
 
@@ -45,11 +42,11 @@ public class Mote {
 	protected int stopTime;
 	protected int timeLenght;
 	protected int firstPos;
-	
 	protected String[] labelNames;
 	protected JTextField[] cells;
 	protected JPanel motePanel;
 	
+	//getters and setters
 	public int getFirstPos() {
 		return firstPos;
 	}
@@ -106,6 +103,12 @@ public class Mote {
 		this.motePanel = motePanel;
 	}
 	
+	//other futures
+	/**
+	 * Restore a panel with the given properties mote draws
+	 * 
+	 * @return motPanel: The panel requested features drawn
+	 *  */
 	public JPanel getAPanel(JCheckBox[] box){
 		int boxLength = 0;
 		for(int i = 0;i<box.length; i++){
@@ -135,13 +138,14 @@ public class Mote {
 		return motePanel;
 	}
 	
+	//konstrukor
 	public Mote(int startTime, int stopTime, String[] labelNames) {
 		super();
 		this.startTime = startTime;
 		this.stopTime = stopTime;
 		this.timeLenght = stopTime - startTime;
-		
 		this.labelNames = new String[labelNames.length];
+		
 		for(int i = 0; i < labelNames.length; i++){
 			this.labelNames[i] = labelNames[i];
 		}

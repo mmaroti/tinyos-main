@@ -29,10 +29,8 @@
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 * */
 
-
 package org.szte.wsn.SnifferGraph;
 import java.util.Random;
-
 
 public class RandomString {
 	

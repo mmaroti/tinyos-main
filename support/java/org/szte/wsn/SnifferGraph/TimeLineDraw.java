@@ -30,7 +30,6 @@
 * */
 
 package org.szte.wsn.SnifferGraph;
-
 import java.awt.BasicStroke;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -38,7 +37,6 @@ import java.awt.Graphics2D;
 import java.util.ArrayList;
 
 import javax.swing.JPanel;
-
 
 public class TimeLineDraw extends JPanel {
 
