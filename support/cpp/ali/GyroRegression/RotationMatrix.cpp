@@ -69,6 +69,7 @@ RotationMatrix::RotationMatrix(	const input& data,
 
 	const double g_ref = data.g_ref();
 
+	double  a[4];
 	double  b[4];
 	double nb[4];
 	double beta[4];
@@ -86,12 +87,16 @@ RotationMatrix::RotationMatrix(	const input& data,
 
 			beta[j] = asin(nb[j])*(180.0/M_PI);
 
-			b[j] = nb[j]*g_ref;
+			b[j] = at(i,3,j)*g_ref;
 		}
 
-		double ax = (data.acc_x()[i])/g_ref;
-		double ay = (data.acc_y()[i])/g_ref;
-		double az = (data.acc_z()[i])/g_ref;
+		a[1] = data.acc_x()[i];
+		a[2] = data.acc_y()[i];
+		a[3] = data.acc_z()[i];
+
+		double ax = a[1]/g_ref;
+		double ay = a[2]/g_ref;
+		double az = a[3]/g_ref;
 
 		if      (ax >  1.0) ax =  1.0;
 		else if (ax < -1.0) ax = -1.0;
@@ -106,6 +111,8 @@ RotationMatrix::RotationMatrix(	const input& data,
 		double alpha_y = asin(ay)*(180.0/M_PI);
 		double alpha_z = asin(az)*(180.0/M_PI);
 
+		log << a[1] << '\t' << a[2] << '\t' << a[3] << '\t';
+		log << b[1] << '\t' << b[2] << '\t' << b[3] << '\t';
 		log << alpha_x << '\t' << alpha_y << '\t' << alpha_z << '\t';
 		log << beta[1] << '\t' << beta[2] << '\t' << beta[3] << '\t';
 		log << endl;
