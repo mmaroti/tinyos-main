@@ -78,6 +78,7 @@ public class SnifferGraph implements DataBase{
 	
 	public static ArrayList<JPanel> dataPanel = new ArrayList<JPanel>();
 	public static ArrayList<Mote> motes = new ArrayList<Mote>();
+	public static ArrayList<String> colors = new ArrayList<String>();
 	
 	public static XmlRead xmlRead = new XmlRead();
 	
@@ -585,7 +586,7 @@ public class SnifferGraph implements DataBase{
 			backgPanel.add(dataPanel.get(dataPanel.size()-1));
 			scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
 		}
-		do{
+		/*do{
 			if(RandomString.getAnewInput() && main.start.getText().equals("Stop")){
 				int first = RandomString.getAnumber(motes.get(motes.size()-1).stopTime);
 				int second = RandomString.getAnumber(first);
@@ -597,7 +598,7 @@ public class SnifferGraph implements DataBase{
 				scrollbar.setValue(scrollbar.getMaximum()-DataBase.screenWidth+400);
 				main.receivedPack.setText(String.valueOf(Integer.parseInt(main.receivedPack.getText())+1));
 			}
-		}while(true);
+		}while(true);*/
 		
 	} 
 }
