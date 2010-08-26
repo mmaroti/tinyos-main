@@ -39,7 +39,8 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 
 import org.szte.wsn.dataprocess.BinaryInterface;
-import org.szte.wsn.dataprocess.Usage;
+import org.szte.wsn.dataprocess.Transfer;
+
 
 public class BinaryInterfaceFile implements BinaryInterface{
 	private RandomAccessFile dataFile;
@@ -133,7 +134,7 @@ public class BinaryInterfaceFile implements BinaryInterface{
 			// TODO Auto-generated catch block
 			System.out.println("Binary file could not open/create.");
 			e.printStackTrace();
-			Usage.usageThanExit();
+			Transfer.usageThanExit();
 		}	;	
 	}		
 

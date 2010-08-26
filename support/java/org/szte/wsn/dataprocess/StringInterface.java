@@ -33,7 +33,6 @@
 */
 package org.szte.wsn.dataprocess;
 
-import org.szte.wsn.dataprocess.string.StringPacket;
 
 /**
  * interface of communication between the parsers and writers

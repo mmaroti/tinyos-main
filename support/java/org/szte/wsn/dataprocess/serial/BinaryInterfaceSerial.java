@@ -31,10 +31,13 @@
 *
 * Author: Andras Biro
 */
-package org.szte.wsn.dataprocess;
+package org.szte.wsn.dataprocess.serial;
 
 import java.io.IOException;
 import java.util.ArrayList;
+
+import org.szte.wsn.dataprocess.BinaryInterface;
+
 import net.tinyos.packet.BuildSource;
 import net.tinyos.packet.PacketListenerIF;
 import net.tinyos.packet.PhoenixSource;

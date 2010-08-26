@@ -36,8 +36,6 @@ package org.szte.wsn.dataprocess;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import org.szte.wsn.dataprocess.string.StringInterfaceFactory;
-import org.szte.wsn.dataprocess.string.StringPacket;
 
 /**
  * 
@@ -69,7 +67,7 @@ public class Transfer extends Thread  {
 		string=StringInterfaceFactory.getStringInterface(stringType, stringPath, packetParsers, separator, showName);
 		this.toString=toString;
 		if((binary==null)||(string==null))
-			Usage.usageThanExit();
+			usageThanExit();
 	}
 
 	/**
@@ -84,7 +82,7 @@ public class Transfer extends Thread  {
 		//separates with "," writes the name of the struct
 		this.toString=true;
 		if((binary==null)||(string==null))
-			Usage.usageThanExit();
+			usageThanExit();
 	}
 
 
@@ -131,7 +129,7 @@ public class Transfer extends Thread  {
 				} catch (IOException e) {
 
 					e.printStackTrace();
-					Usage.usageThanExit();
+					usageThanExit();
 				}		
 
 				sp=string.readPacket();
@@ -164,7 +162,7 @@ public class Transfer extends Thread  {
 			}
 			else{
 				fileNames=null;
-				Usage.usageThanExit();
+				usageThanExit();
 			}
 			for(String file:fileNames){
 				Transfer fp=new Transfer(file,file.substring(0,file.length()-5)+".txt");
@@ -183,11 +181,22 @@ public class Transfer extends Thread  {
 			fp1.start();
 			break;
 		default:
-			Usage.usageThanExit();
+			usageThanExit();
 			break;
 		}
 
 
+	}
+	public static void usageThanExit(){
+		System.out.println("Usage:");
+		System.out.println("java Transfer readMode sourcePath writeMode destinationPath structureFile toString seperator showname");
+		System.out.println("java Transfer file 0.bin console stdOut structs.txt	toBinary , no		-reads from console writes to 0.bin, separator=, doesn't shows name");
+		System.out.println("java Transfer serial serial@/dev/ttyUSB1:57600 file foo.txt structs.txt toString : showName -reads from the serialSource on USB1, writes to foo.txt, separator=: shows the name of struct ");
+		System.out.println("If you want to write from .bin to a file, than only need 1 argument");
+		System.out.println("java Transfer sourcefile");		
+		System.out.println("java Transfer 0.bin  -reads 0.bin to 0.txt");		
+		System.out.println("java Transfer .  -scans the directory for .bin files, parse them, and writes to txt");	
+		System.exit(1);
 	}
 
 }

@@ -33,16 +33,34 @@
  */
 package org.szte.wsn.dataprocess;
 
-public class Usage {
-	public static void usageThanExit(){
-		System.out.println("Usage:");
-		System.out.println("java Transfer readMode sourcePath writeMode destinationPath structureFile toString seperator showname");
-		System.out.println("java Transfer file 0.bin console stdOut structs.txt	toBinary , no		-reads from console writes to 0.bin, separator=, doesn't shows name");
-		System.out.println("java Transfer serial serial@/dev/ttyUSB1:57600 file foo.txt structs.txt toString : showName -reads from the serialSource on USB1, writes to foo.txt, separator=: shows the name of struct ");
-		System.out.println("If you want to write from .bin to a file, than only need 1 argument");
-		System.out.println("java Transfer sourcefile");		
-		System.out.println("java Transfer 0.bin  -reads 0.bin to 0.txt");		
-		System.out.println("java Transfer .  -scans the directory for .bin files, parse them, and writes to txt");	
-		System.exit(1);
+import org.szte.wsn.dataprocess.console.StringInterfaceConsole;
+import org.szte.wsn.dataprocess.file.StringInterfaceFile;
+
+/**
+ * 
+ * @author Mikos Toth
+ * Factory class for the StringInterface interface
+ *
+ */
+public class StringInterfaceFactory {
+	/**
+	 * 
+	 * @param type can be "file" or "console"
+	 * @param source String path of the source
+	 * @param packetParsers array of available PacketParsers
+	 * @param separator the string that separates the data in the output
+	 * @param showName controls whether the name of the PacketParser should be written in the file
+	 * @return a StringInterface instance with the specified params
+	 */
+	public static StringInterface getStringInterface(String type, String source, PacketParser[] packetParsers,String separator, boolean showName){
+		if(type.equals("file"))
+			return new StringInterfaceFile(separator, source, packetParsers,showName);
+			
+		
+		else //if (type.equals("console"))
+			return new StringInterfaceConsole(separator, packetParsers, showName);
+
 	}
+	
 }
+

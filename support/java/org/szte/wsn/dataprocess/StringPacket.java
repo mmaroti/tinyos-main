@@ -33,32 +33,66 @@
  */
 package org.szte.wsn.dataprocess;
 
-import org.szte.wsn.dataprocess.file.*;
-import org.szte.wsn.dataprocess.serial.BinaryInterfaceSerial;
-
 /**
  * 
- * @author Mikos Toth
- * Factory class for the BinaryInterface interface
- *
+ * @author Miklos Toth
+ * string communication package
+ * 
  */
-public class BinaryInterfaceFactory {
+public class StringPacket {
+	private String name;
+	private String fields[];
+	private String data[];
+
+
 	/**
 	 * 
-	 * @param type can be "file" or "serial"
-	 * @param source String path of the source
-	 * @return a BinaryInterface instance with the specified params
+	 * @param name PacketParser's name
+	 * @param data String data array, gives data 
+	 * for every column of the fields array
 	 */
-	public static BinaryInterface getBinaryInterface(String type, String source){
-		if(type.equals("file")){
-				GapConsumer gp=new GapConsumer(source);
-				return new BinaryInterfaceFile(source, gp.getGaps());				
-		}
-		if(type.equals("shimmer"))
-			return new BinaryInterfaceShimmer(source);
-		
-		else //if (type.equals("serial"))
-			return new BinaryInterfaceSerial(source);
+	public StringPacket(String name, String[] data ){
+		this.setName(name);
+		this.fields= new String[1];
+		this.setData(data);
 	}
-	
+
+	/**
+	 * 
+	 * @param name PacketParser's name
+	 * @param fields names of the PacketParser's fields
+	 * @param data String data array, gives data 
+	 * for every column of the fields array
+	 */
+	public StringPacket(String name, String fields[], String data[]){
+		this.setName(name);
+		this.setFields(fields);
+		this.setData(data);
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setFields(String[] fields) {
+		this.fields = fields;
+	}
+
+	public String[] getFields() {
+		return fields;
+	}
+
+	public void setData(String data[]) {
+		this.data = data;
+	}
+
+	public String[] getData() {
+		return data;
+	}
+
+
 }
