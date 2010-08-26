@@ -1,7 +1,6 @@
 package org.szte.wsn.downloader2;
 
 import java.io.IOException;
-
 import net.tinyos.message.Message;
 import net.tinyos.message.MessageListener;
 import net.tinyos.message.MoteIF;
@@ -18,14 +17,14 @@ public class Communication  implements MessageListener {
 	public void messageReceived(int to, Message m) {
 		if(m instanceof CtrlMsg){
 			CtrlMsg rec=(CtrlMsg)m;
-			sd.newPong(rec.getSerialPacket().get_header_src(),rec.get_min_address(),rec.get_max_address());
+			sd.newPong(rec.get_source(),rec.get_min_address(),rec.get_max_address());
 		} else if(m instanceof DataMsg){
 			DataMsg rec=(DataMsg)m;
 			byte[] data=new byte[rec.get_length()];
 			for(short i=0;i<data.length;i++){
-				data[i]=rec.getElement_data(i);
+				data[i]=rec.getElement_payload(i);
 			}
-			sd.newData(rec.getSerialPacket().get_header_src(),rec.get_address(),data);
+			sd.newData(rec.get_source(),rec.get_address(),data);
 		}
 	}
 	

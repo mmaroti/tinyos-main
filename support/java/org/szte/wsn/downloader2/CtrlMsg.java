@@ -9,12 +9,12 @@ package org.szte.wsn.downloader2;
 public class CtrlMsg extends net.tinyos.message.Message {
 
     /** The default size of this message type in bytes. */
-    public static final int DEFAULT_MESSAGE_SIZE = 8;
+    public static final int DEFAULT_MESSAGE_SIZE = 10;
 
     /** The Active Message type associated with this message. */
     public static final int AM_TYPE = 96;
 
-    /** Create a new CtrlMsg of size 8. */
+    /** Create a new CtrlMsg of size 10. */
     public CtrlMsg() {
         super(DEFAULT_MESSAGE_SIZE);
         amTypeSet(AM_TYPE);
@@ -87,6 +87,9 @@ public class CtrlMsg extends net.tinyos.message.Message {
     public String toString() {
       String s = "Message <CtrlMsg> \n";
       try {
+        s += "  [source=0x"+Long.toHexString(get_source())+"]\n";
+      } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
+      try {
         s += "  [min_address=0x"+Long.toHexString(get_min_address())+"]\n";
       } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
       try {
@@ -98,9 +101,72 @@ public class CtrlMsg extends net.tinyos.message.Message {
     // Message-type-specific access methods appear below.
 
     /////////////////////////////////////////////////////////
+    // Accessor methods for field: source
+    //   Field type: int, unsigned
+    //   Offset (bits): 0
+    //   Size (bits): 16
+    /////////////////////////////////////////////////////////
+
+    /**
+     * Return whether the field 'source' is signed (false).
+     */
+    public static boolean isSigned_source() {
+        return false;
+    }
+
+    /**
+     * Return whether the field 'source' is an array (false).
+     */
+    public static boolean isArray_source() {
+        return false;
+    }
+
+    /**
+     * Return the offset (in bytes) of the field 'source'
+     */
+    public static int offset_source() {
+        return (0 / 8);
+    }
+
+    /**
+     * Return the offset (in bits) of the field 'source'
+     */
+    public static int offsetBits_source() {
+        return 0;
+    }
+
+    /**
+     * Return the value (as a int) of the field 'source'
+     */
+    public int get_source() {
+        return (int)getUIntBEElement(offsetBits_source(), 16);
+    }
+
+    /**
+     * Set the value of the field 'source'
+     */
+    public void set_source(int value) {
+        setUIntBEElement(offsetBits_source(), 16, value);
+    }
+
+    /**
+     * Return the size, in bytes, of the field 'source'
+     */
+    public static int size_source() {
+        return (16 / 8);
+    }
+
+    /**
+     * Return the size, in bits, of the field 'source'
+     */
+    public static int sizeBits_source() {
+        return 16;
+    }
+
+    /////////////////////////////////////////////////////////
     // Accessor methods for field: min_address
     //   Field type: long, unsigned
-    //   Offset (bits): 0
+    //   Offset (bits): 16
     //   Size (bits): 32
     /////////////////////////////////////////////////////////
 
@@ -122,14 +188,14 @@ public class CtrlMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'min_address'
      */
     public static int offset_min_address() {
-        return (0 / 8);
+        return (16 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'min_address'
      */
     public static int offsetBits_min_address() {
-        return 0;
+        return 16;
     }
 
     /**
@@ -163,7 +229,7 @@ public class CtrlMsg extends net.tinyos.message.Message {
     /////////////////////////////////////////////////////////
     // Accessor methods for field: max_address
     //   Field type: long, unsigned
-    //   Offset (bits): 32
+    //   Offset (bits): 48
     //   Size (bits): 32
     /////////////////////////////////////////////////////////
 
@@ -185,14 +251,14 @@ public class CtrlMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'max_address'
      */
     public static int offset_max_address() {
-        return (32 / 8);
+        return (48 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'max_address'
      */
     public static int offsetBits_max_address() {
-        return 32;
+        return 48;
     }
 
     /**

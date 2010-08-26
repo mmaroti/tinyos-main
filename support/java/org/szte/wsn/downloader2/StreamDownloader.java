@@ -45,8 +45,10 @@ import org.szte.wsn.dataprocess.file.Gap;
 
 public class StreamDownloader{
 	
-	private static final int MIN_DOWNLOAD_SIZE=DataMsg.numElements_data()*4;
+	private static final int MIN_DOWNLOAD_SIZE=DataMsg.numElements_payload()*4;
 	private static final int NONE=0xffff;
+	private static final int ERASE_NO=-1;
+	private static final int ERASE_ALL=-2;
 	
 	private Communication communication;
 	private int listenonly,timeout,pongwait;
@@ -132,10 +134,12 @@ public class StreamDownloader{
 				}
 				DataWriter maxdownloadWriter=getWriter(maxdownloadPong.getNodeID(), writers);
 				maxdownloadWriter.setLastModified();
+				System.out.println("Download from #"+maxdownloadWriter.getNodeid());
 				if(maxdownload==Long.MAX_VALUE){
 					Gap repair=maxdownloadWriter.repairGap(maxdownloadPong.minaddress);
 					try{
 						communication.sendGet(maxdownloadWriter.getNodeid(), repair.getStart(), repair.getEnd());
+						lastpercent=-1;
 						currently_handled=new Pong(maxdownloadWriter.getNodeid(), repair.getStart(), repair.getEnd());
 					} 
 					catch(IOException e){
@@ -197,9 +201,10 @@ public class StreamDownloader{
 		return null;	
 	}
 	
-	public static int lastpercent=100;
+	public static int lastpercent=-1;
 	public static String ProgressBar(long length, long current, long data ,float error, long errorcount){
-		
+		if(length<=0)
+			return "";
 //		String ret="[";
 //		for(int i=0;i<35;i++)
 //		{
@@ -210,10 +215,11 @@ public class StreamDownloader{
 //		}
 //		ret+="]="+data/1024+"KiB. Gaps: "+error+"% ("+errorcount+")\r";
 //		return ret;
+		java.text.DecimalFormat floatformat = new java.text.DecimalFormat("###.##");
 		int perct=(int)(100*current/length);
 		if(perct%5==0&&perct!=lastpercent){
 			lastpercent=perct;
-			return perct+"% = "+data/1024+"KiB. Gaps: "+error+"% ("+errorcount+")\n";
+			return perct+"% = "+floatformat.format((float)data/1024)+"KiB. Gaps: "+floatformat.format(error)+"% ("+errorcount+")\n";
 		}else
 			return "";
 	}
@@ -290,10 +296,12 @@ public class StreamDownloader{
 		System.out.println("-timeout <number>: Download timeout in seconds. Default: 10");
 		System.out.println("-pongwait <number>: the program waits <number> seconds after ping for pongs. Default: 3");
 	}
-
+	
 	public static void main(String[] args) throws Exception {
+		//System.out.println(TOSSerial.getTOSCommMap());
 		String source = "sf@localhost:9002";
 		int listenonly=-1, timeout=10,pinginterval=10,pongwait=3;
+		int erase=ERASE_NO;
 		if (args.length == 0||args.length == 2||args.length == 4||args.length == 6) {
 			for(int i=0;i<args.length;i+=2){
 				if (args[i].equals("-comm")) {
@@ -311,10 +319,24 @@ public class StreamDownloader{
 				if (args[i].equals("-pinginterval")) {
 					pongwait = Integer.parseInt(args[i+1]);
 				}
+				if (args[i].equals("-erase")) {
+					try{
+						erase = Integer.parseInt(args[i+1]);
+					} catch(NumberFormatException e) {
+						if(args[i+1].equals("all")){
+							erase=ERASE_ALL;
+						} else
+							StreamDownloader.usage();
+					}
+				}
 			}
 		} else {
 			StreamDownloader.usage();
 		}
+		//TODO it's just a hack for easy erase, and crashes
+		if(erase==ERASE_ALL)
+			new Communication(new StreamDownloader(listenonly, pinginterval, pongwait, timeout, source), source).sendErase();
+		
 		new StreamDownloader(listenonly, pinginterval,pongwait, timeout, source);
 	}
 	

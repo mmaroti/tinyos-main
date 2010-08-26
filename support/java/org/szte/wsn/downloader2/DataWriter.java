@@ -82,17 +82,16 @@ public class DataWriter {
 		timestamps=new File(gapFile.getName().substring(0,gapFile.getName().lastIndexOf('.'))+".ts");
 	}
 	
-	public String writeData(long offset, byte[] data) throws IOException{
-		String ret="";
+	public long writeData(long offset, byte[] data) throws IOException{
 		long prevMaxAddress=getMaxAddress();
 		dataFile.seek(offset);
 		dataFile.write(data, 0, data.length);//TODO: 2GB limit
-		lastModified=new Date().getTime();
+		setLastModified();
 		
-		if(offset==prevMaxAddress+1){//the next bytes
-			ret+="Data OK";
-		} else if(offset>prevMaxAddress+1){//we missed some data
-			ret+="New gap: " + (prevMaxAddress+1) + "-" + (offset-1);
+//		if(offset==prevMaxAddress+1){//the next bytes
+//			System.out.println("Data OK");
+//		} else 
+		if(offset>prevMaxAddress+1){//we missed some data
 			addGap(prevMaxAddress+1, offset-1);
 		} else { //we fill a gap
 			for(Gap currentGap:gaps){
@@ -104,14 +103,14 @@ public class DataWriter {
 						end_bef=offset-1;
 						start_aft=offset+data.length;
 						end_aft=currentGap.getEnd();
-						ret+=("Remove gap: " + currentGap.getStart()+"-"+currentGap.getEnd()+"|");
+//						ret+=("Remove gap: " + currentGap.getStart()+"-"+currentGap.getEnd());
 						removeGap(currentGap);
 						if(end_bef>start_bef){//we didn't fill the whole gap
-							ret+="New gap: " + start_bef + "-" + end_bef+"|";
+//							ret+="|New gap: " + start_bef + "-" + end_bef;
 							addGap(start_bef, end_bef);
 						}
 						if(end_aft>start_aft){//we didn't fill the whole gap
-							ret+="New gap: " + start_aft + "-" + end_aft+"|";
+//							ret+="|New gap: " + start_aft + "-" + end_aft;
 							addGap(start_aft, end_aft);
 						}
 						break;
@@ -119,7 +118,7 @@ public class DataWriter {
 				}
 			}
 		}
-		return ret;
+		return offset+data.length;
 	}
 	
 	private void writeGapFile(){
@@ -184,6 +183,26 @@ public class DataWriter {
 			return null;
 		else
 			return ret;
+	}
+	
+	public float getGapPercent(){
+		long gapbyte=0;
+		for(Gap current:gaps){
+			gapbyte+=current.getEnd()-current.getStart();
+		}
+		try {
+			return 100*gapbyte/(getMaxAddress()+1);
+		} catch (IOException e) {
+			return -1;
+		}
+	}
+	
+	public long getGapCount(){
+		long gapbyte=0;
+		for(Gap current:gaps){
+			gapbyte+=current.getEnd()-current.getStart();
+		}
+		return gapbyte;
 	}
 	
 	public void close() throws IOException{

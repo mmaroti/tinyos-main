@@ -9,12 +9,12 @@ package org.szte.wsn.downloader2;
 public class DataMsg extends net.tinyos.message.Message {
 
     /** The default size of this message type in bytes. */
-    public static final int DEFAULT_MESSAGE_SIZE = 28;
+    public static final int DEFAULT_MESSAGE_SIZE = 23;
 
     /** The Active Message type associated with this message. */
     public static final int AM_TYPE = 99;
 
-    /** Create a new DataMsg of size 28. */
+    /** Create a new DataMsg of size 23. */
     public DataMsg() {
         super(DEFAULT_MESSAGE_SIZE);
         amTypeSet(AM_TYPE);
@@ -87,15 +87,18 @@ public class DataMsg extends net.tinyos.message.Message {
     public String toString() {
       String s = "Message <DataMsg> \n";
       try {
+        s += "  [source=0x"+Long.toHexString(get_source())+"]\n";
+      } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
+      try {
         s += "  [address=0x"+Long.toHexString(get_address())+"]\n";
       } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
       try {
         s += "  [length=0x"+Long.toHexString(get_length())+"]\n";
       } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
       try {
-        s += "  [data=";
-        for (int i = 0; i < 23; i++) {
-          s += "0x"+Long.toHexString(getElement_data(i) & 0xff)+" ";
+        s += "  [payload=";
+        for (int i = 0; i < 16; i++) {
+          s += "0x"+Long.toHexString(getElement_payload(i) & 0xff)+" ";
         }
         s += "]\n";
       } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
@@ -105,9 +108,72 @@ public class DataMsg extends net.tinyos.message.Message {
     // Message-type-specific access methods appear below.
 
     /////////////////////////////////////////////////////////
+    // Accessor methods for field: source
+    //   Field type: int, signed
+    //   Offset (bits): 0
+    //   Size (bits): 16
+    /////////////////////////////////////////////////////////
+
+    /**
+     * Return whether the field 'source' is signed (true).
+     */
+    public static boolean isSigned_source() {
+        return true;
+    }
+
+    /**
+     * Return whether the field 'source' is an array (false).
+     */
+    public static boolean isArray_source() {
+        return false;
+    }
+
+    /**
+     * Return the offset (in bytes) of the field 'source'
+     */
+    public static int offset_source() {
+        return (0 / 8);
+    }
+
+    /**
+     * Return the offset (in bits) of the field 'source'
+     */
+    public static int offsetBits_source() {
+        return 0;
+    }
+
+    /**
+     * Return the value (as a int) of the field 'source'
+     */
+    public int get_source() {
+        return (int)getUIntBEElement(offsetBits_source(), 16);
+    }
+
+    /**
+     * Set the value of the field 'source'
+     */
+    public void set_source(int value) {
+        setUIntBEElement(offsetBits_source(), 16, value);
+    }
+
+    /**
+     * Return the size, in bytes, of the field 'source'
+     */
+    public static int size_source() {
+        return (16 / 8);
+    }
+
+    /**
+     * Return the size, in bits, of the field 'source'
+     */
+    public static int sizeBits_source() {
+        return 16;
+    }
+
+    /////////////////////////////////////////////////////////
     // Accessor methods for field: address
     //   Field type: long, signed
-    //   Offset (bits): 0
+    //   Offset (bits): 16
     //   Size (bits): 32
     /////////////////////////////////////////////////////////
 
@@ -129,14 +195,14 @@ public class DataMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'address'
      */
     public static int offset_address() {
-        return (0 / 8);
+        return (16 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'address'
      */
     public static int offsetBits_address() {
-        return 0;
+        return 16;
     }
 
     /**
@@ -170,7 +236,7 @@ public class DataMsg extends net.tinyos.message.Message {
     /////////////////////////////////////////////////////////
     // Accessor methods for field: length
     //   Field type: short, signed
-    //   Offset (bits): 32
+    //   Offset (bits): 48
     //   Size (bits): 8
     /////////////////////////////////////////////////////////
 
@@ -192,14 +258,14 @@ public class DataMsg extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'length'
      */
     public static int offset_length() {
-        return (32 / 8);
+        return (48 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'length'
      */
     public static int offsetBits_length() {
-        return 32;
+        return 48;
     }
 
     /**
@@ -231,154 +297,154 @@ public class DataMsg extends net.tinyos.message.Message {
     }
 
     /////////////////////////////////////////////////////////
-    // Accessor methods for field: data
+    // Accessor methods for field: payload
     //   Field type: byte[], signed
-    //   Offset (bits): 40
+    //   Offset (bits): 56
     //   Size of each element (bits): 8
     /////////////////////////////////////////////////////////
 
     /**
-     * Return whether the field 'data' is signed (true).
+     * Return whether the field 'payload' is signed (true).
      */
-    public static boolean isSigned_data() {
+    public static boolean isSigned_payload() {
         return true;
     }
 
     /**
-     * Return whether the field 'data' is an array (true).
+     * Return whether the field 'payload' is an array (true).
      */
-    public static boolean isArray_data() {
+    public static boolean isArray_payload() {
         return true;
     }
 
     /**
-     * Return the offset (in bytes) of the field 'data'
+     * Return the offset (in bytes) of the field 'payload'
      */
-    public static int offset_data(int index1) {
-        int offset = 40;
-        if (index1 < 0 || index1 >= 23) throw new ArrayIndexOutOfBoundsException();
+    public static int offset_payload(int index1) {
+        int offset = 56;
+        if (index1 < 0 || index1 >= 16) throw new ArrayIndexOutOfBoundsException();
         offset += 0 + index1 * 8;
         return (offset / 8);
     }
 
     /**
-     * Return the offset (in bits) of the field 'data'
+     * Return the offset (in bits) of the field 'payload'
      */
-    public static int offsetBits_data(int index1) {
-        int offset = 40;
-        if (index1 < 0 || index1 >= 23) throw new ArrayIndexOutOfBoundsException();
+    public static int offsetBits_payload(int index1) {
+        int offset = 56;
+        if (index1 < 0 || index1 >= 16) throw new ArrayIndexOutOfBoundsException();
         offset += 0 + index1 * 8;
         return offset;
     }
 
     /**
-     * Return the entire array 'data' as a byte[]
+     * Return the entire array 'payload' as a byte[]
      */
-    public byte[] get_data() {
-        byte[] tmp = new byte[23];
-        for (int index0 = 0; index0 < numElements_data(0); index0++) {
-            tmp[index0] = getElement_data(index0);
+    public byte[] get_payload() {
+        byte[] tmp = new byte[16];
+        for (int index0 = 0; index0 < numElements_payload(0); index0++) {
+            tmp[index0] = getElement_payload(index0);
         }
         return tmp;
     }
 
     /**
-     * Set the contents of the array 'data' from the given byte[]
+     * Set the contents of the array 'payload' from the given byte[]
      */
-    public void set_data(byte[] value) {
+    public void set_payload(byte[] value) {
         for (int index0 = 0; index0 < value.length; index0++) {
-            setElement_data(index0, value[index0]);
+            setElement_payload(index0, value[index0]);
         }
     }
 
     /**
-     * Return an element (as a byte) of the array 'data'
+     * Return an element (as a byte) of the array 'payload'
      */
-    public byte getElement_data(int index1) {
-        return (byte)getSIntBEElement(offsetBits_data(index1), 8);
+    public byte getElement_payload(int index1) {
+        return (byte)getSIntBEElement(offsetBits_payload(index1), 8);
     }
 
     /**
-     * Set an element of the array 'data'
+     * Set an element of the array 'payload'
      */
-    public void setElement_data(int index1, byte value) {
-        setSIntBEElement(offsetBits_data(index1), 8, value);
+    public void setElement_payload(int index1, byte value) {
+        setSIntBEElement(offsetBits_payload(index1), 8, value);
     }
 
     /**
-     * Return the total size, in bytes, of the array 'data'
+     * Return the total size, in bytes, of the array 'payload'
      */
-    public static int totalSize_data() {
-        return (184 / 8);
+    public static int totalSize_payload() {
+        return (128 / 8);
     }
 
     /**
-     * Return the total size, in bits, of the array 'data'
+     * Return the total size, in bits, of the array 'payload'
      */
-    public static int totalSizeBits_data() {
-        return 184;
+    public static int totalSizeBits_payload() {
+        return 128;
     }
 
     /**
-     * Return the size, in bytes, of each element of the array 'data'
+     * Return the size, in bytes, of each element of the array 'payload'
      */
-    public static int elementSize_data() {
+    public static int elementSize_payload() {
         return (8 / 8);
     }
 
     /**
-     * Return the size, in bits, of each element of the array 'data'
+     * Return the size, in bits, of each element of the array 'payload'
      */
-    public static int elementSizeBits_data() {
+    public static int elementSizeBits_payload() {
         return 8;
     }
 
     /**
-     * Return the number of dimensions in the array 'data'
+     * Return the number of dimensions in the array 'payload'
      */
-    public static int numDimensions_data() {
+    public static int numDimensions_payload() {
         return 1;
     }
 
     /**
-     * Return the number of elements in the array 'data'
+     * Return the number of elements in the array 'payload'
      */
-    public static int numElements_data() {
-        return 23;
+    public static int numElements_payload() {
+        return 16;
     }
 
     /**
-     * Return the number of elements in the array 'data'
+     * Return the number of elements in the array 'payload'
      * for the given dimension.
      */
-    public static int numElements_data(int dimension) {
-      int array_dims[] = { 23,  };
+    public static int numElements_payload(int dimension) {
+      int array_dims[] = { 16,  };
         if (dimension < 0 || dimension >= 1) throw new ArrayIndexOutOfBoundsException();
         if (array_dims[dimension] == 0) throw new IllegalArgumentException("Array dimension "+dimension+" has unknown size");
         return array_dims[dimension];
     }
 
     /**
-     * Fill in the array 'data' with a String
+     * Fill in the array 'payload' with a String
      */
-    public void setString_data(String s) { 
+    public void setString_payload(String s) { 
          int len = s.length();
          int i;
          for (i = 0; i < len; i++) {
-             setElement_data(i, (byte)s.charAt(i));
+             setElement_payload(i, (byte)s.charAt(i));
          }
-         setElement_data(i, (byte)0); //null terminate
+         setElement_payload(i, (byte)0); //null terminate
     }
 
     /**
-     * Read the array 'data' as a String
+     * Read the array 'payload' as a String
      */
-    public String getString_data() { 
-         char carr[] = new char[Math.min(net.tinyos.message.Message.MAX_CONVERTED_STRING_LENGTH,23)];
+    public String getString_payload() { 
+         char carr[] = new char[Math.min(net.tinyos.message.Message.MAX_CONVERTED_STRING_LENGTH,16)];
          int i;
          for (i = 0; i < carr.length; i++) {
-             if ((char)getElement_data(i) == (char)0) break;
-             carr[i] = (char)getElement_data(i);
+             if ((char)getElement_payload(i) == (char)0) break;
+             carr[i] = (char)getElement_payload(i);
          }
          return new String(carr,0,i);
     }
