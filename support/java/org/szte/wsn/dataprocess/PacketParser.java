@@ -41,6 +41,10 @@ public abstract class PacketParser{
 	protected String name;
 	protected String type;
 	
+	/**
+	 * 
+	 * @return the type of the PacketParser 
+	 */
 	public String getType() {
 		return type;
 	}

@@ -36,7 +36,7 @@ package org.szte.wsn.dataprocess;
 import java.io.IOException;
 
 /**
- * interface of communication between the data readers and parsers
+ * interface of communication between the binary data and parsers
  * 
  */
 public interface BinaryInterface {
@@ -48,7 +48,7 @@ public interface BinaryInterface {
 	
 	/**
 	 * sends a byte[] to the reader
-	 * @param frames byte[]
+	 * @param frame byte[]
 	 */
 	void writePacket(byte[] frame) throws IOException;
 	//exception

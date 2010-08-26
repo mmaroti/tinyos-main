@@ -45,7 +45,7 @@ import org.szte.wsn.dataprocess.serial.BinaryInterfaceSerial;
 public class BinaryInterfaceFactory {
 	/**
 	 * 
-	 * @param type can be "file" or "serial"
+	 * @param type can be "file" , "shimmer" or "serial"
 	 * @param source String path of the source
 	 * @return a BinaryInterface instance with the specified params
 	 */
