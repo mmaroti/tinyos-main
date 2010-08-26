@@ -521,7 +521,7 @@ implementation
 	/** Find the actual block in a descriptor based on the match of unique data
 	*   part, the new block gets assigned 0x00 priority and is sent from a task.
 	*/
-	command error_t DfrfSend.send[uint8_t id](void *data)
+	command error_t DfrfSend.send[uint8_t id](void *data, void **cacheddata)
 	{
 	  struct descriptor *desc = getDescriptor(id);
 
@@ -538,9 +538,11 @@ implementation
 			post sendMsg();
 
 			call Leds.led2Toggle();
+			*cacheddata=block->data;
 			return SUCCESS;
 		  }
 	  }
+	  *cacheddata=NULL;
 
 	  return FAIL;
 	}

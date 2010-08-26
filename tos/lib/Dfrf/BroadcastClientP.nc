@@ -58,14 +58,14 @@ implementation
 		uint8_t payload[payloadLength];
 	} combined_t;
 
-	command error_t DfrfSend.send(void *payload)
+	command error_t DfrfSend.send(void *payload, void **cacheddata)
 	{
 		combined_t combined;
 
 		memcpy(&combined.payload, payload, payloadLength);
 		call Convergecast.writeHeader(&combined.header);
 		
-		return call SubSend.send(&combined);
+		return call SubSend.send(&combined, cacheddata);
 	}
 	
 	event void SubSend.sendDone(void *data){

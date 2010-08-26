@@ -35,7 +35,7 @@ interface DfrfSend
 	 * @return SUCCESS if the data was succesfully scheduled to be sent,
 	 *	FAIL if the same data is already scheduled.
 	 */
-	command error_t send(void *data);
+	command error_t send(void *data, void **cacheddata);
 	
 	event void sendDone(void *data);
 }
