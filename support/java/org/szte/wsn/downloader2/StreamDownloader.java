@@ -169,7 +169,7 @@ public class StreamDownloader{
 	public final class ClearHandled extends TimerTask {
 		public void run() {
 			long now=(new Date()).getTime();
-			if(currently_handled.getNodeID()!=NONE&&getWriter(currently_handled.getNodeID(), writers).getLastModified()+timeout<now){
+			if(currently_handled.getNodeID()!=NONE&&getWriter(currently_handled.getNodeID(), writers).getLastModified()+timeout*1000<now){
 				currently_handled=new Pong(NONE,0,0);
 				if(pingtask==null){
 					pingtask=new Ping();
@@ -251,20 +251,23 @@ public class StreamDownloader{
     }
 
 	public void newData(int nodeid, long address, byte[] data) {
-		DataWriter writer=getWriter(nodeid, writers);
-		if(writer==null){//create a new file
-			writer=new DataWriter(nodeid);
-			writers.add(writer);
-		}
-		
-		try {//write
-			long done=writer.writeData(address, data);
-			done-=currently_handled.getMinAddress();
-			System.out.print(ProgressBar(currently_handled.getMaxAddress()-currently_handled.getMinAddress(),
-										 done, writer.getMaxAddress()-writer.getGapCount(), writer.getGapPercent(), writer.getGapCount()));
-		} catch (IOException e) {
-			System.err.println("Error: Can't write file "+DataWriter.nodeidToPath(writer.getNodeid(),".bin"));
-		}
+		if(currently_handled.getNodeID()==nodeid){
+			DataWriter writer=getWriter(nodeid, writers);
+			if(writer==null){//create a new file
+				writer=new DataWriter(nodeid);
+				writers.add(writer);
+			}
+			
+			try {//write
+				long done=writer.writeData(address, data);
+				done-=currently_handled.getMinAddress();
+				System.out.print(ProgressBar(currently_handled.getMaxAddress()-currently_handled.getMinAddress(),
+											 done, writer.getMaxAddress()-writer.getGapCount(), writer.getGapPercent(), writer.getGapCount()));
+			} catch (IOException e) {
+				System.err.println("Error: Can't write file "+DataWriter.nodeidToPath(writer.getNodeid(),".bin"));
+			}
+		} else
+			System.err.println("Warning: unhandled data from #"+nodeid);
 	}
 
 	public void newPong(int nodeid, long min_address, long max_address) {
