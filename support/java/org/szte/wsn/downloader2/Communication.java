@@ -12,12 +12,16 @@ public class Communication  implements MessageListener {
 
 	private MoteIF moteIF;
 	private StreamDownloader sd;
+	private short seqnum=0;
 	
 	@Override
 	public void messageReceived(int to, Message m) {
 		if(m instanceof CtrlMsg){
 			CtrlMsg rec=(CtrlMsg)m;
-			sd.newPong(rec.get_source(),rec.get_min_address(),rec.get_max_address());
+			if(seqnum==rec.get_seq_num())
+				sd.newPong(rec.get_source(),rec.get_min_address(),rec.get_max_address(),true);
+			else
+				sd.newPong(rec.get_source(),rec.get_min_address(),rec.get_max_address(),false);
 		} else if(m instanceof DataMsg){
 			DataMsg rec=(DataMsg)m;
 			byte[] data=new byte[rec.get_length()];
@@ -33,6 +37,7 @@ public class Communication  implements MessageListener {
 		get.set_nodeid(nodeID);
 		get.set_min_address(minaddress);
 		get.set_max_address(maxaddress);
+		get.set_seq_num(++seqnum);
 		moteIF.send(MoteIF.TOS_BCAST_ADDR, get);
 	}
 	
@@ -47,6 +52,7 @@ public class Communication  implements MessageListener {
 	}
 	
 	public void sendErase() throws IOException{
+		//sendGet(MoteIF.TOS_BCAST_ADDR, 0, 0);
 		sendCommnad(CommandMsg.COMMAND_ERASE);
 	}
 	

@@ -9,12 +9,12 @@ package org.szte.wsn.downloader2;
 public class CtrlMsg extends net.tinyos.message.Message {
 
     /** The default size of this message type in bytes. */
-    public static final int DEFAULT_MESSAGE_SIZE = 10;
+    public static final int DEFAULT_MESSAGE_SIZE = 11;
 
     /** The Active Message type associated with this message. */
     public static final int AM_TYPE = 96;
 
-    /** Create a new CtrlMsg of size 10. */
+    /** Create a new CtrlMsg of size 11. */
     public CtrlMsg() {
         super(DEFAULT_MESSAGE_SIZE);
         amTypeSet(AM_TYPE);
@@ -94,6 +94,9 @@ public class CtrlMsg extends net.tinyos.message.Message {
       } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
       try {
         s += "  [max_address=0x"+Long.toHexString(get_max_address())+"]\n";
+      } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
+      try {
+        s += "  [seq_num=0x"+Long.toHexString(get_seq_num())+"]\n";
       } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
       return s;
     }
@@ -287,6 +290,69 @@ public class CtrlMsg extends net.tinyos.message.Message {
      */
     public static int sizeBits_max_address() {
         return 32;
+    }
+
+    /////////////////////////////////////////////////////////
+    // Accessor methods for field: seq_num
+    //   Field type: short, unsigned
+    //   Offset (bits): 80
+    //   Size (bits): 8
+    /////////////////////////////////////////////////////////
+
+    /**
+     * Return whether the field 'seq_num' is signed (false).
+     */
+    public static boolean isSigned_seq_num() {
+        return false;
+    }
+
+    /**
+     * Return whether the field 'seq_num' is an array (false).
+     */
+    public static boolean isArray_seq_num() {
+        return false;
+    }
+
+    /**
+     * Return the offset (in bytes) of the field 'seq_num'
+     */
+    public static int offset_seq_num() {
+        return (80 / 8);
+    }
+
+    /**
+     * Return the offset (in bits) of the field 'seq_num'
+     */
+    public static int offsetBits_seq_num() {
+        return 80;
+    }
+
+    /**
+     * Return the value (as a short) of the field 'seq_num'
+     */
+    public short get_seq_num() {
+        return (short)getUIntBEElement(offsetBits_seq_num(), 8);
+    }
+
+    /**
+     * Set the value of the field 'seq_num'
+     */
+    public void set_seq_num(short value) {
+        setUIntBEElement(offsetBits_seq_num(), 8, value);
+    }
+
+    /**
+     * Return the size, in bytes, of the field 'seq_num'
+     */
+    public static int size_seq_num() {
+        return (8 / 8);
+    }
+
+    /**
+     * Return the size, in bits, of the field 'seq_num'
+     */
+    public static int sizeBits_seq_num() {
+        return 8;
     }
 
 }

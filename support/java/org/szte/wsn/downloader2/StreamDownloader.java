@@ -48,7 +48,7 @@ public class StreamDownloader{
 	private static final int MIN_DOWNLOAD_SIZE=DataMsg.numElements_payload()*4;
 	private static final int NONE=0xffff;
 	private static final int ERASE_NO=-1;
-	private static final int ERASE_ALL=-2;
+	private static final int ERASE_ALL=0xffff;
 	
 	private Communication communication;
 	private int listenonly,timeout,pongwait;
@@ -172,6 +172,7 @@ public class StreamDownloader{
 			if(currently_handled.getNodeID()!=NONE&&getWriter(currently_handled.getNodeID(), writers).getLastModified()+timeout*1000<now){
 				currently_handled=new Pong(NONE,0,0);
 				if(pingtask==null){
+					System.out.println("Download timed out");
 					pingtask=new Ping();
 					timer.scheduleAtFixedRate(pingtask, 0, pinginterval*1000);
 				}
@@ -181,7 +182,7 @@ public class StreamDownloader{
 	
 	public final class Ping extends TimerTask {
 		public void run() {
-			System.out.println("Ping sent");
+			System.out.println("Ping");
 			try {
 				communication.sendPing();
 				startdownload=new StartDownload(pongs);
@@ -270,7 +271,7 @@ public class StreamDownloader{
 			System.err.println("Warning: unhandled data from #"+nodeid);
 	}
 
-	public void newPong(int nodeid, long min_address, long max_address) {
+	public void newPong(int nodeid, long min_address, long max_address, boolean complete) {
 		if(listenonly<0||listenonly==nodeid){
 			if(getWriter(nodeid, writers)==null){
 				writers.add(new DataWriter(nodeid));
@@ -279,8 +280,10 @@ public class StreamDownloader{
 			if(new Date().getTime()-startdownload.scheduledExecutionTime()<=0){
 				System.out.println("Node #"+nodeid+" "+min_address+"-"+max_address);
 				pongs.add(new Pong(nodeid, min_address, max_address));
-			}else if(currently_handled.getNodeID()==nodeid){
-				System.out.println("Node #"+nodeid+" "+min_address+"-"+max_address);
+			}else if(currently_handled.getNodeID()==nodeid&&complete){
+				System.out.println("Download complete; node #"+nodeid+" "+min_address+"-"+max_address);
+				getWriter(nodeid, writers).setLastModified();
+				pongs.clear();
 				pongs.add(new Pong(nodeid, min_address, max_address));
 				new StartDownload(pongs).run();
 			}else{
@@ -339,8 +342,8 @@ public class StreamDownloader{
 		//TODO it's just a hack for easy erase, and crashes
 		if(erase==ERASE_ALL)
 			new Communication(new StreamDownloader(listenonly, pinginterval, pongwait, timeout, source), source).sendErase();
-		
-		new StreamDownloader(listenonly, pinginterval,pongwait, timeout, source);
+		else
+			new StreamDownloader(listenonly, pinginterval,pongwait, timeout, source);
 	}
 	
 }
