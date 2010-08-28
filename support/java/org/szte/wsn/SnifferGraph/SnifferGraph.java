@@ -468,7 +468,7 @@ public class SnifferGraph implements DataBase{
 	    timeLine.setBackground(Color.white);
 		
 		backgPanel.add(timeLine);
-		int k = DATAPANEL_FIRST_SIZE;
+		//int k = DATAPANEL_FIRST_SIZE;
 		/*for(int i=0;i<dataPanel.size();i++){
 			dataPanel.get(i).setBounds(k, DATAPANEL_Y, DATAPANEL_SIZE_X, ((xmlRead.number+3)*DATAPANEL_SIZE_Y));
 			backgPanel.add(dataPanel.get(i));
@@ -574,7 +574,7 @@ public class SnifferGraph implements DataBase{
 	public static void main(String[] args) {
 		SnifferGraph main = new SnifferGraph();
 		main.snfG.setExtendedState(main.snfG.getExtendedState() | Frame.MAXIMIZED_BOTH);
-		for(int i = 0; i<1; i++){
+		/*for(int i = 0; i<1; i++){
 			String[] moteLabelNames = {"Elso", "Masodik", "Harmadik", "Negyedik"};
 			motes.add(new Packages(i, ++i, moteLabelNames));
 		}
@@ -583,10 +583,27 @@ public class SnifferGraph implements DataBase{
 			dataPanel.get(dataPanel.size()-1).setVisible(true);
 			backgPanel.add(dataPanel.get(dataPanel.size()-1));
 			scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
-		}
+		}*/
 		String[] moteLabelNames = {"Elso", "Masodik", "Harmadik", "Negyedik"};
 		motes.add(new Packages(4, 10, moteLabelNames));
 		motes.get(motes.size()-1).getALilPanel(devices, colorlist);
+		dataPanel.add(motes.get(motes.size()-1).getALilPanel(devices, colorlist));
+		dataPanel.get(dataPanel.size()-1).setVisible(true);
+		backgPanel.add(dataPanel.get(dataPanel.size()-1));
+		
+		String[] moteLabelNames2 = {"Device01", "Masodik", "Harmadik", "Negyedik"};
+		motes.add(new Packages(4, 6, moteLabelNames2));
+		motes.get(motes.size()-1).getALilPanel(devices, colorlist);
+		dataPanel.add(motes.get(motes.size()-1).getALilPanel(devices, colorlist));
+		dataPanel.get(dataPanel.size()-1).setVisible(true);
+		backgPanel.add(dataPanel.get(dataPanel.size()-1));
+		
+		
+		
+		
+		
+		
+		
 		/*do{
 			if(RandomString.getAnewInput() && main.start.getText().equals("Stop")){
 				int first = RandomString.getAnumber(motes.get(motes.size()-1).stopTime);

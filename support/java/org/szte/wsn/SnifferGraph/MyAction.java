@@ -83,10 +83,10 @@ public class MyAction implements AdjustmentListener, DataBase {
 				Rectangle rt = dataPanel.get(i).getBounds();
 				dataPanel.get(i).setBounds(motes.get(i).getFirstPos()-en.getValue(), rt.y, rt.width, rt.height);
 				if(motes.get(i).getFirstPos()-en.getValue()<90){
-					dataPanel.get(i).setVisible(false);
+					//dataPanel.get(i).setVisible(false);				///ez még nagyon nem stabul SANYA A KURVA ANYÁD
 				}
 				else{
-					dataPanel.get(i).setVisible(true);
+					//dataPanel.get(i).setVisible(true);
 				}
 				k+=100;
 			}

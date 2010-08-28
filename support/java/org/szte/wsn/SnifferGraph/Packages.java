@@ -147,7 +147,7 @@ public class Packages {
 		else{
 			boolean talalat = false;
 			for(devicespos = 0; devicespos<devices.size(); devicespos++){
-				if(this.labelNames[0].equals(devices.get(devicespos))){
+				if(this.labelNames[0].equals(devices.get(devicespos).getText())){
 					talalat = true;
 					break;
 				}
@@ -177,6 +177,13 @@ public class Packages {
 			}
 		}
 		//szin és poziciómeghatározás, kész, panel létrehozása, szinezése és a multiline tooltop létrehozása szükséges sanya
+		
+		
+		
+		motePanel.setBounds(130 ,270+devicespos*40, this.timeLenght*200 ,30);
+		motePanel.setBorder(BorderFactory.createEtchedBorder());
+		motePanel.setBackground(colorList.get(colornumber));
+		motePanel.setToolTipText(this.labelNames[2]);
 		
 		return motePanel; 
 	}

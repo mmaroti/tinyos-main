@@ -45,10 +45,10 @@ import javax.swing.JPanel;
 
 public class Process {
 	
-	private static ArrayList<JPanel> dataPanel = SnifferGraph.dataPanel;
-	private static JPanel backgPanel = SnifferGraph.backgPanel;
-	private static ArrayList<Packages> motes = SnifferGraph.motes;
-	private static JPanel centerPanel = SnifferGraph.centerPanel;
+	//private static ArrayList<JPanel> dataPanel = SnifferGraph.dataPanel;
+	//private static JPanel backgPanel = SnifferGraph.backgPanel;
+	//private static ArrayList<Packages> motes = SnifferGraph.motes;
+	//private static JPanel centerPanel = SnifferGraph.centerPanel;
 	private static JPanel forBox = SnifferGraph.forBox;
 	private static ArrayList<JCheckBox> devices = SnifferGraph.devices;
 	
