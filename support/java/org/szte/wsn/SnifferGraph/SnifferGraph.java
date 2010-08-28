@@ -43,6 +43,7 @@ import java.awt.Color;
 import java.awt.Event;
 import java.awt.FlowLayout;
 import java.awt.Frame;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -77,10 +78,11 @@ public class SnifferGraph implements DataBase{
 	JFrame snfG = new JFrame((String)Labels.frame_name);
 	
 	public static ArrayList<JPanel> dataPanel = new ArrayList<JPanel>();
-	public static ArrayList<Mote> motes = new ArrayList<Mote>();
-	public static ArrayList<String> colors = new ArrayList<String>();
+	public static ArrayList<Packages> motes = new ArrayList<Packages>();
+	public static ArrayList<Color> colorlist = new ArrayList<Color>();		//páros típus, páratlan szin
+	public static ArrayList<String> colors = new ArrayList<String>();		//páros típus, páratlan szin
 	
-	public static XmlRead xmlRead = new XmlRead();
+	//public static XmlRead xmlRead = new XmlRead();
 	
 	JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
 	JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -118,20 +120,20 @@ public class SnifferGraph implements DataBase{
     JTextField receivedPack = new JTextField("1");
     JTextField channel = new JTextField("1L");
     JTextField loadedFileT = new JTextField(Labels.txfield_loadedFileT);
-    JTextField loadedFile = new JTextField(xmlRead.filename);
-    JTextField saved = new JTextField(xmlRead.filename);
+    JTextField loadedFile = new JTextField("xmlRead.filename");
+    JTextField saved = new JTextField("xmlRead.filename");
     
     public static ArrayList<JTextField> osTime = new ArrayList<JTextField>();
     public static ArrayList<JTextField> moteTime = new ArrayList<JTextField>();
     
     public static JTextField osTimeText = new JTextField("OS Time:");
-	public static JTextField moteTimeText = new JTextField("Mote Time:");
+	public static JTextField moteTimeText = new JTextField("packages Time:");
     
     public static TimeLineDraw timeLine = new TimeLineDraw();
     
     public static JScrollBar scrollbar = new JScrollBar(JScrollBar.HORIZONTAL);
     
-    public static JCheckBox box[] = new JCheckBox[xmlRead.number+1];
+    public static ArrayList<JCheckBox> devices = new ArrayList<JCheckBox>();
     
     JFileChooser fc = new JFileChooser();
     
@@ -266,14 +268,31 @@ public class SnifferGraph implements DataBase{
         adding();											
         setTooltips();													
         createTimeLine();
-		createBoxes();
+		//createBoxes();
         setMnemonics();
+        makeAcolors();
         
         snfG.setSize(800, 600);					
         snfG.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         snfG.setVisible(true);
    }
 	
+	private void makeAcolors() {
+		// TODO Auto-generated method stub
+		colorlist.add(Color.black);
+		colorlist.add(Color.blue);
+		colorlist.add(Color.cyan);
+		colorlist.add(Color.darkGray);
+		colorlist.add(Color.gray);
+		colorlist.add(Color.green);
+		colorlist.add(Color.lightGray);
+		colorlist.add(Color.magenta);
+		colorlist.add(Color.orange);
+		colorlist.add(Color.pink);
+		colorlist.add(Color.red);
+		colorlist.add(Color.yellow);
+	}
+
 	private void creatToolBar() {
 		exit_toolbar = new ToolBarButton("./org/szte/wsn/SnifferGraph/icon/Exit.png");
 		exit_toolbar.setToolTipText("Exit");
@@ -290,49 +309,16 @@ public class SnifferGraph implements DataBase{
 	}
 	
 	/**
-	 * This function creates and specify checkboxes
-	 */
-	private void createBoxes() {
-		int height = JCHECKBOX_FIRST_SIZE;
-		
-		box[0]= new JCheckBox("Catch");											//Elso box beálítása. Az az értéket mutatja majd pontosan, hogy mikor érkezett.
-		box[0].setToolTipText("Ekkor érkezett a package");
-		box[0].setSelected(true);
-		box[0].addActionListener(new ActionListener() {			
-        public void actionPerformed(ActionEvent event) {
-        		switching(event);
-        	}
-		});
-		box[0].setBounds(3, height+=HORIZONTAL_JCB_SPACE, JCHECKBOX_SIZE_X, JCHECKBOX_SIZE_Y);
-		backgPanel.add(box[0]);
-		
-		
-		
-		for(int i = 1; i <= xmlRead.number; i++){
-			box[i]= new JCheckBox(xmlRead.cimkek.get(i-1));
-			box[i].setToolTipText(xmlRead.title.get(i-1));
-			box[i].setSelected(true);
-			box[i].addActionListener(new ActionListener() {			
-            public void actionPerformed(ActionEvent event) {
-            		switching(event);
-            	}
-			});
-			box[i].setBounds(3, height+=HORIZONTAL_JCB_SPACE, JCHECKBOX_SIZE_X, JCHECKBOX_SIZE_Y);
-			backgPanel.add(box[i]);
-		}
-	}
-	
-	/**
 	 * Function will used by checkboxes to know what data visible
 	 * @param event
 	 */
-	private void switching(ActionEvent event) {
+	/*private void switching(ActionEvent event) {
 		System.out.println(event.getActionCommand()); 
 		Process.reDraw();
 		// TODO Auto-generated method stub
 		scrollbar.setValue(scrollbar.getValue()+1);
 		scrollbar.setValue(scrollbar.getValue()-1);
-	}
+	}*/
 
 	/**
 	 * This function specifies the Hot keys and the Mnemonic chars in JMenubar .
@@ -459,6 +445,10 @@ public class SnifferGraph implements DataBase{
 	 * To be aligned on our workspace
 	 */
 	private void adding() {
+		
+		devices.add(new JCheckBox("Device01"));
+		devices.add(new JCheckBox("Device02"));
+		
 		southPanel.add(startStop);
 		southPanel.add(recived);
 		southPanel.add(receivedPack);
@@ -481,11 +471,24 @@ public class SnifferGraph implements DataBase{
 		
 		backgPanel.add(timeLine);
 		int k = DATAPANEL_FIRST_SIZE;
-		for(int i=0;i<dataPanel.size();i++){
+		/*for(int i=0;i<dataPanel.size();i++){
 			dataPanel.get(i).setBounds(k, DATAPANEL_Y, DATAPANEL_SIZE_X, ((xmlRead.number+3)*DATAPANEL_SIZE_Y));
 			backgPanel.add(dataPanel.get(i));
 			k+=DATAPANEL_SPACE;
-		}
+		}*/
+		
+		devices.get(0).setBounds(10, 10, 40, 50);
+		devices.get(1).setBounds(10, 30, 40, 50);
+		
+		JPanel boxoknak = new JPanel();
+		boxoknak.setLayout(new GridLayout(5,5,5,5));
+		boxoknak.setBounds(0, 0, 100, 800);
+		boxoknak.add(devices.get(0));
+		boxoknak.add(devices.get(1));
+		
+		
+		centerPanel.add(boxoknak, BorderLayout.WEST);
+		
 		centerPanel.add(scrollbar, BorderLayout.SOUTH);
 		centerPanel.add(backgPanel, BorderLayout.CENTER);
 		
@@ -578,10 +581,10 @@ public class SnifferGraph implements DataBase{
 		main.snfG.setExtendedState(main.snfG.getExtendedState() | Frame.MAXIMIZED_BOTH);
 		for(int i = 0; i<1; i++){
 			String[] moteLabelNames = {"Elso", "Masodik", "Harmadik", "Negyedik"};
-			motes.add(new Mote(i, ++i, moteLabelNames));
+			motes.add(new Packages(i, ++i, moteLabelNames));
 		}
 		for(int i = 0; i<motes.size();i++){
-			dataPanel.add(motes.get(i).getAPanel(box));
+			dataPanel.add(motes.get(i).getAPanel(devices));
 			dataPanel.get(dataPanel.size()-1).setVisible(true);
 			backgPanel.add(dataPanel.get(dataPanel.size()-1));
 			scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
@@ -590,7 +593,7 @@ public class SnifferGraph implements DataBase{
 			if(RandomString.getAnewInput() && main.start.getText().equals("Stop")){
 				int first = RandomString.getAnumber(motes.get(motes.size()-1).stopTime);
 				int second = RandomString.getAnumber(first);
-				motes.add(new Mote(first, second, RandomString.getRandomMoteStrings(4)));
+				motes.add(new packages(first, second, RandomString.getRandompackagesStrings(4)));
 				dataPanel.add(motes.get(motes.size()-1).getAPanel(box));
 				dataPanel.get(dataPanel.size()-1).setVisible(true);
 				backgPanel.add(dataPanel.get(dataPanel.size()-1));

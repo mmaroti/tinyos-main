@@ -42,7 +42,7 @@ public final class Labels {
 	
 	public static final String menu_exit = "Exit";
 	public static final String menu_about = "About";
-	public static final String menu_load_packages = "Load packages...";
+	public static final String menu_load_packages = "Load";
 	public static final String menu_open_conf = "Open Configuration";
 	public static final String menu_create = "Create";
 	public static final String menu_save = "Save";

@@ -51,7 +51,7 @@ public class MyAction implements AdjustmentListener, DataBase {
 	JTextField osTimeText = SnifferGraph.osTimeText;
 	JTextField moteTimeText = SnifferGraph.moteTimeText;
 	ArrayList<JPanel> dataPanel = SnifferGraph.dataPanel;
-	ArrayList<Mote> motes = SnifferGraph.motes;
+	ArrayList<Packages> motes = SnifferGraph.motes;
 	
 	public static boolean first = true;									
 	/**

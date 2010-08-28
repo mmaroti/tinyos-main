@@ -47,8 +47,8 @@ public class Process {
 	
 	private static ArrayList<JPanel> dataPanel = SnifferGraph.dataPanel;
 	private static JPanel backgPanel = SnifferGraph.backgPanel;
-	private static ArrayList<Mote> motes = SnifferGraph.motes;
-	private static JCheckBox box[] = SnifferGraph.box;
+	private static ArrayList<Packages> motes = SnifferGraph.motes;
+	//private static JCheckBox box[] = SnifferGraph.box;
 	//private static Date date = new Date();
 	public static int currentlyMillisec = Integer.valueOf((int) (System.currentTimeMillis()%100));
 	
@@ -84,7 +84,7 @@ public class Process {
 		return "#" + whatTimeIsNow();
 	}
 
-	public static void reDraw() {
+	/*public static void reDraw() {
 		for(int i = 0; i<dataPanel.size();i++){
 			dataPanel.get(i).setVisible(false);
 			backgPanel.remove(dataPanel.get(i));
@@ -99,6 +99,6 @@ public class Process {
 			backgPanel.add(dataPanel.get(dataPanel.size()-1));
 		}
 		SnifferGraph.scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
-	}
+	}*/
 
 }

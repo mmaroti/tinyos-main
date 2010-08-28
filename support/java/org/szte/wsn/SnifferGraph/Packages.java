@@ -31,12 +31,14 @@
 
 package org.szte.wsn.SnifferGraph;
 import java.awt.Color;
+import java.util.ArrayList;
+
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-public class Mote {
+public class Packages {
 
 	protected int startTime;
 	protected int stopTime;
@@ -109,23 +111,16 @@ public class Mote {
 	 * 
 	 * @return motPanel: The panel requested features drawn
 	 *  */
-	public JPanel getAPanel(JCheckBox[] box){
-		int boxLength = 0;
-		for(int i = 0;i<box.length; i++){
-			if(box[i].isSelected()){
-				boxLength++;
-			}
-		}
+	public JPanel getAPanel(ArrayList<JCheckBox> devices){
 		this.firstPos = 130+this.startTime*100;
 		motePanel = new JPanel();
 		motePanel.setLayout(null);
-		motePanel.setBounds(firstPos, 270, this.timeLenght*100, boxLength*70-50);		//bejelöld dobozok * dobozméret - egy fél dobozméret
+		motePanel.setBounds(firstPos, 270, this.timeLenght*100, 2*70-50);		//bejelöld dobozok * dobozméret - egy fél dobozméret
 		motePanel.setBackground(Color.orange);
 		motePanel.setBorder(BorderFactory.createEtchedBorder());
-		cells = new JTextField[boxLength];
 		int k = 0, j = 0;
-		for(int i = 0; i<box.length; i++){
-			if(box[i].isSelected()){
+		for(int i = 0; i<devices.size(); i++){
+			if(devices.get(i).isSelected()){
 				cells[j] = new JTextField(this.labelNames[i]);
 				cells[j].setBackground(null);
 				cells[j].setBorder(BorderFactory.createEtchedBorder());
@@ -138,8 +133,14 @@ public class Mote {
 		return motePanel;
 	}
 	
+	public JPanel getALilPanel(ArrayList<JCheckBox> devices, ArrayList<String> colors){
+		motePanel = new JPanel();
+		
+		return motePanel; 
+	}
+	
 	//konstrukor
-	public Mote(int startTime, int stopTime, String[] labelNames) {
+	public Packages(int startTime, int stopTime, String[] labelNames) {
 		super();
 		this.startTime = startTime;
 		this.stopTime = stopTime;
