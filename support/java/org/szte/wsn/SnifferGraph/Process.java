@@ -48,6 +48,10 @@ public class Process {
 	private static ArrayList<JPanel> dataPanel = SnifferGraph.dataPanel;
 	private static JPanel backgPanel = SnifferGraph.backgPanel;
 	private static ArrayList<Packages> motes = SnifferGraph.motes;
+	private static JPanel centerPanel = SnifferGraph.centerPanel;
+	private static JPanel forBox = SnifferGraph.forBox;
+	private static ArrayList<JCheckBox> devices = SnifferGraph.devices;
+	
 	//private static JCheckBox box[] = SnifferGraph.box;
 	//private static Date date = new Date();
 	public static int currentlyMillisec = Integer.valueOf((int) (System.currentTimeMillis()%100));
@@ -82,6 +86,14 @@ public class Process {
 	
 	public static String whatMoteTimeNow(){
 		return "#" + whatTimeIsNow();
+	}
+
+	public static void addDevice(String s) {
+		System.out.println("adding now");
+		// TODO Auto-generated method stub
+		devices.add(new JCheckBox(s));
+		forBox.add(devices.get(devices.size()-1));
+		
 	}
 
 	/*public static void reDraw() {

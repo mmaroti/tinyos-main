@@ -79,7 +79,7 @@ public class SnifferGraph implements DataBase{
 	
 	public static ArrayList<JPanel> dataPanel = new ArrayList<JPanel>();
 	public static ArrayList<Packages> motes = new ArrayList<Packages>();
-	public static ArrayList<Color> colorlist = new ArrayList<Color>();		//páros típus, páratlan szin
+	public static ArrayList<Color> colorlist = new ArrayList<Color>();
 	public static ArrayList<String> colors = new ArrayList<String>();		//páros típus, páratlan szin
 	
 	//public static XmlRead xmlRead = new XmlRead();
@@ -88,7 +88,8 @@ public class SnifferGraph implements DataBase{
 	JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 	JPanel northPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 	JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-	JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
+	public static JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
+	public static JPanel forBox = new JPanel();
 	
 	public static JPanel backgPanel = new JPanel();
 	
@@ -446,9 +447,6 @@ public class SnifferGraph implements DataBase{
 	 */
 	private void adding() {
 		
-		devices.add(new JCheckBox("Device01"));
-		devices.add(new JCheckBox("Device02"));
-		
 		southPanel.add(startStop);
 		southPanel.add(recived);
 		southPanel.add(receivedPack);
@@ -477,17 +475,14 @@ public class SnifferGraph implements DataBase{
 			k+=DATAPANEL_SPACE;
 		}*/
 		
-		devices.get(0).setBounds(10, 10, 40, 50);
-		devices.get(1).setBounds(10, 30, 40, 50);
+		devices.add(new JCheckBox("Device01"));
 		
-		JPanel boxoknak = new JPanel();
-		boxoknak.setLayout(new GridLayout(5,5,5,5));
-		boxoknak.setBounds(0, 0, 100, 800);
-		boxoknak.add(devices.get(0));
-		boxoknak.add(devices.get(1));
+		forBox.setLayout(new GridLayout(5,5,5,5));
+		forBox.setBounds(0, 0, 100, 800);
+		forBox.add(new JPanel());
+		forBox.add(devices.get(0));
 		
-		
-		centerPanel.add(boxoknak, BorderLayout.WEST);
+		centerPanel.add(forBox, BorderLayout.WEST);
 		
 		centerPanel.add(scrollbar, BorderLayout.SOUTH);
 		centerPanel.add(backgPanel, BorderLayout.CENTER);
@@ -589,6 +584,9 @@ public class SnifferGraph implements DataBase{
 			backgPanel.add(dataPanel.get(dataPanel.size()-1));
 			scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
 		}
+		String[] moteLabelNames = {"Elso", "Masodik", "Harmadik", "Negyedik"};
+		motes.add(new Packages(4, 10, moteLabelNames));
+		motes.get(motes.size()-1).getALilPanel(devices, colorlist);
 		/*do{
 			if(RandomString.getAnewInput() && main.start.getText().equals("Stop")){
 				int first = RandomString.getAnumber(motes.get(motes.size()-1).stopTime);

@@ -39,6 +39,9 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 public class Packages {
+	
+	public static ArrayList<String> colors = SnifferGraph.colors;
+	public static ArrayList<JCheckBox> devices = SnifferGraph.devices;
 
 	protected int startTime;
 	protected int stopTime;
@@ -133,8 +136,47 @@ public class Packages {
 		return motePanel;
 	}
 	
-	public JPanel getALilPanel(ArrayList<JCheckBox> devices, ArrayList<String> colors){
+	public JPanel getALilPanel(ArrayList<JCheckBox> devices, ArrayList<Color> colorList){
 		motePanel = new JPanel();
+		
+		//eszközmeghatározás
+		int devicespos = 0;
+		if(devices.size()==0){
+			Process.addDevice(this.labelNames[0]);
+		}
+		else{
+			boolean talalat = false;
+			for(devicespos = 0; devicespos<devices.size(); devicespos++){
+				if(this.labelNames[0].equals(devices.get(devicespos))){
+					talalat = true;
+					break;
+				}
+			}
+			if(!talalat){
+				Process.addDevice(this.labelNames[0]);
+				devicespos++;
+			}
+		}
+		
+		//szinmeghatározás
+		int colornumber = 0;
+		if(colors.size()==0){
+			colors.add(this.labelNames[0]);
+		}
+		else{
+			boolean talalat = false;
+			for(colornumber = 0; colornumber<colors.size(); colornumber++){
+				if(colors.get(colornumber).equals(this.labelNames[1])){
+					talalat = true;
+					break;
+				}
+			}
+			if(!talalat){
+				colors.add(this.labelNames[1]);
+				colornumber++;
+			}
+		}
+		//szin és poziciómeghatározás, kész, panel létrehozása, szinezése és a multiline tooltop létrehozása szükséges sanya
 		
 		return motePanel; 
 	}
