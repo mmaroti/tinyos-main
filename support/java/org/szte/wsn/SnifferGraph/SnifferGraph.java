@@ -592,7 +592,7 @@ public class SnifferGraph implements DataBase{
 		backgPanel.add(dataPanel.get(dataPanel.size()-1));
 		
 		String[] moteLabelNames2 = {"Device01", "Masodik", "Harmadik", "Negyedik"};
-		motes.add(new Packages(4, 6, moteLabelNames2));
+		motes.add(new Packages(6, 11, moteLabelNames2));
 		motes.get(motes.size()-1).getALilPanel(devices, colorlist);
 		dataPanel.add(motes.get(motes.size()-1).getALilPanel(devices, colorlist));
 		dataPanel.get(dataPanel.size()-1).setVisible(true);

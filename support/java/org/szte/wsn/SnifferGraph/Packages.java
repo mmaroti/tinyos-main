@@ -180,7 +180,7 @@ public class Packages {
 		
 		
 		
-		motePanel.setBounds(130 ,270+devicespos*40, this.timeLenght*200 ,30);
+		motePanel.setBounds(130+this.startTime*40 ,270+devicespos*40, this.timeLenght*40 ,30);		//koordináták még nem pontossak
 		motePanel.setBorder(BorderFactory.createEtchedBorder());
 		motePanel.setBackground(colorList.get(colornumber));
 		motePanel.setToolTipText(this.labelNames[2]);
