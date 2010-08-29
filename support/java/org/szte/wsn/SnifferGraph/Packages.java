@@ -166,13 +166,15 @@ public class Packages {
 		else{
 			boolean talalat = false;
 			for(colornumber = 0; colornumber<colors.size(); colornumber++){
-				if(colors.get(colornumber).equals(this.labelNames[1])){
+				if(colors.get(colornumber).equals(this.labelNames[0])){
+					System.out.println("nezzik mi van itt:" + colornumber);
+					System.out.println(colors.get(colornumber) + " " + this.labelNames[1]);
 					talalat = true;
 					break;
 				}
 			}
 			if(!talalat){
-				colors.add(this.labelNames[1]);
+				colors.add(this.labelNames[0]);
 				colornumber++;
 			}
 		}
@@ -182,7 +184,7 @@ public class Packages {
 		
 		motePanel.setBounds(130+this.startTime*40 ,270+devicespos*40, this.timeLenght*40 ,30);		//koordináták még nem pontossak
 		motePanel.setBorder(BorderFactory.createEtchedBorder());
-		motePanel.setBackground(colorList.get(colornumber));
+		motePanel.setBackground(colorList.get(devicespos));
 		motePanel.setToolTipText(this.labelNames[2]);
 		
 		return motePanel; 
