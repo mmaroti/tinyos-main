@@ -61,6 +61,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JSeparator;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
@@ -490,7 +491,12 @@ public class SnifferGraph implements DataBase{
 		mainPanel.add(southPanel, BorderLayout.SOUTH);
 		mainPanel.add(northPanel, BorderLayout.NORTH);
 		mainPanel.add(leftPanel, BorderLayout.WEST);
-		mainPanel.add(centerPanel, BorderLayout.CENTER);
+		JTabbedPane tab = new JTabbedPane();
+		tab.add("Composite",centerPanel);
+		tab.add("Data",null);
+		tab.add("Timing", null);
+		tab.add("RandomGirl", new JButton("babe"));
+		mainPanel.add(tab, BorderLayout.CENTER);
 		
 		snfG.add(mainPanel);
 	}
@@ -573,6 +579,8 @@ public class SnifferGraph implements DataBase{
 	
 	public static void main(String[] args) {
 		SnifferGraph main = new SnifferGraph();
+		
+		
 		main.snfG.setExtendedState(main.snfG.getExtendedState() | Frame.MAXIMIZED_BOTH);
 		/*for(int i = 0; i<1; i++){
 			String[] moteLabelNames = {"Elso", "Masodik", "Harmadik", "Negyedik"};
