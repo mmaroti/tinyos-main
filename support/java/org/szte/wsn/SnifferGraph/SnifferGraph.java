@@ -93,6 +93,7 @@ public class SnifferGraph implements DataBase{
 	public static JPanel centerPanel2 = new JPanel(new BorderLayout(10, 10)); //Data fulhoz a panel
 	public static JPanel centerPanel3 = new JPanel(new BorderLayout(10, 10)); //Timing fulhoz a panel
 	public static JPanel forBox = new JPanel();
+
 	
 	public static JPanel backgPanel = new JPanel(); //Composite ful
 	public static JPanel backgPanel2 = new JPanel(); //Data ful
@@ -139,6 +140,7 @@ public class SnifferGraph implements DataBase{
     public static TimeLineDraw timeLine = new TimeLineDraw();
     
     public static JScrollBar scrollbar = new JScrollBar(JScrollBar.HORIZONTAL);
+ 
     
     public static ArrayList<JCheckBox> devices = new ArrayList<JCheckBox>();
     
@@ -500,7 +502,10 @@ public class SnifferGraph implements DataBase{
 		centerPanel.add(forBox, BorderLayout.WEST);
 		
 		
+		
 		centerPanel.add(scrollbar, BorderLayout.SOUTH);
+
+		
 		centerPanel.add(backgPanel, BorderLayout.CENTER);
 		centerPanel2.add(backgPanel2, BorderLayout.CENTER);
 		centerPanel3.add(backgPanel3, BorderLayout.CENTER);
@@ -609,13 +614,28 @@ public class SnifferGraph implements DataBase{
 			backgPanel.add(dataPanel.get(dataPanel.size()-1));
 			scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
 		}*/
-		String[] moteLabelNames = {"Elso", "Masodik", "Harmadik", "Negyedik"};
-		motes.add(new Packages(4, 10, moteLabelNames));
+		
+		
+		String[] moteLabelNames11 = {"Elso", "Masodik", "Harmadik", "Negyedik"};
+		motes.add(new Packages(4, 10, moteLabelNames11));
+		motes.get(motes.size()-1).getABigPanel(devices, colorlist);
+		dataPanel.add(motes.get(motes.size()-1).getABigPanel(devices, colorlist));
+		dataPanel.get(dataPanel.size()-1).setVisible(true);
+		backgPanel2.add(dataPanel.get(dataPanel.size()-1));
+		
+		String[] moteLabelNames1 = {"Elso", "Masodik", "Harmadik", "Negyedik"};
+		motes.add(new Packages(4, 10, moteLabelNames1));
 		motes.get(motes.size()-1).getALilPanel(devices, colorlist);
 		dataPanel.add(motes.get(motes.size()-1).getALilPanel(devices, colorlist));
 		dataPanel.get(dataPanel.size()-1).setVisible(true);
 		backgPanel.add(dataPanel.get(dataPanel.size()-1));
 		
+		String[] moteLabelNames22 = {"Device01", "Masodik", "Harmadik", "Negyedik"};
+		motes.add(new Packages(6, 11, moteLabelNames22));
+		motes.get(motes.size()-1).getABigPanel(devices, colorlist);
+		dataPanel.add(motes.get(motes.size()-1).getABigPanel(devices, colorlist));
+		dataPanel.get(dataPanel.size()-1).setVisible(true);
+		backgPanel2.add(dataPanel.get(dataPanel.size()-1));
 		
 		String[] moteLabelNames2 = {"Device01", "Masodik", "Harmadik", "Negyedik"};
 		motes.add(new Packages(6, 11, moteLabelNames2));
@@ -631,11 +651,24 @@ public class SnifferGraph implements DataBase{
 		dataPanel.get(dataPanel.size()-1).setVisible(true);
 		backgPanel.add(dataPanel.get(dataPanel.size()-1));
 		
+		String[] moteLabelNames33 = {"Device02", "Masodik", "Harmadik", "Negyedik"};
+		motes.add(new Packages(6, 11, moteLabelNames33));
+		motes.get(motes.size()-1).getABigPanel(devices, colorlist);
+		dataPanel.add(motes.get(motes.size()-1).getABigPanel(devices, colorlist));
+		dataPanel.get(dataPanel.size()-1).setVisible(true);
+		backgPanel2.add(dataPanel.get(dataPanel.size()-1));
+		
 		motes.add(new Packages(15, 19, moteLabelNames3));
 		motes.get(motes.size()-1).getALilPanel(devices, colorlist);
 		dataPanel.add(motes.get(motes.size()-1).getALilPanel(devices, colorlist));
 		dataPanel.get(dataPanel.size()-1).setVisible(true);
 		backgPanel.add(dataPanel.get(dataPanel.size()-1));
+		
+		motes.add(new Packages(15, 19, moteLabelNames33));
+		motes.get(motes.size()-1).getABigPanel(devices, colorlist);
+		dataPanel.add(motes.get(motes.size()-1).getABigPanel(devices, colorlist));
+		dataPanel.get(dataPanel.size()-1).setVisible(true);
+		backgPanel2.add(dataPanel.get(dataPanel.size()-1));
 		
 		String[] moteLabelNames4 = {"Device04", "Masodik", "Harmadik", "Negyedik"};
 		motes.add(new Packages(6, 11, moteLabelNames4));
@@ -643,6 +676,13 @@ public class SnifferGraph implements DataBase{
 		dataPanel.add(motes.get(motes.size()-1).getALilPanel(devices, colorlist));
 		dataPanel.get(dataPanel.size()-1).setVisible(true);
 		backgPanel.add(dataPanel.get(dataPanel.size()-1));
+		
+		String[] moteLabelNames44 = {"Device04", "Masodik", "Harmadik", "Negyedik"};
+		motes.add(new Packages(6, 11, moteLabelNames44));
+		motes.get(motes.size()-1).getABigPanel(devices, colorlist);
+		dataPanel.add(motes.get(motes.size()-1).getABigPanel(devices, colorlist));
+		dataPanel.get(dataPanel.size()-1).setVisible(true);
+		backgPanel2.add(dataPanel.get(dataPanel.size()-1));
 		
 		
 		
