@@ -42,7 +42,7 @@ public class Packages {
 	
 	public static ArrayList<String> colors = SnifferGraph.colors;
 	public static ArrayList<JCheckBox> devices = SnifferGraph.devices;
-
+	public static int which=0;
 	protected int startTime;
 	protected int stopTime;
 	protected int timeLenght;
@@ -50,6 +50,7 @@ public class Packages {
 	protected String[] labelNames;
 	protected JTextField[] cells;
 	protected JPanel motePanel;
+	protected JPanel motePanel2;
 	
 	//getters and setters
 	public int getFirstPos() {
@@ -103,9 +104,15 @@ public class Packages {
 	public JPanel getMotePanel() {
 		return motePanel;
 	}
+	public JPanel getMotePanel2() {
+		return motePanel2;
+	}
 	
 	public void setMotePanel(JPanel motePanel) {
 		this.motePanel = motePanel;
+	}
+	public void setMotePanel2(JPanel motePanel2) {
+		this.motePanel2 = motePanel2;
 	}
 	
 	//other futures
@@ -116,11 +123,11 @@ public class Packages {
 	 *  */
 	public JPanel getAPanel(ArrayList<JCheckBox> devices){
 		this.firstPos = 130+this.startTime*100;
-		motePanel = new JPanel();
-		motePanel.setLayout(null);
-		motePanel.setBounds(firstPos, 270, this.timeLenght*100, 2*70-50);		//bejelöld dobozok * dobozméret - egy fél dobozméret
-		motePanel.setBackground(Color.orange);
-		motePanel.setBorder(BorderFactory.createEtchedBorder());
+		motePanel2 = new JPanel();
+		motePanel2.setLayout(null);
+		motePanel2.setBounds(firstPos, 270, this.timeLenght*100, 2*70-50);		//bejelöld dobozok * dobozméret - egy fél dobozméret
+		motePanel2.setBackground(Color.orange);
+		motePanel2.setBorder(BorderFactory.createEtchedBorder());
 		int k = 0, j = 0;
 		for(int i = 0; i<devices.size(); i++){
 			if(devices.get(i).isSelected()){
@@ -128,14 +135,83 @@ public class Packages {
 				cells[j].setBackground(null);
 				cells[j].setBorder(BorderFactory.createEtchedBorder());
 				cells[j].setBounds(0, k, this.timeLenght*100, 20);
-				motePanel.add(cells[j++]);
+				motePanel2.add(cells[j++]);
 				k+=70;
 			}
 		}
-		motePanel.setVisible(true);
-		return motePanel;
+		motePanel2.setVisible(true);
+		return motePanel2;
 	}
-	
+	public JPanel getABigPanel(ArrayList<JCheckBox> device, ArrayList<Color> colorList){
+		which++;
+		motePanel = new JPanel();
+		
+		//eszközmeghatározás
+		int devicespos = 0;
+		if(devices.size()==0){
+			Process.addDevice(this.labelNames[0]);
+		}
+		else{
+			boolean talalat = false;
+			for(devicespos = 0; devicespos<devices.size(); devicespos++){
+				if(this.labelNames[0].equals(devices.get(devicespos).getText())){
+					talalat = true;
+					break;
+				}
+			}
+			if(!talalat){
+				Process.addDevice(this.labelNames[0]);
+				devicespos++;
+			}
+		
+		}
+		//devicespos++;
+		
+		//szinmeghatározás
+		int colornumber = 0;
+		if(colors.size()==0){
+			colors.add(this.labelNames[0]);
+		}
+		else{
+			boolean talalat = false;
+			for(colornumber = 0; colornumber<colors.size(); colornumber++){
+				if(colors.get(colornumber).equals(this.labelNames[0])){
+					System.out.println("nezzik mi van itt:" + colornumber);
+					System.out.println(colors.get(colornumber) + " " + this.labelNames[1]);
+					talalat = true;
+					break;
+				}
+			}
+			if(!talalat){
+				colors.add(this.labelNames[0]);
+				colornumber++;
+			}
+		}
+		//szin és poziciómeghatározás, kész, panel létrehozása, szinezése és a multiline tooltop létrehozása szükséges sanya
+		
+		
+		
+		motePanel.setBounds(150 ,100+which*25, 75*(this.labelNames.length) ,45);		//koordináták még nem pontossak
+		motePanel.setBorder(BorderFactory.createEtchedBorder());
+		motePanel.setBackground(colorList.get(colornumber));
+		String information ="<html>";
+		for(int i =0; i<labelNames.length;i++){
+			JTextField datas = new JTextField(this.labelNames[i]);
+			datas.setEditable(false);
+			datas.setLayout(null);
+			motePanel.setLayout(null);
+			datas.setBounds(75*(i), 3, 75, 39);
+			motePanel.add(datas);
+			information=information+this.labelNames[i]+"<br>";
+		}
+		/*"<html>Eszk�z neve: <br>"+this.labelNames[3]+"<br>H�m�rs�klet: <br>"+"adat"+"<br>valami: <br>"+"adat2"*/
+		motePanel.setToolTipText(information);
+
+		motePanel.setBackground(colorList.get(devicespos));
+
+		
+		return motePanel; 
+	}
 	public JPanel getALilPanel(ArrayList<JCheckBox> devices, ArrayList<Color> colorList){
 		motePanel = new JPanel();
 		
