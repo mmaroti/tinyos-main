@@ -84,15 +84,19 @@ public class SnifferGraph implements DataBase{
 	public static ArrayList<String> colors = new ArrayList<String>();		//páros típus, páratlan szin
 	
 	//public static XmlRead xmlRead = new XmlRead();
-	
+	JTabbedPane tab = new JTabbedPane();
 	JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
 	JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 	JPanel northPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 	JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-	public static JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
+	public static JPanel centerPanel = new JPanel(new BorderLayout(10, 10)); //Composite fulhoz a panel
+	public static JPanel centerPanel2 = new JPanel(new BorderLayout(10, 10)); //Data fulhoz a panel
+	public static JPanel centerPanel3 = new JPanel(new BorderLayout(10, 10)); //Timing fulhoz a panel
 	public static JPanel forBox = new JPanel();
 	
-	public static JPanel backgPanel = new JPanel();
+	public static JPanel backgPanel = new JPanel(); //Composite ful
+	public static JPanel backgPanel2 = new JPanel(); //Data ful
+	public static JPanel backgPanel3 = new JPanel(); //Timing ful
 	
 	JMenuBar menubar = new JMenuBar();
     JMenu file = new JMenu("File");
@@ -114,6 +118,7 @@ public class SnifferGraph implements DataBase{
     JMenuItem set_port = new JMenuItem(Labels.menu_setport);
     
     JButton start = new JButton(Labels.button_start);
+   
     JButton clear = new JButton(Labels.button_clear);
     
     JTextField startStop = new JTextField(Labels.txfield_pause);
@@ -257,7 +262,13 @@ public class SnifferGraph implements DataBase{
 		
 		backgPanel.setLayout(null);
         backgPanel.setBackground(Color.white);						
-        backgPanel.setBorder(BorderFactory.createEtchedBorder());	
+        backgPanel.setBorder(BorderFactory.createEtchedBorder());
+        backgPanel2.setLayout(null);
+        backgPanel2.setBackground(Color.white);						
+        backgPanel2.setBorder(BorderFactory.createEtchedBorder());
+        backgPanel3.setLayout(null);
+        backgPanel3.setBackground(Color.white);						
+        backgPanel3.setBorder(BorderFactory.createEtchedBorder());	
 
         scrollbar.addAdjustmentListener(new MyAction());			
         scrollbar.setMaximum(0);
@@ -298,6 +309,7 @@ public class SnifferGraph implements DataBase{
 	private void creatToolBar() {
 		exit_toolbar = new ToolBarButton("./org/szte/wsn/SnifferGraph/icon/Exit.png");
 		exit_toolbar.setToolTipText("Exit");
+		
 		about_toolbar = new ToolBarButton("./org/szte/wsn/SnifferGraph/icon/About.png");
 		about_toolbar.setToolTipText("About to Sniffer");
 	    creat_toolbar = new ToolBarButton("./org/szte/wsn/SnifferGraph/icon/Create-Configuration.png");
@@ -487,16 +499,19 @@ public class SnifferGraph implements DataBase{
 		
 		centerPanel.add(forBox, BorderLayout.WEST);
 		
+		
 		centerPanel.add(scrollbar, BorderLayout.SOUTH);
 		centerPanel.add(backgPanel, BorderLayout.CENTER);
+		centerPanel2.add(backgPanel2, BorderLayout.CENTER);
+		centerPanel3.add(backgPanel3, BorderLayout.CENTER);
 		
 		mainPanel.add(southPanel, BorderLayout.SOUTH);
 		mainPanel.add(northPanel, BorderLayout.NORTH);
 		mainPanel.add(leftPanel, BorderLayout.WEST);
-		JTabbedPane tab = new JTabbedPane();
+		
 		tab.add("Composite",centerPanel);
-		tab.add("Data",null);
-		tab.add("Timing", null);
+		tab.add("Data",centerPanel2);
+		tab.add("Timing", centerPanel3);
 		tab.add("RandomGirl", new JButton("babe"));
 		mainPanel.add(tab, BorderLayout.CENTER);
 		
@@ -600,6 +615,7 @@ public class SnifferGraph implements DataBase{
 		dataPanel.add(motes.get(motes.size()-1).getALilPanel(devices, colorlist));
 		dataPanel.get(dataPanel.size()-1).setVisible(true);
 		backgPanel.add(dataPanel.get(dataPanel.size()-1));
+		
 		
 		String[] moteLabelNames2 = {"Device01", "Masodik", "Harmadik", "Negyedik"};
 		motes.add(new Packages(6, 11, moteLabelNames2));

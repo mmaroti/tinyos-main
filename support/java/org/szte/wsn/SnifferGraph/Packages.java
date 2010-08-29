@@ -184,8 +184,17 @@ public class Packages {
 		
 		motePanel.setBounds(130+this.startTime*40 ,270+devicespos*40, this.timeLenght*40 ,30);		//koordinÃ¡tÃ¡k mÃ©g nem pontossak
 		motePanel.setBorder(BorderFactory.createEtchedBorder());
+
+		motePanel.setBackground(colorList.get(colornumber));
+		String information ="<html>";
+		for(int i =1; i<labelNames.length;i++){
+			information=information+this.labelNames[i]+"<br>";
+		}
+		/*"<html>Eszköz neve: <br>"+this.labelNames[3]+"<br>Hõmérséklet: <br>"+"adat"+"<br>valami: <br>"+"adat2"*/
+		motePanel.setToolTipText(information);
+
 		motePanel.setBackground(colorList.get(devicespos));
-		motePanel.setToolTipText(this.labelNames[2]);
+
 		
 		return motePanel; 
 	}
