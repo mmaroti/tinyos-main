@@ -51,28 +51,28 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	ui->connectTab->layout()->addWidget(new ConnectWidget(ui->connectTab, app));
 
-        //Window *window = new Window(app);
-        //ui->openglTab->layout()->addWidget(window);
+	//Window *window = new Window(app);
+	//ui->openglTab->layout()->addWidget(window);
 
-        Widget3D* widget3d = new Widget3D(ui->openglTab, app);
-        ui->openglTab->layout()->addWidget(widget3d);
+//	Widget3D* widget3d = new Widget3D(ui->openglTab, app);
+//	ui->openglTab->layout()->addWidget(widget3d);
 
-        DataWidget* dataWidget = new DataWidget(ui->plotTab, app);
-        ui->plotTab->layout()->addWidget(dataWidget);
+	DataWidget* dataWidget = new DataWidget(ui->plotTab, app);
+	ui->plotTab->layout()->addWidget(dataWidget);
 
-        CalibrationWidget* calibrationWidget = new CalibrationWidget(ui->calibrationTab, app);
-        ui->calibrationTab->layout()->addWidget(calibrationWidget);
+	CalibrationWidget* calibrationWidget = new CalibrationWidget(ui->calibrationTab, app);
+	ui->calibrationTab->layout()->addWidget(calibrationWidget);
 
-        ConsoleWidget* consoleWidget = new ConsoleWidget(ui->consoleTab, app);
-        ui->consoleTab->layout()->addWidget(consoleWidget);
+	ConsoleWidget* consoleWidget = new ConsoleWidget(ui->consoleTab, app);
+	ui->consoleTab->layout()->addWidget(consoleWidget);
 
 	statusBar()->showMessage("Started.");
 
-        connect(&app.serialListener, SIGNAL(showNotification(const QString &, int)), statusBar(), SLOT(showMessage(const QString &, int)) );
-        connect(&app, SIGNAL(showMessageSignal(const QString &)), statusBar(), SLOT(showMessage(QString)) );
-        connect(&app, SIGNAL(showConsoleSignal(const QString &)), consoleWidget , SLOT(onRecieveConsoleSignal(QString)) );
-        connect(calibrationWidget, SIGNAL(calibrationDone()), dataWidget, SLOT(newCalibrationOccured()) );
-        //connect(dataWidget->plot, SIGNAL(angleChanged(double)), window, SLOT(onAngleChanged(double)));
+	connect(&app.serialListener, SIGNAL(showNotification(const QString &, int)), statusBar(), SLOT(showMessage(const QString &, int)) );
+	connect(&app, SIGNAL(showMessageSignal(const QString &)), statusBar(), SLOT(showMessage(QString)) );
+	connect(&app, SIGNAL(showConsoleSignal(const QString &)), consoleWidget , SLOT(onRecieveConsoleSignal(QString)) );
+	connect(calibrationWidget, SIGNAL(calibrationDone()), dataWidget, SLOT(newCalibrationOccured()) );
+	//connect(dataWidget->plot, SIGNAL(angleChanged(double)), window, SLOT(onAngleChanged(double)));
 
 }
 
