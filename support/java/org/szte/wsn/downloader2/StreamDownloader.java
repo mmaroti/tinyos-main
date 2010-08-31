@@ -85,6 +85,10 @@ public class StreamDownloader{
 		}
 	}
 	
+	/**
+	 * This class handles the downloading. Will be scheduled delayed after ping, or run
+	 * after a "download complete" pong to correct downloading errors  
+	 */
 	public final class StartDownload extends TimerTask{
 		ArrayList<Pong> pongs;
 		
@@ -171,6 +175,10 @@ public class StreamDownloader{
 		}
 	}
 	
+	/**
+	 * This class handles download timeout. 
+	 */
+	//TODO this should schedule after download started, not fixedrate 
 	public final class ClearHandled extends TimerTask {
 		public void run() {
 			long now=(new Date()).getTime();
@@ -185,6 +193,9 @@ public class StreamDownloader{
 		}
 	}
 	
+	/**
+	 * Sends ping periodically
+	 */
 	public final class Ping extends TimerTask {
 		public void run() {
 			System.out.println("Ping");
@@ -198,6 +209,9 @@ public class StreamDownloader{
 		}
 	}
 	
+	/**
+	 * This class handles erase timeout
+	 */
 	public final class EraseExit extends TimerTask {
 		public void run() {
 			System.out.println("Timeout: exiting");
@@ -205,6 +219,7 @@ public class StreamDownloader{
 		}
 	}
 	
+
 	public static DataWriter getWriter(int nodeid, ArrayList<DataWriter> datawriters ){
 		for(int i=0;i<datawriters.size();i++){
 			if(datawriters.get(i).getNodeid()==nodeid){
@@ -340,44 +355,55 @@ public class StreamDownloader{
 	public static void usage(){
 		System.out.println("Usage: StreamDownloader [options]");
 		System.out.println("Options: ");
-		System.out.println("-comm <port>: Listen on <port>. Default: MOTECOMM");
-		System.out.println("-only <id>: Only download mote Nr. <id>");
-		System.out.println("-pinginterval <number>: Ping interval in seconds. Default: 10");
-		System.out.println("-timeout <number>: Download timeout in seconds. Default: 10");
-		System.out.println("-pongwait <number>: the program waits <number> seconds after ping for pongs. Default: 3");
+		System.out.println("-c <port>:");
+		System.out.println("--comm <port>: Listen on <port>. Default: sf@localhost:9002");
+		System.out.println("-o <id>:");
+		System.out.println("--only <id>: Only download mote Nr. <id>");
+		System.out.println("-i <number>:");
+		System.out.println("--pinginterval <number>: Ping interval in seconds. Default: 10");
+		System.out.println("-t <number>:");
+		System.out.println("--timeout <number>: Download/erase timeout in seconds. Default download: 2; Default erase: 10");
+		System.out.println("-w <number>:");
+		System.out.println("--pongwait <number>: the program waits <number> seconds after ping for pongs. Default: 3");
+		System.out.println("-e <id>:");
+		System.out.println("--erase <id>: Erase the flash of the node <id>. <id>=all will erase all nodes. Deletes local files too");
+		System.exit(1);
 	}
 	
 	public static void main(String[] args) throws Exception {
 		//System.out.println(TOSSerial.getTOSCommMap());
 		String source = "sf@localhost:9002";
-		int listenonly=NONE, timeout=2,pinginterval=10,pongwait=3;
+		int listenonly=NONE, timeout=3,pinginterval=10,pongwait=3;
+		boolean timeout_mod=false;
 		int erase=ERASE_NO;
 		if (args.length == 0||args.length == 2||args.length == 4||args.length == 6) {
-			for(int i=0;i<args.length;i+=2){
-				if (args[i].equals("-comm")) {
-					source = args[i+1];
-				}
-				if (args[i].equals("-only")) {
-					listenonly = Integer.parseInt(args[i+1]);
-				}
-				if (args[i].equals("-timeout")) {
-					timeout = Integer.parseInt(args[i+1]);
-				}
-				if (args[i].equals("-pinginterval")) {
-					pinginterval = Integer.parseInt(args[i+1]);
-				}
-				if (args[i].equals("-pinginterval")) {
-					pongwait = Integer.parseInt(args[i+1]);
-				}
-				if (args[i].equals("-erase")) {
-					try{
-						erase = Integer.parseInt(args[i+1]);
-					} catch(NumberFormatException e) {
-						if(args[i+1].equals("all")){
-							erase=ERASE_ALL;
-						} else
-							StreamDownloader.usage();
+			for(int i=0;i<args.length;i++){
+				try{
+					if (args[i].equals("--comm")||args[i].equals("-c")) {
+						source = args[++i];
+					} else if (args[i].equals("--only")||args[i].equals("-o")) {
+						listenonly = Integer.parseInt(args[++i]);
+					} else if (args[i].equals("--timeout")||(args[i].equals("-t"))) {
+						timeout = Integer.parseInt(args[++i]);
+						timeout_mod=true;
+					} else if (args[i].equals("--pinginterval")||args[i].equals("-i")) {
+						pinginterval = Integer.parseInt(args[++i]);
+					} else if (args[i].equals("--pongwait")||args[i].equals("-w")) {
+						pongwait = Integer.parseInt(args[++i]);
+					} else if (args[i].equals("--erase")||args[i].equals("-e")) {
+						try{
+							erase = Integer.parseInt(args[++i]);
+						} catch(NumberFormatException e) {
+							if(args[i+1].equals("all")){
+								erase=ERASE_ALL;
+							} else
+								throw e;
+						}
+					} else {
+						StreamDownloader.usage();
 					}
+				}catch(NumberFormatException e) {
+					StreamDownloader.usage();
 				}
 			}
 		} else {
@@ -386,8 +412,8 @@ public class StreamDownloader{
 		if(erase==ERASE_NO)
 			new StreamDownloader(listenonly, pinginterval, pongwait, timeout, source);
 		else{
-			if(timeout==2)
-				timeout+=3;
+			if(!timeout_mod)
+				timeout=10;
 			new StreamDownloader(erase, timeout, source);
 		}
 	}
