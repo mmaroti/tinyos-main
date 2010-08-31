@@ -1,4 +1,5 @@
-/** Copyright (c) 2010, University of Szeged
+/*
+* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,40 +29,47 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklos Maroti, Ali Baharev
+* Author: Miklos Maroti
 */
 
-configuration MeterC
-{ 
-	provides interface StdControl;
-	provides interface SplitControl as Sampling;
-
-} 
+module Idg300P
+{
+	provides 
+	{
+		interface StdControl;
+		interface Init;
+	}
+}
 
 implementation
-{ 
-	components MeterP;
-	components LedHandlerC , DiagMsgC;
-	components SimpleFileC;
-	MeterP.DiagMsg -> DiagMsgC;
-	
-	StdControl = MeterP.StdControl;
-	Sampling = MeterP.Sampling;
-	
-	MeterP.LedHandler -> LedHandlerC;
+{
+	command error_t Init.init()
+	{
+		// set up ADC channels
+		TOSH_MAKE_ADC_1_INPUT();   // x
+		TOSH_MAKE_ADC_2_INPUT();   // z
+		TOSH_MAKE_ADC_6_INPUT();   // y
 
-	components ShimmerAdcC;
-	MeterP.ShimmerAdc -> ShimmerAdcC;
+		TOSH_SEL_ADC_1_MODFUNC();
+		TOSH_SEL_ADC_2_MODFUNC();
+		TOSH_SEL_ADC_6_MODFUNC();
 
-	components Mma7260P;
-	MeterP.AccelInit -> Mma7260P;
-	MeterP.Accel -> Mma7260P;
-	
-	components Idg300C;
-	MeterP.Gyro -> Idg300C;
+		return SUCCESS;
+	}
 
-    // FIXME Turn off the disc? (Data corruption)
-	components BufferedFlashP; // FIXME Move these to a new configuration!!!
-	MeterP.BufferedFlash -> BufferedFlashP;
-	BufferedFlashP.SimpleFile -> SimpleFileC;
+	command error_t StdControl.start()
+	{
+		// gyro enable low
+		TOSH_CLR_PROG_OUT_PIN();
+
+		return SUCCESS;
+	}
+
+	command error_t StdControl.stop()
+	{
+		// disable gyro
+		TOSH_SET_PROG_OUT_PIN();
+
+		return SUCCESS;
+	}
 }

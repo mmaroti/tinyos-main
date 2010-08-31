@@ -54,7 +54,7 @@ module MeterP
 
 		interface LedHandler;
 		interface BufferedFlash;
-
+		interface StdControl as Gyro;
 		interface DiagMsg;
 	}
 }
@@ -62,7 +62,7 @@ module MeterP
 implementation
 {
 	enum {
-		CHANNEL_COUNT = 7 // FIXME Should be automatic
+		CHANNEL_COUNT = 10 // FIXME Should be automatic
 	};
 	
 	uint8_t channels[] = 
@@ -73,8 +73,11 @@ implementation
 		SHIMMER_ADC_ACCEL_X, 
 		SHIMMER_ADC_ACCEL_Y,
 		SHIMMER_ADC_ACCEL_Z,
+		SHIMMER_ADC_GYRO_X, 
+		SHIMMER_ADC_GYRO_Y,
+		SHIMMER_ADC_GYRO_Z,
 		SHIMMER_ADC_BATTERY,
-		SHIMMER_ADC_TEMP,
+		SHIMMER_ADC_TEMP
 	};
 	
 	uint16_t counter = 0;
@@ -100,19 +103,27 @@ implementation
 		
 		if (error) {
 			ASSERT(FALSE);
+			return FAIL;
+		}
+
+		call Accel.setSensitivity(RANGE_4_0G);
+		call Accel.wake(TRUE);
+		
+		error = call Gyro.start();
+		
+		if (error) {
+			ASSERT(FALSE);
+			return FAIL;	
+		}
+		
+		ASSERT(CHANNEL_COUNT == sizeof(channels));
+		error = call ShimmerAdc.setChannels(channels, CHANNEL_COUNT);
+				
+		if(error) {
+			ASSERT(FALSE);
 		}
 		else {
-			call Accel.setSensitivity(RANGE_4_0G);
-			call Accel.wake(TRUE);
-			ASSERT(CHANNEL_COUNT == sizeof(channels));
-			error = call ShimmerAdc.setChannels(channels, CHANNEL_COUNT);
-					
-			if(error) {
-				ASSERT(FALSE);
-			}
-			else {
-				dump("InitOK");
-			}
+			dump("InitOK");
 		}
 		
 		return error;

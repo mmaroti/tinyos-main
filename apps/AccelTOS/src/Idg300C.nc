@@ -28,40 +28,22 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklos Maroti, Ali Baharev
+* Author: Miklos Maroti
 */
 
-configuration MeterC
-{ 
-	provides interface StdControl;
-	provides interface SplitControl as Sampling;
-
+configuration Idg300C
+{
+	provides
+	{
+		interface StdControl;
+	}
 } 
 
 implementation
-{ 
-	components MeterP;
-	components LedHandlerC , DiagMsgC;
-	components SimpleFileC;
-	MeterP.DiagMsg -> DiagMsgC;
-	
-	StdControl = MeterP.StdControl;
-	Sampling = MeterP.Sampling;
-	
-	MeterP.LedHandler -> LedHandlerC;
+{
+	components Idg300P, MainC;
 
-	components ShimmerAdcC;
-	MeterP.ShimmerAdc -> ShimmerAdcC;
+	StdControl = Idg300P;
 
-	components Mma7260P;
-	MeterP.AccelInit -> Mma7260P;
-	MeterP.Accel -> Mma7260P;
-	
-	components Idg300C;
-	MeterP.Gyro -> Idg300C;
-
-    // FIXME Turn off the disc? (Data corruption)
-	components BufferedFlashP; // FIXME Move these to a new configuration!!!
-	MeterP.BufferedFlash -> BufferedFlashP;
-	BufferedFlashP.SimpleFile -> SimpleFileC;
+	Idg300P.Init <- MainC.SoftwareInit;
 }
