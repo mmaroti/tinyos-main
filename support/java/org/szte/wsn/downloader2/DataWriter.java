@@ -234,4 +234,15 @@ public class DataWriter {
 		this.lastModified=new Date().getTime();
 	}
 
+	public void erase() throws IOException{
+		gapFile.delete();
+		timestamps.delete();
+		try {
+			dataFile.close();
+			new File(nodeidToPath(nodeid, ".bin")).delete();
+		} catch (IOException e) {
+			throw e;
+		}
+	}
+
 }

@@ -44,6 +44,7 @@ import net.tinyos.util.PrintStreamMessenger;
 public class Communication  implements MessageListener {
 
 	private MoteIF moteIF;
+	private PhoenixSource phoenix;
 	private StreamDownloader sd;
 	private short seqnum=0;
 	
@@ -82,13 +83,16 @@ public class Communication  implements MessageListener {
 	}
 	
 	public void sendErase() throws IOException{
-		//sendGet(MoteIF.TOS_BCAST_ADDR, 0, 0);
-		sendCommnad(CommandMsg.COMMAND_ERASE);
+		sendGet(MoteIF.TOS_BCAST_ADDR, 0, 0);
 	}
+	
+	public void sendErase(int nodeid) throws IOException{
+		sendGet(nodeid, 0, 0);
+	}
+	
 	
 	public Communication(StreamDownloader sd,String source){
 		this.sd=sd;
-		PhoenixSource phoenix;
 		if (source == null) {
 			phoenix = BuildSource.makePhoenix(PrintStreamMessenger.err);
 		} else {

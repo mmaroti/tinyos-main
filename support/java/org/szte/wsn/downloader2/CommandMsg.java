@@ -7,8 +7,7 @@ package org.szte.wsn.downloader2;
  */
 
 public class CommandMsg extends net.tinyos.message.Message {
-	
-	public static final short COMMAND_ERASE=0x20;
+
 	public static final short COMMAND_PING=0x10;
 	
 	

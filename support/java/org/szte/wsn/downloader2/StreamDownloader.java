@@ -60,6 +60,7 @@ public class StreamDownloader{
 	private TimerTask pingtask=null;
 
 	private int pinginterval;
+	private boolean erase;
 	
 	private final class Pong{
 		private long minaddress, maxaddress;
@@ -197,6 +198,13 @@ public class StreamDownloader{
 		}
 	}
 	
+	public final class EraseExit extends TimerTask {
+		public void run() {
+			System.out.println("Timeout: exiting");
+			System.exit(0);
+		}
+	}
+	
 	public static DataWriter getWriter(int nodeid, ArrayList<DataWriter> datawriters ){
 		for(int i=0;i<datawriters.size();i++){
 			if(datawriters.get(i).getNodeid()==nodeid){
@@ -210,16 +218,6 @@ public class StreamDownloader{
 	public static String ProgressBar(long length, long current, long data ,float error, long errorcount){
 		if(length<=0)
 			return "";
-//		String ret="[";
-//		for(int i=0;i<35;i++)
-//		{
-//			if(current>i*(length/35))
-//				ret+="#";
-//			else
-//				ret+=" ";
-//		}
-//		ret+="]="+data/1024+"KiB. Gaps: "+error+"% ("+errorcount+")\r";
-//		return ret;
 		java.text.DecimalFormat floatformat = new java.text.DecimalFormat("###.##");
 		int perct=(int)(100*current/length);
 		if(perct%5==0&&perct!=lastpercent){
@@ -234,26 +232,34 @@ public class StreamDownloader{
 		this.timeout=timeout;
 		this.pongwait=pongwait;
 		this.pinginterval=pinginterval;
+		this.erase=false;
 		currently_handled=new Pong(NONE, 0, 0);
 		communication=new Communication(this, source);
 		pingtask  = new Ping();
-		TimerTask ch  = new ClearHandled();
 	    timer.scheduleAtFixedRate(pingtask, 0, pinginterval*1000);
-	    timer.scheduleAtFixedRate(ch, timeout*1000, timeout*1000);
+	    timer.scheduleAtFixedRate(new ClearHandled(), timeout*1000, timeout*1000);
 	}
 	
-	public class RunWhenShuttingDown extends Thread {
-        public void run() {
-            System.out.println("Closing files");
-            for(DataWriter i:writers){
-            	try {
-					i.close();
-				} catch (IOException e) {
-					System.err.println("Error: Can't close file "+DataWriter.nodeidToPath(i.getNodeid(),".bin"));
-				}
-            }
-        }
-    }
+	public StreamDownloader(int listenonly,int timeout, String source){//eraser constructor
+		this.listenonly=listenonly;
+		this.erase=true;
+		this.timeout=timeout;
+		communication=new Communication(this, source);
+		try{
+			if(listenonly==NONE){
+			    timer.schedule(new EraseExit(), timeout*1000);
+				communication.sendErase();
+				System.out.println("Erase command sent to every node");
+			} else{
+				communication.sendErase(listenonly);
+				System.out.println("Erase command sent to node #"+listenonly);
+			}
+			
+		} catch (IOException e){
+			System.err.println("Can't send erase command; exiting");
+			System.exit(1);
+		}
+	}
 
 	public void newData(int nodeid, long address, byte[] data) {
 		//System.out.print(".");
@@ -277,22 +283,55 @@ public class StreamDownloader{
 	}
 
 	public void newPong(int nodeid, long min_address, long max_address, boolean complete) {
-		if(listenonly<0||listenonly==nodeid){
-			if(getWriter(nodeid, writers)==null){
-				writers.add(new DataWriter(nodeid));
-			}
-			
-			if(new Date().getTime()-startdownload.scheduledExecutionTime()<=0){
-				System.out.println("Node #"+nodeid+" "+min_address+"-"+max_address);
-				pongs.add(new Pong(nodeid, min_address, max_address));
-			}else if(currently_handled.getNodeID()==nodeid&&complete){
-				System.out.println("Download complete; node #"+nodeid+" "+min_address+"-"+max_address);
-				getWriter(nodeid, writers).setLastModified();
-				pongs.clear();
-				pongs.add(new Pong(nodeid, min_address, max_address));
-				new StartDownload(pongs).run();
-			}else{
-				System.err.println("Warning: Unhandled pong from "+nodeid+" (timeout)");
+		if(listenonly==NONE||listenonly==nodeid){
+			if(erase){
+				if(min_address==max_address&&max_address==0&&complete){
+					System.out.println("Erase complete; node #"+nodeid+" "+min_address+"-"+max_address);
+					try {
+						new DataWriter(nodeid).erase();
+						System.out.println("Local files erased");
+					} catch (IOException e) {
+						System.err.println("Can't erase local files");
+					}
+					if(listenonly!=NONE){
+						System.exit(0);
+					}
+				} else if(min_address!=max_address||max_address!=0){
+					System.out.println("Erase failed; node #"+nodeid+" "+min_address+"-"+max_address);
+					System.out.println("Retry");
+					try {
+						communication.sendErase(nodeid);
+					} catch (IOException e) {
+						System.err.println("Can't send erase command; exiting");
+						System.exit(1);
+					}
+				} else if(!complete){
+					System.out.println("New node #"+nodeid+" "+min_address+"-"+max_address);
+					System.out.println("send erase");
+					try {
+						communication.sendErase(nodeid);
+					} catch (IOException e) {
+						System.err.println("Can't send erase command; exiting");
+						System.exit(1);
+					}
+				}
+			} else {
+				if(getWriter(nodeid, writers)==null){
+					writers.add(new DataWriter(nodeid));
+				}
+				
+				if(new Date().getTime()-startdownload.scheduledExecutionTime()<=0){
+					System.out.println("Node #"+nodeid+" "+min_address+"-"+max_address);
+					pongs.add(new Pong(nodeid, min_address, max_address));
+				}else if(currently_handled.getNodeID()==nodeid&&complete){
+					System.out.println("Download complete; node #"+nodeid+" "+min_address+"-"+max_address);
+					getWriter(nodeid, writers).setLastModified();
+					pongs.clear();
+					pongs.add(new Pong(nodeid, min_address, max_address));
+					new StartDownload(pongs).run();
+				}else{
+					System.err.println("Warning: Unhandled pong from "+nodeid+" (timeout)");
+				}
 			}
 		} else
 			System.out.println("Unhandled pong from "+nodeid);
@@ -311,7 +350,7 @@ public class StreamDownloader{
 	public static void main(String[] args) throws Exception {
 		//System.out.println(TOSSerial.getTOSCommMap());
 		String source = "sf@localhost:9002";
-		int listenonly=-1, timeout=2,pinginterval=10,pongwait=3;
+		int listenonly=NONE, timeout=2,pinginterval=10,pongwait=3;
 		int erase=ERASE_NO;
 		if (args.length == 0||args.length == 2||args.length == 4||args.length == 6) {
 			for(int i=0;i<args.length;i+=2){
@@ -344,11 +383,13 @@ public class StreamDownloader{
 		} else {
 			StreamDownloader.usage();
 		}
-		//TODO it's just a hack for easy erase, and crashes
-		if(erase==ERASE_ALL)
-			new Communication(new StreamDownloader(listenonly, pinginterval, pongwait, timeout, source), source).sendErase();
-		else
-			new StreamDownloader(listenonly, pinginterval,pongwait, timeout, source);
+		if(erase==ERASE_NO)
+			new StreamDownloader(listenonly, pinginterval, pongwait, timeout, source);
+		else{
+			if(timeout==2)
+				timeout+=3;
+			new StreamDownloader(erase, timeout, source);
+		}
 	}
 	
 }
