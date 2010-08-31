@@ -37,7 +37,7 @@ implementation{
 	
 	ctrl_msg ctrlsend;
 	data_msg datasend;
-	void *datacached;
+	void *datacached=NULL;
 
 	event bool CommandReceive.receive(void *payload){
 		if(streamcommand==STREAM_NULL){
@@ -60,11 +60,11 @@ implementation{
 				streamcommand=STREAM_GETMIN_READ;
 				if(call Resource.request()!=SUCCESS)
 					call Timer.startOneShot(10);
-			} else if(rec->min_address==rec->max_address&&(rec->nodeid==TOS_NODE_ID||rec->nodeid==TOS_BCAST_ADDR)){
-				downloadSeq=rec->seq_num;
-				if(call Resource.request()==SUCCESS){
-					streamcommand=STREAM_ERASE;
-				}
+			} 
+		} else if(rec->min_address==rec->max_address&&(rec->nodeid==TOS_NODE_ID||rec->nodeid==TOS_BCAST_ADDR)){
+			downloadSeq=rec->seq_num;
+			if(call Resource.request()==SUCCESS){
+				streamcommand=STREAM_ERASE;
 			}
 		}
 		return TRUE;
@@ -77,6 +77,7 @@ implementation{
 	
 	event void DataSend.sendDone(void *data){
 		if(datacached==data){
+			datacached=NULL;
 			if(readaddress<lastaddress){
 				if(call Resource.request()!=SUCCESS)
 					call Timer.startOneShot(10);
@@ -92,7 +93,7 @@ implementation{
 		call Resource.release();
 		datasend.source=TOS_NODE_ID;
 		datasend.address=readaddress;
-		datasend.length=len;
+		datasend.seqnum=seq_num++;
 		memcpy(&(datasend.payload[0]),buf,len);
 		readaddress+=len;
 		if(call DataSend.send(&datasend,&datacached)!=SUCCESS){
@@ -130,7 +131,12 @@ implementation{
 					readaddress=addr;
 				if(readaddress<lastaddress){
 					streamcommand=STREAM_READ;
-					call StreamStorageRead.read(readaddress, buffer, (lastaddress-readaddress)<MESSAGE_SIZE?(lastaddress-readaddress):MESSAGE_SIZE);
+					if(lastaddress-readaddress<MESSAGE_SIZE)
+						readaddress=lastaddress-MESSAGE_SIZE;
+					if(call StreamStorageRead.read(readaddress, buffer, MESSAGE_SIZE)!=SUCCESS){
+						call Resource.release();
+						streamcommand=STREAM_NULL;		
+					}				
 				} else {
 					ctrlsend.max_address=call StreamStorageRead.getMaxAddress();
 					call Resource.release();
@@ -162,7 +168,9 @@ implementation{
 		if(streamcommand==STREAM_GETMIN||streamcommand==STREAM_GETMIN_READ){
 			error=call StreamStorageRead.getMinAddress();
 		}else if(streamcommand==STREAM_READ){
-			error=call StreamStorageRead.read(readaddress, buffer, (lastaddress-readaddress)<MESSAGE_SIZE?(lastaddress-readaddress):MESSAGE_SIZE);
+			if(lastaddress-readaddress<MESSAGE_SIZE)
+				readaddress=lastaddress-MESSAGE_SIZE;
+			error=call StreamStorageRead.read(readaddress, buffer, MESSAGE_SIZE);	
 		}else if(streamcommand==STREAM_ERASE)
 			error=call StreamStorageErase.erase();	
 		if(error!=SUCCESS){
