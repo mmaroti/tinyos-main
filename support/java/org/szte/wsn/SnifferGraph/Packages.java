@@ -42,6 +42,7 @@ public class Packages {
 	
 	public static ArrayList<String> colors = SnifferGraph.colors;
 	public static ArrayList<JCheckBox> devices = SnifferGraph.devices;
+	public static ArrayList<String> dataTypes = SnifferGraph.dataTypes;
 	public static int which=0;
 	protected int startTime;
 	protected int stopTime;
@@ -145,9 +146,29 @@ public class Packages {
 	public JPanel getABigPanel(ArrayList<JCheckBox> device, ArrayList<Color> colorList){
 		which++;
 		motePanel = new JPanel();
-		
+
 		//eszkÃ¶zmeghatÃ¡rozÃ¡s
 		int devicespos = 0;
+		int type =0;
+		if(dataTypes.size()==0){
+			//System.err.println("üres vagyok!!");
+			dataTypes.add(this.labelNames[1]);
+		}else{
+			
+			int p=0;
+			for(p=1;p<this.labelNames.length;p+=2){
+				boolean talalat = false;
+				for(type =0; type<dataTypes.size(); type++){
+				
+					if(this.labelNames[p].equals(dataTypes.get(type))){
+						System.err.println("Ilyen mar volt: "+dataTypes.get(type));
+						talalat = true;
+					
+					}
+				}
+				if(!talalat){dataTypes.add(this.labelNames[p]);}
+			}
+		}
 		if(devices.size()==0){
 			Process.addDevice(this.labelNames[0]);
 		}
@@ -173,7 +194,7 @@ public class Packages {
 			colors.add(this.labelNames[0]);
 		}
 		else{
-			boolean talalat = false;
+			 boolean talalat = false;
 			for(colornumber = 0; colornumber<colors.size(); colornumber++){
 				if(colors.get(colornumber).equals(this.labelNames[0])){
 					System.out.println("nezzik mi van itt:" + colornumber);
@@ -191,17 +212,38 @@ public class Packages {
 		
 		
 		
-		motePanel.setBounds(150 ,100+which*25, 75*(this.labelNames.length) ,45);		//koordinÃ¡tÃ¡k mÃ©g nem pontossak
+		System.err.println(dataTypes.size());
+		for(int f=0;f<dataTypes.size();f++){
+			
+			JTextField savedtypes = new JTextField(dataTypes.get(f));
+			savedtypes.setEditable(false);
+			savedtypes.setLayout(null);
+			savedtypes.setBounds(150+75*((f)), 25, 75, 39);
+			SnifferGraph.backgPanel2.add(savedtypes);
+		System.err.println(dataTypes.get(f));
+		}
+
+		
+		motePanel.setBounds(75 ,(which+1)*25, 75*(dataTypes.size()+1) ,45);		//koordinÃ¡tÃ¡k mÃ©g nem pontossak
 		motePanel.setBorder(BorderFactory.createEtchedBorder());
 		motePanel.setBackground(colorList.get(colornumber));
 		String information ="<html>";
-		for(int i =0; i<labelNames.length;i++){
+		
+		JTextField datas2 = new JTextField(this.labelNames[0]);
+		datas2.setEditable(false);
+		datas2.setLayout(null);
+		datas2.setBounds(0, 3, 75, 39);
+		motePanel.add(datas2);
+		for(int i =2; i<labelNames.length;i+=2){
 			JTextField datas = new JTextField(this.labelNames[i]);
 			datas.setEditable(false);
 			datas.setLayout(null);
 			motePanel.setLayout(null);
-			datas.setBounds(75*(i), 3, 75, 39);
-			motePanel.add(datas);
+			for(int k=0;k<dataTypes.size();k++){
+				if(this.labelNames[i-1].equals(dataTypes.get(k)))
+					datas.setBounds(75+75*((k)), 3, 75, 39);
+					motePanel.add(datas);
+			}
 			information=information+this.labelNames[i]+"<br>";
 		}
 		/*"<html>Eszköz neve: <br>"+this.labelNames[3]+"<br>Hõmérséklet: <br>"+"adat"+"<br>valami: <br>"+"adat2"*/
