@@ -770,6 +770,8 @@ implementation{
 	}
 
 	command error_t StreamStorageRead.getMinAddress(){
+		if(status==UNINIT)
+		      return EOFF;
 		#ifdef DEBUG
 			printf("minaddr");
 		#endif
