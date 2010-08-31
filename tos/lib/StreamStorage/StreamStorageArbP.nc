@@ -132,11 +132,7 @@ implementation{
 	}
 	
 	event void SplitControl.startDone(error_t error){
-	    if(error!=SUCCESS){
-	      call SplitControl.start();
-	    }else{
-	      call Resource.release();
-	    }
+	    call Resource.release();
 	}
 	
 	event void SplitControl.stopDone(error_t error){}
