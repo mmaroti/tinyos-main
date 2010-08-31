@@ -46,7 +46,7 @@ using namespace std;
 
 namespace {
 
-const int N_FIELDS = 7;
+const int N_FIELDS = 10;
 
 typedef unsigned short uint16;
 typedef unsigned int   uint32;
@@ -62,6 +62,9 @@ struct dat {
 	uint16 ax;
 	uint16 ay;
 	uint16 az;
+	uint16 wx;
+	uint16 wy;
+	uint16 wz;
 	uint16 volt;
 	uint16 temp;
 };
@@ -210,7 +213,7 @@ void grab_content(const char* filename) {
 
 	//==========================================================================
 
-	const char* fmt = "%u,%hu,%hu,%hu,%hu,%*hu,%*hu,%*hu,%hu,%hu";
+	const char* fmt = "%u,%hu,%hu,%hu,%hu,%hu,%hu,%hu,%hu,%hu";
 
 	uint32 lines = 1;
 	dat b;
@@ -225,7 +228,7 @@ void grab_content(const char* filename) {
 
 	while ( (!ferror(in)) && (!feof(in)) ) {
 
-		n = fscanf(in,fmt,&b.time,&b.counter,&b.ax,&b.ay,&b.az,&b.volt,&b.temp);
+		n = fscanf(in,fmt,&b.time,&b.counter,&b.ax,&b.ay,&b.az,&b.wx, &b.wy, &b.wz, &b.volt,&b.temp);
 
 		++lines;
 
@@ -283,14 +286,17 @@ void dump_data(const char* filename, int index, uint32 start, uint32 end) {
 		exit("failed to create output file");
 	}
 
+	out << "#" << header << endl;
+
 	uint32 lines = 0;
 
 	while (i!=samples->end() && i->time <= end) {
 
 		dat b = *i;
-
-		out << b.time << ',' << b.counter << ',' << b.ax << ',' << b.ay;
-		out << ',' << b.az << ',' << b.volt << ',' << b.temp << endl;
+		// b.counter removed, currently not supported in TestShimmer
+		out << b.time << ',' << b.ax << ',' << b.ay << ',' << b.az;
+		out << ',' << b.wx << ',' << b.wy << ',' << b.wz  << ',' << b.volt << ',' << b.temp ;
+		out << endl;
 
 		++i;
 		++lines;
