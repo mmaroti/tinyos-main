@@ -3,7 +3,7 @@
 configuration StreamUploaderC{
 }
 implementation{
-	components StreamUploaderP, ActiveMessageC, LedsC,ConvergecastC, MainC;
+	components StreamUploaderP, ActiveMessageC, NoLedsC as LedsC,ConvergecastC, MainC;
 	components new TimerMilliC(), new TimerMilliC() as SendTimer, new StreamStorageClientC();
 	
 	components GradientPolicyC, SpanningTreePolicyC;
