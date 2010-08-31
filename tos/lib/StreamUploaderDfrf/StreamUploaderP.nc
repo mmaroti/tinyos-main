@@ -43,6 +43,7 @@ implementation{
 		if(streamcommand==STREAM_NULL){
 			command_msg *rec=(command_msg*)payload;
 			if(call Resource.request()==SUCCESS){
+				call Leds.led1Toggle();
 				streamcommand=rec->cmd;
 			}
 		}
@@ -124,7 +125,7 @@ implementation{
 				} else
 					ctrlsend.seq_num=seq_num++;
 				streamcommand=STREAM_NULL;
-				call Leds.led0Toggle();
+				call Leds.led2Toggle();
 				call CtrlSend.send(&ctrlsend, &ctrlcached);
 			} else {
 				if(readaddress<addr)
@@ -149,7 +150,6 @@ implementation{
 						ctrlsend.seq_num=seq_num++;
 					streamcommand=STREAM_NULL;
 					call CtrlSend.send(&ctrlsend,&ctrlcached);
-					call Leds.led2Toggle();
 				}
 			}
 		} else {
@@ -165,6 +165,7 @@ implementation{
 
 	event void Resource.granted(){
 		error_t error=SUCCESS;	
+		call Leds.led0Toggle();
 		if(streamcommand==STREAM_GETMIN||streamcommand==STREAM_GETMIN_READ){
 			error=call StreamStorageRead.getMinAddress();
 		}else if(streamcommand==STREAM_READ){
@@ -176,11 +177,23 @@ implementation{
 		if(error!=SUCCESS){
 			streamcommand=STREAM_NULL;
 			call Resource.release();
+			if(error==EOFF){
+				void* ctrlcached=NULL;
+				ctrlsend.max_address=0xffffffff;
+				ctrlsend.min_address=0xffffffff;
+				ctrlsend.source=TOS_NODE_ID;
+				if(downloadSeq!=0){
+					ctrlsend.seq_num=downloadSeq;
+					downloadSeq=0;
+				} else
+					ctrlsend.seq_num=seq_num++;
+				call CtrlSend.send(&ctrlsend,&ctrlcached);
+				call Leds.led2Toggle();
+			}
 		}
 	}
 	
 	event void CtrlSend.sendDone(void *data){
-		call Leds.led2Toggle();
 	}
 
 
