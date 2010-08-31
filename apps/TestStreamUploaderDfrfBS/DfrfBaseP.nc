@@ -1,4 +1,4 @@
-// $Id: DfrfBaseP.nc,v 1.1 2010-08-31 10:00:24 andrasbiro Exp $
+// $Id: DfrfBaseP.nc,v 1.2 2010-08-31 13:32:44 andrasbiro Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -33,7 +33,7 @@
  * @author Phil Buonadonna
  * @author Gilman Tolle
  * @author David Gay
- * Revision:	$Id: DfrfBaseP.nc,v 1.1 2010-08-31 10:00:24 andrasbiro Exp $
+ * Revision:	$Id: DfrfBaseP.nc,v 1.2 2010-08-31 13:32:44 andrasbiro Exp $
  */ 
 
 /* 
@@ -117,6 +117,7 @@ implementation {
 			call SerialControl.start();
 	}
 
+
 	task void processQueue(){
 		message_t *send = call Queue.dequeue();
 		error_t error=FAIL;
@@ -141,7 +142,8 @@ implementation {
 		call SerialAMPacket.setSource(presendbuffer, source);
 		call SerialAMPacket.setType(presendbuffer, amtype);
 		call Queue.enqueue(presendbuffer);
-		post processQueue();
+		if(call Queue.size()==1)
+			post processQueue();
 	}
 	
 	inline void sendDone(message_t *msg, error_t error){
