@@ -134,9 +134,11 @@ public class StreamDownloader{
 				}
 				DataWriter maxdownloadWriter=getWriter(maxdownloadPong.getNodeID(), writers);
 				maxdownloadWriter.setLastModified();
-				System.out.println("Download from #"+maxdownloadWriter.getNodeid());
+				
 				if(maxdownload==Long.MAX_VALUE){
 					Gap repair=maxdownloadWriter.repairGap(maxdownloadPong.minaddress);
+					System.out.println("Download from #"+maxdownloadWriter.getNodeid()+" ("+repair.getStart()+"-"+repair.getEnd()+")");
+
 					try{
 						communication.sendGet(maxdownloadWriter.getNodeid(), repair.getStart(), repair.getEnd());
 						lastpercent=-1;
@@ -149,6 +151,8 @@ public class StreamDownloader{
 					long minaddress;
 					try {
 						minaddress = (maxdownloadPong.minaddress>maxdownloadWriter.getMaxAddress())?maxdownloadPong.minaddress:maxdownloadWriter.getMaxAddress();
+						System.out.println("Download from #"+maxdownloadWriter.getNodeid()+" ("+minaddress+"-"+maxdownloadPong.maxaddress+")");
+
 						try{
 							communication.sendGet(maxdownloadWriter.getNodeid(), minaddress, maxdownloadPong.maxaddress);
 							currently_handled=new Pong(maxdownloadWriter.getNodeid(), minaddress, maxdownloadPong.maxaddress);
@@ -252,6 +256,7 @@ public class StreamDownloader{
     }
 
 	public void newData(int nodeid, long address, byte[] data) {
+		//System.out.print(".");
 		if(currently_handled.getNodeID()==nodeid){
 			DataWriter writer=getWriter(nodeid, writers);
 			if(writer==null){//create a new file
@@ -306,7 +311,7 @@ public class StreamDownloader{
 	public static void main(String[] args) throws Exception {
 		//System.out.println(TOSSerial.getTOSCommMap());
 		String source = "sf@localhost:9002";
-		int listenonly=-1, timeout=10,pinginterval=10,pongwait=3;
+		int listenonly=-1, timeout=2,pinginterval=10,pongwait=3;
 		int erase=ERASE_NO;
 		if (args.length == 0||args.length == 2||args.length == 4||args.length == 6) {
 			for(int i=0;i<args.length;i+=2){

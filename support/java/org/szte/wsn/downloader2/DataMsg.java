@@ -93,7 +93,7 @@ public class DataMsg extends net.tinyos.message.Message {
         s += "  [address=0x"+Long.toHexString(get_address())+"]\n";
       } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
       try {
-        s += "  [length=0x"+Long.toHexString(get_length())+"]\n";
+        s += "  [seqnum=0x"+Long.toHexString(get_seqnum())+"]\n";
       } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
       try {
         s += "  [payload=";
@@ -234,65 +234,65 @@ public class DataMsg extends net.tinyos.message.Message {
     }
 
     /////////////////////////////////////////////////////////
-    // Accessor methods for field: length
+    // Accessor methods for field: seqnum
     //   Field type: short, signed
     //   Offset (bits): 48
     //   Size (bits): 8
     /////////////////////////////////////////////////////////
 
     /**
-     * Return whether the field 'length' is signed (true).
+     * Return whether the field 'seqnum' is signed (true).
      */
-    public static boolean isSigned_length() {
+    public static boolean isSigned_seqnum() {
         return true;
     }
 
     /**
-     * Return whether the field 'length' is an array (false).
+     * Return whether the field 'seqnum' is an array (false).
      */
-    public static boolean isArray_length() {
+    public static boolean isArray_seqnum() {
         return false;
     }
 
     /**
-     * Return the offset (in bytes) of the field 'length'
+     * Return the offset (in bytes) of the field 'seqnum'
      */
-    public static int offset_length() {
+    public static int offset_seqnum() {
         return (48 / 8);
     }
 
     /**
-     * Return the offset (in bits) of the field 'length'
+     * Return the offset (in bits) of the field 'seqnum'
      */
-    public static int offsetBits_length() {
+    public static int offsetBits_seqnum() {
         return 48;
     }
 
     /**
-     * Return the value (as a short) of the field 'length'
+     * Return the value (as a short) of the field 'seqnum'
      */
-    public short get_length() {
-        return (short)getUIntBEElement(offsetBits_length(), 8);
+    public short get_seqnum() {
+        return (short)getUIntBEElement(offsetBits_seqnum(), 8);
     }
 
     /**
-     * Set the value of the field 'length'
+     * Set the value of the field 'seqnum'
      */
-    public void set_length(short value) {
-        setUIntBEElement(offsetBits_length(), 8, value);
+    public void set_seqnum(short value) {
+        setUIntBEElement(offsetBits_seqnum(), 8, value);
     }
 
     /**
-     * Return the size, in bytes, of the field 'length'
+     * Return the size, in bytes, of the field 'seqnum'
      */
-    public static int size_length() {
+    public static int size_seqnum() {
         return (8 / 8);
     }
 
     /**
-     * Return the size, in bits, of the field 'length'
+     * Return the size, in bits, of the field 'seqnum'
      */
-    public static int sizeBits_length() {
+    public static int sizeBits_seqnum() {
         return 8;
     }
 

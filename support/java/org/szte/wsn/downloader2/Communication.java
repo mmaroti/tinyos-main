@@ -24,10 +24,7 @@ public class Communication  implements MessageListener {
 				sd.newPong(rec.get_source(),rec.get_min_address(),rec.get_max_address(),false);
 		} else if(m instanceof DataMsg){
 			DataMsg rec=(DataMsg)m;
-			byte[] data=new byte[rec.get_length()];
-			for(short i=0;i<data.length;i++){
-				data[i]=rec.getElement_payload(i);
-			}
+			byte[] data=rec.get_payload();
 			sd.newData(rec.get_source(),rec.get_address(),data);
 		}
 	}
