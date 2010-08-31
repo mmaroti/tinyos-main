@@ -352,6 +352,12 @@ public class StreamDownloader{
 			System.out.println("Unhandled pong from "+nodeid);
 	}
 	
+	public void pongError(int nodeid) {
+		System.out.println("Node #"+nodeid+" Streamstorage doesn't start");
+		System.out.println("Probably unexpected data in the storage. Erase advised");
+		
+	}
+	
 	public static void usage(){
 		System.out.println("Usage: StreamDownloader [options]");
 		System.out.println("Options: ");
@@ -416,6 +422,5 @@ public class StreamDownloader{
 				timeout=10;
 			new StreamDownloader(erase, timeout, source);
 		}
-	}
-	
+	}	
 }
