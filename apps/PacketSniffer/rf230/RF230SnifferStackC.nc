@@ -48,11 +48,10 @@ implementation {
 // -------- Some interface transformation hacks
 
   components InterfaceTransformerP;
-  InterfaceTransformerP.RadioState -> RadioDriverLayerC;
-  InterfaceTransformerP.RadioReceive -> RadioDriverLayerC;
+  InterfaceTransformerP.BareReceive -> MessageBufferLayerC.Receive;
   InterfaceTransformerP.RadioPacket  -> RadioDriverLayerC;
-
-  SplitControl = InterfaceTransformerP;
+  InterfaceTransformerP.BareSend -> MessageBufferLayerC.Send;
+  
   Receive = InterfaceTransformerP;
   Packet = InterfaceTransformerP;
   
@@ -62,7 +61,22 @@ implementation {
   SnifferDataP.PacketRSSI -> RadioDriverLayerC.PacketRSSI;
   SnifferDataP.PacketLQI -> RadioDriverLayerC.PacketLinkQuality;
   SnifferDataP.Timestamp -> TimeStampingLayerC.PacketTimeStampRadio;
+  
   SnifferData = SnifferDataP;
+
+// -------- Message Buffering
+
+	components MessageBufferLayerC;
+	MessageBufferLayerC.RadioSend -> RadioDriverLayerC;
+	MessageBufferLayerC.RadioReceive -> RadioDriverLayerC;
+	MessageBufferLayerC.RadioState -> RadioDriverLayerC;
+	
+  SplitControl = MessageBufferLayerC;
+
+// -------- IEEE 802.15.4 
+
+  components Ieee154PacketLayerC;
+	Ieee154PacketLayerC.SubPacket -> TimeStampingLayerC;
 
 // -------- TimeStamping
 
@@ -75,13 +89,16 @@ implementation {
   components MetadataFlagsLayerC;
   MetadataFlagsLayerC.SubPacket -> RadioDriverLayerC;
 
-// -------- Timestamping Layer
-
-  RadioDriverLayerC.PacketTimeStamp -> TimeStampingLayerC;
-
 // -------- Radio Driver
 
   components RF230DriverLayerC as RadioDriverLayerC;
-  components RF230RadioP;
+  components RF230RadioP, RadioAlarmC;
+  
+  RF230RadioP.Ieee154PacketLayer -> Ieee154PacketLayerC;
+	RF230RadioP.RadioAlarm -> RadioAlarmC.RadioAlarm[unique("RadioAlarm")];
+	RF230RadioP.PacketTimeStamp -> TimeStampingLayerC;
+	RF230RadioP.RF230Packet -> RadioDriverLayerC;
+  
   RadioDriverLayerC.Config -> RF230RadioP;
+  RadioDriverLayerC.PacketTimeStamp -> TimeStampingLayerC;
 }

@@ -39,20 +39,21 @@
   * that are available on the current platform's radio driver.
   * 
   * @author Veress Krisztian
-  * @date   July 18 2010
+  * @date   Sept 4 2010
   * 
   */
+
+#include <Tasklet.h>
 
 module InterfaceTransformerP {
   provides {
     interface Packet;
     interface Receive;
-    interface SplitControl;
   }
   uses {
     interface RadioPacket;
-    interface RadioReceive;
-    interface RadioState;
+    interface BareReceive;
+    interface BareSend;
   }
 }
 
@@ -66,7 +67,7 @@ implementation  {
     return call RadioPacket.payloadLength(msg);
   }
   command void Packet.setPayloadLength(message_t* msg, uint8_t len) {
-    call RadioPacket.setPayloadLength(msg, len);
+
   }
   command uint8_t Packet.maxPayloadLength() {
     return call RadioPacket.maxPayloadLength();
@@ -75,63 +76,21 @@ implementation  {
     if ( len > call RadioPacket.maxPayloadLength() )
       return NULL;
     else
-      return ((void*)msg) + sizeof(message_header_t);
+      return ((void*)msg) + call RadioPacket.headerLength(msg);
   }
   /** ---------------------------------------- */
   
-  /** RadioReceive interface to Receive interface */
-  event bool RadioReceive.header(message_t* msg) {
-    return TRUE;
-  }
-  
-  event message_t* RadioReceive.receive(message_t* msg){
+  /** BareReceive interface to Receive interface */
+  event message_t* BareReceive.receive(message_t* msg){
     message_t* ret = signal Receive.receive(
                              msg,
-                             ((void*)msg) + sizeof(message_header_t),
+                             ((void*)msg) + call RadioPacket.headerLength(msg),
                              call RadioPacket.payloadLength(msg)
                      );
     return ret;
   }
   /** ---------------------------------------- */
   
-  
-  /** RadioState interface to SplitControl interface */
-  enum {
-    UNASSIGNED,
-    LASTCMD_TURNON,
-    LASTCMD_TURNOFF
-  };
-  uint8_t lastcmd;
-  
-  command error_t SplitControl.start() {
-    uint8_t llcmd = lastcmd;
-    atomic {
-      if ( lastcmd == UNASSIGNED )
-        lastcmd = LASTCMD_TURNON;
-    }
-    return ( llcmd == UNASSIGNED ) ? call RadioState.turnOn() : FAIL;
-  }
-
-  command error_t SplitControl.stop() {
-    uint8_t llcmd = lastcmd;
-    atomic {
-      if ( lastcmd == UNASSIGNED )
-        lastcmd = LASTCMD_TURNOFF;
-    }
-    return ( llcmd == UNASSIGNED ) ? call RadioState.turnOff() : FAIL;
-  }
-  
-  event void RadioState.done() {
-    switch (lastcmd) {
-      case LASTCMD_TURNON:
-        signal SplitControl.startDone(SUCCESS); break;
-      case LASTCMD_TURNOFF:
-        signal SplitControl.stopDone(SUCCESS); break;
-      default:
-        break;
-    }
-    lastcmd = UNASSIGNED;
-  }
-  /** ---------------------------------------- */
-  
+  event void BareSend.sendDone(message_t* msg, error_t error) {}
+   
 }
