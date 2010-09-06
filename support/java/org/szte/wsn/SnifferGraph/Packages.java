@@ -126,7 +126,7 @@ public class Packages {
 		this.firstPos = 130+this.startTime*100;
 		motePanel2 = new JPanel();
 		motePanel2.setLayout(null);
-		motePanel2.setBounds(firstPos, 270, this.timeLenght*100, 2*70-50);		//bejelöld dobozok * dobozméret - egy fél dobozméret
+		motePanel2.setBounds(firstPos, 270, this.timeLenght*100, 2*70-50);		//bejelĂśld dobozok * dobozmĂŠret - egy fĂŠl dobozmĂŠret
 		motePanel2.setBackground(Color.orange);
 		motePanel2.setBorder(BorderFactory.createEtchedBorder());
 		int k = 0, j = 0;
@@ -143,15 +143,17 @@ public class Packages {
 		motePanel2.setVisible(true);
 		return motePanel2;
 	}
+	
+	
 	public JPanel getABigPanel(ArrayList<JCheckBox> device, ArrayList<Color> colorList){
 		which++;
 		motePanel = new JPanel();
 
-		//eszközmeghatározás
+		//eszkĂśzmeghatĂĄrozĂĄs
 		int devicespos = 0;
 		int type =0;
 		if(dataTypes.size()==0){
-			//System.err.println("�res vagyok!!");
+			//System.err.println("üres vagyok!!");
 			dataTypes.add(this.labelNames[1]);
 		}else{
 			
@@ -170,7 +172,7 @@ public class Packages {
 			}
 		}
 		if(devices.size()==0){
-			Process.addDevice(this.labelNames[0]);
+			Process.addDevice(this.labelNames[0], colorList.get(0));
 		}
 		else{
 			boolean talalat = false;
@@ -181,14 +183,14 @@ public class Packages {
 				}
 			}
 			if(!talalat){
-				Process.addDevice(this.labelNames[0]);
+				Process.addDevice(this.labelNames[0], colorList.get(0));
 				devicespos++;
 			}
 		
 		}
 		//devicespos++;
 		
-		//szinmeghatározás
+		//szinmeghatĂĄrozĂĄs
 		int colornumber = 0;
 		if(colors.size()==0){
 			colors.add(this.labelNames[0]);
@@ -208,7 +210,7 @@ public class Packages {
 				colornumber++;
 			}
 		}
-		//szin és poziciómeghatározás, kész, panel létrehozása, szinezése és a multiline tooltop létrehozása szükséges sanya
+		//szin ĂŠs poziciĂłmeghatĂĄrozĂĄs, kĂŠsz, panel lĂŠtrehozĂĄsa, szinezĂŠse ĂŠs a multiline tooltop lĂŠtrehozĂĄsa szĂźksĂŠges sanya
 		
 		
 		
@@ -224,7 +226,7 @@ public class Packages {
 		}
 
 		
-		motePanel.setBounds(75 ,(which+1)*25, 75*(dataTypes.size()+1) ,45);		//koordináták még nem pontossak
+		motePanel.setBounds(75 ,(which+1)*25, 75*(dataTypes.size()+1) ,45);		//koordinĂĄtĂĄk mĂŠg nem pontossak
 		motePanel.setBorder(BorderFactory.createEtchedBorder());
 		motePanel.setBackground(colorList.get(colornumber));
 		String information ="<html>";
@@ -246,7 +248,7 @@ public class Packages {
 			}
 			information=information+this.labelNames[i]+"<br>";
 		}
-		/*"<html>Eszk�z neve: <br>"+this.labelNames[3]+"<br>H�m�rs�klet: <br>"+"adat"+"<br>valami: <br>"+"adat2"*/
+		/*"<html>Eszkďż˝z neve: <br>"+this.labelNames[3]+"<br>Hďż˝mďż˝rsďż˝klet: <br>"+"adat"+"<br>valami: <br>"+"adat2"*/
 		motePanel.setToolTipText(information);
 
 		motePanel.setBackground(colorList.get(devicespos));
@@ -254,13 +256,14 @@ public class Packages {
 		
 		return motePanel; 
 	}
+	
 	public JPanel getALilPanel(ArrayList<JCheckBox> devices, ArrayList<Color> colorList){
 		motePanel = new JPanel();
 		
-		//eszközmeghatározás
+		//eszkĂśzmeghatĂĄrozĂĄs
 		int devicespos = 0;
 		if(devices.size()==0){
-			Process.addDevice(this.labelNames[0]);
+			Process.addDevice(this.labelNames[0], colorList.get(0));
 		}
 		else{
 			boolean talalat = false;
@@ -271,13 +274,13 @@ public class Packages {
 				}
 			}
 			if(!talalat){
-				Process.addDevice(this.labelNames[0]);
-				devicespos++;
+				Process.addDevice(this.labelNames[0], colorList.get(devicespos));
+				//devicespos++;
 			}
 		}
 		
-		//szinmeghatározás
-		int colornumber = 0;
+		//szinmeghatĂĄrozĂĄs
+		/*int colornumber = 0;
 		if(colors.size()==0){
 			colors.add(this.labelNames[0]);
 		}
@@ -295,20 +298,20 @@ public class Packages {
 				colors.add(this.labelNames[0]);
 				colornumber++;
 			}
-		}
-		//szin és poziciómeghatározás, kész, panel létrehozása, szinezése és a multiline tooltop létrehozása szükséges sanya
+		}*/
+		//szin ĂŠs poziciĂłmeghatĂĄrozĂĄs, kĂŠsz, panel lĂŠtrehozĂĄsa, szinezĂŠse ĂŠs a multiline tooltop lĂŠtrehozĂĄsa szĂźksĂŠges sanya
 		
 		
-		
-		motePanel.setBounds(130+this.startTime*40 ,270+devicespos*40, this.timeLenght*40 ,30);		//koordináták még nem pontossak
+		this.firstPos = 130+this.startTime*40;
+		motePanel.setBounds(130+this.startTime*40 ,230+devicespos*40, this.timeLenght*40 ,30);		//koordinĂĄtĂĄk mĂŠg nem pontossak
 		motePanel.setBorder(BorderFactory.createEtchedBorder());
 
-		motePanel.setBackground(colorList.get(colornumber));
+		motePanel.setBackground(colorList.get(devicespos));
 		String information ="<html>";
 		for(int i =1; i<labelNames.length;i++){
 			information=information+this.labelNames[i]+"<br>";
 		}
-		/*"<html>Eszk�z neve: <br>"+this.labelNames[3]+"<br>H�m�rs�klet: <br>"+"adat"+"<br>valami: <br>"+"adat2"*/
+		/*"<html>EszkĂśz neve: <br>"+this.labelNames[3]+"<br>HĂśmĂŠrsĂŠklet: <br>"+"adat"+"<br>valami: <br>"+"adat2"*/
 		motePanel.setToolTipText(information);
 
 		motePanel.setBackground(colorList.get(devicespos));

@@ -36,6 +36,7 @@
  */
 
 package org.szte.wsn.SnifferGraph;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Calendar;
 //import java.util.Date;
@@ -88,10 +89,13 @@ public class Process {
 		return "#" + whatTimeIsNow();
 	}
 
-	public static void addDevice(String s) {
+	public static void addDevice(String s, Color color) {
 		System.out.println("adding now");
 		// TODO Auto-generated method stub
 		devices.add(new JCheckBox(s));
+		devices.get(devices.size()-1).setBackground(color);
+		devices.get(devices.size()-1).setSelected(true);
+		devices.get(devices.size()-1).setVisible(true);
 		forBox.add(devices.get(devices.size()-1));
 		
 	}

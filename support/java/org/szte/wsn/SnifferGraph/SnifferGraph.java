@@ -78,7 +78,8 @@ public class SnifferGraph implements DataBase{
 	
 	JFrame snfG = new JFrame((String)Labels.frame_name);
 	
-	public static ArrayList<JPanel> dataPanel = new ArrayList<JPanel>();
+	public static ArrayList<JPanel> dataPanel = new ArrayList<JPanel>();		//normal nezet
+	public static ArrayList<JPanel> dataPanel2 = new ArrayList<JPanel>();		//2odik nezet
 	public static ArrayList<Packages> motes = new ArrayList<Packages>();
 	public static ArrayList<Color> colorlist = new ArrayList<Color>();
 	public static ArrayList<String> colors = new ArrayList<String>();		
@@ -126,7 +127,7 @@ public class SnifferGraph implements DataBase{
     JTextField startStop = new JTextField(Labels.txfield_pause);
     JTextField recived = new JTextField(Labels.txfield_recived);
     JTextField channelT = new JTextField(Labels.txfield_channelT);
-    JTextField receivedPack = new JTextField("1");
+    static JTextField receivedPack = new JTextField("1");
     JTextField channel = new JTextField("1L");
     JTextField loadedFileT = new JTextField(Labels.txfield_loadedFileT);
     JTextField loadedFile = new JTextField("xmlRead.filename");
@@ -491,14 +492,17 @@ public class SnifferGraph implements DataBase{
 			k+=DATAPANEL_SPACE;
 		}*/
 		
-		devices.add(new JCheckBox("Device01"));
+		//devices.add(new JCheckBox("Device01"));
 		
-		forBox.setLayout(new GridLayout(10,10,10,10));
+		forBox.setLayout(new GridLayout(13,10,5,5));
 		forBox.setBounds(0, 0, 100, 800);
+		//forBox.add(new JPanel());
 		forBox.add(new JPanel());
 		forBox.add(new JPanel());
 		forBox.add(new JPanel());
-		forBox.add(devices.get(0));
+		forBox.add(new JPanel());
+		forBox.add(new JPanel());
+		//forBox.add(devices.get(0));
 		
 		centerPanel.add(forBox, BorderLayout.WEST);
 		
@@ -600,10 +604,25 @@ public class SnifferGraph implements DataBase{
         loadedFile.setEditable(false);
 	}
 	
+	private static void addAPackge() {
+		int first = RandomString.getAnumber(motes.get(motes.size()-1).stopTime);
+		int second = RandomString.getAnumber(first);
+		motes.add(new Packages(first, second, RandomString.getRandomMoteStrings(4)));
+		dataPanel.add(motes.get(motes.size()-1).getALilPanel(devices, colorlist));
+		dataPanel.get(dataPanel.size()-1).setVisible(true);
+		backgPanel.add(dataPanel.get(dataPanel.size()-1));
+		
+		dataPanel2.add(motes.get(motes.size()-1).getABigPanel(devices, colorlist));
+		dataPanel2.get(dataPanel2.size()-1).setVisible(true);
+		backgPanel2.add(dataPanel2.get(dataPanel2.size()-1));
+		
+		scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
+		scrollbar.setValue(scrollbar.getMaximum()-DataBase.screenWidth+400);
+		receivedPack.setText(String.valueOf(Integer.parseInt(receivedPack.getText())+1));
+	} 
+	
 	public static void main(String[] args) {
 		SnifferGraph main = new SnifferGraph();
-		
-		
 		main.snfG.setExtendedState(main.snfG.getExtendedState() | Frame.MAXIMIZED_BOTH);
 		/*for(int i = 0; i<1; i++){
 			String[] moteLabelNames = {"Elso", "Masodik", "Harmadik", "Negyedik"};
@@ -619,12 +638,12 @@ public class SnifferGraph implements DataBase{
 		
 		String[] moteLabelNames11 = {"Elso", "Masodik", "Harmadik", "Negyedik", "Otodik"};
 		motes.add(new Packages(4, 10, moteLabelNames11));
-		motes.get(motes.size()-1).getABigPanel(devices, colorlist);
-		dataPanel.add(motes.get(motes.size()-1).getABigPanel(devices, colorlist));
+		//motes.get(motes.size()-1).getALilPanel(devices, colorlist);
+		dataPanel.add(motes.get(motes.size()-1).getALilPanel(devices, colorlist));
 		dataPanel.get(dataPanel.size()-1).setVisible(true);
-		backgPanel2.add(dataPanel.get(dataPanel.size()-1));
+		backgPanel.add(dataPanel.get(dataPanel.size()-1));
 		
-		String[] moteLabelNames1 = {"Elso", "Masodik", "Harmadik", "Negyedik", "Otodik"};
+		/*String[] moteLabelNames1 = {"Elso", "Masodik", "Harmadik", "Negyedik", "Otodik"};
 		motes.add(new Packages(4, 10, moteLabelNames1));
 		motes.get(motes.size()-1).getALilPanel(devices, colorlist);
 		dataPanel.add(motes.get(motes.size()-1).getALilPanel(devices, colorlist));
@@ -683,7 +702,7 @@ public class SnifferGraph implements DataBase{
 		motes.get(motes.size()-1).getABigPanel(devices, colorlist);
 		dataPanel.add(motes.get(motes.size()-1).getABigPanel(devices, colorlist));
 		dataPanel.get(dataPanel.size()-1).setVisible(true);
-		backgPanel2.add(dataPanel.get(dataPanel.size()-1));
+		backgPanel2.add(dataPanel.get(dataPanel.size()-1));*/
 		
 		
 		
@@ -691,19 +710,14 @@ public class SnifferGraph implements DataBase{
 		
 		
 		
-		/*do{
+		do{
+			
 			if(RandomString.getAnewInput() && main.start.getText().equals("Stop")){
-				int first = RandomString.getAnumber(motes.get(motes.size()-1).stopTime);
-				int second = RandomString.getAnumber(first);
-				motes.add(new packages(first, second, RandomString.getRandompackagesStrings(4)));
-				dataPanel.add(motes.get(motes.size()-1).getAPanel(box));
-				dataPanel.get(dataPanel.size()-1).setVisible(true);
-				backgPanel.add(dataPanel.get(dataPanel.size()-1));
-				scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
-				scrollbar.setValue(scrollbar.getMaximum()-DataBase.screenWidth+400);
-				main.receivedPack.setText(String.valueOf(Integer.parseInt(main.receivedPack.getText())+1));
+				addAPackge();
 			}
-		}while(true);*/
+		}while(true);
 		
-	} 
+	}
+
+	
 }
