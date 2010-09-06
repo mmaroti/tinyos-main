@@ -244,7 +244,8 @@ class Capture extends JFrame implements MessageListener {
 		long Subchunk1Size=16;
 		int AudioFormat=1;
 		int NumChannels=1;
-		long SampleRate=17723;
+//		long SampleRate=17723;
+		long SampleRate=8862;
 		long ByteRate;
 		int BlockAlign;
 		int BitsPerSample= is8bits ? 8 : 16;

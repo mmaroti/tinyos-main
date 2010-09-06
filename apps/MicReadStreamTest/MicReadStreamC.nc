@@ -72,7 +72,8 @@ implementation
 			{
 				call ReadStream.postBuffer(MicRead[i], BUFFER_SIZE);
 			}
-			call ReadStream.read(56);
+//			call ReadStream.read(56);
+			call ReadStream.read(128);
 		}
 		else
 		{
@@ -121,7 +122,7 @@ implementation
 			if(bufferNum%100==0)
 			{
 				gainVal=255-gainVal;
-				call MicSetting.gainAdjust(gainVal);
+//				call MicSetting.gainAdjust(gainVal);
 			}
 			packet->bufferNum=bufferNum;
 			packet->gainVal=gainVal;	

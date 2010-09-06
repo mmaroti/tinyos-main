@@ -34,7 +34,7 @@
 */
 
 #include "MicReadStream.h"
-
+#include "CC2420.h"
 configuration MicReadStreamAppC 
 {
 }
