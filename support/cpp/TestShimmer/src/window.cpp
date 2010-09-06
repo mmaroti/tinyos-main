@@ -34,7 +34,7 @@
 
 #include <QtGui>
 
-#include "glwidget.h"
+#include "GLWidget.h"
 #include "window.h"
 
 Window::Window(Application &app) : application(app)

@@ -35,7 +35,7 @@
 #include <QtGui>
 #include <QtOpenGL>
 
-#include "glwidget.h"
+#include "GLWidget.h"
 #include "Application.h"
 
 

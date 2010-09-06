@@ -10,18 +10,21 @@ TARGET = TestShimmer
 # INCLUDEPATH += c:\Octave\3.2.4_gcc-4.4.0\include
 INCLUDEPATH += ../TntJama/
 INCLUDEPATH += ../QextSerialPort/
-#INCLUDEPATH += ../qwtplot3d/include
+
+# INCLUDEPATH += ../qwtplot3d/include
 QMAKE_LIBDIR += ../QextSerialPort/build
-#DEFINES += QWT3D_DLL
+
+# DEFINES += QWT3D_DLL
 CONFIG(release) += static
 CONFIG(debug) += CONSOLE
-CONFIG(debug, debug|release):LIBS += -lqextserialportd
+CONFIG(debug, debug|release):LIBS += -lqextserialport
 else:LIBS += -lqextserialport
 win32:LIBS += -lsetupapi
 
 # LIBS += ../qwtplot3d/lib/libqwtplot3d.a
 DEFINES += QT_DLL
-   # QWT3D_DLL
+
+# QWT3D_DLL
 QT += opengl
 isEmpty( ISQT4 ):CONFIG += opengl
 SOURCES += src/DataRecorder.cpp \
@@ -41,7 +44,8 @@ SOURCES += src/DataRecorder.cpp \
     src/TurntableCalibrationModule.cpp \
     src/GLWidget.cpp \
     src/window.cpp \
-    src/Widget3D.cpp
+    src/Widget3D.cpp \
+    src/Solver.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -58,7 +62,8 @@ HEADERS += src/DataRecorder.h \
     src/TurntableCalibrationModule.h \
     src/GLWidget.h \
     src/window.h \
-    src/Widget3D.h
+    src/Widget3D.h \
+    src/Solver.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

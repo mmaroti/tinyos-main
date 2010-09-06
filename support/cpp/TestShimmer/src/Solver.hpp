@@ -28,53 +28,57 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#ifndef APPLICATION_H
-#define APPLICATION_H
-
-#define C_HZ 204.8
-#define C_TICKS 2       //constant hz and ticks values to use later
-
+#ifndef SOLVER_HPP
+#define SOLVER_HPP
 #include <QObject>
-#include <QSettings>
-#include "Solver.hpp"
-#include "SerialListener.h"
-#include "DataRecorder.h"
-#include "CalibrationModule.h"
-#include "ConsoleWidget.h"
+#include <QProcess>
+#include <string>
 
-class Application : public QObject
-{
-Q_OBJECT
+class QMutex;
 
-private:
-    Solver solver;
+class Solver : public QObject {
 
+    Q_OBJECT
 
 public:
-	Application();
+
+    Solver();
+
+    void start();
+
+    double R(int sample, int i, int j) const;
+
+    ~Solver();
 
 signals:
-	void showMessageSignal(const QString & msg);
-        void showConsoleSignal(const QString & msg);
 
-public:
-	void showMessage(const QString & msg) {
-		emit showMessageSignal(msg);
-	}
+    void finished(bool successful, const std::string& msg);
 
-        void showConsoleMessage(const QString & msg) {
-                emit showConsoleSignal(msg);
-        }
+private slots:
 
-public:
-	SerialListener serialListener;
-	DataRecorder dataRecorder;
+    void error(QProcess::ProcessError error);
 
-	QSettings settings;
+    void finished(int exitCode, QProcess::ExitStatus exitStatus);
+
+private:
+
+    Solver(const Solver& );
+    Solver& operator=(const Solver& );
+
+    void init();
+    void destroy();
+    bool copy_result(std::string& msg);
+
+    QProcess* solver;
+    QMutex* const mutex;
+
+    int n;
+
+    double* m;
+
 };
 
-#endif // APPLICATION_H
+#endif // SOLVER_HPP
