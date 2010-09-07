@@ -607,7 +607,7 @@ public class SnifferGraph implements DataBase{
 	private static void addAPackge() {
 		int first = RandomString.getAnumber(motes.get(motes.size()-1).stopTime);
 		int second = RandomString.getAnumber(first);
-		motes.add(new Packages(first, second, RandomString.getRandomMoteStrings(5)));
+		motes.add(new Packages(first, second, RandomString.getRandomMoteStrings(7)));
 		dataPanel.add(motes.get(motes.size()-1).getALilPanel(devices, colorlist));
 		dataPanel.get(dataPanel.size()-1).setVisible(true);
 		backgPanel.add(dataPanel.get(dataPanel.size()-1));
