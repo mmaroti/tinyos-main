@@ -28,55 +28,24 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#ifndef APPLICATION_H
-#define APPLICATION_H
+#ifndef DATA_HPP
+#define DATA_HPP
 
-#define C_HZ 204.8
-#define C_TICKS 2       //constant hz and ticks values to use later
-
-#include <QObject>
-#include <QSettings>
-#include "Solver.hpp"
-#include "SerialListener.h"
-#include "DataRecorder.h"
-#include "CalibrationModule.h"
-#include "ConsoleWidget.h"
-
-class Application : public QObject
-{
-Q_OBJECT
-
-private:
-    Solver solver;
-
-
-public:
-	Application();
-
-        void startSolver();
-
-signals:
-	void showMessageSignal(const QString & msg);
-        void showConsoleSignal(const QString & msg);
-
-public:
-	void showMessage(const QString & msg) {
-		emit showMessageSignal(msg);
-	}
-
-        void showConsoleMessage(const QString & msg) {
-                emit showConsoleSignal(msg);
-        }
-
-public:
-	SerialListener serialListener;
-	DataRecorder dataRecorder;
-
-	QSettings settings;
+enum {
+    TIME_STAMP,
+    ACCEL_X,
+    ACCEL_Y,
+    ACCEL_Z,
+    GYRO_X,
+    GYRO_Y,
+    GYRO_Z,
+    SIZE
 };
 
-#endif // APPLICATION_H
+int n_samples();
+void at(int i, double data[SIZE]);
+
+#endif // DATA_HPP

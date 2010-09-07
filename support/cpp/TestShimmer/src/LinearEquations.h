@@ -202,8 +202,8 @@ public:
     Solution( TNT::Array2D<double>&, LinearEquations* lEsystem );
     ~Solution();
 
-    const double getValueAt(int i) const { return this->values.at(i); }
-    const int getValuesSize() const { return this->values.size(); }
+    double getValueAt(int i) const { return this->values.at(i); }
+    int getValuesSize() const { return this->values.size(); }
 
     /*!
      * Use this method to get the value of a variable in the solution,

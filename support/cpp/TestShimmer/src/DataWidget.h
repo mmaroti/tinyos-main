@@ -36,13 +36,16 @@
 #define DATAWIDGET_H
 
 #include <QWidget>
+#include "Data.hpp"
 #include "DataPlot.h"
 
 class Application;
 class DataRecorder;
 
 namespace Ui {
-        class DataWidget;
+
+    class DataWidget;
+
 }
 
 class DataWidget : public QWidget {
@@ -51,6 +54,9 @@ class DataWidget : public QWidget {
 public:
     DataWidget(QWidget *parent, Application &app);
     ~DataWidget();
+
+    int n_samples() const;
+    void at(int i, double data[SIZE]) const;
 
     DataPlot *plot;  //JAVITANI, ennek privatenak kene lennie
 

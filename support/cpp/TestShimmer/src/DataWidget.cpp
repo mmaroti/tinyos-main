@@ -28,15 +28,61 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Miklï¿½s Marï¿½ti
+* Author: Pï¿½ter Ruzicska
 */
-
+#include <stdexcept>
+#include "Data.hpp"
 #include "DataWidget.h"
 #include "ui_DataWidget.h"
 #include <qfiledialog.h>
 #include "QtDebug"
 #include "window.h"
+
+DataWidget* dw = 0;
+
+int n_samples() {
+
+    return dw->n_samples();
+}
+
+void at(int i, double data[SIZE]) {
+
+    dw->at(i, data);
+}
+
+int DataWidget::n_samples() const {
+
+    return application.dataRecorder.size();
+}
+
+void DataWidget::at(int i, double data[SIZE]) const {
+
+    if (i<0 || i>=application.dataRecorder.size()) {
+
+        throw std::out_of_range("Index out of range!");
+    }
+
+    const Sample s = application.dataRecorder.at(i);
+
+    data[TIME_STAMP] = s.time;
+
+    const double ax = s.xAccel;
+    const double ay = s.yAccel;
+    const double az = s.zAccel;
+
+    data[ACCEL_X] = ax*plot->calibrationDataAt(0) + ay*plot->calibrationDataAt(1) + az*plot->calibrationDataAt(2) + plot->calibrationDataAt(9);
+    data[ACCEL_Y] = ax*plot->calibrationDataAt(3) + ay*plot->calibrationDataAt(4) + az*plot->calibrationDataAt(5) + plot->calibrationDataAt(10);
+    data[ACCEL_Z] = ax*plot->calibrationDataAt(6) + ay*plot->calibrationDataAt(7) + az*plot->calibrationDataAt(8) + plot->calibrationDataAt(11);
+
+    const double wx = s.xGyro;
+    const double wy = s.yGyro;
+    const double wz = s.zGyro;
+
+    data[GYRO_X] = (wx - plot->gyroMinAvgsAt(0)) * plot->gyroCalibrationDataAt(0) + (wy - plot->gyroMinAvgsAt(1)) * plot->gyroCalibrationDataAt(1) + (wz - plot->gyroMinAvgsAt(2)) * plot->gyroCalibrationDataAt(2);
+    data[GYRO_Y] = (wx - plot->gyroMinAvgsAt(0)) * plot->gyroCalibrationDataAt(3) + (wy - plot->gyroMinAvgsAt(1)) * plot->gyroCalibrationDataAt(4) + (wz - plot->gyroMinAvgsAt(2)) * plot->gyroCalibrationDataAt(5);
+    data[GYRO_Z] = (wx - plot->gyroMinAvgsAt(0)) * plot->gyroCalibrationDataAt(6) + (wy - plot->gyroMinAvgsAt(1)) * plot->gyroCalibrationDataAt(7) + (wz - plot->gyroMinAvgsAt(2)) * plot->gyroCalibrationDataAt(8);
+}
 
 
 DataWidget::DataWidget(QWidget *parent, Application &app) :

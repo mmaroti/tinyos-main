@@ -32,6 +32,7 @@
 * Author: Péter Ruzicska
 */
 
+#include <stdexcept>
 #include "PeriodicalCalibrationModule.h"
 #include "CalibrationModule.h"
 #include "CalibrationWidget.h"
@@ -328,6 +329,8 @@ double PeriodicalCalibrationModule::getCalibratedData(int time, QString axis)
     }else if ( axis == "z" ){
         return ( application.dataRecorder.at(time).xAccel * calibrationModule.getCalibrationDataAt(6) + application.dataRecorder.at(time).yAccel * calibrationModule.getCalibrationDataAt(7) + application.dataRecorder.at(time).zAccel * calibrationModule.getCalibrationDataAt(8) + calibrationModule.getCalibrationDataAt(11) );
     }
+
+    throw std::logic_error("Incorrect axis!");
 }
 
 double PeriodicalCalibrationModule::calculateAngle(double accel1, double accel2)

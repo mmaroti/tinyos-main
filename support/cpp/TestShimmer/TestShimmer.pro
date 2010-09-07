@@ -63,7 +63,8 @@ HEADERS += src/DataRecorder.h \
     src/GLWidget.h \
     src/window.h \
     src/Widget3D.h \
-    src/Solver.hpp
+    src/Solver.hpp \
+    src/Data.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

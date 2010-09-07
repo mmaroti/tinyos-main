@@ -31,13 +31,14 @@
 * Author: Ali Baharev
 */
 
-#include <cassert>
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 #include <stdexcept>
 #include "QMutex"
+#include "QSettings"
+#include "Data.hpp"
 #include "Solver.hpp"
-#include "Application.h"
 
 using namespace std;
 
@@ -80,18 +81,20 @@ void Solver::init() {
     solver = new QProcess(this);
 
     QObject::connect(solver, SIGNAL(started()),
-                       this, SLOT(  started()));
+                       this, SLOT(  started()), Qt::QueuedConnection);
 
     QObject::connect(solver, SIGNAL(error(QProcess::ProcessError)),
-                       this, SLOT(  error(QProcess::ProcessError)));
+                       this, SLOT(  error(QProcess::ProcessError)), Qt::QueuedConnection);
 
     QObject::connect(solver, SIGNAL(finished(int, QProcess::ExitStatus)),
-                       this, SLOT(  finished(int, QProcess::ExitStatus)));
+                       this, SLOT(  finished(int, QProcess::ExitStatus)), Qt::QueuedConnection);
 
 }
 
 Solver::Solver() : mutex(new QMutex), solver(0), n(0), m(0) {
 
+    qRegisterMetaType<QProcess::ProcessError>("QProcess::ProcessError");
+    qRegisterMetaType<QProcess::ExitStatus>("QProcess::ExitStatus");
 }
 
 // Entry point
@@ -100,28 +103,42 @@ void Solver::start() {
     // Released on error or when processing is finished
     if (!mutex->tryLock()) {
 
-        throw runtime_error("The solver is already running!");
+        throw logic_error("The solver is already running!");
     }
 
     init();
 
     solver->start("gyro.exe myFile");
 
+    cout << endl << "External gyro.exe called" << endl;
 }
 
 void Solver::started() {
 
     // TODO Write input data here!
 
-    double data[] = { 2.0, 3.0 };
+    double data[SIZE];
+
+    for (int i=0; i<5; ++i) {
+
+        at(i, data);
+
+        cout << endl;
+        cout << setprecision(16) << scientific;
+        cout << data[TIME_STAMP] << ", " << data[ACCEL_Z] << ", " << data[GYRO_X] << endl;
+    }
+
+    double arr[] = { 2.0, 3.0 };
 
     for (int i=0; i<2; ++i) {
         ostringstream os;
-        os << data[i] << endl;
+        os << arr[i] << endl;
         int k = solver->write(os.str().c_str());
         if (k == -1)
             emit finished(FAILED, "Error on passing data to the solver!");
     }
+
+    cout << endl << "Input data written to gyro.exe" << endl;
 }
 
 void Solver::error(QProcess::ProcessError error) {

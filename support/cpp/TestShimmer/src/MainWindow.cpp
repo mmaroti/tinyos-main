@@ -43,6 +43,8 @@
 #include "Widget3D.h"
 #include "window.h"
 
+extern DataWidget* dw;
+
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow)
@@ -59,6 +61,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	DataWidget* dataWidget = new DataWidget(ui->plotTab, app);
 	ui->plotTab->layout()->addWidget(dataWidget);
+        dw = dataWidget;
 
 	CalibrationWidget* calibrationWidget = new CalibrationWidget(ui->calibrationTab, app);
 	ui->calibrationTab->layout()->addWidget(calibrationWidget);

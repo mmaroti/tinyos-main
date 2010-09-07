@@ -38,3 +38,8 @@ Application::Application()
 	: settings("TAMOP422", "TestShimmer")
 {
 }
+
+void Application::startSolver() {
+
+    solver.start();
+}

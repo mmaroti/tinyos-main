@@ -509,8 +509,8 @@ void DataPlot::mousePressEvent(QMouseEvent * event)
 
 void DataPlot::mouseMoveEvent(QMouseEvent *event)
 {
-    int dx = event->x() - lastPos.x();
-    int dy = event->y() - lastPos.y();
+    //int dx = event->x() - lastPos.x();
+    //int dy = event->y() - lastPos.y();
 
     if (event->buttons() & Qt::LeftButton) {
 
