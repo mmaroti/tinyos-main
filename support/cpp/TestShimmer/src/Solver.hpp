@@ -59,6 +59,8 @@ signals:
 
 private slots:
 
+    void started();
+
     void error(QProcess::ProcessError error);
 
     void finished(int exitCode, QProcess::ExitStatus exitStatus);
@@ -72,8 +74,9 @@ private:
     void destroy();
     bool copy_result(std::string& msg);
 
-    QProcess* solver;
     QMutex* const mutex;
+
+    QProcess* solver;
 
     int n;
 

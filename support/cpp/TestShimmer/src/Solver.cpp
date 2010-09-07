@@ -32,6 +32,8 @@
 */
 
 #include <cassert>
+#include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include "QMutex"
 #include "Solver.hpp"
@@ -43,12 +45,23 @@ namespace {
 
     const bool FAILED(false);
     const bool SUCCESS(true);
+
 }
 
 void Solver::destroy() {
 
     if (solver!=0) {
-        assert(solver->state() == QProcess::NotRunning);
+        // FIXME What if still running?
+
+        QObject::disconnect(solver, SIGNAL(started()),
+                              this, SLOT(  started()));
+
+        QObject::disconnect(solver, SIGNAL(error(QProcess::ProcessError)),
+                              this, SLOT(  error(QProcess::ProcessError)));
+
+        QObject::disconnect(solver, SIGNAL(finished(int, QProcess::ExitStatus)),
+                              this, SLOT(  finished(int, QProcess::ExitStatus)));
+
         solver->close();
         delete solver;
         solver = 0;
@@ -57,6 +70,7 @@ void Solver::destroy() {
     n = 0;
     delete[] m;
     m = 0;
+
 }
 
 void Solver::init() {
@@ -65,14 +79,18 @@ void Solver::init() {
 
     solver = new QProcess(this);
 
+    QObject::connect(solver, SIGNAL(started()),
+                       this, SLOT(  started()));
+
     QObject::connect(solver, SIGNAL(error(QProcess::ProcessError)),
                        this, SLOT(  error(QProcess::ProcessError)));
 
     QObject::connect(solver, SIGNAL(finished(int, QProcess::ExitStatus)),
                        this, SLOT(  finished(int, QProcess::ExitStatus)));
+
 }
 
-Solver::Solver() : solver(0), mutex(new QMutex), n(0), m(0) {
+Solver::Solver() : mutex(new QMutex), solver(0), n(0), m(0) {
 
 }
 
@@ -82,14 +100,28 @@ void Solver::start() {
     // Released on error or when processing is finished
     if (!mutex->tryLock()) {
 
-        emit finished(FAILED, "Error: solver is already running!");
+        throw runtime_error("The solver is already running!");
     }
 
     init();
 
     solver->start("gyro.exe myFile");
 
+}
+
+void Solver::started() {
+
     // TODO Write input data here!
+
+    double data[] = { 2.0, 3.0 };
+
+    for (int i=0; i<2; ++i) {
+        ostringstream os;
+        os << data[i] << endl;
+        int k = solver->write(os.str().c_str());
+        if (k == -1)
+            emit finished(FAILED, "Error on passing data to the solver!");
+    }
 }
 
 void Solver::error(QProcess::ProcessError error) {
@@ -121,6 +153,7 @@ void Solver::error(QProcess::ProcessError error) {
     emit finished(FAILED, msg);
 
     mutex->unlock();
+
 }
 
 bool Solver::copy_result(string& msg) {
@@ -132,7 +165,9 @@ bool Solver::copy_result(string& msg) {
     // TODO Copy the List here!
 
     msg = "Finished";
+
     return SUCCESS;
+
 }
 
 void Solver::finished(int exitCode, QProcess::ExitStatus exitStatus) {
@@ -153,19 +188,20 @@ void Solver::finished(int exitCode, QProcess::ExitStatus exitStatus) {
     emit finished(successful, msg);
 
     mutex->unlock();
+
 }
 
 double Solver::R(int sample, int i, int j) const {
 
     return 0;
+
 }
 
 Solver::~Solver() {
 
-    // TODO Wait for finish?
-
     destroy();
 
     delete mutex;
+
 }
 
