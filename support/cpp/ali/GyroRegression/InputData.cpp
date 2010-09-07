@@ -31,12 +31,12 @@
 * Author: Ali Baharev
 */
 
-#include <stdexcept>
 #include "InputData.hpp"
 
 namespace gyro {
 
-input::input(const double* acc_x,
+input::input(const double* time_stamp,
+			const double* acc_x,
 			const double* acc_y,
 			const double* acc_z,
 			const double* wx,
@@ -45,6 +45,8 @@ input::input(const double* acc_x,
 			int N,
 			double dt,
 			double g_ref) :
+
+			time_(time_stamp),
 
 			acc_x_(acc_x),
 			acc_y_(acc_y),
@@ -63,6 +65,8 @@ input::input(const double* acc_x,
 }
 
 input::~input() {
+
+	delete[] time_;
 
 	delete[] acc_x_;
 	delete[] acc_y_;

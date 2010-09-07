@@ -33,9 +33,10 @@
 
 #ifndef SOLVER_HPP
 #define SOLVER_HPP
-#include <QObject>
-#include <QProcess>
 #include <string>
+#include "QObject"
+#include "QProcess"
+#include "Data.hpp"
 
 class QMutex;
 
@@ -72,6 +73,10 @@ private:
 
     void init();
     void destroy();
+    void emit_signal(bool successful, const std::string& msg);
+    bool write_n_samples();
+    bool write_samples();
+    bool write_data(double data[SIZE]);
     bool copy_result(std::string& msg);
 
     QMutex* const mutex;

@@ -130,8 +130,8 @@ bool GyroNLP::get_bounds_info(Index n, Number* x_l, Number* x_u,
 {
 
 	for (Index i=0; i<n; i++) {
-		x_l[i] = -1.0;
-		x_u[i] =  1.0;
+		x_l[i] = -2.5;
+		x_u[i] =  2.5;
 	}
 
 	// Set the bounds for the constraints

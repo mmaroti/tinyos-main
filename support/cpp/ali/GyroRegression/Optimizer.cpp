@@ -50,6 +50,7 @@ Optimizer::Optimizer(const input& data, std::ostream& os, bool verbose) {
 	SmartPtr<IpoptApplication> app = new IpoptApplication();
 
 	app->Options()->SetNumericValue("tol", 1.0e-3);
+	app->Options()->SetIntegerValue("print_level", 0);
 	app->Options()->SetStringValue("hessian_approximation", "limited-memory");
 	app->Options()->SetStringValue("limited_memory_update_type", "bfgs");
 

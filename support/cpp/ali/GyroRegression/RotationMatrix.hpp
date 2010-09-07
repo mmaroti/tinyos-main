@@ -68,6 +68,8 @@ private:
 					const double az,
 					const input& data);
 
+	void dump_angles(const input& data, std::ostream& log = std::cout) const;
+
 	double* const R;
 	double* const g_err;
 	const int N;

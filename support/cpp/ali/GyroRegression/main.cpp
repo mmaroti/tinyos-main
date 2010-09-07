@@ -41,13 +41,7 @@ using namespace std;
 
 using namespace gyro;
 
-int main() {
-
-	auto_ptr<const input> data(read_file("manual2"));
-
-	Optimizer opt(*data);
-
-	const double* const x = opt.solution();
+void print_solution(const double* x, const Optimizer& opt) {
 
 	for (int i=0; i<opt.n_vars(); ++i)
 		cout << "x[" << i << "]\t" << x[i] << endl;
@@ -55,12 +49,23 @@ int main() {
 	cout << endl;
 
 	cout << "Error in g (in m/s^2) : " << opt.error_in_g() << endl;
+}
+
+int main(int argc, char* argv[]) {
+
+	auto_ptr<const input> data(read_stdin());
+
+	Optimizer opt(*data);
+
+	const double* const x = opt.solution();
 
 	RotationMatrix rot(*data, x);
 
 	data.reset();
 
-	rot.dump_matrices();
+	cout << "Error in g (in m/s^2) : " << opt.error_in_g() << endl;
+
+	//rot.dump_matrices();
 
 	//rot.dump_g_err();
 

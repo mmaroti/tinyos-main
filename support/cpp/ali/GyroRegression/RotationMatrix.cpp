@@ -64,63 +64,6 @@ RotationMatrix::RotationMatrix(	const input& data,
 	obj.set_M(R, g_err);
 
 	obj.f(x);
-
-	//==========================================================================
-
-	const double g_ref = data.g_ref();
-
-	double  a[4];
-	double  b[4];
-	double nb[4];
-	double beta[4];
-
-	for (int i=0; i<N; ++i) {
-
-		for (int j=1; j<=3; ++j) {
-
-			nb[j] = at(i,3,j);
-
-			if (nb[j] > 1.0)
-				nb[j] = 1.0;
-			else if (nb[j] < -1.0)
-				nb[j] = -1.0;
-
-			beta[j] = asin(nb[j])*(180.0/M_PI);
-
-			b[j] = at(i,3,j)*g_ref;
-		}
-
-		a[1] = data.acc_x()[i];
-		a[2] = data.acc_y()[i];
-		a[3] = data.acc_z()[i];
-
-		double ax = a[1]/g_ref;
-		double ay = a[2]/g_ref;
-		double az = a[3]/g_ref;
-
-		if      (ax >  1.0) ax =  1.0;
-		else if (ax < -1.0) ax = -1.0;
-
-		if      (ay >  1.0) ay =  1.0;
-		else if (ay < -1.0) ay = -1.0;
-
-		if      (az >  1.0) az =  1.0;
-		else if (az < -1.0) az = -1.0;
-
-		double alpha_x = asin(ax)*(180.0/M_PI);
-		double alpha_y = asin(ay)*(180.0/M_PI);
-		double alpha_z = asin(az)*(180.0/M_PI);
-
-		log << a[1] << '\t' << a[2] << '\t' << a[3] << '\t';
-		log << b[1] << '\t' << b[2] << '\t' << b[3] << '\t';
-		log << alpha_x << '\t' << alpha_y << '\t' << alpha_z << '\t';
-		log << beta[1] << '\t' << beta[2] << '\t' << beta[3] << '\t';
-		log << endl;
-
-
-	}
-
-	log << endl;
 }
 
 RotationMatrix::~RotationMatrix() {
@@ -209,6 +152,67 @@ void RotationMatrix::compute_M(	const double ax,
 	g_err[1] = M21*ax0+M22*ay0+M23*az0;
 	g_err[2] = M31*ax0+M32*ay0+M33*az0 - data.g_ref();
 
+}
+
+void RotationMatrix::dump_angles(const input& data,
+								std::ostream& log ) const
+{
+	const double g_ref = data.g_ref();
+
+	double  a[4];
+	double  b[4];
+	double nb[4];
+	double beta[4];
+
+	for (int i=0; i<N; ++i) {
+
+		for (int j=1; j<=3; ++j) {
+
+			nb[j] = at(i,3,j);
+
+			if (nb[j] > 1.0)
+				nb[j] = 1.0;
+			else if (nb[j] < -1.0)
+				nb[j] = -1.0;
+
+			beta[j] = asin(nb[j])*(180.0/M_PI);
+
+			b[j] = at(i,3,j)*g_ref;
+		}
+
+		a[1] = data.acc_x()[i];
+		a[2] = data.acc_y()[i];
+		a[3] = data.acc_z()[i];
+
+		double at = sqrt(pow(a[1], 2)+pow(a[2], 2)+pow(a[3], 2));
+
+		double ax = a[1]/at;
+		double ay = a[2]/at;
+		double az = a[3]/at;
+
+		if      (ax >  1.0) ax =  1.0;
+		else if (ax < -1.0) ax = -1.0;
+
+		if      (ay >  1.0) ay =  1.0;
+		else if (ay < -1.0) ay = -1.0;
+
+		if      (az >  1.0) az =  1.0;
+		else if (az < -1.0) az = -1.0;
+
+		double alpha_x = asin(ax)*(180.0/M_PI);
+		double alpha_y = asin(ay)*(180.0/M_PI);
+		double alpha_z = asin(az)*(180.0/M_PI);
+
+		log << a[1] << '\t' << a[2] << '\t' << a[3] << '\t';
+		log << b[1] << '\t' << b[2] << '\t' << b[3] << '\t';
+		log << alpha_x << '\t' << alpha_y << '\t' << alpha_z << '\t';
+		log << beta[1] << '\t' << beta[2] << '\t' << beta[3] << '\t';
+		log << endl;
+
+
+	}
+
+	log << endl;
 }
 
 }

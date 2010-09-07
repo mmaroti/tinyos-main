@@ -40,7 +40,8 @@ class input {
 
 public:
 
-	input(	const double* acc_x,
+	input(	const double* time_stamp,
+			const double* acc_x,
 			const double* acc_y,
 			const double* acc_z,
 			const double* wx,
@@ -49,6 +50,8 @@ public:
 			int N,
 			double dt,
 			double g_ref);
+
+	const double* time_stamp() const { return time_; }
 
 	const double* acc_x() const { return acc_x_; }
 	const double* acc_y() const { return acc_y_; }
@@ -69,6 +72,8 @@ private:
 
 	input(const input& other);
 	input& operator=(const input& );
+
+	const double* const time_;
 
 	const double* const acc_x_;
 	const double* const acc_y_;

@@ -43,6 +43,48 @@ typedef double NT;
 
 namespace gyro {
 
+input* read_stdin()	 {
+
+	double dt    = NT(10.0/2048.0);
+	double g_ref = NT(-9.81);
+
+	int N = -1;
+
+	cin >> N;
+
+	if (N<1) {
+		cerr << endl << "Invalid lenght!" << endl;
+		exit(EXIT_FAILURE);
+	}
+
+	double* time_stamp = new NT[N];
+
+	double* wx = new NT[N];
+	double* wy = new NT[N];
+	double* wz = new NT[N];
+
+	double* acc_x = new NT[N];
+	double* acc_y = new NT[N];
+	double* acc_z = new NT[N];
+
+	for (int i=0; i<N; ++i) {
+
+		cin >> time_stamp[i];
+
+		cin >> acc_x[i];
+		cin >> acc_y[i];
+		cin >> acc_z[i];
+
+		cin >> wx[i];
+		cin >> wy[i];
+		cin >> wz[i];
+
+	}
+
+	return new input(time_stamp, acc_x, acc_y, acc_z, wx, wy, wz, N, dt, g_ref);
+
+}
+
 input* read_file(const char* filename) {
 
 	double dt    = NT(10.0/2048.0);
@@ -65,6 +107,8 @@ input* read_file(const char* filename) {
 		cerr << endl << "Invalid lenght!" << endl;
 		exit(EXIT_FAILURE);
 	}
+
+	double* time_stamp = new NT[N];
 
 	double* wx = new NT[N];
 	double* wy = new NT[N];
@@ -95,7 +139,7 @@ input* read_file(const char* filename) {
 		}
 	}
 
-	return new input(acc_x, acc_y, acc_z, wx, wy, wz, N, dt, g_ref);
+	return new input(time_stamp, acc_x, acc_y, acc_z, wx, wy, wz, N, dt, g_ref);
 }
 
 }

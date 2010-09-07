@@ -40,6 +40,8 @@ class input;
 
 input* read_file(const char* filename);
 
+input* read_stdin();
+
 }
 
 #endif

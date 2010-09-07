@@ -37,7 +37,6 @@
 #include <stdexcept>
 #include "QMutex"
 #include "QSettings"
-#include "Data.hpp"
 #include "Solver.hpp"
 
 using namespace std;
@@ -100,7 +99,7 @@ Solver::Solver() : mutex(new QMutex), solver(0), n(0), m(0) {
 // Entry point
 void Solver::start() {
 
-    // Released on error or when processing is finished
+    // Released by emit_signal()
     if (!mutex->tryLock()) {
 
         throw logic_error("The solver is already running!");
@@ -108,34 +107,88 @@ void Solver::start() {
 
     init();
 
-    solver->start("gyro.exe myFile");
+    solver->start("gyro.exe");
 
     cout << endl << "External gyro.exe called" << endl;
 }
 
-void Solver::started() {
+void Solver::emit_signal(bool successful, const std::string &msg) {
 
-    // TODO Write input data here!
+    emit finished(successful, msg);
+
+    mutex->unlock();
+
+}
+
+bool Solver::write_data(double data[SIZE]) {
+
+    bool result = SUCCESS;
+
+    for (int i=0; i<SIZE; ++i) {
+        ostringstream os;
+        os << setprecision(16) << scientific;
+        os << data[i] << '\n' << flush;
+        int k = solver->write(os.str().c_str());
+        if (k == -1) {
+            result = FAILED;
+            break;
+        }
+    }
+
+    return result;
+}
+
+bool Solver::write_samples() {
+
+    bool result = SUCCESS;
 
     double data[SIZE];
 
-    for (int i=0; i<5; ++i) {
+    const int n = n_samples();
+
+    for (int i=0; i<n; ++i) {
 
         at(i, data);
 
-        cout << endl;
-        cout << setprecision(16) << scientific;
-        cout << data[TIME_STAMP] << ", " << data[ACCEL_Z] << ", " << data[GYRO_X] << endl;
+        result = write_data(data);
+
+        if (result == FAILED) {
+            break;
+        }
     }
 
-    double arr[] = { 2.0, 3.0 };
+    return result;
+}
 
-    for (int i=0; i<2; ++i) {
-        ostringstream os;
-        os << arr[i] << endl;
-        int k = solver->write(os.str().c_str());
-        if (k == -1)
-            emit finished(FAILED, "Error on passing data to the solver!");
+bool Solver::write_n_samples() {
+
+    int n = n_samples();
+
+    if (n<1)
+        throw logic_error("Incorrect number of samples!");
+
+    ostringstream os;
+
+    os << n << '\n' << flush;
+
+    int k = solver->write(os.str().c_str());
+
+    return (k==-1)?FAILED:SUCCESS;
+
+}
+
+void Solver::started() {
+
+    bool result = write_n_samples();
+
+    if (result==SUCCESS) {
+
+        result = write_samples();
+    }
+
+    if (result == FAILED) {
+
+        emit_signal(FAILED, "Error on passing data to the solver!");
     }
 
     cout << endl << "Input data written to gyro.exe" << endl;
@@ -167,9 +220,7 @@ void Solver::error(QProcess::ProcessError error) {
         msg += "undocumented error code received from Qt!";
     }
 
-    emit finished(FAILED, msg);
-
-    mutex->unlock();
+    emit_signal(FAILED, msg);
 
 }
 
@@ -202,9 +253,7 @@ void Solver::finished(int exitCode, QProcess::ExitStatus exitStatus) {
         msg = "Error: undocumented error code received from Qt!";
     }
 
-    emit finished(successful, msg);
-
-    mutex->unlock();
+    emit_signal(successful, msg);
 
 }
 
