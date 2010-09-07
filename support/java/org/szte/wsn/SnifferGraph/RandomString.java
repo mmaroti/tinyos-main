@@ -44,16 +44,20 @@ public class RandomString {
 	public static String[] getRandomMoteStrings(int mutch){
 		Random rn = new Random();
 		String[] devices = new String[]{"Device01", "Device02", "Device03", "Device04", "Device05", "Device06"};
+		String[] types = new String[]{"Types01", "Types02", "Types03", "Types04", "Types05", "Types06"};
 		int hanyas = rn.nextInt(6);
 		String[] r = new String[mutch];
 		String inputChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 		r[0] = devices[hanyas];
-		for(int i = 1; i<mutch; i++){
+		//r[1] = types[rn.nextInt(6)];
+		//r[3] = types[rn.nextInt(6)];
+		for(int i = 1; i<mutch; i+=2){
 			String c = "";
 			for(int k = 0; k<10; k++){
 				c = c + inputChars.charAt(rn.nextInt(61));
 			}
-			r[i] = c;
+			r[i] = types[rn.nextInt(6)];
+			r[i+1] = c;
 		}
 		return r;
 	}

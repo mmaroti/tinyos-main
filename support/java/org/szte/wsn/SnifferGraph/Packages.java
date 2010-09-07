@@ -156,16 +156,13 @@ public class Packages {
 			//System.err.println("üres vagyok!!");
 			dataTypes.add(this.labelNames[1]);
 		}else{
-			
 			int p=0;
 			for(p=1;p<this.labelNames.length;p+=2){
 				boolean talalat = false;
 				for(type =0; type<dataTypes.size(); type++){
-				
 					if(this.labelNames[p].equals(dataTypes.get(type))){
 						System.err.println("Ilyen mar volt: "+dataTypes.get(type));
 						talalat = true;
-					
 					}
 				}
 				if(!talalat){dataTypes.add(this.labelNames[p]);}
@@ -256,6 +253,7 @@ public class Packages {
 		
 		return motePanel; 
 	}
+	
 	
 	public JPanel getALilPanel(ArrayList<JCheckBox> devices, ArrayList<Color> colorList){
 		motePanel = new JPanel();
