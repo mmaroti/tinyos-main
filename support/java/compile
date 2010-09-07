@@ -1,6 +1,7 @@
 #!/bin/sh
+TOSJAR=/opt/tinyos-2.x/support/sdk/java/tinyos.jar
 JAVAC="javac"
-JFLAGS="-g -nowarn"
+JFLAGS="-g -nowarn -classpath $CLASSPATH:$TOSJAR:."
 FIND="find"
 SOURCE_DIR="."
 OUTPUT_DIR=$SOURCE_DIR
