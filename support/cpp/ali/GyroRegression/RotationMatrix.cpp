@@ -84,16 +84,16 @@ double RotationMatrix::at(const int measurement, const int i, const int j) const
 
 void RotationMatrix::dump_matrices(ostream& log) const {
 
-	log << fixed;
-	log << setprecision(4);
+	log << scientific;
+	log << setprecision(16);
 
 	for (int i=0; i<N; ++i) {
-		log << endl;
-		log << "Sample #" << i << endl;
-		log << this->at(i,1,1) << '\t' << this->at(i,1,2) << '\t' << this->at(i,1,3) << endl;
-		log << this->at(i,2,1) << '\t' << this->at(i,2,2) << '\t' << this->at(i,2,3) << endl;
-		log << this->at(i,3,1) << '\t' << this->at(i,3,2) << '\t' << this->at(i,3,3) << endl;
+		log << at(i,1,1) << '\n' << at(i,1,2) << '\n' << at(i,1,3) << '\n';
+		log << at(i,2,1) << '\n' << at(i,2,2) << '\n' << at(i,2,3) << '\n';
+		log << at(i,3,1) << '\n' << at(i,3,2) << '\n' << at(i,3,3) << '\n';
 	}
+
+	log << flush;
 }
 
 void RotationMatrix::dump_g_err(ostream& log) const {

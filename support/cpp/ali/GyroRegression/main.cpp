@@ -33,6 +33,8 @@
 
 #include <iostream>
 #include <memory>
+#include <stdexcept>
+#include "ErrorCodes.hpp"
 #include "Optimizer.hpp"
 #include "DataImporter.hpp"
 #include "RotationMatrix.hpp"
@@ -51,25 +53,48 @@ void print_solution(const double* x, const Optimizer& opt) {
 	cout << "Error in g (in m/s^2) : " << opt.error_in_g() << endl;
 }
 
+void run_solver(const input& data) {
+
+	Optimizer opt(data);
+
+	const double* const x = opt.solution();
+
+	RotationMatrix rot(data, x);
+
+	cout << "Error in g (in m/s^2) : " << opt.error_in_g() << endl;
+
+	rot.dump_matrices();
+}
+
 int main(int argc, char* argv[]) {
 
 	auto_ptr<const input> data(read_stdin());
 
-	Optimizer opt(*data);
+	if (data.get()==0) {
 
-	const double* const x = opt.solution();
+		return ERROR_READING_INPUT;
+	}
 
-	RotationMatrix rot(*data, x);
+	try {
 
-	data.reset();
+		run_solver(*data);
 
-	cout << "Error in g (in m/s^2) : " << opt.error_in_g() << endl;
+		data.reset();
+	}
+	catch (logic_error& e) {
 
-	//rot.dump_matrices();
+		return ERROR_INITIALIZATION;
+	}
+	catch (runtime_error& e) {
 
-	//rot.dump_g_err();
+		return ERROR_CONVERGENCE;
+	}
+	catch (...) {
 
-	return 0;
+		return ERROR_UNKNOWN;
+	}
+
+	return SUCCESS;
 
 }
 

@@ -33,7 +33,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <cstdlib>
 #include "InputData.hpp"
 #include "DataImporter.hpp"
 
@@ -54,7 +53,7 @@ input* read_stdin()	 {
 
 	if (N<1) {
 		cerr << endl << "Invalid lenght!" << endl;
-		exit(EXIT_FAILURE);
+		return 0;
 	}
 
 	double* time_stamp = new NT[N];
@@ -94,7 +93,7 @@ input* read_file(const char* filename) {
 
 	if (!in.good()) {
 		cerr << endl << "Failed to open input file!" << endl;
-		exit(EXIT_FAILURE);
+		return 0;
 	}
 
 	cout << "Reading input file: " << filename << endl;
@@ -105,7 +104,7 @@ input* read_file(const char* filename) {
 
 	if (N<1) {
 		cerr << endl << "Invalid lenght!" << endl;
-		exit(EXIT_FAILURE);
+		return 0;
 	}
 
 	double* time_stamp = new NT[N];
@@ -135,7 +134,14 @@ input* read_file(const char* filename) {
 
 		if (!in.good()) {
 			cerr << endl << "Problems on reading from input" << endl;
-			exit(EXIT_FAILURE);
+			delete[] time_stamp;
+			delete[] wx;
+			delete[] wy;
+			delete[] wz;
+			delete[] acc_x;
+			delete[] acc_y;
+			delete[] acc_z;
+			return 0;
 		}
 	}
 
