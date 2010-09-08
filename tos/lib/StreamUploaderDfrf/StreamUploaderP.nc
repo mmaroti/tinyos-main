@@ -97,7 +97,8 @@ implementation{
 		datasend.seqnum=seq_num++;
 		memcpy(&(datasend.payload[0]),buf,len);
 		readaddress+=len;
-		if(call DataSend.send(&datasend,&datacached)!=SUCCESS){
+		datacached=call DataSend.send(&datasend);
+		if(datacached!=NULL){
 			if(readaddress<lastaddress){
 				if(call Resource.request()!=SUCCESS)
 					call Timer.startOneShot(10);
@@ -126,7 +127,7 @@ implementation{
 					ctrlsend.seq_num=seq_num++;
 				streamcommand=STREAM_NULL;
 				call Leds.led2Toggle();
-				call CtrlSend.send(&ctrlsend, &ctrlcached);
+				ctrlcached=call CtrlSend.send(&ctrlsend);
 			} else {
 				if(readaddress<addr)
 					readaddress=addr;
@@ -149,7 +150,7 @@ implementation{
 					} else
 						ctrlsend.seq_num=seq_num++;
 					streamcommand=STREAM_NULL;
-					call CtrlSend.send(&ctrlsend,&ctrlcached);
+					ctrlcached=call CtrlSend.send(&ctrlsend);
 				}
 			}
 		} else {
@@ -187,7 +188,7 @@ implementation{
 					downloadSeq=0;
 				} else
 					ctrlsend.seq_num=seq_num++;
-				call CtrlSend.send(&ctrlsend,&ctrlcached);
+				ctrlcached=call CtrlSend.send(&ctrlsend);
 				call Leds.led2Toggle();
 			}
 		}

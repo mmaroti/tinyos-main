@@ -1,4 +1,4 @@
-// $Id: DfrfBaseP.nc,v 1.2 2010-08-31 13:32:44 andrasbiro Exp $
+// $Id: DfrfBaseP.nc,v 1.3 2010-09-08 15:20:49 andrasbiro Exp $
 
 /*									tab:4
  * "Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -33,7 +33,7 @@
  * @author Phil Buonadonna
  * @author Gilman Tolle
  * @author David Gay
- * Revision:	$Id: DfrfBaseP.nc,v 1.2 2010-08-31 13:32:44 andrasbiro Exp $
+ * Revision:	$Id: DfrfBaseP.nc,v 1.3 2010-09-08 15:20:49 andrasbiro Exp $
  */ 
 
 /* 
@@ -187,13 +187,12 @@ implementation {
 
 	event message_t * GetReceive.receive(message_t *msg, void *payload, uint8_t len){
 		void *cached;
-		call GetSend.send(payload, &cached);
+		cached=call GetSend.send(payload);
 		return msg;
 	}
 
 	event message_t * CommandReceive.receive(message_t *msg, void *payload, uint8_t len){
-		void *cached;
-		call CommandSend.send(payload, &cached);
+		call CommandSend.send(payload);
 		return msg;
 	}
 	
