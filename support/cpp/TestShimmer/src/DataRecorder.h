@@ -39,6 +39,8 @@
 #ifndef DATARECORDER_H
 #define DATARECORDER_H
 
+class Application;
+
 struct Sample
 {
 	Sample();
@@ -62,7 +64,7 @@ class DataRecorder : public QObject
 	Q_OBJECT
 
 public:
-	DataRecorder();
+        DataRecorder(Application &application);
 	virtual ~DataRecorder();
 
 	const QVarLengthArray<Sample> & getSamples() const {
@@ -88,6 +90,14 @@ public:
 	int getFirstTime();
 	int getLastTime();
 
+        void saveCalibrationData();
+        void loadCalibrationData();
+
+        double* getAccelCalibration() { return accelCalibrationData; }
+        double* getGyroCalibration() { return gyroCalibrationData; }
+        double* getGyroMinAvgs() { return gyroMinAvgs; }
+        int* getAccelIdleWindowStart() { return accelIdleWindowStart; }
+
 signals:
 	void sampleAdded();
 	void samplesCleared();
@@ -103,6 +113,13 @@ public:
 
 protected:
 	QVarLengthArray<Sample> samples;
+        double accelCalibrationData[12];
+        double gyroCalibrationData[12];
+        double gyroMinAvgs[3];
+        int accelIdleWindowStart[6];
+
+private:
+        Application &application;
 
 };
 #endif // DATARECORDER_H

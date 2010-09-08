@@ -35,7 +35,7 @@
 #include "CalibrationWidget.h"
 #include "ui_CalibrationWidget.h"
 #include "DataRecorder.h"
-#include "CalibrationModule.h"
+#include "StationaryCalibrationModule.h"
 #include "PeriodicalCalibrationModule.h"
 #include "Application.h"
 #include <qfiledialog.h>
@@ -47,10 +47,11 @@ CalibrationWidget::CalibrationWidget(QWidget *parent, Application &app) :
 {
     ui->setupUi(this);
 
-    calibrationModule = new CalibrationModule(app);
+    calibrationModule = new StationaryCalibrationModule(app);
     periodicalCalibrationModule = new PeriodicalCalibrationModule(app, *calibrationModule);
     turntableCalibrationModule = new TurntableCalibrationModule(app);
 
+    application.dataRecorder.loadCalibrationData();
     loadCalibrationResults();
 }
 
@@ -78,6 +79,7 @@ void CalibrationWidget::on_startButton_clicked()
 
         message = calibrationModule->Calibrate();
         application.showConsoleMessage(message);
+        application.dataRecorder.saveCalibrationData();
         loadCalibrationResults();
         emit calibrationDone();
     } else if ( ui->periodicalButton->isChecked() ) {
@@ -86,11 +88,13 @@ void CalibrationWidget::on_startButton_clicked()
         message.append(periodicalCalibrationModule->Calibrate("z"));
         message.append(periodicalCalibrationModule->SVD());
         application.showConsoleMessage(message);
+        application.dataRecorder.saveCalibrationData();
         loadCalibrationResults();
         emit calibrationDone();
     } else if ( ui->turntableButton->isChecked() ) {
         message = turntableCalibrationModule->Calibrate(45);
         application.showConsoleMessage(message);
+        application.dataRecorder.saveCalibrationData();
         loadCalibrationResults();
         emit calibrationDone();
     } else {
@@ -108,29 +112,20 @@ void CalibrationWidget::loadCalibrationResults()
     message.append("Calibration data stored in system: \n");
     message.append("\n Accelerometer Calibration Data: \n");
 
-    int size = application.settings.beginReadArray("calibrationData");
-    for (int i = 0; i < size; ++i) {
-        application.settings.setArrayIndex(i);
-        message.append( application.settings.value("calibrationData").toString() + "\n" );
-        calibrationModule->setCalibrationDataAt(i, application.settings.value("calibrationData").toDouble() );
+    for (int i = 0; i < 12; ++i) {
+        message.append( QString::number(application.dataRecorder.getAccelCalibration()[i]) + "\n" );
     }
-    application.settings.endArray();
 
     message.append("\n Gyroscope Calibration Data: \n");
-    size = application.settings.beginReadArray("gyroCalibrationData");
-    for (int i = 0; i < size; ++i) {
-        application.settings.setArrayIndex(i);
-        message.append( application.settings.value("gyroCalibrationData").toString() + "\n" );
+    for (int i = 0; i < 12; ++i) {
+        message.append( QString::number(application.dataRecorder.getGyroCalibration()[i]) + "\n" );
     }
-    application.settings.endArray();
 
     message.append("\n Gyroscope Avarages Data: \n");
-    size = application.settings.beginReadArray("gyroAvgsData");
-    for (int i = 0; i < size; ++i) {
-        application.settings.setArrayIndex(i);
-        message.append( application.settings.value("gyroAvgsData").toString() + "\n");
+    for (int i = 0; i < 3; ++i) {
+        message.append( QString::number(application.dataRecorder.getGyroMinAvgs()[i]) + "\n" );
     }
-    application.settings.endArray();
 
     ui->calibrationResults->setText(message);
+    application.dataRecorder.loadCalibrationData();
 }

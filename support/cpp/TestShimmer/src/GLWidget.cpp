@@ -38,7 +38,6 @@
 #include "GLWidget.h"
 #include "Application.h"
 
-
 GLWidget::GLWidget(QWidget *parent, QGLWidget *shareWidget, Application &app)
     : QGLWidget(parent, shareWidget),
     application(app)
@@ -105,7 +104,11 @@ void GLWidget::setClearColor(const QColor &color)
 
 void GLWidget::initializeGL()
 {
-    makeObject();
+    //glDepthMask(0);
+    //RenderSkybox();
+    makeSkyBox();
+    //makeObject();
+   // glDepthMask(1);
 
     //glEnable(GL_DEPTH_TEST);    //DISABLED FOR PERSPECTIVE MODE VIEW -- Peti
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
@@ -163,7 +166,8 @@ void GLWidget::paintGL()
 #if !defined(QT_OPENGL_ES_2)
 
     glLoadIdentity();
-    glTranslatef(0.0f, 0.0f, -10.0f);
+    //glTranslatef(0,0,-300);
+    glTranslatef(0.0f, 0.0f, 0.0f);
     glRotatef(xRot / 16.0f, 1.0f, 0.0f, 0.0f);
     glRotatef(yRot / 16.0f, 0.0f, 1.0f, 0.0f);
     glRotatef(zRot / 16.0f, 0.0f, 0.0f, 1.0f);
@@ -209,7 +213,9 @@ void GLWidget::resizeGL(int width, int height)
     glLoadIdentity();							// Reset The Projection Matrix
 
     // Calculate The Aspect Ratio Of The Window
-    gluPerspective(45.0f*scale,(GLfloat)width/(GLfloat)height,3.0f,20.0f);
+    //gluPerspective(45.0f*scale,(GLfloat)width/(GLfloat)height,3.0f,20.0f);
+    glFrustum(1, -1, -1, 1, 1, 100.0f);
+
 
     glMatrixMode(GL_MODELVIEW);						// Select The Modelview Matrix
     glLoadIdentity();
@@ -289,3 +295,122 @@ void GLWidget::makeObject()
         }
     }
 }
+
+void GLWidget::makeSkyBox()
+{
+    static  float coords[6][4][3] = {
+        { { +100, -100, -100 }, { -100, -100, -100 }, { -100, +100, -100 }, { +100, +100, -100 } },
+        { { +100, +100, -100 }, { -100, +100, -100 }, { -100, +100, +100 }, { +100, +100, +100 } },
+        { { +100, -100, +100 }, { +100, -100, -100 }, { +100, +100, -100 }, { +100, +100, +100 } },
+        { { -100, -100, -100 }, { -100, -100, +100 }, { -100, +100, +100 }, { -100, +100, -100 } },
+        { { +100, -100, +100 }, { -100, -100, +100 }, { -100, -100, -100 }, { +100, -100, -100 } },
+        { { -100, -100, +100 }, { +100, -100, +100 }, { +100, +100, +100 }, { -100, +100, +100 } }
+    };
+
+    /*for(int i=0; i < 6; i++){
+        for(int j=0; j < 4; j++){
+            for( int k=0; k<3; k++ ){
+                coords[i][j][k] *= scale;
+            }
+        }
+    }*/
+
+    textures[0] = bindTexture(QPixmap(QString(":/images/alpine_south.jpg")), GL_TEXTURE_2D);
+    textures[5] = bindTexture(QPixmap(QString(":/images/alpine_north.jpg")), GL_TEXTURE_2D);
+    textures[1] = bindTexture(QPixmap(QString(":/images/alpine_down.jpg")), GL_TEXTURE_2D);
+    textures[4] = bindTexture(QPixmap(QString(":/images/alpine_up.jpg")), GL_TEXTURE_2D);
+    textures[2] = bindTexture(QPixmap(QString(":/images/alpine_west.jpg")), GL_TEXTURE_2D);
+    textures[3] = bindTexture(QPixmap(QString(":/images/alpine_east.jpg")), GL_TEXTURE_2D);
+
+    for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            texCoords.append
+                (QVector2D(j == 0 || j == 3, j == 0 || j == 1));
+            vertices.append
+                (QVector3D(0.2 * coords[i][j][0], 0.2 * coords[i][j][1],
+                           0.2 * coords[i][j][2]));
+        }
+    }
+}
+
+void GLWidget::RenderSkybox()
+{
+    SkyBox[0] = bindTexture(QPixmap(QString(":/images/alpine_north.jpg")), GL_TEXTURE_2D);
+    SkyBox[5] = bindTexture(QPixmap(QString(":/images/alpine_north.jpg")), GL_TEXTURE_2D);
+    SkyBox[1] = bindTexture(QPixmap(QString(":/images/alpine_north.jpg")), GL_TEXTURE_2D);
+    SkyBox[4] = bindTexture(QPixmap(QString(":/images/alpine_north.jpg")), GL_TEXTURE_2D);
+    SkyBox[2] = bindTexture(QPixmap(QString(":/images/alpine_down.jpg")), GL_TEXTURE_2D);
+    SkyBox[3] = bindTexture(QPixmap(QString(":/images/alpine_north.jpg")), GL_TEXTURE_2D);
+
+        // Begin DrawSkybox
+        glColor4f(1.0, 1.0, 1.0,1.0f);
+
+        // Save Current Matrix
+        glPushMatrix();
+
+        // Second Move the render space to the correct position (Translate)
+        glTranslatef(0.0f,0.0f,0.0f);
+
+        // First apply scale matrix
+        //glScalef(1.0f,1.0f,1.0f);
+
+        float cz = -0.0f,cx = 1.0f;
+        float r = 1.0f; // If you have border issues change this to 1.005f
+        // Common Axis Z - FRONT Side
+        glBindTexture(GL_TEXTURE_2D,SkyBox[4]);
+        glBegin(GL_QUADS);
+                glTexCoord2f(cx, cz); glVertex3f(-r ,1.0f,-r);
+                glTexCoord2f(cx,  cx); glVertex3f(-r,1.0f,r);
+                glTexCoord2f(cz,  cx); glVertex3f( r,1.0f,r);
+                glTexCoord2f(cz, cz); glVertex3f( r ,1.0f,-r);
+        glEnd();
+
+        // Common Axis Z - BACK side
+        glBindTexture(GL_TEXTURE_2D,SkyBox[5]);
+        glBegin(GL_QUADS);
+                glTexCoord2f(cx,cz);  glVertex3f(-r,-1.0f,-r);
+                glTexCoord2f(cx,cx);  glVertex3f(-r,-1.0f, r);
+                glTexCoord2f(cz,cx);  glVertex3f( r,-1.0f, r);
+                glTexCoord2f(cz,cz);  glVertex3f( r,-1.0f,-r);
+        glEnd();
+
+        // Common Axis X - Left side
+        glBindTexture(GL_TEXTURE_2D,SkyBox[3]);
+        glBegin(GL_QUADS);
+                glTexCoord2f(cx,cx); glVertex3f(-1.0f, -r, r);
+                glTexCoord2f(cz,cx); glVertex3f(-1.0f,  r, r);
+                glTexCoord2f(cz,cz); glVertex3f(-1.0f,  r,-r);
+                glTexCoord2f(cx,cz); glVertex3f(-1.0f, -r,-r);
+        glEnd();
+
+        // Common Axis X - Right side
+        glBindTexture(GL_TEXTURE_2D,SkyBox[2]);
+        glBegin(GL_QUADS);
+                glTexCoord2f( cx,cx); glVertex3f(1.0f, -r, r);
+                glTexCoord2f(cz, cx); glVertex3f(1.0f,  r, r);
+                glTexCoord2f(cz, cz); glVertex3f(1.0f,  r,-r);
+                glTexCoord2f(cx, cz); glVertex3f(1.0f, -r,-r);
+        glEnd();
+
+        // Common Axis Y - Draw Up side
+        glBindTexture(GL_TEXTURE_2D,SkyBox[0]);
+        glBegin(GL_QUADS);
+                glTexCoord2f(cz, cz); glVertex3f( r, -r,1.0f);
+                glTexCoord2f(cx, cz); glVertex3f( r,  r,1.0f);
+                glTexCoord2f(cx, cx); glVertex3f(-r,  r,1.0f);
+                glTexCoord2f(cz, cx); glVertex3f(-r, -r,1.0f);
+        glEnd();
+
+        // Common Axis Y - Down side
+        glBindTexture(GL_TEXTURE_2D,SkyBox[1]);
+        glBegin(GL_QUADS);
+                glTexCoord2f(cz,cz);  glVertex3f( r, -r,-1.0f);
+                glTexCoord2f( cx,cz); glVertex3f( r,  r,-1.0f);
+                glTexCoord2f( cx,cx); glVertex3f(-r,  r,-1.0f);
+                glTexCoord2f(cz, cx); glVertex3f(-r, -r,-1.0f);
+        glEnd();
+
+        // Load Saved Matrix
+        glPopMatrix();
+
+};

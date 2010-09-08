@@ -33,16 +33,19 @@
 */
 
 #include "DataRecorder.h"
+#include "Application.h"
 #include <QtDebug>
 #include <qfile.h>
 #include <string>
 #include <algorithm>
 #include <vector>
 #include <QStringList>
+#include <QMessageBox>
 
 
-DataRecorder::DataRecorder()
+DataRecorder::DataRecorder(Application &app) : application(app)
 {
+    //loadCalibrationData();
 }
 
 DataRecorder::~DataRecorder() {
@@ -109,6 +112,9 @@ Sample::Sample()
 	zGyro = -1;
 	voltage = -1;
 	temp = -1;
+        XYangle = 0.0;
+        YZangle = 0.0;
+        ZXangle = 0.0;
 }
 
 QString Sample::toString() const
@@ -194,7 +200,7 @@ void DataRecorder::saveSamples( QString filename )
 
     QTextStream ts( &f );
 
-    ts << "Time,Accel_X,Accel_Y,Accel_Z,Gyro_X,Gyro_Y,Gyro_Z,Volt,Temp" << endl;
+    ts << "#Time,Accel_X,Accel_Y,Accel_Z,Gyro_X,Gyro_Y,Gyro_Z,Volt,Temp" << endl;
     for (int i=0; i<samples.size(); i++){
       ts << samples[i].toCsvString() << endl;
     }
@@ -214,14 +220,72 @@ void DataRecorder::loadSamples( QString filename )
     {
         QTextStream ts( &f );
         line = ts.readLine(); //skip first line of csv
-        line = ts.readLine();
-        while ( !line.isEmpty() && line != "===CALIBRATED DATA===" ) {
-            sorok++;
-          csvToSample(line);            //convert line string to sample
-          line = ts.readLine();         // line of text excluding '\n'          
+
+        if(line[0] != QChar('#')){
+            QMessageBox msgBox;
+            msgBox.setText("Wrong file format!");
+            msgBox.exec();
+        } else {
+            line = ts.readLine();
+            while ( !line.isEmpty() && line != "#Accel_X,Accel_Y,Accel_Z,AVG_Accel,XY_Angle,YZ_Angle,ZX_Angle,Gyro_X,Gyro_Y,Gyro_Z" )
+            {
+                sorok++;
+                csvToSample(line);            //convert line string to sample
+                line = ts.readLine();         // line of text excluding '\n'
+            }
+
+            // Close the file
+            f.close();
         }
-        // Close the file
-        f.close();
     }
     emit sampleAdded();
+}
+
+void DataRecorder::loadCalibrationData()
+{
+    int size = application.settings.beginReadArray("stationaryCalibrationData");
+    for (int i = 0; i < size; ++i) {
+        application.settings.setArrayIndex(i);
+        accelCalibrationData[i] = application.settings.value("stationaryCalibrationData").toDouble();
+    }
+    application.settings.endArray();
+
+    size = application.settings.beginReadArray("gyroCalibrationData");
+    for (int i = 0; i < size; ++i) {
+        application.settings.setArrayIndex(i);
+        gyroCalibrationData[i] = application.settings.value("gyroCalibrationData").toDouble();
+    }
+    application.settings.endArray();
+
+    size = application.settings.beginReadArray("gyroAvgsData");
+    for (int i = 0; i < size; ++i) {
+        application.settings.setArrayIndex(i);
+        gyroMinAvgs[i] = application.settings.value("gyroAvgsData").toDouble();
+    }
+    application.settings.endArray();
+}
+
+void DataRecorder::saveCalibrationData()
+{
+    application.settings.beginWriteArray("stationaryCalibrationData");
+    for (unsigned int i = 0; i < 12; i++) {
+        application.settings.setArrayIndex(i);
+        application.settings.setValue("stationaryCalibrationData", accelCalibrationData[i]);
+    }
+    application.settings.endArray();
+
+    application.settings.beginWriteArray("gyroCalibrationData");
+    for (unsigned int i = 0; i < 12; i++) {
+        application.settings.setArrayIndex(i);
+        application.settings.setValue("gyroCalibrationData", gyroCalibrationData[i]);
+    }
+    application.settings.endArray();
+
+    application.settings.beginWriteArray("gyroAvgsData");
+    for (unsigned int i = 0; i < 3; i++) {
+        application.settings.setArrayIndex(i);
+        application.settings.setValue("gyroAvgsData", gyroMinAvgs[i]);
+    }
+    application.settings.endArray();
+
 }

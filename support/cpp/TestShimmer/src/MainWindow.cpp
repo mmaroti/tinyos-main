@@ -40,6 +40,7 @@
 #include "CalibrationWidget.h"
 #include "ConsoleWidget.h"
 #include "DataWidget.h"
+#include "GraphWidget.h"
 #include "Widget3D.h"
 #include "window.h"
 
@@ -63,19 +64,25 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui->plotTab->layout()->addWidget(dataWidget);
         dw = dataWidget;
 
-	CalibrationWidget* calibrationWidget = new CalibrationWidget(ui->calibrationTab, app);
-	ui->calibrationTab->layout()->addWidget(calibrationWidget);
+        GraphWidget* graphWidget = new GraphWidget(ui->graphTab, app);
+        ui->graphTab->layout()->addWidget(graphWidget);
+
+        CalibrationWidget* calibrationWidget = new CalibrationWidget(ui->calibrationTab, app);
+        ui->calibrationTab->layout()->addWidget(calibrationWidget);
 
 	ConsoleWidget* consoleWidget = new ConsoleWidget(ui->consoleTab, app);
 	ui->consoleTab->layout()->addWidget(consoleWidget);
 
 	statusBar()->showMessage("Started.");
 
-	connect(&app.serialListener, SIGNAL(showNotification(const QString &, int)), statusBar(), SLOT(showMessage(const QString &, int)) );
-	connect(&app, SIGNAL(showMessageSignal(const QString &)), statusBar(), SLOT(showMessage(QString)) );
-	connect(&app, SIGNAL(showConsoleSignal(const QString &)), consoleWidget , SLOT(onRecieveConsoleSignal(QString)) );
-	connect(calibrationWidget, SIGNAL(calibrationDone()), dataWidget, SLOT(newCalibrationOccured()) );
-	//connect(dataWidget->plot, SIGNAL(angleChanged(double)), window, SLOT(onAngleChanged(double)));
+        connect(&app.serialListener, SIGNAL(showNotification(const QString &, int)), statusBar(), SLOT(showMessage(const QString &, int)) );
+        connect(&app, SIGNAL(showMessageSignal(const QString &)), statusBar(), SLOT(showMessage(QString)) );
+        connect(&app, SIGNAL(showConsoleSignal(const QString &)), consoleWidget , SLOT(onRecieveConsoleSignal(QString)) );
+        connect(calibrationWidget, SIGNAL(calibrationDone()), dataWidget, SLOT(newCalibrationOccured()) );
+        //connect(dataWidget->plot, SIGNAL(angleChanged(double)), window, SLOT(onAngleChanged(double)));
+        connect(ui->actionQuit, SIGNAL(triggered()), this, SLOT(close()));
+        connect(ui->actionImport, SIGNAL(triggered()), dataWidget, SLOT(on_loadBtn_clicked()));
+        connect(ui->actionExport, SIGNAL(triggered()), dataWidget, SLOT(on_exportBtn_clicked()));
 
 }
 

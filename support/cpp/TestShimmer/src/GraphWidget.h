@@ -32,15 +32,50 @@
 * Author: Péter Ruzicska
 */
 
-#include "Application.h"
+#ifndef GRAPHWIDGET_H
+#define GRAPHWIDGET_H
 
-Application::Application()
-        : dataRecorder(*this),
-        settings("TAMOP422", "TestShimmer")
-{
+#include <QWidget>
+#include "DataPlot.h"
+#include "PlotScrollArea.h"
+
+class Application;
+class DataRecorder;
+class Graph;
+
+namespace Ui {
+        class GraphWidget;
 }
 
-void Application::startSolver() {
+class GraphWidget : public QWidget {
+    Q_OBJECT
 
-    solver.start();
-}
+public:
+    GraphWidget(QWidget *parent, Application &app);
+    ~GraphWidget();
+
+    QStringList graphs;
+    int NumRows;
+    int NumColumns;
+
+protected:
+    void changeEvent(QEvent *e);
+    void setCurrentGraphWidget();
+
+private:
+    Ui::GraphWidget *ui;
+    Application &application;
+
+
+
+    Graph *graphWidgets[3][3];
+    Graph *currentGraph;
+
+    PlotScrollArea *scrollAreas[3][3];
+    PlotScrollArea *currentScrollArea;
+
+private slots:
+    void on_addButton_clicked();
+};
+
+#endif // GRAPHWIDGET_H

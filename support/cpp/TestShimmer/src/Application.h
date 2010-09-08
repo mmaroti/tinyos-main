@@ -43,7 +43,7 @@
 #include "Solver.hpp"
 #include "SerialListener.h"
 #include "DataRecorder.h"
-#include "CalibrationModule.h"
+//#include "StationaryCalibrationModule.h"
 #include "ConsoleWidget.h"
 
 class Application : public QObject
@@ -74,7 +74,7 @@ public:
 
 public:
 	SerialListener serialListener;
-	DataRecorder dataRecorder;
+        DataRecorder dataRecorder;
 
 	QSettings settings;
 };

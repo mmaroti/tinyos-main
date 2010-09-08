@@ -117,32 +117,31 @@ void DataWidget::changeEvent(QEvent *e)
 
 void DataWidget::newCalibrationOccured()
 {
+    plot->setGraphs(DataPlot::CALIB, true);
     plot->onNewCalibration();
 }
 
 void DataWidget::on_recordBtn_clicked()
 {
-        QString text = ui->recordBtn->text();
-        if( text == "(R)ecord" )
-        {
-                ui->recordBtn->setText("S(t)op");
-                ui->recordBtn->setShortcut(Qt::Key_T);
-                connect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)), &application.dataRecorder, SLOT(onReceiveMessage(ActiveMessage)));
-        }
-        else
-        {
-                ui->recordBtn->setText("(R)ecord");
-                ui->recordBtn->setShortcut(Qt::Key_R);
-                disconnect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)), &application.dataRecorder, SLOT(onReceiveMessage(ActiveMessage)));
-        }
+    QString text = ui->recordBtn->text();
+    if( text == "(R)ecord" )
+    {
+            ui->recordBtn->setText("S(t)op");
+            ui->recordBtn->setShortcut(Qt::Key_T);
+            connect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)), &application.dataRecorder, SLOT(onReceiveMessage(ActiveMessage)));
+    }
+    else
+    {
+            ui->recordBtn->setText("(R)ecord");
+            ui->recordBtn->setShortcut(Qt::Key_R);
+            disconnect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)), &application.dataRecorder, SLOT(onReceiveMessage(ActiveMessage)));
+    }
 }
 
 void DataWidget::on_clearBtn_clicked()
 {
-//	ui->recordBtn->setText("Record");
-//	disconnect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)), &application.dataRecorder, SLOT(onReceiveMessage(ActiveMessage)));
-
-        application.dataRecorder.clearMessages();
+    plot->setGraphs(DataPlot::CALIB, false);
+    application.dataRecorder.clearMessages();
 }
 
 void DataWidget::on_loadBtn_clicked()
@@ -169,23 +168,24 @@ void DataWidget::on_exportBtn_clicked()
 
         QTextStream ts( &f );
         double xtemp, ytemp, ztemp, avgtemp, xyAngle, yzAngle, zxAngle, xGyro, yGyro, zGyro;
-        ts << "===CALIBRATED DATA===" << endl;
-        ts << "Accel_X,Accel_Y,Accel_Z,AVG_Accel,XY_Angle,YZ_Angle,ZX_Angle,Gyro_X,Gyro_Y,Gyro_Z" << endl;
+
+        ts << "#Accel_X,Accel_Y,Accel_Z,AVG_Accel,XY_Angle,YZ_Angle,ZX_Angle,Gyro_X,Gyro_Y,Gyro_Z" << endl;
         for (int i = 0; i < application.dataRecorder.size(); i++) {
-            xtemp = application.dataRecorder.at(i).xAccel * plot->calibrationDataAt(0) + application.dataRecorder.at(i).yAccel * plot->calibrationDataAt(1) + application.dataRecorder.at(i).zAccel * plot->calibrationDataAt(2) + plot->calibrationDataAt(9);
-            ytemp = application.dataRecorder.at(i).xAccel * plot->calibrationDataAt(3) + application.dataRecorder.at(i).yAccel * plot->calibrationDataAt(4) + application.dataRecorder.at(i).zAccel * plot->calibrationDataAt(5) + plot->calibrationDataAt(10);
-            ztemp = application.dataRecorder.at(i).xAccel * plot->calibrationDataAt(6) + application.dataRecorder.at(i).yAccel * plot->calibrationDataAt(7) + application.dataRecorder.at(i).zAccel * plot->calibrationDataAt(8) + plot->calibrationDataAt(11);
+            xtemp = application.dataRecorder.at(i).xAccel * application.dataRecorder.getAccelCalibration()[0] + application.dataRecorder.at(i).yAccel * application.dataRecorder.getAccelCalibration()[1] + application.dataRecorder.at(i).zAccel * application.dataRecorder.getAccelCalibration()[2] + application.dataRecorder.getAccelCalibration()[9];
+            ytemp = application.dataRecorder.at(i).xAccel * application.dataRecorder.getAccelCalibration()[3] + application.dataRecorder.at(i).yAccel * application.dataRecorder.getAccelCalibration()[4] + application.dataRecorder.at(i).zAccel * application.dataRecorder.getAccelCalibration()[5] + application.dataRecorder.getAccelCalibration()[10];
+            ztemp = application.dataRecorder.at(i).xAccel * application.dataRecorder.getAccelCalibration()[6] + application.dataRecorder.at(i).yAccel * application.dataRecorder.getAccelCalibration()[7] + application.dataRecorder.at(i).zAccel * application.dataRecorder.getAccelCalibration()[8] + application.dataRecorder.getAccelCalibration()[11];
             avgtemp = sqrt( pow(xtemp, 2.0) + pow(ytemp, 2.0) + pow(ztemp, 2.0) );
             xyAngle = plot->calculateAngle(xtemp,ytemp);
             yzAngle = plot->calculateAngle(ytemp,ztemp);
             zxAngle = plot->calculateAngle(ztemp,xtemp);
-            xGyro = (application.dataRecorder.at(i).xGyro - plot->gyroMinAvgsAt(0)) * plot->gyroCalibrationDataAt(0) + (application.dataRecorder.at(i).yGyro - plot->gyroMinAvgsAt(1)) * plot->gyroCalibrationDataAt(1) + (application.dataRecorder.at(i).zGyro - plot->gyroMinAvgsAt(2)) * plot->gyroCalibrationDataAt(2);
-            yGyro = (application.dataRecorder.at(i).xGyro - plot->gyroMinAvgsAt(0)) * plot->gyroCalibrationDataAt(3) + (application.dataRecorder.at(i).yGyro - plot->gyroMinAvgsAt(1)) * plot->gyroCalibrationDataAt(4) + (application.dataRecorder.at(i).zGyro - plot->gyroMinAvgsAt(2)) * plot->gyroCalibrationDataAt(5);
-            zGyro = (application.dataRecorder.at(i).xGyro - plot->gyroMinAvgsAt(0)) * plot->gyroCalibrationDataAt(6) + (application.dataRecorder.at(i).yGyro - plot->gyroMinAvgsAt(1)) * plot->gyroCalibrationDataAt(7) + (application.dataRecorder.at(i).zGyro - plot->gyroMinAvgsAt(2)) * plot->gyroCalibrationDataAt(8);
+            xGyro = (application.dataRecorder.at(i).xGyro - application.dataRecorder.getGyroMinAvgs()[0]) * application.dataRecorder.getGyroCalibration()[0] + (application.dataRecorder.at(i).yGyro - application.dataRecorder.getGyroMinAvgs()[1]) * application.dataRecorder.getGyroCalibration()[1] + (application.dataRecorder.at(i).zGyro - application.dataRecorder.getGyroMinAvgs()[2]) * application.dataRecorder.getGyroCalibration()[2];
+            yGyro = (application.dataRecorder.at(i).xGyro - application.dataRecorder.getGyroMinAvgs()[0]) * application.dataRecorder.getGyroCalibration()[3] + (application.dataRecorder.at(i).yGyro - application.dataRecorder.getGyroMinAvgs()[1]) * application.dataRecorder.getGyroCalibration()[4] + (application.dataRecorder.at(i).zGyro - application.dataRecorder.getGyroMinAvgs()[2]) * application.dataRecorder.getGyroCalibration()[5];
+            zGyro = (application.dataRecorder.at(i).xGyro - application.dataRecorder.getGyroMinAvgs()[0]) * application.dataRecorder.getGyroCalibration()[6] + (application.dataRecorder.at(i).yGyro - application.dataRecorder.getGyroMinAvgs()[1]) * application.dataRecorder.getGyroCalibration()[7] + (application.dataRecorder.at(i).zGyro - application.dataRecorder.getGyroMinAvgs()[2]) * application.dataRecorder.getGyroCalibration()[8];
 
             ts << xtemp << "," << ytemp << "," << ztemp << "," << avgtemp << "," << xyAngle << "," << yzAngle << "," << zxAngle << "," << xGyro << "," << yGyro << "," << zGyro << endl;
         }
 
+        ts << "#Static Calibration Data" << endl;
         int size = application.settings.beginReadArray("calibrationData");
         for (int i = 0; i < size; ++i) {
             application.settings.setArrayIndex(i);
@@ -193,6 +193,7 @@ void DataWidget::on_exportBtn_clicked()
         }
         application.settings.endArray();
 
+        ts << "#Gyro Calibration Data" << endl;
         size = application.settings.beginReadArray("gyroCalibrationData");
         for (int i = 0; i < size; ++i) {
             application.settings.setArrayIndex(i);
@@ -308,4 +309,101 @@ void DataWidget::on_angY_clicked()
 void DataWidget::on_angZ_clicked()
 {
     plot->setGraphs(DataPlot::ZANG, ui->angZ->checkState());
+}
+
+void DataWidget::on_rawAccBox_clicked()
+{
+    if(ui->rawAccBox->isChecked()){
+        ui->rawAccX->setChecked(true);
+        ui->rawAccY->setChecked(true);
+        ui->rawAccZ->setChecked(true);
+    } else {
+        ui->rawAccX->setChecked(false);
+        ui->rawAccY->setChecked(false);
+        ui->rawAccZ->setChecked(false);
+    }
+    on_rawAccX_clicked();
+    on_rawAccY_clicked();
+    on_rawAccZ_clicked();
+}
+
+void DataWidget::on_accelBox_clicked()
+{
+    if(ui->accelBox->isChecked()){
+        ui->accX->setChecked(true);
+        ui->accY->setChecked(true);
+        ui->accZ->setChecked(true);
+    } else {
+        ui->accX->setChecked(false);
+        ui->accY->setChecked(false);
+        ui->accZ->setChecked(false);
+    }
+    on_accX_clicked();
+    on_accY_clicked();
+    on_accZ_clicked();
+}
+
+void DataWidget::on_gyroBox_clicked()
+{
+    if(ui->gyroBox->isChecked()){
+        ui->gyroX->setChecked(true);
+        ui->gyroY->setChecked(true);
+        ui->gyroZ->setChecked(true);
+    } else {
+        ui->gyroX->setChecked(false);
+        ui->gyroY->setChecked(false);
+        ui->gyroZ->setChecked(false);
+    }
+    on_gyroX_clicked();
+    on_gyroY_clicked();
+    on_gyroZ_clicked();
+}
+
+void DataWidget::on_rawGyroBox_clicked()
+{
+    if(ui->rawGyroBox->isChecked()){
+        ui->rawGyroX->setChecked(true);
+        ui->rawGyroY->setChecked(true);
+        ui->rawGyroZ->setChecked(true);
+    } else {
+        ui->rawGyroX->setChecked(false);
+        ui->rawGyroY->setChecked(false);
+        ui->rawGyroZ->setChecked(false);
+    }
+    on_rawGyroX_clicked();
+    on_rawGyroY_clicked();
+    on_rawGyroZ_clicked();
+}
+
+
+void DataWidget::on_anglesBox_clicked()
+{
+    if(ui->anglesBox->isChecked()){
+        ui->angXY->setChecked(true);
+        ui->angYZ->setChecked(true);
+        ui->angZX->setChecked(true);
+    } else {
+        ui->angXY->setChecked(false);
+        ui->angYZ->setChecked(false);
+        ui->angZX->setChecked(false);
+    }
+    on_angXY_clicked();
+    on_angYZ_clicked();
+    on_angZX_clicked();
+}
+
+void DataWidget::on_angles2Box_clicked()
+{
+    if(ui->angles2Box->isChecked()){
+        ui->angX->setChecked(true);
+        ui->angY->setChecked(true);
+        ui->angZ->setChecked(true);
+    } else {
+        ui->angX->setChecked(false);
+        ui->angY->setChecked(false);
+        ui->angZ->setChecked(false);
+    }
+    on_angX_clicked();
+    on_angY_clicked();
+    on_angZ_clicked();
 }

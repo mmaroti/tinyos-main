@@ -36,7 +36,7 @@
 #define CALIBRATIONWIDGET_H
 
 #include <QWidget>
-#include "CalibrationModule.h"
+#include "StationaryCalibrationModule.h"
 #include "PeriodicalCalibrationModule.h"
 #include "TurntableCalibrationModule.h"
 
@@ -58,7 +58,7 @@ protected:
 private:
     Ui::CalibrationWidget *ui;
     Application &application;
-    CalibrationModule *calibrationModule;
+    StationaryCalibrationModule *calibrationModule;
     PeriodicalCalibrationModule *periodicalCalibrationModule;
     TurntableCalibrationModule *turntableCalibrationModule;
 

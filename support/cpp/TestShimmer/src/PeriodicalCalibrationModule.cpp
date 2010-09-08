@@ -34,13 +34,13 @@
 
 #include <stdexcept>
 #include "PeriodicalCalibrationModule.h"
-#include "CalibrationModule.h"
+#include "StationaryCalibrationModule.h"
 #include "CalibrationWidget.h"
 #include "LinearEquations.h"
 #include "math.h"
 #include "QtDebug"
 
-PeriodicalCalibrationModule::PeriodicalCalibrationModule(Application &app, CalibrationModule &calMod ) :
+PeriodicalCalibrationModule::PeriodicalCalibrationModule(Application &app, StationaryCalibrationModule &calMod ) :
         application(app),
         calibrationModule(calMod)
 {
@@ -323,14 +323,19 @@ QString PeriodicalCalibrationModule::SVD()
 double PeriodicalCalibrationModule::getCalibratedData(int time, QString axis)
 {
     if( axis == "x" ){
-        return ( application.dataRecorder.at(time).xAccel * calibrationModule.getCalibrationDataAt(0) + application.dataRecorder.at(time).yAccel * calibrationModule.getCalibrationDataAt(1) + application.dataRecorder.at(time).zAccel * calibrationModule.getCalibrationDataAt(2) + calibrationModule.getCalibrationDataAt(9) );
+        return ( application.dataRecorder.at(time).xAccel * application.dataRecorder.getAccelCalibration()[0] + application.dataRecorder.at(time).yAccel * application.dataRecorder.getAccelCalibration()[1] + application.dataRecorder.at(time).zAccel * application.dataRecorder.getAccelCalibration()[2] + application.dataRecorder.getAccelCalibration()[9] );
     }else if( axis == "y" ){
-        return ( application.dataRecorder.at(time).xAccel * calibrationModule.getCalibrationDataAt(3) + application.dataRecorder.at(time).yAccel * calibrationModule.getCalibrationDataAt(4) + application.dataRecorder.at(time).zAccel * calibrationModule.getCalibrationDataAt(5) + calibrationModule.getCalibrationDataAt(10) );
+        return ( application.dataRecorder.at(time).xAccel * application.dataRecorder.getAccelCalibration()[3] + application.dataRecorder.at(time).yAccel * application.dataRecorder.getAccelCalibration()[4] + application.dataRecorder.at(time).zAccel * application.dataRecorder.getAccelCalibration()[5] + application.dataRecorder.getAccelCalibration()[10] );
     }else if ( axis == "z" ){
-        return ( application.dataRecorder.at(time).xAccel * calibrationModule.getCalibrationDataAt(6) + application.dataRecorder.at(time).yAccel * calibrationModule.getCalibrationDataAt(7) + application.dataRecorder.at(time).zAccel * calibrationModule.getCalibrationDataAt(8) + calibrationModule.getCalibrationDataAt(11) );
+        return ( application.dataRecorder.at(time).xAccel * application.dataRecorder.getAccelCalibration()[6] + application.dataRecorder.at(time).yAccel * application.dataRecorder.getAccelCalibration()[7] + application.dataRecorder.at(time).zAccel * application.dataRecorder.getAccelCalibration()[8] + application.dataRecorder.getAccelCalibration()[11] );
     }
 
+    
+
+
     throw std::logic_error("Incorrect axis!");
+	return 0;
+
 }
 
 double PeriodicalCalibrationModule::calculateAngle(double accel1, double accel2)

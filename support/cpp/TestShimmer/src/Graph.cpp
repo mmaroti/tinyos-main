@@ -1,42 +1,9 @@
-/** Copyright (c) 2010, University of Szeged
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions
-* are met:
-*
-* - Redistributions of source code must retain the above copyright
-* notice, this list of conditions and the following disclaimer.
-* - Redistributions in binary form must reproduce the above
-* copyright notice, this list of conditions and the following
-* disclaimer in the documentation and/or other materials provided
-* with the distribution.
-* - Neither the name of University of Szeged nor the names of its
-* contributors may be used to endorse or promote products derived
-* from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-* COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-* OF THE POSSIBILITY OF SUCH DAMAGE.
-*
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
-*/
+#include "Graph.h"
 
 #include <QPainter>
 #include <QtDebug>
 #include <QPaintEvent>
 #include <QScrollArea>
-#include "DataPlot.h"
 #include "Application.h"
 #include "DataRecorder.h"
 #include "math.h"
@@ -44,7 +11,7 @@
 #include "GLWidget.h"
 #include "constants.h"
 
-DataPlot::DataPlot(PlotScrollArea *parent, Application &app) : QWidget(parent),
+Graph::Graph(PlotScrollArea *parent, Application &app) : QWidget(parent),
         application(app)
 {
         scrollArea = parent;
@@ -53,15 +20,12 @@ DataPlot::DataPlot(PlotScrollArea *parent, Application &app) : QWidget(parent),
         connect(&app.dataRecorder, SIGNAL(sampleAdded()), this, SLOT(onSampleAdded()));
         connect(&app.dataRecorder, SIGNAL(samplesCleared()), this, SLOT(onSamplesCleared()));
 
-        //loadSettingsData();
+        loadSettingsData();
 
         resize(QWIDGETSIZE_MAX, 1000);
-        gyroMinAvgs = application.dataRecorder.getGyroMinAvgs();
-        gyroCalibrationData = application.dataRecorder.getGyroCalibration();
-        accelCalibrationData = application.dataRecorder.getAccelCalibration();
 }
 
-QPoint DataPlot::getSample(int x, int y)
+QPoint Graph::getSample(int x, int y)
 {
         if( parentHeight <= 1 )
                 parentHeight = 2;
@@ -70,13 +34,13 @@ QPoint DataPlot::getSample(int x, int y)
         return QPoint(x, y);
 }
 
-QPoint DataPlot::getPoint(int x, int y)
+QPoint Graph::getPoint(int x, int y)
 {
         y = (parentHeight - 1) * (4095 - y) / 4095;
         return QPoint(x, y);
 }
 
-void DataPlot::paintEvent(QPaintEvent *event)
+void Graph::paintEvent(QPaintEvent *event)
 {
         QPainter painter(this);     //painter = new QPainter(this); //painter(this);
         painter.setRenderHint(QPainter::Antialiasing, true);
@@ -98,14 +62,6 @@ void DataPlot::paintEvent(QPaintEvent *event)
                     x0 = 0;
             if( x1 > application.dataRecorder.size() )
                     x1 = dataRecorder.size();
-
-            //For showing data lag in system
-            painter.setPen(QPen(Qt::red, 2, Qt::DashLine));
-            for(int i = x0 + 1; i < x1; ++i){
-                if( (dataRecorder.at(i).time - dataRecorder.at(i-1).time) > 360 ){
-                    painter.drawLine(getPoint(i-1, 0), getPoint(i, 200));
-                }
-            }
 
             if( (graphs & XRAWACC) != 0 )
             {
@@ -338,8 +294,6 @@ void DataPlot::paintEvent(QPaintEvent *event)
                     xtemp1 = calculateCalibratedValue("xAcc", i-1);
                     xtemp2 = calculateCalibratedValue("xAcc", i);
 
-
-
                     double param1, param2;
                     param1 = xtemp1 / GRAV;
                     param2 = xtemp2 / GRAV;
@@ -347,15 +301,7 @@ void DataPlot::paintEvent(QPaintEvent *event)
                     //if(param2 > 1) param2 = 1; if(param2 < -1) param2 = -1;
                     alfa1 = asin(param1);
                     alfa2 = asin(param2);
-
-                    if(fabs(alfa1 -alfa2) < (ANGLEMAX - ANGLEMIN)/2){
-                        painter.drawLine(getPoint(i-1, alfa1 * 2048/M_PI + 2048), getPoint(i, alfa2 * 2048/M_PI + 2048));
-                    } else if(alfa1>alfa2){
-                        painter.drawLine(getPoint(i-1, alfa1 * 2048/M_PI + 2048), getPoint(i, ANGLEMAX * 2048/M_PI + 2048));
-                    } else {
-                        painter.drawLine(getPoint(i-1, ANGLEMIN * 2048/M_PI + 2048), getPoint(i, alfa2 * 2048/M_PI + 2048));
-                    }
-
+                    painter.drawLine(getPoint(i-1, alfa1 * 2048/M_PI + 2048), getPoint(i, alfa2 * 2048/M_PI + 2048));
                 }
             }
 
@@ -367,13 +313,8 @@ void DataPlot::paintEvent(QPaintEvent *event)
                     ytemp1 = calculateCalibratedValue("yAcc", i-1);
                     ytemp2 = calculateCalibratedValue("yAcc", i);
 
-                    double param1, param2;
-                    param1 = ytemp1 / GRAV;
-                    param2 = ytemp2 / GRAV;
-                    if(param1 > 1) param1 = 1; if(param1 < -1) param1 = -1;
-                    if(param2 > 1) param2 = 1; if(param2 < -1) param2 = -1;
-                    alfa1 = asin(param1);
-                    alfa2 = asin(param2);
+                    alfa1 = asin(ytemp1/GRAV);
+                    alfa2 = asin(ytemp2/GRAV);
                     painter.drawLine(getPoint(i-1, alfa1 * 2048/M_PI + 2048), getPoint(i, alfa2 * 2048/M_PI + 2048));
                 }
             }
@@ -386,24 +327,9 @@ void DataPlot::paintEvent(QPaintEvent *event)
                     ztemp1 = calculateCalibratedValue("zAcc", i-1);
                     ztemp2 = calculateCalibratedValue("zAcc", i);
 
-                    double param1, param2;
-                    param1 = ztemp1 / GRAV;
-                    param2 = ztemp2 / GRAV;
-                    if(param1 > 1) param1 = 1; if(param1 < -1) param1 = -1;
-                    if(param2 > 1) param2 = 1; if(param2 < -1) param2 = -1;
-                    alfa1 = asin(param1);
-                    alfa2 = asin(param2);
+                    alfa1 = asin(ztemp1/GRAV);
+                    alfa2 = asin(ztemp2/GRAV);
                     painter.drawLine(getPoint(i-1, alfa1 * 2048/M_PI + 2048), getPoint(i, alfa2 * 2048/M_PI + 2048));
-                }
-            }
-
-            if( (graphs & CALIB) != 0 )
-            {
-                painter.setPen(QPen(Qt::green, 2, Qt::DashLine));
-
-                for(int i=0; i < 6; i++){
-                painter.drawLine(getPoint(application.dataRecorder.getAccelIdleWindowStart()[i], 0), getPoint(application.dataRecorder.getAccelIdleWindowStart()[i], 4000));
-                painter.drawLine(getPoint(application.dataRecorder.getAccelIdleWindowStart()[i]+WINDOW, 0), getPoint(application.dataRecorder.getAccelIdleWindowStart()[i]+WINDOW, 4000));
                 }
             }
         }
@@ -412,36 +338,34 @@ void DataPlot::paintEvent(QPaintEvent *event)
         {
             painter.setPen(QPen(Qt::black, 1, Qt::SolidLine));
             painter.drawLine(0, parentHeight/2, width(), parentHeight/2);
-            painter.drawLine(0, parentHeight/4, width(), parentHeight/4);
-            painter.drawLine(0, 3*parentHeight/4, width(), 3*parentHeight/4);
-            painter.drawLine(0, parentHeight/8, width(), parentHeight/8);
-            painter.drawLine(0, 3*parentHeight/8, width(), 3*parentHeight/8);
-            painter.drawLine(0, 5*parentHeight/8, width(), 5*parentHeight/8);
-            painter.drawLine(0, 7*parentHeight/8, width(), 7*parentHeight/8);
-        }
+            painter.setPen(QPen(Qt::blue, 1, Qt::SolidLine));
 
-        if( (graphs & TIME) != 0 ) {
-            painter.setPen(QPen(Qt::black, 1, Qt::SolidLine));
+            int start = floor((rect.left() - 20) / 100);
+            int end = ceil((rect.right() + 20) / 100);
 
-            double HZ = C_HZ;
-            double TICKS = C_TICKS;
+            int startt = -(end - start) /2;
+            int endd = (end - start) /2;
 
-            int start = floor((rect.left() - 20) * TICKS / HZ);
-            int end = ceil((rect.right() + 20) * TICKS / HZ);
-
-            for(int i = start; i <= end; ++i) {
-                    QPoint xp = getPoint(i * HZ / TICKS, 2048);
+            for(int i = startt; i <= endd; ++i) {
+                    QPoint xp = getPoint(i * 100, 2048);
                     painter.drawLine(xp.x(), xp.y() - 5, xp.x(), xp.y() + 5);
 
-                    double sec = (double)i / TICKS;
+                    double sec = (double)i / 2;
 
                     painter.drawText(xp.x() - 20, xp.y() - 15, 41, 10, Qt::AlignCenter, QString::number(sec, 'f', 1));
             }
+
+           //painter.drawLine(0, parentHeight/4, 10, parentHeight/8);
+           // painter.drawLine(0, 3*parentHeight/4, width(), 3*parentHeight/4);
+           // painter.drawLine(0, parentHeight/8, width(), parentHeight/8);
+           // painter.drawLine(0, 3*parentHeight/8, width(), 3*parentHeight/8);
+           // painter.drawLine(0, 5*parentHeight/8, width(), 5*parentHeight/8);
+           // painter.drawLine(0, 7*parentHeight/8, width(), 7*parentHeight/8);
         }
 
 }
 
-double DataPlot::calculateAngle(double accel1, double accel2) {
+double Graph::calculateAngle(double accel1, double accel2) {
     double alfa;
     if( (pow(accel1, 2.0) + pow(accel2, 2.0)) < pow(GRAV/2, 2.0) )
         return 10.0;
@@ -463,14 +387,14 @@ double DataPlot::calculateAngle(double accel1, double accel2) {
     return alfa;
 }
 
-double DataPlot::calculateCalibratedValue(QString axis, int time)
+double Graph::calculateCalibratedValue(QString axis, int time)
 {
     if( axis == "xAcc"){
-        return (application.dataRecorder.at(time).xAccel * accelCalibrationData[0] + application.dataRecorder.at(time).yAccel * accelCalibrationData[1] + application.dataRecorder.at(time).zAccel * accelCalibrationData[2] + accelCalibrationData[9]);
+        return (application.dataRecorder.at(time).xAccel * calibrationData[0] + application.dataRecorder.at(time).yAccel * calibrationData[1] + application.dataRecorder.at(time).zAccel * calibrationData[2] + calibrationData[9]);
     } else if( axis == "yAcc"){
-        return (application.dataRecorder.at(time).xAccel * accelCalibrationData[3] + application.dataRecorder.at(time).yAccel * accelCalibrationData[4] + application.dataRecorder.at(time).zAccel * accelCalibrationData[5] + accelCalibrationData[10]);
+        return (application.dataRecorder.at(time).xAccel * calibrationData[3] + application.dataRecorder.at(time).yAccel * calibrationData[4] + application.dataRecorder.at(time).zAccel * calibrationData[5] + calibrationData[10]);
     } else if( axis == "zAcc" ){
-        return (application.dataRecorder.at(time).xAccel * accelCalibrationData[6] + application.dataRecorder.at(time).yAccel * accelCalibrationData[7] + application.dataRecorder.at(time).zAccel * accelCalibrationData[8] + accelCalibrationData[11]);
+        return (application.dataRecorder.at(time).xAccel * calibrationData[6] + application.dataRecorder.at(time).yAccel * calibrationData[7] + application.dataRecorder.at(time).zAccel * calibrationData[8] + calibrationData[11]);
     } else if( axis == "xGyro" ){
         //return ( (application.dataRecorder.at(time).xGyro - gyroMinAvgs[0]) * gyroCalibrationData[0] + (application.dataRecorder.at(time).yGyro - gyroMinAvgs[1]) * gyroCalibrationData[1] + (application.dataRecorder.at(time).zGyro - gyroMinAvgs[2]) * gyroCalibrationData[2] );
         return ( (application.dataRecorder.at(time).xGyro) * gyroCalibrationData[0] + (application.dataRecorder.at(time).yGyro) * gyroCalibrationData[1] + (application.dataRecorder.at(time).zGyro) * gyroCalibrationData[2] + gyroCalibrationData[9] );
@@ -483,7 +407,7 @@ double DataPlot::calculateCalibratedValue(QString axis, int time)
     } else return -1;
 }
 
-void DataPlot::setGraphs(int graphs, bool on)
+void Graph::setGraphs(int graphs, bool on)
 {
         if( on )
                 this->graphs |= graphs;
@@ -493,7 +417,7 @@ void DataPlot::setGraphs(int graphs, bool on)
         QWidget::update();
 }
 
-void DataPlot::onSampleAdded()
+void Graph::onSampleAdded()
 {
         if( plotWidth != application.dataRecorder.size() )
         {
@@ -507,7 +431,7 @@ void DataPlot::onSampleAdded()
         }
 }
 
-void DataPlot::onSamplesCleared()
+void Graph::onSamplesCleared()
 {
         plotWidth = application.dataRecorder.size();
         scrollArea->setWidgetRect(QRect(0, 0, plotWidth, 1000));
@@ -515,14 +439,13 @@ void DataPlot::onSamplesCleared()
         QWidget::update(0, 0, parentWidget()->width(), parentWidget()->height());
 }
 
-void DataPlot::onNewCalibration()
+void Graph::onNewCalibration()
 {
-    //loadSettingsData();
-
+    loadSettingsData();
     QWidget::update();
 }
 
-void DataPlot::mousePressEvent(QMouseEvent * event)
+void Graph::mousePressEvent(QMouseEvent * event)
 {
     startPos = event->pos();
 
@@ -550,7 +473,7 @@ void DataPlot::mousePressEvent(QMouseEvent * event)
     lastPos = event->pos();
 }
 
-void DataPlot::mouseMoveEvent(QMouseEvent *event)
+void Graph::mouseMoveEvent(QMouseEvent *event)
 {
     //int dx = event->x() - lastPos.x();
     //int dy = event->y() - lastPos.y();
@@ -563,17 +486,17 @@ void DataPlot::mouseMoveEvent(QMouseEvent *event)
     lastPos = event->pos();
 }
 
-void DataPlot::mouseReleaseEvent(QMouseEvent * /* event */)
+void Graph::mouseReleaseEvent(QMouseEvent * /* event */)
 {
     emit clicked();
 }
 
-/*void DataPlot::loadSettingsData()
+void Graph::loadSettingsData()
 {
     int size = application.settings.beginReadArray("calibrationData");
     for (int i = 0; i < size; ++i) {
         application.settings.setArrayIndex(i);
-        accelCalibrationData[i] = application.settings.value("calibrationData").toDouble();
+        calibrationData[i] = application.settings.value("calibrationData").toDouble();
     }
     application.settings.endArray();
 
@@ -590,4 +513,4 @@ void DataPlot::mouseReleaseEvent(QMouseEvent * /* event */)
         gyroMinAvgs[i] = application.settings.value("gyroAvgsData").toDouble();
     }
     application.settings.endArray();
-}*/
+}

@@ -54,7 +54,7 @@ Window::Window(Application &app) : application(app)
             glWidgets[i][j] = new GLWidget(0, 0, app);
             glWidgets[i][j]->setClearColor(clearColor);
             //glWidgets[i][j]->rotateBy(180*16,0,0);    //glWidgets[i][j]->rotateBy(+42 * 16, +42 * 16, -21 * 16);
-            glWidgets[i][j]->setAngle(0,0,0);
+            //glWidgets[i][j]->setAngle(0,0,0);
             mainLayout->addWidget(glWidgets[i][j], i, j);
 
             connect(glWidgets[i][j], SIGNAL(clicked()), this, SLOT(setCurrentGlWidget()));

@@ -417,17 +417,13 @@ QString TurntableCalibrationModule::LSF() {
         returnMessage = "Maximum Error is too great! ( > 0.1 )  \n";
         return returnMessage;
     } else {
-        application.settings.beginWriteArray("gyroCalibrationData");
         for (unsigned int i = 0; i < linearEquations.getVariableCount(); i++) {
-            application.settings.setArrayIndex(i);
-            application.settings.setValue("gyroCalibrationData", solution->getValueAt(i));
+            application.dataRecorder.getGyroCalibration()[i] = solution->getValueAt(i);
         }
-        application.settings.endArray();
 
-        application.settings.beginReadArray("gyroCalibrationData");
         returnMessage.append("\nGyroscope Calibration Data: \n");
 
-        application.settings.setArrayIndex(0);
+        /*application.settings.setArrayIndex(0);
         returnMessage.append("a11 ");
         returnMessage.append( application.settings.value("gyroCalibrationData").toString() + "\n" );
         gyroCalibrationData[0] = application.settings.value("gyroCalibrationData").toDouble();
@@ -487,7 +483,7 @@ QString TurntableCalibrationModule::LSF() {
         returnMessage.append( application.settings.value("gyroCalibrationData").toString() + "\n" );
         gyroCalibrationData[11] = application.settings.value("gyroCalibrationData").toDouble();
 
-        application.settings.endArray();
+        application.settings.endArray();*/
 
         return returnMessage;
     }

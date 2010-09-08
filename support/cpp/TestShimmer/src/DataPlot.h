@@ -35,11 +35,13 @@
 #ifndef DATAPLOT_H
 #define DATAPLOT_H
 #define RADIAN 57.2957795
+#define ANGLEMIN -M_PI/2
+#define ANGLEMAX M_PI/2
 
 #include <QWidget>
 #include <QPen>
 #include "cmath"
-#include "CalibrationModule.h"
+#include "StationaryCalibrationModule.h"
 #include "Application.h"
 
 
@@ -55,7 +57,7 @@ class DataPlot : public QWidget
 public:
         DataPlot(PlotScrollArea *parent, Application &app);
 
-        enum
+        enum graphs
         {
                 XRAWACC   = 0x0001,
                 YRAWACC   = 0x0002,
@@ -82,17 +84,18 @@ public:
                 XANG      = 0x100000,
                 YANG      = 0x200000,
                 ZANG      = 0x400000,
+                CALIB     = 0x800000
         };
 
         void setGraphs(int graphs, bool on);
         int getGraphs() const { return graphs; }
 
-        double calibrationDataAt(int i) { return calibrationData[i]; }
-        double gyroMinAvgsAt(int i) { return gyroMinAvgs[i]; }
-        double gyroCalibrationDataAt(int i) { return gyroCalibrationData[i]; }
+        //double calibrationDataAt(int i) { return calibrationData[i]; }
+        //double gyroMinAvgsAt(int i) { return gyroMinAvgs[i]; }
+        //double gyroCalibrationDataAt(int i) { return gyroCalibrationData[i]; }
         double calculateAngle( double acceleration1, double acceleration2 );
         double calculateCalibratedValue( QString axis, int time );
-        void loadSettingsData();
+        //void loadSettingsData();
         void onNewCalibration();
 
 protected:
@@ -123,9 +126,9 @@ private:
         QPoint getSample(int x, int y);
         QPoint lastPos, startPos;
 
-        double gyroMinAvgs[3];
-        double gyroCalibrationData[12];
-        double calibrationData[12];
+        double* gyroMinAvgs;
+        double* gyroCalibrationData;
+        double* accelCalibrationData;
 };
 
 #endif // DATAPLOT_H

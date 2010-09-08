@@ -34,11 +34,12 @@
 
 #ifndef PERIODICALCALIBRATIONMODULE_H
 #define PERIODICALCALIBRATIONMODULE_H
-#define MAXDIFF 20
+//#define MAXDIFF 20
 #define NUMOFROT 10.0
 
 #include <QObject>
 #include "Application.h"
+#include "StationaryCalibrationModule.h"
 
 class Application;
 
@@ -55,7 +56,7 @@ struct IdleGyroWindow {
 class PeriodicalCalibrationModule : public QObject {
     Q_OBJECT
 public:
-    PeriodicalCalibrationModule( Application &app, CalibrationModule &calMod );
+    PeriodicalCalibrationModule( Application &app, StationaryCalibrationModule &calMod );
     ~PeriodicalCalibrationModule();
 
     QString Calibrate(QString rotAxis);
@@ -68,7 +69,7 @@ public:
     void ClearWindows();
 private:
     Application &application;
-    CalibrationModule &calibrationModule;
+    StationaryCalibrationModule &calibrationModule;
 
     double gyroMinAvgs[3];
     QVector<IdleGyroWindow> idleGyroWindows;

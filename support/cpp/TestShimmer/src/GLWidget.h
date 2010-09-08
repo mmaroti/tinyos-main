@@ -76,6 +76,8 @@ protected:
 private:    
     Application &application;
     void makeObject();
+    void makeSkyBox();
+    void RenderSkybox();
 
     QColor clearColor;
     QPoint lastPos;
@@ -84,6 +86,7 @@ private:
     double yRot;
     double zRot;
     GLuint textures[6];
+    GLuint SkyBox[6];
     QVector<QVector3D> vertices;
     QVector<QVector2D> texCoords;
 #ifdef QT_OPENGL_ES_2

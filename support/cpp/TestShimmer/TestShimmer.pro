@@ -37,7 +37,7 @@ SOURCES += src/DataRecorder.cpp \
     src/CalibrationWidget.cpp \
     src/ConsoleWidget.cpp \
     src/LinearEquations.cpp \
-    src/CalibrationModule.cpp \
+    src/StationaryCalibrationModule.cpp \
     src/PeriodicalCalibrationModule.cpp \
     src/DataWidget.cpp \
     src/DataPlot.cpp \
@@ -45,6 +45,8 @@ SOURCES += src/DataRecorder.cpp \
     src/GLWidget.cpp \
     src/window.cpp \
     src/Widget3D.cpp \
+    src/GraphWidget.cpp \
+    src/Graph.cpp
     src/Solver.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
@@ -55,13 +57,16 @@ HEADERS += src/DataRecorder.h \
     src/CalibrationWidget.h \
     src/ConsoleWidget.h \
     src/LinearEquations.h \
-    src/CalibrationModule.h \
+    src/StationaryCalibrationModule.h \
     src/PeriodicalCalibrationModule.h \
     src/DataWidget.h \
     src/DataPlot.h \
     src/TurntableCalibrationModule.h \
     src/GLWidget.h \
     src/window.h \
+    src/GraphWidget.h \
+    src/Graph.h \
+    src/constants.h \
     src/Widget3D.h \
     src/Solver.hpp \
     src/Data.hpp \
@@ -71,6 +76,7 @@ FORMS += src/MainWindow.ui \
     src/CalibrationWidget.ui \
     src/ConsoleWidget.ui \
     src/DataWidget.ui \
-    src/Widget3D.ui
+    src/Widget3D.ui \
+    src/GraphWidget.ui
 RESOURCES += src/Resources.qrc \
     src/textures.qrc

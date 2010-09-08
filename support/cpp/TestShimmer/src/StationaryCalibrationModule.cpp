@@ -32,7 +32,7 @@
 * Author: Péter Ruzicska
 */
 
-#include "CalibrationModule.h"
+#include "StationaryCalibrationModule.h"
 #include "DataRecorder.h"
 #include <QtDebug>
 #include <qfile.h>
@@ -42,7 +42,7 @@
 
 using namespace std;
 
-CalibrationModule::CalibrationModule(Application &app) : application(app)
+StationaryCalibrationModule::StationaryCalibrationModule(Application &app) : application(app)
 {
     xMin = 9999; yMin = 9999; zMin = 9999; xGyrMin = 9999; yGyrMin = 9999, zGyrMin = 9999;
     xMax = 0; yMax = 0; zMax = 0; xGyrMax = 0; yGyrMax = 0; zGyrMax = 0;
@@ -53,9 +53,11 @@ CalibrationModule::CalibrationModule(Application &app) : application(app)
     xMinGyrAvg = 9999.99; xMaxGyrAvg = 0.0; yMinGyrAvg = 9999.99; yMaxGyrAvg = 0.0; zMinGyrAvg = 9999.99; zMaxGyrAvg = 0.0;
     xSum = 0; ySum = 0; zSum = 0;
     xGyrSum = 0; yGyrSum = 0; zGyrSum = 0;
+
+    variableNames<<"a11"<<"a12"<<"a13"<<"a21"<<"a22"<<"a23"<<"a31"<<"a32"<<"a33"<<"b1"<<"b2"<<"b3";
 }
 
-CalibrationModule::~CalibrationModule()
+StationaryCalibrationModule::~StationaryCalibrationModule()
 {
     clearWindows();
     clearIdleSides();
@@ -74,7 +76,7 @@ IdleWindow::IdleWindow()
     zAvg = -1;
 }
 
-QString CalibrationModule::Calibrate()
+QString StationaryCalibrationModule::Calibrate()
 {
     int xAccel,yAccel,zAccel, xGyro, yGyro, zGyro;
 
@@ -122,6 +124,7 @@ QString CalibrationModule::Calibrate()
             idleWindow.yMax = yMax; idleWindow.yMin = yMin; idleWindow.yAvg = yAvg;
             idleWindow.zMax = zMax; idleWindow.zMin = zMin; idleWindow.zAvg = zAvg;
             idleWindow.xGyroAvg = xGyrAvg; idleWindow.yGyroAvg = yGyrAvg; idleWindow.zGyroAvg = zGyrAvg;
+            idleWindow.start = j;
             idleWindows.append(idleWindow);
         }
 
@@ -141,7 +144,7 @@ QString CalibrationModule::Calibrate()
     }
 }
 
-QString CalibrationModule::Classify()
+QString StationaryCalibrationModule::Classify()
 {
     float xTemp,yTemp,zTemp;
     int xPMinDiff = 3*MAXDIFF; int xNMinDiff = 3*MAXDIFF;
@@ -231,7 +234,7 @@ QString CalibrationModule::Classify()
     return LSF();
 }
 
-QString CalibrationModule::LSF() {
+QString StationaryCalibrationModule::LSF() {
 
     LinearEquations linearEquations;
 
@@ -402,85 +405,90 @@ QString CalibrationModule::LSF() {
     if ( solution->getMaximumError() > 0.2 ) {
         returnMessage = "Maximum Error is too great! ( > 0.1 )  \n";
         return returnMessage;
-    } else {
-        application.settings.beginWriteArray("calibrationData");
+    } else {        
         for (unsigned int i = 0; i < linearEquations.getVariableCount(); i++) {
-            application.settings.setArrayIndex(i);
-            application.settings.setValue("calibrationData", solution->getValueAt(i));
+            application.dataRecorder.getAccelCalibration()[i] = solution->getValueAt(i);
         }
-        application.settings.endArray();
 
-        application.settings.beginWriteArray("gyroAvgsData");
         for (unsigned int i = 0; i < 3; i++) {
-            application.settings.setArrayIndex(i);
-            application.settings.setValue("gyroAvgsData", gyroMinAvgs[i]);
+            application.dataRecorder.getGyroMinAvgs()[i] = gyroMinAvgs[i];
         }
-        application.settings.endArray();
 
-        application.settings.beginReadArray("calibrationData");
-        returnMessage.append("\nCalibration Data: \n");
+        for (int i = 0; i < 6; i++){
+            application.dataRecorder.getAccelIdleWindowStart()[i] = idleWindows[idleSidesMins[i]].start;
+        }
 
-        application.settings.setArrayIndex(0);
-        returnMessage.append("a11 ");
-        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
-        calibrationData[0] = application.settings.value("calibrationData").toDouble();
+        returnMessage.append("\n Acceleration Calibration Data: \n");
+
+        int i = 0;
+        QStringList::const_iterator constIterator;
+        for (constIterator = variableNames.constBegin(); constIterator != variableNames.constEnd(); ++constIterator){
+            i++;
+            returnMessage.append((*constIterator).toLocal8Bit().constData());
+            returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[i]) + "\n" );
+        }
+
+        /*returnMessage.append("a11 ");
+
+        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[0]) + "\n" );
+        //calibrationData[0] = application.settings.value("calibrationData").toDouble();
 
         application.settings.setArrayIndex(1);
         returnMessage.append("a12 ");
-        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
-        calibrationData[1] = application.settings.value("calibrationData").toDouble();
+        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[1]) + "\n" );
+        //calibrationData[1] = application.settings.value("calibrationData").toDouble();
 
         application.settings.setArrayIndex(2);
         returnMessage.append("a13 ");
-        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
-        calibrationData[2] = application.settings.value("calibrationData").toDouble();
+        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[2]) + "\n" );
+        //calibrationData[2] = application.settings.value("calibrationData").toDouble();
 
         application.settings.setArrayIndex(3);
         returnMessage.append("a21 ");
-        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
-        calibrationData[3] = application.settings.value("calibrationData").toDouble();
+        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[3]) + "\n" );
+        //calibrationData[3] = application.settings.value("calibrationData").toDouble();
 
         application.settings.setArrayIndex(4);
         returnMessage.append("a22 ");
-        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
-        calibrationData[4] = application.settings.value("calibrationData").toDouble();
+        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[4]) + "\n" );
+        //calibrationData[4] = application.settings.value("calibrationData").toDouble();
 
         application.settings.setArrayIndex(5);
         returnMessage.append("a23 ");
-        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
-        calibrationData[5] = application.settings.value("calibrationData").toDouble();
+        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[5]) + "\n" );
+        //calibrationData[5] = application.settings.value("calibrationData").toDouble();
 
         application.settings.setArrayIndex(6);
         returnMessage.append("a31 ");
-        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
-        calibrationData[6] = application.settings.value("calibrationData").toDouble();
+        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[6]) + "\n" );
+        //calibrationData[6] = application.settings.value("calibrationData").toDouble();
 
         application.settings.setArrayIndex(7);
         returnMessage.append("a32 ");
-        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
-        calibrationData[7] = application.settings.value("calibrationData").toDouble();
+        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[7]) + "\n" );
+        //calibrationData[7] = application.settings.value("calibrationData").toDouble();
 
         application.settings.setArrayIndex(8);
         returnMessage.append("a33 ");
-        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
-        calibrationData[8] = application.settings.value("calibrationData").toDouble();
+        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[8]) + "\n" );
+        //calibrationData[8] = application.settings.value("calibrationData").toDouble();
 
         application.settings.setArrayIndex(9);
         returnMessage.append("b1 ");
-        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
-        calibrationData[9] = application.settings.value("calibrationData").toDouble();
+        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[9]) + "\n" );
+        //calibrationData[9] = application.settings.value("calibrationData").toDouble();
 
         application.settings.setArrayIndex(10);
         returnMessage.append("b2 ");
-        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
-        calibrationData[10] = application.settings.value("calibrationData").toDouble();
+        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[10]) + "\n" );
+        //calibrationData[10] = application.settings.value("calibrationData").toDouble();
 
         application.settings.setArrayIndex(11);
         returnMessage.append("b3 ");
-        returnMessage.append( application.settings.value("calibrationData").toString() + "\n" );
-        calibrationData[11] = application.settings.value("calibrationData").toDouble();
+        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[11]) + "\n" );
+        //calibrationData[11] = application.settings.value("calibrationData").toDouble();
 
-        application.settings.endArray();
+        application.settings.endArray();*/
 
         return returnMessage;
     }
@@ -497,19 +505,19 @@ QString IdleWindow::toString() const
         return s + "\n";
 }
 
-void CalibrationModule::clearWindows()
+void StationaryCalibrationModule::clearWindows()
 {
         idleWindows.clear();
 }
 
-void CalibrationModule::clearIdleSides()
+void StationaryCalibrationModule::clearIdleSides()
 {
     for (int i = 0; i < 6; i++) {
         idleSidesMins[i] = 0;
     }
 }
 
-void CalibrationModule::printMatrix1D(TNT::Array1D<double> matrix) {
+void StationaryCalibrationModule::printMatrix1D(TNT::Array1D<double> matrix) {
     std::cout << "\n";
     for (int i = 0; i < matrix.dim1(); i++) {
         std::cout << matrix[i] <<"\n";
@@ -517,7 +525,7 @@ void CalibrationModule::printMatrix1D(TNT::Array1D<double> matrix) {
     std::cout << "\n" << flush;
 }
 
-void CalibrationModule::printMatrix2D(TNT::Array2D<double> matrix) {
+void StationaryCalibrationModule::printMatrix2D(TNT::Array2D<double> matrix) {
     std::cout << "\n";
     for (int i = 0; i < matrix.dim1(); i++) {
         for (int j = 0; j < matrix.dim2(); j++) {

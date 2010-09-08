@@ -34,7 +34,8 @@
 
 #ifndef TURNTABLECALIBRATIONMODULE_H
 #define TURNTABLECALIBRATIONMODULE_H
-#define GYROWINDOW 200  //data window size, for finding idle shimmer positions
+
+/*#define GYROWINDOW 200  //data window size, for finding idle shimmer positions
 #define GYROMAXDIFF 20  //maximum difference between max and min values from an idle mote
 #define xCCLW   0.9*xMinGyroAvg+0.1*xMaxGyroAvg  //region borders for classifying idle windows
 #define xI_L    0.7*xMinGyroAvg+0.3*xMaxGyroAvg  //CLW = ClockWise rotation
@@ -47,7 +48,9 @@
 #define zCCLW   0.9*zMinGyroAvg+0.1*zMaxGyroAvg
 #define zI_L    0.7*zMinGyroAvg+0.3*zMaxGyroAvg
 #define zI_U    0.3*zMinGyroAvg+0.7*zMaxGyroAvg
-#define zCLW    0.1*zMinGyroAvg+0.9*zMaxGyroAvg
+#define zCLW    0.1*zMinGyroAvg+0.9*zMaxGyroAvg*/
+
+#include "constants.h"
 
 #include <QObject>
 #include "Application.h"
@@ -100,9 +103,9 @@ public:
 
     const int & atTurntableSides(int i) const { return turntableSidesMins[i]; }
 
-    void setGyroCalibrationDataAt(int i, double value) { gyroCalibrationData[i] = value; }
+    //void setGyroCalibrationDataAt(int i, double value) { gyroCalibrationData[i] = value; }
 
-    const double & getGyroCalibrationDataAt(int i) const { return gyroCalibrationData[i]; }
+    //const double & getGyroCalibrationDataAt(int i) const { return gyroCalibrationData[i]; }
 
     //const double & getGyroAvgAt( int i ) const { return gyroMinAvgs[i]; }
 
