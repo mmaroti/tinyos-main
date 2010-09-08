@@ -125,6 +125,9 @@
        <property name="title">
         <string>Raw Accel</string>
        </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
        <layout class="QHBoxLayout" name="horizontalLayout_14">
         <item>
          <widget class="QCheckBox" name="rawAccX">
@@ -237,6 +240,15 @@
       <widget class="QGroupBox" name="accelBox">
        <property name="title">
         <string>Accel</string>
+       </property>
+       <property name="flat">
+        <bool>false</bool>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_5">
         <item>
@@ -394,6 +406,9 @@
        <property name="title">
         <string>Raw Gyro</string>
        </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
        <layout class="QHBoxLayout" name="horizontalLayout_16">
         <item>
          <widget class="QCheckBox" name="rawGyroX">
@@ -544,6 +559,12 @@
        <property name="title">
         <string>Gyroscope</string>
        </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
        <layout class="QHBoxLayout" name="horizontalLayout_10">
         <item>
          <widget class="QCheckBox" name="gyroX">
@@ -685,6 +706,12 @@
        <property name="title">
         <string>Angles</string>
        </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
        <layout class="QHBoxLayout" name="horizontalLayout_13">
         <item>
          <widget class="QCheckBox" name="angXY">
@@ -825,6 +852,12 @@
       <widget class="QGroupBox" name="angles2Box">
        <property name="title">
         <string>Angles 2</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
