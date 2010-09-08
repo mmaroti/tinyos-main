@@ -35,6 +35,7 @@
 #define __CONVERGECAST_H__
 
 #include "AM.h"
+#include "DfrfEngine.h"
 
 typedef nx_struct convergecast_t
 {
@@ -50,6 +51,7 @@ typedef nx_struct convergecast_t
 enum
 {
 	CONVERGECAST_UNIQUE_LEN = 3,
+	CONVERGECAST_MAXDATA=FLOODROUTING_MAXDATA-sizeof(convergecast_t),
 };
 
 #endif//__CONVERGECAST_H__

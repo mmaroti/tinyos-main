@@ -20,7 +20,7 @@
  *
  * Author: Janos Sallai
  */
-
+#include "DfrfEngine.h"
 generic configuration DfrfClientC(uint8_t appId, uint8_t payloadLength, uint8_t uniqueLength, uint16_t bufferSize)
 {
 	provides

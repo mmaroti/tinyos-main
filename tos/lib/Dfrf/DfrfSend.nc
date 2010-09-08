@@ -32,10 +32,10 @@ interface DfrfSend
 	 *
 	 * @param data The address of the data to be sent. The data is copied
 	 *	to the buffer immediately.
-	 * @return SUCCESS if the data was succesfully scheduled to be sent,
-	 *	FAIL if the same data is already scheduled.
+	 * @return the address of the data if it was succesfully scheduled to be sent,
+	 *	NULL if the same data is already scheduled.
 	 */
-	command error_t send(void *data, void **cacheddata);
+	command void* send(void *data);
 	
 	event void sendDone(void *data);
 }

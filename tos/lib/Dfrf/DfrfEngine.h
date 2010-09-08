@@ -74,7 +74,7 @@ typedef nx_struct dfrf_msg
 enum
 {
 	AM_DFRF_MSG = 0x82,
-	DFRF_DATA_LENGTH=TOSH_DATA_LENGTH-sizeof(dfrf_msg_t)-2,
+	FLOODROUTING_MAXDATA=TOSH_DATA_LENGTH-sizeof(dfrf_msg_t)-2,
 };
 
 #endif// __DFRFENGINE_H__
