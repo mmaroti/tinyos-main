@@ -34,6 +34,7 @@
 
 #include <QVarLengthArray>
 #include <QObject>
+#include "Data.hpp"
 #include "SerialListener.h"
 
 #ifndef DATARECORDER_H
@@ -97,6 +98,8 @@ public:
         double* getGyroCalibration() { return gyroCalibrationData; }
         double* getGyroMinAvgs() { return gyroMinAvgs; }
         int* getAccelIdleWindowStart() { return accelIdleWindowStart; }
+
+        void at(int i, double data[SIZE]) const;
 
 signals:
 	void sampleAdded();

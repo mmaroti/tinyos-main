@@ -44,7 +44,7 @@
 #include "Widget3D.h"
 #include "window.h"
 
-extern DataWidget* dw;
+extern DataRecorder* dr;
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
@@ -54,6 +54,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	ui->connectTab->layout()->addWidget(new ConnectWidget(ui->connectTab, app));
 
+        dr = &(app.dataRecorder);
+
 	//Window *window = new Window(app);
 	//ui->openglTab->layout()->addWidget(window);
 
@@ -62,7 +64,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	DataWidget* dataWidget = new DataWidget(ui->plotTab, app);
 	ui->plotTab->layout()->addWidget(dataWidget);
-        dw = dataWidget;
 
         GraphWidget* graphWidget = new GraphWidget(ui->graphTab, app);
         ui->graphTab->layout()->addWidget(graphWidget);

@@ -32,6 +32,7 @@
 * Author: Péter Ruzicska
 */
 
+#include <stdexcept>
 #include "DataRecorder.h"
 #include "Application.h"
 #include <QtDebug>
@@ -41,6 +42,18 @@
 #include <vector>
 #include <QStringList>
 #include <QMessageBox>
+
+DataRecorder* dr = 0;
+
+int n_samples() {
+
+    return dr->size();
+}
+
+void at(int i, double data[SIZE]) {
+
+    dr->at(i, data);
+}
 
 
 DataRecorder::DataRecorder(Application &app) : application(app)
@@ -289,3 +302,32 @@ void DataRecorder::saveCalibrationData()
     application.settings.endArray();
 
 }
+
+void DataRecorder::at(int i, double data[SIZE]) const {
+
+    if (i<0 || i>=application.dataRecorder.size()) {
+
+        throw std::out_of_range("Index out of range!");
+    }
+
+    const Sample& s = samples[i];
+
+    data[TIME_STAMP] = s.time;
+
+    const double ax = s.xAccel;
+    const double ay = s.yAccel;
+    const double az = s.zAccel;
+
+    data[ACCEL_X] = ax*accelCalibrationData[0] + ay*accelCalibrationData[1] + az*accelCalibrationData[2] + accelCalibrationData[9];
+    data[ACCEL_Y] = ax*accelCalibrationData[3] + ay*accelCalibrationData[4] + az*accelCalibrationData[5] + accelCalibrationData[10];
+    data[ACCEL_Z] = ax*accelCalibrationData[6] + ay*accelCalibrationData[7] + az*accelCalibrationData[8] + accelCalibrationData[11];
+
+    const double wx = s.xGyro;
+    const double wy = s.yGyro;
+    const double wz = s.zGyro;
+
+    data[GYRO_X] = (wx - gyroMinAvgs[0]) * gyroCalibrationData[0] + (wy - gyroMinAvgs[1]) * gyroCalibrationData[1] + (wz - gyroMinAvgs[2]) * gyroCalibrationData[2];
+    data[GYRO_Y] = (wx - gyroMinAvgs[0]) * gyroCalibrationData[3] + (wy - gyroMinAvgs[1]) * gyroCalibrationData[4] + (wz - gyroMinAvgs[2]) * gyroCalibrationData[5];
+    data[GYRO_Z] = (wx - gyroMinAvgs[0]) * gyroCalibrationData[6] + (wy - gyroMinAvgs[1]) * gyroCalibrationData[7] + (wz - gyroMinAvgs[2]) * gyroCalibrationData[8];
+}
+
