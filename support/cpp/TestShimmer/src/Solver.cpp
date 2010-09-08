@@ -44,8 +44,29 @@ using namespace std;
 
 namespace {
 
-    const bool FAILED(true);
-    const bool SUCCESS(false);
+const bool FAILED(true);
+const bool SUCCESS(false);
+
+class MutexUnlocker {
+
+public:
+
+    MutexUnlocker(QMutex* m) : mutex(m) {
+        if (!mutex->tryLock())
+            throw logic_error("The solver is still running!");
+    }
+
+    ~MutexUnlocker() { mutex->unlock(); }
+
+private:
+
+    MutexUnlocker(const MutexUnlocker& );
+    MutexUnlocker& operator=(const MutexUnlocker& );
+
+    QMutex* const mutex;
+
+};
+
 }
 
 void Solver::destroy() {
@@ -316,7 +337,19 @@ void Solver::finished(int exitCode, QProcess::ExitStatus exitStatus) {
 
 double Solver::R(int sample, int i, int j) const {
 
-    return 0;
+    MutexUnlocker mu(mutex);
+
+    if ((n==0) || (m==0)) {
+        throw logic_error("Run the solver first!");
+    }
+
+    if ((sample<0) || (sample>=n) || (i<1) || (i>3) || (j<1) || (j>3)) {
+        throw range_error("Index out of range for rotation matrix");
+    }
+
+    const int index = 9*sample + 3*(i-1) + (j-1);
+
+    return m[index];
 }
 
 Solver::~Solver() {
