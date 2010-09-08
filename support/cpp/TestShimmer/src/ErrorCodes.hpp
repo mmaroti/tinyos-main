@@ -31,63 +31,20 @@
 * Author: Ali Baharev
 */
 
-#ifndef SOLVER_HPP
-#define SOLVER_HPP
-#include <string>
-#include "QObject"
-#include "QProcess"
-#include "Data.hpp"
+#ifndef ERRORCODES_HPP_
+#define ERRORCODES_HPP_
 
-class QMutex;
+namespace gyro {
 
-class Solver : public QObject {
-
-    Q_OBJECT
-
-public:
-
-    Solver();
-
-    void start();
-
-    double R(int sample, int i, int j) const;
-
-    ~Solver();
-
-signals:
-
-    void finished(bool error, const std::string& msg);
-
-private slots:
-
-    void started();
-
-    void error(QProcess::ProcessError error);
-
-    void finished(int exitCode, QProcess::ExitStatus exitStatus);
-
-private:
-
-    Solver(const Solver& );
-    Solver& operator=(const Solver& );
-
-    void init();
-    void destroy();
-    void emit_signal(bool error, const std::string& msg);
-    bool write_n_samples();
-    bool write_samples();
-    bool write_data(double data[SIZE]);
-    bool process_result(int exitCode, std::string& msg);
-    bool copy_rotation_matrices(std::string& msg);
-
-    QMutex* const mutex;
-
-    QProcess* solver;
-
-    int n;
-
-    double* m;
-
+enum {
+        SUCCESS = 0,
+        ERROR_READING_INPUT = 11,
+        ERROR_INITIALIZATION,
+        ERROR_CONVERGENCE,
+        ERROR_UNKNOWN
 };
 
-#endif // SOLVER_HPP
+}
+
+#endif
+

@@ -38,14 +38,14 @@
 #include "QMutex"
 #include "QSettings"
 #include "Solver.hpp"
+#include "ErrorCodes.hpp"
 
 using namespace std;
 
 namespace {
 
-    const bool FAILED(false);
-    const bool SUCCESS(true);
-
+    const bool FAILED(true);
+    const bool SUCCESS(false);
 }
 
 void Solver::destroy() {
@@ -70,7 +70,6 @@ void Solver::destroy() {
     n = 0;
     delete[] m;
     m = 0;
-
 }
 
 void Solver::init() {
@@ -87,7 +86,6 @@ void Solver::init() {
 
     QObject::connect(solver, SIGNAL(finished(int, QProcess::ExitStatus)),
                        this, SLOT(  finished(int, QProcess::ExitStatus)), Qt::QueuedConnection);
-
 }
 
 Solver::Solver() : mutex(new QMutex), solver(0), n(0), m(0) {
@@ -112,12 +110,11 @@ void Solver::start() {
     cout << endl << "External gyro.exe called" << endl;
 }
 
-void Solver::emit_signal(bool successful, const std::string &msg) {
+void Solver::emit_signal(bool error, const std::string &msg) {
 
-    emit finished(successful, msg);
+    emit finished(error, msg);
 
     mutex->unlock();
-
 }
 
 bool Solver::write_data(double data[SIZE]) {
@@ -162,7 +159,7 @@ bool Solver::write_samples() {
 
 bool Solver::write_n_samples() {
 
-    int n = n_samples();
+    const int n = n_samples();
 
     if (n<1)
         throw logic_error("Incorrect number of samples!");
@@ -174,7 +171,6 @@ bool Solver::write_n_samples() {
     int k = solver->write(os.str().c_str());
 
     return (k==-1)?FAILED:SUCCESS;
-
 }
 
 void Solver::started() {
@@ -221,46 +217,106 @@ void Solver::error(QProcess::ProcessError error) {
     }
 
     emit_signal(FAILED, msg);
-
 }
 
-bool Solver::copy_result(string& msg) {
+bool Solver::copy_rotation_matrices(string& msg) {
 
-    QByteArray out = solver->readAll();
+    if ((n!=0) || (m!=0))
+        throw logic_error("The rotation matrices should have been released!");
 
-    QList<QByteArray> arr = out.split('\n');
+    QList<QByteArray> arr( solver->readAll().split('\n') );
 
-    // TODO Copy the List here!
+    const int size = arr.size();
+    n = n_samples();
 
-    msg = "Finished";
+    int n_elem = 9*n;
+    // It seems it appends additional newlines, perhaps EOF?
+    if (size < n_elem+1)
+        throw runtime_error("Unexpected output from the solver!");
 
-    return SUCCESS;
+    m = new double[n_elem];
 
+    QList<QByteArray>::iterator i = arr.begin();
+    // TODO Process the first line!
+    ++i;
+
+    QList<QByteArray>::iterator end = arr.end();
+
+    bool ok = false;
+
+    for (int k=0; k<n_elem; ++i, ++k) {
+
+        if (i==end)
+            throw logic_error("Bug in: " __FILE__ );
+
+        m[k] = i->toDouble(&ok);
+
+        if (!ok)
+            break;
+    }
+
+    bool result = FAILED;
+
+    if (ok) {
+        result = SUCCESS;
+        msg = "Finished";
+    }
+    else {
+        result = FAILED;
+        msg += "unexpected error when processing the output of the solver!";
+    }
+
+    return result;
+}
+
+bool Solver::process_result(int exitCode, string& msg) {
+
+    bool result = FAILED;
+
+    if (exitCode == gyro::SUCCESS) {
+
+        result = copy_rotation_matrices(msg);
+    }
+    else if (exitCode == gyro::ERROR_READING_INPUT) {
+        msg += "reading input!";
+    }
+    else if (exitCode == gyro::ERROR_INITIALIZATION) {
+        msg += "initializing IPOPT!";
+    }
+    else if (exitCode == gyro::ERROR_CONVERGENCE) {
+        msg += "regression failed to converge!";
+    }
+    else if (exitCode == gyro::ERROR_UNKNOWN) {
+        msg += "unkown error, most likely an unexpected exception in the solver!";
+    }
+    else {
+        throw logic_error("Unknown value returned by the solver, implementation not updated properly!");
+    }
+
+    return result;
 }
 
 void Solver::finished(int exitCode, QProcess::ExitStatus exitStatus) {
 
-    bool successful = FAILED;
-    string msg;
+    bool result = FAILED;
+    string msg("Error: ");
 
     if (exitStatus == QProcess::NormalExit) {
-        successful = copy_result(msg);
+        result = process_result(exitCode, msg);
     }
     else if (exitStatus == QProcess::CrashExit) {
-        msg = "Error: the solver crashed!";
+        msg += "the solver crashed!";
     }
     else {
-        msg = "Error: undocumented error code received from Qt!";
+        msg += "undocumented error code received from Qt!";
     }
 
-    emit_signal(successful, msg);
-
+    emit_signal(result, msg);
 }
 
 double Solver::R(int sample, int i, int j) const {
 
     return 0;
-
 }
 
 Solver::~Solver() {
@@ -268,6 +324,4 @@ Solver::~Solver() {
     destroy();
 
     delete mutex;
-
 }
-
