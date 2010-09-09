@@ -50,7 +50,7 @@ int n_samples() {
     return dr->size();
 }
 
-void at(int i, double data[SIZE]) {
+void at(int i, double data[DATASIZE]) {
 
     dr->at(i, data);
 }
@@ -303,7 +303,7 @@ void DataRecorder::saveCalibrationData()
 
 }
 
-void DataRecorder::at(int i, double data[SIZE]) const {
+void DataRecorder::at(int i, double data[DATASIZE]) const {
 
     if (i<0 || i>=application.dataRecorder.size()) {
 

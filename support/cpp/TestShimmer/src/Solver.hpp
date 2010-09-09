@@ -76,7 +76,7 @@ private:
     void emit_signal(bool error, const std::string& msg);
     bool write_n_samples();
     bool write_samples();
-    bool write_data(double data[SIZE]);
+    bool write_data(double data[DATASIZE]);
     bool process_result(int exitCode, std::string& msg);
     bool copy_rotation_matrices(std::string& msg);
 

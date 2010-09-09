@@ -138,11 +138,11 @@ void Solver::emit_signal(bool error, const std::string &msg) {
     mutex->unlock();
 }
 
-bool Solver::write_data(double data[SIZE]) {
+bool Solver::write_data(double data[DATASIZE]) {
 
     bool result = SUCCESS;
 
-    for (int i=0; i<SIZE; ++i) {
+    for (int i=0; i<DATASIZE; ++i) {
         ostringstream os;
         os << setprecision(16) << scientific;
         os << data[i] << '\n' << flush;
@@ -160,7 +160,7 @@ bool Solver::write_samples() {
 
     bool result = SUCCESS;
 
-    double data[SIZE];
+    double data[DATASIZE];
 
     const int n = n_samples();
 

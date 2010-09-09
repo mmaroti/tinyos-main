@@ -42,10 +42,10 @@ enum {
     GYRO_X,
     GYRO_Y,
     GYRO_Z,
-    SIZE
+    DATASIZE
 };
 
 int n_samples();
-void at(int i, double data[SIZE]);
+void at(int i, double data[DATASIZE]);
 
 #endif // DATA_HPP

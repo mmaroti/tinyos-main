@@ -99,7 +99,7 @@ public:
         double* getGyroMinAvgs() { return gyroMinAvgs; }
         int* getAccelIdleWindowStart() { return accelIdleWindowStart; }
 
-        void at(int i, double data[SIZE]) const;
+        void at(int i, double data[DATASIZE]) const;
 
 signals:
 	void sampleAdded();
