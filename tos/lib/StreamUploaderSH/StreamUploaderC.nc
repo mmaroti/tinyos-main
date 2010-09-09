@@ -37,7 +37,7 @@ configuration StreamUploaderC{
 }
 implementation{
 	components StreamUploaderP as App;
-	components new StreamStorageC(unique(UQ_STREAMSTORAGE));
+	components new StreamStorageClientC();
 	components new AMSenderC(AM_DATA_MSG_T) as AMSend;
 	components new AMReceiverC(AM_CTRL_MSG_T) as AMReceive;
 	components ActiveMessageC;
@@ -45,7 +45,6 @@ implementation{
 	components new TimerMilliC() as StorageWaitTimer;
 	components TimeSyncMessageC, LedsC, LocalTimeMilliC;
 	
-	App.Leds->LedsC;
 	App.Packet -> AMSend;
  	App.AMPacket -> AMSend;
   	App.AMSend -> AMSend;
@@ -56,7 +55,8 @@ implementation{
   	App.StorageWaitTimer->StorageWaitTimer;
   	App.TimeSyncAMSendMilli -> TimeSyncMessageC.TimeSyncAMSendMilli[AM_CTRL_MSG_T];
   	App.LocalTime -> LocalTimeMilliC;
-	App.StreamStorage -> StreamStorageC;
-	App.Resource -> StreamStorageC;
+	App.StreamStorageRead -> StreamStorageClientC;
+	App.StreamStorageErase -> StreamStorageClientC;
+	App.Resource -> StreamStorageClientC;
   	StdControl=App.StdControl;
 }

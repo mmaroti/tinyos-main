@@ -39,7 +39,8 @@ module StreamUploaderP{
 		interface AMSend;
 		interface Packet;
   		interface AMPacket;
-  		interface StreamStorage;    
+  		interface StreamStorageRead;    
+		interface StreamStorageErase;    
   		interface SplitControl;
   		interface PacketAcknowledgements;
   		interface Timer<TMilli> as WaitTimer;
@@ -75,36 +76,38 @@ implementation{
 	    error_t error;
 	    switch(status){
 		case WAIT_FOR_BS:{
-			error=call StreamStorage.getMinAddress();
+			error=call StreamStorageRead.getMinAddress();
 		}break;
 		case SEND:{
 			if(minaddress+MESSAGE_SIZE<=maxaddress){
-			  error=call StreamStorage.read(minaddress, buffer, MESSAGE_SIZE);
+			  error=call StreamStorageRead.read(minaddress, buffer, MESSAGE_SIZE);
 			}else{
-			  error=call StreamStorage.read(minaddress, buffer, maxaddress-minaddress)==EBUSY);
+			  error=call StreamStorageRead.read(minaddress, buffer, maxaddress-minaddress);
 			}
 		}break;
 		case ERASE:{
-			error=call StreamStorage.erase();
+			error=call StreamStorageErase.erase();
 		}break;
 	    }
 	    if(error!=SUCCESS){//TODO
-		case WAIT_FOR_BS:{
-		}break;
-		case SEND:{
-		}break;
-		case ERASE:{
-		}break;
+		switch(status){
+		  case WAIT_FOR_BS:{
+		  }break;
+		  case SEND:{
+		  }break;
+		  case ERASE:{
+		  }break;
+		}
 	    }
 	}
 	
-	event void StreamStorage.getMinAddressDone(uint32_t addr,error_t error){
+	event void StreamStorageRead.getMinAddressDone(uint32_t addr,error_t error){
 		if(error==SUCCESS){
 			ctrl_msg* msg=call Packet.getPayload(&message, sizeof(ctrl_msg));
 			error_t err;
 			call Packet.clear(&message);
 			msg->min_address=addr;
-			msg->max_address=call StreamStorage.getMaxAddress();
+			msg->max_address=call StreamStorageRead.getMaxAddress();
 			msg->localtime=call LocalTime.get();
 			call PacketAcknowledgements.requestAck(&message);
 			err=call SplitControl.start();
@@ -120,7 +123,7 @@ implementation{
 				}
 			}
 		} else
-			if(call StreamStorage.getMinAddress()==EBUSY){
+			if(call StreamStorageRead.getMinAddress()==EBUSY){
 				call StorageWaitTimer.startOneShot(10);
 			}
 	}
@@ -128,23 +131,23 @@ implementation{
 	event void StorageWaitTimer.fired(){
 		switch(status){
 			case WAIT_FOR_BS:{
-				if(call StreamStorage.getMinAddress()==EBUSY){
+				if(call StreamStorageRead.getMinAddress()==EBUSY){
 					call StorageWaitTimer.startOneShot(10);
 				}
 			}break;
 			case SEND:{
 				if(minaddress+MESSAGE_SIZE<=maxaddress){
-					if(call StreamStorage.read(minaddress, buffer, MESSAGE_SIZE)==EBUSY){
+					if(call StreamStorageRead.read(minaddress, buffer, MESSAGE_SIZE)==EBUSY){
 						call StorageWaitTimer.startOneShot(10);
 					}
 				}else{
-					if(call StreamStorage.read(minaddress, buffer, maxaddress-minaddress)==EBUSY){
+					if(call StreamStorageRead.read(minaddress, buffer, maxaddress-minaddress)==EBUSY){
 						call StorageWaitTimer.startOneShot(10);
 					}
 				}
 			}break;
 			case ERASE:{
-				if(call StreamStorage.erase()==EBUSY){
+				if(call StreamStorageErase.erase()==EBUSY){
 					call StorageWaitTimer.startOneShot(10);
 				}
 			}break;
@@ -160,17 +163,17 @@ implementation{
 				minaddress=rec->min_address;
 				maxaddress=rec->max_address;
 				if(minaddress+MESSAGE_SIZE<=maxaddress){
-					if(call StreamStorage.read(minaddress, buffer, MESSAGE_SIZE)==EBUSY){
+					if(call StreamStorageRead.read(minaddress, buffer, MESSAGE_SIZE)==EBUSY){
 						call StorageWaitTimer.startOneShot(10);
 					}
 				}else{
-					if(call StreamStorage.read(minaddress, buffer, maxaddress-minaddress)==EBUSY){
+					if(call StreamStorageRead.read(minaddress, buffer, maxaddress-minaddress)==EBUSY){
 						call StorageWaitTimer.startOneShot(10);
 					}
 				}
 			} else {
 				status=ERASE;
-				if(call StreamStorage.erase()==EBUSY){
+				if(call StreamStorageErase.erase()==EBUSY){
 					call StorageWaitTimer.startOneShot(10);
 				}
 			}
@@ -182,11 +185,11 @@ implementation{
 	inline void readNext(){
 		minaddress+=MESSAGE_SIZE;
 		if(minaddress+MESSAGE_SIZE<=maxaddress){
-			if(call StreamStorage.read(minaddress, buffer, MESSAGE_SIZE)==EBUSY){
+			if(call StreamStorageRead.read(minaddress, buffer, MESSAGE_SIZE)==EBUSY){
 				call StorageWaitTimer.startOneShot(10);
 			}
 		}else if(minaddress<maxaddress){
-			if(call StreamStorage.read(minaddress, buffer, maxaddress-minaddress)==EBUSY){
+			if(call StreamStorageRead.read(minaddress, buffer, maxaddress-minaddress)==EBUSY){
 				call StorageWaitTimer.startOneShot(10);
 			}
 		}else{
@@ -195,7 +198,7 @@ implementation{
 		}
 	}
 
-	event void StreamStorage.readDone(void *buf, uint8_t len, error_t error){
+	event void StreamStorageRead.readDone(void *buf, uint8_t len, error_t error){
 		if(status==SEND){
 			if(error==SUCCESS){
 				data_msg* msg=call Packet.getPayload(&message, sizeof(data_msg));
@@ -241,7 +244,7 @@ implementation{
 				}
 			}break;
 			case WAIT_FOR_BS:{
-				if(call StreamStorage.getMinAddress()==EBUSY){
+				if(call StreamStorageRead.getMinAddress()==EBUSY){
 					call StorageWaitTimer.startOneShot(10);
 				}
 			}break;
@@ -262,9 +265,29 @@ implementation{
 		error_t err;
 		status=WAIT_FOR_BS;
 		bs_lost=NO_BS;
-		err=call StreamStorage.getMinAddress();
+		err=call StreamStorageRead.getMinAddress();
 		if(err==EBUSY){
 			call StorageWaitTimer.startOneShot(10);
+		} else if(err==EOFF){
+		    ctrl_msg* msg=call Packet.getPayload(&message, sizeof(ctrl_msg));
+		    status=WAIT_FOR_REQ;
+		    call Packet.clear(&message);
+		    msg->min_address=0xffffffff;
+		    msg->max_address=0xffffffff;
+		    msg->localtime=call LocalTime.get();
+		    call PacketAcknowledgements.requestAck(&message);
+		    err=call SplitControl.start();
+		    if(err==EALREADY){
+			if(call TimeSyncAMSendMilli.send(BS_ADDR, &message, sizeof(ctrl_msg),msg->localtime)!=SUCCESS){
+				if(call SplitControl.stop()!=SUCCESS){
+					post SCStop();
+				}
+			}
+		    } else if(err!=SUCCESS){
+			if(call SplitControl.start()!=SUCCESS){
+				post SCStart();
+			}
+		    }
 		}
 		return SUCCESS;
 	}
@@ -303,27 +326,12 @@ implementation{
 	}
 	
 
-	event void StreamStorage.eraseDone(error_t error){
+	event void StreamStorageErase.eraseDone(error_t error){
 		if(status!=OFF){
 			status=WAIT_FOR_BS;
-			if(call StreamStorage.getMinAddress()==EBUSY){
+			if(call StreamStorageRead.getMinAddress()==EBUSY){
 				call StorageWaitTimer.startOneShot(10);
 			}
 		}
 	}
-
-
-	event void StreamStorage.syncDone(error_t error){
-		// TODO Auto-generated method stub
-	}
-
-	event void StreamStorage.appendDoneWithID(void *buf, uint16_t len, error_t error){
-		// TODO Auto-generated method stub
-	}
-
-
-	event void StreamStorage.appendDone(void *buf, uint16_t len, error_t error){
-		// TODO Auto-generated method stub
-	}
-
 }
