@@ -50,7 +50,8 @@ public:
 
     Solver();
 
-    void start();
+    // returns error
+    bool start();
 
     double R(int sample, int i, int j) const;
 
@@ -74,7 +75,9 @@ private:
     Solver& operator=(const Solver& );
 
     void init();
-    void destroy();
+    void cleanup_solver();
+    void cleanup_matrices();
+    void cleanup_all();
     void emit_signal(bool error, const std::string& msg);
     bool write_n_samples();
     bool write_samples();

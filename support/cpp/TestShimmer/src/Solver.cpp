@@ -35,6 +35,7 @@
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
+#include "QMessageBox"
 #include "QMutex"
 #include "QSettings"
 #include "Solver.hpp"
@@ -71,7 +72,7 @@ private:
 
 namespace ipo {
 
-void Solver::destroy() {
+void Solver::cleanup_solver() {
 
     if (solver!=0) {
         // FIXME What if still running?
@@ -90,14 +91,25 @@ void Solver::destroy() {
         solver = 0;
     }
 
+}
+
+void Solver::cleanup_matrices() {
+
     n = 0;
     delete[] m;
     m = 0;
 }
 
+void Solver::cleanup_all() {
+
+    cleanup_solver();
+
+    cleanup_matrices();
+}
+
 void Solver::init() {
 
-    destroy();
+    cleanup_all();
 
     solver = new QProcess(this);
 
@@ -118,12 +130,27 @@ Solver::Solver() : mutex(new QMutex), solver(0), n(0), m(0) {
 }
 
 // Entry point
-void Solver::start() {
+bool Solver::start() {
 
-    // Released by emit_signal()
+    bool result = SUCCESS;
+
+    // Released by emit_signal() and below if no samples are loaded
+    string msg("Error: ");
     if (!mutex->tryLock()) {
+        result = FAILED;
+        msg += "the solver is already running!";
+    }
+    else if (n_samples() < 1) {
+        mutex->unlock();
+        result = FAILED;
+        msg += "perhaps no samples are loaded?";
+    }
 
-        throw logic_error("The solver is already running!");
+    if (result==FAILED) {
+        QMessageBox mbox;
+        mbox.setText(msg.c_str());
+        mbox.exec();
+        return FAILED;
     }
 
     init();
@@ -131,13 +158,19 @@ void Solver::start() {
     solver->start("gyro.exe");
 
     cout << endl << "External gyro.exe called" << endl;
+
+    return result;
 }
 
 void Solver::emit_signal(bool error, const std::string &msg) {
 
-    emit finished(error, msg);
+    cout << endl << "Emitting signal: " << (error?"FAILED":"SUCCESS") << ", message: " << msg << endl;
+
+    cleanup_solver();
 
     mutex->unlock();
+
+    emit finished(error, msg);
 }
 
 bool Solver::write_data(double data[SIZE]) {
@@ -253,6 +286,7 @@ bool Solver::copy_rotation_matrices(string& msg) {
     n = n_samples();
 
     int n_elem = 9*n;
+
     // It seems it appends additional newlines, perhaps EOF?
     if (size < n_elem+1)
         throw runtime_error("Unexpected output from the solver!");
@@ -261,6 +295,8 @@ bool Solver::copy_rotation_matrices(string& msg) {
 
     QList<QByteArray>::iterator i = arr.begin();
     // TODO Process the first line!
+    cout << endl << i->constData() << endl;
+
     ++i;
 
     QList<QByteArray>::iterator end = arr.end();
@@ -346,7 +382,7 @@ double Solver::R(int sample, int i, int j) const {
     }
 
     if ((sample<0) || (sample>=n) || (i<1) || (i>3) || (j<1) || (j>3)) {
-        throw range_error("Index out of range for rotation matrix");
+        throw range_error("Index out of range for rotation matrix!");
     }
 
     const int index = 9*sample + 3*(i-1) + (j-1);
@@ -356,7 +392,7 @@ double Solver::R(int sample, int i, int j) const {
 
 Solver::~Solver() {
 
-    destroy();
+    cleanup_all();
 
     delete mutex;
 }
