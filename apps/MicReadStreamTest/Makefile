@@ -11,9 +11,11 @@ CFLAGS += -I$(SZTETOSDIR)/lib/Atm128FastAdc
 CFLAGS += -I$(SZTETOSDIR)/lib/Mts300
 SENSORBOARD=mts300
 
-BUILD_EXTRA_DEPS = MicMsg.java
-CLEAN_EXTRA = $(BUILD_EXTRA_DEPS) MicMsg.java
+BUILD_EXTRA_DEPS = MicMsg.java Capture.class
+CLEAN_EXTRA = $(BUILD_EXTRA_DEPS) MicMsg.java *.class
 
 MicMsg.java: MicReadStream.h
 	mig -target=null -java-classname=MicMsg java MicReadStream.h datamsg -o $@
+Capture.class: MicMsg.java Capture.java
+	javac Capture.java
 include $(MAKERULES)
