@@ -295,8 +295,6 @@ public class SnifferGraph implements DataBase{
    }
 	
 	private void makeAcolors() {
-		// TODO Auto-generated method stub
-		colorlist.add(Color.black);
 		colorlist.add(Color.blue);
 		colorlist.add(Color.cyan);
 		colorlist.add(Color.darkGray);
@@ -308,6 +306,7 @@ public class SnifferGraph implements DataBase{
 		colorlist.add(Color.pink);
 		colorlist.add(Color.red);
 		colorlist.add(Color.yellow);
+		colorlist.add(Color.black);
 	}
 
 	private void creatToolBar() {
@@ -447,14 +446,33 @@ public class SnifferGraph implements DataBase{
 	*/
 	private void baseSetings() {
 		for(int i = 0; i<dataPanel.size();i++){
-			dataPanel.get(i).setVisible(false);
+			dataPanel.get(i).setVisible(false);		//főnézet tiszítása
 			backgPanel.remove(dataPanel.get(i));
 		}
 		int dataPanelLength = dataPanel.size();
 		for(int i = 0; i<dataPanelLength; i++){
 			dataPanel.remove(0);
 		}
-		scrollbar.setMaximum(DataBase.screenWidth);
+		
+		for(int i = 0; i<dataPanel2.size();i++){
+			dataPanel2.get(i).setVisible(false);	//második nézet tisztítása
+			backgPanel2.remove(dataPanel2.get(i));
+		}
+		dataPanelLength = dataPanel2.size();
+		for(int i = 0; i<dataPanelLength; i++){
+			dataPanel2.remove(0);
+		}
+		
+		for(int i=0; i<devices.size();i++){			//checkboxok üritése
+			devices.get(i).setText("<none>");
+			devices.get(i).setEnabled(true);
+			devices.get(i).setVisible(false);
+		}
+		
+		int moteSize = motes.size();
+		for(int i = 0; i<moteSize-1; i++) motes.remove(1);
+		
+		scrollbar.setMaximum(DataBase.screenWidth-500);
 		scrollbar.setValue(0);
 	}
 
@@ -493,7 +511,10 @@ public class SnifferGraph implements DataBase{
 		}*/
 		
 		//devices.add(new JCheckBox("Device01"));
-		
+		for(int i = 0; i<=10; i++){
+			devices.add(new JCheckBox("<none>"));
+			devices.get(devices.size()-1).setVisible(false);
+		}
 		forBox.setLayout(new GridLayout(13,10,5,5));
 		forBox.setBounds(0, 0, 100, 800);
 		//forBox.add(new JPanel());
@@ -502,8 +523,9 @@ public class SnifferGraph implements DataBase{
 		forBox.add(new JPanel());
 		forBox.add(new JPanel());
 		forBox.add(new JPanel());
-		//forBox.add(devices.get(0));
-		
+		for(int i = 5; i < 12; i++){
+			forBox.add(devices.get(i-5));
+		}
 		centerPanel.add(forBox, BorderLayout.WEST);
 		
 		
@@ -605,18 +627,19 @@ public class SnifferGraph implements DataBase{
 	}
 	
 	private static void addAPackge() {
-		int first = RandomString.getAnumber(motes.get(motes.size()-1).stopTime);
+		int first = RandomString.getAnumber(motes.get(motes.size()-1).stopTime);	//A két random szám lekérése a teszteléshez
 		int second = RandomString.getAnumber(first);
-		motes.add(new Packages(first, second, RandomString.getRandomMoteStrings(7)));
-		dataPanel.add(motes.get(motes.size()-1).getALilPanel(devices, colorlist));
-		dataPanel.get(dataPanel.size()-1).setVisible(true);
+		
+		motes.add(new Packages(first, second, RandomString.getRandomMoteStrings(7)));	//Az új csomag létrehozása
+		dataPanel.add(motes.get(motes.size()-1).getALilPanel(devices, colorlist));		//bekerül a listába, ami nyilván tarjta a paneleket a foablakon
+		dataPanel.get(dataPanel.size()-1).setVisible(true);								//beálítjuk az ablakra
 		backgPanel.add(dataPanel.get(dataPanel.size()-1));
 		
-		dataPanel2.add(motes.get(motes.size()-1).getABigPanel(devices, colorlist));
+		dataPanel2.add(motes.get(motes.size()-1).getABigPanel(devices, colorlist, colors, dataTypes, motes));		//a csomagot a második ablakba is hozzáadjuk, és a megfelelő listába is betesszük
 		dataPanel2.get(dataPanel2.size()-1).setVisible(true);
 		backgPanel2.add(dataPanel2.get(dataPanel2.size()-1));
 		
-		scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
+		scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));						//srollbar méterte igaízás
 		scrollbar.setValue(scrollbar.getMaximum()-DataBase.screenWidth+400);
 		receivedPack.setText(String.valueOf(Integer.parseInt(receivedPack.getText())+1));
 	} 
@@ -624,87 +647,16 @@ public class SnifferGraph implements DataBase{
 	public static void main(String[] args) {
 		SnifferGraph main = new SnifferGraph();
 		main.snfG.setExtendedState(main.snfG.getExtendedState() | Frame.MAXIMIZED_BOTH);
-		/*for(int i = 0; i<1; i++){
-			String[] moteLabelNames = {"Elso", "Masodik", "Harmadik", "Negyedik"};
-			motes.add(new Packages(i, ++i, moteLabelNames));
-		}
-		for(int i = 0; i<motes.size();i++){
-			dataPanel.add(motes.get(i).getAPanel(devices));
-			dataPanel.get(dataPanel.size()-1).setVisible(true);
-			backgPanel.add(dataPanel.get(dataPanel.size()-1));
-			scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
-		}*/
 		
-		
-		String[] moteLabelNames11 = {"Elso", "Masodik", "Harmadik", "Negyedik", "Otodik"};
-		motes.add(new Packages(4, 10, moteLabelNames11));
+		motes.add(new Packages(4, 10, RandomString.getRandomMoteStrings(7)));
 		//motes.get(motes.size()-1).getALilPanel(devices, colorlist);
 		dataPanel.add(motes.get(motes.size()-1).getALilPanel(devices, colorlist));
 		dataPanel.get(dataPanel.size()-1).setVisible(true);
 		backgPanel.add(dataPanel.get(dataPanel.size()-1));
 		
-		/*String[] moteLabelNames1 = {"Elso", "Masodik", "Harmadik", "Negyedik", "Otodik"};
-		motes.add(new Packages(4, 10, moteLabelNames1));
-		motes.get(motes.size()-1).getALilPanel(devices, colorlist);
-		dataPanel.add(motes.get(motes.size()-1).getALilPanel(devices, colorlist));
-		dataPanel.get(dataPanel.size()-1).setVisible(true);
-		backgPanel.add(dataPanel.get(dataPanel.size()-1));
-		
-		String[] moteLabelNames22 = {"Device01", "Masodik", "adat11", "tipus02", "adat22"};
-		motes.add(new Packages(6, 11, moteLabelNames22));
-		motes.get(motes.size()-1).getABigPanel(devices, colorlist);
-		dataPanel.add(motes.get(motes.size()-1).getABigPanel(devices, colorlist));
-		dataPanel.get(dataPanel.size()-1).setVisible(true);
-		backgPanel2.add(dataPanel.get(dataPanel.size()-1));
-		
-		String[] moteLabelNames2 = {"Device01", "tipus01", "adat11", "tipus02", "adat22"};
-		motes.add(new Packages(6, 11, moteLabelNames2));
-		motes.get(motes.size()-1).getALilPanel(devices, colorlist);
-		dataPanel.add(motes.get(motes.size()-1).getALilPanel(devices, colorlist));
-		dataPanel.get(dataPanel.size()-1).setVisible(true);
-		backgPanel.add(dataPanel.get(dataPanel.size()-1));
-		
-		String[] moteLabelNames3 = {"Device02", "tipus02", "adat21", "tipus01", "adat12"};
-		motes.add(new Packages(6, 11, moteLabelNames3));
-		motes.get(motes.size()-1).getALilPanel(devices, colorlist);
-		dataPanel.add(motes.get(motes.size()-1).getALilPanel(devices, colorlist));
-		dataPanel.get(dataPanel.size()-1).setVisible(true);
-		backgPanel.add(dataPanel.get(dataPanel.size()-1));
-		
-		String[] moteLabelNames33 = {"Device02", "tipus02", "adat21", "tipus01", "adat12"};
-		motes.add(new Packages(6, 11, moteLabelNames33));
-		motes.get(motes.size()-1).getABigPanel(devices, colorlist);
-		dataPanel.add(motes.get(motes.size()-1).getABigPanel(devices, colorlist));
-		dataPanel.get(dataPanel.size()-1).setVisible(true);
-		backgPanel2.add(dataPanel.get(dataPanel.size()-1));
-		
-		motes.add(new Packages(15, 19, moteLabelNames3));
-		motes.get(motes.size()-1).getALilPanel(devices, colorlist);
-		dataPanel.add(motes.get(motes.size()-1).getALilPanel(devices, colorlist));
-		dataPanel.get(dataPanel.size()-1).setVisible(true);
-		backgPanel.add(dataPanel.get(dataPanel.size()-1));
-		
-		motes.add(new Packages(15, 19, moteLabelNames33));
-		motes.get(motes.size()-1).getABigPanel(devices, colorlist);
-		dataPanel.add(motes.get(motes.size()-1).getABigPanel(devices, colorlist));
-		dataPanel.get(dataPanel.size()-1).setVisible(true);
-		backgPanel2.add(dataPanel.get(dataPanel.size()-1));
-		
-		String[] moteLabelNames4 = {"Device04", "Masodik", "Harmadik", "Negyedik", "Otodik"};
-		motes.add(new Packages(6, 11, moteLabelNames4));
-		motes.get(motes.size()-1).getALilPanel(devices, colorlist);
-		dataPanel.add(motes.get(motes.size()-1).getALilPanel(devices, colorlist));
-		dataPanel.get(dataPanel.size()-1).setVisible(true);
-		backgPanel.add(dataPanel.get(dataPanel.size()-1));
-		
-		String[] moteLabelNames44 = {"Device04", "Masodik", "Harmadik", "Negyedik", "Otodik"};
-		motes.add(new Packages(6, 11, moteLabelNames44));
-		motes.get(motes.size()-1).getABigPanel(devices, colorlist);
-		dataPanel.add(motes.get(motes.size()-1).getABigPanel(devices, colorlist));
-		dataPanel.get(dataPanel.size()-1).setVisible(true);
-		backgPanel2.add(dataPanel.get(dataPanel.size()-1));*/
-		
-		
+		dataPanel2.add(motes.get(motes.size()-1).getABigPanel(devices, colorlist, colors, dataTypes, motes));		//a csomagot a második ablakba is hozzáadjuk, és a megfelelő listába is betesszük
+		dataPanel2.get(dataPanel2.size()-1).setVisible(true);
+		backgPanel2.add(dataPanel2.get(dataPanel2.size()-1));
 		
 		
 		

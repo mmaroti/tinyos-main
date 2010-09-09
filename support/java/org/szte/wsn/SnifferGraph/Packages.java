@@ -31,19 +31,22 @@
 
 package org.szte.wsn.SnifferGraph;
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 public class Packages {
 	
-	public static ArrayList<String> colors = SnifferGraph.colors;
-	public static ArrayList<JCheckBox> devices = SnifferGraph.devices;
-	public static ArrayList<String> dataTypes = SnifferGraph.dataTypes;
-	public static int which=0;
+	//public static ArrayList<String> colors = SnifferGraph.colors;
+	//public static ArrayList<JCheckBox> devices = SnifferGraph.devices;
+	//public static ArrayList<String> dataTypes = SnifferGraph.dataTypes;
+	//public static int which=0;
 	protected int startTime;
 	protected int stopTime;
 	protected int timeLenght;
@@ -145,94 +148,67 @@ public class Packages {
 	}
 	
 	
-	public JPanel getABigPanel(ArrayList<JCheckBox> device, ArrayList<Color> colorList){
-		which++;
+	public JPanel getABigPanel(ArrayList<JCheckBox> device, ArrayList<Color> colorList,
+			ArrayList<String> colors, ArrayList<String> dataTypes, ArrayList<Packages> motes){
+		//which++;
 		motePanel = new JPanel();
-
-		//eszkĂśzmeghatĂĄrozĂĄs
+		JButton details = new JButton("details");
 		int devicespos = 0;
 		int type =0;
-		if(dataTypes.size()==0){
-			//System.err.println("üres vagyok!!");
-			dataTypes.add(this.labelNames[1]);
-		}else{
-			int p=0;
-			for(p=1;p<this.labelNames.length;p+=2){
-				boolean talalat = false;
-				for(type =0; type<dataTypes.size(); type++){
-					if(this.labelNames[p].equals(dataTypes.get(type))){
-						System.err.println("Ilyen mar volt: "+dataTypes.get(type));
-						talalat = true;
-					}
-				}
-				if(!talalat){dataTypes.add(this.labelNames[p]);}
-			}
-		}
-		if(devices.size()==0){
-			Process.addDevice(this.labelNames[0], colorList.get(0));
-		}
-		else{
+		int p=0;
+		for(p=1;p<this.labelNames.length;p+=2){
 			boolean talalat = false;
-			for(devicespos = 0; devicespos<devices.size(); devicespos++){
-				if(this.labelNames[0].equals(devices.get(devicespos).getText())){
+			for(type =0; type<dataTypes.size(); type++){
+				if(this.labelNames[p].equals(dataTypes.get(type))){
 					talalat = true;
 					break;
 				}
 			}
 			if(!talalat){
-				Process.addDevice(this.labelNames[0], colorList.get(0));
-				devicespos++;
-			}
-		
-		}
-		//devicespos++;
-		
-		//szinmeghatĂĄrozĂĄs
-		int colornumber = 0;
-		if(colors.size()==0){
-			colors.add(this.labelNames[0]);
-		}
-		else{
-			 boolean talalat = false;
-			for(colornumber = 0; colornumber<colors.size(); colornumber++){
-				if(colors.get(colornumber).equals(this.labelNames[0])){
-					System.out.println("nezzik mi van itt:" + colornumber);
-					System.out.println(colors.get(colornumber) + " " + this.labelNames[1]);
-					talalat = true;
-					break;
-				}
-			}
-			if(!talalat){
-				colors.add(this.labelNames[0]);
-				colornumber++;
+				Process.addANewType(this.labelNames[p]);
 			}
 		}
-		//szin ĂŠs poziciĂłmeghatĂĄrozĂĄs, kĂŠsz, panel lĂŠtrehozĂĄsa, szinezĂŠse ĂŠs a multiline tooltop lĂŠtrehozĂĄsa szĂźksĂŠges sanya
+		
+		for(devicespos = 0; devicespos<device.size();devicespos++){
+			if(this.labelNames[0].equals(device.get(devicespos).getText())) break;
+		}
 		
 		
-		
-		System.err.println(dataTypes.size());
-		for(int f=0;f<dataTypes.size();f++){
-			
-			JTextField savedtypes = new JTextField(dataTypes.get(f));
+		for(int i=0;i<dataTypes.size();i++){
+			JTextField savedtypes = new JTextField(dataTypes.get(i));
 			savedtypes.setEditable(false);
 			savedtypes.setLayout(null);
-			savedtypes.setBounds(150+75*((f)), 25, 75, 39);
+			savedtypes.setBounds(150+75*((i)), 25, 75, 24);
 			SnifferGraph.backgPanel2.add(savedtypes);
-		System.err.println(dataTypes.get(f));
 		}
-
 		
-		motePanel.setBounds(75 ,(which+1)*25, 75*(dataTypes.size()+1) ,45);		//koordinĂĄtĂĄk mĂŠg nem pontossak
+		motePanel.setBounds(75 ,(motes.size()+1)*29, 75*(dataTypes.size()+1)+100 ,29);		//koordinĂĄtĂĄk mĂŠg nem pontossak
 		motePanel.setBorder(BorderFactory.createEtchedBorder());
-		motePanel.setBackground(colorList.get(colornumber));
+		motePanel.setBackground(colorList.get(devicespos));
 		String information ="<html>";
 		
 		JTextField datas2 = new JTextField(this.labelNames[0]);
 		datas2.setEditable(false);
 		datas2.setLayout(null);
-		datas2.setBounds(0, 3, 75, 39);
+		datas2.setBounds(2, 3, 75, 24);
 		motePanel.add(datas2);
+		
+		String allinfo = this.labelNames[0];
+		
+		for(int i = 1; i<this.labelNames.length;i++){
+			allinfo += this.labelNames[i] + " ";
+		}
+		
+		details.setBounds(motePanel.getWidth()-95, 3, 90, 24);
+		details.setActionCommand(String.valueOf(allinfo));
+		details.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                new AllDetails(event.getActionCommand());
+            }
+		});
+		motePanel.add(details);
+		
+		
 		for(int i =2; i<labelNames.length;i+=2){
 			JTextField datas = new JTextField(this.labelNames[i]);
 			datas.setEditable(false);
@@ -240,7 +216,7 @@ public class Packages {
 			motePanel.setLayout(null);
 			for(int k=0;k<dataTypes.size();k++){
 				if(this.labelNames[i-1].equals(dataTypes.get(k)))
-					datas.setBounds(75+75*((k)), 3, 75, 39);
+					datas.setBounds(75+75*((k)), 3, 75, 24);
 					motePanel.add(datas);
 			}
 			information=information+this.labelNames[i]+"<br>";
@@ -258,60 +234,32 @@ public class Packages {
 	public JPanel getALilPanel(ArrayList<JCheckBox> devices, ArrayList<Color> colorList){
 		motePanel = new JPanel();
 		
-		//eszkĂśzmeghatĂĄrozĂĄs
+		//eszközmeghatározás
 		int devicespos = 0;
-		if(devices.size()==0){
-			Process.addDevice(this.labelNames[0], colorList.get(0));
-		}
-		else{
-			boolean talalat = false;
-			for(devicespos = 0; devicespos<devices.size(); devicespos++){
-				if(this.labelNames[0].equals(devices.get(devicespos).getText())){
-					talalat = true;
-					break;
-				}
+		boolean talalat = false;
+		for(devicespos = 0; devicespos<devices.size(); devicespos++){
+			if(this.labelNames[0].equals(devices.get(devicespos).getText())){
+				talalat = true;
+				break;
 			}
-			if(!talalat){
-				Process.addDevice(this.labelNames[0], colorList.get(devicespos));
+			if(devices.get(devicespos).getText().equals("<none>")) break;
+		}
+		if(!talalat){
+			Process.addDevice(this.labelNames[0], colorList.get(devicespos));
 				//devicespos++;
-			}
 		}
 		
-		//szinmeghatĂĄrozĂĄs
-		/*int colornumber = 0;
-		if(colors.size()==0){
-			colors.add(this.labelNames[0]);
-		}
-		else{
-			boolean talalat = false;
-			for(colornumber = 0; colornumber<colors.size(); colornumber++){
-				if(colors.get(colornumber).equals(this.labelNames[0])){
-					System.out.println("nezzik mi van itt:" + colornumber);
-					System.out.println(colors.get(colornumber) + " " + this.labelNames[1]);
-					talalat = true;
-					break;
-				}
-			}
-			if(!talalat){
-				colors.add(this.labelNames[0]);
-				colornumber++;
-			}
-		}*/
-		//szin ĂŠs poziciĂłmeghatĂĄrozĂĄs, kĂŠsz, panel lĂŠtrehozĂĄsa, szinezĂŠse ĂŠs a multiline tooltop lĂŠtrehozĂĄsa szĂźksĂŠges sanya
-		
-		
-		this.firstPos = 130+this.startTime*40;
-		motePanel.setBounds(130+this.startTime*40 ,230+devicespos*40, this.timeLenght*40 ,30);		//koordinĂĄtĂĄk mĂŠg nem pontossak
+		this.firstPos = 130+this.startTime*40;		//Elso pozicio megadasa, a mozgatashoz
+		motePanel.setBounds(130+this.startTime*40 ,230+devicespos*40, this.timeLenght*40 ,30);
 		motePanel.setBorder(BorderFactory.createEtchedBorder());
-
 		motePanel.setBackground(colorList.get(devicespos));
 		String information ="<html>";
+		information += "Start time: " + String.valueOf(this.startTime) + "<br>" + "Stop time: " + String.valueOf(this.stopTime) + "<br>";
 		for(int i =1; i<labelNames.length;i++){
 			information=information+this.labelNames[i]+"<br>";
 		}
-		/*"<html>EszkĂśz neve: <br>"+this.labelNames[3]+"<br>HĂśmĂŠrsĂŠklet: <br>"+"adat"+"<br>valami: <br>"+"adat2"*/
+		/*"<html>Eszköz neve: <br>"+this.labelNames[3]+"<br>HĂśmĂŠrsĂŠklet: <br>"+"adat"+"<br>valami: <br>"+"adat2"*/
 		motePanel.setToolTipText(information);
-
 		motePanel.setBackground(colorList.get(devicespos));
 
 		

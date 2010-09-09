@@ -39,10 +39,9 @@ package org.szte.wsn.SnifferGraph;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Calendar;
-//import java.util.Date;
 import java.util.GregorianCalendar;
+
 import javax.swing.JCheckBox;
-import javax.swing.JPanel;
 
 public class Process {
 	
@@ -50,8 +49,9 @@ public class Process {
 	//private static JPanel backgPanel = SnifferGraph.backgPanel;
 	//private static ArrayList<Packages> motes = SnifferGraph.motes;
 	//private static JPanel centerPanel = SnifferGraph.centerPanel;
-	private static JPanel forBox = SnifferGraph.forBox;
+	//private static JPanel forBox = SnifferGraph.forBox;
 	private static ArrayList<JCheckBox> devices = SnifferGraph.devices;
+	private static ArrayList<String> dataTypes = SnifferGraph.dataTypes;
 	
 	//private static JCheckBox box[] = SnifferGraph.box;
 	//private static Date date = new Date();
@@ -91,13 +91,20 @@ public class Process {
 
 	public static void addDevice(String s, Color color) {
 		System.out.println("adding now");
-		// TODO Auto-generated method stub
-		devices.add(new JCheckBox(s));
-		devices.get(devices.size()-1).setBackground(color);
-		devices.get(devices.size()-1).setSelected(true);
-		devices.get(devices.size()-1).setVisible(true);
-		forBox.add(devices.get(devices.size()-1));
-		
+		int pos = 0;
+		for(pos = 0; pos<devices.size(); pos++){
+			if(devices.get(pos).getText().equals("<none>")){
+				break;
+			}
+		}
+		devices.get(pos).setText(s);
+		devices.get(pos).setVisible(true);
+		devices.get(pos).setSelected(true);
+		devices.get(pos).setBackground(color);
+	}
+
+	public static void addANewType(String s) {
+		dataTypes.add(s);
 	}
 
 	/*public static void reDraw() {

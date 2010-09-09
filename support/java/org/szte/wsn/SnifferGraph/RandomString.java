@@ -49,8 +49,6 @@ public class RandomString {
 		String[] r = new String[mutch];
 		String inputChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 		r[0] = devices[hanyas];
-		//r[1] = types[rn.nextInt(6)];
-		//r[3] = types[rn.nextInt(6)];
 		for(int i = 1; i<mutch; i+=2){
 			String c = "";
 			for(int k = 0; k<10; k++){
