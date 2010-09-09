@@ -1,3 +1,3 @@
 <volume_table>
-  <volume name="STOR" size="524288"/>
+  <volume name="STREAMSTORAGE" size="524288"/>
 </volume_table>

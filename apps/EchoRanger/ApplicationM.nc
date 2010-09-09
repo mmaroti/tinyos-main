@@ -39,11 +39,10 @@
 
 module ApplicationM{
 	uses {
-		interface SplitControl;
-		interface StreamStorage;
+		interface StdControl;
+		interface StreamStorageWrite;
 		interface Boot;
 		interface Leds;
-		interface StdControl;
 		interface LocalTime<TMilli>;
 		interface Timer<TMilli> as SensorTimer; 
 		interface Read<echorange_t*>; 
@@ -57,24 +56,8 @@ implementation{
 	uint8_t counter=0;
 
 	event void Boot.booted(){
-		call Leds.set(7);
-		call SplitControl.start();	
-	}
-	
-	event void StreamStorage.eraseDone(error_t error){
-		call Leds.set(0);
 		call StdControl.start();
-		call SensorTimer.startPeriodic(SAMP_T);
-	}
-	
-	event void SplitControl.startDone(error_t error){
-		if(error==FAIL){
-			call StreamStorage.erase();
-		}else {
-			call Leds.set(0);
-			call StdControl.start();
-			call SensorTimer.startPeriodic(SAMP_T);
-		}
+		call SensorTimer.startPeriodic(SAMP_T);	
 	}
 	
 	event void SensorTimer.fired(){
@@ -83,36 +66,20 @@ implementation{
 	
 	event void Read.readDone(error_t result, echorange_t* range){
 		if(result==SUCCESS)
-			call StreamStorage.appendWithID(0x00,range, sizeof(echorange_t));
+			call StreamStorageWrite.appendWithID(0x00,range, sizeof(echorange_t));
 			//call StreamStorage.append(range, sizeof(echorange_t));
 	}
 	
-	event void StreamStorage.appendDoneWithID(void* buf, uint16_t  len, error_t error){
+	event void StreamStorageWrite.appendDoneWithID(void* buf, uint16_t  len, error_t error){
 		counter++;
 		if(counter>4)
 			counter=0;
 		else if(counter==4){
 			uint16_t* buffer=call LastBuffer.get();
-			call StreamStorage.appendWithID(0x11,buffer, sizeof(uint16_t)*ECHORANGER_BUFFER);
+			call StreamStorageWrite.appendWithID(0x11,buffer, sizeof(uint16_t)*ECHORANGER_BUFFER);
 		}
 	}	
 	
-	event void StreamStorage.appendDone(void* buf, uint16_t  len, error_t error){
-	}
-
-	event void StreamStorage.syncDone(error_t error){
-		// TODO Auto-generated method stub
-	}
-
-	event void SplitControl.stopDone(error_t error){
-		// TODO Auto-generated method stub
-	}
-
-	event void StreamStorage.getMinAddressDone(uint32_t addr, error_t error){
-		// TODO Auto-generated method stub
-	}
-
-	event void StreamStorage.readDone(void *buf, uint8_t len, error_t error){
-		// TODO Auto-generated method stub
-	}
+	event void StreamStorageWrite.appendDone(void* buf, uint16_t  len, error_t error){}
+	event void StreamStorageWrite.syncDone(error_t error){}
 }

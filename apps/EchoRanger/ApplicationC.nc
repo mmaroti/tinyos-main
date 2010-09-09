@@ -36,13 +36,11 @@
 configuration ApplicationC{
 }
 implementation{
-	components new StreamStorageC(VOLUME_STOR), StreamStorageP, StorageFrameC,StorageFrameP;
+	components StorageFrameC,StreamUploaderC;
 	components new TimerMilliC() as SensorTimer, EchoRangerC;
-	components ApplicationM as App, MainC, LedsC, StreamUploaderC, StreamUploaderP, LocalTimeMilliC;
-	StorageFrameP.StreamStorage->StreamStorageC;
-	StreamUploaderP.StreamStorage -> StreamStorageC;
-	App.StreamStorage->StorageFrameC;
-	App.SplitControl->StreamStorageC;
+	components ApplicationM as App, MainC, LedsC, LocalTimeMilliC;
+
+	App.StreamStorageWrite->StorageFrameC;
 	App.Boot -> MainC.Boot;
 	App.Leds->LedsC;
 	App.StdControl -> StreamUploaderC;
