@@ -42,6 +42,9 @@ configuration HplG24LiteC {
 	interface GeneralIO as WKUPI_N;
 	//Control pin to switch on/off G24
 	interface GeneralIO as ON_N;
+	//Control pin signals when G24 is on/off
+	interface GeneralIO as RESET_N;
+	
     
 	//Serial interface CTS pin
 	interface GpioInterrupt as CTS_N;
@@ -49,30 +52,25 @@ configuration HplG24LiteC {
 	interface GpioInterrupt as DSR_N;
 	//Control pin signals when G24 is woken on
 	interface GpioInterrupt as WKUPO_N;
-	//Control pin signals when G24 is on/off
-	interface GpioInterrupt as RESET_N;
-  
+	  
 	//Serial interfaces to send, receive and switch on/off UART
 	interface UartByte;
 	interface UartStream;
 	interface StdControl as SerialStdControl;
+	
+	interface MicaBusAdc as Adc1;
   }
 }
 implementation {
 
 	components HplAtm128GeneralIOC as Pins;
-	
 	RTS_N = Pins.PortC0;
 	DTR_N = Pins.PortC1;
 	ON_N = Pins.PortC3;
+	RESET_N = Pins.PortC2;
 	WKUPI_N = Pins.PortC5;
 	
 	components HplAtm128InterruptC;
-	components new Atm128GpioInterruptC() as Atm128GpioInterrupt0C;
-	Atm128GpioInterrupt0C.Atm128Interrupt->HplAtm128InterruptC.Int4;
-	RESET_N=Atm128GpioInterrupt0C.Interrupt;
-
-	
 	components new Atm128GpioInterruptC() as Atm128GpioInterrupt1C;
 	Atm128GpioInterrupt1C.Atm128Interrupt->HplAtm128InterruptC.Int5;
 	DSR_N=Atm128GpioInterrupt1C.Interrupt;
@@ -91,4 +89,8 @@ implementation {
 	UartByte=Atm128Uart0C.UartByte;
 	UartStream=Atm128Uart0C.UartStream;
 	SerialStdControl=Atm128Uart0C.StdControl;
+	
+	components MicaBusP;
+	Adc1=MicaBusP.Adc1;
+	
 }
