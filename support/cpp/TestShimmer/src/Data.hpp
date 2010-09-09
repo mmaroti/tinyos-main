@@ -34,6 +34,8 @@
 #ifndef DATA_HPP
 #define DATA_HPP
 
+namespace ipo {
+
 enum {
     TIME_STAMP,
     ACCEL_X,
@@ -42,10 +44,12 @@ enum {
     GYRO_X,
     GYRO_Y,
     GYRO_Z,
-    DATASIZE
+    SIZE
 };
 
 int n_samples();
-void at(int i, double data[DATASIZE]);
+void at(int i, double data[SIZE]);
+
+}
 
 #endif // DATA_HPP

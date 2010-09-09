@@ -43,19 +43,6 @@
 #include <QStringList>
 #include <QMessageBox>
 
-DataRecorder* dr = 0;
-
-int n_samples() {
-
-    return dr->size();
-}
-
-void at(int i, double data[DATASIZE]) {
-
-    dr->at(i, data);
-}
-
-
 DataRecorder::DataRecorder(Application &app) : application(app)
 {
     //loadCalibrationData();
@@ -303,7 +290,9 @@ void DataRecorder::saveCalibrationData()
 
 }
 
-void DataRecorder::at(int i, double data[DATASIZE]) const {
+void DataRecorder::at(int i, double data[ipo::SIZE]) const {
+
+    using namespace ipo;
 
     if (i<0 || i>=application.dataRecorder.size()) {
 

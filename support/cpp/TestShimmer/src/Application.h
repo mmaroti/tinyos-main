@@ -51,7 +51,7 @@ class Application : public QObject
 Q_OBJECT
 
 private:
-    Solver solver;
+    ipo::Solver solver;
 
 
 public:

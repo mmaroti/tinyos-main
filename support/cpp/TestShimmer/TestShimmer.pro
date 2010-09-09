@@ -47,7 +47,8 @@ SOURCES += src/DataRecorder.cpp \
     src/Widget3D.cpp \
     src/GraphWidget.cpp \
     src/Graph.cpp \
-    src/Solver.cpp
+    src/Solver.cpp \
+    src/Data.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \

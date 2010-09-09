@@ -44,6 +44,7 @@
 #include "Widget3D.h"
 #include "window.h"
 
+// FIXME Eliminate this hideous workaround
 extern DataRecorder* dr;
 
 MainWindow::MainWindow(QWidget *parent) :

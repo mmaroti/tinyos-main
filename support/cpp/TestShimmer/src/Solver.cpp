@@ -69,6 +69,8 @@ private:
 
 }
 
+namespace ipo {
+
 void Solver::destroy() {
 
     if (solver!=0) {
@@ -138,11 +140,11 @@ void Solver::emit_signal(bool error, const std::string &msg) {
     mutex->unlock();
 }
 
-bool Solver::write_data(double data[DATASIZE]) {
+bool Solver::write_data(double data[SIZE]) {
 
     bool result = SUCCESS;
 
-    for (int i=0; i<DATASIZE; ++i) {
+    for (int i=0; i<SIZE; ++i) {
         ostringstream os;
         os << setprecision(16) << scientific;
         os << data[i] << '\n' << flush;
@@ -160,7 +162,7 @@ bool Solver::write_samples() {
 
     bool result = SUCCESS;
 
-    double data[DATASIZE];
+    double data[SIZE];
 
     const int n = n_samples();
 
@@ -357,4 +359,6 @@ Solver::~Solver() {
     destroy();
 
     delete mutex;
+}
+
 }

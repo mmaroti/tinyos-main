@@ -40,6 +40,8 @@
 
 class QMutex;
 
+namespace ipo {
+
 class Solver : public QObject {
 
     Q_OBJECT
@@ -76,7 +78,7 @@ private:
     void emit_signal(bool error, const std::string& msg);
     bool write_n_samples();
     bool write_samples();
-    bool write_data(double data[DATASIZE]);
+    bool write_data(double data[SIZE]);
     bool process_result(int exitCode, std::string& msg);
     bool copy_rotation_matrices(std::string& msg);
 
@@ -89,5 +91,7 @@ private:
     double* m;
 
 };
+
+}
 
 #endif // SOLVER_HPP
