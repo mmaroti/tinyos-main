@@ -76,14 +76,16 @@ private:
 
     void init();
     void cleanup_solver();
-    void cleanup_matrices();
+    void cleanup_data();
     void cleanup_all();
-    void emit_signal(bool error, const std::string& msg);
+    void emit_signal(bool error);
     bool write_n_samples();
     bool write_samples();
     bool write_data(double data[SIZE]);
-    bool process_result(int exitCode, std::string& msg);
-    bool copy_rotation_matrices(std::string& msg);
+    bool process_result(int exitCode);
+    bool skip_irrelevant_lines(const QList<QByteArray>& arr, QList<QByteArray>::const_iterator& i);
+    bool copy_rotation_matrices();
+    bool read_rotation_matrices(const QList<QByteArray>& arr, QList<QByteArray>::const_iterator& i);
 
     QMutex* const mutex;
 
@@ -92,6 +94,8 @@ private:
     int n;
 
     double* m;
+
+    std::string msg;
 
 };
 

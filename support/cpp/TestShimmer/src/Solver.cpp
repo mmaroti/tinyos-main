@@ -34,6 +34,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <cstring>
 #include <stdexcept>
 #include "QMessageBox"
 #include "QMutex"
@@ -45,6 +46,7 @@ using namespace std;
 
 namespace {
 
+// TODO Make an enum with ERROR_INTERNAL ?
 const bool FAILED(true);
 const bool SUCCESS(false);
 
@@ -93,18 +95,19 @@ void Solver::cleanup_solver() {
 
 }
 
-void Solver::cleanup_matrices() {
+void Solver::cleanup_data() {
 
     n = 0;
     delete[] m;
     m = 0;
+    msg = "";
 }
 
 void Solver::cleanup_all() {
 
     cleanup_solver();
 
-    cleanup_matrices();
+    cleanup_data();
 }
 
 void Solver::init() {
@@ -123,7 +126,7 @@ void Solver::init() {
                        this, SLOT(  finished(int, QProcess::ExitStatus)), Qt::QueuedConnection);
 }
 
-Solver::Solver() : mutex(new QMutex), solver(0), n(0), m(0) {
+Solver::Solver() : mutex(new QMutex), solver(0), n(0), m(0), msg("") {
 
     qRegisterMetaType<QProcess::ProcessError>("QProcess::ProcessError");
     qRegisterMetaType<QProcess::ExitStatus>("QProcess::ExitStatus");
@@ -135,20 +138,20 @@ bool Solver::start() {
     bool result = SUCCESS;
 
     // Released by emit_signal() and below if no samples are loaded
-    string msg("Error: ");
+    string mboxText("Error: ");
     if (!mutex->tryLock()) {
         result = FAILED;
-        msg += "the solver is already running!";
+        mboxText += "the solver is already running!";
     }
     else if (n_samples() < 1) {
         mutex->unlock();
         result = FAILED;
-        msg += "perhaps no samples are loaded?";
+        mboxText += "perhaps no samples are loaded?";
     }
 
     if (result==FAILED) {
         QMessageBox mbox;
-        mbox.setText(msg.c_str());
+        mbox.setText(mboxText.c_str());
         mbox.exec();
         return FAILED;
     }
@@ -162,7 +165,7 @@ bool Solver::start() {
     return result;
 }
 
-void Solver::emit_signal(bool error, const std::string &msg) {
+void Solver::emit_signal(bool error) {
 
     cout << endl << "Emitting signal: " << (error?"FAILED":"SUCCESS") << ", message: " << msg << endl;
 
@@ -239,8 +242,9 @@ void Solver::started() {
     }
 
     if (result == FAILED) {
-
-        emit_signal(FAILED, "Error on passing data to the solver!");
+        // FIXME Is write error also signalled?
+        msg = "Error on passing data to the solver!";
+        emit_signal(FAILED);
     }
 
     cout << endl << "Input data written to gyro.exe" << endl;
@@ -248,7 +252,7 @@ void Solver::started() {
 
 void Solver::error(QProcess::ProcessError error) {
 
-    string msg("Error: ");
+    msg = "Error: ";
 
     if (error == QProcess::FailedToStart) {
         msg += "the solver failed to start!";
@@ -272,41 +276,23 @@ void Solver::error(QProcess::ProcessError error) {
         msg += "undocumented error code received from Qt!";
     }
 
-    emit_signal(FAILED, msg);
+    emit_signal(FAILED);
 }
 
-bool Solver::copy_rotation_matrices(string& msg) {
+bool Solver::read_rotation_matrices(const QList<QByteArray>& arr, QList<QByteArray>::const_iterator& i) {
 
-    if ((n!=0) || (m!=0))
-        throw logic_error("The rotation matrices should have been released!");
+    QList<QByteArray>::const_iterator end = arr.end();
 
-    QList<QByteArray> arr( solver->readAll().split('\n') );
-
-    const int size = arr.size();
-    n = n_samples();
-
-    int n_elem = 9*n;
-
-    // It seems it appends additional newlines, perhaps EOF?
-    if (size < n_elem+1)
-        throw runtime_error("Unexpected output from the solver!");
-
-    m = new double[n_elem];
-
-    QList<QByteArray>::iterator i = arr.begin();
-    // TODO Process the first line!
-    cout << endl << i->constData() << endl;
-
-    ++i;
-
-    QList<QByteArray>::iterator end = arr.end();
+    const int n_elem = 9*n;
 
     bool ok = false;
 
     for (int k=0; k<n_elem; ++i, ++k) {
 
-        if (i==end)
-            throw logic_error("Bug in: " __FILE__ );
+        if (i==end) {
+            ok = false;
+            break;
+        }
 
         m[k] = i->toDouble(&ok);
 
@@ -328,25 +314,99 @@ bool Solver::copy_rotation_matrices(string& msg) {
     return result;
 }
 
-bool Solver::process_result(int exitCode, string& msg) {
+bool Solver::skip_irrelevant_lines(const QList<QByteArray> &arr, QList<QByteArray>::const_iterator &i) {
+
+    QList<QByteArray>::const_iterator end = arr.end();
+
+    bool result = FAILED;
+
+    int skipped = 0;
+
+    while (i!=end) {
+
+        if (!strcmp(i->constData(), "=== First line after the output of IPOPT ===")) {
+            result = (++i!=end)?SUCCESS:FAILED;
+            break;
+        }
+
+        ++i;
+        ++skipped;
+    }
+
+    if (result==FAILED) {
+        msg += "unexpected output from the solver!";
+    }
+
+    return result;
+}
+
+bool Solver::copy_rotation_matrices() {
+
+    if ((n!=0) || (m!=0))
+        throw logic_error("The rotation matrices should have been released!");
+
+    QList<QByteArray> arr( solver->readAll().split('\n') );
+
+    const int size = arr.size();
+    n = n_samples();
+
+    int n_elem = 9*n;
+
+    // It seems it appends additional newlines, perhaps EOF?
+    if (size < n_elem+1)
+        throw runtime_error("Unexpected output from the solver!");
+
+    m = new double[n_elem];
+
+    QList<QByteArray>::const_iterator i = arr.begin();
+
+    bool result = skip_irrelevant_lines(arr, i);
+
+    if (result==FAILED) {
+        return result;
+    }
+
+    // TODO Process the first line!
+    cout << endl << i->constData() << endl;
+    ++i;
+
+    // TODO Solution vector and varbounds
+
+    // TODO Check acceptance level
+
+    result = read_rotation_matrices(arr, i);
+
+    if (result==FAILED) {
+        return FAILED;
+    }
+
+    return result;
+}
+
+bool Solver::process_result(int exitCode) {
+
+    using namespace gyro;
 
     bool result = FAILED;
 
     if (exitCode == gyro::SUCCESS) {
 
-        result = copy_rotation_matrices(msg);
+        result = copy_rotation_matrices();
     }
-    else if (exitCode == gyro::ERROR_READING_INPUT) {
+    else if (exitCode == ERROR_READING_INPUT) {
         msg += "reading input!";
     }
-    else if (exitCode == gyro::ERROR_INITIALIZATION) {
+    else if (exitCode == ERROR_INITIALIZATION) {
         msg += "initializing IPOPT!";
     }
-    else if (exitCode == gyro::ERROR_CONVERGENCE) {
+    else if (exitCode == ERROR_CONVERGENCE) {
         msg += "regression failed to converge!";
     }
-    else if (exitCode == gyro::ERROR_UNKNOWN) {
+    else if (exitCode == ERROR_UNKNOWN) {
         msg += "unkown error, most likely an unexpected exception in the solver!";
+    }
+    else if (exitCode == ERROR_READING_CONFIG) {
+        msg += "the solver failed to read the configuration file!";
     }
     else {
         throw logic_error("Unknown value returned by the solver, implementation not updated properly!");
@@ -358,10 +418,10 @@ bool Solver::process_result(int exitCode, string& msg) {
 void Solver::finished(int exitCode, QProcess::ExitStatus exitStatus) {
 
     bool result = FAILED;
-    string msg("Error: ");
+    msg = "Error: ";
 
     if (exitStatus == QProcess::NormalExit) {
-        result = process_result(exitCode, msg);
+        result = process_result(exitCode);
     }
     else if (exitStatus == QProcess::CrashExit) {
         msg += "the solver crashed!";
@@ -370,9 +430,10 @@ void Solver::finished(int exitCode, QProcess::ExitStatus exitStatus) {
         msg += "undocumented error code received from Qt!";
     }
 
-    emit_signal(result, msg);
+    emit_signal(result);
 }
 
+// TODO Access elements through enum?
 double Solver::R(int sample, int i, int j) const {
 
     MutexUnlocker mu(mutex);
