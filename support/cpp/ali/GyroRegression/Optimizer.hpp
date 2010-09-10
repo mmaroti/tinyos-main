@@ -34,7 +34,7 @@
 #ifndef OPTIMIZER_HPP_
 #define OPTIMIZER_HPP_
 
-#include <iosfwd>
+#include <iostream>
 #include "CompileTimeConstants.hpp"
 
 namespace gyro {

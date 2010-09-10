@@ -31,20 +31,47 @@
 * Author: Ali Baharev
 */
 
-#ifndef ERRORCODES_HPP_
-#define ERRORCODES_HPP_
+#ifndef BOUNDREADER_HPP_
+#define BOUNDREADER_HPP_
+
+#include <iostream>
+#include <string>
 
 namespace gyro {
 
-enum {
-	SUCCESS = 0,
-	ERROR_READING_CONFIG = 11,
-	ERROR_READING_INPUT,
-	ERROR_INITIALIZATION,
-	ERROR_CONVERGENCE,
-	ERROR_UNKNOWN
+class BoundReader {
+
+public:
+
+	BoundReader(const char* filename);
+
+	int file_id() const { return file_id_; }
+
+	double elem_lb() const { return elem_lb_; }
+	double elem_ub() const { return elem_ub_; }
+
+	double offset_lb() const { return offset_lb_; }
+	double offset_ub() const { return offset_ub_; }
+
+	void show(std::ostream& out = std::cout);
+
+private:
+
+	void read_all_lines(std::ifstream& in);
+	void process_line(const std::string& line);
+	void set_value(const std::string& key, double value);
+
+	int file_id_;
+
+	double elem_lb_;
+	double elem_ub_;
+
+	double offset_lb_;
+	double offset_ub_;
+
 };
 
 }
 
 #endif
+
