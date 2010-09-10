@@ -32,12 +32,11 @@
 */
 
 #include <iostream>
-#include <memory>
-#include <stdexcept>
 #include "ErrorCodes.hpp"
 #include "Optimizer.hpp"
 #include "DataImporter.hpp"
 #include "RotationMatrix.hpp"
+#include "InputData.hpp"
 
 using namespace std;
 
@@ -61,40 +60,21 @@ void run_solver(const input& data) {
 
 	RotationMatrix rot(data, x);
 
-	cout << "Error in g (in m/s^2) : " << opt.error_in_g() << endl;
+	cout << "\n=== First line after the output of IPOPT ===\n" << flush;
 
-	rot.dump_matrices();
+	cout << "Error in g (in m/s^2) : " << opt.error_in_g() << '\n';
+
+	rot.dump_matrices(cout);
 }
 
 int main(int argc, char* argv[]) {
 
-	auto_ptr<const input> data(read_stdin());
+	const input* data = read_stdin();
 
-	if (data.get()==0) {
+	run_solver(*data);
 
-		return ERROR_READING_INPUT;
-	}
-
-	try {
-
-		run_solver(*data);
-
-		data.reset();
-	}
-	catch (logic_error& e) {
-
-		return ERROR_INITIALIZATION;
-	}
-	catch (runtime_error& e) {
-
-		return ERROR_CONVERGENCE;
-	}
-	catch (...) {
-
-		return ERROR_UNKNOWN;
-	}
+	delete data;
 
 	return SUCCESS;
 
 }
-

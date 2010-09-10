@@ -40,7 +40,7 @@ class input;
 
 // FIXME Gravitational acceleration and time step are hard-coded
 
-// Null pointer is returned if an error occurs
+// Calls exit() if an error occurs
 input* read_stdin();
 
 // This function is subject to changes due to file format changes

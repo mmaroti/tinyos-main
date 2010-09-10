@@ -59,6 +59,8 @@ BoundReader::BoundReader(const char* filename) {
 
 		if (in.good()) {
 
+			file_id_ = 0;
+
 			read_all_lines(in);
 		}
 	}
@@ -97,7 +99,7 @@ void BoundReader::process_line(const string& line) {
 		return;
 	}
 
-	double value(0.0); // 0 cannot be a bound!
+	double value(0.0); // 0 cannot be a bound or a valid file ID!
 
 	s >> value;
 

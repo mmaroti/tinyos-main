@@ -33,8 +33,10 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstdlib>
 #include "InputData.hpp"
 #include "DataImporter.hpp"
+#include "ErrorCodes.hpp"
 
 using namespace std;
 
@@ -52,8 +54,8 @@ input* read_stdin()	 {
 	cin >> N;
 
 	if (N<1) {
-		cerr << endl << "Invalid lenght!" << endl;
-		return 0;
+		cerr << endl << "Invalid number of samples!" << endl;
+		exit(ERROR_READING_INPUT);
 	}
 
 	double* time_stamp = new NT[N];

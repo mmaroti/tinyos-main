@@ -61,6 +61,7 @@ private:
 	void process_line(const std::string& line);
 	void set_value(const std::string& key, double value);
 
+	// TODO Replace with std::map
 	int file_id_;
 
 	double elem_lb_;

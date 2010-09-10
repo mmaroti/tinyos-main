@@ -33,12 +33,14 @@
 
 #include <iostream>
 #include <cmath>
-#include <stdexcept>
+#include <cstdlib>
 #include "IpIpoptApplication.hpp"
+#include "IpException.hpp"
 #include "IpSolveStatistics.hpp"
 #include "GyroNLP.hpp"
 #include "Optimizer.hpp"
 #include "InputData.hpp"
+#include "ErrorCodes.hpp"
 
 using namespace std;
 using namespace Ipopt;
@@ -47,38 +49,59 @@ namespace gyro {
 
 Optimizer::Optimizer(const input& data, std::ostream& os, bool verbose) {
 
-	SmartPtr<IpoptApplication> app = new IpoptApplication();
+	try {
 
-	app->Options()->SetNumericValue("tol", 1.0e-3);
-	app->Options()->SetIntegerValue("print_level", 0);
-	app->Options()->SetStringValue("hessian_approximation", "limited-memory");
-	app->Options()->SetStringValue("limited_memory_update_type", "bfgs");
+		SmartPtr<IpoptApplication> app = new IpoptApplication();
 
-	ApplicationReturnStatus status(app->Initialize("ipopt.opt"));
+		SmartPtr<OptionsList> opt = app->Options();
 
-	if (status != Solve_Succeeded) {
-		throw logic_error("Error during initialization of IPOPT!");
+		opt->SetNumericValue("tol", 1.0e-3);
+		opt->SetIntegerValue("print_level", 0);
+		opt->SetStringValue("output_file", "solver.log");
+		opt->SetIntegerValue("file_print_level", 5);
+		opt->SetStringValue("hessian_approximation", "limited-memory");
+		opt->SetStringValue("limited_memory_update_type", "bfgs");
+
+		ApplicationReturnStatus status(app->Initialize("ipopt.opt"));
+
+		if (status != Solve_Succeeded) {
+			cerr << "Error during initialization of IPOPT!" << endl;
+			exit(ERROR_INITIALIZATION);
+		}
+
+		SmartPtr<TNLP> nlp = new GyroNLP(data, os, verbose);
+
+		status = app->OptimizeTNLP(nlp);
+
+		if (status != Solve_Succeeded && status != Solved_To_Acceptable_Level) {
+			cerr << "Error during optimization!" << endl;
+			exit(ERROR_CONVERGENCE);
+		}
+
+		g_computed = std::sqrt(-app->Statistics()->FinalObjective());
+
+		g_error = g_computed - (fabs(data.g_ref()));
+
+		const GyroNLP* const gyro_nlp =
+				static_cast<const GyroNLP* const> (GetRawPtr(nlp));
+
+		const double* x = gyro_nlp->solution();
+
+		for (int i=0; i<NUMBER_OF_VARIABLES; ++i) {
+			minimizer[i] = x[i];
+		}
+
 	}
+	catch(IpoptException& e) {
 
-	SmartPtr<TNLP> nlp = new GyroNLP(data, os, verbose);
-
-	status = app->OptimizeTNLP(nlp);
-
-	if (status != Solve_Succeeded && status != Solved_To_Acceptable_Level) {
-		throw runtime_error("Error during optimization!");
+		cerr << "Ipopt application has thrown an exception: ";
+		cerr << e.Message() << endl;
+		exit(ERROR_UNKNOWN);
 	}
-
-	g_computed = std::sqrt(-app->Statistics()->FinalObjective());
-
-	g_error = g_computed - (fabs(data.g_ref()));
-
-	const GyroNLP* const gyro_nlp =
-			static_cast<const GyroNLP* const> (GetRawPtr(nlp));
-
-	const double* x = gyro_nlp->solution();
-
-	for (int i=0; i<NUMBER_OF_VARIABLES; ++i)
-		minimizer[i] = x[i];
+	catch(...) {
+		cerr << "Unknown error!" << endl;
+		exit(ERROR_UNKNOWN);
+	}
 }
 
 }
