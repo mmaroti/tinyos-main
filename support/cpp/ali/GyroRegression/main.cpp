@@ -60,6 +60,9 @@ void run_solver(const input& data) {
 
 	RotationMatrix rot(data, x);
 
+	// TODO Reintroduce ADOL-C
+
+	// TODO Put it into a header with the error codes
 	cout << "\n=== First line after the output of IPOPT ===\n" << flush;
 
 	cout << "Error in g (in m/s^2) : " << opt.error_in_g() << '\n';
