@@ -71,7 +71,8 @@ HEADERS += src/DataRecorder.h \
     src/Widget3D.h \
     src/Solver.hpp \
     src/Data.hpp \
-    src/ErrorCodes.hpp
+    src/ErrorCodes.hpp \
+    src/k.h
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \
