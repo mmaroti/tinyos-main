@@ -399,11 +399,13 @@ void DataPlot::paintEvent(QPaintEvent *event)
 
             if( (graphs & CALIB) != 0 )
             {
-                painter.setPen(QPen(Qt::green, 2, Qt::DashLine));
+                painter.setPen(QPen(Qt::red, 2, Qt::DashLine));
 
                 for(int i=0; i < 6; i++){
-                painter.drawLine(getPoint(application.dataRecorder.getAccelIdleWindowStart()[i], 0), getPoint(application.dataRecorder.getAccelIdleWindowStart()[i], 4000));
-                painter.drawLine(getPoint(application.dataRecorder.getAccelIdleWindowStart()[i]+WINDOW, 0), getPoint(application.dataRecorder.getAccelIdleWindowStart()[i]+WINDOW, 4000));
+                    if(application.dataRecorder.getAccelIdleWindowStart()[i] != -1){
+                        painter.drawLine(getPoint(application.dataRecorder.getAccelIdleWindowStart()[i], 0), getPoint(application.dataRecorder.getAccelIdleWindowStart()[i], 4000));
+                        painter.drawLine(getPoint(application.dataRecorder.getAccelIdleWindowStart()[i]+WINDOW, 0), getPoint(application.dataRecorder.getAccelIdleWindowStart()[i]+WINDOW, 4000));
+                    }
                 }
             }
         }

@@ -46,6 +46,9 @@
 DataRecorder::DataRecorder(Application &app) : application(app)
 {
     //loadCalibrationData();
+    for(int i=0; i<6; i++){
+        accelIdleWindowStart[i] = -1;
+    }
 }
 
 DataRecorder::~DataRecorder() {

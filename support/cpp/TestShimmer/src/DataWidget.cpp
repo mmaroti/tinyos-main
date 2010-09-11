@@ -47,6 +47,10 @@ DataWidget::DataWidget(QWidget *parent, Application &app) :
         ui->scrollArea->setWidget(plot);
         //connect(&plot, SIGNAL(angleChanged(double)), Window::currentGlWidget , SLOT(onAngleChanged(double)) );
 
+        gyroMinAvgs = application.dataRecorder.getGyroMinAvgs();
+        gyroCalibrationData = application.dataRecorder.getGyroCalibration();
+        accelCalibrationData = application.dataRecorder.getAccelCalibration();
+
 }
 
 DataWidget::~DataWidget()
@@ -123,16 +127,16 @@ void DataWidget::on_exportBtn_clicked()
 
         ts << "#Accel_X,Accel_Y,Accel_Z,AVG_Accel,XY_Angle,YZ_Angle,ZX_Angle,Gyro_X,Gyro_Y,Gyro_Z" << endl;
         for (int i = 0; i < application.dataRecorder.size(); i++) {
-            xtemp = application.dataRecorder.at(i).xAccel * application.dataRecorder.getAccelCalibration()[0] + application.dataRecorder.at(i).yAccel * application.dataRecorder.getAccelCalibration()[1] + application.dataRecorder.at(i).zAccel * application.dataRecorder.getAccelCalibration()[2] + application.dataRecorder.getAccelCalibration()[9];
-            ytemp = application.dataRecorder.at(i).xAccel * application.dataRecorder.getAccelCalibration()[3] + application.dataRecorder.at(i).yAccel * application.dataRecorder.getAccelCalibration()[4] + application.dataRecorder.at(i).zAccel * application.dataRecorder.getAccelCalibration()[5] + application.dataRecorder.getAccelCalibration()[10];
-            ztemp = application.dataRecorder.at(i).xAccel * application.dataRecorder.getAccelCalibration()[6] + application.dataRecorder.at(i).yAccel * application.dataRecorder.getAccelCalibration()[7] + application.dataRecorder.at(i).zAccel * application.dataRecorder.getAccelCalibration()[8] + application.dataRecorder.getAccelCalibration()[11];
+            xtemp = application.dataRecorder.at(i).xAccel * accelCalibrationData[0] + application.dataRecorder.at(i).yAccel * accelCalibrationData[1] + application.dataRecorder.at(i).zAccel * accelCalibrationData[2] + accelCalibrationData[9];
+            ytemp = application.dataRecorder.at(i).xAccel * accelCalibrationData[3] + application.dataRecorder.at(i).yAccel * accelCalibrationData[4] + application.dataRecorder.at(i).zAccel * accelCalibrationData[5] + accelCalibrationData[10];
+            ztemp = application.dataRecorder.at(i).xAccel * accelCalibrationData[6] + application.dataRecorder.at(i).yAccel * accelCalibrationData[7] + application.dataRecorder.at(i).zAccel * accelCalibrationData[8] + accelCalibrationData[11];
             avgtemp = sqrt( pow(xtemp, 2.0) + pow(ytemp, 2.0) + pow(ztemp, 2.0) );
             xyAngle = plot->calculateAngle(xtemp,ytemp);
             yzAngle = plot->calculateAngle(ytemp,ztemp);
             zxAngle = plot->calculateAngle(ztemp,xtemp);
-            xGyro = (application.dataRecorder.at(i).xGyro - application.dataRecorder.getGyroMinAvgs()[0]) * application.dataRecorder.getGyroCalibration()[0] + (application.dataRecorder.at(i).yGyro - application.dataRecorder.getGyroMinAvgs()[1]) * application.dataRecorder.getGyroCalibration()[1] + (application.dataRecorder.at(i).zGyro - application.dataRecorder.getGyroMinAvgs()[2]) * application.dataRecorder.getGyroCalibration()[2];
-            yGyro = (application.dataRecorder.at(i).xGyro - application.dataRecorder.getGyroMinAvgs()[0]) * application.dataRecorder.getGyroCalibration()[3] + (application.dataRecorder.at(i).yGyro - application.dataRecorder.getGyroMinAvgs()[1]) * application.dataRecorder.getGyroCalibration()[4] + (application.dataRecorder.at(i).zGyro - application.dataRecorder.getGyroMinAvgs()[2]) * application.dataRecorder.getGyroCalibration()[5];
-            zGyro = (application.dataRecorder.at(i).xGyro - application.dataRecorder.getGyroMinAvgs()[0]) * application.dataRecorder.getGyroCalibration()[6] + (application.dataRecorder.at(i).yGyro - application.dataRecorder.getGyroMinAvgs()[1]) * application.dataRecorder.getGyroCalibration()[7] + (application.dataRecorder.at(i).zGyro - application.dataRecorder.getGyroMinAvgs()[2]) * application.dataRecorder.getGyroCalibration()[8];
+            xGyro = (application.dataRecorder.at(i).xGyro - gyroMinAvgs[0]) * gyroCalibrationData[0] + (application.dataRecorder.at(i).yGyro - gyroMinAvgs[1]) * gyroCalibrationData[1] + (application.dataRecorder.at(i).zGyro - gyroMinAvgs[2]) * gyroCalibrationData[2];
+            yGyro = (application.dataRecorder.at(i).xGyro - gyroMinAvgs[0]) * gyroCalibrationData[3] + (application.dataRecorder.at(i).yGyro - gyroMinAvgs[1]) * gyroCalibrationData[4] + (application.dataRecorder.at(i).zGyro - gyroMinAvgs[2]) * gyroCalibrationData[5];
+            zGyro = (application.dataRecorder.at(i).xGyro - gyroMinAvgs[0]) * gyroCalibrationData[6] + (application.dataRecorder.at(i).yGyro - gyroMinAvgs[1]) * gyroCalibrationData[7] + (application.dataRecorder.at(i).zGyro - gyroMinAvgs[2]) * gyroCalibrationData[8];
 
             ts << xtemp << "," << ytemp << "," << ztemp << "," << avgtemp << "," << xyAngle << "," << yzAngle << "," << zxAngle << "," << xGyro << "," << yGyro << "," << zGyro << endl;
         }

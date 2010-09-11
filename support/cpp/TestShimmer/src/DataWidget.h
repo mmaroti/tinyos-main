@@ -64,6 +64,9 @@ private:
         Ui::DataWidget *ui;
         Application &application;
 
+        double* gyroMinAvgs;
+        double* gyroCalibrationData;
+        double* accelCalibrationData;
 
 private slots:
         //void on_temp_clicked();

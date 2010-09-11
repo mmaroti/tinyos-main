@@ -146,6 +146,7 @@ QString StationaryCalibrationModule::Calibrate()
 
 QString StationaryCalibrationModule::Classify()
 {
+    QString errormsg;
     float xTemp,yTemp,zTemp;
     int xPMinDiff = 3*MAXDIFF; int xNMinDiff = 3*MAXDIFF;
     int yPMinDiff = 3*MAXDIFF; int yNMinDiff = 3*MAXDIFF;
@@ -196,12 +197,17 @@ QString StationaryCalibrationModule::Classify()
             }
         } else {
             //calibration error
-            return "Idle window outside boundaries!";
+
+            errormsg.append("Idle window outside boundaries! \n");
+            errormsg.append(idleWindows[i].toString());
+            application.dataRecorder.getAccelIdleWindowStart()[0] = idleWindows[i].start;
+
+            return errormsg;
         }
     }
     xMinAvg = 9999.99; xMaxAvg = 0.0; yMinAvg = 9999.99; yMaxAvg = 0.0; zMinAvg = 9999.99; zMaxAvg = 0.0;
 
-    for ( int i = 0; i < 6; i++ ) {
+    for ( int i = 0; i < 6; i++ ) {        
         if ( idleSidesMins[i] == -1 ) {
             return "Calibration is missing the mote being idle on one of its sides! (Please load a record with the mote being idle on each side for at least 2 seconds!)";
         }

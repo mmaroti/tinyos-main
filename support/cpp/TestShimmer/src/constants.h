@@ -17,7 +17,7 @@
 
 //1.5G
 enum HighSensitivity{
-    MAXDIFF = 60,    //maximum difference between max and min values from an idle mote
+    MAXDIFF = 50,    //maximum difference between max and min values from an idle mote
     WINDOW = 200  //data window size, for finding idle shimmer positions
 };
 
