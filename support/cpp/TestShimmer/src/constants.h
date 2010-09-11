@@ -9,28 +9,30 @@
 
 // ---===STATIC CALIBRATION===---
 
+//4G
 /*enum LowSensitivity{
     MAXDIFF = 20,    //maximum difference between max and min values from an idle mote
     WINDOW = 100  //data window size, for finding idle shimmer positions
 };*/
 
+//1.5G
 enum HighSensitivity{
     MAXDIFF = 60,    //maximum difference between max and min values from an idle mote
     WINDOW = 200  //data window size, for finding idle shimmer positions
 };
 
-#define xN   0.95*xMinAvg+0.05*xMaxAvg  //region borders for classifying idle windows
-#define xZ_L 0.55*xMinAvg+0.45*xMaxAvg  //N = NEGATIVE_Gravity STATE
-#define xZ_U 0.45*xMinAvg+0.55*xMaxAvg  //Z = ZERO_Gravity STATE
-#define xP   0.05*xMinAvg+0.95*xMaxAvg  //P = POSITIVE_Gravity STATE
-#define yN   0.95*yMinAvg+0.05*yMaxAvg  //L = lower border; U = upper border;
-#define yZ_L 0.55*yMinAvg+0.45*yMaxAvg  //x,y,z : axis
-#define yZ_U 0.45*yMinAvg+0.55*yMaxAvg
-#define yP   0.05*yMinAvg+0.95*yMaxAvg
-#define zN   0.95*zMinAvg+0.05*zMaxAvg
-#define zZ_L 0.55*zMinAvg+0.45*zMaxAvg
-#define zZ_U 0.45*zMinAvg+0.55*zMaxAvg
-#define zP   0.05*zMinAvg+0.95*zMaxAvg
+#define xN   0.90*xMinAvg+0.1*xMaxAvg  //region borders for classifying idle windows
+#define xZ_L 0.6*xMinAvg+0.4*xMaxAvg  //N = NEGATIVE_Gravity STATE
+#define xZ_U 0.4*xMinAvg+0.6*xMaxAvg  //Z = ZERO_Gravity STATE
+#define xP   0.1*xMinAvg+0.9*xMaxAvg  //P = POSITIVE_Gravity STATE
+#define yN   0.9*yMinAvg+0.1*yMaxAvg  //L = lower border; U = upper border;
+#define yZ_L 0.6*yMinAvg+0.4*yMaxAvg  //x,y,z : axis
+#define yZ_U 0.4*yMinAvg+0.6*yMaxAvg
+#define yP   0.1*yMinAvg+0.9*yMaxAvg
+#define zN   0.9*zMinAvg+0.1*zMaxAvg
+#define zZ_L 0.6*zMinAvg+0.4*zMaxAvg
+#define zZ_U 0.4*zMinAvg+0.6*zMaxAvg
+#define zP   0.1*zMinAvg+0.9*zMaxAvg
 
 
 // ---===TURNTABLE CALIBRATION===---
