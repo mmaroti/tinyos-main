@@ -348,9 +348,10 @@ bool Solver::copy_rotation_matrices() {
     QList<QByteArray> arr( solver->readAll().split('\n') );
 
     const int size = arr.size();
+
     n = n_samples();
 
-    int n_elem = 9*n;
+    const int n_elem = 9*n;
 
     // It seems it appends additional newlines, perhaps EOF?
     if (size < n_elem+1)
@@ -370,14 +371,16 @@ bool Solver::copy_rotation_matrices() {
     cout << endl << i->constData() << endl;
     ++i;
 
-    // TODO Solution vector and varbounds
+    // TODO One function with params for sol, bounds, and matrices
+
+    // TODO One function that checks and skips lines of explanatory text
 
     // TODO Check acceptance level
 
     result = read_rotation_matrices(arr, i);
 
     if (result==FAILED) {
-        return FAILED;
+        return result;
     }
 
     return result;
