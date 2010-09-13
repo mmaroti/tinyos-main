@@ -35,6 +35,7 @@
 #include "GradType.hpp"
 #include "ObjectiveEvaluator.hpp"
 #include "CompileTimeConstants.hpp"
+#include "BoundReader.hpp"
 
 using namespace std;
 
@@ -47,7 +48,7 @@ class ObjDouble {
 
 public:
 
-	ObjDouble(const input& data, ostream& os, bool verbose)
+	ObjDouble(const Input& data, ostream& os, bool verbose)
 		: obj(ObjEval<double> (data, os, verbose))
 	{
 
@@ -64,7 +65,7 @@ class ObjGrad {
 
 public:
 
-	ObjGrad(const input& data, ostream& os, bool verbose) :
+	ObjGrad(const Input& data, ostream& os, bool verbose) :
 		obj(ObjEval<GradType<NUMBER_OF_VARIABLES> > (data, os, verbose))
 	{
 
@@ -90,10 +91,11 @@ private:
 
 };
 
-GyroNLP::GyroNLP(const input& data, ostream& os, bool verbose) :
+GyroNLP::GyroNLP(const Input& data, ostream& os, bool verbose) :
 		minimizer(new double[N_VARS]),
 		obj(new ObjDouble(data, os, verbose)),
-		grad(new  ObjGrad(data, os, verbose))
+		grad(new  ObjGrad(data, os, verbose)),
+		config(new BoundReader("config.txt"))
 {
 
 }
@@ -128,10 +130,17 @@ bool GyroNLP::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 bool GyroNLP::get_bounds_info(Index n, Number* x_l, Number* x_u,
 		Index m, Number* g_l, Number* g_u)
 {
+	assert(n==NUMBER_OF_VARIABLES);
+	const int N_ELEM(9);
 
-	for (Index i=0; i<n; i++) {
-		x_l[i] = -2.5;
-		x_u[i] =  2.5;
+	for (int i=0; i<N_ELEM; ++i) {
+		x_l[i] = config->elem_lb();
+		x_u[i] = config->elem_ub();
+	}
+
+	for (int i=N_ELEM; i<NUMBER_OF_VARIABLES; ++i) {
+		x_l[i] = config->offset_lb();
+		x_u[i] = config->offset_ub();
 	}
 
 	// Set the bounds for the constraints
@@ -171,6 +180,10 @@ void GyroNLP::finalize_solution(SolverReturn status,
 	}
 }
 
+int GyroNLP::config_file_id() const {
+
+	return config->file_id();
+}
 
 bool GyroNLP::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 {

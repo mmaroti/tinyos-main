@@ -35,7 +35,7 @@
 
 namespace gyro {
 
-input::input(const double* time_stamp,
+Input::Input(const double* time_stamp,
 			const double* acc_x,
 			const double* acc_y,
 			const double* acc_z,
@@ -64,7 +64,7 @@ input::input(const double* time_stamp,
 
 }
 
-input::~input() {
+Input::~Input() {
 
 	delete[] time_;
 

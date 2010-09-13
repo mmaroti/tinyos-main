@@ -33,10 +33,13 @@
 
 #include <iostream>
 #include <fstream>
+#include <string>
 #include <cstdlib>
 #include "InputData.hpp"
-#include "DataImporter.hpp"
-#include "ErrorCodes.hpp"
+#include "DataIO.hpp"
+#include "Optimizer.hpp"
+#include "RotationMatrix.hpp"
+#include "CompileTimeConstants.hpp"
 
 using namespace std;
 
@@ -44,10 +47,25 @@ typedef double NT;
 
 namespace gyro {
 
-input* read_stdin()	 {
+void skip_line(istream& in, const char* text) {
+
+	string line;
+	getline(in, line);
+	if (line != text) {
+		cerr << "Expected explanatory comment: " << text << endl;
+		cerr << "Found: " << line << endl;
+		exit(ERROR_READING_INPUT);
+	}
+}
+
+Input* read_stdin()	 {
 
 	double dt    = NT(10.0/2048.0);
 	double g_ref = NT(-9.81);
+
+	string endline;
+
+	skip_line(cin, NUMBER_OF_SAMPLES);
 
 	int N = -1;
 
@@ -57,6 +75,10 @@ input* read_stdin()	 {
 		cerr << endl << "Invalid number of samples!" << endl;
 		exit(ERROR_READING_INPUT);
 	}
+
+	getline(cin, endline);
+
+	skip_line(cin, INPUT_DATA);
 
 	double* time_stamp = new NT[N];
 
@@ -82,11 +104,55 @@ input* read_stdin()	 {
 
 	}
 
-	return new input(time_stamp, acc_x, acc_y, acc_z, wx, wy, wz, N, dt, g_ref);
+	return new Input(time_stamp, acc_x, acc_y, acc_z, wx, wy, wz, N, dt, g_ref);
 
 }
 
-input* read_file(const char* filename) {
+void print_vector(ostream& out, const double* x, const int length) {
+
+	for (int i=0; i<length; ++i) {
+		out << x << '\n';
+	}
+}
+
+void print_result(ostream& out,
+				const Optimizer& opt,
+				const Input& data,
+				const RotationMatrix& rot)
+{
+	out << '\n' << FIRST_LINE << '\n' << flush;
+
+	out << BUILD_ID << '\n';
+
+	out << CONFIG_FILE_ID << '\n';
+	out << opt.config_file_id() << '\n';
+
+	out << ERROR_IN_G << '\n';
+	out << opt.error_in_g() << '\n';
+
+	out << NUMBER_OF_VARS << '\n';
+	out << opt.n_vars() << '\n';
+
+	out << SOLUTION_VECTOR << '\n';
+	print_vector(out, opt.solution(), opt.n_vars());
+
+	out << VARIABLE_LOWER_BOUNDS << '\n';
+	print_vector(out, opt.var_lb(), opt.n_vars());
+
+	out << VARIABLE_UPPER_BOUNDS << '\n';
+	print_vector(out, opt.var_ub(), opt.n_vars());
+
+	out << NUMBER_OF_SAMPLES << '\n';
+	out << data.N() << '\n';
+
+	out << ROTATION_MATRICES << '\n';
+	rot.dump_matrices(out);
+
+	out << flush;
+}
+
+/*
+Input* read_file(const char* filename) {
 
 	double dt    = NT(10.0/2048.0);
 	double g_ref = NT(-9.81);
@@ -147,9 +213,9 @@ input* read_file(const char* filename) {
 		}
 	}
 
-	return new input(time_stamp, acc_x, acc_y, acc_z, wx, wy, wz, N, dt, g_ref);
+	return new Input(time_stamp, acc_x, acc_y, acc_z, wx, wy, wz, N, dt, g_ref);
 }
-
+*/
 }
 
 

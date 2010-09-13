@@ -32,9 +32,9 @@
 */
 
 #include <iostream>
-#include "ErrorCodes.hpp"
+#include "CompileTimeConstants.hpp"
 #include "Optimizer.hpp"
-#include "DataImporter.hpp"
+#include "DataIO.hpp"
 #include "RotationMatrix.hpp"
 #include "InputData.hpp"
 
@@ -42,17 +42,11 @@ using namespace std;
 
 using namespace gyro;
 
-void print_solution(const double* x, const Optimizer& opt) {
 
-	for (int i=0; i<opt.n_vars(); ++i)
-		cout << "x[" << i << "]\t" << x[i] << endl;
 
-	cout << endl;
+void run_solver(const Input& data) {
 
-	cout << "Error in g (in m/s^2) : " << opt.error_in_g() << endl;
-}
-
-void run_solver(const input& data) {
+	// TODO Reintroduce ADOL-C
 
 	Optimizer opt(data);
 
@@ -60,19 +54,12 @@ void run_solver(const input& data) {
 
 	RotationMatrix rot(data, x);
 
-	// TODO Reintroduce ADOL-C
-
-	// TODO Put it into a header with the error codes
-	cout << "\n=== First line after the output of IPOPT ===\n" << flush;
-
-	cout << "Error in g (in m/s^2) : " << opt.error_in_g() << '\n';
-
-	rot.dump_matrices(cout);
+	print_result(cout, opt, data, rot);
 }
 
 int main(int argc, char* argv[]) {
 
-	const input* data = read_stdin();
+	const Input* data = read_stdin();
 
 	run_solver(*data);
 

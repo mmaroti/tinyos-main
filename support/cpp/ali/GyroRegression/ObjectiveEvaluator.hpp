@@ -322,7 +322,7 @@ private:
 
 public:
 
-	ObjEval(const input& data, std::ostream& os, bool verbose) :
+	ObjEval(const Input& data, std::ostream& os, bool verbose) :
 
 		acc_x(data.acc_x()),
 		acc_y(data.acc_y()),

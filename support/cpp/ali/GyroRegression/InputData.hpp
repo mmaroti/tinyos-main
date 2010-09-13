@@ -36,11 +36,11 @@
 
 namespace gyro {
 
-class input {
+class Input {
 
 public:
 
-	input(	const double* time_stamp,
+	Input(	const double* time_stamp,
 			const double* acc_x,
 			const double* acc_y,
 			const double* acc_z,
@@ -66,12 +66,12 @@ public:
 	double dt() const    { return dt_; }
 	double g_ref() const { return g_ref_; }
 
-	~input();
+	~Input();
 
 private:
 
-	input(const input& other);
-	input& operator=(const input& );
+	Input(const Input& other);
+	Input& operator=(const Input& );
 
 	const double* const time_;
 

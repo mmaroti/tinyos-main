@@ -40,14 +40,14 @@
 #include "GyroNLP.hpp"
 #include "Optimizer.hpp"
 #include "InputData.hpp"
-#include "ErrorCodes.hpp"
+#include "CompileTimeConstants.hpp"
 
 using namespace std;
 using namespace Ipopt;
 
 namespace gyro {
 
-Optimizer::Optimizer(const input& data, std::ostream& os, bool verbose) {
+Optimizer::Optimizer(const Input& data, std::ostream& os, bool verbose) {
 
 	try {
 
@@ -57,7 +57,7 @@ Optimizer::Optimizer(const input& data, std::ostream& os, bool verbose) {
 
 		opt->SetNumericValue("tol", 1.0e-3);
 		opt->SetIntegerValue("print_level", 0);
-		opt->SetStringValue("output_file", "solver.log");
+		opt->SetStringValue("output_file", "ipopt.log");
 		opt->SetIntegerValue("file_print_level", 5);
 		opt->SetStringValue("hessian_approximation", "limited-memory");
 		opt->SetStringValue("limited_memory_update_type", "bfgs");
@@ -69,9 +69,13 @@ Optimizer::Optimizer(const input& data, std::ostream& os, bool verbose) {
 			exit(ERROR_INITIALIZATION);
 		}
 
-		SmartPtr<TNLP> nlp = new GyroNLP(data, os, verbose);
+		GyroNLP* const gyro_nlp = new GyroNLP(data, os, verbose);
 
-		status = app->OptimizeTNLP(nlp);
+		gyro_nlp->get_bounds_info(NUMBER_OF_VARIABLES, var_lb_, var_ub_, 0, 0, 0);
+
+		conf_file_id = gyro_nlp->config_file_id();
+
+		status = app->OptimizeTNLP(SmartPtr<TNLP>(gyro_nlp));
 
 		if (status != Solve_Succeeded && status != Solved_To_Acceptable_Level) {
 			cerr << "Error during optimization!" << endl;
@@ -81,9 +85,6 @@ Optimizer::Optimizer(const input& data, std::ostream& os, bool verbose) {
 		g_computed = std::sqrt(-app->Statistics()->FinalObjective());
 
 		g_error = g_computed - (fabs(data.g_ref()));
-
-		const GyroNLP* const gyro_nlp =
-				static_cast<const GyroNLP* const> (GetRawPtr(nlp));
 
 		const double* x = gyro_nlp->solution();
 

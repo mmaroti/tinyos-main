@@ -31,19 +31,29 @@
 * Author: Ali Baharev
 */
 
-#ifndef ERRORCODES_HPP_
-#define ERRORCODES_HPP_
+#ifndef DATAIMPORTER_HPP_
+#define DATAIMPORTER_HPP_
+
+#include <iosfwd>
 
 namespace gyro {
 
-enum {
-	SUCCESS = 0,
-	ERROR_READING_CONFIG = 11,
-	ERROR_READING_INPUT,
-	ERROR_INITIALIZATION,
-	ERROR_CONVERGENCE,
-	ERROR_UNKNOWN
-};
+class Input;
+class Optimizer;
+class RotationMatrix;
+
+// FIXME Gravitational acceleration and time step are hard-coded
+
+// Calls exit() if an error occurs
+Input* read_stdin();
+
+void print_result(std::ostream& out,
+				const Optimizer& opt,
+				const Input& data,
+				const RotationMatrix& rot);
+
+// This function is subject to changes due to file format changes
+Input* read_file(const char* filename);
 
 }
 

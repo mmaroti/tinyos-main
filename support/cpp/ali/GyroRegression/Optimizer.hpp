@@ -39,13 +39,13 @@
 
 namespace gyro {
 
-class input;
+class Input;
 
 class Optimizer {
 
 public:
 
-	Optimizer(const input& data, std::ostream& log = std::cout, bool verbose = false);
+	Optimizer(const Input& data, std::ostream& log = std::cout, bool verbose = false);
 
 	const double* solution() const { return minimizer; }
 
@@ -55,9 +55,21 @@ public:
 
 	double error_in_g() const { return g_error; }
 
+	int config_file_id() const { return conf_file_id; }
+
+	const double* var_lb() const { return var_lb_; }
+
+	const double* var_ub() const { return var_ub_; }
+
 private:
 
 	double minimizer[NUMBER_OF_VARIABLES];
+
+	double var_lb_[NUMBER_OF_VARIABLES];
+
+	double var_ub_[NUMBER_OF_VARIABLES];
+
+	int conf_file_id;
 
 	double g_computed;
 

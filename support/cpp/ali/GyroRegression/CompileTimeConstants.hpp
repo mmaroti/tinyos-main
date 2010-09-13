@@ -38,8 +38,41 @@ namespace gyro {
 
 const int NUMBER_OF_VARIABLES(12);
 
+enum {
+	SUCCESS = 0,
+	ERROR_READING_CONFIG = 11,
+	ERROR_READING_INPUT,
+	ERROR_INITIALIZATION,
+	ERROR_CONVERGENCE,
+	ERROR_UNKNOWN
+};
+
+const int CONFIG_FILE_NOT_FOUND = -1;
+
+const int CONFIG_FILE_HAS_NO_ID = 0;
+
+const char FIRST_LINE[] = "# First line after the output of IPOPT";
+
+const char BUILD_ID[] = "# Solver built on " __DATE__ " " __TIME__;
+
+const char CONFIG_FILE_ID[] = "# ID of configuration file";
+
+const char ERROR_IN_G[] = "# Error in g (in m/s^2)";
+
+const char NUMBER_OF_VARS[] = "# Number of variables";
+
+const char SOLUTION_VECTOR[] = "# Solution vector";
+
+const char VARIABLE_LOWER_BOUNDS[] = "# Lower bounds of the variables";
+
+const char VARIABLE_UPPER_BOUNDS[] = "# Upper bounds of the variables";
+
+const char NUMBER_OF_SAMPLES[] = "# Number of samples";
+
+const char ROTATION_MATRICES[] = "# Rotation matrices row-wise";
+
+const char INPUT_DATA[] = "# Input data: timestamp, accel_{x,y,z}, gyro_{x,y,z}";
+
 }
 
 #endif
-
-

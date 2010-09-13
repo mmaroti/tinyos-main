@@ -43,13 +43,14 @@ namespace gyro {
 
 class ObjDouble;
 class ObjGrad;
-class input;
+class Input;
+class BoundReader;
 
 class GyroNLP : public TNLP
 {
 public:
 
-	GyroNLP(const input& data, std::ostream& os, bool verbose);
+	GyroNLP(const Input& data, std::ostream& os, bool verbose);
 
 	const double* solution() const { return minimizer; }
 
@@ -83,6 +84,8 @@ public:
 			const IpoptData* ip_data,
 			IpoptCalculatedQuantities* ip_cq);
 
+	int config_file_id() const;
+
 private:
 
 	GyroNLP(const GyroNLP&);
@@ -95,6 +98,8 @@ private:
 
 	ObjDouble* const obj;
 	ObjGrad*   const grad;
+
+	BoundReader* const config;
 };
 
 }

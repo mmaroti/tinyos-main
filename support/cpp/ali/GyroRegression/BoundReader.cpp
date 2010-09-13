@@ -36,7 +36,7 @@
 #include <cstdlib>
 #include <string>
 #include <sstream>
-#include "ErrorCodes.hpp"
+#include "CompileTimeConstants.hpp"
 #include "BoundReader.hpp"
 
 using namespace std;
@@ -45,7 +45,7 @@ namespace gyro {
 
 BoundReader::BoundReader(const char* filename) {
 
-	file_id_ = -1;
+	file_id_ = CONFIG_FILE_NOT_FOUND;
 
 	elem_lb_ = -2.5;
 	elem_ub_ =  2.5;
@@ -59,7 +59,7 @@ BoundReader::BoundReader(const char* filename) {
 
 		if (in.good()) {
 
-			file_id_ = 0;
+			file_id_ = CONFIG_FILE_HAS_NO_ID;
 
 			read_all_lines(in);
 		}

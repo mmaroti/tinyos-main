@@ -38,13 +38,13 @@
 
 namespace gyro {
 
-class input;
+class Input;
 
 class RotationMatrix {
 
 public:
 
-	RotationMatrix(	const input& data,
+	RotationMatrix(	const Input& data,
 					const double* const x,
 					std::ostream& log = std::cout,
 					bool verbose = false);
@@ -66,9 +66,9 @@ private:
 	void compute_M(	const double ax,
 					const double ay,
 					const double az,
-					const input& data);
+					const Input& data);
 
-	void dump_angles(const input& data, std::ostream& log = std::cout) const;
+	void dump_angles(const Input& data, std::ostream& log = std::cout) const;
 
 	double* const R;
 	double* const g_err;

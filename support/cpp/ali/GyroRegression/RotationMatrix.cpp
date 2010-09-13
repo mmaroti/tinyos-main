@@ -42,7 +42,7 @@ using namespace std;
 
 namespace gyro {
 
-RotationMatrix::RotationMatrix(	const input& data,
+RotationMatrix::RotationMatrix(	const Input& data,
 		const double* const x,
 		ostream& log,
 		bool verbose) :
@@ -107,7 +107,7 @@ void RotationMatrix::dump_g_err(ostream& log) const {
 void RotationMatrix::compute_M(	const double ax,
 		const double ay,
 		const double az,
-		const input& data)
+		const Input& data)
 {
 
 	const double axy = sqrt(pow(ax, 2)+pow(ay, 2));
@@ -154,7 +154,7 @@ void RotationMatrix::compute_M(	const double ax,
 
 }
 
-void RotationMatrix::dump_angles(const input& data,
+void RotationMatrix::dump_angles(const Input& data,
 								std::ostream& log ) const
 {
 	const double g_ref = data.g_ref();
