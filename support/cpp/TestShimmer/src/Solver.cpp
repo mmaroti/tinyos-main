@@ -40,7 +40,7 @@
 #include "QMutex"
 #include "QSettings"
 #include "Solver.hpp"
-#include "ErrorCodes.hpp"
+#include "CompileTimeConstants.hpp"
 
 using namespace std;
 
@@ -176,27 +176,24 @@ void Solver::emit_signal(bool error) {
     emit finished(error, msg);
 }
 
-bool Solver::write_data(double data[SIZE]) {
+// TODO Check precision!
+void Solver::write_data(double data[SIZE]) {
 
-    bool result = SUCCESS;
+    ostringstream os;
+
+    os << setprecision(16) << scientific;
 
     for (int i=0; i<SIZE; ++i) {
-        ostringstream os;
-        os << setprecision(16) << scientific;
-        os << data[i] << '\n' << flush;
-        int k = solver->write(os.str().c_str());
-        if (k == -1) {
-            result = FAILED;
-            break;
-        }
+
+        os << data[i] << '\n';
     }
 
-    return result;
+    os << flush;
+
+    write(os.str().c_str());
 }
 
-bool Solver::write_samples() {
-
-    bool result = SUCCESS;
+void Solver::write_samples() {
 
     double data[SIZE];
 
@@ -206,17 +203,11 @@ bool Solver::write_samples() {
 
         at(i, data);
 
-        result = write_data(data);
-
-        if (result == FAILED) {
-            break;
-        }
+        write_data(data);
     }
-
-    return result;
 }
 
-bool Solver::write_n_samples() {
+void Solver::write_n_samples() {
 
     const int n = n_samples();
 
@@ -227,27 +218,49 @@ bool Solver::write_n_samples() {
 
     os << n << '\n' << flush;
 
-    int k = solver->write(os.str().c_str());
+    write(os.str().c_str());
+}
 
-    return (k==-1)?FAILED:SUCCESS;
+void Solver::write_line(const char* text) {
+
+    string line(text);
+
+    line.push_back('\n');
+
+    write(line.c_str());
+}
+
+void Solver::write(const char *data) {
+
+    int k = solver->write(data);
+
+    if (k==-1) {
+        throw '\0';
+    }
 }
 
 void Solver::started() {
 
-    bool result = write_n_samples();
+    try {
 
-    if (result==SUCCESS) {
+        write_line(gyro::NUMBER_OF_SAMPLES);
 
-        result = write_samples();
+        write_n_samples();
+
+        write_line(gyro::INPUT_DATA);
+
+        write_samples();
+
+        cout << endl << "Input data written to gyro.exe" << endl;
     }
+    catch (char ) {
 
-    if (result == FAILED) {
         // FIXME Is write error also signalled?
-        msg = "Error on passing data to the solver!";
+
+        msg = "Error: failed to pass input data to the solver!";
+
         emit_signal(FAILED);
     }
-
-    cout << endl << "Input data written to gyro.exe" << endl;
 }
 
 void Solver::error(QProcess::ProcessError error) {
@@ -324,7 +337,7 @@ bool Solver::skip_irrelevant_lines(const QList<QByteArray> &arr, QList<QByteArra
 
     while (i!=end) {
 
-        if (!strcmp(i->constData(), "=== First line after the output of IPOPT ===")) {
+        if (!strcmp(i->constData(), gyro::FIRST_LINE)) {
             result = (++i!=end)?SUCCESS:FAILED;
             break;
         }

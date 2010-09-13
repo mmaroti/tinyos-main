@@ -79,9 +79,11 @@ private:
     void cleanup_data();
     void cleanup_all();
     void emit_signal(bool error);
-    bool write_n_samples();
-    bool write_samples();
-    bool write_data(double data[SIZE]);
+    void write(const char* data);
+    void write_line(const char* line);
+    void write_n_samples();
+    void write_samples();
+    void write_data(double data[SIZE]);
     bool process_result(int exitCode);
     bool skip_irrelevant_lines(const QList<QByteArray>& arr, QList<QByteArray>::const_iterator& i);
     bool copy_rotation_matrices();
