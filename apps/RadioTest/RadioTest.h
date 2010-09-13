@@ -39,6 +39,8 @@
 #define MAX_EDGE_COUNT 6
 #define MAX_NODE_COUNT 4
 
+#include <CodeProfile.h>
+
 #if MAX_EDGE_COUNT <= 8
   typedef uint8_t pending_t;
 #elif MAX_EDGE_COUNT <= 16
@@ -85,8 +87,11 @@ enum {
 
   CTRL_DBG_REQ      = 40,
   RESP_DBG_OK       = 41,
+  
+  CTRL_PROFILE_REQ  = 50,
+  RESP_PROFILE_OK   = 51,
 
-  RESP_DATA_NEXISTS  = 50,
+  RESP_DATA_NEXISTS = 80,
 
   UNLOCKED          = 0,
   LOCKED            = 1
@@ -143,7 +148,6 @@ typedef nx_struct stat_t {
   nx_uint8_t    remainedCount;
 } stat_t;
 
-
 typedef nx_struct testmsg_t {
   nx_uint8_t    edgeid;           // On which edge this message is intended to propagate through
   nx_uint16_t   msgid;            // The auto-increment id of the message on the preset edge
@@ -165,6 +169,7 @@ typedef nx_struct responsemsg_t {
       nx_uint16_t   nextmsgid;    // The final value of nextmsgid on the requested edge.
       nx_uint16_t   dbgLINE;      // Assertion LINE value if any assertion failed.
     }           debug;
+    profile_t   profile;          // CodeProfile output
   } payload;
 } responsemsg_t;
 

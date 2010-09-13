@@ -45,7 +45,11 @@ implementation {
   components new DirectAMSenderC(AM_TESTMSG_T)	as TxTest;
   components new AMReceiverC(AM_TESTMSG_T)    	as RxTest;
   components ActiveMessageC;
-
+  
+  components CodeProfileC;
+  App.CPControl -> CodeProfileC;
+  App.CodeProfile -> CodeProfileC;
+  
 #if defined(PLATFORM_MICA2) || defined(PLATFORM_MICA2DOT)
   components CC1000CsmaRadioC as LplRadio;
 #elif defined(PLATFORM_MICAZ) || defined(PLATFORM_TELOSB) || defined(PLATFORM_SHIMMER) || defined(PLATFORM_SHIMMER2) || defined(PLATFORM_INTELMOTE2) || defined(PLATFORM_TELOSA)
@@ -76,6 +80,5 @@ implementation {
   App.LowPowerListening -> LplRadio;
   App.TestEndTimer -> Timer;
   App.TriggerTimer -> TTimer;
+
 }
-
-

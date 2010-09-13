@@ -49,6 +49,7 @@ public class RadioTestController implements MessageListener {
   private Vector< StatT > stats;
   private long[][]  finalMsgIds;
   private long[]    debuglines;
+  private long[][]  profiles;
 
   // Needed for proper downloading
   final Lock lock = new ReentrantLock();
@@ -184,62 +185,55 @@ public class RadioTestController implements MessageListener {
  
     debuglines = new long[motecount[pidx]];
     finalMsgIds = new long[edgecount[pidx]][2];
+    profiles = new long[motecount[pidx]][3];
 
     System.out.print("> Downloading data ... "); 
 
     lock.lock();
-    try {
-      for ( currentMote = 0; currentMote < motecount[pidx] ; ++currentMote ) {
-        for ( currentData = 0; currentData < edgecount[pidx]; ++currentData ) {
+    for ( currentMote = 0; currentMote < motecount[pidx] ; ++currentMote ) {
+      for ( currentData = 0; currentData < edgecount[pidx]; ++currentData ) {
 
-          stats.add(new StatT());
-  
-          // Download stat
-          handshake = false;
-          for( short probe = 0; !handshake && probe < MAXPROBES; ++probe ) {
-            // refer to RadioTest.h CTRL_DATA_REQ
-            requestData((short)30);
-            answered.await(MAXTIMEOUT,TimeUnit.MILLISECONDS);
-          }
-          if ( !handshake ) {
-            System.out.println("TIMEOUT, MOTE : " + (currentMote+1) + " STAT : " + currentData);
-            return false;
-          }
-
-          // Download debug info
-          handshake = false;
-          for( short probe = 0; !handshake && probe < MAXPROBES; ++probe ) {
-            // refer to RadioTest.h CTRL_DBG_REQ
-            requestData((short)40);
-            answered.await(MAXTIMEOUT,TimeUnit.MILLISECONDS);
-          }
-          if ( !handshake ) {
-            System.out.println("TIMEOUT, MOTE : " + (currentMote+1) + " DEBUG : " + currentData);
-            return false;
-          }
-        }
+        stats.add(new StatT());
+ 
+        // Download stat - refer to RadioTest.h CTRL_DATA_REQ
+        if ( !requestData((short)(30),"STAT") )
+          return false;
+          
+        // Download debug info - refer to RadioTest.h CTRL_DBG_REQ
+        if ( !requestData((short)(40), "DEBUG") )
+          return false;
       }
-      System.out.println("OK");
-      return true;
-    } catch ( InterruptedException e ) {
-      System.err.println("FAIL");
-      return false;
-    } finally {
-      lock.unlock();
+       
+      // Download profile info - refer to RadioTest.h CTRL_PROFILE_REQ
+      if ( !requestData((short)(50),"PROFILE") )
+        return false;
+        
     }
+    System.out.println("OK");
+    lock.unlock();
+    return true;
 	}
 
-  private boolean requestData(final short type) {
-      
+  private boolean requestData(final short type, final String str) {
+
     CtrlMsgT cmsg = new CtrlMsgT();
     cmsg.set_type(type);
     cmsg.set_reqidx(currentData);
-    try {
- 		  mif.send(currentMote+1,cmsg);
-      return true;
- 	  } catch(IOException e) {
-      return false;
-    }
+    handshake = false;
+    for( short probe = 0; !handshake && probe < MAXPROBES; ++probe ) {
+      try {
+ 	  	  mif.send(currentMote+1,cmsg);
+ 	  	  answered.await(MAXTIMEOUT,TimeUnit.MILLISECONDS);
+ 	    } catch(IOException e) {
+        return false;
+      } catch ( InterruptedException e ) {
+        return false;
+      }
+    } 
+    if ( !handshake )
+      System.out.println("TIMEOUT, MOTE : " + (currentMote+1) + " " + str + " : " + currentData);
+    return handshake;
+    
   }
   
   public void messageReceived(int dest_addr,Message msg)
@@ -303,9 +297,19 @@ public class RadioTestController implements MessageListener {
 
         handshake = true;
         answered.signal();
+        
+      // refer to RadioTest.h RESP_PROFILE_OK
+      } else if ( rmsg.get_type() == 51 && stage == 2 ) {
+
+        profiles[currentMote][0] = rmsg.get_payload_profile_max_atomic();
+        profiles[currentMote][1] = rmsg.get_payload_profile_max_interrupt();
+        profiles[currentMote][2] = rmsg.get_payload_profile_max_latency();        
+
+        handshake = true;
+        answered.signal();
 
       // refer to RadioTest.h RESP_DATA_NEXISTS
-      } else if ( rmsg.get_type() == 50 && stage == 2 ) {
+      } else if ( rmsg.get_type() == 80 && stage == 2 ) {
         handshake = true;
         answered.signal();
       }
@@ -390,6 +394,23 @@ public class RadioTestController implements MessageListener {
     ret += "</finaledgestate>";
     return ret;
   }
+  
+  private String profileAsString(final int idx) {
+    String ret = " Profile " + idx + ": ";
+    ret += " MaxAtomic " + profiles[idx][0];
+    ret += " MaxInterrupt " + profiles[idx][1];
+    ret += " Maxlatency " + profiles[idx][2];    
+    return ret;
+  }
+
+  private String profileAsXml(final int idx) {
+    String ret = "<profiles idx=\"" + idx + "\">";
+    ret += "<MAL>" + profiles[idx][0] + "</MAL>";
+    ret += "<MIL>" + profiles[idx][1] + "</MIL>";
+    ret += "<MTL>" + profiles[idx][2] + "</MTL>";    
+    ret += "</profile>";
+    return ret;
+  }
 
   public void printResults(final SetupT config, final String output) {
     if ( output == "" ) {
@@ -408,6 +429,12 @@ public class RadioTestController implements MessageListener {
       System.out.print(" Mote DebugLines (1-" + motecount[pidx] + "): " );
       for( currentMote = 0; currentMote < motecount[pidx]; ++currentMote ) {
         System.out.print( debuglines[currentMote] + " " );
+      }      
+      System.out.println();
+      
+      // Dump out profile info
+      for( currentMote = 0; currentMote < motecount[pidx]; ++currentMote ) {
+        System.out.println( profileAsString(currentMote) );
       }      
       System.out.println();
 
@@ -444,6 +471,12 @@ public class RadioTestController implements MessageListener {
         for( currentMote = 0; currentMote < motecount[pidx]; ++currentMote ) 
           pstream.println( "    <debug idx=\"" + (currentMote+1) + "\">" + debuglines[currentMote] + "</debug>" );
         pstream.println("  </debuglist>");
+        
+        pstream.println("  <profilelist>");
+        for( currentMote = 0; currentMote < motecount[pidx]; ++currentMote ) 
+          pstream.println( "    " + profileAsXml(currentMote) );
+        pstream.println("  </profilelist>");
+        
         pstream.println("</testresult>");
         pstream.close();
       } catch( FileNotFoundException e ) {

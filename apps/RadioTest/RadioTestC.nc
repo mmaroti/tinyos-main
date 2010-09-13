@@ -63,6 +63,9 @@ module RadioTestC @safe() {
     interface Timer<TMilli> as TestEndTimer;
     interface Timer<TMilli> as TriggerTimer;
     interface LowPowerListening;
+    
+    interface StdControl as CPControl;
+    interface CodeProfile;
   }
 }
 
@@ -157,6 +160,10 @@ implementation {
         if ( pending & 0x1 )
           ++(stats[i].remainedCount);
       }
+      
+      // stop CodeProfiler
+      call CPControl.stop();
+      
     }
     _ASSERT_( state == STATE_LASTCHANCE || state == STATE_FINISHED )
   }
@@ -308,6 +315,16 @@ implementation {
       }
       if ( SUCCESS == call TxBase.send(AM_BROADCAST_ADDR, &bpkt, sizeof(responsemsg_t) ) )
         SET_STATE( STATE_UPLOADING )
+
+    // RESPONSE profile information
+    } else if ( reqtype == CTRL_PROFILE_REQ && state == STATE_FINISHED ) {
+
+      msg->type = RESP_PROFILE_OK;
+      msg->respidx = 0;
+      msg->payload.profile = call CodeProfile.getProfile();
+      
+      if ( SUCCESS == call TxBase.send(AM_BROADCAST_ADDR, &bpkt, sizeof(responsemsg_t) ) )
+        SET_STATE( STATE_UPLOADING )
     }
   }
 
@@ -315,15 +332,17 @@ implementation {
   
     if ( error == SUCCESS ) {
       switch ( reqtype ) {
-        case CTRL_SETUP_SYN:  SET_STATE( STATE_CONFIGURED );  break;
-        case CTRL_DATA_REQ:   SET_STATE( STATE_FINISHED );    break;
-        case CTRL_DBG_REQ:    SET_STATE( STATE_FINISHED );    break;
+        case CTRL_SETUP_SYN:      SET_STATE( STATE_CONFIGURED );  break;
+        case CTRL_DATA_REQ:   
+        case CTRL_DBG_REQ:    
+        case CTRL_PROFILE_REQ:    SET_STATE( STATE_FINISHED );    break;
       }
     } else {
       switch ( reqtype ) {
-        case CTRL_SETUP_SYN:  SET_STATE( STATE_SETUP_RCVD );  break;
-        case CTRL_DATA_REQ:   SET_STATE( STATE_FINISHED );    break;
-        case CTRL_DBG_REQ:    SET_STATE( STATE_FINISHED );    break;
+        case CTRL_SETUP_SYN:      SET_STATE( STATE_SETUP_RCVD );  break;
+        case CTRL_DATA_REQ:   
+        case CTRL_DBG_REQ:    
+        case CTRL_PROFILE_REQ:    SET_STATE( STATE_FINISHED );    break;
       }
     }
   }
@@ -397,6 +416,9 @@ implementation {
       _ASSERT_( ( !(config.flags & USE_LPL) && config.lplwakeupintval == 0 ) ||
                 (  (config.flags & USE_LPL) && config.lplwakeupintval > 0  )   )
                 
+      // Start CodeProfiler
+      call CPControl.start();
+                
       // Setup the LPL feature if wanted
       call LowPowerListening.setLocalWakeupInterval(config.lplwakeupintval);
       call LowPowerListening.setRemoteWakeupInterval(&pkt,config.lplwakeupintval);
@@ -422,7 +444,7 @@ implementation {
 
     // BaseStation REQUESTs statistics
     // ----------------------------------------------------------------------------------
-    } else if ( ( ctype == CTRL_DATA_REQ || ctype == CTRL_DBG_REQ ) && state == STATE_FINISHED ) {
+    } else if ( ( ctype == CTRL_DATA_REQ || ctype == CTRL_DBG_REQ || ctype == CTRL_PROFILE_REQ ) && state == STATE_FINISHED ) {
       reqtype = ctype;
       reqidx = msg->reqidx;
       post sendResponse();
