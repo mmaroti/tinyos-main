@@ -31,74 +31,40 @@
 * Author: Ali Baharev
 */
 
-#ifndef SOLVER_HPP
-#define SOLVER_HPP
+#ifndef DATAWRITER_HPP
+#define DATAWRITER_HPP
 
-#include <string>
-#include "QObject"
-#include "QProcess"
+#include <iosfwd>
 #include "Data.hpp"
-#include "CompileTimeConstants.hpp"
 
-class QMutex;
+class QProcess;
 
 namespace ipo {
 
-class Solver : public QObject {
-
-    Q_OBJECT
+class DataWriter {
 
 public:
 
-    Solver();
+    DataWriter(QProcess* proc, const char* dump_to_file = 0);
 
-    // returns error
-    bool start();
+    void writeAll();
 
-    double R(int sample, int i, int j) const;
-
-    ~Solver();
-
-signals:
-
-    void finished(bool error, const std::string& msg);
-
-private slots:
-
-    void started();
-
-    void error(QProcess::ProcessError error);
-
-    void finished(int exitCode, QProcess::ExitStatus exitStatus);
+    ~DataWriter();
 
 private:
 
-    Solver(const Solver& );
-    Solver& operator=(const Solver& );
+    DataWriter(const DataWriter& );
+    DataWriter& operator=(const DataWriter& );
 
-    void init();
-    void cleanup_solver();
-    void cleanup_data();
-    void cleanup_all();
-    void emit_signal(bool error);
+    void write(const char* data);
+    void write_line(const char* line);
+    void write_n_samples();
+    void write_samples();
+    void write_data(double data[SIZE]);
 
-    bool process_result(int exitCode);
+    QProcess* const process;
 
-    bool read_results();
-
-    QMutex* const mutex;
-
-    QProcess* solver;
-
-    int n;
-
-    double* m;
-
-    std::string msg;
-
-    double x[gyro::NUMBER_OF_VARIABLES];
-    double x_lb[gyro::NUMBER_OF_VARIABLES];
-    double x_ub[gyro::NUMBER_OF_VARIABLES];
+    std::ofstream* const ofs;
 
 };
 

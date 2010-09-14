@@ -31,77 +31,27 @@
 * Author: Ali Baharev
 */
 
-#ifndef SOLVER_HPP
-#define SOLVER_HPP
+#ifndef DATAREADEXCEPTION_HPP
+#define DATAREADEXCEPTION_HPP
 
 #include <string>
-#include "QObject"
-#include "QProcess"
-#include "Data.hpp"
-#include "CompileTimeConstants.hpp"
-
-class QMutex;
 
 namespace ipo {
 
-class Solver : public QObject {
+    class DataReadException {
 
-    Q_OBJECT
+    public:
 
-public:
+        DataReadException(const std::string& message) : msg(message) { }
 
-    Solver();
+        const char* what() const { return msg.c_str(); }
 
-    // returns error
-    bool start();
+    private:
 
-    double R(int sample, int i, int j) const;
-
-    ~Solver();
-
-signals:
-
-    void finished(bool error, const std::string& msg);
-
-private slots:
-
-    void started();
-
-    void error(QProcess::ProcessError error);
-
-    void finished(int exitCode, QProcess::ExitStatus exitStatus);
-
-private:
-
-    Solver(const Solver& );
-    Solver& operator=(const Solver& );
-
-    void init();
-    void cleanup_solver();
-    void cleanup_data();
-    void cleanup_all();
-    void emit_signal(bool error);
-
-    bool process_result(int exitCode);
-
-    bool read_results();
-
-    QMutex* const mutex;
-
-    QProcess* solver;
-
-    int n;
-
-    double* m;
-
-    std::string msg;
-
-    double x[gyro::NUMBER_OF_VARIABLES];
-    double x_lb[gyro::NUMBER_OF_VARIABLES];
-    double x_ub[gyro::NUMBER_OF_VARIABLES];
-
-};
-
+        std::string msg;
+    };
 }
 
+
 #endif
+

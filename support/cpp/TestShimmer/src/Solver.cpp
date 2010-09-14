@@ -32,15 +32,15 @@
 */
 
 #include <iostream>
-#include <iomanip>
-#include <sstream>
-#include <cstring>
 #include <stdexcept>
 #include "QMessageBox"
 #include "QMutex"
 #include "QSettings"
 #include "Solver.hpp"
 #include "CompileTimeConstants.hpp"
+#include "DataReader.hpp"
+#include "DataReadException.hpp"
+#include "DataWriter.hpp"
 
 using namespace std;
 
@@ -100,7 +100,7 @@ void Solver::cleanup_data() {
     n = 0;
     delete[] m;
     m = 0;
-    msg = "";
+    msg = "Error: ";
 }
 
 void Solver::cleanup_all() {
@@ -126,7 +126,7 @@ void Solver::init() {
                        this, SLOT(  finished(int, QProcess::ExitStatus)), Qt::QueuedConnection);
 }
 
-Solver::Solver() : mutex(new QMutex), solver(0), n(0), m(0), msg("") {
+Solver::Solver() : mutex(new QMutex), solver(0), n(0), m(0), msg("Error: ") {
 
     qRegisterMetaType<QProcess::ProcessError>("QProcess::ProcessError");
     qRegisterMetaType<QProcess::ExitStatus>("QProcess::ExitStatus");
@@ -171,84 +171,23 @@ void Solver::emit_signal(bool error) {
 
     cleanup_solver();
 
+    if (error!=SUCCESS) {
+
+        cleanup_data();
+    }
+
     mutex->unlock();
 
     emit finished(error, msg);
-}
-
-void Solver::write_data(double data[SIZE]) {
-
-    ostringstream os;
-
-    os << setprecision(16) << scientific;
-
-    for (int i=0; i<SIZE; ++i) {
-
-        os << data[i] << '\n';
-    }
-
-    os << flush;
-
-    write(os.str().c_str());
-}
-
-void Solver::write_samples() {
-
-    double data[SIZE];
-
-    const int n = n_samples();
-
-    for (int i=0; i<n; ++i) {
-
-        at(i, data);
-
-        write_data(data);
-    }
-}
-
-void Solver::write_n_samples() {
-
-    const int n = n_samples();
-
-    if (n<1)
-        throw logic_error("Incorrect number of samples!");
-
-    ostringstream os;
-
-    os << n << '\n' << flush;
-
-    write(os.str().c_str());
-}
-
-void Solver::write_line(const char* text) {
-
-    string line(text);
-
-    line.push_back('\n');
-
-    write(line.c_str());
-}
-
-void Solver::write(const char *data) {
-
-    int k = solver->write(data);
-
-    if (k==-1) {
-        throw '\0';
-    }
 }
 
 void Solver::started() {
 
     try {
 
-        write_line(gyro::NUMBER_OF_SAMPLES);
+        DataWriter dw(solver);
 
-        write_n_samples();
-
-        write_line(gyro::INPUT_DATA);
-
-        write_samples();
+        dw.writeAll();
 
         cout << endl << "Input data written to gyro.exe" << endl;
     }
@@ -256,15 +195,13 @@ void Solver::started() {
 
         // FIXME Is write error also signalled?
 
-        msg = "Error: failed to pass input data to the solver!";
+        msg += "failed to pass input data to the solver!";
 
         emit_signal(FAILED);
     }
 }
 
 void Solver::error(QProcess::ProcessError error) {
-
-    msg = "Error: ";
 
     if (error == QProcess::FailedToStart) {
         msg += "the solver failed to start!";
@@ -291,128 +228,6 @@ void Solver::error(QProcess::ProcessError error) {
     emit_signal(FAILED);
 }
 
-void Solver::read_vector(const char* text, double* r, int length, li& i, cli& end) {
-
-    skip_line(text, i, end);
-
-    bool ok = false;
-
-    for (int k=0; k<length; ++i, ++k) {
-
-        if (i==end) {
-            msg += "unexpected end of output!";
-            throw '\0';
-        }
-
-        const char* const line = i->constData();
-
-        r[k] = i->toDouble(&ok);
-
-        if (!ok) {
-            msg += "conversion error!";
-            throw '\0';
-        }
-    }
-
-}
-
-void Solver::skip_irrelevant_lines(li& i, cli& end) {
-
-    int skipped = 0;
-
-    while (i!=end) {
-
-        if (!strcmp(i->constData(), gyro::FIRST_LINE)) {
-            return;
-        }
-
-        ++i;
-        ++skipped;
-    }
-
-    msg += "failed to find the first line!";
-
-    throw '\0';
-}
-
-void Solver::skip_line(const char* text, li& i, cli& end) {
-
-    if (i==end) {
-        msg += "unexpected end of output when checking ";
-        msg += text;
-        msg += "!";
-    }
-    else if (strcmp(i->constData(), text)) {
-        msg += "expected explanatory comment: ";
-        msg += text;
-        msg += ", found: ";
-        msg +=  i->constData();
-        msg += "!";
-    }
-    else {
-        ++i;
-        cout << text << endl;
-        return;
-    }
-
-    throw '\0';
-}
-
-void Solver::echo_line(const char* text, li& i, cli& end) {
-
-    skip_line(text, i, end);
-
-    if (i==end) {
-        msg += "unexpected end of output!";
-        throw '\0';
-    }
-
-    cout << i->constData() << endl;
-
-    ++i;
-}
-
-void Solver::read_all_lines(li &i, cli &end) {
-
-    skip_irrelevant_lines(i, end);
-
-    echo_line(gyro::FIRST_LINE, i, end);
-
-    echo_line(gyro::CONFIG_FILE_ID, i, end);
-
-    // TODO Copy error value
-    echo_line(gyro::ERROR_IN_G, i, end);
-
-    // TODO Check if matches the hard-coded value
-    echo_line(gyro::NUMBER_OF_VARS, i, end);
-
-    const int n_vars = gyro::NUMBER_OF_VARIABLES;
-
-    // TODO Check acceptance level
-    read_vector(gyro::SOLUTION_VECTOR, x, n_vars, i, end);
-
-    read_vector(gyro::VARIABLE_LOWER_BOUNDS, x_lb, n_vars, i, end);
-
-    read_vector(gyro::VARIABLE_UPPER_BOUNDS,  x_ub, n_vars, i, end);
-
-    // TODO Check value
-    echo_line(gyro::NUMBER_OF_SAMPLES, i, end);
-
-    //=======================================================
-
-    n = n_samples();
-
-    const int n_elem = 9*n;
-
-    m = new double[n_elem];
-
-    read_vector(gyro::ROTATION_MATRICES, m, n_elem, i, end);
-
-    skip_line(gyro::END_OF_FILE, i, end);
-
-    msg = "Successfully finished!";
-}
-
 bool Solver::read_results() {
 
     if ((n!=0) || (m!=0))
@@ -422,16 +237,19 @@ bool Solver::read_results() {
 
     QList<QByteArray> arr( solver->readAll().split('\n') );
 
-    li i = arr.begin();
-
-    cli end = arr.end();
-
     try {
 
-        read_all_lines(i, end);;
-    }
-    catch (char ) {
+        DataReader dr(arr.begin(), arr.end());
 
+        // Allocates m, sets n
+        dr.readAll(x, x_lb, x_ub, n, m);
+
+        msg = "Successfully finished!";
+    }
+    catch (DataReadException& e) {
+
+        msg += e.what();
+        msg += "!";
         result = FAILED;
     }
 
@@ -473,7 +291,6 @@ bool Solver::process_result(int exitCode) {
 void Solver::finished(int exitCode, QProcess::ExitStatus exitStatus) {
 
     bool result = FAILED;
-    msg = "Error: ";
 
     if (exitStatus == QProcess::NormalExit) {
         result = process_result(exitCode);

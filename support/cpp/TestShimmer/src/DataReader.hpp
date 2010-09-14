@@ -31,77 +31,42 @@
 * Author: Ali Baharev
 */
 
-#ifndef SOLVER_HPP
-#define SOLVER_HPP
+#ifndef DATAREADER_HPP
+#define DATAREADER_HPP
 
-#include <string>
-#include "QObject"
-#include "QProcess"
-#include "Data.hpp"
-#include "CompileTimeConstants.hpp"
-
-class QMutex;
+#include "QList"
 
 namespace ipo {
 
-class Solver : public QObject {
+//typedef const QList<QByteArray> carray;
+typedef const QList<QByteArray>::const_iterator cli;
+typedef QList<QByteArray>::const_iterator li;
 
-    Q_OBJECT
+class DataReader {
 
 public:
 
-    Solver();
+    DataReader(cli& begin, cli& end);
 
-    // returns error
-    bool start();
-
-    double R(int sample, int i, int j) const;
-
-    ~Solver();
-
-signals:
-
-    void finished(bool error, const std::string& msg);
-
-private slots:
-
-    void started();
-
-    void error(QProcess::ProcessError error);
-
-    void finished(int exitCode, QProcess::ExitStatus exitStatus);
+    void readAll(double* x, double* x_lb, double* x_ub, int& n, double*& m);
 
 private:
 
-    Solver(const Solver& );
-    Solver& operator=(const Solver& );
+    DataReader(const DataReader& );
+    DataReader& operator=(const DataReader& );
 
-    void init();
-    void cleanup_solver();
-    void cleanup_data();
-    void cleanup_all();
-    void emit_signal(bool error);
+    void skip_irrelevant_lines();
+    void skip_line(const char* text);
+    void echo_line(const char* text);
+    void read_vector(const char* text, double* r, int length);
 
-    bool process_result(int exitCode);
+    li i;
 
-    bool read_results();
-
-    QMutex* const mutex;
-
-    QProcess* solver;
-
-    int n;
-
-    double* m;
-
-    std::string msg;
-
-    double x[gyro::NUMBER_OF_VARIABLES];
-    double x_lb[gyro::NUMBER_OF_VARIABLES];
-    double x_ub[gyro::NUMBER_OF_VARIABLES];
+    cli end;
 
 };
 
 }
 
 #endif
+

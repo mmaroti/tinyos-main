@@ -48,7 +48,9 @@ SOURCES += src/DataRecorder.cpp \
     src/GraphWidget.cpp \
     src/Graph.cpp \
     src/Solver.cpp \
-    src/Data.cpp
+    src/Data.cpp \
+    src/DataWriter.cpp \
+    src/DataReader.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -71,7 +73,10 @@ HEADERS += src/DataRecorder.h \
     src/Widget3D.h \
     src/Solver.hpp \
     src/Data.hpp \
-    src/CompileTimeConstants.hpp
+    src/CompileTimeConstants.hpp \
+    src/DataWriter.hpp \
+    src/DataReader.hpp \
+    src/DataReadException.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \
