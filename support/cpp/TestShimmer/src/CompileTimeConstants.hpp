@@ -71,6 +71,8 @@ const char NUMBER_OF_SAMPLES[] = "# Number of samples";
 
 const char ROTATION_MATRICES[] = "# Rotation matrices row-wise";
 
+const char END_OF_FILE[] = "# End of file";
+
 const char INPUT_DATA[] = "# Input data: timestamp, accel_{x,y,z}, gyro_{x,y,z}";
 
 }

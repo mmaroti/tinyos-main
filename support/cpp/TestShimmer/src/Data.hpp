@@ -47,9 +47,6 @@ enum {
     SIZE
 };
 
-// TODO Perhaps the same CompileTimeConstans from gyro ?
-const int N_VARS(12);
-
 int n_samples();
 void at(int i, double data[SIZE]);
 

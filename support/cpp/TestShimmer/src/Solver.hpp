@@ -37,10 +37,15 @@
 #include "QObject"
 #include "QProcess"
 #include "Data.hpp"
+#include "CompileTimeConstants.hpp"
 
 class QMutex;
 
 namespace ipo {
+
+typedef const QList<QByteArray> carray;
+typedef const QList<QByteArray>::const_iterator cli;
+typedef QList<QByteArray>::const_iterator li;
 
 class Solver : public QObject {
 
@@ -79,15 +84,22 @@ private:
     void cleanup_data();
     void cleanup_all();
     void emit_signal(bool error);
+
     void write(const char* data);
     void write_line(const char* line);
     void write_n_samples();
     void write_samples();
     void write_data(double data[SIZE]);
+
     bool process_result(int exitCode);
-    bool skip_irrelevant_lines(const QList<QByteArray>& arr, QList<QByteArray>::const_iterator& i);
-    bool copy_rotation_matrices();
-    bool read_rotation_matrices(const QList<QByteArray>& arr, QList<QByteArray>::const_iterator& i);
+
+    void read_all_lines(li& i, cli& end);
+    void skip_irrelevant_lines(li& i, cli& end);
+    void skip_line(const char* text, li& i, cli& end);
+    void echo_line(const char* text, li& i, cli& end);
+    void read_vector(const char* text, double* r, int length, li& i, cli& end);
+
+    bool read_results();
 
     QMutex* const mutex;
 
@@ -98,6 +110,10 @@ private:
     double* m;
 
     std::string msg;
+
+    double x[gyro::NUMBER_OF_VARIABLES];
+    double x_lb[gyro::NUMBER_OF_VARIABLES];
+    double x_ub[gyro::NUMBER_OF_VARIABLES];
 
 };
 

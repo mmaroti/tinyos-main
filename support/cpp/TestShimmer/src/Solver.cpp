@@ -176,7 +176,6 @@ void Solver::emit_signal(bool error) {
     emit finished(error, msg);
 }
 
-// TODO Check precision!
 void Solver::write_data(double data[SIZE]) {
 
     ostringstream os;
@@ -292,108 +291,148 @@ void Solver::error(QProcess::ProcessError error) {
     emit_signal(FAILED);
 }
 
-bool Solver::read_rotation_matrices(const QList<QByteArray>& arr, QList<QByteArray>::const_iterator& i) {
+void Solver::read_vector(const char* text, double* r, int length, li& i, cli& end) {
 
-    QList<QByteArray>::const_iterator end = arr.end();
-
-    const int n_elem = 9*n;
+    skip_line(text, i, end);
 
     bool ok = false;
 
-    for (int k=0; k<n_elem; ++i, ++k) {
+    for (int k=0; k<length; ++i, ++k) {
 
         if (i==end) {
-            ok = false;
-            break;
+            msg += "unexpected end of output!";
+            throw '\0';
         }
 
-        m[k] = i->toDouble(&ok);
+        const char* const line = i->constData();
 
-        if (!ok)
-            break;
+        r[k] = i->toDouble(&ok);
+
+        if (!ok) {
+            msg += "conversion error!";
+            throw '\0';
+        }
     }
 
-    bool result = FAILED;
-
-    if (ok) {
-        result = SUCCESS;
-        msg = "Finished";
-    }
-    else {
-        result = FAILED;
-        msg += "unexpected error when processing the output of the solver!";
-    }
-
-    return result;
 }
 
-bool Solver::skip_irrelevant_lines(const QList<QByteArray> &arr, QList<QByteArray>::const_iterator &i) {
-
-    QList<QByteArray>::const_iterator end = arr.end();
-
-    bool result = FAILED;
+void Solver::skip_irrelevant_lines(li& i, cli& end) {
 
     int skipped = 0;
 
     while (i!=end) {
 
         if (!strcmp(i->constData(), gyro::FIRST_LINE)) {
-            result = (++i!=end)?SUCCESS:FAILED;
-            break;
+            return;
         }
 
         ++i;
         ++skipped;
     }
 
-    if (result==FAILED) {
-        msg += "unexpected output from the solver!";
-    }
+    msg += "failed to find the first line!";
 
-    return result;
+    throw '\0';
 }
 
-bool Solver::copy_rotation_matrices() {
+void Solver::skip_line(const char* text, li& i, cli& end) {
 
-    if ((n!=0) || (m!=0))
-        throw logic_error("The rotation matrices should have been released!");
+    if (i==end) {
+        msg += "unexpected end of output when checking ";
+        msg += text;
+        msg += "!";
+    }
+    else if (strcmp(i->constData(), text)) {
+        msg += "expected explanatory comment: ";
+        msg += text;
+        msg += ", found: ";
+        msg +=  i->constData();
+        msg += "!";
+    }
+    else {
+        ++i;
+        cout << text << endl;
+        return;
+    }
 
-    QList<QByteArray> arr( solver->readAll().split('\n') );
+    throw '\0';
+}
 
-    const int size = arr.size();
+void Solver::echo_line(const char* text, li& i, cli& end) {
+
+    skip_line(text, i, end);
+
+    if (i==end) {
+        msg += "unexpected end of output!";
+        throw '\0';
+    }
+
+    cout << i->constData() << endl;
+
+    ++i;
+}
+
+void Solver::read_all_lines(li &i, cli &end) {
+
+    skip_irrelevant_lines(i, end);
+
+    echo_line(gyro::FIRST_LINE, i, end);
+
+    echo_line(gyro::CONFIG_FILE_ID, i, end);
+
+    // TODO Copy error value
+    echo_line(gyro::ERROR_IN_G, i, end);
+
+    // TODO Check if matches the hard-coded value
+    echo_line(gyro::NUMBER_OF_VARS, i, end);
+
+    const int n_vars = gyro::NUMBER_OF_VARIABLES;
+
+    // TODO Check acceptance level
+    read_vector(gyro::SOLUTION_VECTOR, x, n_vars, i, end);
+
+    read_vector(gyro::VARIABLE_LOWER_BOUNDS, x_lb, n_vars, i, end);
+
+    read_vector(gyro::VARIABLE_UPPER_BOUNDS,  x_ub, n_vars, i, end);
+
+    // TODO Check value
+    echo_line(gyro::NUMBER_OF_SAMPLES, i, end);
+
+    //=======================================================
 
     n = n_samples();
 
     const int n_elem = 9*n;
 
-    // It seems it appends additional newlines, perhaps EOF?
-    if (size < n_elem+1)
-        throw runtime_error("Unexpected output from the solver!");
-
     m = new double[n_elem];
 
-    QList<QByteArray>::const_iterator i = arr.begin();
+    read_vector(gyro::ROTATION_MATRICES, m, n_elem, i, end);
 
-    bool result = skip_irrelevant_lines(arr, i);
+    skip_line(gyro::END_OF_FILE, i, end);
 
-    if (result==FAILED) {
-        return result;
+    msg = "Successfully finished!";
+}
+
+bool Solver::read_results() {
+
+    if ((n!=0) || (m!=0))
+        throw logic_error("The rotation matrices should have been released!");
+
+    bool result = SUCCESS;
+
+    QList<QByteArray> arr( solver->readAll().split('\n') );
+
+    li i = arr.begin();
+
+    cli end = arr.end();
+
+    try {
+
+        read_all_lines(i, end);;
     }
+    catch (char ) {
 
-    // TODO Process the first line!
-    cout << endl << i->constData() << endl;
-    ++i;
-
-    // TODO One function with params for sol, bounds, and matrices
-
-    // TODO One function that checks and skips lines of explanatory text
-
-    // TODO Check acceptance level
-
-    result = read_rotation_matrices(arr, i);
-
-    if (result==FAILED) {
-        return result;
+        result = FAILED;
     }
 
     return result;
@@ -407,7 +446,7 @@ bool Solver::process_result(int exitCode) {
 
     if (exitCode == gyro::SUCCESS) {
 
-        result = copy_rotation_matrices();
+        result = read_results();
     }
     else if (exitCode == ERROR_READING_INPUT) {
         msg += "reading input!";

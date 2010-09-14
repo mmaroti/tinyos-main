@@ -111,7 +111,7 @@ Input* read_stdin()	 {
 void print_vector(ostream& out, const double* x, const int length) {
 
 	for (int i=0; i<length; ++i) {
-		out << x << '\n';
+		out << x[i] << '\n';
 	}
 }
 
@@ -148,6 +148,7 @@ void print_result(ostream& out,
 	out << ROTATION_MATRICES << '\n';
 	rot.dump_matrices(out);
 
+	out << END_OF_FILE << '\n';
 	out << flush;
 }
 
