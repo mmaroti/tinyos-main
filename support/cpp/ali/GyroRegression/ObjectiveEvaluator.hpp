@@ -103,11 +103,21 @@ private:
 
 	void set_sum_and_R0() {
 
-		sx = sy = sz = NT(0);
-
 		R_11 = 1.0; R_12 = 0.0; R_13 = 0.0;
 		R_21 = 0.0; R_22 = 1.0; R_23 = 0.0;
 		R_31 = 0.0; R_32 = 0.0; R_33 = 1.0;
+
+		if (MR) {
+			// FIXME Set R(0) = M
+			// FIXME Eliminate all other multiplications!
+		}
+
+		ax = acc_x[0]; ay = acc_y[0]; az = acc_z[0];
+
+		sx = R_11*ax+R_12*ay+R_13*az;
+		sy = R_21*ax+R_22*ay+R_23*az;
+		sz = R_31*ax+R_32*ay+R_33*az;
+
 	}
 
 	void compute_G(const int i, const T* const x) {
