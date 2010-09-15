@@ -37,6 +37,7 @@
 #include "DataReader.hpp"
 #include "DataReadException.hpp"
 #include "CompileTimeConstants.hpp"
+#include "Results.hpp"
 
 using namespace std;
 
@@ -47,7 +48,7 @@ DataReader::DataReader(cli& begin, cli& end) : i(begin), end(end)
 
 }
 
-void DataReader::readAll(double* x, double* x_lb, double* x_ub, int& n, double*& m) {
+void DataReader::readAll(Results& r) {
 
     skip_irrelevant_lines();
 
@@ -64,24 +65,24 @@ void DataReader::readAll(double* x, double* x_lb, double* x_ub, int& n, double*&
     const int n_vars = gyro::NUMBER_OF_VARIABLES;
 
     // TODO Check acceptance level
-    read_vector(gyro::SOLUTION_VECTOR, x, n_vars);
+    read_vector(gyro::SOLUTION_VECTOR, r.x, n_vars);
 
-    read_vector(gyro::VARIABLE_LOWER_BOUNDS, x_lb, n_vars);
+    read_vector(gyro::VARIABLE_LOWER_BOUNDS, r.x_lb, n_vars);
 
-    read_vector(gyro::VARIABLE_UPPER_BOUNDS,  x_ub, n_vars);
+    read_vector(gyro::VARIABLE_UPPER_BOUNDS,  r.x_ub, n_vars);
 
     // TODO Check value
     echo_line(gyro::NUMBER_OF_SAMPLES);
 
     //=======================================================
 
-    n = n_samples();
+    r.n = n_samples();
 
-    const int n_elem = 9*n;
+    const int n_elem = 9*(r.n);
 
-    m = new double[n_elem];
+    r.m = new double[n_elem];
 
-    read_vector(gyro::ROTATION_MATRICES, m, n_elem);
+    read_vector(gyro::ROTATION_MATRICES, r.m, n_elem);
 
     skip_line(gyro::END_OF_FILE);
 

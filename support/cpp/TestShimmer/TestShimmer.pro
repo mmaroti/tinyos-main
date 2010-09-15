@@ -50,7 +50,8 @@ SOURCES += src/DataRecorder.cpp \
     src/Solver.cpp \
     src/Data.cpp \
     src/DataWriter.cpp \
-    src/DataReader.cpp
+    src/DataReader.cpp \
+    src/Results.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -76,7 +77,9 @@ HEADERS += src/DataRecorder.h \
     src/CompileTimeConstants.hpp \
     src/DataWriter.hpp \
     src/DataReader.hpp \
-    src/DataReadException.hpp
+    src/DataReadException.hpp \
+    src/Results.hpp \
+    src/DataWriteException.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

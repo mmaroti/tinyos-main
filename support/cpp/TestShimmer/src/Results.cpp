@@ -31,71 +31,26 @@
 * Author: Ali Baharev
 */
 
-#ifndef SOLVER_HPP
-#define SOLVER_HPP
+#include <stdexcept>
+#include "Results.hpp"
 
-#include <string>
-#include "QObject"
-#include "QProcess"
-
-class QMutex;
 
 namespace ipo {
 
-class Results;
+// TODO Access elements through enum?
+double Results::R(int sample, int i, int j) const {
 
-class Solver : public QObject {
+    if ((n==0) || (m==0)) {
+        throw std::logic_error("Rotation matrices are not set!");
+    }
 
-    Q_OBJECT
+    if ((sample<0) || (sample>=n) || (i<1) || (i>3) || (j<1) || (j>3)) {
+        throw std::range_error("Index out of range for rotation matrix!");
+    }
 
-public:
+    const int index = 9*sample + 3*(i-1) + (j-1);
 
-    Solver();
-
-    // returns true if an error occured and finished won't be signalled
-    bool start();
-
-    ~Solver();
-
-signals:
-
-    // MUST use Qt::BlockingQueuedConnection when connecting to this signal
-    void finished(bool error, const std::string& msg, const Results& res);
-
-private slots:
-
-    void started();
-
-    void error(QProcess::ProcessError error);
-
-    void finished(int exitCode, QProcess::ExitStatus exitStatus);
-
-private:
-
-    Solver(const Solver& );
-    Solver& operator=(const Solver& );
-
-    void init();
-    void cleanup_solver();
-    void cleanup_data();
-    void cleanup_all();
-    void emit_signal(bool error);
-
-    bool process_result(int exitCode);
-
-    bool read_results();
-
-    // FIXME Why aren't these volatile ???
-
-    QMutex* const mutex;
-
-    QProcess* solver;
-
-    std::string msg;
-
-    Results* r;
-};
-
+    return m[index];
 }
 
-#endif
+}

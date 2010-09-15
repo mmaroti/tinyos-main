@@ -37,10 +37,11 @@
 #include "QMutex"
 #include "QSettings"
 #include "Solver.hpp"
-#include "CompileTimeConstants.hpp"
 #include "DataReader.hpp"
 #include "DataReadException.hpp"
 #include "DataWriter.hpp"
+#include "DataWriteException.hpp"
+#include "Results.hpp"
 
 using namespace std;
 
@@ -49,26 +50,6 @@ namespace {
 // TODO Make an enum with ERROR_INTERNAL ?
 const bool FAILED(true);
 const bool SUCCESS(false);
-
-class MutexUnlocker {
-
-public:
-
-    MutexUnlocker(QMutex* m) : mutex(m) {
-        if (!mutex->tryLock())
-            throw logic_error("The solver is still running!");
-    }
-
-    ~MutexUnlocker() { mutex->unlock(); }
-
-private:
-
-    MutexUnlocker(const MutexUnlocker& );
-    MutexUnlocker& operator=(const MutexUnlocker& );
-
-    QMutex* const mutex;
-
-};
 
 }
 
@@ -97,9 +78,9 @@ void Solver::cleanup_solver() {
 
 void Solver::cleanup_data() {
 
-    n = 0;
-    delete[] m;
-    m = 0;
+    delete r;
+    r = 0;
+
     msg = "Error: ";
 }
 
@@ -114,6 +95,8 @@ void Solver::init() {
 
     cleanup_all();
 
+    r = new Results();
+
     solver = new QProcess(this);
 
     QObject::connect(solver, SIGNAL(started()),
@@ -126,7 +109,7 @@ void Solver::init() {
                        this, SLOT(  finished(int, QProcess::ExitStatus)), Qt::QueuedConnection);
 }
 
-Solver::Solver() : mutex(new QMutex), solver(0), n(0), m(0), msg("Error: ") {
+Solver::Solver() : mutex(new QMutex), solver(0), msg(""), r(0) {
 
     qRegisterMetaType<QProcess::ProcessError>("QProcess::ProcessError");
     qRegisterMetaType<QProcess::ExitStatus>("QProcess::ExitStatus");
@@ -171,14 +154,12 @@ void Solver::emit_signal(bool error) {
 
     cleanup_solver();
 
-    if (error!=SUCCESS) {
+    // FIXME Test with Qt::BlockingQueuedConnection
+    emit finished(error, msg, *r);
 
-        cleanup_data();
-    }
+    cleanup_data();
 
     mutex->unlock();
-
-    emit finished(error, msg);
 }
 
 void Solver::started() {
@@ -191,7 +172,7 @@ void Solver::started() {
 
         cout << endl << "Input data written to gyro.exe" << endl;
     }
-    catch (char ) {
+    catch (DataWriteException& ) {
 
         // FIXME Is write error also signalled?
 
@@ -230,9 +211,6 @@ void Solver::error(QProcess::ProcessError error) {
 
 bool Solver::read_results() {
 
-    if ((n!=0) || (m!=0))
-        throw logic_error("The rotation matrices should have been released!");
-
     bool result = SUCCESS;
 
     QList<QByteArray> arr( solver->readAll().split('\n') );
@@ -241,8 +219,7 @@ bool Solver::read_results() {
 
         DataReader dr(arr.begin(), arr.end());
 
-        // Allocates m, sets n
-        dr.readAll(x, x_lb, x_ub, n, m);
+        dr.readAll(*r);
 
         msg = "Successfully finished!";
     }
@@ -303,24 +280,6 @@ void Solver::finished(int exitCode, QProcess::ExitStatus exitStatus) {
     }
 
     emit_signal(result);
-}
-
-// TODO Access elements through enum?
-double Solver::R(int sample, int i, int j) const {
-
-    MutexUnlocker mu(mutex);
-
-    if ((n==0) || (m==0)) {
-        throw logic_error("Run the solver first!");
-    }
-
-    if ((sample<0) || (sample>=n) || (i<1) || (i>3) || (j<1) || (j>3)) {
-        throw range_error("Index out of range for rotation matrix!");
-    }
-
-    const int index = 9*sample + 3*(i-1) + (j-1);
-
-    return m[index];
 }
 
 Solver::~Solver() {

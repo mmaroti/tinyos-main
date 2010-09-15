@@ -31,71 +31,12 @@
 * Author: Ali Baharev
 */
 
-#ifndef SOLVER_HPP
-#define SOLVER_HPP
+#ifndef DATAWRITEEXCEPTION_HPP
+#define DATAWRITEEXCEPTION_HPP
 
-#include <string>
-#include "QObject"
-#include "QProcess"
+class DataWriteException {
 
-class QMutex;
-
-namespace ipo {
-
-class Results;
-
-class Solver : public QObject {
-
-    Q_OBJECT
-
-public:
-
-    Solver();
-
-    // returns true if an error occured and finished won't be signalled
-    bool start();
-
-    ~Solver();
-
-signals:
-
-    // MUST use Qt::BlockingQueuedConnection when connecting to this signal
-    void finished(bool error, const std::string& msg, const Results& res);
-
-private slots:
-
-    void started();
-
-    void error(QProcess::ProcessError error);
-
-    void finished(int exitCode, QProcess::ExitStatus exitStatus);
-
-private:
-
-    Solver(const Solver& );
-    Solver& operator=(const Solver& );
-
-    void init();
-    void cleanup_solver();
-    void cleanup_data();
-    void cleanup_all();
-    void emit_signal(bool error);
-
-    bool process_result(int exitCode);
-
-    bool read_results();
-
-    // FIXME Why aren't these volatile ???
-
-    QMutex* const mutex;
-
-    QProcess* solver;
-
-    std::string msg;
-
-    Results* r;
+    // Dummy class
 };
-
-}
 
 #endif

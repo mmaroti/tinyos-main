@@ -38,7 +38,8 @@
 
 namespace ipo {
 
-//typedef const QList<QByteArray> carray;
+class Results;
+
 typedef const QList<QByteArray>::const_iterator cli;
 typedef QList<QByteArray>::const_iterator li;
 
@@ -48,7 +49,7 @@ public:
 
     DataReader(cli& begin, cli& end);
 
-    void readAll(double* x, double* x_lb, double* x_ub, int& n, double*& m);
+    void readAll(Results& r);
 
 private:
 

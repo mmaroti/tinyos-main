@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include "QProcess"
 #include "DataWriter.hpp"
+#include "DataWriteException.hpp"
 #include "CompileTimeConstants.hpp"
 
 using namespace std;
@@ -92,7 +93,7 @@ void DataWriter::write(const char *data) {
     int k = process->write(data);
 
     if (k==-1) {
-        throw '\0';
+        throw DataWriteException();
     }
 }
 

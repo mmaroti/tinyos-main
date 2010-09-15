@@ -31,69 +31,53 @@
 * Author: Ali Baharev
 */
 
-#ifndef SOLVER_HPP
-#define SOLVER_HPP
+#ifndef RESULTS_HPP
+#define RESULTS_HPP
 
-#include <string>
-#include "QObject"
-#include "QProcess"
+#include "CompileTimeConstants.hpp"
 
-class QMutex;
+// Just a chunk of data at the moment...
 
 namespace ipo {
 
-class Results;
-
-class Solver : public QObject {
-
-    Q_OBJECT
+class Results {
 
 public:
 
-    Solver();
+    friend class DataReader;
 
-    // returns true if an error occured and finished won't be signalled
-    bool start();
+    Results() : n(0), m(0) { }
 
-    ~Solver();
+    ~Results() { delete[] m; n = 0; m = 0; }
 
-signals:
+    const double* var() const { return x; }
 
-    // MUST use Qt::BlockingQueuedConnection when connecting to this signal
-    void finished(bool error, const std::string& msg, const Results& res);
+    const double* var_lb() const { return x_lb; }
 
-private slots:
+    const double* var_ub() const { return x_ub; }
 
-    void started();
+    int number_of_samples() const { return n; }
 
-    void error(QProcess::ProcessError error);
+    const double* rotation_matrices() const { return m; }
 
-    void finished(int exitCode, QProcess::ExitStatus exitStatus);
+    double R(int sample, int i, int j) const;
 
 private:
 
-    Solver(const Solver& );
-    Solver& operator=(const Solver& );
+    Results(const Results& );
 
-    void init();
-    void cleanup_solver();
-    void cleanup_data();
-    void cleanup_all();
-    void emit_signal(bool error);
+    Results& operator=(const Results& );
 
-    bool process_result(int exitCode);
+    double x[gyro::NUMBER_OF_VARIABLES];
 
-    bool read_results();
+    double x_lb[gyro::NUMBER_OF_VARIABLES];
 
-    // FIXME Why aren't these volatile ???
+    double x_ub[gyro::NUMBER_OF_VARIABLES];
 
-    QMutex* const mutex;
+    int n;
 
-    QProcess* solver;
+    double* m;
 
-    std::string msg;
-
-    Results* r;
 };
 
 }
