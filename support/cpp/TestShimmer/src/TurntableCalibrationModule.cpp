@@ -113,11 +113,12 @@ QString TurntableCalibrationModule::Calibrate(int rpm)
         if( (xGyroDiff < GYROMAXDIFF) && (yGyroDiff < GYROMAXDIFF) && (zGyroDiff < GYROMAXDIFF) ){
             TurntableWindow turntableWindow;
 
-            turntableWindow.time = application.dataRecorder.at(j).time - 100;
+            turntableWindow.time = application.dataRecorder.at(j).time - GYROWINDOW;
             turntableWindow.xGyroMax = xGyroMax; turntableWindow.xGyroMin = xGyroMin;
             turntableWindow.yGyroMax = yGyroMax; turntableWindow.yGyroMin = yGyroMin;
             turntableWindow.zGyroMax = zGyroMax; turntableWindow.zGyroMin = zGyroMin;
             turntableWindow.xGyroAvg = xGyroAvg; turntableWindow.yGyroAvg = yGyroAvg; turntableWindow.zGyroAvg = zGyroAvg;
+            turntableWindow.start = j;
             turntableWindows.append(turntableWindow);
         }
 
@@ -131,9 +132,9 @@ QString TurntableCalibrationModule::Calibrate(int rpm)
     if (turntableWindows.size() < 6){
         return "Please load a data record with the mote being idle on each side for at least a 2 seconds!";
     } else {
-        for(int i = 0; i < turntableWindows.size(); i++){
+        /*for(int i = 0; i < turntableWindows.size(); i++){
             qDebug() << turntableWindows[i].toString();
-        }
+        }*/
 
         return Classify();
     }
@@ -141,6 +142,7 @@ QString TurntableCalibrationModule::Calibrate(int rpm)
 
 QString TurntableCalibrationModule::Classify()
 {
+    QString errormsg;
     float xTemp,yTemp,zTemp;
     int xCLWMinDiff = 3*GYROMAXDIFF; int xCCLWMinDiff = 3*GYROMAXDIFF;
     int yCLWMinDiff = 3*GYROMAXDIFF; int yCCLWMinDiff = 3*GYROMAXDIFF;
@@ -196,18 +198,23 @@ QString TurntableCalibrationModule::Classify()
                 IMinDiff = actDiff;
                 turntableSidesMins[6] = i;
             }
-        } /*else {
-            //calibration error
-            return "Idle window outside boundaries!";
-        }*/
+        } else {
+            errormsg.append("Idle window outside boundaries! \n");
+            errormsg.append(turntableWindows[i].toString());
+
+            //application.dataRecorder.getGyroIdleWindowStart()[0] = turntableWindows[i].start;
+            //return errormsg;
+        }
     }
     xMinGyroAvg = 9999.99; xMaxGyroAvg = 0.0; yMinGyroAvg = 9999.99; yMaxGyroAvg = 0.0; zMinGyroAvg = 9999.99; zMaxGyroAvg = 0.0;
 
     for ( int i = 0; i < 7; i++ ) {
         if ( turntableSidesMins[i] == -1 ) {
+            application.dataRecorder.getGyroIdleWindowStart()[i] = turntableWindows[i].start;
             return "Calibration is missing the mote being idle on one of its sides! (Please load a record with the mote being idle on each side for at least 2 seconds!)";
         } else {
-            qDebug() << turntableWindows[turntableSidesMins[i]].toString();
+            application.dataRecorder.getGyroIdleWindowStart()[i] = turntableWindows[i].start;
+            //qDebug() << turntableWindows[turntableSidesMins[i]].toString();
         }
     }
 
@@ -381,7 +388,7 @@ QString TurntableCalibrationModule::LSF() {
     equation18->setCoefficient("b3", 1);
     linearEquations.addEquation(equation18);
 
-    //mote completey idle
+    //mote completely idle
     Equation* equation19 = linearEquations.createEquation();
     equation19->setConstant(0.0);
     equation19->setCoefficient("a11", turntableWindows[turntableSidesMins[6]].xGyroAvg);
@@ -409,7 +416,11 @@ QString TurntableCalibrationModule::LSF() {
     linearEquations.printStatistics();
 
     Solution* solution = linearEquations.solveWithSVD(0.0);
-    solution->print();
+    //solution->print();
+
+    for (int i = 0; i < 7; i++){
+        application.dataRecorder.getGyroIdleWindowStart()[i] = turntableWindows[turntableSidesMins[i]].start;
+    }
 
     QString returnMessage = "";
 
@@ -531,4 +542,17 @@ void TurntableCalibrationModule::printMatrix2D(TNT::Array2D<double> matrix) {
         std::cout << "\n";
     }
     std::cout << flush;
+}
+
+QString TurntableCalibrationModule::printError(int i)
+{
+    QString errormsg;
+
+    //errormsg.append("GYROWINDOW: " + GYROWINDOW + "\n");
+    //errormsg.append("GYROMAXDIFF: " + GYROMAXDIFF + "\n");
+    //errormsg.append("---===BOUNDARIES===---\n");
+    //errormsg.append("xI_L: " + xI_L + "\n");
+
+    return errormsg;
+
 }

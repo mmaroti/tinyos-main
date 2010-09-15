@@ -39,6 +39,7 @@
 #include "LinearEquations.h"
 #include "tnt_math_utils.h"
 #include <cmath>
+#include <QMessageBox>
 
 using namespace std;
 
@@ -138,6 +139,8 @@ QString StationaryCalibrationModule::Calibrate()
     }
 
     if (idleWindows.size() < 6){
+        msgBox.setText("Calibration Error! See console for details...");
+        msgBox.exec();
         return "Please load a data record with the mote being idle on each side for at least a 2 seconds!";
     } else {
         return Classify();
@@ -196,19 +199,19 @@ QString StationaryCalibrationModule::Classify()
                 idleSidesMins[5] = i;
             }
         } else {
-            //calibration error
-
-            errormsg.append("Idle window outside boundaries! \n");
+            errormsg.append("Idle windows outside boundaries! \n");
             errormsg.append(idleWindows[i].toString());
-            application.dataRecorder.getAccelIdleWindowStart()[0] = idleWindows[i].start;
+            //application.dataRecorder.getAccelIdleWindowStart()[0] = idleWindows[i].start;
 
-            return errormsg;
+            //return errormsg;
         }
     }
     xMinAvg = 9999.99; xMaxAvg = 0.0; yMinAvg = 9999.99; yMaxAvg = 0.0; zMinAvg = 9999.99; zMaxAvg = 0.0;
 
     for ( int i = 0; i < 6; i++ ) {        
         if ( idleSidesMins[i] == -1 ) {
+            msgBox.setText("Calibration Error! See console for details...");
+            msgBox.exec();
             return "Calibration is missing the mote being idle on one of its sides! (Please load a record with the mote being idle on each side for at least 2 seconds!)";
         }
     }
@@ -220,6 +223,8 @@ QString StationaryCalibrationModule::Classify()
         if ( fabs(idleWindows[idleSidesMins[i-1]].xGyroAvg - idleWindows[idleSidesMins[i]].xGyroAvg) > MAXDIFF ) {
             if ( fabs(idleWindows[idleSidesMins[i-1]].yGyroAvg - idleWindows[idleSidesMins[i]].yGyroAvg) > MAXDIFF ) {
                 if ( fabs(idleWindows[idleSidesMins[i-1]].zGyroAvg - idleWindows[idleSidesMins[i]].zGyroAvg) > MAXDIFF ) {
+                    msgBox.setText("Calibration Error! See console for details...");
+                    msgBox.exec();
                     return "Gyroscope is not idle. Your mote might have been spinning while recording the calibration data. Please ensure your mote is completly idle.";
                 }
             }
@@ -409,6 +414,8 @@ QString StationaryCalibrationModule::LSF() {
     QString returnMessage = "";
 
     if ( solution->getMaximumError() > 0.2 ) {
+        msgBox.setText("Calibration Error! See console for details...");
+        msgBox.exec();
         returnMessage = "Maximum Error is too great! ( > 0.1 )  \n";
         return returnMessage;
     } else {        
