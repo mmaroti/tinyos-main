@@ -32,12 +32,18 @@
 */
 
 #include "GyroNLP.hpp"
-#include "GradType.hpp"
+
+#ifdef USE_ADOLC
+
 #include "ObjectiveEvaluator.hpp"
 #include "CompileTimeConstants.hpp"
 #include "BoundReader.hpp"
 
-using namespace std;
+#include <adolc.h>
+
+#define tag_f 1
+#define tag_g 2
+#define tag_L 3
 
 namespace gyro {
 
@@ -61,40 +67,28 @@ private:
 	ObjEval<double> obj;
 };
 
-class ObjGrad {
+class ObjAD {
 
 public:
 
-	ObjGrad(const Input& data, ostream& os, bool verbose) :
-		obj(ObjEval<GradType<NUMBER_OF_VARIABLES> > (data, os, verbose))
+	ObjAD(const Input& data, ostream& os, bool verbose) :
+		obj(ObjEval<adouble> (data, os, verbose))
 	{
 
 	}
 
-	void evaluate(const double* x, double* grad_f) {
-
-		GradType<NUMBER_OF_VARIABLES> vars[NUMBER_OF_VARIABLES];
-
-		init_vars(vars, x);
-
-		const GradType<NUMBER_OF_VARIABLES> result = obj.f(vars);
-
-		const double* const g = result.gradient();
-
-		for (int i=0; i<NUMBER_OF_VARIABLES; ++i)
-			grad_f[i] = g[i];
-	}
+	adouble evaluate(const adouble* x) { return obj.f(x); }
 
 private:
 
-	ObjEval<GradType<NUMBER_OF_VARIABLES> > obj;
+	ObjEval<adouble> obj;
 
 };
 
 GyroNLP::GyroNLP(const Input& data, ostream& os, bool verbose) :
 		minimizer(new double[N_VARS]),
 		obj(new ObjDouble(data, os, verbose)),
-		grad(new  ObjGrad(data, os, verbose)),
+		ad(new  ObjAD(data, os, verbose)),
 		config(new BoundReader("config.txt"))
 {
 
@@ -104,7 +98,27 @@ GyroNLP::~GyroNLP(){
 
 	delete[] minimizer;
 	delete obj;
-	delete grad;
+	delete ad;
+	delete config;
+}
+
+bool GyroNLP::eval_obj(Index n, const double *x, double& obj_value) {
+
+	obj_value = obj->evaluate(x);
+
+	return true;
+}
+
+bool GyroNLP::eval_obj(Index n, const adouble *x, adouble& obj_value) {
+
+	obj_value = ad->evaluate(x);
+
+	return true;
+}
+
+int GyroNLP::config_file_id() const {
+
+	return config->file_id();
 }
 
 bool GyroNLP::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
@@ -114,12 +128,14 @@ bool GyroNLP::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 
 	m = N_CONS;
 
-	// The dense Jacobian contains n*m nonzeros
+	// in this example the jacobian is dense. Hence, it contains n*m nonzeros
 	nnz_jac_g = n*m;
 
-	// The dense Hessian has n*n total nonzeros, only the lower left corner is
-	// stored since it is symmetric
+	// the hessian is also dense and has n*n total nonzeros, but we
+	// only need the lower left corner (since it is symmetric)
 	nnz_h_lag = n*(n-1)/2+n;
+
+	generate_tapes(n, m);
 
 	// use the C style indexing (0-based)
 	index_style = C_STYLE;
@@ -168,41 +184,35 @@ bool GyroNLP::get_starting_point(Index n, bool init_x, Number* x,
 	return true;
 }
 
-void GyroNLP::finalize_solution(SolverReturn status,
-		Index n, const Number* x, const Number* z_L, const Number* z_U,
-		Index m, const Number* g, const Number* lambda,
-		Number obj_value,
-		const IpoptData* ip_data,
-		IpoptCalculatedQuantities* ip_cq)
-{
-	for (int i=0; i<n; ++i) {
-		minimizer[i] = x[i];
-	}
-}
+//*************************************************************************
+//
+//
+//         Nothing has to be changed below this point !!
+//
+//
+//*************************************************************************
 
-int GyroNLP::config_file_id() const {
-
-	return config->file_id();
-}
 
 bool GyroNLP::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 {
-	// TODO new_x -> caching?
-	obj_value = obj->evaluate(x);
+	eval_obj(n,x,obj_value);
+
 	return true;
 }
 
 bool GyroNLP::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 {
-	// TODO new_x -> caching?
-	grad->evaluate(x, grad_f);
+
+	gradient(tag_f,n,x,grad_f);
+
 	return true;
 }
 
 bool GyroNLP::eval_g(Index n, const Number* x, bool new_x, Index m, Number* g)
 {
-	// This problem does not have constraints
-	assert(m == 0);
+
+	eval_constraints(n,x,m,g);
+
 	return true;
 }
 
@@ -225,11 +235,174 @@ bool GyroNLP::eval_jac_g(Index n, const Number* x, bool new_x,
 	else {
 		// return the values of the jacobian of the constraints
 
-		// This problem does not have constraints
-		assert(m == 0);
+		jacobian(tag_g,m,n,x,Jac);
+
+		Index idx = 0;
+		for(Index i=0; i<m; i++)
+			for(Index j=0; j<n; j++)
+				values[idx++] = Jac[i][j];
+
 	}
 
 	return true;
 }
 
+bool GyroNLP::eval_h(Index n, const Number* x, bool new_x,
+		Number obj_factor, Index m, const Number* lambda,
+		bool new_lambda, Index nele_hess, Index* iRow,
+		Index* jCol, Number* values)
+{
+	if (values == NULL) {
+		// return the structure. This is a symmetric matrix, fill the lower left
+		// triangle only.
+
+		// the hessian for this problem is actually dense
+		Index idx=0;
+		for (Index row = 0; row < n; row++) {
+			for (Index col = 0; col <= row; col++) {
+				iRow[idx] = row;
+				jCol[idx] = col;
+				idx++;
+			}
+		}
+
+		assert(idx == nele_hess);
+	}
+	else {
+		// return the values. This is a symmetric matrix, fill the lower left
+		// triangle only
+
+		for(Index i = 0; i<n ; i++)
+			x_lam[i] = x[i];
+		for(Index i = 0; i<m ; i++)
+			x_lam[n+i] = lambda[i];
+		x_lam[n+m] = obj_factor;
+
+		hessian(tag_L,n+m+1,x_lam,Hess);
+
+		Index idx = 0;
+
+		for(Index i = 0; i<n ; i++)
+		{
+			for(Index j = 0; j<=i ; j++)
+			{
+				values[idx++] = Hess[i][j];
+			}
+		}
+	}
+
+	return true;
 }
+
+void GyroNLP::finalize_solution(SolverReturn status,
+		Index n, const Number* x, const Number* z_L, const Number* z_U,
+		Index m, const Number* g, const Number* lambda,
+		Number obj_value,
+		const IpoptData* ip_data,
+		IpoptCalculatedQuantities* ip_cq)
+{
+
+	for (int i=0; i<n; ++i) {
+		minimizer[i] = x[i];
+	}
+
+	// Memory deallocation for ADOL-C variables
+
+	delete[] x_lam;
+
+	for(Index i=0;i<m;i++)
+		delete[] Jac[i];
+	delete[] Jac;
+
+	for(Index i=0;i<n+m+1;i++)
+		delete[] Hess[i];
+	delete[] Hess;
+}
+
+
+//***************    ADOL-C part ***********************************
+
+void GyroNLP::generate_tapes(Index n, Index m)
+{
+	Number *xp    = new double[n];
+	Number *lamp  = new double[m];
+	Number *zl    = new double[m];
+	Number *zu    = new double[m];
+
+	adouble *xa   = new adouble[n];
+	adouble *g    = new adouble[m];
+	adouble *lam  = new adouble[m];
+	adouble sig;
+	adouble obj_value;
+
+	double dummy;
+
+	Jac = new double*[m];
+	for(Index i=0;i<m;i++)
+		Jac[i] = new double[n];
+
+	x_lam   = new double[n+m+1];
+
+	Hess = new double*[n+m+1];
+	for(Index i=0;i<n+m+1;i++)
+		Hess[i] = new double[i+1];
+
+	get_starting_point(n, 1, xp, 0, zl, zu, m, 0, lamp);
+
+	trace_on(tag_f);
+
+	for(Index i=0;i<n;i++)
+		xa[i] <<= xp[i];
+
+	eval_obj(n,xa,obj_value);
+
+	obj_value >>= dummy;
+
+	trace_off();
+
+	trace_on(tag_g);
+
+	for(Index i=0;i<n;i++)
+		xa[i] <<= xp[i];
+
+	eval_constraints(n,xa,m,g);
+
+
+	for(Index i=0;i<m;i++)
+		g[i] >>= dummy;
+
+	trace_off();
+
+	trace_on(tag_L);
+
+	for(Index i=0;i<n;i++)
+		xa[i] <<= xp[i];
+	for(Index i=0;i<m;i++)
+		lam[i] <<= 1.0;
+	sig <<= 1.0;
+
+	eval_obj(n,xa,obj_value);
+
+	obj_value *= sig;
+	eval_constraints(n,xa,m,g);
+
+	for(Index i=0;i<m;i++)
+		obj_value += g[i]*lam[i];
+
+	obj_value >>= dummy;
+
+	trace_off();
+
+	delete[] xa;
+	delete[] xp;
+	delete[] g;
+	delete[] lam;
+	delete[] lamp;
+	delete[] zu;
+	delete[] zl;
+
+}
+
+}
+
+#endif
