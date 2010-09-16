@@ -39,7 +39,9 @@ import java.io.RandomAccessFile;
 import org.szte.wsn.dataprocess.PacketParser;
 import org.szte.wsn.dataprocess.PacketParserFactory;
 import org.szte.wsn.dataprocess.StringInterface;
-import org.szte.wsn.dataprocess.Usage;
+import org.szte.wsn.dataprocess.StringPacket;
+import org.szte.wsn.dataprocess.Transfer;
+
 
 
 /**
@@ -142,7 +144,7 @@ public class StringInterfaceFile implements StringInterface {
 			PacketParser pp=PacketParserFactory.getParser(structName, packetParsers );
 			if(pp==null){
 				System.out.println("Not existing struct!");
-				Usage.usageThanExit();
+				Transfer.usageThanExit();
 			}
 			String[] fields;
 			if(!pp.getName().equals(previous.getName()))   //custom field order

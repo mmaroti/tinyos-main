@@ -39,6 +39,7 @@ import java.io.InputStreamReader;
 import org.szte.wsn.dataprocess.PacketParser;
 import org.szte.wsn.dataprocess.PacketParserFactory;
 import org.szte.wsn.dataprocess.StringInterface;
+import org.szte.wsn.dataprocess.StringPacket;
 
 
 /**
