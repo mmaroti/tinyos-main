@@ -79,6 +79,29 @@
          </widget>
         </item>
         <item>
+         <spacer name="horizontalSpacer_4">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="refreshButton">
+          <property name="text">
+           <string>Re(f)resh</string>
+          </property>
+          <property name="shortcut">
+           <string>F</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="horizontalSpacer_3">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -903,14 +926,20 @@
         <item>
          <widget class="QPushButton" name="loadBtn">
           <property name="text">
-           <string>Load</string>
+           <string>(L)oad</string>
+          </property>
+          <property name="shortcut">
+           <string>L</string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="exportBtn">
           <property name="text">
-           <string>Export</string>
+           <string>(E)xport</string>
+          </property>
+          <property name="shortcut">
+           <string>E</string>
           </property>
          </widget>
         </item>

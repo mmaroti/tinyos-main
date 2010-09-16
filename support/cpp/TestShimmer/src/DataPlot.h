@@ -95,6 +95,7 @@ public:
         //double gyroCalibrationDataAt(int i) { return gyroCalibrationData[i]; }
         double calculateAngle( double acceleration1, double acceleration2 );
         double calculateCalibratedValue( QString axis, int time );
+        int getTime(int i);
         //void loadSettingsData();
         void onNewCalibration();
 

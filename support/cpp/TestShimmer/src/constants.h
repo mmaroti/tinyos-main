@@ -2,6 +2,7 @@
 #define CONSTANTS_H
 
 #define GRAV 9.81                       //gravitational acceleration
+#define LAG_THRESHOLD 200               //the threshold for plotting lags from the radio
 
 // ---===PERIODICAL CALIBRATION===---
 
@@ -39,7 +40,7 @@ enum HighSensitivity{
 
 
 #define GYROWINDOW 200  //data window size, for finding idle shimmer positions
-#define GYROMAXDIFF 20  //maximum difference between max and min values from an idle mote
+#define GYROMAXDIFF 50  //maximum difference between max and min values from an idle mote
 #define xCCLW   0.9*xMinGyroAvg+0.1*xMaxGyroAvg  //region borders for classifying idle windows
 #define xI_L    0.7*xMinGyroAvg+0.3*xMaxGyroAvg  //CLW = ClockWise rotation
 #define xI_U    0.3*xMinGyroAvg+0.7*xMaxGyroAvg  //CCLW = counter ClockWise rotation

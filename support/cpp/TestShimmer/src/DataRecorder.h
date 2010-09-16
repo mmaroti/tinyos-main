@@ -98,6 +98,7 @@ public:
         double* getGyroCalibration() { return gyroCalibrationData; }
         double* getGyroMinAvgs() { return gyroMinAvgs; }
         int* getAccelIdleWindowStart() { return accelIdleWindowStart; }
+        int* getGyroIdleWindowStart() { return gyroIdleWindowStart; }
 
         void at(int i, double data[ipo::SIZE]) const;
 
@@ -120,6 +121,7 @@ protected:
         double gyroCalibrationData[12];
         double gyroMinAvgs[3];
         int accelIdleWindowStart[6];
+        int gyroIdleWindowStart[7];
 
 private:
         Application &application;

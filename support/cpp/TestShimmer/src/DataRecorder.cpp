@@ -49,6 +49,9 @@ DataRecorder::DataRecorder(Application &app) : application(app)
     for(int i=0; i<6; i++){
         accelIdleWindowStart[i] = -1;
     }
+    for(int i=0; i<7; i++){
+        gyroIdleWindowStart[i] = -1;
+    }
 }
 
 DataRecorder::~DataRecorder() {

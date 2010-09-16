@@ -104,6 +104,7 @@ private slots:
         void on_clearBtn_clicked();
         void on_recordBtn_clicked();
         void on_loadBtn_clicked();
+        void on_refreshButton_clicked();
 
         void newCalibrationOccured();
 };

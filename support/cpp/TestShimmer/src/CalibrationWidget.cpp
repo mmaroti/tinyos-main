@@ -74,6 +74,7 @@ void CalibrationWidget::changeEvent(QEvent *e)
 
 void CalibrationWidget::on_startButton_clicked()
 {
+    QMessageBox msgBox;
     QString message = "";
     if ( ui->stationaryButton->isChecked() ) {
 

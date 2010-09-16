@@ -85,7 +85,7 @@ void DataPlot::paintEvent(QPaintEvent *event)
         QRect rect = event->rect();
 
         // to see which area is beeing refreshed
-                //painter.drawLine(rect.left(), rect.top(), rect.right(), rect.bottom());
+        //painter.drawLine(rect.left(), rect.top(), rect.right(), rect.bottom());
 
         const DataRecorder &dataRecorder = application.dataRecorder;
 
@@ -102,8 +102,8 @@ void DataPlot::paintEvent(QPaintEvent *event)
             //For showing data lag in system
             painter.setPen(QPen(Qt::red, 2, Qt::DashLine));
             for(int i = x0 + 1; i < x1; ++i){
-                if( (dataRecorder.at(i).time - dataRecorder.at(i-1).time) > 360 ){
-                    painter.drawLine(getPoint(i-1, 0), getPoint(i, 200));
+                if( (dataRecorder.at(i).time - dataRecorder.at(i-1).time) > LAG_THRESHOLD ){
+                    painter.drawLine(getPoint(getTime(i-1), 0), getPoint(getTime(i), 4000));
                 }
             }
 
@@ -407,6 +407,15 @@ void DataPlot::paintEvent(QPaintEvent *event)
                         painter.drawLine(getPoint(application.dataRecorder.getAccelIdleWindowStart()[i]+WINDOW, 0), getPoint(application.dataRecorder.getAccelIdleWindowStart()[i]+WINDOW, 4000));
                     }
                 }
+
+                painter.setPen(QPen(Qt::green, 2, Qt::DashLine));
+
+                for(int i=0; i < 7; i++){
+                    if(application.dataRecorder.getGyroIdleWindowStart()[i] != -1){
+                        painter.drawLine(getPoint(application.dataRecorder.getGyroIdleWindowStart()[i], 0), getPoint(application.dataRecorder.getGyroIdleWindowStart()[i], 4000));
+                        painter.drawLine(getPoint(application.dataRecorder.getGyroIdleWindowStart()[i]+WINDOW, 0), getPoint(application.dataRecorder.getGyroIdleWindowStart()[i]+WINDOW, 4000));
+                    }
+                }
             }
         }
 
@@ -441,6 +450,21 @@ void DataPlot::paintEvent(QPaintEvent *event)
             }
         }
 
+}
+
+int DataPlot::getTime(int i)
+{
+    int returnTime;
+    int startTime = application.dataRecorder.getFirstTime();
+    if(startTime != 0){
+        if(application.dataRecorder.at(i).time-startTime > LAG_THRESHOLD){
+            returnTime =  int((application.dataRecorder.at(i).time -startTime) / 160);
+        } else {
+            returnTime = i;
+        }
+    }
+
+    return returnTime;
 }
 
 double DataPlot::calculateAngle(double accel1, double accel2) {
@@ -531,6 +555,8 @@ void DataPlot::mousePressEvent(QMouseEvent * event)
     if (event->buttons() & Qt::LeftButton) {
         QPoint sample = getSample(event->pos().x(), event->pos().y());
         QString message = "Time: " + QString::number(sample.x()/C_HZ, 'f', 1) + " sec  ";
+        message.append(" "+QString::number(sample.x())+" ");
+        message.append(" "+QString::number(getTime(sample.x()))+" mote time ");
         if( (graphs & XRAWACC) != 0 || (graphs & YRAWACC) != 0 || (graphs & ZRAWACC) != 0 || (graphs & XRAWGYRO) != 0 || (graphs & YRAWGYRO) != 0 || (graphs & ZRAWGYRO) != 0 ){
             message.append("Sample: " + QString::number(sample.y()) + " ");
         }

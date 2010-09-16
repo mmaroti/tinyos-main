@@ -100,6 +100,11 @@ void DataWidget::on_clearBtn_clicked()
     application.dataRecorder.clearMessages();
 }
 
+void DataWidget::on_refreshButton_clicked()
+{
+    plot->update();
+}
+
 void DataWidget::on_loadBtn_clicked()
 {
     QString file = QFileDialog::getOpenFileName(this, "Select one or more files to open", "c:/");
