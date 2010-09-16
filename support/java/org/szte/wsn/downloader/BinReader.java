@@ -41,7 +41,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -202,7 +202,7 @@ public class BinReader {
 				String globaltime=Long.toString(de.globaltime);
 				String localetime=Long.toString(de.localetime);
 				if(converttime&&(de.globaltime!=de.localetime)){
-					globaltime=DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(de.globaltime));
+					globaltime=new SimpleDateFormat("yyyy.MM.dd. HH:mm:ss.SSS").format(new Date(de.globaltime));
 					//time=new Date(de.time).toString();
 				}	
 				if(convert){
@@ -237,31 +237,33 @@ public class BinReader {
 	}
 	
 	public static void usageThanExit(){
-		System.out.println("java BinReader [options] [maxtimeerror] <datafile>");
-		System.out.println("<datafile>: the binary file to process");
-		System.out.println("<outputfile>: the generated csv file");
-		System.out.println("[maxtimeerror]: The maximum of the enabled error during timesync in seconds");
-		System.out.println("				default:120");
+		System.out.println("java BinReader [options]");
 		System.out.println("options:");
 		System.out.println("	-c; --convert: convert the temperature to celsius and the humidity to percent");
 		System.out.println("	-t; --converttime: convert the time to human readable format");
 		System.out.println("	-r; --rewrite: rewrite the output file if exists");
+		System.out.println("	-i; --input <filename>: the filename of the binary file");
+		System.out.println("				default: all the file in the directory");
 		System.out.println("	-o; --output <filename>: the filename of the generated output");
 		System.out.println("				default: The input filename with txt extension");
+		System.out.println("				only working if the input file was set");
 		System.out.println("	-e; --maxtimeerror <number>: The maximum of the enabled error during timesync in seconds");
 		System.out.println("				default:120");
 		System.exit(0);
 	}
 	
+	public static String switchExtension(String fullname, String newEx){
+		return fullname.substring(0, fullname.lastIndexOf('.'))+"."+newEx;
+	}
+	
 	public static void main(String[] args) throws Exception {
-		if(args.length<1||args[args.length-1].startsWith("-"))
-			BinReader.usageThanExit();
 		boolean convert=false;
 		boolean converttime=false;
 		boolean rewrite=false;
-		String output=args[args.length-1].substring(0, args[args.length-1].lastIndexOf('.'))+".txt";
+		String output="";
+		String input="";
 		long errorlimit=120000;
-		for(int i=0;i<args.length-1;i++){
+		for(int i=0;i<args.length;i++){
 			if(args[i].startsWith("-")){
 				if(args[i].startsWith("--")||args[i].length()<=2){
 					if(args[i].equals("--convert")||args[i].equals("-c"))
@@ -280,6 +282,9 @@ public class BinReader {
 					} else if(args[i].equals("--output")||args[i].equals("-o")){
 						i++;
 						output=args[i];
+					} else if(args[i].equals("--input")||args[i].equals("-i")){
+						i++;
+						input=args[i];
 					}
 				} else {
 					for(int j=1;j<args[i].length();j++){
@@ -296,10 +301,28 @@ public class BinReader {
 						}
 					}
 				}
+			} else {
+				BinReader.usageThanExit();
 			}
 				
 		}
-		new BinReader(args[args.length-1], output, convert, converttime, rewrite, errorlimit);
+		if(output!=""&&input=="")
+			BinReader.usageThanExit();
+		else if(output==""&&input!="")
+			output=BinReader.switchExtension(input, "txt");
+		if(input!="")
+			new BinReader(input, output, convert, converttime, rewrite, errorlimit);
+		else{
+			String[] fileNames=new File(".").list();
+			for(String fileName:fileNames){
+				if(fileName.endsWith(".bin")){
+					File current=new File(fileName);
+					if(current.isFile()&&current.exists()&&current.canRead()){
+						new BinReader(fileName, BinReader.switchExtension(fileName, "txt"), convert, converttime, rewrite, errorlimit);
+					}
+				}
+			}
+		}
 	}
 
 }
