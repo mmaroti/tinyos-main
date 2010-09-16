@@ -45,16 +45,8 @@ import javax.swing.JCheckBox;
 
 public class Process {
 	
-	//private static ArrayList<JPanel> dataPanel = SnifferGraph.dataPanel;
-	//private static JPanel backgPanel = SnifferGraph.backgPanel;
-	//private static ArrayList<Packages> motes = SnifferGraph.motes;
-	//private static JPanel centerPanel = SnifferGraph.centerPanel;
-	//private static JPanel forBox = SnifferGraph.forBox;
 	private static ArrayList<JCheckBox> devices = SnifferGraph.devices;
 	private static ArrayList<String> dataTypes = SnifferGraph.dataTypes;
-	
-	//private static JCheckBox box[] = SnifferGraph.box;
-	//private static Date date = new Date();
 	public static int currentlyMillisec = Integer.valueOf((int) (System.currentTimeMillis()%100));
 	
 	public static String whatTimeIsNow(){

@@ -91,9 +91,9 @@ public class SnifferGraph implements DataBase{
 	JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 	JPanel northPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 	JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-	public static JPanel centerPanel = new JPanel(new BorderLayout(10, 10)); //Composite fulhoz a panel
-	public static JPanel centerPanel2 = new JPanel(new BorderLayout(10, 10)); //Data fulhoz a panel
-	public static JPanel centerPanel3 = new JPanel(new BorderLayout(10, 10)); //Timing fulhoz a panel
+	public static JPanel centerPanel = new JPanel(new BorderLayout(1, 1)); //Composite fulhoz a panel
+	public static JPanel centerPanel2 = new JPanel(new BorderLayout(1, 1)); //Data fulhoz a panel
+	public static JPanel centerPanel3 = new JPanel(new BorderLayout(1, 1)); //Timing fulhoz a panel
 	public static JPanel forBox = new JPanel();
 
 	
@@ -142,6 +142,7 @@ public class SnifferGraph implements DataBase{
     public static TimeLineDraw timeLine = new TimeLineDraw();
     
     public static JScrollBar scrollbar = new JScrollBar(JScrollBar.HORIZONTAL);
+    public static JScrollBar scrollbar2 = new JScrollBar(JScrollBar.VERTICAL);
  
     
     public static ArrayList<JCheckBox> devices = new ArrayList<JCheckBox>();
@@ -267,22 +268,25 @@ public class SnifferGraph implements DataBase{
 		backgPanel.setLayout(null);
         backgPanel.setBackground(Color.white);						
         backgPanel.setBorder(BorderFactory.createEtchedBorder());
-        backgPanel2.setLayout(null);
+        backgPanel2.setLayout(null);			
         backgPanel2.setBackground(Color.white);						
         backgPanel2.setBorder(BorderFactory.createEtchedBorder());
         backgPanel3.setLayout(null);
         backgPanel3.setBackground(Color.white);						
         backgPanel3.setBorder(BorderFactory.createEtchedBorder());	
 
-        scrollbar.addAdjustmentListener(new MyAction());			
+        scrollbar.addAdjustmentListener(new MyAction());		//Composit fül srollbarja
         scrollbar.setMaximum(0);
+        
+        scrollbar2.addAdjustmentListener(new MyAction2());		//Data fül scrollbarja			
+        scrollbar2.setMaximum(0);
         
         menuCreat();												
         editables();										
         baseSetings();
         creatToolBar();
         createActionListeners();
-        adding();											
+        adding();
         setTooltips();													
         createTimeLine();
 		//createBoxes();
@@ -531,7 +535,7 @@ public class SnifferGraph implements DataBase{
 		
 		
 		centerPanel.add(scrollbar, BorderLayout.SOUTH);
-
+		centerPanel2.add(scrollbar2, BorderLayout.EAST);
 		
 		centerPanel.add(backgPanel, BorderLayout.CENTER);
 		centerPanel2.add(backgPanel2, BorderLayout.CENTER);

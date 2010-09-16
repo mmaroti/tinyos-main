@@ -43,10 +43,6 @@ import javax.swing.JTextField;
 
 public class Packages {
 	
-	//public static ArrayList<String> colors = SnifferGraph.colors;
-	//public static ArrayList<JCheckBox> devices = SnifferGraph.devices;
-	//public static ArrayList<String> dataTypes = SnifferGraph.dataTypes;
-	//public static int which=0;
 	protected int startTime;
 	protected int stopTime;
 	protected int timeLenght;
@@ -125,6 +121,8 @@ public class Packages {
 	 * 
 	 * @return motPanel: The panel requested features drawn
 	 *  */
+	
+	//jelenleg nem használja senki, és semmi. Majd tén jó lesz valamire
 	public JPanel getAPanel(ArrayList<JCheckBox> devices){
 		this.firstPos = 130+this.startTime*100;
 		motePanel2 = new JPanel();
@@ -147,10 +145,9 @@ public class Packages {
 		return motePanel2;
 	}
 	
-	
+	//Data fülön lévü paneleket generáló objektum tulajdnoság
 	public JPanel getABigPanel(ArrayList<JCheckBox> device, ArrayList<Color> colorList,
 			ArrayList<String> colors, ArrayList<String> dataTypes, ArrayList<Packages> motes){
-		//which++;
 		motePanel = new JPanel();
 		JButton details = new JButton("details");
 		int devicespos = 0;
@@ -200,14 +197,13 @@ public class Packages {
 		}
 		
 		details.setBounds(motePanel.getWidth()-95, 3, 90, 24);
-		details.setActionCommand(String.valueOf(allinfo));
+		details.setActionCommand(String.valueOf(motes.size()));
 		details.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
                 new AllDetails(event.getActionCommand());
             }
 		});
 		motePanel.add(details);
-		
 		
 		for(int i =2; i<labelNames.length;i+=2){
 			JTextField datas = new JTextField(this.labelNames[i]);
@@ -226,15 +222,12 @@ public class Packages {
 
 		motePanel.setBackground(colorList.get(devicespos));
 
-		
 		return motePanel; 
 	}
 	
-	
+	//Composit fülön lévő panelek generálását végző objektum tulajdonság
 	public JPanel getALilPanel(ArrayList<JCheckBox> devices, ArrayList<Color> colorList){
 		motePanel = new JPanel();
-		
-		//eszközmeghatározás
 		int devicespos = 0;
 		boolean talalat = false;
 		for(devicespos = 0; devicespos<devices.size(); devicespos++){
