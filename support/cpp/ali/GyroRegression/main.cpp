@@ -42,11 +42,7 @@ using namespace std;
 
 using namespace gyro;
 
-
-
 void run_solver(const Input& data) {
-
-	// TODO Reintroduce ADOL-C
 
 	Optimizer opt(data);
 

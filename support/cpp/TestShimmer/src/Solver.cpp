@@ -249,8 +249,11 @@ bool Solver::process_result(int exitCode) {
     else if (exitCode == ERROR_INITIALIZATION) {
         msg += "initializing IPOPT!";
     }
-    else if (exitCode == ERROR_CONVERGENCE) {
-        msg += "regression failed to converge!";
+    else if (exitCode == ERROR_INVALID_OPTION) {
+        msg += "invalid option set in ipopt.opt (check the log)!";
+    }
+    else if (exitCode == ERROR_OPTIMIZATION) {
+        msg += "optimization failed (check the log)!";
     }
     else if (exitCode == ERROR_UNKNOWN) {
         msg += "unkown error, most likely an unexpected exception in the solver!";

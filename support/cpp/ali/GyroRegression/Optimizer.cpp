@@ -35,7 +35,6 @@
 #include <cmath>
 #include <cstdlib>
 #include "IpIpoptApplication.hpp"
-#include "IpException.hpp"
 #include "IpSolveStatistics.hpp"
 #include "GyroNLP.hpp"
 #include "Optimizer.hpp"
@@ -77,9 +76,13 @@ Optimizer::Optimizer(const Input& data, std::ostream& os, bool verbose) {
 
 		status = app->OptimizeTNLP(SmartPtr<TNLP>(gyro_nlp));
 
-		if (status != Solve_Succeeded && status != Solved_To_Acceptable_Level) {
-			cerr << "Error during optimization!" << endl;
-			exit(ERROR_CONVERGENCE);
+		if (status == Invalid_Option) {
+			cerr << "Error: invalid option!" << endl;
+			exit(ERROR_INVALID_OPTION);
+		}
+		else if (status != Solve_Succeeded && status != Solved_To_Acceptable_Level) {
+			cerr << "Error during optimization, code: " << status << "!" << endl;
+			exit(ERROR_OPTIMIZATION);
 		}
 
 		g_computed = std::sqrt(-app->Statistics()->FinalObjective());
@@ -92,12 +95,6 @@ Optimizer::Optimizer(const Input& data, std::ostream& os, bool verbose) {
 			minimizer[i] = x[i];
 		}
 
-	}
-	catch(IpoptException& e) {
-
-		cerr << "Ipopt application has thrown an exception: ";
-		cerr << e.Message() << endl;
-		exit(ERROR_UNKNOWN);
 	}
 	catch(...) {
 		cerr << "Unknown error!" << endl;
