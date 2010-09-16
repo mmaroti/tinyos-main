@@ -57,16 +57,16 @@ DataRecorder::DataRecorder(Application &app) : application(app)
 DataRecorder::~DataRecorder() {
 }
 
-int DataRecorder::getFirstTime()
-{
+int DataRecorder::getFirstTime() const {
+
 	if( samples.isEmpty() )
                 return 0;
 
 	return samples[0].time;
 }
 
-int DataRecorder::getLastTime()
-{
+int DataRecorder::getLastTime() const {
+
 	int size = samples.size();
 
 	if( size == 0 )
@@ -175,7 +175,7 @@ QString Sample::toCsvString() const
         return s;
 }
 
-void DataRecorder::csvToSample( QString str )
+void DataRecorder::csvToSample(const QString& str)
 {    
         QStringList list = str.split(",");
         QStringListIterator csvIterator(list);
@@ -191,12 +191,12 @@ void DataRecorder::csvToSample( QString str )
         sample.voltage = csvIterator.next().toInt();
         sample.temp = csvIterator.next().toInt();
 
-        DataRecorder::addSample(sample);
+        samples.append(sample);
 
 }
 
-void DataRecorder::saveSamples( QString filename )
-{
+void DataRecorder::saveSamples(const QString& filename) const {
+
     QFile f( filename );
 
     if( !f.open( QIODevice::WriteOnly ) )
@@ -215,9 +215,8 @@ void DataRecorder::saveSamples( QString filename )
 
 }
 
-void DataRecorder::loadSamples( QString filename )
+void DataRecorder::loadSamples(const QString& filename )
 {
-    int sorok = 1;
     clearMessages();
     QFile f( filename );
     QString line;
@@ -235,12 +234,9 @@ void DataRecorder::loadSamples( QString filename )
             line = ts.readLine();
             while ( !line.isEmpty() && line != "#Accel_X,Accel_Y,Accel_Z,AVG_Accel,XY_Angle,YZ_Angle,ZX_Angle,Gyro_X,Gyro_Y,Gyro_Z" )
             {
-                sorok++;
                 csvToSample(line);            //convert line string to sample
                 line = ts.readLine();         // line of text excluding '\n'
             }
-
-            // Close the file
             f.close();
         }
     }
@@ -271,7 +267,7 @@ void DataRecorder::loadCalibrationData()
     application.settings.endArray();
 }
 
-void DataRecorder::saveCalibrationData()
+void DataRecorder::saveCalibrationData() const
 {
     application.settings.beginWriteArray("stationaryCalibrationData");
     for (unsigned int i = 0; i < 12; i++) {

@@ -44,7 +44,7 @@ class Application;
 
 struct Sample
 {
-	Sample();
+        Sample(); // FIXME
 	QString toString() const;
         QString toCsvString() const;
 
@@ -57,7 +57,7 @@ struct Sample
 	int zGyro;
 	int voltage;
 	int temp;
-        double XYangle, YZangle, ZXangle;
+        double XYangle, YZangle, ZXangle; // FIXME
 };
 
 class DataRecorder : public QObject
@@ -66,21 +66,13 @@ class DataRecorder : public QObject
 
 public:
         DataRecorder(Application &application);
-	virtual ~DataRecorder();
-
-	const QVarLengthArray<Sample> & getSamples() const {
-		return samples;
-	}
-
-	void addSample(const Sample & sample) {
-		samples.append(sample);
-	}
+        virtual ~DataRecorder(); // FIXME
 
 	int size() const {
 		return samples.size();
 	}
 
-        Sample & setAngle(int i) {
+        Sample & setAngle(int i) { // FIXME
             return samples[i];
         }
 
@@ -88,13 +80,13 @@ public:
 		return samples[i];
 	}
 
-	int getFirstTime();
-	int getLastTime();
+        int getFirstTime() const;
+        int getLastTime() const;
 
-        void saveCalibrationData();
+        void saveCalibrationData() const; // FIXME
         void loadCalibrationData();
 
-        double* getAccelCalibration() { return accelCalibrationData; }
+        double* getAccelCalibration() { return accelCalibrationData; } // FIXME
         double* getGyroCalibration() { return gyroCalibrationData; }
         double* getGyroMinAvgs() { return gyroMinAvgs; }
         int* getAccelIdleWindowStart() { return accelIdleWindowStart; }
@@ -102,29 +94,32 @@ public:
 
         void at(int i, double data[ipo::SIZE]) const;
 
+        void clearMessages(); // FIXME
+        void saveSamples(const QString& filename) const;
+        void loadSamples(const QString& filename);
+
 signals:
+
 	void sampleAdded();
 	void samplesCleared();
 
 public slots:
+
 	void onReceiveMessage(const ActiveMessage & msg);
 
-public:
-	void clearMessages();
-        void saveSamples(QString);
-        void loadSamples(QString);
-        void csvToSample(QString);
+private:
 
-protected:
+        void csvToSample(const QString& line); // FIXME
+
 	QVarLengthArray<Sample> samples;
         double accelCalibrationData[12];
         double gyroCalibrationData[12];
         double gyroMinAvgs[3];
         int accelIdleWindowStart[6];
-        int gyroIdleWindowStart[7];
+        int gyroIdleWindowStart[7]; // FIXME
 
-private:
-        Application &application;
+        Application &application; // FIXME
 
 };
+
 #endif // DATARECORDER_H
