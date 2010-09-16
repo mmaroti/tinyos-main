@@ -38,6 +38,7 @@
 #include <QObject>
 #include "Application.h"
 #include <jama_qr.h>
+#include <QMessageBox>
 #include "constants.h"
 
 class Application;
@@ -109,6 +110,7 @@ private:
     long xGyrSum, yGyrSum, zGyrSum;
 
     QStringList variableNames;
+    QMessageBox msgBox;
 
     QVarLengthArray<IdleWindow> idleWindows;
     int idleSidesMins[6];

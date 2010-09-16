@@ -68,6 +68,7 @@ struct TurntableWindow
         QString toString() const;
 
         long time;
+        int start;
 
         int xGyroMin, xGyroMax;
         int yGyroMin, yGyroMax;
@@ -110,6 +111,7 @@ public:
     //const double & getGyroAvgAt( int i ) const { return gyroMinAvgs[i]; }
 
     void clearTurntableSides();
+    QString printError(int i);
 
 private:
     Application &application;
