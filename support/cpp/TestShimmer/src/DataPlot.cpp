@@ -59,6 +59,8 @@ DataPlot::DataPlot(PlotScrollArea *parent, Application &app) : QWidget(parent),
         gyroMinAvgs = application.dataRecorder.getGyroMinAvgs();
         gyroCalibrationData = application.dataRecorder.getGyroCalibration();
         accelCalibrationData = application.dataRecorder.getAccelCalibration();
+
+        lag = 0;
 }
 
 QPoint DataPlot::getSample(int x, int y)
@@ -84,26 +86,36 @@ void DataPlot::paintEvent(QPaintEvent *event)
         parentHeight = parentWidget()->height();
         QRect rect = event->rect();
 
-        // to see which area is beeing refreshed
+        // DEBUGTOOL - to see which area is beeing refreshed
         //painter.drawLine(rect.left(), rect.top(), rect.right(), rect.bottom());
 
         const DataRecorder &dataRecorder = application.dataRecorder;
 
-        int x0 = rect.left() - 2;
-        int x1 = rect.right() + 2;
+        int x0 = rect.left() - 2-lag;
+        int x1 = rect.right() + 2 +lag;
 
-        if( x0 < application.dataRecorder.size() )
+        if( x0 < dataRecorder.size() )
         {
             if( x0 < 0 )
                     x0 = 0;
-            if( x1 > application.dataRecorder.size() )
+            if( x1 > dataRecorder.size() )
                     x1 = dataRecorder.size();
 
-            //For showing data lag in system
-            painter.setPen(QPen(Qt::red, 2, Qt::DashLine));
+            //DEBUGTOOL - For showing data lag in system
+            /*painter.setPen(QPen(Qt::red, 1, Qt::DashLine));
             for(int i = x0 + 1; i < x1; ++i){
                 if( (dataRecorder.at(i).time - dataRecorder.at(i-1).time) > LAG_THRESHOLD ){
-                    painter.drawLine(getPoint(getTime(i-1), 0), getPoint(getTime(i), 4000));
+                    //x1 += getTime(i);
+                    painter.drawLine(getPoint(getTime(i-1), 0), getPoint(getTime(i), 4096));
+                }
+            }*/
+
+            //for showing selection in the plot
+            if( (startPos.x() != 0) && lastPos.x() != 0 ){
+                painter.setPen(QPen(Qt::yellow, 1, Qt::SolidLine));
+                for(int i = x0 + 1; i < x1; ++i){
+                    painter.drawLine(getPoint(startPos.x(), 0), getPoint(startPos.x(), 4096));
+                    painter.drawLine(getPoint(lastPos.x(), 0), getPoint(lastPos.x(), 4096));
                 }
             }
 
@@ -338,8 +350,6 @@ void DataPlot::paintEvent(QPaintEvent *event)
                     xtemp1 = calculateCalibratedValue("xAcc", i-1);
                     xtemp2 = calculateCalibratedValue("xAcc", i);
 
-
-
                     double param1, param2;
                     param1 = xtemp1 / GRAV;
                     param2 = xtemp2 / GRAV;
@@ -454,14 +464,19 @@ void DataPlot::paintEvent(QPaintEvent *event)
 
 int DataPlot::getTime(int i)
 {
-    int returnTime;
-    int startTime = application.dataRecorder.getFirstTime();
-    if(startTime != 0){
-        if(application.dataRecorder.at(i).time-startTime > LAG_THRESHOLD){
-            returnTime =  int((application.dataRecorder.at(i).time -startTime) / 160);
-        } else {
-            returnTime = i;
+    int returnTime = 0;
+
+    if(i < application.dataRecorder.size()){        
+        int startTime = application.dataRecorder.getFirstTime();
+        if(startTime != 0){
+            if(application.dataRecorder.at(i).time-startTime > LAG_THRESHOLD){
+                returnTime =  int((application.dataRecorder.at(i).time -startTime) / 160);
+            } else {
+                returnTime = i;
+            }
         }
+    } else {
+        returnTime = i;
     }
 
     return returnTime;
@@ -525,6 +540,12 @@ void DataPlot::onSampleAdded()
         {
                 int oldWidth = plotWidth;
                 plotWidth = application.dataRecorder.size();
+                if(getTime(application.dataRecorder.size()-1) != (application.dataRecorder.size()-1)){
+                    lag = (getTime(application.dataRecorder.size()-1)-application.dataRecorder.size());
+                    plotWidth += lag;
+                    //scrollArea->horizontalScrollBar()->setValue();
+                    //QWidget::update();
+                }
 
                 scrollArea->setWidgetRect(QRect(0, 0, plotWidth, 1000));
                 scrollArea->ensureVisible(plotWidth,0,1,1);
@@ -550,15 +571,14 @@ void DataPlot::onNewCalibration()
 
 void DataPlot::mousePressEvent(QMouseEvent * event)
 {
-    startPos = event->pos();
-
     if (event->buttons() & Qt::LeftButton) {
+        startPos = event->pos();
         QPoint sample = getSample(event->pos().x(), event->pos().y());
         QString message = "Time: " + QString::number(sample.x()/C_HZ, 'f', 1) + " sec  ";
-        message.append(" "+QString::number(sample.x())+" ");
-        message.append(" "+QString::number(getTime(sample.x()))+" mote time ");
+        message.append("("+QString::number(sample.x())+". sample - ");
+        message.append(" "+QString::number(getTime(sample.x()))+" mote time.) ");
         if( (graphs & XRAWACC) != 0 || (graphs & YRAWACC) != 0 || (graphs & ZRAWACC) != 0 || (graphs & XRAWGYRO) != 0 || (graphs & YRAWGYRO) != 0 || (graphs & ZRAWGYRO) != 0 ){
-            message.append("Sample: " + QString::number(sample.y()) + " ");
+            message.append(" Value: " + QString::number(sample.y()) + " ");
         }
         if( (graphs & XACC) != 0 || (graphs & YACC) != 0 || (graphs & ZACC) != 0 || (graphs & ABSACC) != 0 ){
             message.append(" , Acceleration: " + QString::number((double)((sample.y()-2048)/(512/GRAV)), 'f', 2) + " m/s^2");
@@ -572,10 +592,18 @@ void DataPlot::mousePressEvent(QMouseEvent * event)
         application.showMessage( message );
     } else if (event->buttons() & Qt::RightButton) {
         //painter->backgroundMode(Qt::TransparentMode);
-
+        lastPos = event->pos();
     }
 
-    lastPos = event->pos();
+    if(lastPos.x()<startPos.x()){
+        application.dataRecorder.from = lastPos.x();
+        application.dataRecorder.to = startPos.x();
+    }else{
+        application.dataRecorder.to = lastPos.x();
+        application.dataRecorder.from = startPos.x();
+    }
+    QWidget::update();
+
 }
 
 void DataPlot::mouseMoveEvent(QMouseEvent *event)

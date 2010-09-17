@@ -98,6 +98,8 @@ public:
         int getTime(int i);
         //void loadSettingsData();
         void onNewCalibration();
+        QPoint& getStartPos() { return startPos; };
+        QPoint& getLastPos() { return lastPos; };
 
 protected:
         virtual void paintEvent(QPaintEvent *event);
@@ -120,6 +122,7 @@ private:
         PlotScrollArea *scrollArea;
         int parentHeight;
         int plotWidth;
+        int lag;
 
         QPainter *painter;
 

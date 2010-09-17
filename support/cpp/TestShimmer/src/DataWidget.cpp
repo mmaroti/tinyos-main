@@ -368,3 +368,19 @@ void DataWidget::on_angles2Box_clicked()
     on_angY_clicked();
     on_angZ_clicked();
 }
+
+void DataWidget::onTrim()
+{
+    application.dataRecorder.edit("trim");
+    plot->getStartPos().setX(0);
+    plot->getLastPos().setX(0);
+    plot->update();
+}
+
+void DataWidget::onCopy()
+{
+    application.dataRecorder.edit("copy");
+    plot->getStartPos().setX(0);
+    plot->getLastPos().setX(0);
+    plot->update();
+}

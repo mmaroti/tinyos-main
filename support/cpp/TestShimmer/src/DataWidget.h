@@ -107,6 +107,8 @@ private slots:
         void on_refreshButton_clicked();
 
         void newCalibrationOccured();
+        void onTrim();
+        void onCopy();
 };
 
 #endif // DATAWIDGET_H
