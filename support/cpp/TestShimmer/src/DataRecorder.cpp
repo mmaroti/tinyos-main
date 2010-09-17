@@ -42,6 +42,7 @@
 #include <vector>
 #include <QStringList>
 #include <QMessageBox>
+#include "DataPlot.h"
 
 DataRecorder::DataRecorder(Application &app) : application(app)
 {
@@ -52,6 +53,9 @@ DataRecorder::DataRecorder(Application &app) : application(app)
     for(int i=0; i<7; i++){
         gyroIdleWindowStart[i] = -1;
     }
+
+    from = to = 0;
+    copySamples.clear();
 }
 
 DataRecorder::~DataRecorder() {
@@ -322,3 +326,30 @@ void DataRecorder::at(int i, double data[ipo::SIZE]) const {
     data[GYRO_Z] = (wx - gyroMinAvgs[0]) * gyroCalibrationData[6] + (wy - gyroMinAvgs[1]) * gyroCalibrationData[7] + (wz - gyroMinAvgs[2]) * gyroCalibrationData[8];
 }
 
+void DataRecorder::edit(QString option)
+{
+    if(samples.size()< to){
+        to = samples.size()-1;
+    }
+
+    if(option == "trim"){
+        for(int i=from; i<=to; i++){
+            copySamples.append(samples[i]);
+        }
+        samples.clear();
+        emit samplesCleared();
+        samples = copySamples;
+        emit sampleAdded();
+        copySamples.clear();
+    } else
+    if(option == "copy"){
+        for(int i=from; i<=to; i++){            
+            copySamples.append(samples[i]);
+        }
+        for(int i=0; i<copySamples.size(); i++){
+            samples.append(copySamples[i]);
+        }
+        copySamples.clear();
+        emit sampleAdded();
+    }
+}
