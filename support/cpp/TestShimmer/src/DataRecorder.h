@@ -93,6 +93,7 @@ public:
         int* getGyroIdleWindowStart() { return gyroIdleWindowStart; }
 
         void at(int i, double data[ipo::SIZE]) const;
+        int from, to;
 
         void clearMessages(); // FIXME
         void saveSamples(const QString& filename) const;
@@ -104,20 +105,27 @@ signals:
 	void samplesCleared();
 
 public slots:
+	void onReceiveMessage(const ActiveMessage & msg); 
 
-	void onReceiveMessage(const ActiveMessage & msg);
+public:
+	//void clearMessages();
+        //void saveSamples(QString);
+        //void loadSamples(QString);
+        //void csvToSample(QString);
+        void edit(QString option);
 
 private:
-
         void csvToSample(const QString& line); // FIXME
 
 	QVarLengthArray<Sample> samples;
+        QVarLengthArray<Sample> copySamples;
         double accelCalibrationData[12];
         double gyroCalibrationData[12];
         double gyroMinAvgs[3];
         int accelIdleWindowStart[6];
         int gyroIdleWindowStart[7]; // FIXME
 
+private:
         Application &application; // FIXME
 
 };
