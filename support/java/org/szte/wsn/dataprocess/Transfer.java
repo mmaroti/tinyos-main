@@ -165,7 +165,7 @@ public class Transfer extends Thread  {
 				usageThanExit();
 			}
 			for(String file:fileNames){
-				Transfer fp=new Transfer(file,file.substring(0,file.length()-4)+".txt");
+				Transfer fp=new Transfer(file,file.substring(0,file.length()-4)+".txt"); //TODO 
 				fp.start();
 			}
 			break;
