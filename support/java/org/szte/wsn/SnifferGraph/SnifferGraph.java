@@ -83,23 +83,21 @@ public class SnifferGraph implements DataBase{
 	public static ArrayList<Packages> motes = new ArrayList<Packages>();
 	public static ArrayList<Color> colorlist = new ArrayList<Color>();
 	public static ArrayList<String> colors = new ArrayList<String>();		
-	public static ArrayList<String> dataTypes = new ArrayList<String>();//páros típus, páratlan szin
+	public static ArrayList<String> dataTypes = new ArrayList<String>();
 	
-	//public static XmlRead xmlRead = new XmlRead();
 	JTabbedPane tab = new JTabbedPane();
 	JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
 	JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 	JPanel northPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 	JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-	public static JPanel centerPanel = new JPanel(new BorderLayout(1, 1)); //Composite fulhoz a panel
-	public static JPanel centerPanel2 = new JPanel(new BorderLayout(1, 1)); //Data fulhoz a panel
-	public static JPanel centerPanel3 = new JPanel(new BorderLayout(1, 1)); //Timing fulhoz a panel
+	JPanel centerPanel = new JPanel(new BorderLayout(1, 1));		//Composite fulhoz a panel
+	static JPanel centerPanel2 = new JPanel(new BorderLayout(1, 1));		//Data fulhoz a panel
+	JPanel centerPanel3 = new JPanel(new BorderLayout(1, 1));		//Timing fulhoz a panel
 	public static JPanel forBox = new JPanel();
 
-	
-	public static JPanel backgPanel = new JPanel(); //Composite ful
-	public static JPanel backgPanel2 = new JPanel(); //Data ful
-	public static JPanel backgPanel3 = new JPanel(); //Timing ful
+	public static JPanel backgPanel = new JPanel();								//Composite ful
+	public static JPanel backgPanel2 = new JPanel();							//Data ful
+	public static JPanel backgPanel3 = new JPanel();							//Timing ful
 	
 	JMenuBar menubar = new JMenuBar();
     JMenu file = new JMenu("File");
@@ -149,6 +147,8 @@ public class SnifferGraph implements DataBase{
     
     JFileChooser fc = new JFileChooser();
     
+    ToolBarButton start_toolbar;
+    ToolBarButton stop_toolbar;
     ToolBarButton exit_toolbar;
     ToolBarButton about_toolbar;
     ToolBarButton creat_toolbar;
@@ -174,11 +174,13 @@ public class SnifferGraph implements DataBase{
 	/**
 	 * This function gives information about the process is stopped.
 	 */
-	private void stopProcess() {						
+	private void stopProcess() {
 		System.out.println("Process leált.");
+		start.setText(Labels.button_start);
 		startStop.setText(Labels.txfield_pause);
-		// TODO Auto-generated method stub
 		
+		stop_toolbar.setEnabled(false);
+		start_toolbar.setEnabled(true);
 	}
 	
 	/**
@@ -187,8 +189,8 @@ public class SnifferGraph implements DataBase{
 	private void startProcess() {						
 		System.out.println("Process indult.");
 		startStop.setText(Labels.txfield_working);
-		// TODO Auto-generated method stub
-		
+		start_toolbar.setEnabled(false);
+		stop_toolbar.setEnabled(true);
 	}
 	
 	/**
@@ -314,9 +316,13 @@ public class SnifferGraph implements DataBase{
 	}
 
 	private void creatToolBar() {
+		start_toolbar = new ToolBarButton("./org/szte/wsn/SnifferGraph/icon/PlayIcon.png");
+		start_toolbar.setToolTipText("Start the work");
+		stop_toolbar = new ToolBarButton("./org/szte/wsn/SnifferGraph/icon/PauseIcon.png");
+		stop_toolbar.setToolTipText("Pause the work");
+		stop_toolbar.setEnabled(false);
 		exit_toolbar = new ToolBarButton("./org/szte/wsn/SnifferGraph/icon/Exit.png");
 		exit_toolbar.setToolTipText("Exit");
-		
 		about_toolbar = new ToolBarButton("./org/szte/wsn/SnifferGraph/icon/About.png");
 		about_toolbar.setToolTipText("About to Sniffer");
 	    creat_toolbar = new ToolBarButton("./org/szte/wsn/SnifferGraph/icon/Create-Configuration.png");
@@ -478,6 +484,11 @@ public class SnifferGraph implements DataBase{
 		
 		scrollbar.setMaximum(DataBase.screenWidth-500);
 		scrollbar.setValue(0);
+		
+		scrollbar2.setMaximum(DataBase.screenHeight-500);
+		scrollbar2.setValue(0);
+		
+		receivedPack.setText("0");
 	}
 
 	/**
@@ -500,7 +511,9 @@ public class SnifferGraph implements DataBase{
 		northPanel.add(open_conf_toolbar);
 		northPanel.add(about_toolbar);
 		northPanel.add(exit_toolbar);
-		northPanel.add(start);
+		northPanel.add(start_toolbar);
+		northPanel.add(stop_toolbar);
+		//northPanel.add(start);
 		northPanel.add(clear);
 		
 		timeLine.setBounds(TIMELINE_X, TIMELINE_Y, TIMELINE_WIDTH+1000000, TIMELINE_HEIGHT);		
@@ -531,12 +544,10 @@ public class SnifferGraph implements DataBase{
 			forBox.add(devices.get(i-5));
 		}
 		centerPanel.add(forBox, BorderLayout.WEST);
-		
-		
+		//northPanel2.setLayout(null);
 		
 		centerPanel.add(scrollbar, BorderLayout.SOUTH);
 		centerPanel2.add(scrollbar2, BorderLayout.EAST);
-		
 		centerPanel.add(backgPanel, BorderLayout.CENTER);
 		centerPanel2.add(backgPanel2, BorderLayout.CENTER);
 		centerPanel3.add(backgPanel3, BorderLayout.CENTER);
@@ -577,7 +588,12 @@ public class SnifferGraph implements DataBase{
             }
 		});
         
-        start.addActionListener(new ActionListener() {
+        start_toolbar.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                startStopProcess();
+            }
+		});
+        stop_toolbar.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
                 startStopProcess();
             }
@@ -643,8 +659,10 @@ public class SnifferGraph implements DataBase{
 		dataPanel2.get(dataPanel2.size()-1).setVisible(true);
 		backgPanel2.add(dataPanel2.get(dataPanel2.size()-1));
 		
-		scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));						//srollbar méterte igaízás
+		scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));						//srollbarok méterte igaízása
+		scrollbar2.setMaximum((motes.get(motes.size()-1).firstPosVerical));
 		scrollbar.setValue(scrollbar.getMaximum()-DataBase.screenWidth+400);
+		scrollbar2.setValue(scrollbar2.getMaximum()-500);
 		receivedPack.setText(String.valueOf(Integer.parseInt(receivedPack.getText())+1));
 	} 
 	

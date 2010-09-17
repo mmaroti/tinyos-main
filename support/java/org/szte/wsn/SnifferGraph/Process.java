@@ -82,7 +82,6 @@ public class Process {
 	}
 
 	public static void addDevice(String s, Color color) {
-		System.out.println("adding now");
 		int pos = 0;
 		for(pos = 0; pos<devices.size(); pos++){
 			if(devices.get(pos).getText().equals("<none>")){
@@ -98,22 +97,5 @@ public class Process {
 	public static void addANewType(String s) {
 		dataTypes.add(s);
 	}
-
-	/*public static void reDraw() {
-		for(int i = 0; i<dataPanel.size();i++){
-			dataPanel.get(i).setVisible(false);
-			backgPanel.remove(dataPanel.get(i));
-		}
-		int length = dataPanel.size();
-		for(int i = 0; i<length; i++){
-			dataPanel.remove(0);
-		}
-		for(int i = 0; i<motes.size();i++){
-			dataPanel.add(motes.get(i).getAPanel(box));
-			dataPanel.get(dataPanel.size()-1).setVisible(true);
-			backgPanel.add(dataPanel.get(dataPanel.size()-1));
-		}
-		SnifferGraph.scrollbar.setMaximum((motes.get(motes.size()-1).firstPos));
-	}*/
 
 }

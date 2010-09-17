@@ -30,6 +30,7 @@
 * */
 
 package org.szte.wsn.SnifferGraph;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -47,12 +48,21 @@ public class Packages {
 	protected int stopTime;
 	protected int timeLenght;
 	protected int firstPos;
+	protected int firstPosVerical;
 	protected String[] labelNames;
 	protected JTextField[] cells;
 	protected JPanel motePanel;
 	protected JPanel motePanel2;
 	
 	//getters and setters
+	public int getfirstPosVerical() {
+		return firstPosVerical;
+	}
+	
+	public void setfirstPosVerical(int firstPosVerical) {
+		this.firstPosVerical = firstPosVerical;
+	}
+	
 	public int getFirstPos() {
 		return firstPos;
 	}
@@ -148,12 +158,13 @@ public class Packages {
 	//Data fülön lévü paneleket generáló objektum tulajdnoság
 	public JPanel getABigPanel(ArrayList<JCheckBox> device, ArrayList<Color> colorList,
 			ArrayList<String> colors, ArrayList<String> dataTypes, ArrayList<Packages> motes){
+		
 		motePanel = new JPanel();
 		JButton details = new JButton("details");
 		int devicespos = 0;
-		int type =0;
-		int p=0;
-		for(p=1;p<this.labelNames.length;p+=2){
+		int type = 0;
+		int p = 0;
+		for(p = 1;p<this.labelNames.length;p+=2){
 			boolean talalat = false;
 			for(type =0; type<dataTypes.size(); type++){
 				if(this.labelNames[p].equals(dataTypes.get(type))){
@@ -170,24 +181,24 @@ public class Packages {
 			if(this.labelNames[0].equals(device.get(devicespos).getText())) break;
 		}
 		
-		
 		for(int i=0;i<dataTypes.size();i++){
 			JTextField savedtypes = new JTextField(dataTypes.get(i));
 			savedtypes.setEditable(false);
 			savedtypes.setLayout(null);
-			savedtypes.setBounds(150+75*((i)), 25, 75, 24);
-			SnifferGraph.backgPanel2.add(savedtypes);
+			savedtypes.setBounds(195+75*((i)), 25, 75, 24);
+			SnifferGraph.backgPanel2.add(savedtypes, BorderLayout.SOUTH);
 		}
 		
-		motePanel.setBounds(75 ,(motes.size()+1)*29, 75*(dataTypes.size()+1)+100 ,29);		//koordinĂĄtĂĄk mĂŠg nem pontossak
+		motePanel.setBounds(3 ,(motes.size()+1)*29, 75*(dataTypes.size()+1)+120 ,29);
 		motePanel.setBorder(BorderFactory.createEtchedBorder());
 		motePanel.setBackground(colorList.get(devicespos));
+		
 		String information ="<html>";
 		
 		JTextField datas2 = new JTextField(this.labelNames[0]);
 		datas2.setEditable(false);
 		datas2.setLayout(null);
-		datas2.setBounds(2, 3, 75, 24);
+		datas2.setBounds(105, 3, 75, 24);
 		motePanel.add(datas2);
 		
 		String allinfo = this.labelNames[0];
@@ -196,7 +207,7 @@ public class Packages {
 			allinfo += this.labelNames[i] + " ";
 		}
 		
-		details.setBounds(motePanel.getWidth()-95, 3, 90, 24);
+		details.setBounds(2, 3, 90, 24);
 		details.setActionCommand(String.valueOf(motes.size()));
 		details.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
@@ -212,16 +223,15 @@ public class Packages {
 			motePanel.setLayout(null);
 			for(int k=0;k<dataTypes.size();k++){
 				if(this.labelNames[i-1].equals(dataTypes.get(k)))
-					datas.setBounds(75+75*((k)), 3, 75, 24);
+					datas.setBounds(190+75*((k)), 3, 75, 24);
 					motePanel.add(datas);
 			}
 			information=information+this.labelNames[i]+"<br>";
 		}
 		/*"<html>Eszkďż˝z neve: <br>"+this.labelNames[3]+"<br>Hďż˝mďż˝rsďż˝klet: <br>"+"adat"+"<br>valami: <br>"+"adat2"*/
 		motePanel.setToolTipText(information);
-
 		motePanel.setBackground(colorList.get(devicespos));
-
+		this.firstPosVerical = motePanel.getBounds().y;
 		return motePanel; 
 	}
 	
