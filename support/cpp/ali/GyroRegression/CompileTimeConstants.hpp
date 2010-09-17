@@ -36,6 +36,8 @@
 
 namespace gyro {
 
+const double TICKS_PER_SEC(32768.0);
+
 const int NUMBER_OF_VARIABLES(12);
 
 enum {

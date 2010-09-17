@@ -36,6 +36,7 @@
 
 #include <ostream>
 #include "InputData.hpp"
+#include "CompileTimeConstants.hpp"
 
 using std::endl;
 
@@ -77,6 +78,8 @@ private:
 
 	//==========================================================================
 
+	const NT* const time_stamp;
+
 	const NT* const acc_x;
 	const NT* const acc_y;
 	const NT* const acc_z;
@@ -85,7 +88,7 @@ private:
 	const NT* const wy;
 	const NT* const wz;
 
-	const NT dt;
+	//const NT dt;
 	const int N;
 
 	const NT g_ref;
@@ -132,9 +135,15 @@ private:
 		d2 = x[10];
 		d3 = x[11];
 
-		T w_x = (C_11*wx[i]+C_12*wy[i]+C_13*wz[i]+d1)*dt;
-		T w_y = (C_21*wx[i]+C_22*wy[i]+C_23*wz[i]+d2)*dt;
-		T w_z = (C_31*wx[i]+C_32*wy[i]+C_33*wz[i]+d3)*dt;
+		const NT time_step = (time_stamp[i]-time_stamp[i-1])/TICKS_PER_SEC;
+
+		const NT wx_avg = (wx[i]+wx[i-1])/2.0;
+		const NT wy_avg = (wy[i]+wy[i-1])/2.0;
+		const NT wz_avg = (wz[i]+wz[i-1])/2.0;
+
+		T w_x = (C_11*wx_avg+C_12*wy_avg+C_13*wz_avg+d1)*time_step;
+		T w_y = (C_21*wx_avg+C_22*wy_avg+C_23*wz_avg+d2)*time_step;
+		T w_z = (C_31*wx_avg+C_32*wy_avg+C_33*wz_avg+d3)*time_step;
 
 		G_11 =  one;
 		G_12 = -w_z;
@@ -328,6 +337,8 @@ public:
 
 	ObjEval(const Input& data, std::ostream& os, bool verbose) :
 
+		time_stamp(data.time_stamp()),
+
 		acc_x(data.acc_x()),
 		acc_y(data.acc_y()),
 		acc_z(data.acc_z()),
@@ -336,7 +347,7 @@ public:
 		wy(data.wy()),
 		wz(data.wz()),
 
-		dt(data.dt()),
+		//dt(data.dt()),
 
 		N(data.N()),
 
