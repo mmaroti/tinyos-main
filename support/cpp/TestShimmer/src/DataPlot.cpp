@@ -105,8 +105,8 @@ void DataPlot::paintEvent(QPaintEvent *event)
             /*painter.setPen(QPen(Qt::red, 1, Qt::DashLine));
             for(int i = x0 + 1; i < x1; ++i){
                 if( (dataRecorder.at(i).time - dataRecorder.at(i-1).time) > LAG_THRESHOLD ){
-                    //x1 += getTime(i);
-                    painter.drawLine(getPoint(getTime(i-1), 0), getPoint(getTime(i), 4096));
+                    //x1 += application.dataRecorder.getTime(i);
+                    painter.drawLine(getPoint(application.dataRecorder.getTime(i-1), 0), getPoint(application.dataRecorder.getTime(i), 4096));
                 }
             }*/
 
@@ -180,8 +180,8 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 painter.setPen(QPen(Qt::black, 2, Qt::SolidLine));
                 double xtemp1, xtemp2;
                 for(int i = x0 + 1; i < x1; ++i) {
-                    xtemp1 = calculateCalibratedValue("xAcc", i-1);
-                    xtemp2 = calculateCalibratedValue("xAcc", i);
+                    xtemp1 = application.dataRecorder.calculateCalibratedValue("xAcc", i-1);
+                    xtemp2 = application.dataRecorder.calculateCalibratedValue("xAcc", i);
                     painter.drawLine(getPoint(i-1, xtemp1 * 512/GRAV + 2048), getPoint(i, xtemp2 * 512/GRAV + 2048));
                 }
             }
@@ -191,8 +191,8 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 painter.setPen(QPen(Qt::blue, 2, Qt::SolidLine));
                 double ytemp1, ytemp2;
                 for(int i = x0 + 1; i < x1; ++i) {
-                    ytemp1 = calculateCalibratedValue("yAcc", i-1);
-                    ytemp2 = calculateCalibratedValue("yAcc", i);
+                    ytemp1 = application.dataRecorder.calculateCalibratedValue("yAcc", i-1);
+                    ytemp2 = application.dataRecorder.calculateCalibratedValue("yAcc", i);
                     painter.drawLine(getPoint(i-1, ytemp1 * 512/GRAV + 2048), getPoint(i, ytemp2 * 512/GRAV + 2048));
                 }
             }
@@ -202,8 +202,8 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 painter.setPen(QPen(Qt::red, 2, Qt::SolidLine));
                 double ztemp1, ztemp2;
                 for(int i = x0 + 1; i < x1; ++i) {
-                    ztemp1 = calculateCalibratedValue("zAcc", i-1);
-                    ztemp2 = calculateCalibratedValue("zAcc", i);
+                    ztemp1 = application.dataRecorder.calculateCalibratedValue("zAcc", i-1);
+                    ztemp2 = application.dataRecorder.calculateCalibratedValue("zAcc", i);
                     painter.drawLine(getPoint(i-1, ztemp1 * 512/GRAV + 2048), getPoint(i, ztemp2 * 512/GRAV + 2048));
                 }
             }
@@ -214,12 +214,12 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 double avgtemp1, avgtemp2;
                 double xtemp1, xtemp2, ytemp1, ytemp2, ztemp1, ztemp2;
                 for(int i = x0 + 1; i < x1; ++i) {
-                    xtemp1 = calculateCalibratedValue("xAcc", i-1);
-                    xtemp2 = calculateCalibratedValue("xAcc", i);
-                    ytemp1 = calculateCalibratedValue("yAcc", i-1);
-                    ytemp2 = calculateCalibratedValue("yAcc", i);
-                    ztemp1 = calculateCalibratedValue("zAcc", i-1);
-                    ztemp2 = calculateCalibratedValue("zAcc", i);
+                    xtemp1 = application.dataRecorder.calculateCalibratedValue("xAcc", i-1);
+                    xtemp2 = application.dataRecorder.calculateCalibratedValue("xAcc", i);
+                    ytemp1 = application.dataRecorder.calculateCalibratedValue("yAcc", i-1);
+                    ytemp2 = application.dataRecorder.calculateCalibratedValue("yAcc", i);
+                    ztemp1 = application.dataRecorder.calculateCalibratedValue("zAcc", i-1);
+                    ztemp2 = application.dataRecorder.calculateCalibratedValue("zAcc", i);
 
                     avgtemp1 = sqrt( pow(xtemp1, 2.0) + pow(ytemp1, 2.0) + pow(ztemp1, 2.0) );
                     avgtemp2 = sqrt( pow(xtemp2, 2.0) + pow(ytemp2, 2.0) + pow(ztemp2, 2.0) );
@@ -233,13 +233,13 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 double alfa1, alfa2;
                 double xtemp1, xtemp2, ytemp1, ytemp2;
                 for(int i = x0 + 1; i < x1; ++i) {
-                    xtemp1 = calculateCalibratedValue("xAcc", i-1);
-                    xtemp2 = calculateCalibratedValue("xAcc", i);
-                    ytemp1 = calculateCalibratedValue("yAcc", i-1);
-                    ytemp2 = calculateCalibratedValue("yAcc", i);
+                    xtemp1 = application.dataRecorder.calculateCalibratedValue("xAcc", i-1);
+                    xtemp2 = application.dataRecorder.calculateCalibratedValue("xAcc", i);
+                    ytemp1 = application.dataRecorder.calculateCalibratedValue("yAcc", i-1);
+                    ytemp2 = application.dataRecorder.calculateCalibratedValue("yAcc", i);
 
-                    alfa1 = calculateAngle(xtemp1, ytemp1);
-                    alfa2 = calculateAngle(xtemp2, ytemp2);
+                    alfa1 = application.dataRecorder.calculateAngle(xtemp1, ytemp1);
+                    alfa2 = application.dataRecorder.calculateAngle(xtemp2, ytemp2);
 
                     //emit angleChanged(alfa1);
                     //HACK
@@ -261,13 +261,13 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 double alfa1, alfa2;
                 double ytemp1, ytemp2, ztemp1, ztemp2;
                 for(int i = x0 + 1; i < x1; ++i) {
-                    ytemp1 = calculateCalibratedValue("yAcc", i-1);
-                    ytemp2 = calculateCalibratedValue("yAcc", i);
-                    ztemp1 = calculateCalibratedValue("zAcc", i-1);
-                    ztemp2 = calculateCalibratedValue("zAcc", i);
+                    ytemp1 = application.dataRecorder.calculateCalibratedValue("yAcc", i-1);
+                    ytemp2 = application.dataRecorder.calculateCalibratedValue("yAcc", i);
+                    ztemp1 = application.dataRecorder.calculateCalibratedValue("zAcc", i-1);
+                    ztemp2 = application.dataRecorder.calculateCalibratedValue("zAcc", i);
 
-                    alfa1 = calculateAngle(ytemp1, ztemp1);
-                    alfa2 = calculateAngle(ytemp2, ztemp2);
+                    alfa1 = application.dataRecorder.calculateAngle(ytemp1, ztemp1);
+                    alfa2 = application.dataRecorder.calculateAngle(ytemp2, ztemp2);
 
                     //HACK
                     application.dataRecorder.setAngle(i).YZangle = alfa2;
@@ -288,13 +288,13 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 double alfa1, alfa2;
                 double xtemp1, xtemp2, ztemp1, ztemp2;
                 for(int i = x0 + 1; i < x1; ++i) {
-                    xtemp1 = calculateCalibratedValue("xAcc", i-1);
-                    xtemp2 = calculateCalibratedValue("xAcc", i);
-                    ztemp1 = calculateCalibratedValue("zAcc", i-1);
-                    ztemp2 = calculateCalibratedValue("zAcc", i);
+                    xtemp1 = application.dataRecorder.calculateCalibratedValue("xAcc", i-1);
+                    xtemp2 = application.dataRecorder.calculateCalibratedValue("xAcc", i);
+                    ztemp1 = application.dataRecorder.calculateCalibratedValue("zAcc", i-1);
+                    ztemp2 = application.dataRecorder.calculateCalibratedValue("zAcc", i);
 
-                    alfa1 = calculateAngle(ztemp1, xtemp1);
-                    alfa2 = calculateAngle(ztemp2, xtemp2);
+                    alfa1 = application.dataRecorder.calculateAngle(ztemp1, xtemp1);
+                    alfa2 = application.dataRecorder.calculateAngle(ztemp2, xtemp2);
 
                     //HACK
                     application.dataRecorder.setAngle(i).ZXangle = alfa2;
@@ -314,8 +314,8 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 painter.setPen(QPen(Qt::green, 2, Qt::SolidLine));
                 double xtemp1, xtemp2;
                 for(int i = x0 + 1; i < x1; ++i) {
-                    xtemp1 = calculateCalibratedValue("xGyro", i-1);
-                    xtemp2 = calculateCalibratedValue("xGyro", i);
+                    xtemp1 = application.dataRecorder.calculateCalibratedValue("xGyro", i-1);
+                    xtemp2 = application.dataRecorder.calculateCalibratedValue("xGyro", i);
                     painter.drawLine(getPoint(i-1, xtemp1 * (2048/(4*M_PI)) + 2048), getPoint(i, xtemp2 * (2048/(4*M_PI)) + 2048));
                 }
             }
@@ -325,8 +325,8 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 painter.setPen(QPen(Qt::cyan, 2, Qt::SolidLine));
                 double xtemp1, xtemp2;
                 for(int i = x0 + 1; i < x1; ++i) {
-                    xtemp1 = calculateCalibratedValue("yGyro", i-1);
-                    xtemp2 = calculateCalibratedValue("yGyro", i);
+                    xtemp1 = application.dataRecorder.calculateCalibratedValue("yGyro", i-1);
+                    xtemp2 = application.dataRecorder.calculateCalibratedValue("yGyro", i);
                     painter.drawLine(getPoint(i-1, xtemp1 * (2048/(4*M_PI)) + 2048), getPoint(i, xtemp2 * (2048/(4*M_PI)) + 2048));
                 }
             }
@@ -336,8 +336,8 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 painter.setPen(QPen(Qt::magenta, 2, Qt::SolidLine));
                 double xtemp1, xtemp2;
                 for(int i = x0 + 1; i < x1; ++i) {
-                    xtemp1 = calculateCalibratedValue("zGyro", i-1);
-                    xtemp2 = calculateCalibratedValue("zGyro", i);
+                    xtemp1 = application.dataRecorder.calculateCalibratedValue("zGyro", i-1);
+                    xtemp2 = application.dataRecorder.calculateCalibratedValue("zGyro", i);
                     painter.drawLine(getPoint(i-1, xtemp1 * (2048/(4*M_PI)) + 2048), getPoint(i, xtemp2 * (2048/(4*M_PI)) + 2048));
                 }
             }
@@ -347,8 +347,8 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 painter.setPen(QPen(Qt::green, 2, Qt::SolidLine));
                 double xtemp1, xtemp2, alfa1, alfa2;
                 for(int i = x0 + 1; i < x1; ++i) {
-                    xtemp1 = calculateCalibratedValue("xAcc", i-1);
-                    xtemp2 = calculateCalibratedValue("xAcc", i);
+                    xtemp1 = application.dataRecorder.calculateCalibratedValue("xAcc", i-1);
+                    xtemp2 = application.dataRecorder.calculateCalibratedValue("xAcc", i);
 
                     double param1, param2;
                     param1 = xtemp1 / GRAV;
@@ -374,8 +374,8 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 painter.setPen(QPen(Qt::green, 2, Qt::SolidLine));
                 double ytemp1, ytemp2, alfa1, alfa2;
                 for(int i = x0 + 1; i < x1; ++i) {
-                    ytemp1 = calculateCalibratedValue("yAcc", i-1);
-                    ytemp2 = calculateCalibratedValue("yAcc", i);
+                    ytemp1 = application.dataRecorder.calculateCalibratedValue("yAcc", i-1);
+                    ytemp2 = application.dataRecorder.calculateCalibratedValue("yAcc", i);
 
                     double param1, param2;
                     param1 = ytemp1 / GRAV;
@@ -393,8 +393,8 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 painter.setPen(QPen(Qt::green, 2, Qt::SolidLine));
                 double ztemp1, ztemp2, alfa1, alfa2;
                 for(int i = x0 + 1; i < x1; ++i) {
-                    ztemp1 = calculateCalibratedValue("zAcc", i-1);
-                    ztemp2 = calculateCalibratedValue("zAcc", i);
+                    ztemp1 = application.dataRecorder.calculateCalibratedValue("zAcc", i-1);
+                    ztemp2 = application.dataRecorder.calculateCalibratedValue("zAcc", i);
 
                     double param1, param2;
                     param1 = ztemp1 / GRAV;
@@ -462,68 +462,6 @@ void DataPlot::paintEvent(QPaintEvent *event)
 
 }
 
-int DataPlot::getTime(int i)
-{
-    int returnTime = 0;
-
-    if(i < application.dataRecorder.size()){        
-        int startTime = application.dataRecorder.getFirstTime();
-        if(startTime != 0){
-            if(application.dataRecorder.at(i).time-startTime > LAG_THRESHOLD){
-                returnTime =  int((application.dataRecorder.at(i).time -startTime) / 160);
-            } else {
-                returnTime = i;
-            }
-        }
-    } else {
-        returnTime = i;
-    }
-
-    return returnTime;
-}
-
-double DataPlot::calculateAngle(double accel1, double accel2) {
-    double alfa;
-    if( (pow(accel1, 2.0) + pow(accel2, 2.0)) < pow(GRAV/2, 2.0) )
-        return 10.0;
-
-    if( fabs(accel1) > fabs(accel2) ) {
-        alfa = atan(accel2/accel1);
-        if( accel1 < 0 )
-            alfa += M_PI;
-    }
-    else {
-        alfa = M_PI/2 - atan(accel1/accel2);
-        if( accel2 < 0 )
-            alfa += M_PI;
-    }
-
-    if ( alfa >= M_PI) alfa -= 2*M_PI;
-    if ( alfa < -M_PI) alfa += 2*M_PI;
-
-    return alfa;
-}
-
-double DataPlot::calculateCalibratedValue(QString axis, int time)
-{
-    if( axis == "xAcc"){
-        return (application.dataRecorder.at(time).xAccel * accelCalibrationData[0] + application.dataRecorder.at(time).yAccel * accelCalibrationData[1] + application.dataRecorder.at(time).zAccel * accelCalibrationData[2] + accelCalibrationData[9]);
-    } else if( axis == "yAcc"){
-        return (application.dataRecorder.at(time).xAccel * accelCalibrationData[3] + application.dataRecorder.at(time).yAccel * accelCalibrationData[4] + application.dataRecorder.at(time).zAccel * accelCalibrationData[5] + accelCalibrationData[10]);
-    } else if( axis == "zAcc" ){
-        return (application.dataRecorder.at(time).xAccel * accelCalibrationData[6] + application.dataRecorder.at(time).yAccel * accelCalibrationData[7] + application.dataRecorder.at(time).zAccel * accelCalibrationData[8] + accelCalibrationData[11]);
-    } else if( axis == "xGyro" ){
-        //return ( (application.dataRecorder.at(time).xGyro - gyroMinAvgs[0]) * gyroCalibrationData[0] + (application.dataRecorder.at(time).yGyro - gyroMinAvgs[1]) * gyroCalibrationData[1] + (application.dataRecorder.at(time).zGyro - gyroMinAvgs[2]) * gyroCalibrationData[2] );
-        return ( (application.dataRecorder.at(time).xGyro) * gyroCalibrationData[0] + (application.dataRecorder.at(time).yGyro) * gyroCalibrationData[1] + (application.dataRecorder.at(time).zGyro) * gyroCalibrationData[2] + gyroCalibrationData[9] );
-    } else if( axis == "yGyro"){
-        //return ( (application.dataRecorder.at(time).xGyro - gyroMinAvgs[0]) * gyroCalibrationData[3] + (application.dataRecorder.at(time).yGyro - gyroMinAvgs[1]) * gyroCalibrationData[4] + (application.dataRecorder.at(time).zGyro - gyroMinAvgs[2]) * gyroCalibrationData[5] );
-        return ( (application.dataRecorder.at(time).xGyro) * gyroCalibrationData[3] + (application.dataRecorder.at(time).yGyro) * gyroCalibrationData[4] + (application.dataRecorder.at(time).zGyro) * gyroCalibrationData[5] + gyroCalibrationData[10] );
-    } else if( axis == "zGyro"){
-        //return ( (application.dataRecorder.at(time).xGyro - gyroMinAvgs[0]) * gyroCalibrationData[6] + (application.dataRecorder.at(time).yGyro - gyroMinAvgs[1]) * gyroCalibrationData[7] + (application.dataRecorder.at(time).zGyro - gyroMinAvgs[2]) * gyroCalibrationData[8] );
-        return ( (application.dataRecorder.at(time).xGyro) * gyroCalibrationData[6] + (application.dataRecorder.at(time).yGyro) * gyroCalibrationData[7] + (application.dataRecorder.at(time).zGyro) * gyroCalibrationData[8] + gyroCalibrationData[11] );
-    } else return -1;
-}
-
 void DataPlot::setGraphs(int graphs, bool on)
 {
         if( on )
@@ -540,12 +478,12 @@ void DataPlot::onSampleAdded()
         {
                 int oldWidth = plotWidth;
                 plotWidth = application.dataRecorder.size();
-                if(getTime(application.dataRecorder.size()-1) != (application.dataRecorder.size()-1)){
-                    lag = (getTime(application.dataRecorder.size()-1)-application.dataRecorder.size());
-                    plotWidth += lag;
+                /*if(application.dataRecorder.getTime(application.dataRecorder.size()-1) != (application.dataRecorder.size()-1)){
+                    //lag = (application.dataRecorder.getTime(application.dataRecorder.size()-1)-application.dataRecorder.size());
+                    //plotWidth += lag;
                     //scrollArea->horizontalScrollBar()->setValue();
                     //QWidget::update();
-                }
+                }*/
 
                 scrollArea->setWidgetRect(QRect(0, 0, plotWidth, 1000));
                 scrollArea->ensureVisible(plotWidth,0,1,1);
@@ -576,7 +514,7 @@ void DataPlot::mousePressEvent(QMouseEvent * event)
         QPoint sample = getSample(event->pos().x(), event->pos().y());
         QString message = "Time: " + QString::number(sample.x()/C_HZ, 'f', 1) + " sec  ";
         message.append("("+QString::number(sample.x())+". sample - ");
-        message.append(" "+QString::number(getTime(sample.x()))+" mote time.) ");
+        message.append(" "+QString::number(application.dataRecorder.getTime(sample.x()))+" mote time.) ");
         if( (graphs & XRAWACC) != 0 || (graphs & YRAWACC) != 0 || (graphs & ZRAWACC) != 0 || (graphs & XRAWGYRO) != 0 || (graphs & YRAWGYRO) != 0 || (graphs & ZRAWGYRO) != 0 ){
             message.append(" Value: " + QString::number(sample.y()) + " ");
         }

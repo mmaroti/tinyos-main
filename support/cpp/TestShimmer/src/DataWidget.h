@@ -109,6 +109,7 @@ private slots:
         void newCalibrationOccured();
         void onTrim();
         void onCopy();
+        void onCut();
 };
 
 #endif // DATAWIDGET_H

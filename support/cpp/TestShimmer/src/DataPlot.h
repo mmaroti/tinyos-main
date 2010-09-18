@@ -93,9 +93,7 @@ public:
         //double calibrationDataAt(int i) { return calibrationData[i]; }
         //double gyroMinAvgsAt(int i) { return gyroMinAvgs[i]; }
         //double gyroCalibrationDataAt(int i) { return gyroCalibrationData[i]; }
-        double calculateAngle( double acceleration1, double acceleration2 );
-        double calculateCalibratedValue( QString axis, int time );
-        int getTime(int i);
+
         //void loadSettingsData();
         void onNewCalibration();
         QPoint& getStartPos() { return startPos; };

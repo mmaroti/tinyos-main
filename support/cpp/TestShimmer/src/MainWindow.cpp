@@ -87,6 +87,7 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(ui->actionExport, SIGNAL(triggered()), dataWidget, SLOT(on_exportBtn_clicked()));
         connect(ui->actionTrim, SIGNAL(triggered()), dataWidget, SLOT(onTrim()));
         connect(ui->actionCopy, SIGNAL(triggered()), dataWidget, SLOT(onCopy()));
+        connect(ui->actionCut, SIGNAL(triggered()), dataWidget, SLOT(onCut()));
 }
 
 MainWindow::~MainWindow()

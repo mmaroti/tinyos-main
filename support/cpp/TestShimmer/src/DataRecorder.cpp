@@ -43,6 +43,8 @@
 #include <QStringList>
 #include <QMessageBox>
 #include "DataPlot.h"
+#include "constants.h"
+#include <math.h>
 
 DataRecorder::DataRecorder(Application &app) : application(app)
 {
@@ -214,8 +216,42 @@ void DataRecorder::saveSamples(const QString& filename) const {
     for (int i=0; i<samples.size(); i++){
       ts << samples[i].toCsvString() << endl;
     }
+
+    double xtemp, ytemp, ztemp, avgtemp, xyAngle, yzAngle, zxAngle, xGyro, yGyro, zGyro;
+
+    ts << "#Accel_X,Accel_Y,Accel_Z,AVG_Accel,XY_Angle,YZ_Angle,ZX_Angle,Gyro_X,Gyro_Y,Gyro_Z" << endl;
+    for (int i = 0; i < application.dataRecorder.size(); i++) {
+        xtemp = samples[i].xAccel * accelCalibrationData[0] + samples[i].yAccel * accelCalibrationData[1] + samples[i].zAccel * accelCalibrationData[2] + accelCalibrationData[9];
+        ytemp = samples[i].xAccel * accelCalibrationData[3] + samples[i].yAccel * accelCalibrationData[4] + samples[i].zAccel * accelCalibrationData[5] + accelCalibrationData[10];
+        ztemp = samples[i].xAccel * accelCalibrationData[6] + samples[i].yAccel * accelCalibrationData[7] + samples[i].zAccel * accelCalibrationData[8] + accelCalibrationData[11];
+        avgtemp = sqrt( pow(xtemp, 2.0) + pow(ytemp, 2.0) + pow(ztemp, 2.0) );
+        xyAngle = application.dataRecorder.calculateAngle(xtemp,ytemp);
+        yzAngle = application.dataRecorder.calculateAngle(ytemp,ztemp);
+        zxAngle = application.dataRecorder.calculateAngle(ztemp,xtemp);
+        xGyro = (samples[i].xGyro - gyroMinAvgs[0]) * gyroCalibrationData[0] + (samples[i].yGyro - gyroMinAvgs[1]) * gyroCalibrationData[1] + (samples[i].zGyro - gyroMinAvgs[2]) * gyroCalibrationData[2];
+        yGyro = (samples[i].xGyro - gyroMinAvgs[0]) * gyroCalibrationData[3] + (samples[i].yGyro - gyroMinAvgs[1]) * gyroCalibrationData[4] + (samples[i].zGyro - gyroMinAvgs[2]) * gyroCalibrationData[5];
+        zGyro = (samples[i].xGyro - gyroMinAvgs[0]) * gyroCalibrationData[6] + (samples[i].yGyro - gyroMinAvgs[1]) * gyroCalibrationData[7] + (samples[i].zGyro - gyroMinAvgs[2]) * gyroCalibrationData[8];
+
+        ts << xtemp << "," << ytemp << "," << ztemp << "," << avgtemp << "," << xyAngle << "," << yzAngle << "," << zxAngle << "," << xGyro << "," << yGyro << "," << zGyro << endl;
+    }
+
+    ts << "#Static Calibration Data" << endl;
+    for (int i = 0; i < 12; ++i) {
+        ts << QString::number(accelCalibrationData[i]) + "\n" ;
+    }
+
+    ts << "#Gyro Calibration Data" << endl;
+    for (int i = 0; i < 12; ++i) {
+        ts << QString::number(gyroCalibrationData[i]) + "\n" ;
+    }
+
+    ts << "#Gyro Minimum Averages" << endl;
+    for (int i = 0; i < 3; ++i) {
+        ts << QString::number(gyroMinAvgs[i]) + "\n" ;
+    }
+
     ts.flush();
-    //f.close();
+    f.close();
 
 }
 
@@ -326,6 +362,68 @@ void DataRecorder::at(int i, double data[ipo::SIZE]) const {
     data[GYRO_Z] = (wx - gyroMinAvgs[0]) * gyroCalibrationData[6] + (wy - gyroMinAvgs[1]) * gyroCalibrationData[7] + (wz - gyroMinAvgs[2]) * gyroCalibrationData[8];
 }
 
+int DataRecorder::getTime(int i)
+{
+    int returnTime = 0;
+
+    if(i < samples.size()){
+        int startTime = getFirstTime();
+        if(startTime != 0){
+            if(samples[i].time-startTime > LAG_THRESHOLD){
+                returnTime =  int((samples[i].time -startTime) / 160);
+            } else {
+                returnTime = i;
+            }
+        }
+    } else {
+        returnTime = i;
+    }
+
+    return returnTime;
+}
+
+double DataRecorder::calculateAngle(double accel1, double accel2) {
+    double alfa;
+    if( (pow(accel1, 2.0) + pow(accel2, 2.0)) < pow(GRAV/2, 2.0) )
+        return 10.0;
+
+    if( fabs(accel1) > fabs(accel2) ) {
+        alfa = atan(accel2/accel1);
+        if( accel1 < 0 )
+            alfa += M_PI;
+    }
+    else {
+        alfa = M_PI/2 - atan(accel1/accel2);
+        if( accel2 < 0 )
+            alfa += M_PI;
+    }
+
+    if ( alfa >= M_PI) alfa -= 2*M_PI;
+    if ( alfa < -M_PI) alfa += 2*M_PI;
+
+    return alfa;
+}
+
+double DataRecorder::calculateCalibratedValue(QString axis, int time)
+{
+    if( axis == "xAcc"){
+        return (samples[time].xAccel * accelCalibrationData[0] + samples[time].yAccel * accelCalibrationData[1] + samples[time].zAccel * accelCalibrationData[2] + accelCalibrationData[9]);
+    } else if( axis == "yAcc"){
+        return (samples[time].xAccel * accelCalibrationData[3] + samples[time].yAccel * accelCalibrationData[4] + samples[time].zAccel * accelCalibrationData[5] + accelCalibrationData[10]);
+    } else if( axis == "zAcc" ){
+        return (samples[time].xAccel * accelCalibrationData[6] + samples[time].yAccel * accelCalibrationData[7] + samples[time].zAccel * accelCalibrationData[8] + accelCalibrationData[11]);
+    } else if( axis == "xGyro" ){
+        //return ( (samples[time].xGyro - gyroMinAvgs[0]) * gyroCalibrationData[0] + (samples[time].yGyro - gyroMinAvgs[1]) * gyroCalibrationData[1] + (samples[time].zGyro - gyroMinAvgs[2]) * gyroCalibrationData[2] );
+        return ( (samples[time].xGyro) * gyroCalibrationData[0] + (samples[time].yGyro) * gyroCalibrationData[1] + (samples[time].zGyro) * gyroCalibrationData[2] + gyroCalibrationData[9] );
+    } else if( axis == "yGyro"){
+        //return ( (samples[time].xGyro - gyroMinAvgs[0]) * gyroCalibrationData[3] + (samples[time].yGyro - gyroMinAvgs[1]) * gyroCalibrationData[4] + (samples[time].zGyro - gyroMinAvgs[2]) * gyroCalibrationData[5] );
+        return ( (samples[time].xGyro) * gyroCalibrationData[3] + (samples[time].yGyro) * gyroCalibrationData[4] + (samples[time].zGyro) * gyroCalibrationData[5] + gyroCalibrationData[10] );
+    } else if( axis == "zGyro"){
+        //return ( (samples[time].xGyro - gyroMinAvgs[0]) * gyroCalibrationData[6] + (samples[time].yGyro - gyroMinAvgs[1]) * gyroCalibrationData[7] + (samples[time].zGyro - gyroMinAvgs[2]) * gyroCalibrationData[8] );
+        return ( (samples[time].xGyro) * gyroCalibrationData[6] + (samples[time].yGyro) * gyroCalibrationData[7] + (samples[time].zGyro) * gyroCalibrationData[8] + gyroCalibrationData[11] );
+    } else return -1;
+}
+
 void DataRecorder::edit(QString option)
 {
     if(samples.size()< to){
@@ -344,12 +442,21 @@ void DataRecorder::edit(QString option)
     } else
     if(option == "copy"){
         for(int i=from; i<=to; i++){            
+            samples.append(samples[i]);
+        }       
+        emit sampleAdded();
+    } else
+    if(option == "cut"){
+        for(int i=0; i<from; i++){
             copySamples.append(samples[i]);
         }
-        for(int i=0; i<copySamples.size(); i++){
-            samples.append(copySamples[i]);
+        for(int i=to; i<samples.size(); i++){
+            copySamples.append(samples[i]);
         }
-        copySamples.clear();
+        samples.clear();
+        emit samplesCleared();
+        samples = copySamples;
         emit sampleAdded();
+        copySamples.clear();
     }
 }

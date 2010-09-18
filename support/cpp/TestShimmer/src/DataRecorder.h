@@ -92,6 +92,10 @@ public:
         int* getAccelIdleWindowStart() { return accelIdleWindowStart; }
         int* getGyroIdleWindowStart() { return gyroIdleWindowStart; }
 
+        double calculateAngle( double acceleration1, double acceleration2 );
+        double calculateCalibratedValue( QString axis, int time );
+        int getTime(int i);
+
         void at(int i, double data[ipo::SIZE]) const;
         int from, to;
 

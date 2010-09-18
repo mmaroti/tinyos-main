@@ -119,51 +119,6 @@ void DataWidget::on_exportBtn_clicked()
     QString fn = QFileDialog::getSaveFileName(  this, "Choose a filename to save under", "c:/", "CSV (*.csv)");
     if ( !fn.isEmpty() ) {
         application.dataRecorder.saveSamples( fn );
-
-        QFile f( fn );
-
-        if( !f.open( QIODevice::Append ) )
-          {
-              return;
-          }
-
-        QTextStream ts( &f );
-        double xtemp, ytemp, ztemp, avgtemp, xyAngle, yzAngle, zxAngle, xGyro, yGyro, zGyro;
-
-        ts << "#Accel_X,Accel_Y,Accel_Z,AVG_Accel,XY_Angle,YZ_Angle,ZX_Angle,Gyro_X,Gyro_Y,Gyro_Z" << endl;
-        for (int i = 0; i < application.dataRecorder.size(); i++) {
-            xtemp = application.dataRecorder.at(i).xAccel * accelCalibrationData[0] + application.dataRecorder.at(i).yAccel * accelCalibrationData[1] + application.dataRecorder.at(i).zAccel * accelCalibrationData[2] + accelCalibrationData[9];
-            ytemp = application.dataRecorder.at(i).xAccel * accelCalibrationData[3] + application.dataRecorder.at(i).yAccel * accelCalibrationData[4] + application.dataRecorder.at(i).zAccel * accelCalibrationData[5] + accelCalibrationData[10];
-            ztemp = application.dataRecorder.at(i).xAccel * accelCalibrationData[6] + application.dataRecorder.at(i).yAccel * accelCalibrationData[7] + application.dataRecorder.at(i).zAccel * accelCalibrationData[8] + accelCalibrationData[11];
-            avgtemp = sqrt( pow(xtemp, 2.0) + pow(ytemp, 2.0) + pow(ztemp, 2.0) );
-            xyAngle = plot->calculateAngle(xtemp,ytemp);
-            yzAngle = plot->calculateAngle(ytemp,ztemp);
-            zxAngle = plot->calculateAngle(ztemp,xtemp);
-            xGyro = (application.dataRecorder.at(i).xGyro - gyroMinAvgs[0]) * gyroCalibrationData[0] + (application.dataRecorder.at(i).yGyro - gyroMinAvgs[1]) * gyroCalibrationData[1] + (application.dataRecorder.at(i).zGyro - gyroMinAvgs[2]) * gyroCalibrationData[2];
-            yGyro = (application.dataRecorder.at(i).xGyro - gyroMinAvgs[0]) * gyroCalibrationData[3] + (application.dataRecorder.at(i).yGyro - gyroMinAvgs[1]) * gyroCalibrationData[4] + (application.dataRecorder.at(i).zGyro - gyroMinAvgs[2]) * gyroCalibrationData[5];
-            zGyro = (application.dataRecorder.at(i).xGyro - gyroMinAvgs[0]) * gyroCalibrationData[6] + (application.dataRecorder.at(i).yGyro - gyroMinAvgs[1]) * gyroCalibrationData[7] + (application.dataRecorder.at(i).zGyro - gyroMinAvgs[2]) * gyroCalibrationData[8];
-
-            ts << xtemp << "," << ytemp << "," << ztemp << "," << avgtemp << "," << xyAngle << "," << yzAngle << "," << zxAngle << "," << xGyro << "," << yGyro << "," << zGyro << endl;
-        }
-
-        ts << "#Static Calibration Data" << endl;
-        int size = application.settings.beginReadArray("calibrationData");
-        for (int i = 0; i < size; ++i) {
-            application.settings.setArrayIndex(i);
-            ts << application.settings.value("calibrationData").toString() + "\n" ;
-        }
-        application.settings.endArray();
-
-        ts << "#Gyro Calibration Data" << endl;
-        size = application.settings.beginReadArray("gyroCalibrationData");
-        for (int i = 0; i < size; ++i) {
-            application.settings.setArrayIndex(i);
-            ts << application.settings.value("gyroCalibrationData").toString() + "\n" ;
-        }
-        application.settings.endArray();
-
-        ts.flush();
-        f.close();
     }
 }
 
@@ -380,6 +335,14 @@ void DataWidget::onTrim()
 void DataWidget::onCopy()
 {
     application.dataRecorder.edit("copy");
+    plot->getStartPos().setX(0);
+    plot->getLastPos().setX(0);
+    plot->update();
+}
+
+void DataWidget::onCut()
+{
+    application.dataRecorder.edit("cut");
     plot->getStartPos().setX(0);
     plot->getLastPos().setX(0);
     plot->update();
