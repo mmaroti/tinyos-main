@@ -88,6 +88,8 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(ui->actionTrim, SIGNAL(triggered()), dataWidget, SLOT(onTrim()));
         connect(ui->actionCopy, SIGNAL(triggered()), dataWidget, SLOT(onCopy()));
         connect(ui->actionCut, SIGNAL(triggered()), dataWidget, SLOT(onCut()));
+        connect(dataWidget, SIGNAL(SolverStarted()), this, SLOT(onSolverRunning()));
+        connect(dataWidget, SIGNAL(SolverFinished()), this, SLOT(onSolverRunning()));
 }
 
 MainWindow::~MainWindow()
@@ -105,5 +107,21 @@ void MainWindow::changeEvent(QEvent *e)
 	default:
 	break;
 	}
+}
+
+void MainWindow::onSolverRunning()
+{
+    if(ui->calibrationTab->isEnabled()){
+        ui->calibrationTab->setEnabled(false);
+        ui->connectTab->setEnabled(false);
+        ui->consoleTab->setEnabled(false);
+        ui->graphTab->setEnabled(false);
+    } else {
+        ui->calibrationTab->setEnabled(true);
+        ui->connectTab->setEnabled(true);
+        ui->consoleTab->setEnabled(true);
+        ui->graphTab->setEnabled(true);
+    }
+
 }
 

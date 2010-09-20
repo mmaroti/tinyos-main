@@ -73,6 +73,10 @@ private:
         double* gyroCalibrationData;
         double* accelCalibrationData;
 
+signals:
+        void SolverStarted();
+        void SolverFinished();
+
 private slots:
         //void on_temp_clicked();
         //void on_voltage_clicked();

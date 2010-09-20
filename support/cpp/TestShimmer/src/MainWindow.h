@@ -52,6 +52,9 @@ public:
 protected:
 	void changeEvent(QEvent *e);
 
+private slots:
+        void onSolverRunning();
+
 private:
 	Ui::MainWindow *ui;
 	Application app;

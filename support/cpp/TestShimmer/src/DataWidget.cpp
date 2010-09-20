@@ -354,6 +354,13 @@ void DataWidget::finished(bool error, const char* msg, const ipo::Results* res) 
     QMessageBox mbox;
     mbox.setText(msg);
     mbox.exec();
+
+    ui->loadBtn->setEnabled(true);
+    ui->regressionButton->setEnabled(true);
+    ui->recordBtn->setEnabled(true);
+    ui->clearBtn->setEnabled(true);
+
+    emit SolverFinished();
 }
 
 void DataWidget::on_regressionButton_clicked()
@@ -373,5 +380,6 @@ void DataWidget::on_regressionButton_clicked()
         ui->recordBtn->setEnabled(false);
         ui->clearBtn->setEnabled(false);
 
+        emit SolverStarted();
     }
 }
