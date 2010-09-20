@@ -6,7 +6,7 @@
 
 
 MCU = atmega1281
-FORMAT = ihex
+FORMAT = srec
 TARGET = bootloader
 SRC = main.c serial.c defines.c
 ASRC = 
