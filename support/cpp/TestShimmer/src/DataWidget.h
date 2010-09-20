@@ -105,6 +105,7 @@ private slots:
         void on_recordBtn_clicked();
         void on_loadBtn_clicked();
         void on_refreshButton_clicked();
+        void on_regressionButton_clicked();
 
         void newCalibrationOccured();
         void onTrim();

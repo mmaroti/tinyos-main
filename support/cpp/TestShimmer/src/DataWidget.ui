@@ -943,6 +943,13 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QPushButton" name="regressionButton">
+          <property name="text">
+           <string>Regression</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>

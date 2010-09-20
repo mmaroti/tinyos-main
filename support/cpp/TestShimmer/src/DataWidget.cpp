@@ -347,3 +347,8 @@ void DataWidget::onCut()
     plot->getLastPos().setX(0);
     plot->update();
 }
+
+void DataWidget::on_regressionButton_clicked()
+{
+
+}
