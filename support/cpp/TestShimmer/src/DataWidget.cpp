@@ -367,5 +367,11 @@ void DataWidget::on_regressionButton_clicked()
                          this, SLOT(  finished(bool , const char* , const ipo::Results* )), Qt::DirectConnection);
     }
 
-    application.solver.start();
+    if( application.solver.start() == false ){
+        ui->loadBtn->setEnabled(false);
+        ui->regressionButton->setEnabled(false);
+        ui->recordBtn->setEnabled(false);
+        ui->clearBtn->setEnabled(false);
+
+    }
 }

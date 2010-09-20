@@ -38,6 +38,7 @@
 #include <QWidget>
 #include "Data.hpp"
 #include "DataPlot.h"
+#include <QMainWindow>
 
 class Application;
 class DataRecorder;
