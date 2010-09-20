@@ -35,7 +35,7 @@
  *  @author Matt Miller <mmiller@xbow.com>
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: hardware.h,v 1.1 2010-09-07 15:28:15 szabomeister Exp $
+ *  $Id: hardware.h,v 1.2 2010-09-20 14:11:57 szabomeister Exp $
  */
 
 #ifndef HARDWARE_H

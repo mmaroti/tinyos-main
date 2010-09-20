@@ -32,7 +32,7 @@
 /**
  * @author Alec Woo <awoo@archrock.com>
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1 $ $Date: 2010-09-07 15:28:15 $
+ * @version $Revision: 1.2 $ $Date: 2010-09-20 14:11:57 $
  */
 
 configuration PlatformSerialC

@@ -156,7 +156,7 @@ command error_t Init.init() {
       }
      // if (call Led4.get()) {
      //   rval |= LEDS_LED4;
-      }
+     // }
     return rval;
   }
 }

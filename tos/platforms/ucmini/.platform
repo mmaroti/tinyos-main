@@ -1,8 +1,8 @@
 
   push( @includes, qw(
 
-  %T/platforms/ucmote900
-  %T/platforms/ucmote900/chips/rf212
+  %T/platforms/ucmini
+  %T/platforms/ucmini/chips/rf212
   %T/platforms/iris
   %T/platforms/micaz
   %T/platforms/mica
@@ -11,8 +11,8 @@
   %T/chips/rf2xx/util
   %T/chips/atm128rfa1
   %T/chips/atm128rfa1/adc
-  %T/chips/atm128rfa1/timer
   %T/chips/atm128rfa1/sensors
+  %T/chips/atm128rfa1/timer
   %T/chips/atm1281
   %T/chips/atm1281/adc
   %T/chips/atm1281/timer
@@ -32,7 +32,7 @@
   @opts = qw(
 
   -gcc=avr-gcc
-  -mmcu=atmega1281
+  -mmcu=atmega128rfa1
   -fnesc-target=avr
   -fnesc-no-debug
   -fnesc-scheduler=TinySchedulerC,TinySchedulerC.TaskBasic,TaskBasic,TaskBasic,runTask,postTask
