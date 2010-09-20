@@ -47,10 +47,17 @@ configuration CodeProfileC {
 }
 
 implementation {
-  components CodeProfileP;
+
+  #if defined(MCU_IS_ATM128)
+    components new AlarmMicro32C() as Alarm;
   
-  components new AlarmMicro32C();
-  CodeProfileP.Alarm -> AlarmMicro32C;
+  #elif defined(MCU_IS_MSP430)
+    components new AlarmMicro16C() as Alarm;
+
+  #endif
+
+  components CodeProfileP;
+  CodeProfileP.Alarm -> Alarm;
   
   MaxInterruptLength = CodeProfileP.MaxInterruptLength;
   MaxAtomicLength = CodeProfileP.MaxAtomicLength;

@@ -52,7 +52,7 @@ module CodeProfileP @safe() {
     
   }
   uses {
-    interface Alarm<TMicro, uint32_t> as Alarm;
+    interface Alarm<TMicro, avail_timer_width> as Alarm;
   }
 }
 implementation {
@@ -81,8 +81,8 @@ implementation {
 
   task void measureTask() {
     
-    uint32_t t1 = call Alarm.getNow();
-    uint32_t t2 = call Alarm.getNow();
+    uint32_t t1 = (uint32_t)call Alarm.getNow();
+    uint32_t t2 = (uint32_t)call Alarm.getNow();
     
     // The difference between two consecutive getNow() call can be
     // greater than zero, if interrupt(s) occured in between. That
@@ -97,7 +97,7 @@ implementation {
     
     mtl = MAX(t1-mtlbase,mtl);
     atomic {
-      mtlbase = call Alarm.getNow();
+      mtlbase = (uint32_t)call Alarm.getNow();
       if ( alive )
         post measureTask();
     }
@@ -106,7 +106,7 @@ implementation {
 
   command error_t StdControl.start() {
     mil = mal = mtl = (uint32_t)0;
-    mtlbase = malbase = call Alarm.getNow();
+    mtlbase = malbase = (uint32_t)call Alarm.getNow();
     alive = TRUE;
     
     call Alarm.start(ATOMIC_PERIODIC_TIME);
@@ -128,7 +128,7 @@ implementation {
     
     // Get the current time AND store it for future offset
     // to avoid duplicate call to Alarm.getNow()
-    malbase = call Alarm.getNow();
+    malbase = (uint32_t)call Alarm.getNow();
     
     // Compute the difference, and update if necessary
     mal = MAX(MIN(malbase-target,target-malbase),mal);

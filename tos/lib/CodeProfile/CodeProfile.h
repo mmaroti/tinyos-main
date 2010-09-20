@@ -37,6 +37,33 @@
 #define _CODEPROFILE_H_
 
 
+ #if  defined(PLATFORM_IRIS)      || \
+      defined(PLATFORM_BTNODE3)   || \
+      defined(PLATFORM_MICA)      || \
+      defined(PLATFORM_MICA2)     || \
+      defined(PLATFORM_MICA2DOT)  || \
+      defined(PLATFORM_MICAZ)
+      
+      #define MCU_IS_ATM128
+      typedef uint32_t    avail_timer_width;
+  #elif \
+      defined(PLATFORM_EPIC)      || \
+      defined(PLATFORM_EYESIFX)   || \
+      defined(PLATFORM_SHIMMER)   || \
+      defined(PLATFORM_SHIMMER2)  || \
+      defined(PLATFORM_SHIMMER2R) || \
+      defined(PLATFORM_SPAN)      || \
+      defined(PLATFORM_TELOSA)    || \
+      defined(PLATFORM_TELOSB)    || \
+      defined(PLATFORM_TINYNODE)
+      
+      #define MCU_IS_MSP430
+      typedef uint16_t    avail_timer_width;
+      #warning "** REAL CODEPROFILE ACCURACY IS ONLY 16 BITS ON THIS PLATFORM ! **"
+  #else
+    #error "** THIS PLATFORM IS UNKNOWN FOR CODE PROFILING ! **"
+  #endif
+
 typedef nx_struct profile_t {
   nx_uint32_t   max_atomic;
   nx_uint32_t   max_interrupt;
