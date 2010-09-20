@@ -36,6 +36,7 @@
 #include <qfiledialog.h>
 #include "QtDebug"
 #include "window.h"
+#include "Results.hpp"
 
 DataWidget::DataWidget(QWidget *parent, Application &app) :
     QWidget(parent),
@@ -348,7 +349,23 @@ void DataWidget::onCut()
     plot->update();
 }
 
+void DataWidget::finished(bool error, const char* msg, const ipo::Results* res) {
+
+    QMessageBox mbox;
+    mbox.setText(msg);
+    mbox.exec();
+}
+
 void DataWidget::on_regressionButton_clicked()
 {
+    static bool registered(false);
 
+    if(!registered) {
+        registered = true;
+
+        QObject::connect(&(application.solver), SIGNAL(solver_done(bool , const char* , const ipo::Results* )),
+                         this, SLOT(  finished(bool , const char* , const ipo::Results* )), Qt::DirectConnection);
+    }
+
+    application.solver.start();
 }

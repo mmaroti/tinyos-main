@@ -48,16 +48,11 @@
 
 class Application : public QObject
 {
+
 Q_OBJECT
-
-private:
-    ipo::Solver solver;
-
 
 public:
 	Application();
-
-        void startSolver();
 
 signals:
 	void showMessageSignal(const QString & msg);
@@ -77,6 +72,7 @@ public:
         DataRecorder dataRecorder;
 
 	QSettings settings;
+        ipo::Solver solver;
 };
 
 #endif // APPLICATION_H

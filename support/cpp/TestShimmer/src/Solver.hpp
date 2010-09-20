@@ -60,7 +60,7 @@ public:
 signals:
 
     // MUST use Qt::BlockingQueuedConnection when connecting to this signal
-    void finished(bool error, const std::string& msg, const Results& res);
+    void solver_done(bool error, const char* msg, const ipo::Results* res);
 
 private slots:
 

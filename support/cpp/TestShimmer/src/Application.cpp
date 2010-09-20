@@ -40,7 +40,3 @@ Application::Application()
 {
 }
 
-void Application::startSolver() {
-
-    solver.start();
-}

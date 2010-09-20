@@ -42,6 +42,10 @@
 class Application;
 class DataRecorder;
 
+namespace ipo {
+    class Results;
+}
+
 namespace Ui {
 
     class DataWidget;
@@ -111,6 +115,8 @@ private slots:
         void onTrim();
         void onCopy();
         void onCut();
+
+        void finished(bool error, const char* msg, const ipo::Results* res);
 };
 
 #endif // DATAWIDGET_H
