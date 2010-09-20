@@ -1,4 +1,4 @@
-// $Id: Atm128Timer.h,v 1.1 2010-09-08 15:14:44 szabomeister Exp $
+// $Id: Atm128Timer.h,v 1.2 2010-09-20 08:12:25 szabomeister Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.

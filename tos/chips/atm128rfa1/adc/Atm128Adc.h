@@ -1,4 +1,4 @@
-// $Id: Atm128Adc.h,v 1.1 2010-09-08 15:14:44 szabomeister Exp $
+// $Id: Atm128Adc.h,v 1.2 2010-09-20 08:12:04 szabomeister Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -60,10 +60,10 @@
 
 /* Voltage Reference Settings */
 enum {
-    ATM128_ADC_VREF_OFF = 0, //!< VR+ = AREF   and VR- = GND
-    ATM128_ADC_VREF_AVCC = 1,//!< VR+ = AVcc   and VR- = GND
-    ATM128_ADC_VREF_RSVD,
-    ATM128_ADC_VREF_2_56 = 3,//!< VR+ = 2.56V  and VR- = GND
+    ATM128_ADC_VREF_OFF = 0, //!< VR+ = AREF         and VR- = GND
+    ATM128_ADC_VREF_AVDD = 1,//!< VR+ = AVDD(1.8V)   and VR- = GND
+    ATM128_ADC_VREF_1_5 = 2, //!< VR+ = 1.5V         and VR- = GND
+    ATM128_ADC_VREF_1_6 = 3, //!< VR+ = 1.6V         and VR- = GND
 };
 
 /* Voltage Reference Settings */
@@ -108,6 +108,8 @@ enum {
     ATM128_ADC_SNGL_1_23,
     ATM128_ADC_SNGL_GND,
     ATM128_ADC_INT_TEMP = 41,
+    ATM128_ADC_INT_VDRTBBP = 52,
+    ATM128_ADC_INT_VDRTBBN = 61,
 };
 
 /* ADC Multiplexer Selection Register */
