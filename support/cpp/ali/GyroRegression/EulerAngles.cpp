@@ -31,7 +31,6 @@
 * Author: Ali Baharev
 */
 
-#include <assert.h>
 #include <stdexcept>
 #include <sstream>
 #include <cmath>
@@ -55,7 +54,11 @@ enum {
 	X, Y, Z
 };
 
-void dbg_degen(double r31) {
+}
+
+namespace dbg {
+
+void degen(double r31) {
 
 	if ( (r31 != -1.0) && (r31 != 1.0)) {
 
@@ -65,14 +68,26 @@ void dbg_degen(double r31) {
 	}
 }
 
-void dbg_angles(double x, double y, double z) {
+bool in_range(double x, double y, double z) {
 
-	assert( (-180<=x) && (x<=180) );
-	assert( ( -90<=y) && (y<= 90) );
-	assert( (-180<=z) && (z<=180) );
+	return (-180<=x) && (x<=180) &&
+		   ( -90<=y) && (y<= 90) &&
+		   (-180<=z) && (z<=180) ;
+
 }
 
-void dbg_dotprod(const double matrix[3][3], const char* type, int row1, int row2) {
+void angles(double x, double y, double z) {
+
+	bool is_in_range = in_range(x, y, z);
+
+	if (!is_in_range) {
+		ostringstream os;
+		os << "An angle is out of range of: " << x << ", " << y << ", " << z;
+		throw runtime_error(os.str());
+	}
+}
+
+void dotprod(const double matrix[3][3], const char* type, int row1, int row2) {
 
 	const double TOL_ORTHO(1.0e-4);
 
@@ -94,19 +109,18 @@ void dbg_dotprod(const double matrix[3][3], const char* type, int row1, int row2
 	}
 }
 
-void dbg_dotprod(const double matrix[3][3], const char* row_or_col) {
+void dotprod(const double matrix[3][3], const char* row_or_col) {
 
 	for (int i=0; i<3; ++i) {
 
 		for (int j=i; j<3; ++j) {
 
-			dbg_dotprod(matrix, row_or_col, i, j);
+			dotprod(matrix, row_or_col, i, j);
 		}
 	}
-
 }
 
-void dbg_orthogonality(const double m[9]) {
+void orthogonality(const double m[9]) {
 
 	const double r[3][3] = {	{ m[R11], m[R12], m[R13] },
 								{ m[R21], m[R22], m[R23] },
@@ -118,12 +132,139 @@ void dbg_orthogonality(const double m[9]) {
 								{ m[R13], m[R23], m[R33] }
 							};
 
-	dbg_dotprod(r, "row");
-	dbg_dotprod(c, "column");
+	dotprod(r, "row");
+
+	dotprod(c, "column");
 
 }
 
+bool equals(double x, double y) {
+
+	const double TOL_EQUAL(1.0e-5);
+
+	return fabs(x-y)<TOL_EQUAL;
 }
+
+bool equal_360(double diff, int len) {
+
+	if (len==3)
+		return equals(fabs(diff), 360);
+
+	return false;
+}
+
+void equal_arrays(const double a[], const double b[], int len, const char* name) {
+
+	for (int i=0; i<len; ++i) {
+
+		if (!equals(a[i], b[i]) && !equal_360(a[i]-b[i], len)) {
+
+			ostringstream os;
+			os << name << " element mismatch: " << a[i] << " != " << b[i];
+			throw runtime_error(os.str());
+		}
+	}
+}
+
+void equal_rotmat(const double m1[9], const double m2[9]) {
+
+	equal_arrays(m1, m2, 9, "Matrix");
+}
+
+void enforce_range_x(double& x) {
+
+	if (x > 180) {
+		x-= 360;
+	}
+	else if (x <= -180) {
+		x += 360;
+	}
+}
+
+void equal_degenerate_angles(const double in[3], const double computed[3]) {
+
+	double input[3];
+
+	input[Y] = in[Y];
+
+	input[Z] = 0;
+
+	if (equals(in[Y], 90)) {
+
+		input[X] = in[X]-in[Z];
+	}
+	else if (equals(in[Y], -90)) {
+
+		input[X] = in[X]+in[Z];
+	}
+	else {
+
+		throw logic_error("Well, this is a bug...");
+	}
+
+	enforce_range_x(input[X]);
+
+	equal_arrays(input, computed, 3, "Angles array");
+}
+
+void enforce_range(double angle[3]) {
+
+	if (angle[X] == -180)
+		angle[X] = 180;
+
+	if (angle[Z] == -180)
+		angle[Z] = 180;
+}
+
+void equal_angles(const double in[3], const double computed[3], bool degenerate) {
+
+	bool input_in_range = in_range(in[X], in[Y], in[Z]);
+
+	if (input_in_range) {
+
+		double input[] = { in[X], in[Y], in[Z] };
+
+		enforce_range(input);
+
+		if (!degenerate) {
+
+			equal_arrays(input, computed, 3, "Angles array");
+		}
+		else {
+
+			equal_degenerate_angles(input, computed);
+		}
+	}
+
+}
+
+void consistent(const double angles_deg[3]) {
+
+	using namespace gyro;
+
+	double m1[9];
+
+	angles_to_rotmat(angles_deg, m1);
+
+	orthogonality(m1);
+
+	double xyz[3];
+
+	bool degenerate = rotmat_to_angles(m1, xyz);
+
+	double m2[9];
+
+	angles_to_rotmat(xyz, m2);
+
+	orthogonality(m2);
+
+	equal_rotmat(m1, m2);
+
+	equal_angles(angles_deg, xyz, degenerate);
+
+}
+
+}  // namespace dbg
 
 namespace gyro {
 
@@ -145,7 +286,7 @@ void set_r31(double& r31) {
 	else {
 
 		ostringstream os;
-		os << "r31 = " << r31 << " but row or col is degenerate";
+		os << "r31 = " << r31 << " but row or column is degenerate";
 		throw range_error(os.str());
 	}
 }
@@ -190,6 +331,16 @@ bool is_degenerate(const double m[9], double& r) {
 	return one(r) || minus_one(r) || col_or_row_degen(m, r);
 }
 
+void enforce_range(double& x, double& z) {
+
+	if (x==-180)
+		x = 180;
+
+	if (z==-180)
+		z = 180;
+}
+
+//==============================================================================
 //
 // Based on http://www.gregslabaugh.name/publications/euler.pdf
 //
@@ -197,7 +348,7 @@ bool is_degenerate(const double m[9], double& r) {
 //
 bool rotmat_to_angles(const double m[9], double angle[3]) {
 
-	dbg_orthogonality(m);
+	dbg::orthogonality(m);
 
 	double r31 = m[R31];
 
@@ -212,19 +363,49 @@ bool rotmat_to_angles(const double m[9], double angle[3]) {
 	}
 	else {
 		// r31 = +1 or -1
-		dbg_degen(r31);
-		y = (-r31)*90.0;
+		dbg::degen(r31);
+		y = -r31*90.0;
 		z = 0.0;
-		x = atan2(r31*m[R12], m[R22])*RAD;
+		x = atan2(-r31*m[R12], m[R22])*RAD;
 	}
 
-	dbg_angles(x, y, z);
+	enforce_range(x, z);
 
-	angle[X] = x; // -180, 180
-	angle[Y] = y; //  -90,  90
-	angle[Z] = z; // -180, 180
+	dbg::angles(x, y, z);
+
+	angle[X] = x; // (-180, 180]
+	angle[Y] = y; // [ -90,  90]
+	angle[Z] = z; // (-180, 180]
 
 	return degenerate;
+}
+
+void angles_to_rotmat(const double angle[3], double m[9]) {
+
+	const double x = angle[X]/RAD;
+	const double y = angle[Y]/RAD;
+	const double z = angle[Z]/RAD;
+
+	const double sin_x = sin(x);
+	const double sin_y = sin(y);
+	const double sin_z = sin(z);
+
+	const double cos_x = cos(x);
+	const double cos_y = cos(y);
+	const double cos_z = cos(z);
+
+	m[R11] = cos_y*cos_z;
+	m[R12] = cos_z*sin_x*sin_y-cos_x*sin_z;
+	m[R13] = sin_x*sin_z+cos_x*cos_z*sin_y;
+
+	m[R21] = cos_y*sin_z;
+	m[R22] = sin_x*sin_y*sin_z+cos_x*cos_z;
+	m[R23] = cos_x*sin_y*sin_z-cos_z*sin_x;
+
+	m[R31] = -sin_y;
+	m[R32] = cos_y*sin_x;
+	m[R33] = cos_x*cos_y;
+
 }
 
 }

@@ -30,23 +30,77 @@
 *
 * Author: Ali Baharev
 */
+#include <assert.h>
+#include <iostream>
+#include <cstdlib>
+#include "EulerAngles.hpp"
 
-#ifndef EULERANGLES_HPP_
-#define EULERANGLES_HPP_
+using namespace std;
+using namespace gyro;
 
-namespace gyro {
+namespace dbg {
 
-const double TOL_DEGEN(1.0e-5);
-
-// Based on http://www.gregslabaugh.name/publications/euler.pdf
-// Right-handed coordinate system
-// 	X in (-180, 180], Y in [ -90,  90], Z in (-180, 180]
-bool rotmat_to_angles(const double matrix[9], double angle_deg[3]);
-
-void angles_to_rotmat(const double angle_deg[3], double matrix[9]);
-
-bool rotate_vector(const double m[9], const double v[3], double result[3]);
-
+	void consistent(const double angles_deg[3]);
 }
 
-#endif /* EULERANGLES_HPP_ */
+int random_deg() {
+	const int a = (rand() % 721) - 360;
+	assert ( (-360 <= a) && (a <= 360) );
+	return a;
+}
+
+void test(double Y = random_deg()) {
+
+	double X = random_deg();
+	double Z = random_deg();
+	double angles[] = { X, Y, Z };
+	dbg::consistent(angles);
+}
+
+void non_orthogonal() {
+
+	const double eps1 = 3.0e-5;
+	const double eps2 = 5.0e-5;
+
+	const double m[] = {
+		   -1.00, eps1, eps2,
+			eps1,-1.00, eps1,
+		   -eps1,-eps2, 1.00
+	};
+
+	double dummy[3];
+
+	rotmat_to_angles(m, dummy);
+}
+
+int main() {
+
+	non_orthogonal();
+
+	const int N = 5000000;
+
+	srand(7);
+
+	cout << "Testing degeneracy, Y = 90 deg" << endl;
+
+	for (int i=0; i<N; ++i) {
+		test(90);
+	}
+
+	cout << "Testing degeneracy, Y = -90 deg" << endl;
+
+	for (int i=0; i<N; ++i) {
+		test(-90);
+	}
+
+	cout << "Testing random angles" << endl;
+
+	for (int i=0; i<N; ++i) {
+		test();
+	}
+
+	cout << "Tests passed!" << endl;
+
+	return 0;
+}
+
