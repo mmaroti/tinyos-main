@@ -31,6 +31,7 @@
 * Author: Ali Baharev
 */
 
+#include <assert.h>
 #include <stdexcept>
 #include <sstream>
 #include <cmath>
@@ -41,6 +42,7 @@ using namespace std;
 namespace {
 
 const double PI(3.141592653589793);
+
 const double RAD(57.29577951308232);
 
 enum {
@@ -50,7 +52,7 @@ enum {
 };
 
 enum {
-	ALPHA, BETA, GAMMA
+	X, Y, Z
 };
 
 }
@@ -59,18 +61,21 @@ namespace gyro {
 
 bool both_zero(double p, double q) {
 
-	return (fabs(p)<TOL_DEGEN) && (fabs(q)<TOL_DEGEN);
+	return (fabs(p) < TOL_DEGEN) && (fabs(q) < TOL_DEGEN);
 }
 
 void set_r31(double& r31) {
 
-	if (r31>1.0-10.0*TOL_DEGEN) {
+	if (r31 > 1.0 - 10.0*TOL_DEGEN) {
+
 		r31 = 1.0;
 	}
-	else if (r31<-1.0+10.0*TOL_DEGEN) {
+	else if (r31 < -1.0 + 10.0*TOL_DEGEN) {
+
 		r31 = -1.0;
 	}
 	else {
+
 		ostringstream os;
 		os << "r31 = " << r31 << " but row or col is degenerate";
 		throw range_error(os.str());
@@ -79,73 +84,94 @@ void set_r31(double& r31) {
 
 bool col_or_row_degen(const double m[9], double& r31) {
 
-	const bool ret(both_zero(m[R11], m[R21]) || both_zero(m[R32], m[R33]));
+	const bool ret( both_zero(m[R11], m[R21]) || both_zero(m[R32], m[R33]) );
 
-	if (ret)
+	if (ret) {
+
 		set_r31(r31);
+	}
 
 	return ret;
 }
 
 bool one(double& r) {
 
-	const bool ret(r>=1.0-TOL_DEGEN);
+	const bool ret( r >= 1.0 - TOL_DEGEN );
 
-	if (ret)
+	if (ret) {
+
 		r = 1.0;
+	}
 
 	return ret;
 }
 
 bool minus_one(double& r) {
 
-	const bool ret(r<=-1.0+TOL_DEGEN);
+	const bool ret( r <= -1.0 + TOL_DEGEN );
 
-	if (ret)
+	if (ret) {
 		r = -1.0;
+	}
 
 	return ret;
 }
 
 bool is_degenerate(const double m[9], double& r) {
 
-	return one(r)||minus_one(r)||col_or_row_degen(m, r);
+	return one(r) || minus_one(r) || col_or_row_degen(m, r);
 }
 
 void dbg_degen(double r31) {
 
-	if (r31!=-1.0 && r31!=1.0) {
+	if ( (r31 != -1.0) && (r31 != 1.0)) {
+
 		ostringstream os;
-		os << "This is recognized as a degenerate case but r31 = " << r31;
-		throw logic_error(os.str());
+		os << "This case was recognized as a degenerate case but r31 = " << r31;
+		throw runtime_error(os.str());
 	}
 }
 
+void dbg_angles(double x, double y, double z) {
+
+	assert( (-180<=x) && (x<=180) );
+	assert( ( -90<=y) && (y<= 90) );
+	assert( (-180<=z) && (z<=180) );
+}
+
+//
+// Based on http://www.gregslabaugh.name/publications/euler.pdf
+//
+// Right-handed coordinate system
+//
 bool rotmat_to_angles(const double m[9], double angle[3]) {
+
+	// TODO Check matrix orthogonality?
 
 	double r31 = m[R31];
 
 	bool degenerate = is_degenerate(m, r31);
 
-	double alpha, beta, gamma;
+	double x, y, z;
 
-	if (degenerate) {
-		dbg_degen(r31);
-		alpha = 0.0;
-		beta  = r31*90.0;
-		gamma = atan2(r31*m[R12], m[R22])*RAD;
+	if (!degenerate) {
+		y = asin(-m[R31])*RAD;
+		z = atan2(m[R21], m[R11])*RAD;
+		x = atan2(m[R32], m[R33])*RAD;
 	}
 	else {
-		alpha = atan2(m[R21], m[R11])*RAD;
-		// FIXME Sign would be needed!
-		// Also, m[] has numerical errors, this complicates things :(
-		beta  = atan2(-m[R31], sqrt(pow(m[R32],2)+pow(m[R33],2)))*RAD;
-		gamma = atan2(m[R32], m[R33])*RAD;
+		// r31 = +1 or -1
+		dbg_degen(r31);
+		y = (-r31)*90.0;
+		z = 0.0;
+		x = atan2(r31*m[R12], m[R22])*RAD;
 	}
 
-	angle[ALPHA] = alpha; // -180, 180
-	angle[BETA]  = beta;  //  -90,  90 FIXME beta range?
-	angle[GAMMA] = gamma; // -180, 180
+	dbg_angles(x, y, z);
+
+	angle[X] = x; // -180, 180
+	angle[Y] = y; //  -90,  90
+	angle[Z] = z; // -180, 180
 
 	return degenerate;
 }
