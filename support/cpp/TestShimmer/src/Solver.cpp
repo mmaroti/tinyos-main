@@ -154,7 +154,6 @@ void Solver::emit_signal(bool error) {
 
     cleanup_solver();
 
-    // FIXME Test with Qt::BlockingQueuedConnection
     emit solver_done(error, msg.c_str(), r);
 
     cout << "Releasing resources NOW!" << endl;

@@ -36,7 +36,6 @@
 #include <qfiledialog.h>
 #include "QtDebug"
 #include "window.h"
-#include "Results.hpp"
 
 DataWidget::DataWidget(QWidget *parent, Application &app) :
     QWidget(parent),
@@ -98,7 +97,7 @@ void DataWidget::on_recordBtn_clicked()
 void DataWidget::on_clearBtn_clicked()
 {
     plot->setGraphs(DataPlot::CALIB, false);
-    application.dataRecorder.clearMessages();
+    application.dataRecorder.clearSamples();
 }
 
 void DataWidget::on_refreshButton_clicked()
@@ -374,7 +373,17 @@ void DataWidget::on_regressionButton_clicked()
                          this, SLOT(  finished(bool , const char* , const ipo::Results* )), Qt::DirectConnection);
     }
 
-    if( application.solver.start() == false ){
+    // TODO Disable edit (copy, trim, cut) !!!
+
+    // TODO Remove regression from the menu
+
+    // TODO Disable regression button when recording messages
+
+    // TODO If no samples are loaded, disable regression button
+
+    bool error = application.solver.start();
+
+    if(!error){
         ui->loadBtn->setEnabled(false);
         ui->regressionButton->setEnabled(false);
         ui->recordBtn->setEnabled(false);

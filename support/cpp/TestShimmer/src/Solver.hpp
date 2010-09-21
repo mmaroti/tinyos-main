@@ -59,7 +59,7 @@ public:
 
 signals:
 
-    // MUST use Qt::BlockingQueuedConnection when connecting to this signal
+    // MUST use Qt::DirectConnection when connecting to this signal
     void solver_done(bool error, const char* msg, const ipo::Results* res);
 
 private slots:

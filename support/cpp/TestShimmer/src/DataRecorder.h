@@ -66,7 +66,7 @@ class DataRecorder : public QObject
 
 public:
         DataRecorder(Application &application);
-        virtual ~DataRecorder(); // FIXME
+        ~DataRecorder();
 
 	int size() const {
 		return samples.size();
@@ -83,7 +83,7 @@ public:
         int getFirstTime() const;
         int getLastTime() const;
 
-        void saveCalibrationData() const; // FIXME
+        void saveCalibrationData() const;
         void loadCalibrationData();
 
         double* getAccelCalibration() { return accelCalibrationData; } // FIXME
@@ -99,9 +99,10 @@ public:
         void at(int i, double data[ipo::SIZE]) const;
         int from, to;
 
-        void clearMessages(); // FIXME
+        void clearSamples();
         void saveSamples(const QString& filename) const;
         void loadSamples(const QString& filename);
+        void edit(const QString& option);
 
 signals:
 
@@ -111,12 +112,6 @@ signals:
 public slots:
 	void onReceiveMessage(const ActiveMessage & msg); 
 
-public:
-	//void clearMessages();
-        //void saveSamples(QString);
-        //void loadSamples(QString);
-        //void csvToSample(QString);
-        void edit(QString option);
 
 private:
         void csvToSample(const QString& line); // FIXME
@@ -129,7 +124,6 @@ private:
         int accelIdleWindowStart[6];
         int gyroIdleWindowStart[7]; // FIXME
 
-private:
         Application &application; // FIXME
 
 };

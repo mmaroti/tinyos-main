@@ -107,7 +107,7 @@ void DataRecorder::onReceiveMessage(const ActiveMessage & msg)
     }
 }
 
-void DataRecorder::clearMessages()
+void DataRecorder::clearSamples()
 {
 	samples.clear();
 	emit samplesCleared();
@@ -257,7 +257,7 @@ void DataRecorder::saveSamples(const QString& filename) const {
 
 void DataRecorder::loadSamples(const QString& filename )
 {
-    clearMessages();
+    clearSamples();
     QFile f( filename );
     QString line;
 
@@ -424,7 +424,7 @@ double DataRecorder::calculateCalibratedValue(QString axis, int time)
     } else return -1;
 }
 
-void DataRecorder::edit(QString option)
+void DataRecorder::edit(const QString& option)
 {
     if(samples.size()< to){
         to = samples.size()-1;
