@@ -40,6 +40,12 @@ const double TOL_DEGEN(1.0e-5);
 
 bool rotmat_to_angles(const double matrix[9], double angle[3]);
 
+bool angles_to_rotmat(const double angle[3], double matrix[9]);
+
+bool rotate_vector(const double m[9], const double v[3], double result[3]);
+
+bool dbg_equals(const double m1[9], const double m2[9]);
+
 }
 
 #endif /* EULERANGLES_HPP_ */

@@ -55,6 +55,74 @@ enum {
 	X, Y, Z
 };
 
+void dbg_degen(double r31) {
+
+	if ( (r31 != -1.0) && (r31 != 1.0)) {
+
+		ostringstream os;
+		os << "This case was recognized as a degenerate case but r31 = " << r31;
+		throw runtime_error(os.str());
+	}
+}
+
+void dbg_angles(double x, double y, double z) {
+
+	assert( (-180<=x) && (x<=180) );
+	assert( ( -90<=y) && (y<= 90) );
+	assert( (-180<=z) && (z<=180) );
+}
+
+void dbg_dotprod(const double matrix[3][3], const char* type, int row1, int row2) {
+
+	const double TOL_ORTHO(1.0e-4);
+
+	double dot_prod = 0.0;
+
+	for (int col=0; col<3; ++col) {
+		dot_prod += (matrix[row1][col]*matrix[row2][col]);
+	}
+
+	if (row1==row2) {
+		dot_prod -= 1;
+	}
+
+	if (fabs(dot_prod) > TOL_ORTHO) {
+		ostringstream os;
+		os << type << " (" << (row1+1) << ", " << (row2+1) << ") = ";
+		os << dot_prod;
+		throw runtime_error(os.str());
+	}
+}
+
+void dbg_dotprod(const double matrix[3][3], const char* row_or_col) {
+
+	for (int i=0; i<3; ++i) {
+
+		for (int j=i; j<3; ++j) {
+
+			dbg_dotprod(matrix, row_or_col, i, j);
+		}
+	}
+
+}
+
+void dbg_orthogonality(const double m[9]) {
+
+	const double r[3][3] = {	{ m[R11], m[R12], m[R13] },
+								{ m[R21], m[R22], m[R23] },
+								{ m[R31], m[R32], m[R33] }
+							};
+
+	const double c[3][3] = {	{ m[R11], m[R21], m[R31] },
+								{ m[R12], m[R22], m[R32] },
+								{ m[R13], m[R23], m[R33] }
+							};
+
+	dbg_dotprod(r, "row");
+	dbg_dotprod(c, "column");
+
+}
+
 }
 
 namespace gyro {
@@ -122,23 +190,6 @@ bool is_degenerate(const double m[9], double& r) {
 	return one(r) || minus_one(r) || col_or_row_degen(m, r);
 }
 
-void dbg_degen(double r31) {
-
-	if ( (r31 != -1.0) && (r31 != 1.0)) {
-
-		ostringstream os;
-		os << "This case was recognized as a degenerate case but r31 = " << r31;
-		throw runtime_error(os.str());
-	}
-}
-
-void dbg_angles(double x, double y, double z) {
-
-	assert( (-180<=x) && (x<=180) );
-	assert( ( -90<=y) && (y<= 90) );
-	assert( (-180<=z) && (z<=180) );
-}
-
 //
 // Based on http://www.gregslabaugh.name/publications/euler.pdf
 //
@@ -146,7 +197,7 @@ void dbg_angles(double x, double y, double z) {
 //
 bool rotmat_to_angles(const double m[9], double angle[3]) {
 
-	// TODO Check matrix orthogonality?
+	dbg_orthogonality(m);
 
 	double r31 = m[R31];
 
