@@ -85,12 +85,14 @@ void DataWidget::on_recordBtn_clicked()
             ui->recordBtn->setText("S(t)op");
             ui->recordBtn->setShortcut(Qt::Key_T);
             connect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)), &application.dataRecorder, SLOT(onReceiveMessage(ActiveMessage)));
+            ui->regressionButton->setEnabled(false);
     }
     else
     {
             ui->recordBtn->setText("(R)ecord");
             ui->recordBtn->setShortcut(Qt::Key_R);
             disconnect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)), &application.dataRecorder, SLOT(onReceiveMessage(ActiveMessage)));
+            ui->regressionButton->setEnabled(true);
     }
 }
 
@@ -372,12 +374,6 @@ void DataWidget::on_regressionButton_clicked()
         QObject::connect(&(application.solver), SIGNAL(solver_done(bool , const char* , const ipo::Results* )),
                          this, SLOT(  finished(bool , const char* , const ipo::Results* )), Qt::DirectConnection);
     }
-
-    // TODO Disable edit (copy, trim, cut) !!!
-
-    // TODO Remove regression from the menu
-
-    // TODO Disable regression button when recording messages
 
     // TODO If no samples are loaded, disable regression button
 

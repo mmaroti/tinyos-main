@@ -118,15 +118,8 @@
     <addaction name="actionCopy"/>
     <addaction name="actionCut"/>
    </widget>
-   <widget class="QMenu" name="menuCalibrate">
-    <property name="title">
-     <string>Calibrate</string>
-    </property>
-    <addaction name="actionRegression"/>
-   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
-   <addaction name="menuCalibrate"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionImport">
@@ -147,11 +140,6 @@
   <action name="actionTrim">
    <property name="text">
     <string>Trim</string>
-   </property>
-  </action>
-  <action name="actionRegression">
-   <property name="text">
-    <string>Regression</string>
    </property>
   </action>
   <action name="actionCopy">

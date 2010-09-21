@@ -116,11 +116,13 @@ void MainWindow::onSolverRunning()
         ui->connectTab->setEnabled(false);
         ui->consoleTab->setEnabled(false);
         ui->graphTab->setEnabled(false);
+        ui->menuBar->setEnabled(false);
     } else {
         ui->calibrationTab->setEnabled(true);
         ui->connectTab->setEnabled(true);
         ui->consoleTab->setEnabled(true);
         ui->graphTab->setEnabled(true);
+        ui->menuBar->setEnabled(true);
     }
 
 }

@@ -945,6 +945,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="regressionButton">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Regression</string>
           </property>
