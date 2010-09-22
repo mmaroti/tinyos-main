@@ -80,6 +80,10 @@ Optimizer::Optimizer(const Input& data, std::ostream& os, bool verbose) {
 			cerr << "Error: invalid option!" << endl;
 			exit(ERROR_INVALID_OPTION);
 		}
+		else if (status == Invalid_Number_Detected) {
+			cerr << "Error during function or derivative evaluation!" << endl;
+			exit(ERROR_NUMBER_INVALID);
+		}
 		else if (status != Solve_Succeeded && status != Solved_To_Acceptable_Level) {
 			cerr << "Error during optimization, code: " << status << "!" << endl;
 			exit(ERROR_OPTIMIZATION);

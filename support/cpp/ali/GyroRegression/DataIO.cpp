@@ -59,47 +59,47 @@ void skip_line(istream& in, const char* text) {
 	}
 }
 
-// FIXME Exit at the end
 void check_time_stamp(int sample, double current) {
-
-	static double previous = 0;
 
 	const double SAMPLING_RATE(160);
 	const double GAP_TRESHOLD(5);
 
+	static double previous = current - SAMPLING_RATE;
+
 	if (current <= previous) {
 		cerr << "Timestamp error at sample " << sample << " : ";
 		cerr << previous << " >= " << current << endl;
+		exit(ERROR_INCORRECT_TIMESTAMP);
 	}
 	else if (fabs(current-previous-SAMPLING_RATE)>GAP_TRESHOLD) {
-		cerr << "Missing samples at " << sample << ", gap = ";
-		cerr << fabs(current-previous-SAMPLING_RATE) << endl;
+		clog << "Missing samples at " << sample << ", gap = ";
+		clog << fabs(current-previous-SAMPLING_RATE) << endl;
 	}
 
 	previous = current;
 }
 
-Input* read_stdin()	 {
+Input* read_istream(istream& in) {
 
 	double dt    = NT(10.0/2048.0);
 	double g_ref = NT(-9.81);
 
 	string endline;
 
-	skip_line(cin, NUMBER_OF_SAMPLES);
+	skip_line(in, NUMBER_OF_SAMPLES);
 
 	int N = -1;
 
-	cin >> N;
+	in >> N;
 
 	if (N<1) {
 		cerr << endl << "Invalid number of samples!" << endl;
 		exit(ERROR_READING_INPUT);
 	}
 
-	getline(cin, endline);
+	getline(in, endline);
 
-	skip_line(cin, INPUT_DATA);
+	skip_line(in, INPUT_DATA);
 
 	double* time_stamp = new NT[N];
 
@@ -113,17 +113,17 @@ Input* read_stdin()	 {
 
 	for (int i=0; i<N; ++i) {
 
-		cin >> time_stamp[i];
+		in >> time_stamp[i];
 
 		check_time_stamp(i, time_stamp[i]);
 
-		cin >> acc_x[i];
-		cin >> acc_y[i];
-		cin >> acc_z[i];
+		in >> acc_x[i];
+		in >> acc_y[i];
+		in >> acc_z[i];
 
-		cin >> wx[i];
-		cin >> wy[i];
-		cin >> wz[i];
+		in >> wx[i];
+		in >> wy[i];
+		in >> wz[i];
 
 	}
 

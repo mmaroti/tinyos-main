@@ -36,7 +36,7 @@
 #include <cmath>
 #include "EulerAngles.hpp"
 
-#define DISABLE_ORTHOGONALITY_CHECK
+//#define DISABLE_ORTHOGONALITY_CHECK
 
 using namespace std;
 

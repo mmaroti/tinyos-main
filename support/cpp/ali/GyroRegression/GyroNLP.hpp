@@ -34,7 +34,7 @@
 #ifndef GYRONLP_HPP_
 #define GYRONLP_HPP_
 
-#define USE_GRADTYPE
+#define USE_ADOLC
 
 #ifdef USE_GRADTYPE
 #include "GyroNLP_GradType.hpp"

@@ -44,6 +44,10 @@
 
 using namespace std;
 
+namespace dbg {
+	void orthogonality(const double m[9]);
+}
+
 namespace {
 
 enum {
@@ -101,6 +105,7 @@ RotationMatrix::RotationMatrix(	const Input& data,
 
 	obj.f(x);
 
+	// FIXME (s_x,s_y,s_z) should be (0,0,g)
 	ofstream out("sep01mat");
 	dump_angles(data, out);
 }
@@ -148,7 +153,7 @@ void RotationMatrix::compute_M(	const double ax,
 		const double az,
 		const Input& data)
 {
-
+	// FIXME Transpose ?
 	const double axy = sqrt(pow(ax, 2)+pow(ay, 2));
 
 	// FIXME axy == 0 ?
@@ -182,6 +187,8 @@ void RotationMatrix::compute_M(	const double ax,
 	R[0] = M11; R[1] = M12; R[2] = M13;
 	R[3] = M21; R[4] = M22; R[5] = M23;
 	R[6] = M31; R[7] = M32; R[8] = M33;
+
+	dbg::orthogonality(R);
 
 	const double ax0 = data.acc_x()[0];
 	const double ay0 = data.acc_y()[0];

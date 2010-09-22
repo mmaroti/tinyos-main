@@ -55,7 +55,7 @@ void run_solver(const Input& data) {
 
 int main(int argc, char* argv[]) {
 
-	const Input* data = read_stdin();
+	const Input* data = read_istream();
 
 	run_solver(*data);
 
