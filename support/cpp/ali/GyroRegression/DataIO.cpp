@@ -35,6 +35,7 @@
 #include <fstream>
 #include <string>
 #include <cstdlib>
+#include <cmath>
 #include "InputData.hpp"
 #include "DataIO.hpp"
 #include "Optimizer.hpp"
@@ -56,6 +57,26 @@ void skip_line(istream& in, const char* text) {
 		cerr << "Found: " << line << endl;
 		exit(ERROR_READING_INPUT);
 	}
+}
+
+// FIXME Exit at the end
+void check_time_stamp(int sample, double current) {
+
+	static double previous = 0;
+
+	const double SAMPLING_RATE(160);
+	const double GAP_TRESHOLD(5);
+
+	if (current <= previous) {
+		cerr << "Timestamp error at sample " << sample << " : ";
+		cerr << previous << " >= " << current << endl;
+	}
+	else if (fabs(current-previous-SAMPLING_RATE)>GAP_TRESHOLD) {
+		cerr << "Missing samples at " << sample << ", gap = ";
+		cerr << fabs(current-previous-SAMPLING_RATE) << endl;
+	}
+
+	previous = current;
 }
 
 Input* read_stdin()	 {
@@ -93,6 +114,8 @@ Input* read_stdin()	 {
 	for (int i=0; i<N; ++i) {
 
 		cin >> time_stamp[i];
+
+		check_time_stamp(i, time_stamp[i]);
 
 		cin >> acc_x[i];
 		cin >> acc_y[i];

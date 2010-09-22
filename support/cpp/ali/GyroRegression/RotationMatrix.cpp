@@ -31,6 +31,9 @@
 * Author: Ali Baharev
 */
 
+// FIXME Remove fstream; add new exit-code for runtime-error
+#include <fstream>
+#include <stdexcept>
 #include <iostream>
 #include <iomanip>
 #include <cmath>
@@ -43,19 +46,23 @@ using namespace std;
 
 namespace {
 
-void set_a_alpha(const gyro::Input& data, int i, double a[4], double alpha[4]) {
+enum {
+	X, Y, Z
+};
+
+void set_a_alpha(const gyro::Input& data, int i, double a[3], double alpha[3]) {
 
 	using gyro::RAD;
 
-	a[1] = data.acc_x()[i];
-	a[2] = data.acc_y()[i];
-	a[3] = data.acc_z()[i];
+	a[X] = data.acc_x()[i];
+	a[Y] = data.acc_y()[i];
+	a[Z] = data.acc_z()[i];
 
-	double at = sqrt(pow(a[1], 2)+pow(a[2], 2)+pow(a[3], 2));
+	double at = sqrt(pow(a[X], 2)+pow(a[Y], 2)+pow(a[Z], 2));
 
-	double ax = a[1]/at;
-	double ay = a[2]/at;
-	double az = a[3]/at;
+	double ax = a[X]/at;
+	double ay = a[Y]/at;
+	double az = a[Z]/at;
 
 	if      (ax >  1.0) ax =  1.0;
 	else if (ax < -1.0) ax = -1.0;
@@ -66,9 +73,9 @@ void set_a_alpha(const gyro::Input& data, int i, double a[4], double alpha[4]) {
 	if      (az >  1.0) az =  1.0;
 	else if (az < -1.0) az = -1.0;
 
-	alpha[1] = asin(ax)*RAD;
-	alpha[2] = asin(ay)*RAD;
-	alpha[3] = asin(az)*RAD;
+	alpha[X] = asin(ax)*RAD;
+	alpha[Y] = asin(ay)*RAD;
+	alpha[Z] = asin(az)*RAD;
 }
 
 }
@@ -93,6 +100,9 @@ RotationMatrix::RotationMatrix(	const Input& data,
 	obj.set_M(R, g_err);
 
 	obj.f(x);
+
+	ofstream out("sep01mat");
+	dump_angles(data, out);
 }
 
 RotationMatrix::~RotationMatrix() {
@@ -183,36 +193,43 @@ void RotationMatrix::compute_M(	const double ax,
 
 }
 
+const double* RotationMatrix::matrix_at(int i) const {
+
+	assert(0<=i && i<N);
+
+	return R+(9*i);
+}
+
 void RotationMatrix::dump_angles(const Input& data,
 								std::ostream& log ) const
 {
-	const double g_ref = data.g_ref();
+	const double g[] = { 0, 0, data.g_ref() };
 
-	double  a[4];
-	double  b[4];
-	double alpha[4];
-	double beta[4];
+	double  a[3];
+	double  b[3];
+	double alpha[3];
+	double  beta[3];
 
 	for (int i=0; i<N; ++i) {
 
-		for (int j=1; j<=3; ++j) {
+		const double* const m = matrix_at(i);
 
-			double nb = at(i,3,j);
-
-			if      (nb > 1.0)  nb =  1.0;
-			else if (nb < -1.0) nb = -1.0;
-
-			beta[j] = asin(nb)*RAD;
-
-			b[j] = at(i,3,j)*g_ref;
+		try {
+			rotate_vector(m, g, b);
+			rotmat_to_asin_angles(m, beta);
+		}
+		catch (runtime_error& e) {
+			log << "Runtime error at sample " << i << " of " << N << endl;
+			log << "Message: " << e.what() << endl;
+			throw;
 		}
 
 		set_a_alpha(data, i, a, alpha);
 
-		log << a[1] << '\t' << a[2] << '\t' << a[3] << '\t';
-		log << b[1] << '\t' << b[2] << '\t' << b[3] << '\t';
-		log << alpha[1] << '\t' << alpha[2] << '\t' << alpha[3] << '\t';
-		log <<  beta[1] << '\t' <<  beta[2] << '\t' <<  beta[3] << '\t';
+		log << a[X] << '\t' << a[Y] << '\t' << a[Z] << '\t';
+		log << b[X] << '\t' << b[Y] << '\t' << b[Z] << '\t';
+		log << alpha[X] << '\t' << alpha[Y] << '\t' << alpha[Z] << '\t';
+		log <<  beta[X] << '\t' <<  beta[Y] << '\t' <<  beta[Z] << '\t';
 		log << endl;
 	}
 

@@ -36,6 +36,8 @@
 #include <cmath>
 #include "EulerAngles.hpp"
 
+#define DISABLE_ORTHOGONALITY_CHECK
+
 using namespace std;
 
 namespace {
@@ -120,6 +122,8 @@ void dotprod(const double matrix[3][3], const char* row_or_col) {
 
 void orthogonality(const double m[9]) {
 
+#ifndef DISABLE_ORTHOGONALITY_CHECK
+
 	const double r[3][3] = {	{ m[R11], m[R12], m[R13] },
 								{ m[R21], m[R22], m[R23] },
 								{ m[R31], m[R32], m[R33] }
@@ -134,6 +138,7 @@ void orthogonality(const double m[9]) {
 
 	dotprod(c, "column");
 
+#endif
 }
 
 bool equals(double x, double y) {
