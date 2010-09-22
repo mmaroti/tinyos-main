@@ -4,8 +4,8 @@
 *
 * File              : serial.c
 * Compiler          : IAR C 3.10C Kickstart, AVR-GCC/avr-libc(>= 1.2.5)
-* Revision          : $Revision: 1.1 $
-* Date              : $Date: 2010-08-26 21:03:24 $
+* Revision          : $Revision: 1.2 $
+* Date              : $Date: 2010-09-22 09:39:28 $
 * Updated by        : $Author: szabomeister $
 *
 * Support mail      : avr@atmel.com
@@ -37,6 +37,12 @@ void sendchar(unsigned char c)
 
 unsigned char recchar(void)
 {
+  if (blinker)
+    #ifdef _ATMEGA1281
+    PORTA |= _BV(PA1);
+    #else
+    PORTE &= ~(_BV(PE6));
+    #endif
   counter=100000;
   while( (!(UART_STATUS_REG & (1 << RECEIVE_COMPLETE_BIT))) && (counter>0))
   {
@@ -48,7 +54,12 @@ unsigned char recchar(void)
     return 255;
   }
   else
-  { 
+  {
+    #ifdef _ATMEGA1281 
+    PORTA &= ~(_BV(PA1));
+    #else
+    PORTE |= _BV(PE6);
+    #endif
     return UART_DATA_REG;
   }
 }

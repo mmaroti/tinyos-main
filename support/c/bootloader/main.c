@@ -4,8 +4,8 @@
 *
 * File              : main.c
 * Compiler          : IAR C 3.10C Kickstart, AVR-GCC/avr-libc(>= 1.2.5)
-* Revision          : $Revision: 1.1 $
-* Date              : $Date: 2010-08-26 21:03:24 $
+* Revision          : $Revision: 1.2 $
+* Date              : $Date: 2010-09-22 09:39:28 $
 * Updated by        : $Author: szabomeister $
 *
 * Support mail      : avr@atmel.com
@@ -71,10 +71,13 @@ void main(void)
 	DDRA |= _BV(2);
 	DDRA |= _BV(1);
 	DDRA |= _BV(0);
+	PORTA = 7;
 	#else
 	DDRE |= _BV(5);
 	DDRE |= _BV(6);
 	DDRE |= _BV(7);
+	DDRE &= ~(_BV(PE4));    //make this pin input
+	DDRB &= ~(_BV(PB7));    //make this pin input too
 	#endif
 
     /* Initialization */   
@@ -83,7 +86,7 @@ void main(void)
     
     void (*funcptr)( void ) = 0x0000; // Set up function pointer to RESET vector.
     initbootuart(); // Initialize UART.
-
+    blinker = 0;
 
     /* Branch to bootloader or application code? */
     //if( !(PROGPIN & (1<<PROG_NO)) ) // If PROGPIN is pulled low, enter programmingmode.
@@ -118,14 +121,28 @@ void main(void)
             
             // Chip erase.
             else if(val=='e')
-            {
+            {  
+		#ifdef _ATMEGA1281
+		PORTA = 7;
+		PORTA &= ~(_BV(PA2));
+		#else
+		PORTE =0;
+		PORTE |= _BV(PE7);
+		#endif
+
                 for(address = 0; address < APP_END;address += PAGESIZE)
                 { // NOTE: Here we use address as a byte-address, not word-address, for convenience.
                     _WAIT_FOR_SPM();        
                     _PAGE_ERASE( address );
                 }
-          
+		
                 sendchar('\r'); // Send OK back.
+		#ifdef _ATMEGA1281
+                PORTA = 7;
+		#else
+		PORTE = 0;
+		#endif
+		blinker = 1;
             }
             
 #ifndef REMOVE_BLOCK_SUPPORT
@@ -197,7 +214,7 @@ void main(void)
                     sendchar('?');
                 } else
                 {
-                    _WAIT_FOR_SPM();        
+                    _WAIT_FOR_SPM();      
                     _PAGE_WRITE( address << 1 ); // Convert word-address to byte-address and write.
                 }
 
@@ -281,7 +298,7 @@ void main(void)
 #ifndef REMOVE_AVRPROG_SUPPORT        
             // Enter and leave programming mode.
             else if((val=='P')||(val=='L'))
-            {
+            {  
                 sendchar('\r'); // Nothing special to do, just answer OK.
             }
             
@@ -323,7 +340,7 @@ void main(void)
        
             // Return programmer identifier.
             else if(val=='S')
-            {
+            { 
                 sendchar('A'); // Return 'AVRBOOT'.
                 sendchar('V'); // Software identifier (aka programmer signature) is always 7 characters.
                 sendchar('R');
@@ -355,7 +372,6 @@ void main(void)
             {
               if (timeout==0)
               {
-	      PORTA |= _BV(2) ;
                 _WAIT_FOR_SPM();        
                 _ENABLE_RWW_SECTION();
                 funcptr(); // Jump to Reset vector 0x0000 in Application Section.
@@ -384,8 +400,8 @@ void status(int timeout)
 	PORTA |=7;
 	PORTA &= (~remnant);
 	#else
-	PORTE |=7;
-	PORTE &= (~remnant);
+	PORTE =0x00;
+	PORTE |= (remnant<<4);
 	#endif
 }
 
