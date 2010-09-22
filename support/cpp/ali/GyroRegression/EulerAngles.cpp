@@ -366,7 +366,7 @@ bool rotmat_to_angles(const double m[9], double angle[3]) {
 		dbg::degen(r31);
 		y = -r31*90.0;
 		z = 0.0;
-		x = atan2(-r31*m[R12], m[R22])*RAD;
+		x = atan2(-r31*m[R12], m[R22])*RAD; // TODO Explain sign, is handedness correct?
 	}
 
 	enforce_range(x, z);
@@ -406,6 +406,43 @@ void angles_to_rotmat(const double angle[3], double m[9]) {
 	m[R32] = cos_y*sin_x;
 	m[R33] = cos_x*cos_y;
 
+}
+
+void rotate_vector(const double m[9], const double v[3], double result[3]) {
+
+	dbg::orthogonality(m);
+
+	result[X] = m[R11]*v[X]+m[R12]*v[Y]+m[R13]*v[Z];
+	result[Y] = m[R21]*v[X]+m[R22]*v[Y]+m[R23]*v[Z];
+	result[Z] = m[R31]*v[X]+m[R32]*v[Y]+m[R33]*v[Z];
+}
+
+void inverse_rot_vector(const double m[9], const double v[3], double result[3]) {
+
+	dbg::orthogonality(m);
+
+	result[X] = m[R11]*v[X]+m[R21]*v[Y]+m[R31]*v[Z];
+	result[Y] = m[R12]*v[X]+m[R22]*v[Y]+m[R23]*v[Z];
+	result[Z] = m[R13]*v[X]+m[R23]*v[Y]+m[R33]*v[Z];
+}
+
+void rotmat_to_asin_angles(const double m[9], double angle_deg[3]) {
+
+	dbg::orthogonality(m);
+
+	double r[] = { m[R31], m[R32], m[R33] };
+
+	for (int i=0; i<3; ++i) {
+
+		if (r[i] < -1) {
+			r[i] = -1;
+		}
+		else if (r[i] > 1) {
+			r[i] = 1;
+		}
+
+		angle_deg[i] = asin(r[i])*RAD;
+	}
 }
 
 }
