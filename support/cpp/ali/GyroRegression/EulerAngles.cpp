@@ -42,8 +42,6 @@ namespace {
 
 const double PI(3.141592653589793);
 
-const double RAD(57.29577951308232);
-
 enum {
 	R11, R12, R13,
 	R21, R22, R23,

@@ -37,8 +37,41 @@
 #include <cassert>
 #include "ObjectiveEvaluator.hpp"
 #include "RotationMatrix.hpp"
+#include "EulerAngles.hpp"
 
 using namespace std;
+
+namespace {
+
+void set_a_alpha(const gyro::Input& data, int i, double a[4], double alpha[4]) {
+
+	using gyro::RAD;
+
+	a[1] = data.acc_x()[i];
+	a[2] = data.acc_y()[i];
+	a[3] = data.acc_z()[i];
+
+	double at = sqrt(pow(a[1], 2)+pow(a[2], 2)+pow(a[3], 2));
+
+	double ax = a[1]/at;
+	double ay = a[2]/at;
+	double az = a[3]/at;
+
+	if      (ax >  1.0) ax =  1.0;
+	else if (ax < -1.0) ax = -1.0;
+
+	if      (ay >  1.0) ay =  1.0;
+	else if (ay < -1.0) ay = -1.0;
+
+	if      (az >  1.0) az =  1.0;
+	else if (az < -1.0) az = -1.0;
+
+	alpha[1] = asin(ax)*RAD;
+	alpha[2] = asin(ay)*RAD;
+	alpha[3] = asin(az)*RAD;
+}
+
+}
 
 namespace gyro {
 
@@ -48,10 +81,6 @@ RotationMatrix::RotationMatrix(	const Input& data,
 		bool verbose) :
 		R(new double[9*data.N()]),
 		g_err(new double[3*data.N()]),
-		//Rt_g( new double[3*data.N()]),
-		//a(    new double[3*data.N()]),
-		//alpha(new double[3*data.N()]),
-		//beta( new double[3*data.N()]),
 		N(data.N())
 {
 
@@ -126,7 +155,7 @@ void RotationMatrix::compute_M(	const double ax,
 
 	const double c = -az/a;
 
-	const double s = sqrt(1.0-pow(c, 2));
+	const double s = sqrt(1.0-pow(c, 2)); // FIXME Sign?
 
 	const double M11 = ux2+uy2*c;
 	const double M12 = uxy*(1.0-c);
@@ -161,55 +190,30 @@ void RotationMatrix::dump_angles(const Input& data,
 
 	double  a[4];
 	double  b[4];
-	double nb[4];
+	double alpha[4];
 	double beta[4];
 
 	for (int i=0; i<N; ++i) {
 
 		for (int j=1; j<=3; ++j) {
 
-			nb[j] = at(i,3,j);
+			double nb = at(i,3,j);
 
-			if (nb[j] > 1.0)
-				nb[j] = 1.0;
-			else if (nb[j] < -1.0)
-				nb[j] = -1.0;
+			if      (nb > 1.0)  nb =  1.0;
+			else if (nb < -1.0) nb = -1.0;
 
-			beta[j] = asin(nb[j])*(180.0/M_PI);
+			beta[j] = asin(nb)*RAD;
 
 			b[j] = at(i,3,j)*g_ref;
 		}
 
-		a[1] = data.acc_x()[i];
-		a[2] = data.acc_y()[i];
-		a[3] = data.acc_z()[i];
-
-		double at = sqrt(pow(a[1], 2)+pow(a[2], 2)+pow(a[3], 2));
-
-		double ax = a[1]/at;
-		double ay = a[2]/at;
-		double az = a[3]/at;
-
-		if      (ax >  1.0) ax =  1.0;
-		else if (ax < -1.0) ax = -1.0;
-
-		if      (ay >  1.0) ay =  1.0;
-		else if (ay < -1.0) ay = -1.0;
-
-		if      (az >  1.0) az =  1.0;
-		else if (az < -1.0) az = -1.0;
-
-		double alpha_x = asin(ax)*(180.0/M_PI);
-		double alpha_y = asin(ay)*(180.0/M_PI);
-		double alpha_z = asin(az)*(180.0/M_PI);
+		set_a_alpha(data, i, a, alpha);
 
 		log << a[1] << '\t' << a[2] << '\t' << a[3] << '\t';
 		log << b[1] << '\t' << b[2] << '\t' << b[3] << '\t';
-		log << alpha_x << '\t' << alpha_y << '\t' << alpha_z << '\t';
-		log << beta[1] << '\t' << beta[2] << '\t' << beta[3] << '\t';
+		log << alpha[1] << '\t' << alpha[2] << '\t' << alpha[3] << '\t';
+		log <<  beta[1] << '\t' <<  beta[2] << '\t' <<  beta[3] << '\t';
 		log << endl;
-
-
 	}
 
 	log << endl;

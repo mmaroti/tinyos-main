@@ -53,6 +53,8 @@ void inverse_rot_vector(const double m[9], const double v[3], double result[3]);
 // FIXME Find a proper name for these angles
 void rotmat_to_asin_angles(const double matrix[9], double angle_deg[3]);
 
+const double RAD(57.29577951308232);
+
 }
 
 #endif /* EULERANGLES_HPP_ */
