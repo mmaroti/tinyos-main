@@ -29,17 +29,14 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Veress Krisztian
+* Author: Krisztian Veress
 *         veresskrisztian@gmail.com
 */
 
-#define ATOMIC_PERIODIC_TIME 1000
-//#define MAX(a,b) ((a) ^ (((a) ^ (b)) & -((a) < (b))))
-//#define MIN(a,b) ((b) ^ (((a) ^ (b)) & -((a) < (b))))
+#define ATOMIC_PERIODIC_TIME 1024
 
 #define MAX(a,b) (((a) < (b)) ? (b) : (a))
 #define MIN(a,b) (((a) > (b)) ? (b) : (a))
-
 
 module CodeProfileP @safe() {
   provides {
@@ -52,52 +49,46 @@ module CodeProfileP @safe() {
     
   }
   uses {
-    interface Alarm<TMicro, avail_timer_width> as Alarm;
+    interface Alarm<TMicro, uint32_t> as Alarm;
   }
 }
 implementation {
 
-  uint32_t mil;           // Maximum Interrupt Length
-  norace uint32_t mal, malbase;  // Maximum Atomic Length
-  norace uint32_t mtl, mtlbase;  // Maximum Task Latency
-
+  uint32_t        mil;           // Maximum Interrupt Length
+  norace uint32_t mal;           // Maximum Atomic Length
+  uint32_t        mtl;           // Maximum Task Latency
+  
+  norace uint32_t mal_offset;
+  uint32_t mtl_offset;
   norace bool     alive;
 
   command uint32_t CodeProfile.getMaxInterruptLength()  { return mil; }
   command uint32_t CodeProfile.getMaxAtomicLength()     { return mal; }
   command uint32_t CodeProfile.getMaxTaskLatency()      { return mtl; }
 
-  command uint32_t MaxInterruptLength.get() { return mil; }
-  command uint32_t MaxAtomicLength.get()    { return mal; }
-  command uint32_t MaxTaskLatency.get()     { return mtl; }
-
-  command profile_t CodeProfile.getProfile() {
-    profile_t ret;
-    ret.max_atomic = mal;
-    ret.max_interrupt = mil;
-    ret.max_latency = mtl;
-    return ret;
-  }
+  command uint32_t MaxInterruptLength.get()             { return mil; }
+  command uint32_t MaxAtomicLength.get()                { return mal; }
+  command uint32_t MaxTaskLatency.get()                 { return mtl; }
 
   task void measureTask() {
     
-    uint32_t t1 = (uint32_t)call Alarm.getNow();
-    uint32_t t2 = (uint32_t)call Alarm.getNow();
+    uint32_t t1 = call Alarm.getNow();
+    uint32_t t2 = call Alarm.getNow();
     
     // The difference between two consecutive getNow() call can be
-    // greater than zero, if interrupt(s) occured in between. That
+    // significantly greater than zero, if interrupt(s) occured in between. That
     // difference is proportional to the running time of the 
     // interrupt handler.
     mil = MAX(t2-t1,mil);
     
-    // The difference between the posting time of this task (mtlbase)
+    // The difference between the posting time of this task (mtl_offset)
     // and the first expression's execution time ( t1 ) is the time
     // between two measureTask tasks.
     // This way, interleaving tasks' running time is measured.
     
-    mtl = MAX(t1-mtlbase,mtl);
+    mtl = MAX(t1-mtl_offset,mtl);
     atomic {
-      mtlbase = (uint32_t)call Alarm.getNow();
+      mtl_offset = call Alarm.getNow();
       if ( alive )
         post measureTask();
     }
@@ -105,10 +96,11 @@ implementation {
 
 
   command error_t StdControl.start() {
-    mil = mal = mtl = (uint32_t)0;
-    mtlbase = malbase = (uint32_t)call Alarm.getNow();
+    mil = mal = mtl = 0;
     alive = TRUE;
     
+    mtl_offset = mal_offset = call Alarm.getNow();
+        
     call Alarm.start(ATOMIC_PERIODIC_TIME);
     post measureTask();
     return SUCCESS;
@@ -123,18 +115,22 @@ implementation {
   }
   
   async event void Alarm.fired() {
-    // When this alarm should have been fired?
-    uint32_t target = (malbase + ATOMIC_PERIODIC_TIME);
     
-    // Get the current time AND store it for future offset
+    // When this alarm should have been fired ?
+    uint32_t target = mal_offset + ATOMIC_PERIODIC_TIME;
+    
+    // Get the current time AND store it for the next offset
     // to avoid duplicate call to Alarm.getNow()
-    malbase = (uint32_t)call Alarm.getNow();
+    mal_offset = call Alarm.getNow();
     
-    // Compute the difference, and update if necessary
-    mal = MAX(MIN(malbase-target,target-malbase),mal);
-       
+    // Compute the absolute difference, and update maximum if necessary
+    // Note that in rare cases (mal_offset - target)< 0 can happen, that is 
+    // why a MAX-MIN is needed to avoid unsigned overflow.
+    mal = MAX( MIN( mal_offset - target, target - mal_offset ),mal);
+    
     atomic {
       if ( alive )
+        mal_offset = call Alarm.getNow();
         call Alarm.start(ATOMIC_PERIODIC_TIME);
     }
   }

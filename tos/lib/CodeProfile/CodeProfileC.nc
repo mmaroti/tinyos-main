@@ -29,9 +29,11 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Veress Krisztian
+* Author: Krisztian Veress
 *         veresskrisztian@gmail.com
 */
+
+#include "PlatformConfig.h"
 
 configuration CodeProfileC {
   provides {
@@ -48,11 +50,19 @@ configuration CodeProfileC {
 
 implementation {
 
-  #if defined(MCU_IS_ATM128)
+  #if defined(CONTROLLER_ATM128)
     components new AlarmMicro32C() as Alarm;
   
-  #elif defined(MCU_IS_MSP430)
-    components new AlarmMicro16C() as Alarm;
+  #elif defined(CONTROLLER_MSP430)
+    components Msp430CounterMicroC as Counter16;
+    components new AlarmMicro16C() as Alarm16;
+    
+    components new TransformCounterC(TMicro,uint32_t,TMicro,uint16_t,0,uint32_t) as TCounter;
+    TCounter.CounterFrom -> Counter16;
+    
+    components new TransformAlarmC(TMicro,uint32_t,TMicro,uint16_t,0) as Alarm;
+    Alarm.AlarmFrom -> Alarm16;
+    Alarm.Counter -> TCounter;
 
   #endif
 

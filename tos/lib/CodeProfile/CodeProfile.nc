@@ -1,4 +1,3 @@
-
 /*
 * Copyright (c) 2010, University of Szeged
 * All rights reserved.
@@ -30,40 +29,31 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Veress Krisztian
+* Author: Krisztian Veress
 *         veresskrisztian@gmail.com
 */
-
-#include "CodeProfile.h"
 
 interface CodeProfile {
 
   /**
-    * Retrieve the longest interrupt handling time
+    * Retrieve the longest interrupt handling time in microseconds
     *
-    * @return the maximum time value
+    * @return the maximum value
     */
   command uint32_t getMaxInterruptLength();
   
   /**
-    * Retrieve the longest atomic section's time
+    * Retrieve the longest atomic section's time in microseconds
     *
-    * @return the maximum time value
+    * @return the maximum value
     */
   command uint32_t getMaxAtomicLength();
   
   /**
-    * Retrieve the maximum elapsed time between two task.
+    * Retrieve the maximum elapsed time in microseconds between two task.
     *
-    * @return the maximum time value
+    * @return the maximum value
     */
   command uint32_t getMaxTaskLatency();
-  
-  /**
-    * Retrieve all 3 values in one struct
-    *
-    * @return profile_t struct containing all 3 values
-    */
-  command profile_t getProfile();
-  
+    
 }
