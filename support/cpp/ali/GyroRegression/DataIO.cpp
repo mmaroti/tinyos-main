@@ -127,6 +127,7 @@ Input* read_istream(istream& in) {
 
 	}
 
+	// TODO End of file line?
 	return new Input(time_stamp, acc_x, acc_y, acc_z, wx, wy, wz, N, dt, g_ref);
 
 }
