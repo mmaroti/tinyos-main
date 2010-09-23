@@ -306,7 +306,7 @@ private:
 		if (MR) {
 
 			const int k = 9*i;
-
+			// FIXME M*R or R*M; here M*R is done
 			MR[k+0] =  M11*R_11+M12*R_21+M13*R_31;
 			MR[k+1] =  M11*R_12+M12*R_22+M13*R_32;
 			MR[k+2] =  M11*R_13+M12*R_23+M13*R_33;

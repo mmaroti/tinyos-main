@@ -189,14 +189,18 @@ void RotationMatrix::dump_angles(const Input& data,
 	double  b[3];
 	double alpha[3];
 	double  beta[3];
+	double angle[3];
 
 	for (int i=0; i<N; ++i) {
 
 		const double* const m = matrix_at(i);
 
 		try {
-			rotate_vector(m, g, b);
+			inverse_rot_vector(m, g, b);
+			// FIXME which matrix, sign of g_ref
 			rotmat_to_asin_angles(m, beta);
+			// TODO Finish and dump Euler angles
+			rotmat_to_angles(m, angle);
 		}
 		catch (runtime_error& e) {
 			log << "Runtime error at sample " << i << " of " << N << endl;

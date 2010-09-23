@@ -278,7 +278,7 @@ void M_consistency( const double rot_z[9],
 					const double v[3],
 					const double w[3] )
 {
-	// u ->-z;	v ->-y;	w -> x
+	// u -> z;	v -> y;	w -> x
 	using namespace gyro;
 
 	double z[3];
@@ -287,7 +287,7 @@ void M_consistency( const double rot_z[9],
 
 	normalize(z);
 
-	double k[] = { 0, 0,-1 };
+	double k[] = { 0, 0, 1 };
 
 	dbg::equal_arrays(k, z, 3, "dbg z");
 
@@ -295,7 +295,7 @@ void M_consistency( const double rot_z[9],
 
 	rotate_vector(rot_z, v, y);
 
-	double j[] = { 0,-1, 0 };
+	double j[] = { 0, 1, 0 };
 
 	dbg::equal_arrays(j, y, 3, "dbg y");
 
@@ -470,11 +470,7 @@ void inverse_rot_vector(const double m[9], const double v[3], double result[3]) 
 	result[Z] = m[R13]*v[X]+m[R23]*v[Y]+m[R33]*v[Z];
 }
 
-void rotmat_to_asin_angles(const double m[9], double angle_deg[3]) {
-
-	dbg::orthogonality(m);
-
-	double r[] = { m[R31], m[R32], m[R33] };
+void vector_to_tilt_angles(double r[3], double angle_deg[3]) {
 
 	for (int i=0; i<3; ++i) {
 
@@ -487,6 +483,25 @@ void rotmat_to_asin_angles(const double m[9], double angle_deg[3]) {
 
 		angle_deg[i] = asin(r[i])*RAD;
 	}
+}
+
+void mat_to_tilt_angles(const double m[9], int i, int j, int k, double angle_deg[3]) {
+
+	dbg::orthogonality(m);
+
+	double r[] = { m[i], m[j], m[k] };
+
+	vector_to_tilt_angles(r, angle_deg);
+}
+
+void rotmat_to_asin_angles(const double m[9], double angle_deg[3]) {
+
+	mat_to_tilt_angles(m, R31, R32, R33, angle_deg);
+}
+
+void inversemat_to_asin_angles(const double m[9], double angle_deg[3]) {
+
+	mat_to_tilt_angles(m, R13, R23, R33, angle_deg);
 }
 
 double length(const double v[3]) {
@@ -536,7 +551,7 @@ void get_perpendicular(const double u[3], double v[3]) {
 }
 
 void cross_product(const double u[3], const double v[3], double w[3]) {
-
+	// FIXME Check handedness
 	w[X] = u[Y]*v[Z]-u[Z]*v[Y];
 	w[Y] = u[Z]*v[X]-u[X]*v[Z];
 	w[Z] = u[X]*v[Y]-u[Y]*v[X];
@@ -556,28 +571,28 @@ void get_M(const double a[3], double M[9]) {
 
 	cross_product(v, u, w);
 
-	// u ->-z;	v ->-y;	w -> x
-	// remove all negative signs to get u -> z;	v -> y;	w -> x
+	// u -> z;	v -> y;	w -> x
 
 	double rot_z[9] = { w[X], w[Y], w[Z],
-					   -v[X],-v[Y],-v[Z],
-					   -u[X],-u[Y],-u[Z] };
+					    v[X], v[Y], v[Z],
+					    u[X], u[Y], u[Z] };
 
 	dbg::orthogonality(rot_z);
 
-	M[R11] = w[X];
-	M[R12] = w[Y];
-	M[R13] = w[Z];
+	dbg::M_consistency(rot_z, a, u, v, w);
 
-	M[R21] = -v[X];
-	M[R22] = -v[Y];
-	M[R23] = -v[Z];
+	// FIXME This flip is unclear; handedness?
+	M[R11] = -v[X];
+	M[R12] = -v[Y];
+	M[R13] = -v[Z];
+
+	M[R21] = -w[X];
+	M[R22] = -w[Y];
+	M[R23] = -w[Z];
 
 	M[R31] = -u[X];
 	M[R32] = -u[Y];
 	M[R33] = -u[Z];
-
-	dbg::M_consistency(rot_z, a, u, v, w);
 
 }
 
