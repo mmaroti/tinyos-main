@@ -54,6 +54,12 @@ enum {
 	X, Y, Z
 };
 
+enum {
+	R11, R12, R13,
+	R21, R22, R23,
+	R31, R32, R33
+};
+
 void set_a_alpha(const gyro::Input& data, int i, double a[3], double alpha[3]) {
 
 	using gyro::RAD;
@@ -153,51 +159,18 @@ void RotationMatrix::compute_M(	const double ax,
 		const double az,
 		const Input& data)
 {
-	// FIXME Transpose ?
-	const double axy = sqrt(pow(ax, 2)+pow(ay, 2));
+	const double a[] = { ax, ay, az };
 
-	// FIXME axy == 0 ?
-
-	const double ux = -ay/axy;
-	const double uy =  ax/axy;
-	//           uz =  0.0;
-
-	const double ux2 = pow(ux, 2);
-	const double uy2 = pow(uy, 2);
-	const double uxy = ux*uy;
-
-	const double a = sqrt(pow(ax, 2)+pow(ay, 2)+pow(az, 2));
-
-	const double c = -az/a;
-
-	const double s = sqrt(1.0-pow(c, 2)); // FIXME Sign?
-
-	const double M11 = ux2+uy2*c;
-	const double M12 = uxy*(1.0-c);
-	const double M13 = uy*s;
-
-	const double M21 = M12;
-	const double M22 = uy2+ux2*c;
-	const double M23 =-ux*s;
-
-	const double M31 =-M13;
-	const double M32 =-M23;
-	const double M33 = c;
-
-	R[0] = M11; R[1] = M12; R[2] = M13;
-	R[3] = M21; R[4] = M22; R[5] = M23;
-	R[6] = M31; R[7] = M32; R[8] = M33;
+	get_M(a, R);
 
 	dbg::orthogonality(R);
 
-	const double ax0 = data.acc_x()[0];
-	const double ay0 = data.acc_y()[0];
-	const double az0 = data.acc_z()[0];
+	const double a0[] = { data.acc_x()[0], data.acc_y()[0], data.acc_z()[0] };
 
-	g_err[0] = M11*ax0+M12*ay0+M13*az0;
-	g_err[1] = M21*ax0+M22*ay0+M23*az0;
-	g_err[2] = M31*ax0+M32*ay0+M33*az0 - data.g_ref();
+	// FIXME Check g_err !!!
+	rotate_vector(R, a0, g_err);
 
+	g_err[Z] -= data.g_ref();
 }
 
 const double* RotationMatrix::matrix_at(int i) const {

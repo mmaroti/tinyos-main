@@ -73,11 +73,41 @@ void non_orthogonal() {
 	rotmat_to_angles(m, dummy);
 }
 
+void M_test(const double a[3]) {
+
+	double M[9];
+
+	get_M(a, M);
+
+	double r[3];
+
+	rotate_vector(M, a, r);
+
+	cout << "a rotated: " << r[0] << '\t' << r[1] << '\t' << r[2] << endl;
+}
+
+void M_test() {
+
+	cout << "Testing M" << endl;
+
+	const double a[] = {-3,-5, 10 };
+
+	M_test(a);
+
+	const double b[] = { -6.0e-7, 2, 5.0e-7 };
+
+	M_test(b);
+
+	return;
+}
+
 int main() {
+
+	M_test();
 
 	non_orthogonal();
 
-	const int N = 5000000;
+	const int N = 10000;
 
 	srand(7);
 

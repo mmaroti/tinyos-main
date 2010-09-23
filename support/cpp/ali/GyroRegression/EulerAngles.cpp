@@ -56,6 +56,11 @@ enum {
 
 }
 
+namespace gyro {
+
+	void normalize(double v[3]);
+}
+
 namespace dbg {
 
 void degen(double r31) {
@@ -267,6 +272,42 @@ void consistent(const double angles_deg[3]) {
 
 }
 
+void M_consistency( const double rot_z[9],
+					const double a[3],
+					const double u[3],
+					const double v[3],
+					const double w[3] )
+{
+	// u ->-z;	v ->-y;	w -> x
+	using namespace gyro;
+
+	double z[3];
+
+	rotate_vector(rot_z, a, z);
+
+	normalize(z);
+
+	double k[] = { 0, 0,-1 };
+
+	dbg::equal_arrays(k, z, 3, "dbg z");
+
+	double y[3];
+
+	rotate_vector(rot_z, v, y);
+
+	double j[] = { 0,-1, 0 };
+
+	dbg::equal_arrays(j, y, 3, "dbg y");
+
+	double x[3];
+
+	rotate_vector(rot_z, w, x);
+
+	double i[] = { 1, 0, 0 };
+
+	dbg::equal_arrays(i, x, 3, "dbg x");
+}
+
 }  // namespace dbg
 
 namespace gyro {
@@ -446,6 +487,98 @@ void rotmat_to_asin_angles(const double m[9], double angle_deg[3]) {
 
 		angle_deg[i] = asin(r[i])*RAD;
 	}
+}
+
+double length(const double v[3]) {
+
+	return sqrt(pow(v[X],2) + pow(v[Y],2) + pow(v[Z],2));
+}
+
+void normalize(double v[3]) {
+
+	const double TOL(1.0e-6);
+
+	const double v_len = length(v);
+
+	if (v_len < TOL) {
+		throw runtime_error("Length is less than TOL in normalize()!");
+	}
+
+	v[X] /= v_len;
+	v[Y] /= v_len;
+	v[Z] /= v_len;
+}
+
+void get_perpendicular(const double u[3], double v[3]) {
+
+	const double TOL(1.0e-6);
+
+	const double abs_ux = fabs(u[X]);
+	const double abs_uz = fabs(u[Z]);
+
+	if ((abs_ux<TOL) && (abs_uz<TOL)) {
+		v[X] = 0;
+		v[Y] = 0;
+		v[Z] = 1;
+	}
+	else if (abs_ux > abs_uz) {
+		v[X] = -(u[Z]/u[X]);
+		v[Y] = 0;
+		v[Z] = 1;
+	}
+	else {
+		v[X] = 1;
+		v[Y] = 0;
+		v[Z] = -(u[X]/u[Z]);
+	}
+
+	normalize(v);
+}
+
+void cross_product(const double u[3], const double v[3], double w[3]) {
+
+	w[X] = u[Y]*v[Z]-u[Z]*v[Y];
+	w[Y] = u[Z]*v[X]-u[X]*v[Z];
+	w[Z] = u[X]*v[Y]-u[Y]*v[X];
+}
+
+void get_M(const double a[3], double M[9]) {
+
+	const double a_len = length(a);
+
+	const double u[] = { a[X]/a_len, a[Y]/a_len, a[Z]/a_len };
+
+	double v[3];
+
+	get_perpendicular(a, v);
+
+	double w[3];
+
+	cross_product(v, u, w);
+
+	// u ->-z;	v ->-y;	w -> x
+	// remove all negative signs to get u -> z;	v -> y;	w -> x
+
+	double rot_z[9] = { w[X], w[Y], w[Z],
+					   -v[X],-v[Y],-v[Z],
+					   -u[X],-u[Y],-u[Z] };
+
+	dbg::orthogonality(rot_z);
+
+	M[R11] = w[X];
+	M[R12] = w[Y];
+	M[R13] = w[Z];
+
+	M[R21] = -v[X];
+	M[R22] = -v[Y];
+	M[R23] = -v[Z];
+
+	M[R31] = -u[X];
+	M[R32] = -u[Y];
+	M[R33] = -u[Z];
+
+	dbg::M_consistency(rot_z, a, u, v, w);
+
 }
 
 }
