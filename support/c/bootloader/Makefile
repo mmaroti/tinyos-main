@@ -5,7 +5,7 @@
 # (GNU make, BSD make, SysV make)
 
 
-MCU = atmega1281
+MCU = atmega128rfa1
 FORMAT = srec
 TARGET = bootloader
 SRC = main.c serial.c defines.c
@@ -35,7 +35,7 @@ CDEFS =
 #CDEFS += -DREMOVE_FUSE_AND_LOCK_BIT_SUPPORT
 #CDEFS += -DREMOVE_AVRPROG_SUPPORT
 #CDEFS += -DREMOVE_BLOCK_SUPPORT
-CDEFS += -D_ATMEGA1281
+#CDEFS += -D_ATMEGA1281
 
 # Place -I options here
 CINCS =
