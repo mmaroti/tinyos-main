@@ -62,11 +62,10 @@ public class IntegerParser extends PacketParser{
 		
 	}
 	
-	@Override
 	/**
-	 * @return the value of the integer at the first place of the String array
+	 * @return the value of the integer
 	 */
-	public String[] parse(byte[] packet)
+	protected long byteToLong(byte[] packet)
 	{						//TODO check size
 		long ret = 0;
 		
@@ -81,7 +80,33 @@ public class IntegerParser extends PacketParser{
 			ret |= a;
 		}
 		
-		return new String[] { Long.toString(ret) };
+		return ret;
+	}
+	
+	@Override
+	/**
+	 * @return the value of the integer at the first place of the String array
+	 */
+	public String[] parse(byte[] packet)
+	{	
+		return new String[] { Long.toString(byteToLong(packet)) };
+	}
+	
+	
+	/**
+	 * constructs byte[] from a number
+	 * @param longValue constructs byte[] from it 
+	 * @return byte[]
+	 */
+	protected byte[] longToByte(long longValue)
+	{
+		byte [] b = new byte[size];
+		
+		for(int i= 0; i < size; i++)
+		{
+			b[isLittleEndian ? i : size-1-i] = (byte)((longValue >> (i * 8))& 0xFF);
+		}
+		return b;
 	}
 	
 	/**
@@ -93,13 +118,7 @@ public class IntegerParser extends PacketParser{
 	{
 		long longValue=Long.decode(stringValue[0]);
 		
-		byte [] b = new byte[size];
-		
-		for(int i= 0; i < size; i++)
-		{
-			b[isLittleEndian ? i : size-1-i] = (byte)((longValue >> (i * 8))& 0xFF);
-		}
-		return b;	
+		return longToByte(longValue);
 			
 	}
 	
