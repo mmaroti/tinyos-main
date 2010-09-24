@@ -42,7 +42,10 @@ import org.szte.wsn.dataprocess.parser.ArrayParser;
 import org.szte.wsn.dataprocess.parser.ConstParser;
 import org.szte.wsn.dataprocess.parser.IntegerParser;
 import org.szte.wsn.dataprocess.parser.Sht11HumidityParser;
+import org.szte.wsn.dataprocess.parser.Sht11TempParser;
 import org.szte.wsn.dataprocess.parser.StructParser;
+import org.szte.wsn.dataprocess.parser.Taos2550LuxParser;
+import org.szte.wsn.dataprocess.parser.Taos2550Parser;
 
 
 public class PacketParserFactory {	
@@ -191,15 +194,15 @@ public class PacketParserFactory {
 		}
 		else if(type.contains("sht11temp"))
 		{
-			return new Sht11HumidityParser(name, type);
+			return new Sht11TempParser(name, type);
 		}
 		else if(type.contains("taos2550"))
 		{
-			return new Sht11HumidityParser(name, type);
+			return new Taos2550Parser(name, type);
 		}
 		else if(type.contains("taos2550lux"))
 		{
-			return new Sht11HumidityParser(name, type);
+			return new Taos2550LuxParser(name, type);
 		}
 		else
 			return null;

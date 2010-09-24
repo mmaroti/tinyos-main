@@ -4,6 +4,7 @@ public class Taos2550LuxParser extends Taos2550Parser{
 
 	public Taos2550LuxParser(String name, String type) {
 		super(name, type);
+		signed=false;
 		size=2;
 	}
 	

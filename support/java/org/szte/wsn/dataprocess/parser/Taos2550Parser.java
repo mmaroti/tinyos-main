@@ -30,7 +30,7 @@ public class Taos2550Parser extends IntegerParser{
 	{	
 		int light=byteToCount(packet[0]);
 
-		return new String[] {Double.toString(light)};	
+		return new String[] {Integer.toString(light)};	
 	}
 	
 	/**
