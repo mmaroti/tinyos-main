@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import org.szte.wsn.dataprocess.parser.ArrayParser;
 import org.szte.wsn.dataprocess.parser.ConstParser;
 import org.szte.wsn.dataprocess.parser.IntegerParser;
+import org.szte.wsn.dataprocess.parser.Sht11HumidityParser;
 import org.szte.wsn.dataprocess.parser.StructParser;
 
 
@@ -183,6 +184,22 @@ public class PacketParserFactory {
 		else if(type.contains("int"))
 		{ 		
 			return new IntegerParser(name, type);
+		}
+		else if(type.contains("sht11humidity"))
+		{
+			return new Sht11HumidityParser(name, type);
+		}
+		else if(type.contains("sht11temp"))
+		{
+			return new Sht11HumidityParser(name, type);
+		}
+		else if(type.contains("taos2550"))
+		{
+			return new Sht11HumidityParser(name, type);
+		}
+		else if(type.contains("taos2550lux"))
+		{
+			return new Sht11HumidityParser(name, type);
 		}
 		else
 			return null;
