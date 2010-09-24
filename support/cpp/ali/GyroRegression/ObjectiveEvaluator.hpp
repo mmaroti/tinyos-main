@@ -115,6 +115,12 @@ private:
 		sx = ax;
 		sy = ay;
 		sz = az;
+
+		if (MR) {
+			sx = M11*ax+M12*ay+M13*az;
+			sy = M21*ax+M22*ay+M23*az;
+			sz = M31*ax+M32*ay+M33*az;
+		}
 	}
 
 	void compute_G(const int i, const T* const x) {
@@ -284,24 +290,18 @@ private:
 		T a_y = R_21*ax+R_22*ay+R_23*az;
 		T a_z = R_31*ax+R_32*ay+R_33*az;
 
+		if (MR) {
+			T g_x = M11*a_x+M12*a_y+M13*a_z;
+			T g_y = M21*a_x+M22*a_y+M23*a_z;
+			T g_z = M31*a_x+M32*a_y+M33*a_z;
+			a_x = g_x;
+			a_y = g_y;
+			a_z = g_z;
+		}
 		// TODO Scaling factor?
 		sx = sx + a_x;
 		sy = sy + a_y;
 		sz = sz + a_z;
-
-		if (VERBOSE) {
-			log << endl;
-			log << "a(i)" << endl;
-			log << ax << '\t' << ay << '\t' << az << endl;
-
-			T g_x = M11*a_x+M12*a_y+M13*a_z;
-			T g_y = M21*a_x+M22*a_y+M23*a_z;
-			T g_z = M31*a_x+M32*a_y+M33*a_z;
-			log << endl;
-			log << "g(i)" << endl;
-			log << g_x << ' ' << g_y << ' ' << g_z << endl;
-			//out  << g_x << ' ' << g_y << ' ' << (g_z-g_ref) << endl;
-		}
 
 		if (MR) {
 

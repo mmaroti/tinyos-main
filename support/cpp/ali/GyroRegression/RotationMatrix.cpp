@@ -111,9 +111,20 @@ RotationMatrix::RotationMatrix(	const Input& data,
 
 	obj.f(x);
 
-	// FIXME (s_x,s_y,s_z) should be (0,0,g)
+	// TODO Acceptance test: (s_x,s_y,s_z) should be (0,0,g)
+
 	ofstream out("sep01mat");
 	dump_angles(data, out);
+
+	out.close();
+	out.open("g_err");
+	dump_g_err(out);
+
+	out.close();
+	out.open("objective");
+	out << "sx: " << obj.s_x() << endl;
+	out << "sy: " << obj.s_y() << endl;
+	out << "sz: " << obj.s_z() << endl;
 }
 
 RotationMatrix::~RotationMatrix() {
@@ -154,7 +165,7 @@ void RotationMatrix::dump_g_err(ostream& log) const {
 	}
 }
 
-void RotationMatrix::compute_M(	const double ax,
+void RotationMatrix::compute_M(const double ax,
 		const double ay,
 		const double az,
 		const Input& data)
@@ -167,7 +178,6 @@ void RotationMatrix::compute_M(	const double ax,
 
 	const double a0[] = { data.acc_x()[0], data.acc_y()[0], data.acc_z()[0] };
 
-	// FIXME Check g_err !!!
 	rotate_vector(R, a0, g_err);
 
 	g_err[Z] -= data.g_ref();
@@ -183,13 +193,14 @@ const double* RotationMatrix::matrix_at(int i) const {
 void RotationMatrix::dump_angles(const Input& data,
 								std::ostream& log ) const
 {
+	// FIXME sign of g_ref?
 	const double g[] = { 0, 0, data.g_ref() };
 
 	double  a[3];
 	double  b[3];
 	double alpha[3];
 	double  beta[3];
-	double angle[3];
+	double euler[3];
 
 	for (int i=0; i<N; ++i) {
 
@@ -197,10 +208,11 @@ void RotationMatrix::dump_angles(const Input& data,
 
 		try {
 			inverse_rot_vector(m, g, b);
-			// FIXME which matrix, sign of g_ref
+			// FIXME which matrix? Sign of g_ref?
 			rotmat_to_asin_angles(m, beta);
 			// TODO Finish and dump Euler angles
-			rotmat_to_angles(m, angle);
+			// TODO Difference between xyz and yzx conventions? -> Finish visualization first!
+			rotmat_to_angles(m, euler);
 		}
 		catch (runtime_error& e) {
 			log << "Runtime error at sample " << i << " of " << N << endl;
@@ -214,6 +226,7 @@ void RotationMatrix::dump_angles(const Input& data,
 		log << b[X] << '\t' << b[Y] << '\t' << b[Z] << '\t';
 		log << alpha[X] << '\t' << alpha[Y] << '\t' << alpha[Z] << '\t';
 		log <<  beta[X] << '\t' <<  beta[Y] << '\t' <<  beta[Z] << '\t';
+		log << euler[X] << '\t' << euler[Y] << '\t' << euler[Z] << '\t';
 		log << endl;
 	}
 
