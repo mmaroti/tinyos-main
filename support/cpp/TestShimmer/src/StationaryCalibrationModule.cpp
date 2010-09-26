@@ -212,7 +212,8 @@ QString StationaryCalibrationModule::Classify()
         if ( idleSidesMins[i] == -1 ) {
             msgBox.setText("Calibration Error! See console for details...");
             msgBox.exec();
-            return "Calibration is missing the mote being idle on one of its sides! (Please load a record with the mote being idle on each side for at least 2 seconds!)";
+            errormsg.append("Calibration is missing the mote being idle on one of its sides! (Please load a record with the mote being idle on each side for at least 2 seconds!)");
+            return errormsg;
         }
     }
 

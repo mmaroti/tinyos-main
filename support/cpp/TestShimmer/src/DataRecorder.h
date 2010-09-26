@@ -48,6 +48,7 @@ struct Sample
 	QString toString() const;
         QString toCsvString() const;
 
+        int moteId;
 	int time;
 	int xAccel;
 	int yAccel;
@@ -102,6 +103,8 @@ public:
         void clearSamples();
         void saveSamples(const QString& filename) const;
         void loadSamples(const QString& filename);
+        void loadCalibFromFile(const QString& filename);
+        void saveCalibToFile(const QString& filename) const;
         void edit(const QString& option);
 
 signals:

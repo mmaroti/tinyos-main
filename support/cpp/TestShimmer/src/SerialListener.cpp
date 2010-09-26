@@ -282,6 +282,11 @@ unsigned short ActiveMessage::getShort(int index) const
 	return (payload.at(index) & 0xFF) + ((payload.at(index + 1) & 0xFF) << 8);
 }
 
+unsigned int ActiveMessage::getID() const
+{
+        return source;
+}
+
 unsigned int ActiveMessage::getInt(int index) const
 {
 	unsigned int a, b, c, d;

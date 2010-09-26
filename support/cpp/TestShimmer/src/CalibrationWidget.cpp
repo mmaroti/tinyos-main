@@ -98,6 +98,13 @@ void CalibrationWidget::on_startButton_clicked()
         application.dataRecorder.saveCalibrationData();
         loadCalibrationResults();
         emit calibrationDone();
+    } else if ( ui->loadButton->isChecked() ) {
+        QString file = QFileDialog::getOpenFileName(this, "Select a file to open", "c:/");
+        if ( !file.isEmpty() ) {
+            application.dataRecorder.loadCalibFromFile( file );;
+        }
+        loadCalibrationResults();
+        emit calibrationDone();
     } else {
         message = "Please select a module!";
     }
@@ -105,6 +112,14 @@ void CalibrationWidget::on_startButton_clicked()
     message.clear();
     calibrationModule->clearWindows();
     calibrationModule->clearIdleSides();
+}
+
+void CalibrationWidget::on_exportButton_clicked()
+{
+    QString fn = QFileDialog::getSaveFileName(  this, "Choose a filename to save under", "c:/", "CSV (*.csv)");
+    if ( !fn.isEmpty() ) {
+        application.dataRecorder.saveCalibToFile( fn );
+    }
 }
 
 void CalibrationWidget::loadCalibrationResults()

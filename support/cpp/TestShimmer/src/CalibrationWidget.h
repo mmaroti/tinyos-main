@@ -66,6 +66,7 @@ private:
 
 private slots:
     void on_startButton_clicked();
+    void on_exportButton_clicked();
 
 signals:
     void calibrationDone();

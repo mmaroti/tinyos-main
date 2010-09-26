@@ -18,8 +18,8 @@
 
 //1.5G
 enum HighSensitivity{
-    MAXDIFF = 50,    //maximum difference between max and min values from an idle mote
-    WINDOW = 200  //data window size, for finding idle shimmer positions
+    MAXDIFF = 60,    //maximum difference between max and min values from an idle mote
+    WINDOW = 100  //data window size, for finding idle shimmer positions
 };
 
 #define xN   0.90*xMinAvg+0.1*xMaxAvg  //region borders for classifying idle windows
@@ -39,8 +39,8 @@ enum HighSensitivity{
 // ---===TURNTABLE CALIBRATION===---
 
 
-#define GYROWINDOW 200  //data window size, for finding idle shimmer positions
-#define GYROMAXDIFF 50  //maximum difference between max and min values from an idle mote
+#define GYROWINDOW 100  //data window size, for finding idle shimmer positions
+#define GYROMAXDIFF 30  //maximum difference between max and min values from an idle mote
 #define xCCLW   0.9*xMinGyroAvg+0.1*xMaxGyroAvg  //region borders for classifying idle windows
 #define xI_L    0.7*xMinGyroAvg+0.3*xMaxGyroAvg  //CLW = ClockWise rotation
 #define xI_U    0.3*xMinGyroAvg+0.7*xMaxGyroAvg  //CCLW = counter ClockWise rotation

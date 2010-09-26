@@ -52,6 +52,7 @@ public:
 	unsigned char getByte(int index) const;
 	unsigned short getShort(int index) const;
 	unsigned int getInt(int index) const;
+        unsigned int getID() const;
 
 	QString toString() const;
 };
