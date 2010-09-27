@@ -29,7 +29,7 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Veress Krisztian
+* Author: Krisztian Veress
 *         veresskrisztian@gmail.com
 */
 
@@ -38,8 +38,6 @@
 
 #define MAX_EDGE_COUNT 6
 #define MAX_NODE_COUNT 4
-
-#include <CodeProfile.h>
 
 #if MAX_EDGE_COUNT <= 8
   typedef uint8_t pending_t;
@@ -158,6 +156,12 @@ typedef nx_struct ctrlmsg_t {
   nx_uint8_t    reqidx;           // The requested stat-edge pair index in the requesting stage
   setup_t       config;           // The config in the setup stage
 } ctrlmsg_t;
+
+typedef nx_struct profile_t {
+  nx_uint32_t   max_atomic;
+  nx_uint32_t   max_interrupt;
+  nx_uint32_t   max_latency;
+} profile_t;
 
 typedef nx_struct responsemsg_t {
   nx_uint8_t    type;             // Response type

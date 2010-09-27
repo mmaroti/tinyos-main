@@ -29,7 +29,7 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Veress Krisztian
+* Author: Krisztian Veress
 *         veresskrisztian@gmail.com
 */
 
@@ -321,7 +321,10 @@ implementation {
 
       msg->type = RESP_PROFILE_OK;
       msg->respidx = 0;
-      msg->payload.profile = call CodeProfile.getProfile();
+      
+      msg->payload.profile.max_atomic = call CodeProfile.getMaxAtomicLength();
+      msg->payload.profile.max_interrupt = call CodeProfile.getMaxInterruptLength();
+      msg->payload.profile.max_latency = call CodeProfile.getMaxTaskLatency();
       
       if ( SUCCESS == call TxBase.send(AM_BROADCAST_ADDR, &bpkt, sizeof(responsemsg_t) ) )
         SET_STATE( STATE_UPLOADING )

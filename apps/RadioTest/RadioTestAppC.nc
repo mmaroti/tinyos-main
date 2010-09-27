@@ -29,7 +29,7 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Veress Krisztian
+* Author: Krisztian Veress
 *         veresskrisztian@gmail.com
 */
 
@@ -44,22 +44,27 @@ implementation {
   components new AMSenderC(AM_RESPONSEMSG_T)  	as TxBase;
   components new DirectAMSenderC(AM_TESTMSG_T)	as TxTest;
   components new AMReceiverC(AM_TESTMSG_T)    	as RxTest;
-  components ActiveMessageC;
+  //components ActiveMessageC;
   
   components CodeProfileC;
   App.CPControl -> CodeProfileC;
   App.CodeProfile -> CodeProfileC;
   
-#if defined(PLATFORM_MICA2) || defined(PLATFORM_MICA2DOT)
-  components CC1000CsmaRadioC as LplRadio;
-#elif defined(PLATFORM_MICAZ) || defined(PLATFORM_TELOSB) || defined(PLATFORM_SHIMMER) || defined(PLATFORM_SHIMMER2) || defined(PLATFORM_INTELMOTE2) || defined(PLATFORM_TELOSA)
+#if defined(RADIO_CC1000)
+  components CC1000CsmaRadioC     as LplRadio;
+ 
+#elif defined(RADIO_CC2420X)
+	#warning "*** USING EXPERIMENTAL CC2420X RADIO DRIVER ***"
+  components Cc2420XActiveMessageC as LplRadio;
+  
+#elif defined(RADIO_CC2420)
   components CC2420ActiveMessageC as LplRadio;
-#elif defined(PLATFORM_IRIS) || defined(PLATFORM_MULLE)
-  components RF230ActiveMessageC as LplRadio;
-#elif defined(PLATFORM_EYESIFXV1) || defined(PLATFORM_EYESIFXV2)
-  components LplC as LplRadio;
+
+#elif defined(RADIO_RF230)
+  components RF230ActiveMessageC  as LplRadio;
+  
 #else
-#error "LPL testing not supported on this platform"
+  components LplC                 as LplRadio;
 #endif
 
 
@@ -76,7 +81,7 @@ implementation {
   App.PAck -> TxTest;
 
   App.Leds -> LedsC;
-  App.AMControl -> ActiveMessageC;
+  App.AMControl -> LplRadio;
   App.LowPowerListening -> LplRadio;
   App.TestEndTimer -> Timer;
   App.TriggerTimer -> TTimer;

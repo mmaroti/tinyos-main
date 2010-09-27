@@ -1,0 +1,18 @@
+BUILD_EXTRA_DEPS = CtrlMsgT.java ResponseMsgT.java StatT.java SetupT.java ProfileT.java
+CLEAN_EXTRA      = CtrlMsgT.java ResponseMsgT.java StatT.java SetupT.java ProfileT.java main.elf *.class
+
+StatT.java: RadioTest.h
+	mig -target=$(PLATFORM) -java-classname=StatT java RadioTest.h stat_t -o $@
+
+SetupT.java: RadioTest.h
+	mig -target=$(PLATFORM) -java-classname=SetupT java RadioTest.h setup_t -o $@
+
+CtrlMsgT.java: RadioTest.h
+	mig -target=$(PLATFORM) -java-classname=CtrlMsgT java RadioTest.h ctrlmsg_t -o $@
+
+ResponseMsgT.java: RadioTest.h
+	mig -target=$(PLATFORM) -java-classname=ResponseMsgT java RadioTest.h responsemsg_t -o $@
+
+ProfileT.java: RadioTest.h
+	mig -target=$(PLATFORM) -java-classname=ProfileT java RadioTest.h profile_t -o $@
+
