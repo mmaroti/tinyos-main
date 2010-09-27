@@ -95,6 +95,7 @@ public:
 
         double calculateAngle( double acceleration1, double acceleration2 );
         double calculateCalibratedValue( QString axis, int time );
+        double calculateAbsAcc(int time);
         int getTime(int i);
 
         void at(int i, double data[ipo::SIZE]) const;

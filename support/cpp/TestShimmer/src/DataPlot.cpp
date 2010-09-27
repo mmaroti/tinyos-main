@@ -211,18 +211,11 @@ void DataPlot::paintEvent(QPaintEvent *event)
             if( (graphs & ABSACC) != 0 )
             {
                 painter.setPen(QPen(Qt::gray, 2, Qt::SolidLine));
-                double avgtemp1, avgtemp2;
-                double xtemp1, xtemp2, ytemp1, ytemp2, ztemp1, ztemp2;
+                double avgtemp1, avgtemp2;                
                 for(int i = x0 + 1; i < x1; ++i) {
-                    xtemp1 = application.dataRecorder.calculateCalibratedValue("xAcc", i-1);
-                    xtemp2 = application.dataRecorder.calculateCalibratedValue("xAcc", i);
-                    ytemp1 = application.dataRecorder.calculateCalibratedValue("yAcc", i-1);
-                    ytemp2 = application.dataRecorder.calculateCalibratedValue("yAcc", i);
-                    ztemp1 = application.dataRecorder.calculateCalibratedValue("zAcc", i-1);
-                    ztemp2 = application.dataRecorder.calculateCalibratedValue("zAcc", i);
+                    avgtemp2 = application.dataRecorder.calculateAbsAcc(i);
+                    avgtemp1 = application.dataRecorder.calculateAbsAcc(i-1);
 
-                    avgtemp1 = sqrt( pow(xtemp1, 2.0) + pow(ytemp1, 2.0) + pow(ztemp1, 2.0) );
-                    avgtemp2 = sqrt( pow(xtemp2, 2.0) + pow(ytemp2, 2.0) + pow(ztemp2, 2.0) );
                     painter.drawLine(getPoint(i-1, avgtemp1 * 512/GRAV + 2048), getPoint(i, avgtemp2 * 512/GRAV + 2048));
                 }
             }
@@ -345,14 +338,17 @@ void DataPlot::paintEvent(QPaintEvent *event)
             if( (graphs & XANG) != 0 )
             {
                 painter.setPen(QPen(Qt::green, 2, Qt::SolidLine));
-                double xtemp1, xtemp2, alfa1, alfa2;
+                double xtemp1, xtemp2, alfa1, alfa2, avg1, avg2;
                 for(int i = x0 + 1; i < x1; ++i) {
                     xtemp1 = application.dataRecorder.calculateCalibratedValue("xAcc", i-1);
                     xtemp2 = application.dataRecorder.calculateCalibratedValue("xAcc", i);
 
+                    avg1 = application.dataRecorder.calculateAbsAcc(i-1);
+                    avg2 = application.dataRecorder.calculateAbsAcc(i);
+
                     double param1, param2;
-                    param1 = xtemp1 / GRAV;
-                    param2 = xtemp2 / GRAV;
+                    param1 = xtemp1 / avg1;
+                    param2 = xtemp2 / avg2;
                     //if(param1 > 1) param1 = 1; if(param1 < -1) param1 = -1;
                     //if(param2 > 1) param2 = 1; if(param2 < -1) param2 = -1;
                     alfa1 = asin(param1);
@@ -372,14 +368,17 @@ void DataPlot::paintEvent(QPaintEvent *event)
             if( (graphs & YANG) != 0 )
             {
                 painter.setPen(QPen(Qt::green, 2, Qt::SolidLine));
-                double ytemp1, ytemp2, alfa1, alfa2;
+                double ytemp1, ytemp2, alfa1, alfa2, avg1, avg2;
                 for(int i = x0 + 1; i < x1; ++i) {
                     ytemp1 = application.dataRecorder.calculateCalibratedValue("yAcc", i-1);
                     ytemp2 = application.dataRecorder.calculateCalibratedValue("yAcc", i);
 
+                    avg1 = application.dataRecorder.calculateAbsAcc(i-1);
+                    avg2 = application.dataRecorder.calculateAbsAcc(i);
+
                     double param1, param2;
-                    param1 = ytemp1 / GRAV;
-                    param2 = ytemp2 / GRAV;
+                    param1 = ytemp1 / avg1;
+                    param2 = ytemp2 / avg2;
                     if(param1 > 1) param1 = 1; if(param1 < -1) param1 = -1;
                     if(param2 > 1) param2 = 1; if(param2 < -1) param2 = -1;
                     alfa1 = asin(param1);
@@ -391,14 +390,17 @@ void DataPlot::paintEvent(QPaintEvent *event)
             if( (graphs & ZANG) != 0 )
             {
                 painter.setPen(QPen(Qt::green, 2, Qt::SolidLine));
-                double ztemp1, ztemp2, alfa1, alfa2;
+                double ztemp1, ztemp2, alfa1, alfa2, avg1, avg2;
                 for(int i = x0 + 1; i < x1; ++i) {
                     ztemp1 = application.dataRecorder.calculateCalibratedValue("zAcc", i-1);
                     ztemp2 = application.dataRecorder.calculateCalibratedValue("zAcc", i);
 
+                    avg1 = application.dataRecorder.calculateAbsAcc(i-1);
+                    avg2 = application.dataRecorder.calculateAbsAcc(i);
+
                     double param1, param2;
-                    param1 = ztemp1 / GRAV;
-                    param2 = ztemp2 / GRAV;
+                    param1 = ztemp1 / avg1;
+                    param2 = ztemp2 / avg2;
                     if(param1 > 1) param1 = 1; if(param1 < -1) param1 = -1;
                     if(param2 > 1) param2 = 1; if(param2 < -1) param2 = -1;
                     alfa1 = asin(param1);

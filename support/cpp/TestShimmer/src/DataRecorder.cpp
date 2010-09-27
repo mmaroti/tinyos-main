@@ -514,6 +514,20 @@ double DataRecorder::calculateCalibratedValue(QString axis, int time)
     } else return -1;
 }
 
+double DataRecorder::calculateAbsAcc(int time)
+{
+    double avg;
+    double x, y ,z;
+
+    x = calculateCalibratedValue("xAcc", time);
+    y = calculateCalibratedValue("yAcc", time);
+    z = calculateCalibratedValue("zAcc", time);
+
+    avg = sqrt( pow(x, 2.0) + pow(y, 2.0) + pow(z, 2.0) );
+
+    return avg;
+}
+
 void DataRecorder::edit(const QString& option)
 {
     if(samples.size()< to){
