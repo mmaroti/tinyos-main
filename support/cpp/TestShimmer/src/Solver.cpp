@@ -247,6 +247,9 @@ bool Solver::process_result(int exitCode) {
     else if (exitCode == ERROR_READING_INPUT) {
         msg += "reading input!";
     }
+    else if (exitCode == ERROR_INCORRECT_TIMESTAMP) {
+        msg += "incorrect timestamp found in the input!";
+    }
     else if (exitCode == ERROR_INITIALIZATION) {
         msg += "initializing IPOPT!";
     }
@@ -255,6 +258,9 @@ bool Solver::process_result(int exitCode) {
     }
     else if (exitCode == ERROR_OPTIMIZATION) {
         msg += "optimization failed (check the log)!";
+    }
+    else if (exitCode == ERROR_NUMBER_INVALID) {
+        msg += "invalid number detected!";
     }
     else if (exitCode == ERROR_UNKNOWN) {
         msg += "unkown error, most likely an unexpected exception in the solver!";
