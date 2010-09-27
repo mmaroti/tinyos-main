@@ -104,7 +104,7 @@ public:
 
 	int size() const { return N; }
 
-	std::ostream& print(std::ostream& os) const { os << this->f; return os; }
+	std::ostream& print(std::ostream& os) const { os << f; return os; }
 
 private:
 

@@ -94,7 +94,7 @@ void angles(double x, double y, double z) {
 
 void dotprod(const double matrix[3][3], const char* type, int row1, int row2) {
 
-	const double TOL_ORTHO(1.0e-4);
+	const double TOL_ORTHO(1.0e-3); // TODO 1.0e-4 was too strict
 
 	double dot_prod = 0.0;
 

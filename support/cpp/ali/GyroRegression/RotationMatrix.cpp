@@ -32,7 +32,7 @@
 */
 
 // FIXME Remove fstream; add new exit-code for runtime-error
-#include <fstream>
+//#include <fstream>
 #include <stdexcept>
 #include <iostream>
 #include <iomanip>
@@ -113,18 +113,18 @@ RotationMatrix::RotationMatrix(	const Input& data,
 
 	// TODO Acceptance test: (s_x,s_y,s_z) should be (0,0,g)
 
-	ofstream out("sep01mat");
-	dump_angles(data, out);
+	//ofstream out("sep01mat");
+	//dump_angles(data, out);
 
-	out.close();
-	out.open("g_err");
-	dump_g_err(out);
+	//out.close();
+	//out.open("g_err");
+	//dump_g_err(out);
 
-	out.close();
-	out.open("objective");
-	out << "sx: " << obj.s_x() << endl;
-	out << "sy: " << obj.s_y() << endl;
-	out << "sz: " << obj.s_z() << endl;
+	//out.close();
+	//out.open("objective");
+	//out << "sx: " << obj.s_x() << endl;
+	//out << "sy: " << obj.s_y() << endl;
+	//out << "sz: " << obj.s_z() << endl;
 }
 
 RotationMatrix::~RotationMatrix() {

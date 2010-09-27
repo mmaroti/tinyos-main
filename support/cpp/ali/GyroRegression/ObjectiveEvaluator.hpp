@@ -375,7 +375,7 @@ public:
 				log << "Step #" << i << endl;
 			}
 
-			compute_G(i-1, x);
+			compute_G(i, x);
 
 			update_R(); // R(i)=R(i-1)*G(i-1)
 
