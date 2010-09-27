@@ -33,8 +33,6 @@
 *         veresskrisztian@gmail.com
 */
 
-#include "PlatformConfig.h"
-
 configuration CodeProfileC {
   provides {
     interface StdControl;
