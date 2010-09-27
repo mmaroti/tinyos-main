@@ -14,15 +14,18 @@ implementation {
          FOOTER_SIZE = sizeof(TYPE##_footer_t), \
          MTDATA_SIZE = sizeof(TYPE##_metadata_t) };
          
-#if defined(RADIO_IS_RF230)
+#if defined(RADIO_RF230)
   MAKE_SIZE_ENUM(rf230packet)
-#elif defined(RADIO_IS_CC2420)
+#elif defined(RADIO_CC2420)
   MAKE_SIZE_ENUM(cc2420)
-#elif defined(RADIO_IS_CC1000)
+#elif defined(RADIO_CC1000)
   MAKE_SIZE_ENUM(cc1000)
-#elif defined(RADIO_IS_TDA5250)
+#elif defined(RADIO_TDA5250)
   MAKE_SIZE_ENUM(tda5250)
+#elif defined(RADIO_XE1205)
+  MAKE_SIZE_ENUM(xe1205)
 #endif
+
 
   async command uint8_t Info.offset() {
     return 0;

@@ -43,9 +43,9 @@ implementation {
   components MainC, LedsC;
   components SerialPacketSnifferC as Serial;
  
-#if defined(RADIO_IS_RF230)
+#if defined(RADIO_RF230)
   components RF230SnifferStackC as Radio;
-#elif defined(RADIO_IS_CC2420)
+#elif defined(RADIO_CC2420)
   components CC2420SnifferStackC as Radio;
 #endif
   

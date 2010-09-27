@@ -1,21 +1,23 @@
 COMPONENT=PacketSnifferC
-#CFLAGS += -DTASKLET_IS_TASK
+
 CFLAGS += -DTOSH_DATA_LENGTH=110
+CFLAGS += -DRF230_DEF_CHANNEL=11
+CFLAGS += -DCC2420_DEF_CHANNEL=11
+
 #CFLAGS += -DRX_BUFFER_SIZE=30
+#CFLAGS += -DTASKLET_IS_TASK
 
 include $(MAKERULES)
+include $(SZTETOSROOT)/support/make/Makeplatformopts
 
-ifeq ($(PLATFORM),iris)
+ifdef RADIO_RF230
   PFLAGS += -I./rf230
   CFLAGS += -DUART_QUEUE_LEN=50
-endif
-
-CFLAGS += -DCC2420_DEF_CHANNEL=11
-ifeq ($(PLATFORM),telosb)
+else ifdef RADIO_CC2420
   PFLAGS += -I./cc2420
-  CFLAGS += -DUART_QUEUE_LEN=50
-endif
-ifeq ($(PLATFORM),telosa)
-  PFLAGS += -I./cc2420
-  CFLAGS += -DUART_QUEUE_LEN=9
+  ifeq ($(PLATFORM),telosa)
+		CFLAGS += -DUART_QUEUE_LEN=9
+	else
+		CFLAGS += -DUART_QUEUE_LEN=50
+	endif
 endif
