@@ -34,9 +34,13 @@
 #ifndef DATAWRITEEXCEPTION_HPP
 #define DATAWRITEEXCEPTION_HPP
 
+namespace ipo {
+
 class DataWriteException {
 
     // Dummy class
 };
+
+}
 
 #endif

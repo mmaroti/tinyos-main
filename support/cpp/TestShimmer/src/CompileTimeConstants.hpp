@@ -36,17 +36,21 @@
 
 namespace gyro {
 
+const double TICKS_PER_SEC(32768.0);
+
 const int NUMBER_OF_VARIABLES(12);
 
 enum {
         SUCCESS = 0,
-        ERROR_READING_CONFIG = 11,
+        ERROR_ARG_COUNT = 11,
+        ERROR_READING_CONFIG,
         ERROR_READING_INPUT,
         ERROR_INCORRECT_TIMESTAMP,
         ERROR_INITIALIZATION,
         ERROR_NUMBER_INVALID,
         ERROR_OPTIMIZATION,
         ERROR_INVALID_OPTION,
+        ERROR_WRITING_RESULTS,
         ERROR_UNKNOWN
 };
 
@@ -77,6 +81,12 @@ const char ROTATION_MATRICES[] = "# Rotation matrices row-wise";
 const char END_OF_FILE[] = "# End of file";
 
 const char INPUT_DATA[] = "# Input data: timestamp, accel_{x,y,z}, gyro_{x,y,z}";
+
+const char SOLVER_EXE[] = "gyro.exe";
+
+const char SAMPLE_FILE[] = "samples.txt";
+
+const char RESULT_FILE[] = "rotmat.txt";
 
 }
 

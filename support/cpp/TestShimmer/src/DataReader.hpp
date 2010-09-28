@@ -34,22 +34,21 @@
 #ifndef DATAREADER_HPP
 #define DATAREADER_HPP
 
-#include "QList"
+#include <iosfwd>
 
 namespace ipo {
 
 class Results;
 
-typedef const QList<QByteArray>::const_iterator cli;
-typedef QList<QByteArray>::const_iterator li;
-
 class DataReader {
 
 public:
 
-    DataReader(cli& begin, cli& end);
+    DataReader();
 
-    void readAll(Results& r);
+    void readAll(const char* filename, Results& r);
+
+    ~DataReader();
 
 private:
 
@@ -57,14 +56,12 @@ private:
     DataReader& operator=(const DataReader& );
 
     void skip_irrelevant_lines();
-    void skip_line(const char* text);
-    void echo_line(const char* text);
-    void read_vector(const char* text, double* r, int length);
+    void skip_line(const char text[]);
+    void skip_eol();
+    void read_line(const char text[]);
+    void read_vector(const char text[], double* r, int length);
 
-    li i;
-
-    cli end;
-
+    std::ifstream* const in;
 };
 
 }

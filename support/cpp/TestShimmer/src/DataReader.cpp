@@ -32,7 +32,7 @@
 */
 
 #include <iostream>
-#include "QByteArray"
+#include <fstream>
 #include "Data.hpp"
 #include "DataReader.hpp"
 #include "DataReadException.hpp"
@@ -43,127 +43,132 @@ using namespace std;
 
 namespace ipo {
 
-DataReader::DataReader(cli& begin, cli& end) : i(begin), end(end)
+DataReader::DataReader() : in(new ifstream())
 {
 
+    in->exceptions(ifstream::eofbit | ifstream::failbit | ifstream::badbit);
 }
 
-void DataReader::readAll(Results& r) {
+DataReader::~DataReader() {
 
-    skip_irrelevant_lines();
-
-    echo_line(gyro::FIRST_LINE);
-
-    echo_line(gyro::CONFIG_FILE_ID);
-
-    // TODO Copy error value
-    echo_line(gyro::ERROR_IN_G);
-
-    // TODO Check if matches the hard-coded value
-    echo_line(gyro::NUMBER_OF_VARS);
-
-    const int n_vars = gyro::NUMBER_OF_VARIABLES;
-
-    // TODO Check acceptance level
-    read_vector(gyro::SOLUTION_VECTOR, r.x, n_vars);
-
-    read_vector(gyro::VARIABLE_LOWER_BOUNDS, r.x_lb, n_vars);
-
-    read_vector(gyro::VARIABLE_UPPER_BOUNDS,  r.x_ub, n_vars);
-
-    // TODO Check value
-    echo_line(gyro::NUMBER_OF_SAMPLES);
-
-    //=======================================================
-
-    r.n = n_samples();
-
-    const int n_elem = 9*(r.n);
-
-    r.m = new double[n_elem];
-
-    read_vector(gyro::ROTATION_MATRICES, r.m, n_elem);
-
-    skip_line(gyro::END_OF_FILE);
-
+    delete in;
 }
 
+void DataReader::readAll(const char* filename, Results& r) {
 
-void DataReader::read_vector(const char* text, double* r, int length) {
+    try {
+
+        in->open(filename);
+
+        skip_irrelevant_lines();
+
+        read_line(gyro::CONFIG_FILE_ID);
+
+        // TODO Copy error value
+        read_line(gyro::ERROR_IN_G);
+
+        // TODO Check if matches the hard-coded value
+        read_line(gyro::NUMBER_OF_VARS);
+
+        const int n_vars = gyro::NUMBER_OF_VARIABLES;
+
+        // TODO Check acceptance level
+        read_vector(gyro::SOLUTION_VECTOR, r.x, n_vars);
+
+        read_vector(gyro::VARIABLE_LOWER_BOUNDS, r.x_lb, n_vars);
+
+        read_vector(gyro::VARIABLE_UPPER_BOUNDS,  r.x_ub, n_vars);
+
+        // TODO Check value
+        read_line(gyro::NUMBER_OF_SAMPLES);
+
+        //=======================================================
+
+        r.n = n_samples();
+
+        const int n_elem = 9*(r.n);
+
+        r.m = new double[n_elem];
+
+        read_vector(gyro::ROTATION_MATRICES, r.m, n_elem);
+
+        skip_line(gyro::END_OF_FILE);
+
+        in->close();
+
+    }
+    catch(...) {
+
+        throw DataReadException();
+    }
+}
+
+void DataReader::skip_eol() {
+
+    string end_of_line;
+
+    getline(*in, end_of_line);
+
+    if (end_of_line.size()!=0)
+        throw DataReadException();
+}
+
+void DataReader::read_vector(const char text[], double* r, int length) {
 
     skip_line(text);
 
-    bool ok = false;
+    for (int k=0; k<length; ++k) {
 
-    for (int k=0; k<length; ++i, ++k) {
-
-        if (i==end) {
-
-            throw DataReadException("unexpected end of output");
-        }
-
-        r[k] = i->toDouble(&ok);
-
-        if (!ok) {
-
-            throw DataReadException("conversion error");
-        }
+        *in >> r[k];
     }
 
+    skip_eol();
 }
 
 void DataReader::skip_irrelevant_lines() {
 
-    int skipped = 0;
+    const string first_line(gyro::FIRST_LINE);
 
-    while (i!=end) {
+    string line;
 
-        if (!strcmp(i->constData(), gyro::FIRST_LINE)) {
-            return;
-        }
+    do {
 
-        ++i;
-        ++skipped;
-    }
+        getline(*in, line);
 
-    throw DataReadException("failed to find the first line");
+    }  while (line!=first_line);
+
+    cout << first_line << endl;
+
+    getline(*in, line);
+
+    cout << line << endl;
 }
 
-void DataReader::skip_line(const char* text) {
+void DataReader::skip_line(const char text[]) {
 
-    if (i==end) {
-        string msg("unexpected end of output when checking ");
-        msg += text;
-        throw DataReadException(msg);
-    }
+    string line;
 
-    const char* const line = i->constData();
+    getline(*in, line);
 
-    if (!strcmp(line, text)) {
-        ++i;
-        cout << text << endl;
+    if (line==text) {
+        cout << line << endl;
     }
     else {
-        string msg("expected explanatory comment: ");
-        msg += text;
-        msg += ", found: ";
-        msg +=  line;
-        throw DataReadException(msg);
+        cout << "Expected explanatory comment: " << text << ", ";
+        cout << "found: " << line << endl;
+        throw DataReadException();
     }
 }
 
-void DataReader::echo_line(const char* text) {
+void DataReader::read_line(const char text[]) {
 
     skip_line(text);
 
-    if (i==end) {
+    string line;
 
-        throw DataReadException("unexpected end of output");
-    }
+    getline(*in, line);
 
-    cout << i->constData() << endl;
-
-    ++i;
+    cout << line << endl;
 }
 
 }

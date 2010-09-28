@@ -34,24 +34,13 @@
 #ifndef DATAREADEXCEPTION_HPP
 #define DATAREADEXCEPTION_HPP
 
-#include <string>
-
 namespace ipo {
 
-    class DataReadException {
+class DataReadException {
 
-    public:
+    // Dummy class
+};
 
-        DataReadException(const std::string& message) : msg(message) { }
-
-        const char* what() const { return msg.c_str(); }
-
-    private:
-
-        std::string msg;
-    };
 }
 
-
 #endif
-

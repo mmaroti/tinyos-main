@@ -83,6 +83,7 @@ private:
 
     bool process_result(int exitCode);
 
+    bool write_samples(std::string& );
     bool read_results();
 
     // FIXME Why aren't these volatile ???

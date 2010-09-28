@@ -37,17 +37,15 @@
 #include <iosfwd>
 #include "Data.hpp"
 
-class QProcess;
-
 namespace ipo {
 
 class DataWriter {
 
 public:
 
-    DataWriter(QProcess* proc, const char* dump_to_file = 0);
+    DataWriter();
 
-    void writeAll();
+    void writeAll(const char* filename);
 
     ~DataWriter();
 
@@ -56,16 +54,10 @@ private:
     DataWriter(const DataWriter& );
     DataWriter& operator=(const DataWriter& );
 
-    void write(const char* data);
-    void write_line(const char* line);
-    void write_n_samples();
-    void write_samples();
+    void write_samples(int n);
     void write_data(double data[SIZE]);
 
-    QProcess* const process;
-
-    std::ofstream* const ofs;
-
+    std::ofstream* const out;
 };
 
 }

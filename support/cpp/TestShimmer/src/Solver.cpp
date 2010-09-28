@@ -107,12 +107,36 @@ void Solver::init() {
 
     QObject::connect(solver, SIGNAL(finished(int, QProcess::ExitStatus)),
                        this, SLOT(  finished(int, QProcess::ExitStatus)), Qt::QueuedConnection);
+
 }
 
 Solver::Solver() : mutex(new QMutex), solver(0), msg(""), r(0) {
 
     qRegisterMetaType<QProcess::ProcessError>("QProcess::ProcessError");
     qRegisterMetaType<QProcess::ExitStatus>("QProcess::ExitStatus");
+}
+
+bool Solver::write_samples(string& mboxText) {
+
+    bool result = SUCCESS;
+
+    try {
+
+        DataWriter dw;
+
+        dw.writeAll(gyro::SAMPLE_FILE);
+
+        cout << endl << "Samples are successfully written" << endl;
+
+    }
+    catch (DataWriteException& ) {
+
+        mboxText += "failed to pass input data to the solver!";
+
+        result = FAILED;
+    }
+
+    return result;
 }
 
 // Entry point
@@ -131,6 +155,9 @@ bool Solver::start() {
         result = FAILED;
         mboxText += "perhaps no samples are loaded?";
     }
+    else {
+        result = write_samples(mboxText);
+    }
 
     if (result==FAILED) {
         QMessageBox mbox;
@@ -141,7 +168,11 @@ bool Solver::start() {
 
     init();
 
-    solver->start("gyro.exe");
+    QStringList args;
+    args.append(gyro::SAMPLE_FILE);
+    args.append(gyro::RESULT_FILE);
+
+    solver->start(gyro::SOLVER_EXE, args);
 
     cout << endl << "External gyro.exe called" << endl;
 
@@ -165,22 +196,6 @@ void Solver::emit_signal(bool error) {
 
 void Solver::started() {
 
-    try {
-
-        DataWriter dw(solver);
-
-        dw.writeAll();
-
-        cout << endl << "Input data written to gyro.exe" << endl;
-    }
-    catch (DataWriteException& ) {
-
-        // FIXME Is write error also signalled?
-
-        msg += "failed to pass input data to the solver!";
-
-        emit_signal(FAILED);
-    }
 }
 
 void Solver::error(QProcess::ProcessError error) {
@@ -214,20 +229,17 @@ bool Solver::read_results() {
 
     bool result = SUCCESS;
 
-    QList<QByteArray> arr( solver->readAll().split('\n') );
-
     try {
 
-        DataReader dr(arr.begin(), arr.end());
+        DataReader dr;
 
-        dr.readAll(*r);
+        dr.readAll(gyro::RESULT_FILE, *r);
 
         msg = "Successfully finished!";
     }
-    catch (DataReadException& e) {
+    catch (DataReadException& ) {
 
-        msg += e.what();
-        msg += "!";
+        msg += "failed to read the output of the solver!";
         result = FAILED;
     }
 
@@ -243,6 +255,9 @@ bool Solver::process_result(int exitCode) {
     if (exitCode == gyro::SUCCESS) {
 
         result = read_results();
+    }
+    else if (exitCode == ERROR_ARG_COUNT) {
+        msg += "incorrect number of arguments passed to the solver!";
     }
     else if (exitCode == ERROR_READING_INPUT) {
         msg += "reading input!";
@@ -261,6 +276,9 @@ bool Solver::process_result(int exitCode) {
     }
     else if (exitCode == ERROR_NUMBER_INVALID) {
         msg += "invalid number detected!";
+    }
+    else if (exitCode == ERROR_WRITING_RESULTS) {
+        msg += "the solver failed to write the results into file!";
     }
     else if (exitCode == ERROR_UNKNOWN) {
         msg += "unkown error, most likely an unexpected exception in the solver!";
