@@ -45,15 +45,12 @@ class RotationMatrix;
 // FIXME Gravitational acceleration and time step are hard-coded
 
 // Calls exit() if an error occurs
-Input* read_istream(std::istream& in = std::cin);
+Input* read_file(const char* filename);
 
-void print_result(std::ostream& out,
+void write_result(const char* filename,
 				const Optimizer& opt,
 				const Input& data,
 				const RotationMatrix& rot);
-
-// This function is subject to changes due to file format changes
-Input* read_file(const char* filename);
 
 }
 

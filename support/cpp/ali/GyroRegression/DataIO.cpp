@@ -62,7 +62,7 @@ void skip_line(istream& in, const char* text) {
 void check_time_stamp(int sample, double current) {
 
 	const double SAMPLING_RATE(160);
-	const double GAP_TRESHOLD(5);
+	const double GAP_TRESHOLD(40);
 
 	static double previous = current - SAMPLING_RATE;
 
@@ -79,12 +79,16 @@ void check_time_stamp(int sample, double current) {
 	previous = current;
 }
 
-Input* read_istream(istream& in) {
+Input* grab_content(const char* filename) {
 
 	double dt    = NT(10.0/2048.0);
 	double g_ref = NT(-9.81);
 
-	string endline;
+	ifstream in;
+
+	in.exceptions(ifstream::eofbit | ifstream::failbit | ifstream::badbit);
+
+	in.open(filename);
 
 	skip_line(in, NUMBER_OF_SAMPLES);
 
@@ -96,6 +100,8 @@ Input* read_istream(istream& in) {
 		cerr << endl << "Invalid number of samples!" << endl;
 		exit(ERROR_READING_INPUT);
 	}
+
+	string endline;
 
 	getline(in, endline);
 
@@ -128,8 +134,27 @@ Input* read_istream(istream& in) {
 	}
 
 	// TODO End of file line?
-	return new Input(time_stamp, acc_x, acc_y, acc_z, wx, wy, wz, N, dt, g_ref);
+	in.close();
 
+	return new Input(time_stamp, acc_x, acc_y, acc_z, wx, wy, wz, N, dt, g_ref);
+}
+
+Input* read_file(const char* filename) {
+
+	Input* input = 0;
+
+	try {
+
+		input = grab_content(filename);
+	}
+	catch (...) {
+
+		cerr << "Unexpected error occurred when reading the input file: ";
+		cerr << filename << endl;
+		exit(ERROR_READING_INPUT);
+	}
+
+	return input;
 }
 
 void print_vector(ostream& out, const double* x, const int length) {
@@ -139,12 +164,18 @@ void print_vector(ostream& out, const double* x, const int length) {
 	}
 }
 
-void print_result(ostream& out,
+void print_result(const char* filename,
 				const Optimizer& opt,
 				const Input& data,
 				const RotationMatrix& rot)
 {
-	out << '\n' << FIRST_LINE << '\n' << flush;
+	ofstream out;
+
+	out.exceptions(ofstream::failbit | ofstream::badbit);
+
+	out.open(filename);
+
+	out << '\n' << FIRST_LINE << '\n';
 
 	out << BUILD_ID << '\n';
 
@@ -174,6 +205,23 @@ void print_result(ostream& out,
 
 	out << END_OF_FILE << '\n';
 	out << flush;
+}
+
+void write_result(const char* filename,
+				const Optimizer& opt,
+				const Input& data,
+				const RotationMatrix& rot)
+{
+
+	try {
+
+		print_result(filename, opt, data, rot);
+	}
+	catch(...) {
+		cerr << "Unexpected error when writing the results into file ";
+		cerr << filename << endl;
+		exit(ERROR_WRITING_RESULTS);
+	}
 }
 
 /*

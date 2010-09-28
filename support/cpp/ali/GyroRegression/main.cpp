@@ -42,7 +42,7 @@ using namespace std;
 
 using namespace gyro;
 
-void run_solver(const Input& data) {
+void run_solver(const Input& data, const char* outfile) {
 
 	Optimizer opt(data);
 
@@ -50,14 +50,19 @@ void run_solver(const Input& data) {
 
 	RotationMatrix rot(data, x);
 
-	print_result(cout, opt, data, rot);
+	write_result(outfile, opt, data, rot);
 }
 
 int main(int argc, char* argv[]) {
 
-	const Input* data = read_istream();
+	if (argc!=3) {
+		cerr << "Usage: " << argv[0] << " input_file_name  output_file_name" << endl;
+		return ERROR_ARG_COUNT;
+	}
 
-	run_solver(*data);
+	const Input* data = read_file(argv[1]);
+
+	run_solver(*data, argv[2]);
 
 	delete data;
 

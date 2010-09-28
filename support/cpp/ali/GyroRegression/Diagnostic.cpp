@@ -31,63 +31,47 @@
 * Author: Ali Baharev
 */
 
-#ifndef COMPILETIMECONSTANTS_HPP_
-#define COMPILETIMECONSTANTS_HPP_
+#include <string>
+#include <fstream>
+#include <ctime>
+#include <cstdlib>
+#include <unistd.h>
+#include "Diagnostic.hpp"
+
+using namespace std;
 
 namespace gyro {
 
-const double TICKS_PER_SEC(32768.0);
+string getpwd() {
 
-const int NUMBER_OF_VARIABLES(12);
+	char* dir = getcwd(NULL, 0);
 
-enum {
-	SUCCESS = 0,
-	ERROR_ARG_COUNT = 11,
-	ERROR_READING_CONFIG,
-	ERROR_READING_INPUT,
-	ERROR_INCORRECT_TIMESTAMP,
-	ERROR_INITIALIZATION,
-	ERROR_NUMBER_INVALID,
-	ERROR_OPTIMIZATION,
-	ERROR_INVALID_OPTION,
-	ERROR_WRITING_RESULTS,
-	ERROR_UNKNOWN
-};
+	string pwd(dir);
 
-const int CONFIG_FILE_NOT_FOUND = -1;
+	free(dir);
 
-const int CONFIG_FILE_HAS_NO_ID = 0;
-
-const char FIRST_LINE[] = "# First line after the output of IPOPT";
-
-const char BUILD_ID[] = "# Solver built on " __DATE__ " " __TIME__;
-
-const char CONFIG_FILE_ID[] = "# ID of configuration file";
-
-const char ERROR_IN_G[] = "# Error in g (in m/s^2)";
-
-const char NUMBER_OF_VARS[] = "# Number of variables";
-
-const char SOLUTION_VECTOR[] = "# Solution vector";
-
-const char VARIABLE_LOWER_BOUNDS[] = "# Lower bounds of the variables";
-
-const char VARIABLE_UPPER_BOUNDS[] = "# Upper bounds of the variables";
-
-const char NUMBER_OF_SAMPLES[] = "# Number of samples";
-
-const char ROTATION_MATRICES[] = "# Rotation matrices row-wise";
-
-const char END_OF_FILE[] = "# End of file";
-
-const char INPUT_DATA[] = "# Input data: timestamp, accel_{x,y,z}, gyro_{x,y,z}";
-
-const char SOLVER_EXE[] = "gyro.exe";
-
-const char SAMPLE_FILE[] = "samples.txt";
-
-const char RESULT_FILE[] = "rotmat.txt";
-
+	return pwd;
 }
 
-#endif
+string timestamp() {
+
+	time_t t;
+
+	time(&t);
+
+	return ctime(&t);
+}
+
+void log(int argc, char* argv[]) {
+
+	ofstream out("log.txt");
+
+	out << timestamp() << flush;
+	out << getpwd() << endl;
+
+	for (int i=0; i<argc; ++i) {
+		out << "argv[" << i << "] = " << argv[i] << endl;
+	}
+}
+
+}
