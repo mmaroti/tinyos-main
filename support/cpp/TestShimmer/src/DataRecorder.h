@@ -48,7 +48,6 @@ struct Sample
 	QString toString() const;
         QString toCsvString() const;
 
-        int moteId;
 	int time;
 	int xAccel;
 	int yAccel;
