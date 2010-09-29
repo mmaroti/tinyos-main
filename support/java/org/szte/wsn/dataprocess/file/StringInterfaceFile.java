@@ -35,6 +35,7 @@ package org.szte.wsn.dataprocess.file;
 
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
+import java.util.Arrays;
 
 import org.szte.wsn.dataprocess.PacketParser;
 import org.szte.wsn.dataprocess.PacketParserFactory;
@@ -103,13 +104,14 @@ public class StringInterfaceFile implements StringInterface {
 					file.writeBytes(packet.getName()+separator);
 				PacketParser pp=PacketParserFactory.getParser(packet.getName(), packetParsers);
 				String[] tmp= new String[pp.getFields().length];
-				if(!pp.getFields().equals(packet.getData()))					
+				if(!Arrays.equals(pp.getFields(),(packet.getFields()))){					
 					for (int i=0;i<pp.getFields().length;i++)
 						for(int j=0;j<pp.getFields().length;j++)
 							if(pp.getFields()[i]==packet.getFields()[j])
 								tmp[j]=packet.getData()[i];
-				packet.setData(tmp);
-				
+					packet.setData(tmp);
+				}
+
 				for(String data:packet.getData()){			
 					file.writeBytes(data+separator);
 				}
