@@ -35,6 +35,7 @@ package org.szte.wsn.dataprocess.console;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 
 import org.szte.wsn.dataprocess.PacketParser;
 import org.szte.wsn.dataprocess.PacketParserFactory;
@@ -81,13 +82,13 @@ public class StringInterfaceConsole implements StringInterface {
 				System.out.print(packet.getName()+separator);
 			PacketParser pp=PacketParserFactory.getParser(packet.getName(), packetParsers);
 			String[] tmp= new String[pp.getFields().length];
-			if(!pp.getFields().equals(packet.getData()))					
+			if(!Arrays.equals(pp.getFields(),(packet.getFields()))){					
 				for (int i=0;i<pp.getFields().length;i++)
 					for(int j=0;j<pp.getFields().length;j++)
 						if(pp.getFields()[i]==packet.getFields()[j])
 							tmp[j]=packet.getData()[i];
-			packet.setData(tmp);
-			
+				packet.setData(tmp);
+			}
 			for(String data:packet.getData()){			
 				System.out.print(data+separator);
 			}
