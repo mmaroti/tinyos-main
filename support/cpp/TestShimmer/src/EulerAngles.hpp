@@ -31,57 +31,34 @@
 * Author: Ali Baharev
 */
 
-#ifndef RESULTS_HPP
-#define RESULTS_HPP
+#ifndef EULERANGLES_HPP_
+#define EULERANGLES_HPP_
 
-#include "CompileTimeConstants.hpp"
+namespace gyro {
 
-// Just a chunk of data at the moment...
+const double TOL_DEGEN(1.0e-5);
 
-namespace ipo {
+// Based on http://www.gregslabaugh.name/publications/euler.pdf
+// Right-handed coordinate system
+// X in (-180, 180], Y in [ -90,  90], Z in (-180, 180]
+// Returns: true in degenerate cases.
+bool rotmat_to_angles(const double matrix[9], double angle_deg[3]);
 
-class Results {
+void angles_to_rotmat(const double angle_deg[3], double matrix[9]);
 
-public:
+void rotate_vector(const double m[9], const double v[3], double result[3]);
 
-    friend class DataReader;
+void inverse_rot_vector(const double m[9], const double v[3], double result[3]);
 
-    Results() : n(0), m(0) { }
+// FIXME Find a proper name for these angles
+void rotmat_to_asin_angles(const double matrix[9], double angle_deg[3]);
 
-    ~Results() { delete[] m; n = 0; m = 0; }
+void inversemat_to_asin_angles(const double m[9], double angle_deg[3]);
 
-    const double* var() const { return x; }
+void get_M(const double a[3], double M[9]);
 
-    const double* var_lb() const { return x_lb; }
-
-    const double* var_ub() const { return x_ub; }
-
-    int number_of_samples() const { return n; }
-
-    const double* matrix_at(int i) const;
-
-    const double* rotation_matrices() const { return m; }
-
-    double R(int sample, int i, int j) const;
-
-private:
-
-    Results(const Results& );
-
-    Results& operator=(const Results& );
-
-    double x[gyro::NUMBER_OF_VARIABLES];
-
-    double x_lb[gyro::NUMBER_OF_VARIABLES];
-
-    double x_ub[gyro::NUMBER_OF_VARIABLES];
-
-    int n;
-
-    double* m;
-
-};
+const double RAD(57.29577951308232);
 
 }
 
-#endif
+#endif /* EULERANGLES_HPP_ */

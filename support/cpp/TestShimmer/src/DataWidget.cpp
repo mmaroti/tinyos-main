@@ -352,6 +352,11 @@ void DataWidget::onCut()
 
 void DataWidget::finished(bool error, const char* msg, const ipo::Results* res) {
 
+    if (!error) {
+
+        application.dataRecorder.loadRotationMatrices(res);
+    }
+
     QMessageBox mbox;
     mbox.setText(msg);
     mbox.exec();

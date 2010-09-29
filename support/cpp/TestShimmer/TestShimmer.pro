@@ -51,7 +51,8 @@ SOURCES += src/DataRecorder.cpp \
     src/Data.cpp \
     src/DataWriter.cpp \
     src/DataReader.cpp \
-    src/Results.cpp
+    src/Results.cpp \
+    src/EulerAngles.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -79,8 +80,8 @@ HEADERS += src/DataRecorder.h \
     src/DataReader.hpp \
     src/DataReadException.hpp \
     src/Results.hpp \
-    src/DataWriteException.hpp
-
+    src/DataWriteException.hpp \
+    src/EulerAngles.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

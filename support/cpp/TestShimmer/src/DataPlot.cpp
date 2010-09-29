@@ -44,6 +44,11 @@
 #include "GLWidget.h"
 #include "constants.h"
 
+namespace {
+
+    enum { X, Y, Z };
+}
+
 DataPlot::DataPlot(PlotScrollArea *parent, Application &app) : QWidget(parent),
         application(app)
 {
@@ -117,6 +122,40 @@ void DataPlot::paintEvent(QPaintEvent *event)
                     painter.drawLine(getPoint(startPos.x(), 0), getPoint(startPos.x(), 4096));
                     painter.drawLine(getPoint(lastPos.x(), 0), getPoint(lastPos.x(), 4096));
                 }
+            }
+
+
+            painter.setPen(QPen(Qt::black, 3, Qt::SolidLine));
+
+            double angle1_deg = 0;
+            double angle2_deg = 0;
+
+            for(int i = x0 + 1; i < x1; ++i) {
+
+                dataRecorder.euler_angle(i-1, X, angle1_deg);
+                dataRecorder.euler_angle(i  , X, angle2_deg);
+
+                painter.drawLine(getPoint(i-1, angle1_deg), getPoint(i, angle2_deg));
+            }
+
+            painter.setPen(QPen(Qt::red, 3, Qt::SolidLine));
+
+            for(int i = x0 + 1; i < x1; ++i) {
+
+                dataRecorder.euler_angle(i-1, Y, angle1_deg);
+                dataRecorder.euler_angle(i  , Y, angle2_deg);
+
+                painter.drawLine(getPoint(i-1, angle1_deg), getPoint(i, angle2_deg));
+            }
+
+            painter.setPen(QPen(Qt::blue, 3, Qt::SolidLine));
+
+            for(int i = x0 + 1; i < x1; ++i) {
+
+                dataRecorder.euler_angle(i-1, Z, angle1_deg);
+                dataRecorder.euler_angle(i  , Z, angle2_deg);
+
+                painter.drawLine(getPoint(i-1, angle1_deg), getPoint(i, angle2_deg));
             }
 
             if( (graphs & XRAWACC) != 0 )

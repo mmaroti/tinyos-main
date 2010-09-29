@@ -45,12 +45,21 @@ double Results::R(int sample, int i, int j) const {
     }
 
     if ((sample<0) || (sample>=n) || (i<1) || (i>3) || (j<1) || (j>3)) {
-        throw std::range_error("Index out of range for rotation matrix!");
+        throw std::range_error("Index out of range in Results::R");
     }
 
     const int index = 9*sample + 3*(i-1) + (j-1);
 
     return m[index];
+}
+
+const double* Results::matrix_at(int i) const {
+
+    if (i<0 || i>=n) {
+        throw std::range_error("Index is out of range in Results::matrix_at()");
+    }
+
+    return m+(9*i);
 }
 
 }

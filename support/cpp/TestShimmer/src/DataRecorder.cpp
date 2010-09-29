@@ -37,14 +37,13 @@
 #include "Application.h"
 #include <QtDebug>
 #include <qfile.h>
-#include <string>
-#include <algorithm>
-#include <vector>
 #include <QStringList>
 #include <QMessageBox>
 #include "DataPlot.h"
 #include "constants.h"
 #include <math.h>
+#include "Results.hpp"
+#include "EulerAngles.hpp"
 
 DataRecorder::DataRecorder(Application &app) : application(app)
 {
@@ -133,6 +132,11 @@ Sample::Sample()
         XYangle = 0.0;
         YZangle = 0.0;
         ZXangle = 0.0;
+        for (int i=1;i<=7;++i)
+            rotmat[i] = 0.0;
+        rotmat[0] = 1.0;
+        rotmat[4] = 1.0;
+        rotmat[8] = 1.0;
 }
 
 QString Sample::toString() const
@@ -449,6 +453,44 @@ void DataRecorder::at(int i, double data[ipo::SIZE]) const {
     data[GYRO_X] = (wx - gyroMinAvgs[0]) * gyroCalibrationData[0] + (wy - gyroMinAvgs[1]) * gyroCalibrationData[1] + (wz - gyroMinAvgs[2]) * gyroCalibrationData[2];
     data[GYRO_Y] = (wx - gyroMinAvgs[0]) * gyroCalibrationData[3] + (wy - gyroMinAvgs[1]) * gyroCalibrationData[4] + (wz - gyroMinAvgs[2]) * gyroCalibrationData[5];
     data[GYRO_Z] = (wx - gyroMinAvgs[0]) * gyroCalibrationData[6] + (wy - gyroMinAvgs[1]) * gyroCalibrationData[7] + (wz - gyroMinAvgs[2]) * gyroCalibrationData[8];
+}
+
+void DataRecorder::loadRotationMatrices(const ipo::Results* res) {
+
+    const int n = samples.size();
+
+    if (res->number_of_samples()!=n) {
+        throw std::logic_error("Error: the number of samples has changed since starting the solver!");
+    }
+
+    for (int i=0; i<n; ++i) {
+
+        const double* const m = res->matrix_at(i);
+
+        Sample& s = samples[i];
+
+        for (int k=0; k<9; ++k) {
+
+            s.rotmat[k] = m[k];
+        }
+    }
+}
+
+bool DataRecorder::euler_angle(int i, int XYZ, double& angle_deg) const {
+
+    using namespace gyro;
+
+    if (XYZ<0 || XYZ>=3) {
+        throw std::out_of_range("Coordinate should be either X, Y or Z!");
+    }
+
+    double euler[3];
+
+    const bool degenerate = rotmat_to_angles(samples[i].rotmat, euler);
+
+    angle_deg = euler[XYZ];
+
+    return degenerate;
 }
 
 int DataRecorder::getTime(int i)

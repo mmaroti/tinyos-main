@@ -42,6 +42,10 @@
 
 class Application;
 
+namespace ipo {
+    class Results;
+}
+
 struct Sample
 {
         Sample(); // FIXME
@@ -57,6 +61,7 @@ struct Sample
 	int zGyro;
 	int voltage;
 	int temp;
+        double rotmat[9];
         double XYangle, YZangle, ZXangle; // FIXME
 };
 
@@ -106,6 +111,9 @@ public:
         void loadCalibFromFile(const QString& filename);
         void saveCalibToFile(const QString& filename) const;
         void edit(const QString& option);
+
+        void loadRotationMatrices(const ipo::Results* res);
+        bool euler_angle(int i, int XYZ, double& angle_deg) const;
 
 signals:
 
