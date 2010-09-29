@@ -73,7 +73,7 @@ public class StreamEraser implements MessageListener {
 		if (message instanceof ctrltsMsg && message.dataLength() == ctrltsMsg.DEFAULT_MESSAGE_SIZE) {
 			ctrltsMsg msg = (ctrltsMsg) message;
 			if(nodeid==FIRST_NODE||nodeid==ALL_NODE||msg.getSerialPacket().get_header_src()==nodeid){
-				if(msg.get_max_address()-msg.get_min_address()>200){
+				if(msg.get_max_address()-msg.get_min_address()>200||(msg.get_max_address()==msg.get_min_address()&&msg.get_min_address()!=0)){
 					System.out.println("Found node #"+msg.getSerialPacket().get_header_src()+" data:"+ (msg.get_max_address()-msg.get_min_address())+" , sending erase command");
 					if(nodeid==FIRST_NODE)
 						nodeid=msg.getSerialPacket().get_header_src();
