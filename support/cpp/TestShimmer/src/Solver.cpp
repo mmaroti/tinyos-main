@@ -116,7 +116,7 @@ Solver::Solver() : mutex(new QMutex), solver(0), msg(""), r(0) {
     qRegisterMetaType<QProcess::ExitStatus>("QProcess::ExitStatus");
 }
 
-bool Solver::write_samples(string& mboxText) {
+bool Solver::write_samples() {
 
     bool result = SUCCESS;
 
@@ -131,8 +131,6 @@ bool Solver::write_samples(string& mboxText) {
     }
     catch (DataWriteException& ) {
 
-        mboxText += "failed to pass input data to the solver!";
-
         result = FAILED;
     }
 
@@ -144,8 +142,12 @@ bool Solver::start() {
 
     bool result = SUCCESS;
 
-    // Released by emit_signal() and below if no samples are loaded
     string mboxText("Error: ");
+
+    // Released by:
+    // - emit_signal()
+    // - if no samples are loaded
+    // - if writing samples fails
     if (!mutex->tryLock()) {
         result = FAILED;
         mboxText += "the solver is already running!";
@@ -155,8 +157,10 @@ bool Solver::start() {
         result = FAILED;
         mboxText += "perhaps no samples are loaded?";
     }
-    else {
-        result = write_samples(mboxText);
+    else if (write_samples()==FAILED){
+        mutex->unlock();
+        result = FAILED;
+        mboxText += "failed to pass input data to the solver!";
     }
 
     if (result==FAILED) {
