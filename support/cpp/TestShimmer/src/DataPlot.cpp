@@ -430,6 +430,51 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 }
             }
 
+            if( (graphs & XEUL) != 0 )
+            {
+                painter.setPen(QPen(Qt::black, 2, Qt::SolidLine));
+
+                double angle1_deg = 0;
+                double angle2_deg = 0;
+
+                for(int i = x0 + 1; i < x1; ++i) {
+                    // Angle can be X, Y or Z
+                    dataRecorder.euler_angle(i-1, X, angle1_deg);
+                    dataRecorder.euler_angle(i  , X, angle2_deg);
+                    painter.drawLine(getPoint(i-1, angle1_deg * (2048/M_PI) + 2048), getPoint(i, angle2_deg * (2048/M_PI) + 2048));
+                }
+            }
+
+            if( (graphs & YEUL) != 0 )
+            {
+                painter.setPen(QPen(Qt::black, 2, Qt::SolidLine));
+
+                double angle1_deg = 0;
+                double angle2_deg = 0;
+
+                for(int i = x0 + 1; i < x1; ++i) {
+                    // Angle can be X, Y or Z
+                    dataRecorder.euler_angle(i-1, Y, angle1_deg);
+                    dataRecorder.euler_angle(i  , Y, angle2_deg);
+                    painter.drawLine(getPoint(i-1, angle1_deg * (2048/M_PI) + 2048), getPoint(i, angle2_deg * (2048/M_PI) + 2048));
+                }
+            }
+
+            if( (graphs & ZEUL) != 0 )
+            {
+                painter.setPen(QPen(Qt::black, 2, Qt::SolidLine));
+
+                double angle1_deg = 0;
+                double angle2_deg = 0;
+
+                for(int i = x0 + 1; i < x1; ++i) {
+                    // Angle can be X, Y or Z
+                    dataRecorder.euler_angle(i-1, Z, angle1_deg);
+                    dataRecorder.euler_angle(i  , Z, angle2_deg);
+                    painter.drawLine(getPoint(i-1, angle1_deg * (2048/M_PI) + 2048), getPoint(i, angle2_deg * (2048/M_PI) + 2048));
+                }
+            }
+
             if( (graphs & CALIB) != 0 )
             {
                 painter.setPen(QPen(Qt::red, 2, Qt::DashLine));

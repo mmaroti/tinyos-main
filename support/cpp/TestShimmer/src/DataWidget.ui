@@ -120,7 +120,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout_4" stretch="1,1,1,1,1,1,1,0,0">
+    <layout class="QVBoxLayout" name="verticalLayout_4" stretch="1,1,1,1,1,1,1,0,0,0">
      <property name="margin">
       <number>9</number>
      </property>
@@ -874,7 +874,7 @@
      <item>
       <widget class="QGroupBox" name="angles2Box">
        <property name="title">
-        <string>Angles 2</string>
+        <string>TILT angles</string>
        </property>
        <property name="checkable">
         <bool>true</bool>
@@ -899,6 +899,42 @@
         </item>
         <item>
          <widget class="QCheckBox" name="angZ">
+          <property name="text">
+           <string>z</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="eulerBox">
+       <property name="title">
+        <string>Euler Angles</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QCheckBox" name="eulerX">
+          <property name="text">
+           <string>x</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="eulerY">
+          <property name="text">
+           <string>y</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="eulerZ">
           <property name="text">
            <string>z</string>
           </property>

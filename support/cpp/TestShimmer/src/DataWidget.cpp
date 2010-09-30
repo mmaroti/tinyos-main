@@ -229,6 +229,21 @@ void DataWidget::on_angZ_clicked()
     plot->setGraphs(DataPlot::ZANG, ui->angZ->checkState());
 }
 
+void DataWidget::on_eulerX_clicked()
+{
+    plot->setGraphs(DataPlot::XEUL, ui->eulerX->checkState());
+}
+
+void DataWidget::on_eulerY_clicked()
+{
+    plot->setGraphs(DataPlot::YEUL, ui->eulerY->checkState());
+}
+
+void DataWidget::on_eulerZ_clicked()
+{
+    plot->setGraphs(DataPlot::ZEUL, ui->eulerZ->checkState());
+}
+
 void DataWidget::on_rawAccBox_clicked()
 {
     if(ui->rawAccBox->isChecked()){
@@ -324,6 +339,22 @@ void DataWidget::on_angles2Box_clicked()
     on_angX_clicked();
     on_angY_clicked();
     on_angZ_clicked();
+}
+
+void DataWidget::on_eulerBox_clicked()
+{
+    if(ui->eulerBox->isChecked()){
+        ui->eulerX->setChecked(true);
+        ui->eulerY->setChecked(true);
+        ui->eulerZ->setChecked(true);
+    } else {
+        ui->eulerX->setChecked(false);
+        ui->eulerY->setChecked(false);
+        ui->eulerZ->setChecked(false);
+    }
+    on_eulerX_clicked();
+    on_eulerY_clicked();
+    on_eulerZ_clicked();
 }
 
 void DataWidget::onTrim()

@@ -84,7 +84,11 @@ public:
                 XANG      = 0x100000,
                 YANG      = 0x200000,
                 ZANG      = 0x400000,
-                CALIB     = 0x800000
+                CALIB     = 0x800000,
+
+                XEUL    = 0x1000000,
+                YEUL    = 0x2000000,
+                ZEUL    = 0x4000000
         };
 
         void setGraphs(int graphs, bool on);
