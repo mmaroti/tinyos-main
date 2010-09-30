@@ -33,6 +33,7 @@
  */
 package org.szte.wsn.dataprocess.file;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
@@ -64,14 +65,17 @@ public class StringInterfaceFile implements StringInterface {
 	 * @param path file path String
 	 * @param packetParsers array of the available PacketParsers
 	 * @param showName controls whether the name of the PacketParser should be written in the file
+	 * @param createNew if true, creates a new file and deletes the old one
 	 */	
-	public StringInterfaceFile(String separator, String path, PacketParser[] packetParsers, boolean showName ){
+	public StringInterfaceFile(String separator, String path, PacketParser[] packetParsers, boolean showName, boolean createNew ){
 		this.separator=separator;  
 		this.packetParsers=packetParsers;
 		previous=new StringPacket("", new String[]{});
 		readPointer=0;
 		this.showName=showName;
 		try {
+			if(createNew&&new File(path).exists())
+				new File(path).delete();
 			file=new RandomAccessFile(path, "rw");
 		} 
 		catch (FileNotFoundException e) {
