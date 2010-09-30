@@ -44,6 +44,8 @@ const double TOL_DEGEN(1.0e-5);
 // Returns: true in degenerate cases.
 bool rotmat_to_angles_deg(const double matrix[9], double angle_deg[3]);
 
+bool rotmat_to_angles_rad(const double m[9], double angle[3]);
+
 void angles_deg_to_rotmat(const double angle_deg[3], double matrix[9]);
 
 void rotate_vector(const double m[9], const double v[3], double result[3]);
