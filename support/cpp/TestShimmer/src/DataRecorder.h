@@ -113,7 +113,7 @@ public:
         void edit(const QString& option);
 
         void loadRotationMatrices(const ipo::Results* res);
-        bool euler_angle(int i, int XYZ, double& angle_deg) const;
+        bool euler_angle(int sample, int X_or_Y_or_Z, double& angle_in_rad) const;
 
 signals:
 

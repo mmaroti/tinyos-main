@@ -476,19 +476,19 @@ void DataRecorder::loadRotationMatrices(const ipo::Results* res) {
     }
 }
 
-bool DataRecorder::euler_angle(int i, int XYZ, double& angle_deg) const {
+bool DataRecorder::euler_angle(int i, int k, double& angle_rad) const {
 
     using namespace gyro;
 
-    if (XYZ<0 || XYZ>=3) {
+    if (k<0 || k>=3) {
         throw std::out_of_range("Coordinate should be either X, Y or Z!");
     }
 
     double euler[3];
 
-    const bool degenerate = rotmat_to_angles(samples[i].rotmat, euler);
+    const bool degenerate = rotmat_to_angles_rad(samples[i].rotmat, euler);
 
-    angle_deg = euler[XYZ];
+    angle_rad = euler[k];
 
     return degenerate;
 }

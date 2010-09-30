@@ -42,18 +42,18 @@ const double TOL_DEGEN(1.0e-5);
 // Right-handed coordinate system
 // X in (-180, 180], Y in [ -90,  90], Z in (-180, 180]
 // Returns: true in degenerate cases.
-bool rotmat_to_angles(const double matrix[9], double angle_deg[3]);
+bool rotmat_to_angles_deg(const double matrix[9], double angle_deg[3]);
 
-void angles_to_rotmat(const double angle_deg[3], double matrix[9]);
+bool rotmat_to_angles_rad(const double m[9], double angle[3]);
+
+void angles_deg_to_rotmat(const double angle_deg[3], double matrix[9]);
 
 void rotate_vector(const double m[9], const double v[3], double result[3]);
 
 void inverse_rot_vector(const double m[9], const double v[3], double result[3]);
 
 // FIXME Find a proper name for these angles
-void rotmat_to_asin_angles(const double matrix[9], double angle_deg[3]);
-
-void inversemat_to_asin_angles(const double m[9], double angle_deg[3]);
+void rotmat_to_asin_angles_deg(const double matrix[9], double angle_deg[3]);
 
 void get_M(const double a[3], double M[9]);
 
