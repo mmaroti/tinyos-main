@@ -32,7 +32,7 @@
 */
 
 // FIXME Remove fstream; add new exit-code for runtime-error
-//#include <fstream>
+#include <fstream>
 #include <stdexcept>
 #include <iostream>
 #include <iomanip>
@@ -113,18 +113,18 @@ RotationMatrix::RotationMatrix(	const Input& data,
 
 	// TODO Acceptance test: (s_x,s_y,s_z) should be (0,0,g)
 
-	//ofstream out("sep01mat");
-	//dump_angles(data, out);
+	ofstream out("sep01mat");
+	dump_angles(data, out);
 
-	//out.close();
-	//out.open("g_err");
-	//dump_g_err(out);
+	out.close();
+	out.open("g_err");
+	dump_g_err(out);
 
-	//out.close();
-	//out.open("objective");
-	//out << "sx: " << obj.s_x() << endl;
-	//out << "sy: " << obj.s_y() << endl;
-	//out << "sz: " << obj.s_z() << endl;
+	out.close();
+	out.open("objective");
+	out << "sx: " << obj.s_x() << endl;
+	out << "sy: " << obj.s_y() << endl;
+	out << "sz: " << obj.s_z() << endl;
 }
 
 RotationMatrix::~RotationMatrix() {
@@ -193,7 +193,6 @@ const double* RotationMatrix::matrix_at(int i) const {
 void RotationMatrix::dump_angles(const Input& data,
 								std::ostream& log ) const
 {
-	// FIXME sign of g_ref?
 	const double g[] = { 0, 0, data.g_ref() };
 
 	double  a[3];
@@ -208,9 +207,8 @@ void RotationMatrix::dump_angles(const Input& data,
 
 		try {
 			inverse_rot_vector(m, g, b);
-			// FIXME which matrix? Sign of g_ref?
+
 			rotmat_to_asin_angles(m, beta);
-			// TODO Finish and dump Euler angles
 			// TODO Difference between xyz and yzx conventions? -> Finish visualization first!
 			rotmat_to_angles(m, euler);
 		}

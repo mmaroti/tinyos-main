@@ -410,7 +410,7 @@ bool rotmat_to_angles(const double m[9], double angle[3]) {
 		dbg::degen(r31);
 		y = -r31*90.0;
 		z = 0.0;
-		x = atan2(-r31*m[R12], m[R22])*RAD; // TODO Explain sign, is handedness correct?
+		x = atan2(-r31*m[R12], m[R22])*RAD;
 	}
 
 	enforce_range(x, z);
@@ -485,23 +485,14 @@ void vector_to_tilt_angles(double r[3], double angle_deg[3]) {
 	}
 }
 
-void mat_to_tilt_angles(const double m[9], int i, int j, int k, double angle_deg[3]) {
+void rotmat_to_asin_angles(const double m[9], double angle_deg[3]) {
 
 	dbg::orthogonality(m);
 
-	double r[] = { m[i], m[j], m[k] };
+	// Sign: see flip at the bottom of get_M
+	double r[] = { -m[R31], -m[R32], -m[R33] };
 
 	vector_to_tilt_angles(r, angle_deg);
-}
-
-void rotmat_to_asin_angles(const double m[9], double angle_deg[3]) {
-
-	mat_to_tilt_angles(m, R31, R32, R33, angle_deg);
-}
-
-void inversemat_to_asin_angles(const double m[9], double angle_deg[3]) {
-
-	mat_to_tilt_angles(m, R13, R23, R33, angle_deg);
 }
 
 double length(const double v[3]) {
@@ -551,7 +542,7 @@ void get_perpendicular(const double u[3], double v[3]) {
 }
 
 void cross_product(const double u[3], const double v[3], double w[3]) {
-	// FIXME Check handedness
+
 	w[X] = u[Y]*v[Z]-u[Z]*v[Y];
 	w[Y] = u[Z]*v[X]-u[X]*v[Z];
 	w[Z] = u[X]*v[Y]-u[Y]*v[X];
@@ -581,14 +572,14 @@ void get_M(const double a[3], double M[9]) {
 
 	dbg::M_consistency(rot_z, a, u, v, w);
 
-	// FIXME This flip is unclear; handedness?
-	M[R11] = -v[X];
-	M[R12] = -v[Y];
-	M[R13] = -v[Z];
+	// Flip: x -> y; y -> x; z -> -z
+	M[R11] = v[X];
+	M[R12] = v[Y];
+	M[R13] = v[Z];
 
-	M[R21] = -w[X];
-	M[R22] = -w[Y];
-	M[R23] = -w[Z];
+	M[R21] = w[X];
+	M[R22] = w[Y];
+	M[R23] = w[Z];
 
 	M[R31] = -u[X];
 	M[R32] = -u[Y];

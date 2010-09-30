@@ -98,6 +98,18 @@ void M_test() {
 
 	M_test(b);
 
+	const double c[] = { -1, 3, -2 };
+
+	M_test(c);
+
+	const double d[] = { 7, 5, 6 };
+
+	M_test(d);
+
+	const double e[] = { 8,-3, 5 };
+
+	M_test(e);
+
 	return;
 }
 
