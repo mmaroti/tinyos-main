@@ -41,6 +41,8 @@ using namespace gyro;
 namespace dbg {
 
 	void consistent(const double angles_deg[3]);
+	void consistent_in_range(const double angles_deg[3]);
+	void equal_arrays(const double a[], const double b[], int len, const char* name);
 }
 
 int random_deg() {
@@ -57,6 +59,55 @@ void test(double Y = random_deg()) {
 	dbg::consistent(angles);
 }
 
+int random_deg_xz() {
+	const int a = (rand() % 360) - 179;
+	assert ( (-179 <= a) && (a <= 180) );
+	return a;
+}
+
+int random_deg_y() {
+	const int a = (rand() % 179) - 89;
+	assert ( (-89 <= a) && (a <= 89) );
+	return a;
+}
+
+void test_in_range() {
+	double X = random_deg_xz();
+	double Y = random_deg_y();
+	double Z = random_deg_xz();
+	double angles[] = { X, Y, Z };
+	dbg::consistent_in_range(angles);
+}
+
+double random_coordinate() {
+
+	const double x = ((rand() % 2001) - 1000) / 100.1;
+	assert (-10 < x && x < 10);
+	return x;
+}
+
+void test_rotation() {
+
+	const double angles[] = { random_deg(), random_deg(), random_deg() };
+
+	double r[9];
+
+	angles_deg_to_rotmat(angles, r);
+
+	const double u[] =
+		{ random_coordinate(), random_coordinate(), random_coordinate() };
+
+	double v[3];
+
+	rotate_vector(r, u, v);
+
+	double w[3];
+
+	inverse_rot_vector(r, v, w);
+
+	dbg::equal_arrays(u, w, 3, "Random rotated vector");
+}
+
 void non_orthogonal() {
 
 	const double eps1 = 3.0e-5;
@@ -70,7 +121,7 @@ void non_orthogonal() {
 
 	double dummy[3];
 
-	rotmat_to_angles(m, dummy);
+	rotmat_to_angles_deg(m, dummy);
 }
 
 void M_test(const double a[3]) {
@@ -119,7 +170,7 @@ int main() {
 
 	non_orthogonal();
 
-	const int N = 10000;
+	const int N = 1000000;
 
 	srand(7);
 
@@ -139,6 +190,18 @@ int main() {
 
 	for (int i=0; i<N; ++i) {
 		test();
+	}
+
+	cout << "Testing in range random angles" << endl;
+
+	for (int i=0; i<N; ++i) {
+		test_in_range();
+	}
+
+	cout << "Testing random rotations" << endl;
+
+	for (int i=0; i<N; ++i) {
+		test_rotation();
 	}
 
 	cout << "Tests passed!" << endl;

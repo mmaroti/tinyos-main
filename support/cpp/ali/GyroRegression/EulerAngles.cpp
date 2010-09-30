@@ -73,21 +73,22 @@ void degen(double r31) {
 	}
 }
 
-bool in_range(double x, double y, double z) {
+bool in_range(const double angle_deg[3]) {
 
-	return (-180<=x) && (x<=180) &&
-		   ( -90<=y) && (y<= 90) &&
-		   (-180<=z) && (z<=180) ;
+	return (-180<=angle_deg[X]) && (angle_deg[X]<=180) &&
+		   ( -90<=angle_deg[Y]) && (angle_deg[Y]<= 90) &&
+		   (-180<=angle_deg[Z]) && (angle_deg[Z]<=180) ;
 
 }
 
-void angles(double x, double y, double z) {
+void angles_deg(const double angle_deg[3]) {
 
-	bool is_in_range = in_range(x, y, z);
+	bool is_in_range = in_range(angle_deg);
 
 	if (!is_in_range) {
 		ostringstream os;
-		os << "An angle is out of range of: " << x << ", " << y << ", " << z;
+		os << "An angle is out of range of: ";
+		os << angle_deg[X] << ", " << angle_deg[Y] << ", " << angle_deg[Z];
 		throw runtime_error(os.str());
 	}
 }
@@ -215,7 +216,7 @@ void equal_degenerate_angles(const double in[3], const double computed[3]) {
 	equal_arrays(input, computed, 3, "Angles array");
 }
 
-void enforce_range(double angle[3]) {
+void enforce_range_deg(double angle[3]) {
 
 	if (angle[X] == -180)
 		angle[X] = 180;
@@ -226,13 +227,13 @@ void enforce_range(double angle[3]) {
 
 void equal_angles(const double in[3], const double computed[3], bool degenerate) {
 
-	bool input_in_range = in_range(in[X], in[Y], in[Z]);
+	bool input_in_range = in_range(in);
 
 	if (input_in_range) {
 
 		double input[] = { in[X], in[Y], in[Z] };
 
-		enforce_range(input);
+		enforce_range_deg(input);
 
 		if (!degenerate) {
 
@@ -243,7 +244,6 @@ void equal_angles(const double in[3], const double computed[3], bool degenerate)
 			equal_degenerate_angles(input, computed);
 		}
 	}
-
 }
 
 void consistent(const double angles_deg[3]) {
@@ -252,23 +252,51 @@ void consistent(const double angles_deg[3]) {
 
 	double m1[9];
 
-	angles_to_rotmat(angles_deg, m1);
+	angles_deg_to_rotmat(angles_deg, m1);
 
 	orthogonality(m1);
 
 	double xyz[3];
 
-	bool degenerate = rotmat_to_angles(m1, xyz);
+	bool degenerate = rotmat_to_angles_deg(m1, xyz);
 
 	double m2[9];
 
-	angles_to_rotmat(xyz, m2);
+	angles_deg_to_rotmat(xyz, m2);
 
 	orthogonality(m2);
 
 	equal_rotmat(m1, m2);
 
 	equal_angles(angles_deg, xyz, degenerate);
+}
+
+void consistent_in_range(const double angles_deg[3]) {
+
+	using namespace gyro;
+
+	double m1[9];
+
+	angles_deg_to_rotmat(angles_deg, m1);
+
+	orthogonality(m1);
+
+	double xyz[3];
+
+	bool degenerate = rotmat_to_angles_deg(m1, xyz);
+
+	if (degenerate)
+		throw logic_error("It should not be a degenerate test case!");
+
+	double m2[9];
+
+	angles_deg_to_rotmat(xyz, m2);
+
+	orthogonality(m2);
+
+	equal_rotmat(m1, m2);
+
+	equal_arrays(angles_deg, xyz, 3, "Angles array");
 
 }
 
@@ -375,7 +403,7 @@ bool is_degenerate(const double m[9], double& r) {
 	return one(r) || minus_one(r) || col_or_row_degen(m, r);
 }
 
-void enforce_range(double& x, double& z) {
+void enforce_range_deg(double& x, double& z) {
 
 	if (x==-180)
 		x = 180;
@@ -390,7 +418,7 @@ void enforce_range(double& x, double& z) {
 //
 // Right-handed coordinate system
 //
-bool rotmat_to_angles(const double m[9], double angle[3]) {
+bool rotmat_to_angles_rad(const double m[9], double angle[3]) {
 
 	dbg::orthogonality(m);
 
@@ -401,34 +429,53 @@ bool rotmat_to_angles(const double m[9], double angle[3]) {
 	double x, y, z;
 
 	if (!degenerate) {
-		y = asin(-m[R31])*RAD;
-		z = atan2(m[R21], m[R11])*RAD;
-		x = atan2(m[R32], m[R33])*RAD;
+		y = asin(-m[R31]);
+		z = atan2(m[R21], m[R11]);
+		x = atan2(m[R32], m[R33]);
 	}
 	else {
 		// r31 = +1 or -1
 		dbg::degen(r31);
-		y = -r31*90.0;
+		y = -r31*(PI/2);
 		z = 0.0;
-		x = atan2(-r31*m[R12], m[R22])*RAD;
+		x = atan2(-r31*m[R12], m[R22]);
 	}
 
-	enforce_range(x, z);
-
-	dbg::angles(x, y, z);
-
-	angle[X] = x; // (-180, 180]
-	angle[Y] = y; // [ -90,  90]
-	angle[Z] = z; // (-180, 180]
+	angle[X] = x; // [ -pi,   pi]
+	angle[Y] = y; // [ -pi/2, pi/2]
+	angle[Z] = z; // [ -pi,   pi]
 
 	return degenerate;
 }
 
-void angles_to_rotmat(const double angle[3], double m[9]) {
+void angle_to_deg(double angle[3]) {
 
-	const double x = angle[X]/RAD;
-	const double y = angle[Y]/RAD;
-	const double z = angle[Z]/RAD;
+	angle[X] *= RAD;
+	angle[Y] *= RAD;
+	angle[Z] *= RAD;
+}
+
+bool rotmat_to_angles_deg(const double m[9], double angle[3]) {
+
+	const bool degenerate = rotmat_to_angles_rad(m, angle);
+
+	angle_to_deg(angle);
+
+	enforce_range_deg(angle[X], angle[Z]);
+	// X in (-180, 180]
+	// Y in [ -90,  90]
+	// Z in (-180, 180]
+
+	dbg::angles_deg(angle);
+
+	return degenerate;
+}
+
+void angles_rad_to_rotmat(const double angle_rad[3], double m[9]) {
+
+	const double x = angle_rad[X];
+	const double y = angle_rad[Y];
+	const double z = angle_rad[Z];
 
 	const double sin_x = sin(x);
 	const double sin_y = sin(y);
@@ -450,6 +497,14 @@ void angles_to_rotmat(const double angle[3], double m[9]) {
 	m[R32] = cos_y*sin_x;
 	m[R33] = cos_x*cos_y;
 
+	dbg::orthogonality(m);
+}
+
+void angles_deg_to_rotmat(const double angle_deg[3], double m[9]) {
+
+	const double angle_rad[] = { angle_deg[X]/RAD, angle_deg[Y]/RAD, angle_deg[Z]/RAD};
+
+	angles_rad_to_rotmat(angle_rad, m);
 }
 
 void rotate_vector(const double m[9], const double v[3], double result[3]) {
@@ -466,11 +521,11 @@ void inverse_rot_vector(const double m[9], const double v[3], double result[3]) 
 	dbg::orthogonality(m);
 
 	result[X] = m[R11]*v[X]+m[R21]*v[Y]+m[R31]*v[Z];
-	result[Y] = m[R12]*v[X]+m[R22]*v[Y]+m[R23]*v[Z];
+	result[Y] = m[R12]*v[X]+m[R22]*v[Y]+m[R32]*v[Z];
 	result[Z] = m[R13]*v[X]+m[R23]*v[Y]+m[R33]*v[Z];
 }
 
-void vector_to_tilt_angles(double r[3], double angle_deg[3]) {
+void vector_to_tilt_angles_rad(double r[3], double angle_rad[3]) {
 
 	for (int i=0; i<3; ++i) {
 
@@ -481,18 +536,25 @@ void vector_to_tilt_angles(double r[3], double angle_deg[3]) {
 			r[i] = 1;
 		}
 
-		angle_deg[i] = asin(r[i])*RAD;
+		angle_rad[i] = asin(r[i]);
 	}
 }
 
-void rotmat_to_asin_angles(const double m[9], double angle_deg[3]) {
+void rotmat_to_asin_angles_rad(const double m[9], double angle_rad[3]) {
 
 	dbg::orthogonality(m);
 
 	// Sign: see flip at the bottom of get_M
 	double r[] = { -m[R31], -m[R32], -m[R33] };
 
-	vector_to_tilt_angles(r, angle_deg);
+	vector_to_tilt_angles_rad(r, angle_rad);
+}
+
+void rotmat_to_asin_angles_deg(const double m[9], double angle_deg[3]) {
+
+	rotmat_to_asin_angles_rad(m, angle_deg);
+
+	angle_to_deg(angle_deg);
 }
 
 double length(const double v[3]) {
@@ -584,6 +646,8 @@ void get_M(const double a[3], double M[9]) {
 	M[R31] = -u[X];
 	M[R32] = -u[Y];
 	M[R33] = -u[Z];
+
+	dbg::orthogonality(M);
 
 }
 

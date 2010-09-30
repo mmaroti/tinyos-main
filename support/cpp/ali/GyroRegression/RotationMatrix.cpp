@@ -208,9 +208,9 @@ void RotationMatrix::dump_angles(const Input& data,
 		try {
 			inverse_rot_vector(m, g, b);
 
-			rotmat_to_asin_angles(m, beta);
+			rotmat_to_asin_angles_deg(m, beta);
 			// TODO Difference between xyz and yzx conventions? -> Finish visualization first!
-			rotmat_to_angles(m, euler);
+			rotmat_to_angles_deg(m, euler);
 		}
 		catch (runtime_error& e) {
 			log << "Runtime error at sample " << i << " of " << N << endl;
