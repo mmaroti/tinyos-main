@@ -384,13 +384,15 @@ void DataWidget::onCut()
 void DataWidget::finished(bool error, const char* msg, const ipo::Results* res) {
 
     if (!error) {
-
         application.dataRecorder.loadRotationMatrices(res);
+        plot->update();
     }
+    else {
 
-    QMessageBox mbox;
-    mbox.setText(msg);
-    mbox.exec();
+        QMessageBox mbox;
+        mbox.setText(msg);
+        mbox.exec();
+    }
 
     ui->loadBtn->setEnabled(true);
     ui->regressionButton->setEnabled(true);
