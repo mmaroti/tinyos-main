@@ -28,8 +28,8 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Miklï¿½s Marï¿½ti
+* Author: Pï¿½ter Ruzicska
 */
 
 #include <QPainter>
@@ -123,22 +123,6 @@ void DataPlot::paintEvent(QPaintEvent *event)
                     painter.drawLine(getPoint(lastPos.x(), 0), getPoint(lastPos.x(), 4096));
                 }
             }
-
-
-            /*
-            painter.setPen(QPen(Qt::black, 2, Qt::SolidLine));
-
-            double angle1_deg = 0;
-            double angle2_deg = 0;
-
-            for(int i = x0 + 1; i < x1; ++i) {
-                // Angle can be X, Y or Z
-                dataRecorder.euler_angle(i-1, X, angle1_deg);
-                dataRecorder.euler_angle(i  , X, angle2_deg);
-                // TODO Scaling !
-                painter.drawLine(getPoint(i-1, angle1_deg), getPoint(i, angle2_deg));
-            }
-            */
 
             if( (graphs & XRAWACC) != 0 )
             {
@@ -438,7 +422,6 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 double angle2_deg = 0;
 
                 for(int i = x0 + 1; i < x1; ++i) {
-                    // Angle can be X, Y or Z
                     dataRecorder.euler_angle(i-1, X, angle1_deg);
                     dataRecorder.euler_angle(i  , X, angle2_deg);
                     painter.drawLine(getPoint(i-1, angle1_deg * (2048/M_PI) + 2048), getPoint(i, angle2_deg * (2048/M_PI) + 2048));
@@ -453,7 +436,6 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 double angle2_deg = 0;
 
                 for(int i = x0 + 1; i < x1; ++i) {
-                    // Angle can be X, Y or Z
                     dataRecorder.euler_angle(i-1, Y, angle1_deg);
                     dataRecorder.euler_angle(i  , Y, angle2_deg);
                     painter.drawLine(getPoint(i-1, angle1_deg * (2048/M_PI) + 2048), getPoint(i, angle2_deg * (2048/M_PI) + 2048));
@@ -468,7 +450,6 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 double angle2_deg = 0;
 
                 for(int i = x0 + 1; i < x1; ++i) {
-                    // Angle can be X, Y or Z
                     dataRecorder.euler_angle(i-1, Z, angle1_deg);
                     dataRecorder.euler_angle(i  , Z, angle2_deg);
                     painter.drawLine(getPoint(i-1, angle1_deg * (2048/M_PI) + 2048), getPoint(i, angle2_deg * (2048/M_PI) + 2048));
@@ -590,10 +571,10 @@ void DataPlot::mousePressEvent(QMouseEvent * event)
             message.append(" , Acceleration: " + QString::number((double)((sample.y()-2048)/(512/GRAV)), 'f', 2) + " m/s^2");
         }
         if( (graphs & XYANG) != 0 || (graphs & YZANG) != 0 || (graphs & ZXANG) != 0 || (graphs & XANG) != 0 || (graphs & YANG) != 0 || (graphs & ZANG) != 0 ){
-            message.append(",  Angle: " + QString::number((sample.y()-2048)/(2048/M_PI), 'f', 1) + "rad; "  + QString::number( (sample.y()-2048)/(2048/M_PI)*57.296, 'f', 2 ) + "°.");
+            message.append(",  Angle: " + QString::number((sample.y()-2048)/(2048/M_PI), 'f', 1) + "rad; "  + QString::number( (sample.y()-2048)/(2048/M_PI)*57.296, 'f', 2 ) + "ï¿½.");
         }
         if( (graphs & XGYRO) != 0 || (graphs & YGYRO) != 0 || (graphs & ZGYRO) != 0 ){
-            message.append(",  Gyroscope: " + QString::number((sample.y()-2048)/(2048/(4*M_PI)),'f',1) + "rad/sec; " + QString::number( ((sample.y()-2048)/(2048/(4*M_PI)))*RADIAN, 'f', 2 ) + "°/sec; " + QString::number( (((sample.y()-2048)/(2048/(4*M_PI)))*60)/(2*M_PI), 'f', 1 ) + "rpm." );
+            message.append(",  Gyroscope: " + QString::number((sample.y()-2048)/(2048/(4*M_PI)),'f',1) + "rad/sec; " + QString::number( ((sample.y()-2048)/(2048/(4*M_PI)))*RADIAN, 'f', 2 ) + "ï¿½/sec; " + QString::number( (((sample.y()-2048)/(2048/(4*M_PI)))*60)/(2*M_PI), 'f', 1 ) + "rpm." );
         }
         application.showMessage( message );
     } else if (event->buttons() & Qt::RightButton) {
