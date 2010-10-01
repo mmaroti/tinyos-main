@@ -416,7 +416,7 @@ void DataPlot::paintEvent(QPaintEvent *event)
 
             if( (graphs & XEUL) != 0 )
             {
-                painter.setPen(QPen(Qt::black, 2, Qt::SolidLine));
+                painter.setPen(QPen(Qt::red, 2, Qt::SolidLine));
 
                 double angle1_deg = 0;
                 double angle2_deg = 0;
@@ -430,7 +430,7 @@ void DataPlot::paintEvent(QPaintEvent *event)
 
             if( (graphs & YEUL) != 0 )
             {
-                painter.setPen(QPen(Qt::black, 2, Qt::SolidLine));
+                painter.setPen(QPen(Qt::green, 2, Qt::SolidLine));
 
                 double angle1_deg = 0;
                 double angle2_deg = 0;
@@ -444,7 +444,7 @@ void DataPlot::paintEvent(QPaintEvent *event)
 
             if( (graphs & ZEUL) != 0 )
             {
-                painter.setPen(QPen(Qt::black, 2, Qt::SolidLine));
+                painter.setPen(QPen(Qt::blue, 2, Qt::SolidLine));
 
                 double angle1_deg = 0;
                 double angle2_deg = 0;
