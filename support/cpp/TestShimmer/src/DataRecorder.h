@@ -91,11 +91,17 @@ public:
         void saveCalibrationData() const;
         void loadCalibrationData();
 
-        double* getAccelCalibration() { return accelCalibrationData; } // FIXME
-        double* getGyroCalibration() { return gyroCalibrationData; }
-        double* getGyroMinAvgs() { return gyroMinAvgs; }
-        int* getAccelIdleWindowStart() { return accelIdleWindowStart; }
-        int* getGyroIdleWindowStart() { return gyroIdleWindowStart; }
+        const double* getAccelCalibration() const { return accelCalibrationData; }
+        const double* getGyroCalibration() const { return gyroCalibrationData; }
+        const double* getGyroMinAvgs() const { return gyroMinAvgs; }
+        const int* getAccelIdleWindowStart() const { return accelIdleWindowStart; }
+        const int* getGyroIdleWindowStart() const { return gyroIdleWindowStart; }
+
+        void setAccelIdleWindowStart(int index, int start);
+        void setGyroMinAvgs(int index, double value);
+        void setAccelCalibration(int index, double value);
+        void setGyroCalibration(int index, double value);
+        void setGyroIdleWindowStart(int index, int start);
 
         double calculateAngle( double acceleration1, double acceleration2 );
         double calculateCalibratedValue( QString axis, int time );

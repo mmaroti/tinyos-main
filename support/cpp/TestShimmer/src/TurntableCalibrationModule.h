@@ -111,7 +111,6 @@ public:
     //const double & getGyroAvgAt( int i ) const { return gyroMinAvgs[i]; }
 
     void clearTurntableSides();
-    QString printError(int i);
 
 private:
     Application &application;

@@ -209,11 +209,11 @@ QString TurntableCalibrationModule::Classify()
     xMinGyroAvg = 9999.99; xMaxGyroAvg = 0.0; yMinGyroAvg = 9999.99; yMaxGyroAvg = 0.0; zMinGyroAvg = 9999.99; zMaxGyroAvg = 0.0;
 
     for ( int i = 0; i < 7; i++ ) {
-        if ( turntableSidesMins[i] == -1 ) {
-            application.dataRecorder.getGyroIdleWindowStart()[i] = turntableWindows[i].start;
+        if ( turntableSidesMins[i] == -1 ) { // FIXME What is going on here?
+            application.dataRecorder.setGyroIdleWindowStart(i, turntableWindows[i].start);
             return "Calibration is missing the mote being idle on one of its sides! (Please load a record with the mote being idle on each side for at least 2 seconds!)";
         } else {
-            application.dataRecorder.getGyroIdleWindowStart()[i] = turntableWindows[i].start;
+            application.dataRecorder.setGyroIdleWindowStart(i, turntableWindows[i].start);
             //qDebug() << turntableWindows[turntableSidesMins[i]].toString();
         }
     }
@@ -419,7 +419,7 @@ QString TurntableCalibrationModule::LSF() {
     //solution->print();
 
     for (int i = 0; i < 7; i++){
-        application.dataRecorder.getGyroIdleWindowStart()[i] = turntableWindows[turntableSidesMins[i]].start;
+        application.dataRecorder.setGyroIdleWindowStart(i, turntableWindows[turntableSidesMins[i]].start);
     }
 
     QString returnMessage = "";
@@ -429,11 +429,11 @@ QString TurntableCalibrationModule::LSF() {
         return returnMessage;
     } else {
         for (unsigned int i = 0; i < linearEquations.getVariableCount(); i++) {
-            application.dataRecorder.getGyroCalibration()[i] = solution->getValueAt(i);
+            application.dataRecorder.setGyroCalibration(i, solution->getValueAt(i));
         }
 
         returnMessage.append("\nGyroscope Calibration Data: \n");
-
+        // FIXME Why is it in comment???
         /*application.settings.setArrayIndex(0);
         returnMessage.append("a11 ");
         returnMessage.append( application.settings.value("gyroCalibrationData").toString() + "\n" );
@@ -542,17 +542,4 @@ void TurntableCalibrationModule::printMatrix2D(TNT::Array2D<double> matrix) {
         std::cout << "\n";
     }
     std::cout << flush;
-}
-
-QString TurntableCalibrationModule::printError(int i)
-{
-    QString errormsg;
-
-    //errormsg.append("GYROWINDOW: " + GYROWINDOW + "\n");
-    //errormsg.append("GYROMAXDIFF: " + GYROMAXDIFF + "\n");
-    //errormsg.append("---===BOUNDARIES===---\n");
-    //errormsg.append("xI_L: " + xI_L + "\n");
-
-    return errormsg;
-
 }

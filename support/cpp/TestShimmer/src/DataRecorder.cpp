@@ -33,6 +33,7 @@
 */
 
 #include <stdexcept>
+#include <assert.h>
 #include "DataRecorder.h"
 #include "Application.h"
 #include <QtDebug>
@@ -196,7 +197,7 @@ void DataRecorder::csvToSample(const QString& str)
         QStringList list = str.split(",");
         QStringListIterator csvIterator(list);
         Sample sample;
-
+        // FIXME Should check if we actually have next...
         sample.time = csvIterator.next().toInt();
         sample.xAccel = csvIterator.next().toInt();
         sample.yAccel = csvIterator.next().toInt();
@@ -491,6 +492,31 @@ bool DataRecorder::euler_angle(int i, int k, double& angle_rad) const {
     angle_rad = euler[k];
 
     return degenerate;
+}
+
+void DataRecorder::setAccelIdleWindowStart(int index, int start) {
+    assert(0<=index && index < 6);
+    accelIdleWindowStart[index] = start;
+}
+
+void DataRecorder::setGyroMinAvgs(int index, double value) {
+    assert(0<=index && index < 3);
+    gyroMinAvgs[index] = value;
+}
+
+void DataRecorder::setAccelCalibration(int index, double value) {
+    assert(0<=index && index < 12);
+    accelCalibrationData[index] = value;
+}
+
+void DataRecorder::setGyroCalibration(int index, double value) {
+    assert(0<=index && index < 12);
+    gyroCalibrationData[index] = value;
+}
+
+void DataRecorder::setGyroIdleWindowStart(int index, int start) {
+    assert(0<=index && index < 7);// FIXME Why 7?
+    gyroIdleWindowStart[index] = start;
 }
 
 int DataRecorder::getTime(int i)

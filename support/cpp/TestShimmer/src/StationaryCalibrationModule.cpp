@@ -28,8 +28,8 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Miklï¿½s Marï¿½ti
+* Author: Pï¿½ter Ruzicska
 */
 
 #include "StationaryCalibrationModule.h"
@@ -201,9 +201,6 @@ QString StationaryCalibrationModule::Classify()
         } else {
             errormsg.append("Idle windows outside boundaries! \n");
             errormsg.append(idleWindows[i].toString());
-            //application.dataRecorder.getAccelIdleWindowStart()[0] = idleWindows[i].start;
-
-            //return errormsg;
         }
     }
     xMinAvg = 9999.99; xMaxAvg = 0.0; yMinAvg = 9999.99; yMaxAvg = 0.0; zMinAvg = 9999.99; zMaxAvg = 0.0;
@@ -421,15 +418,15 @@ QString StationaryCalibrationModule::LSF() {
         return returnMessage;
     } else {        
         for (unsigned int i = 0; i < linearEquations.getVariableCount(); i++) {
-            application.dataRecorder.getAccelCalibration()[i] = solution->getValueAt(i);
+            application.dataRecorder.setAccelCalibration(i, solution->getValueAt(i));
         }
 
         for (unsigned int i = 0; i < 3; i++) {
-            application.dataRecorder.getGyroMinAvgs()[i] = gyroMinAvgs[i];
+            application.dataRecorder.setGyroMinAvgs(i, gyroMinAvgs[i]);
         }
 
         for (int i = 0; i < 6; i++){
-            application.dataRecorder.getAccelIdleWindowStart()[i] = idleWindows[idleSidesMins[i]].start;
+            application.dataRecorder.setAccelIdleWindowStart(i, idleWindows[idleSidesMins[i]].start);
         }
 
         returnMessage.append("\n Acceleration Calibration Data: \n");
