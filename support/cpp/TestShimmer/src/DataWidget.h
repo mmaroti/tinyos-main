@@ -60,12 +60,12 @@ public:
     DataWidget(QWidget *parent, Application &app);
     ~DataWidget();
 
-    DataPlot *plot;  //JAVITANI, ennek privatenak kene lennie
-
 protected:
         void changeEvent(QEvent *e);
 
 private:
+
+        DataPlot *plot;
         Ui::DataWidget *ui;
         Application &application;
 

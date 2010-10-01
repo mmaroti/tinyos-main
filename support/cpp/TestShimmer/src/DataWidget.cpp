@@ -385,6 +385,13 @@ void DataWidget::finished(bool error, const char* msg, const ipo::Results* res) 
 
     if (!error) {
         application.dataRecorder.loadRotationMatrices(res);
+        bool on = true;
+        int graphs = DataPlot::XEUL | DataPlot::YEUL | DataPlot::ZEUL ;
+        plot->setGraphs(graphs, on);
+        ui->eulerX->setChecked(true);
+        ui->eulerY->setChecked(true);
+        ui->eulerZ->setChecked(true);
+        ui->eulerBox->setChecked(true);
         plot->update();
     }
     else {
