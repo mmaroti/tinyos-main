@@ -68,6 +68,10 @@ private:
 					const double az,
 					const Input& data);
 
+	void orthogonality_accept() const;
+
+	void objective_accept(double sx, double sy, double sz) const;
+
 	void dump_angles(const Input& data, std::ostream& log = std::cout) const;
 
 	const double* matrix_at(int i) const;

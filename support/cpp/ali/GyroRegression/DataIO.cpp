@@ -81,8 +81,8 @@ void check_time_stamp(int sample, double current) {
 
 Input* grab_content(const char* filename) {
 
-	double dt    = NT(10.0/2048.0);
-	double g_ref = NT(-9.81);
+	double dt    = NT(SAMPLING_RATE_TICK/TICKS_PER_SEC);
+	double g_ref = NT(GRAVITY);
 
 	ifstream in;
 

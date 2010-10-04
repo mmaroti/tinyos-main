@@ -37,7 +37,8 @@
 #include <iostream>
 #include <iomanip>
 #include <cmath>
-#include <cassert>
+#include <cstdlib>
+#include <assert.h>
 #include "ObjectiveEvaluator.hpp"
 #include "RotationMatrix.hpp"
 #include "EulerAngles.hpp"
@@ -112,6 +113,11 @@ RotationMatrix::RotationMatrix(	const Input& data,
 	obj.f(x);
 
 	// TODO Acceptance test: (s_x,s_y,s_z) should be (0,0,g)
+
+	objective_accept(obj.s_x(), obj.s_y(), obj.s_z());
+
+	orthogonality_accept();
+
 	/*
 	ofstream out("sep01mat");
 	dump_angles(data, out);
@@ -189,6 +195,33 @@ const double* RotationMatrix::matrix_at(int i) const {
 	assert(0<=i && i<N);
 
 	return R+(9*i);
+}
+
+void RotationMatrix::orthogonality_accept() const {
+
+	try {
+		for (int i=0; i<N; ++i) {
+			dbg::orthogonality(matrix_at(i));
+		}
+	}
+	catch(runtime_error& ) {
+		cerr << "Error: some of the computed rotation matrices ";
+		cerr << "are not orthogonal!" << endl;
+		exit(ERROR_ORTHOGONALITY);
+	}
+}
+
+void RotationMatrix::objective_accept(double sx, double sy, double sz) const {
+
+	const double TOL_XY = 1.0e-6;
+	const double TOL_Z  = fabs(0.15*GRAVITY);
+
+	if (fabs(sx) > TOL_XY || fabs(sy) > TOL_XY || fabs(GRAVITY-sz) > TOL_Z) {
+		cerr << "Error: the computed gravitational acceleration significantly ";
+		cerr << "differs from the reference value!" << endl;
+		cerr << "( " << sx << ", " << sy << ", " << sz << ")" << endl;
+		exit(ERROR_OBJECTIVE);
+	}
 }
 
 void RotationMatrix::dump_angles(const Input& data,

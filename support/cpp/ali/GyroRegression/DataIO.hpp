@@ -42,7 +42,8 @@ class Input;
 class Optimizer;
 class RotationMatrix;
 
-// FIXME Gravitational acceleration and time step are hard-coded
+// FIXME Gravitational acceleration and time step are taken from compile
+// time constants
 
 // Calls exit() if an error occurs
 Input* read_file(const char* filename);
