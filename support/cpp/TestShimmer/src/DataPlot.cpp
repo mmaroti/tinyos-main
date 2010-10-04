@@ -472,7 +472,7 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 for(int i=0; i < 7; i++){
                     if(application.dataRecorder.getGyroIdleWindowStart()[i] != -1){
                         painter.drawLine(getPoint(application.dataRecorder.getGyroIdleWindowStart()[i], 0), getPoint(application.dataRecorder.getGyroIdleWindowStart()[i], 4000));
-                        painter.drawLine(getPoint(application.dataRecorder.getGyroIdleWindowStart()[i]+WINDOW, 0), getPoint(application.dataRecorder.getGyroIdleWindowStart()[i]+WINDOW, 4000));
+                        painter.drawLine(getPoint(application.dataRecorder.getGyroIdleWindowStart()[i]+GYROWINDOW, 0), getPoint(application.dataRecorder.getGyroIdleWindowStart()[i]+GYROWINDOW, 4000));
                     }
                 }
             }

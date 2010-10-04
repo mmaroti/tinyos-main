@@ -40,6 +40,7 @@
 #include "tnt_math_utils.h"
 #include <cmath>
 
+
 using namespace std;
 
 TurntableCalibrationModule::TurntableCalibrationModule(Application &app) : application(app)
@@ -130,6 +131,8 @@ QString TurntableCalibrationModule::Calibrate(int rpm)
     }
 
     if (turntableWindows.size() < 6){
+        msgBox.setText("Calibration Error! See console for details...");
+        msgBox.exec();
         return "Please load a data record with the mote being idle on each side for at least a 2 seconds!";
     } else {
         /*for(int i = 0; i < turntableWindows.size(); i++){
@@ -143,7 +146,7 @@ QString TurntableCalibrationModule::Calibrate(int rpm)
 QString TurntableCalibrationModule::Classify()
 {
     QString errormsg;
-    float xTemp,yTemp,zTemp;
+    double xTemp,yTemp,zTemp;
     int xCLWMinDiff = 3*GYROMAXDIFF; int xCCLWMinDiff = 3*GYROMAXDIFF;
     int yCLWMinDiff = 3*GYROMAXDIFF; int yCCLWMinDiff = 3*GYROMAXDIFF;
     int zCLWMinDiff = 3*GYROMAXDIFF; int zCCLWMinDiff = 3*GYROMAXDIFF;
@@ -201,15 +204,34 @@ QString TurntableCalibrationModule::Classify()
         } else {
             errormsg.append("Idle window outside boundaries! \n");
             errormsg.append(turntableWindows[i].toString());
+            errormsg.append("Actual Difference: " + QString::number(actDiff) + "\n");
+            errormsg.append("xCLWMinDiff: " + QString::number(xCLWMinDiff) + "\n");
+            errormsg.append("xCCLWMinDiff: " + QString::number(xCCLWMinDiff) + "\n");
+            errormsg.append("yCLWMinDiff: " + QString::number(xCLWMinDiff) + "\n");
+            errormsg.append("yCCLWMinDiff: " + QString::number(xCCLWMinDiff) + "\n");
+            errormsg.append("zCLWMinDiff: " + QString::number(xCLWMinDiff) + "\n");
+            errormsg.append("zCCLWMinDiff: " + QString::number(xCCLWMinDiff) + "\n");
+            errormsg.append("IMinDiff: " + QString::number(IMinDiff) + "\n");
+            errormsg.append("X AVGs: " + QString::number(xMinGyroAvg) + " - " + QString::number(xMaxGyroAvg) + "\n");
+            errormsg.append("Y AVGs: " + QString::number(yMinGyroAvg) + " - " + QString::number(yMaxGyroAvg) + "\n");
+            errormsg.append("Z AVGs: " + QString::number(zMinGyroAvg) + " - " + QString::number(zMaxGyroAvg) + "\n");
+            errormsg.append("X regions: " + QString::number(xMinGyroAvg) + " - " + QString::number(xCCLW) + " ; " + QString::number(xI_L) + " - " + QString::number(xI_U) + " ; " + QString::number(xCLW) + " - " + QString::number(xMaxGyroAvg) + "\n");
+            errormsg.append("Y regions: " + QString::number(yMinGyroAvg) + " - " + QString::number(yCCLW) + " ; " + QString::number(yI_L) + " - " + QString::number(yI_U) + " ; " + QString::number(yCLW) + " - " + QString::number(yMaxGyroAvg) + "\n");
+            errormsg.append("Z regions: " + QString::number(zMinGyroAvg) + " - " + QString::number(zCCLW) + " ; " + QString::number(zI_L) + " - " + QString::number(zI_U) + " ; " + QString::number(zCLW) + " - " + QString::number(zMaxGyroAvg) + "\n");
 
-            //application.dataRecorder.getGyroIdleWindowStart()[0] = turntableWindows[i].start;
-            //return errormsg;
+            msgBox.setText("Calibration Error! See console for details...");
+            msgBox.exec();
+
+            application.dataRecorder.setGyroIdleWindowStart(0, turntableWindows[i].start);
+            return errormsg;
         }
     }
     xMinGyroAvg = 9999.99; xMaxGyroAvg = 0.0; yMinGyroAvg = 9999.99; yMaxGyroAvg = 0.0; zMinGyroAvg = 9999.99; zMaxGyroAvg = 0.0;
 
     for ( int i = 0; i < 7; i++ ) {
         if ( turntableSidesMins[i] == -1 ) { // FIXME What is going on here?
+            msgBox.setText("Calibration Error! See console for details...");
+            msgBox.exec();
             application.dataRecorder.setGyroIdleWindowStart(i, turntableWindows[i].start);
             return "Calibration is missing the mote being idle on one of its sides! (Please load a record with the mote being idle on each side for at least 2 seconds!)";
         } else {
@@ -425,6 +447,8 @@ QString TurntableCalibrationModule::LSF() {
     QString returnMessage = "";
 
     if ( solution->getMaximumError() > 0.1 ) {
+        msgBox.setText("Calibration Error! See console for details...");
+        msgBox.exec();
         returnMessage = "Maximum Error is too great! ( > 0.1 )  \n";
         return returnMessage;
     } else {

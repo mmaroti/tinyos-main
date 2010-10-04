@@ -201,6 +201,9 @@ QString StationaryCalibrationModule::Classify()
         } else {
             errormsg.append("Idle windows outside boundaries! \n");
             errormsg.append(idleWindows[i].toString());
+            msgBox.setText("Calibration Error! See console for details...");
+            msgBox.exec();
+            return errormsg;
         }
     }
     xMinAvg = 9999.99; xMaxAvg = 0.0; yMinAvg = 9999.99; yMaxAvg = 0.0; zMinAvg = 9999.99; zMaxAvg = 0.0;

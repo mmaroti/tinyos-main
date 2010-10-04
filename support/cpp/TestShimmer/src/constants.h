@@ -13,13 +13,17 @@
 //4G
 /*enum LowSensitivity{
     MAXDIFF = 20,    //maximum difference between max and min values from an idle mote
-    WINDOW = 100  //data window size, for finding idle shimmer positions
+    WINDOW = 200, //data window size, for finding idle shimmer positions
+    GYROWINDOW = 200,  //data window size, for finding idle shimmer positions
+    GYROMAXDIFF = 20  //maximum difference between max and min values from an idle mote
 };*/
 
 //1.5G
 enum HighSensitivity{
     MAXDIFF = 60,    //maximum difference between max and min values from an idle mote
-    WINDOW = 100  //data window size, for finding idle shimmer positions
+    WINDOW = 300,  //data window size, for finding idle shimmer positions
+    GYROWINDOW = 300,  //data window size, for finding idle shimmer positions
+    GYROMAXDIFF = 60  //maximum difference between max and min values from an idle mote
 };
 
 #define xN   0.90*xMinAvg+0.1*xMaxAvg  //region borders for classifying idle windows
@@ -38,20 +42,17 @@ enum HighSensitivity{
 
 // ---===TURNTABLE CALIBRATION===---
 
-
-#define GYROWINDOW 100  //data window size, for finding idle shimmer positions
-#define GYROMAXDIFF 30  //maximum difference between max and min values from an idle mote
-#define xCCLW   0.9*xMinGyroAvg+0.1*xMaxGyroAvg  //region borders for classifying idle windows
-#define xI_L    0.7*xMinGyroAvg+0.3*xMaxGyroAvg  //CLW = ClockWise rotation
-#define xI_U    0.3*xMinGyroAvg+0.7*xMaxGyroAvg  //CCLW = counter ClockWise rotation
-#define xCLW    0.1*xMinGyroAvg+0.9*xMaxGyroAvg  //I = Idle
-#define yCCLW   0.9*yMinGyroAvg+0.1*yMaxGyroAvg  //L = lower border; U = upper border;
-#define yI_L    0.7*yMinGyroAvg+0.3*yMaxGyroAvg  //x,y,z : axis
-#define yI_U    0.3*yMinGyroAvg+0.7*yMaxGyroAvg
-#define yCLW    0.1*yMinGyroAvg+0.9*yMaxGyroAvg
-#define zCCLW   0.9*zMinGyroAvg+0.1*zMaxGyroAvg
-#define zI_L    0.7*zMinGyroAvg+0.3*zMaxGyroAvg
-#define zI_U    0.3*zMinGyroAvg+0.7*zMaxGyroAvg
-#define zCLW    0.1*zMinGyroAvg+0.9*zMaxGyroAvg
+#define xCCLW   0.85*xMinGyroAvg+0.15*xMaxGyroAvg  //region borders for classifying idle windows
+#define xI_L    0.6*xMinGyroAvg+0.4*xMaxGyroAvg  //CLW = ClockWise rotation
+#define xI_U    0.4*xMinGyroAvg+0.6*xMaxGyroAvg  //CCLW = counter ClockWise rotation
+#define xCLW    0.15*xMinGyroAvg+0.85*xMaxGyroAvg  //I = Idle
+#define yCCLW   0.85*yMinGyroAvg+0.15*yMaxGyroAvg  //L = lower border; U = upper border;
+#define yI_L    0.6*yMinGyroAvg+0.4*yMaxGyroAvg  //x,y,z : axis
+#define yI_U    0.4*yMinGyroAvg+0.6*yMaxGyroAvg
+#define yCLW    0.15*yMinGyroAvg+0.85*yMaxGyroAvg
+#define zCCLW   0.85*zMinGyroAvg+0.15*zMaxGyroAvg
+#define zI_L    0.6*zMinGyroAvg+0.4*zMaxGyroAvg
+#define zI_U    0.4*zMinGyroAvg+0.6*zMaxGyroAvg
+#define zCLW    0.15*zMinGyroAvg+0.85*zMaxGyroAvg
 
 #endif // CONSTANTS_H

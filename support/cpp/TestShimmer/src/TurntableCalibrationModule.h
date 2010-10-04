@@ -55,6 +55,7 @@
 #include <QObject>
 #include "Application.h"
 #include <jama_qr.h>
+#include <QMessageBox>
 
 class Application;
 
@@ -120,6 +121,8 @@ private:
     double xMinGyroAvg, xMaxGyroAvg, yMinGyroAvg, yMaxGyroAvg, zMinGyroAvg, zMaxGyroAvg;
     long xGyroSum, yGyroSum, zGyroSum;
     double constant;
+
+    QMessageBox msgBox;
 
     QVarLengthArray<TurntableWindow> turntableWindows;
     int turntableSidesMins[7];
