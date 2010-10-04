@@ -48,7 +48,7 @@ implementation
 {
 	components EchoRangerM;
 	components MainC;
-	components LedsC;
+	components NoLedsC as LedsC;
 	components new AlarmOne16C() as AlarmC;
 	components new MicStreamC();
 	components MicaBusC;
