@@ -36,6 +36,12 @@
 #ifndef SAMP_T
 	#define SAMP_T 1
 #endif
+#ifndef SAVE_WAVE
+	#define SAVE_WAVE 1
+#endif
+#ifndef WAIT_AFTER_START
+	#define WAIT_AFTER_START 30
+#endif
 
 module ApplicationM{
 	uses {
@@ -58,7 +64,7 @@ implementation{
 	event void Boot.booted(){
 		uint32_t period=(uint32_t)SAMP_T*1024*60;
 		call StdControl.start();
-		call SensorTimer.startPeriodicAt(call SensorTimer.getNow()-period+1,period);	
+		call SensorTimer.startPeriodicAt(call SensorTimer.getNow()-period+(uint32_t)WAIT_AFTER_START*1024,period);	
 	}
 	
 	event void SensorTimer.fired(){
@@ -66,17 +72,21 @@ implementation{
 	}
 	
 	event void Read.readDone(error_t result, echorange_t* range){
-		if(result==SUCCESS)
+		if(result==SUCCESS){
 			call StreamStorageWrite.appendWithID(0x00,range, sizeof(echorange_t));
-			//call StreamStorage.append(range, sizeof(echorange_t));
+		} else{
+			call Leds.led1Toggle();
+		}
 	}
 	
 	event void StreamStorageWrite.appendDoneWithID(void* buf, uint16_t  len, error_t error){
-		counter++;
-		if(counter==2){
-			uint16_t* buffer=call LastBuffer.get();
-			call StreamStorageWrite.appendWithID(0x11,buffer, sizeof(uint16_t)*ECHORANGER_BUFFER);
-			counter=0;
+		if((SAVE_WAVE!=0)&&len==sizeof(echorange_t)){
+			counter++;
+			if(counter==SAVE_WAVE){
+				uint16_t* buffer=call LastBuffer.get();
+				call StreamStorageWrite.appendWithID(0x11,buffer, sizeof(uint16_t)*ECHORANGER_BUFFER);
+				counter=0;
+			}
 		}
 	}	
 	
