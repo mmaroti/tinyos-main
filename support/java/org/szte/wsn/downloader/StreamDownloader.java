@@ -162,7 +162,7 @@ public class StreamDownloader implements MessageListener {
 				if (currentWriter != null) {
 					try {
 						long prevMaxAddress=currentWriter.getMaxAddress();
-						currentWriter.writeData(msg.get_address(), msg.get_length(), msg.get_data());
+						currentWriter.writeData(msg.get_address(), dataMsg.numElements_data(), msg.get_data());
 						if(msg.get_address()==prevMaxAddress+1){//the next bytes
 							System.out.println("Data OK");
 						} else if(msg.get_address()>prevMaxAddress+1){//we missed some data
@@ -172,12 +172,12 @@ public class StreamDownloader implements MessageListener {
 							ArrayList<Gap> gaps =currentWriter.getGaps();
 							for(Gap currentGap:gaps){
 								if(!currentGap.isUnrepairable()){
-									if(((currentGap.getStart()<msg.get_address()+msg.get_length())&&(currentGap.getStart()>=msg.get_address()))||
-										((currentGap.getEnd()>=msg.get_address())&&(currentGap.getEnd()<msg.get_address()+msg.get_length()))){
+									if(((currentGap.getStart()<msg.get_address()+dataMsg.numElements_data())&&(currentGap.getStart()>=msg.get_address()))||
+										((currentGap.getEnd()>=msg.get_address())&&(currentGap.getEnd()<msg.get_address()+dataMsg.numElements_data()))){
 										long start_bef,end_bef,start_aft,end_aft;
 										start_bef=currentGap.getStart();
 										end_bef=msg.get_address()-1;
-										start_aft=msg.get_address()+msg.get_length();
+										start_aft=msg.get_address()+dataMsg.numElements_data();
 										end_aft=currentGap.getEnd();
 										System.out.print("Remove gap: " + currentGap.getStart()+"-"+currentGap.getEnd()+"|");
 										currentWriter.removeGap(currentGap);
