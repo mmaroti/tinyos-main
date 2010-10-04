@@ -53,16 +53,17 @@ implementation{
 	uint16_t length;
 	uint32_t addr;
 	int16_t current;
-	uint8_t writeid;
 	nx_uint16_t buffer;
 	uint8_t request;
 	
 	event void Resource.granted(){
 	  error_t error=SUCCESS;//to avoid a nesc warning
 	  switch(request){
-	    case REQ_APPENDWITHID:
+	    case REQ_APPENDWITHID:{
+	      error=call StreamStorageWrite.append(&buffer, 2);//frame and id
+	    }break;
 	    case REQ_APPEND:{
-	      error=call StreamStorageWrite.append(&buffer, 1);
+	      error=call StreamStorageWrite.append(&buffer, 1);//frame
 	    }break;
 	    case REQ_SYNC:{
 	      error=call StreamStorageWrite.sync(); 
@@ -87,10 +88,10 @@ implementation{
 	command error_t FramedWrite.appendWithID(nx_uint8_t id, void *buf, uint16_t len){
 	  if(call Resource.request()==SUCCESS){
 		  length=len;
-		  current=-2;
-		  writeid=id;
+		  current=-1;
 		  bufptr=buf;
 		  buffer=FRAMEBYTE<<8;
+		  buffer+=id;
 		  request=REQ_APPENDWITHID;
 		  return SUCCESS;
 	  } else
@@ -113,15 +114,16 @@ implementation{
 	event void StreamStorageWrite.appendDone(void *buf, uint16_t len, error_t error){
 	  if(error==SUCCESS){
 		current++;
-		if(current==-1){//ID
-			if(writeid==ESCAPEBYTE||writeid==FRAMEBYTE){
-				buffer=ESCAPEBYTE<<8;
-				buffer+=(writeid^XORESCAPEBYTE);
-				call StreamStorageWrite.append(&buffer, 2);
-			} else{
-				call StreamStorageWrite.append(&writeid, 1);
-			}
-		} else if(current<length){
+// 		if(current==-1){//ID
+// 			if(writeid==ESCAPEBYTE||writeid==FRAMEBYTE){
+// 				buffer=ESCAPEBYTE<<8;
+// 				buffer+=(writeid^XORESCAPEBYTE);
+// 				call StreamStorageWrite.append(&buffer, 2);
+// 			} else{
+// 				call StreamStorageWrite.append(&writeid, 1);
+// 			}
+// 		} else 
+		if(current<length){
 			if(*((uint8_t* )(bufptr+current))==FRAMEBYTE||*((uint8_t* )(bufptr+current))==ESCAPEBYTE){
 				buffer=ESCAPEBYTE<<8;
 				buffer+=*((uint8_t* )(bufptr+current))^XORESCAPEBYTE;
