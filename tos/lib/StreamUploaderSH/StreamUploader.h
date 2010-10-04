@@ -49,7 +49,7 @@ enum{
 	BS_ADDR=0,
 	NO_BS=0,
 	BS_OK=60,
-	MESSAGE_SIZE=TOSH_DATA_LENGTH-5,
+	MESSAGE_SIZE=TOSH_DATA_LENGTH-4,
 	AM_CTRL_MSG_T=10,//Just for the MIG
 	AM_DATA_MSG_T=AM_CTRL_MSG_T+1,
 	AM_CTRLTS_MSG_T=AM_CTRL_MSG_T,
@@ -72,7 +72,6 @@ typedef nx_struct ctrlts_msg_t {
 
 typedef nx_struct data_msg_t {
 	nx_uint32_t address;
-	nx_uint8_t length;
 	nx_int8_t data[MESSAGE_SIZE];
 } data_msg;
 

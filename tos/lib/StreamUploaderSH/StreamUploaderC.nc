@@ -36,7 +36,7 @@ configuration StreamUploaderC{
 	provides interface StdControl;
 }
 implementation{
-	components StreamUploaderP as App;
+	components StreamUploaderP;
 	components new StreamStorageClientC();
 	components new AMSenderC(AM_DATA_MSG_T) as AMSend;
 	components new AMReceiverC(AM_CTRL_MSG_T) as AMReceive;
@@ -45,18 +45,17 @@ implementation{
 	components new TimerMilliC() as StorageWaitTimer;
 	components TimeSyncMessageC, LedsC, LocalTimeMilliC;
 	
-	App.Packet -> AMSend;
- 	App.AMPacket -> AMSend;
-  	App.AMSend -> AMSend;
-  	App.SplitControl -> ActiveMessageC;
-  	App.PacketAcknowledgements -> ActiveMessageC;
-  	App.Receive -> AMReceive;
-  	App.WaitTimer->WaitTimer;
-  	App.StorageWaitTimer->StorageWaitTimer;
-  	App.TimeSyncAMSendMilli -> TimeSyncMessageC.TimeSyncAMSendMilli[AM_CTRL_MSG_T];
-  	App.LocalTime -> LocalTimeMilliC;
-	App.StreamStorageRead -> StreamStorageClientC;
-	App.StreamStorageErase -> StreamStorageClientC;
-	App.Resource -> StreamStorageClientC;
-  	StdControl=App.StdControl;
+	StreamUploaderP.Packet -> AMSend;
+ 	StreamUploaderP.AMPacket -> AMSend;
+  	StreamUploaderP.AMSend -> AMSend;
+  	StreamUploaderP.SplitControl -> ActiveMessageC;
+  	StreamUploaderP.PacketAcknowledgements -> ActiveMessageC;
+  	StreamUploaderP.Receive -> AMReceive;
+  	StreamUploaderP.WaitTimer->WaitTimer;
+  	StreamUploaderP.TimeSyncAMSendMilli -> TimeSyncMessageC.TimeSyncAMSendMilli[AM_CTRL_MSG_T];
+  	StreamUploaderP.LocalTime -> LocalTimeMilliC;
+	StreamUploaderP.StreamStorageRead -> StreamStorageClientC;
+	StreamUploaderP.StreamStorageErase -> StreamStorageClientC;
+	StreamUploaderP.Resource -> StreamStorageClientC;
+  	StdControl=StreamUploaderP.StdControl;
 }
