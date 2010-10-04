@@ -56,7 +56,8 @@ implementation{
 	StreamStorageArbP.SubRead -> StreamStorageC;
 
 	components new StreamStorageClientC();
-	StreamStorageArbP.Boot -> MainC;
 	StreamStorageArbP.Resource -> StreamStorageClientC;
 	StreamStorageArbP.SplitControl -> StreamStorageC;
+	
+	MainC.SoftwareInit -> StreamStorageArbP;
 }

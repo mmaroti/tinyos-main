@@ -37,13 +37,13 @@ module StreamStorageArbP{
 		interface StreamStorageRead[uint8_t id];
 		interface StreamStorageWrite[uint8_t id];
 		interface StreamStorageErase[uint8_t id];
+		interface Init;
 	}
 	uses {
 		interface StreamStorageRead as SubRead;
 		interface StreamStorageWrite as SubWrite;
 		interface StreamStorageErase as SubErase;
 
-		interface Boot;
 		interface Resource;
 		interface SplitControl;
 	}
@@ -123,8 +123,9 @@ implementation{
 	    signal StreamStorageErase.eraseDone[userid](error);
 	}
 	
-	event void Boot.booted(){
+	command error_t Init.init(){
 	    call Resource.request();
+	    return SUCCESS;
 	}
 	
 	event void Resource.granted(){
