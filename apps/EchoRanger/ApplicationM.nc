@@ -34,7 +34,7 @@
 
 #include "EchoRanger.h"
 #ifndef SAMP_T
-	#define SAMP_T 60000U
+	#define SAMP_T 1
 #endif
 
 module ApplicationM{
@@ -56,8 +56,9 @@ implementation{
 	uint8_t counter=0;
 
 	event void Boot.booted(){
+		uint32_t period=(uint32_t)SAMP_T*1024*60;
 		call StdControl.start();
-		call SensorTimer.startPeriodic(SAMP_T);	
+		call SensorTimer.startPeriodicAt(call SensorTimer.getNow()-period+1,period);	
 	}
 	
 	event void SensorTimer.fired(){
@@ -72,11 +73,10 @@ implementation{
 	
 	event void StreamStorageWrite.appendDoneWithID(void* buf, uint16_t  len, error_t error){
 		counter++;
-		if(counter>4)
-			counter=0;
-		else if(counter==4){
+		if(counter==2){
 			uint16_t* buffer=call LastBuffer.get();
 			call StreamStorageWrite.appendWithID(0x11,buffer, sizeof(uint16_t)*ECHORANGER_BUFFER);
+			counter=0;
 		}
 	}	
 	
