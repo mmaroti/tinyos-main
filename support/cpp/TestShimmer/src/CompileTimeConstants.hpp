@@ -36,7 +36,11 @@
 
 namespace gyro {
 
-const double TICKS_PER_SEC(32768.0);
+const double GRAVITY(-9.81);
+
+const double SAMPLING_RATE_TICK(160);
+
+const double TICKS_PER_SEC(32768);
 
 const int NUMBER_OF_VARIABLES(12);
 
@@ -50,6 +54,8 @@ enum {
         ERROR_NUMBER_INVALID,
         ERROR_OPTIMIZATION,
         ERROR_INVALID_OPTION,
+        ERROR_ORTHOGONALITY,
+        ERROR_OBJECTIVE,
         ERROR_WRITING_RESULTS,
         ERROR_UNKNOWN
 };

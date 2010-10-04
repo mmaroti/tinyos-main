@@ -132,6 +132,7 @@ public slots:
 
 private:
         void csvToSample(const QString& line); // FIXME
+        void update_gyro_calib(const double correction[12]);
 
 	QVarLengthArray<Sample> samples;
         QVarLengthArray<Sample> copySamples;

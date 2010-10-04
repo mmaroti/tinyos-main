@@ -456,6 +456,88 @@ void DataRecorder::at(int i, double data[ipo::SIZE]) const {
     data[GYRO_Z] = (wx - gyroMinAvgs[0]) * gyroCalibrationData[6] + (wy - gyroMinAvgs[1]) * gyroCalibrationData[7] + (wz - gyroMinAvgs[2]) * gyroCalibrationData[8];
 }
 
+void mat_mat_prod(const double A[3][3], const double B[3][3], double C[3][3]) {
+
+    for (int i=0; i<3; ++i) {
+        for (int j=0; j<3; ++j) {
+            C[i][j] = A[i][0]*B[0][j] + A[i][1]*B[1][j] + A[i][2]*B[2][j];
+        }
+    }
+}
+
+void mat_vec_prod(const double A[3][3], const double b[3], double c[3]) {
+
+    for (int i=0; i<3; ++i) {
+        c[i] = A[i][0]*b[0] + A[i][1]*b[1] + A[i][2]*b[2];
+    }
+}
+
+void mat_inv(const double A[3][3], double B[3][3]) {
+
+    B[0][0] = A[1][1]*A[2][2]-A[2][1]*A[1][2];
+    B[0][1] = A[2][1]*A[0][2]-A[0][1]*A[2][2];
+    B[0][2] = A[0][1]*A[1][2]-A[1][1]*A[0][2];
+
+    B[1][0] = A[2][0]*A[1][2]-A[1][0]*A[2][2];
+    B[1][1] = A[0][0]*A[2][2]-A[2][0]*A[0][2];
+    B[1][2] = A[1][0]*A[0][2]-A[0][0]*A[1][2];
+
+    B[2][0] = A[1][0]*A[2][1]-A[2][0]*A[1][1];
+    B[2][1] = A[2][0]*A[0][1]-A[0][0]*A[2][1];
+    B[2][2] = A[0][0]*A[1][1]-A[1][0]*A[0][1];
+
+    const double det = A[0][0]*B[0][0] + A[0][1]*B[1][0] + A[0][2]*B[2][0];
+
+    assert ( fabs(det) > 1.0e-20 );
+
+    for (int i=0; i<3; ++i) {
+        for (int j=0; j<3; ++j) {
+            B[i][j] /= det;
+        }
+    }
+}
+
+void DataRecorder::update_gyro_calib(const double s[12]) {
+
+    const double A[][3] = { { gyroCalibrationData[0], gyroCalibrationData[1], gyroCalibrationData[2] } ,
+                            { gyroCalibrationData[3], gyroCalibrationData[4], gyroCalibrationData[5] } ,
+                            { gyroCalibrationData[6], gyroCalibrationData[7], gyroCalibrationData[8] } };
+
+    const double b[] = { gyroMinAvgs[0], gyroMinAvgs[1], gyroMinAvgs[2] };
+
+    const double C[][3] = { {s[0]+1.0, s[1], s[2] }, { s[3], 1.0-s[4], s[5] }, { s[6], s[7], s[8]+1.0 } };
+
+    double CA[3][3];
+
+    mat_mat_prod(C, A, CA);
+
+    for (int i=0, k=0; i<3; ++i) {
+        for (int j=0; j<3; ++j) {
+            std::cout << "gyroCalibrationData[" << k << "] = " << CA[i][j] << std::endl;
+            gyroCalibrationData[k++] = CA[i][j];
+        }
+    }
+
+    double CAb[3];
+
+    mat_vec_prod(CA, b, CAb);
+
+    double CAinv[3][3];
+
+    mat_inv(CA, CAinv);
+
+    double f[] = { CAb[0] - s[9], CAb[1] - s[10], CAb[2] - s[11]};
+
+    double b_corr[3];
+
+    mat_vec_prod(CAinv, f, b_corr);
+
+    for (int i=0; i<3; ++i) {
+        gyroMinAvgs[i] = b_corr[i];
+        std::cout << "gyroMinAvgs[" << i << "] = " << b_corr[i] << std::endl;
+    }
+}
+
 void DataRecorder::loadRotationMatrices(const ipo::Results* res) {
 
     const int n = samples.size();
@@ -475,6 +557,8 @@ void DataRecorder::loadRotationMatrices(const ipo::Results* res) {
             s.rotmat[k] = m[k];
         }
     }
+
+    //update_gyro_calib(res->var());
 }
 
 bool DataRecorder::euler_angle(int i, int k, double& angle_rad) const {

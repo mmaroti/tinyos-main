@@ -281,6 +281,12 @@ bool Solver::process_result(int exitCode) {
     else if (exitCode == ERROR_NUMBER_INVALID) {
         msg += "invalid number detected!";
     }
+    else if (exitCode == ERROR_ORTHOGONALITY) {
+        msg += "poor quality solution (orthogonality)!";
+    }
+    else if (exitCode == ERROR_OBJECTIVE) {
+        msg += "poor quality solution (objective)!";
+    }
     else if (exitCode == ERROR_WRITING_RESULTS) {
         msg += "the solver failed to write the results into file!";
     }
