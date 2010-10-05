@@ -62,14 +62,14 @@ implementation{
 	
 	task void SCStop(){
 		error_t err=call SplitControl.stop();
-		if(err!=SUCCESS||err!=EALREADY){
+		if(err!=SUCCESS&&err!=EALREADY){
 			post SCStop();
 		}
 	}
 	
 	task void SCStart(){
 		error_t err=call SplitControl.start();
-		if(err!=SUCCESS||err!=EALREADY){
+		if(err!=SUCCESS&&err!=EALREADY){
 			post SCStart();
 		}
 	}
@@ -134,11 +134,9 @@ implementation{
 	}
 	
 	event void StreamStorageRead.getMinAddressDone(uint32_t addr,error_t error){
-		call Leds.led0Toggle();
 		if(error==SUCCESS){
 			ctrl_msg* msg=call Packet.getPayload(&message, sizeof(ctrl_msg));
 			error_t err;
-			call Leds.led1Toggle();
 			call Packet.clear(&message);
 			msg->min_address=addr;
 			msg->max_address=call StreamStorageRead.getMaxAddress();
@@ -147,7 +145,6 @@ implementation{
 			call PacketAcknowledgements.requestAck(&message);
 			err=call SplitControl.start();
 			if(err==EALREADY){
-				call Leds.led2Toggle();
 				if(call TimeSyncAMSendMilli.send(BS_ADDR, &message, sizeof(ctrl_msg),msg->localtime)!=SUCCESS){
 					post SCStop();
 				}
@@ -163,6 +160,7 @@ implementation{
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len){
 		if((status==WAIT_FOR_REQ)&&len==sizeof(ctrl_msg)){
 			ctrl_msg *rec=(ctrl_msg*)payload;
+			call WaitTimer.stop();
 			if(rec->min_address!=rec->max_address){
 				status=SEND;
 				minaddress=rec->min_address;
@@ -201,14 +199,15 @@ implementation{
 	event void TimeSyncAMSendMilli.sendDone(message_t *msg, error_t error){
 		if(status==WAIT_FOR_BS){
 			if(call PacketAcknowledgements.wasAcked(msg)){
-				bs_lost=BS_OK;
+				call Leds.led2Toggle();
 				status=WAIT_FOR_REQ;
+				bs_lost=BS_OK;
 				call WaitTimer.startOneShot(RADIO_SHORT);
 			} else {
 				if(bs_lost!=NO_BS){
 					bs_lost--;	
 				}
-				post SCStop();			
+				post SCStop();		
 			}
 		} 
 		call Packet.clear(&message);
@@ -217,9 +216,7 @@ implementation{
 	event void WaitTimer.fired(){
 		switch(status){
 			case WAIT_FOR_REQ:{
-				if(call SplitControl.stop()!=SUCCESS){
-					post SCStop();	
-				}
+				post SCStop();	
 			}break;
 			case WAIT_FOR_BS:{
 				call Resource.request();
@@ -230,9 +227,7 @@ implementation{
 	command error_t StdControl.stop(){
 		status=OFF;
 		call WaitTimer.stop();
-		if(call SplitControl.stop()!=SUCCESS){
-			post SCStop();
-		}
+		post SCStop();
 		return SUCCESS;
 	}
 
@@ -246,6 +241,7 @@ implementation{
 	event void SplitControl.startDone(error_t error){
 		if(error==SUCCESS){
 			ctrl_msg* msg=call Packet.getPayload(&message, sizeof(ctrl_msg));
+			call Leds.led0On();
 			msg->localtime=call LocalTime.get();
 			if(call TimeSyncAMSendMilli.send(BS_ADDR, &message, sizeof(ctrl_msg),msg->localtime)!=SUCCESS){
 				post SCStop();
@@ -257,16 +253,15 @@ implementation{
 
 	event void SplitControl.stopDone(error_t error){
 		if(error!=SUCCESS){
-			if(call SplitControl.stop()!=SUCCESS){
-				post SCStop();
-			}
+			post SCStop();
 		}else{		
+			call Leds.led0Off();
 			if(status!=OFF){
 				status=WAIT_FOR_BS;
-				if(bs_lost==NO_BS||bs_lost==BS_OK){//if BS_OK, than it doesn't want any data, so we can sleep longer
+				if(bs_lost==NO_BS){//if BS_OK, than it doesn't want any data, so we can sleep longer
 					call WaitTimer.startOneShot((uint32_t)RADIO_LONG*1000);
 				}else{
-					call WaitTimer.startOneShot(RADIO_SHORT);
+					call WaitTimer.startOneShot(RADIO_MIDDLE);
 				}
 			}
 		}

@@ -40,6 +40,9 @@
 #ifndef RADIO_LONG
 	#define RADIO_LONG 60U
 #endif
+#ifndef RADIO_MIDDLE
+	#define RADIO_MIDDLE 10000U
+#endif
 enum{
 	OFF=0,
 	WAIT_FOR_BS,
@@ -48,7 +51,7 @@ enum{
 	ERASE,
 	BS_ADDR=0,
 	NO_BS=0,
-	BS_OK=60,
+	BS_OK=6,
 	MESSAGE_SIZE=TOSH_DATA_LENGTH-4,
 	AM_CTRL_MSG_T=10,//Just for the MIG
 	AM_DATA_MSG_T=AM_CTRL_MSG_T+1,
