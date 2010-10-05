@@ -130,7 +130,7 @@ private:
 		C_13 = x[2];
 
 		C_21 = x[3];
-		C_22 = x[4] - 1.0;  // <-- FIXME Fix in calibration
+		C_22 = x[4] + 1.0;  // <-- FIXME Fix in calibration
 		C_23 = x[5];
 
 		C_31 = x[6];
