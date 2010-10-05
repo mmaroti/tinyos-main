@@ -133,6 +133,9 @@ public class StreamDownloader implements MessageListener {
 								currently_handled.add(writers.indexOf(currentWriter));
 								currentWriter.setLastModified(new Date().getTime());
 								moteIF.send(currentWriter.getNodeid(), response);
+							} else /*if(currently_handled.contains(writers.indexOf(currentWriter)))*/{
+								currentWriter.setLastModified(new Date().getTime());
+								moteIF.send(currentWriter.getNodeid(), response);
 							}
 						} else {//if we don't have to download new data, we try to fill a gap
 							Long[] rep;
@@ -143,6 +146,9 @@ public class StreamDownloader implements MessageListener {
 								response.set_max_address(rep[1]);
 								if(currently_handled.size()<maxnode){
 									currently_handled.add(writers.indexOf(currentWriter));
+									currentWriter.setLastModified(new Date().getTime());
+									moteIF.send(currentWriter.getNodeid(), response);
+								} else if(currently_handled.contains(writers.indexOf(currentWriter))){
 									currentWriter.setLastModified(new Date().getTime());
 									moteIF.send(currentWriter.getNodeid(), response);
 								}
