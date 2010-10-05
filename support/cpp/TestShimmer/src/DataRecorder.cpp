@@ -451,9 +451,10 @@ void DataRecorder::at(int i, double data[ipo::SIZE]) const {
     const double wy = s.yGyro;
     const double wz = s.zGyro;
 
-    data[GYRO_X] = (wx - gyroMinAvgs[0]) * gyroCalibrationData[0] + (wy - gyroMinAvgs[1]) * gyroCalibrationData[1] + (wz - gyroMinAvgs[2]) * gyroCalibrationData[2];
-    data[GYRO_Y] = (wx - gyroMinAvgs[0]) * gyroCalibrationData[3] + (wy - gyroMinAvgs[1]) * gyroCalibrationData[4] + (wz - gyroMinAvgs[2]) * gyroCalibrationData[5];
-    data[GYRO_Z] = (wx - gyroMinAvgs[0]) * gyroCalibrationData[6] + (wy - gyroMinAvgs[1]) * gyroCalibrationData[7] + (wz - gyroMinAvgs[2]) * gyroCalibrationData[8];
+    // FIXME Sign of y
+    data[GYRO_X] =  (wx - gyroMinAvgs[0]) * gyroCalibrationData[0] + (wy - gyroMinAvgs[1]) * gyroCalibrationData[1] + (wz - gyroMinAvgs[2]) * gyroCalibrationData[2];
+    data[GYRO_Y] =-((wx - gyroMinAvgs[0]) * gyroCalibrationData[3] + (wy - gyroMinAvgs[1]) * gyroCalibrationData[4] + (wz - gyroMinAvgs[2]) * gyroCalibrationData[5]);
+    data[GYRO_Z] =  (wx - gyroMinAvgs[0]) * gyroCalibrationData[6] + (wy - gyroMinAvgs[1]) * gyroCalibrationData[7] + (wz - gyroMinAvgs[2]) * gyroCalibrationData[8];
 }
 
 void mat_mat_prod(const double A[3][3], const double B[3][3], double C[3][3]) {
@@ -499,13 +500,14 @@ void mat_inv(const double A[3][3], double B[3][3]) {
 
 void DataRecorder::update_gyro_calib(const double s[12]) {
 
+    // FIXME Sign of y
     const double A[][3] = { { gyroCalibrationData[0], gyroCalibrationData[1], gyroCalibrationData[2] } ,
-                            { gyroCalibrationData[3], gyroCalibrationData[4], gyroCalibrationData[5] } ,
+                            {-gyroCalibrationData[3],-gyroCalibrationData[4],-gyroCalibrationData[5] } ,
                             { gyroCalibrationData[6], gyroCalibrationData[7], gyroCalibrationData[8] } };
 
     const double b[] = { gyroMinAvgs[0], gyroMinAvgs[1], gyroMinAvgs[2] };
 
-    const double C[][3] = { {s[0]+1.0, s[1], s[2] }, { s[3], 1.0-s[4], s[5] }, { s[6], s[7], s[8]+1.0 } };
+    const double C[][3] = { {s[0]+1.0, s[1], s[2] }, { s[3], s[4]+1.0, s[5] }, { s[6], s[7], s[8]+1.0 } };
 
     double CA[3][3];
 
@@ -513,8 +515,9 @@ void DataRecorder::update_gyro_calib(const double s[12]) {
 
     for (int i=0, k=0; i<3; ++i) {
         for (int j=0; j<3; ++j) {
-            std::cout << "gyroCalibrationData[" << k << "] = " << CA[i][j] << std::endl;
-            gyroCalibrationData[k++] = CA[i][j];
+            // FIXME Sign of y
+            gyroCalibrationData[k++] = (i==1?-1:1)*CA[i][j];
+            std::cout << "gyroCalibrationData[" << k-1 << "] = " << gyroCalibrationData[k-1] << std::endl;
         }
     }
 
@@ -538,7 +541,7 @@ void DataRecorder::update_gyro_calib(const double s[12]) {
     }
 }
 
-void DataRecorder::loadRotationMatrices(const ipo::Results* res) {
+void DataRecorder::loadResults(const ipo::Results* res) {
 
     const int n = samples.size();
 
@@ -558,7 +561,7 @@ void DataRecorder::loadRotationMatrices(const ipo::Results* res) {
         }
     }
 
-    //update_gyro_calib(res->var());
+    update_gyro_calib(res->var());
 }
 
 bool DataRecorder::euler_angle(int i, int k, double& angle_rad) const {

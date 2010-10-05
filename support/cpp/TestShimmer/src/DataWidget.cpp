@@ -384,7 +384,7 @@ void DataWidget::onCut()
 void DataWidget::finished(bool error, const char* msg, const ipo::Results* res) {
 
     if (!error) {
-        application.dataRecorder.loadRotationMatrices(res);
+        application.dataRecorder.loadResults(res);
         bool on = true;
         int graphs = DataPlot::XEUL | DataPlot::YEUL | DataPlot::ZEUL ;
         plot->setGraphs(graphs, on);
