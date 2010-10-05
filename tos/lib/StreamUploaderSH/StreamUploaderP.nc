@@ -44,6 +44,7 @@ module StreamUploaderP{
   		interface SplitControl;
   		interface PacketAcknowledgements;
   		interface Timer<TMilli> as WaitTimer;
+		interface Leds;
   		
 		interface TimeSyncAMSend<TMilli, uint32_t> as TimeSyncAMSendMilli;
 		interface Resource;
@@ -75,12 +76,10 @@ implementation{
 	
 	inline void readNext(){
 		minaddress+=MESSAGE_SIZE;
-		if(minaddress+MESSAGE_SIZE<=maxaddress){
-			call Resource.request();
-		}else{
+		if(minaddress>=maxaddress){
 			status=WAIT_FOR_BS;
-			call WaitTimer.startOneShot((uint32_t)RADIO_SHORT);
 		}
+		call Resource.request();
 	}
 	
 	event void Resource.granted(){
@@ -90,6 +89,8 @@ implementation{
 			error=call StreamStorageRead.getMinAddress();
 		}break;
 		case SEND:{
+			if(minaddress+MESSAGE_SIZE>maxaddress)
+			    minaddress=maxaddress-MESSAGE_SIZE+1;
 			error=call StreamStorageRead.read(minaddress, buffer, MESSAGE_SIZE);
 		}break;
 		case ERASE:{
@@ -133,9 +134,11 @@ implementation{
 	}
 	
 	event void StreamStorageRead.getMinAddressDone(uint32_t addr,error_t error){
+		call Leds.led0Toggle();
 		if(error==SUCCESS){
 			ctrl_msg* msg=call Packet.getPayload(&message, sizeof(ctrl_msg));
 			error_t err;
+			call Leds.led1Toggle();
 			call Packet.clear(&message);
 			msg->min_address=addr;
 			msg->max_address=call StreamStorageRead.getMaxAddress();
@@ -144,6 +147,7 @@ implementation{
 			call PacketAcknowledgements.requestAck(&message);
 			err=call SplitControl.start();
 			if(err==EALREADY){
+				call Leds.led2Toggle();
 				if(call TimeSyncAMSendMilli.send(BS_ADDR, &message, sizeof(ctrl_msg),msg->localtime)!=SUCCESS){
 					post SCStop();
 				}

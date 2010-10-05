@@ -43,7 +43,7 @@ implementation{
 	components ActiveMessageC;
 	components new TimerMilliC() as WaitTimer;
 	components new TimerMilliC() as StorageWaitTimer;
-	components TimeSyncMessageC, LedsC, LocalTimeMilliC;
+	components TimeSyncMessageC, NoLedsC as LedsC, LocalTimeMilliC;
 	
 	StreamUploaderP.Packet -> AMSend;
  	StreamUploaderP.AMPacket -> AMSend;
@@ -57,5 +57,6 @@ implementation{
 	StreamUploaderP.StreamStorageRead -> StreamStorageClientC;
 	StreamUploaderP.StreamStorageErase -> StreamStorageClientC;
 	StreamUploaderP.Resource -> StreamStorageClientC;
+	StreamUploaderP.Leds->LedsC;
   	StdControl=StreamUploaderP.StdControl;
 }

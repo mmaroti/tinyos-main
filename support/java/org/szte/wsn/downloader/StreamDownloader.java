@@ -67,7 +67,9 @@ public class StreamDownloader implements MessageListener {
 				if(writers.get(i).getLastModified()+10000<now)
 					remove.add(i);
 			}
-			currently_handled.removeAll(remove);
+			synchronized (currently_handled) {
+				currently_handled.removeAll(remove);
+			}
 		}
 	}
 
@@ -88,120 +90,124 @@ public class StreamDownloader implements MessageListener {
 		TimerTask ch  = new ClearHandled();
 	    timer.scheduleAtFixedRate(ch, 10000, 10000);
 	}
+	
+	private dataWriter getWriter(int nodeid){
+		for (int i = 0; i < writers.size(); i++) {
+			if (writers.get(i).getNodeid() == nodeid) {
+				return writers.get(i);
+			}
+		}
+		return null;
+	}
 
 	public void messageReceived(int to, Message message) {
 		if((listenonly<0||(message.getSerialPacket().get_header_src()==listenonly))){
-			if (message instanceof ctrltsMsg && message.dataLength() == ctrltsMsg.DEFAULT_MESSAGE_SIZE&&currently_handled.size()<maxnode) {
-				long received_t=(new Date()).getTime();
-				ctrltsMsg msg = (ctrltsMsg) message;
-				System.out.println("Ctrl message received from #"+msg.getSerialPacket().get_header_src()+" min:"+msg.get_min_address()+" max:"+msg.get_max_address()+" timestamp:"+(Long)(msg.get_localtime()+msg.get_timestamp()));
-				dataWriter currentWriter = null;
-				for (int i = 0; i < writers.size(); i++) {
-					if (writers.get(i).getNodeid() == msg.getSerialPacket().get_header_src()) {
-						currentWriter = writers.get(i);
-						break;
+			synchronized (currently_handled) {
+				if (message instanceof ctrltsMsg && message.dataLength() == ctrltsMsg.DEFAULT_MESSAGE_SIZE&&(currently_handled.size()<maxnode||currently_handled.contains(writers.indexOf(getWriter(message.getSerialPacket().get_header_src()))))) {				
+					long received_t=(new Date()).getTime();
+					ctrltsMsg msg = (ctrltsMsg) message;
+					System.out.println("Ctrl message received from #"+msg.getSerialPacket().get_header_src()+" min:"+msg.get_min_address()+" max:"+msg.get_max_address()+" timestamp:"+(Long)(msg.get_localtime()+msg.get_timestamp()));
+					dataWriter currentWriter = getWriter(msg.getSerialPacket().get_header_src());
+					if (currentWriter == null) {
+						try {
+							currentWriter = new dataWriter(msg.getSerialPacket().get_header_src(), FRAME, ESCAPE, XORESCAPE); 
+							writers.add(currentWriter);
+						} catch (IOException e) {
+							System.err.println("Can't read gapfile for node #"+msg.getSerialPacket().get_header_src()+" data won't be downloaded from there");
+							currentWriter=null;
+						}
 					}
-				}
-				if (currentWriter == null) {
+					currentWriter.addTimeStamp(received_t, msg.get_localtime()+msg.get_timestamp());
+					long currentMaxAddress = 0;
 					try {
-						currentWriter = new dataWriter(msg.getSerialPacket().get_header_src(), FRAME, ESCAPE, XORESCAPE); 
-						writers.add(currentWriter);
-					} catch (IOException e) {
-						System.err.println("Can't read gapfile for node #"+msg.getSerialPacket().get_header_src()+" data won't be downloaded from there");
-						currentWriter=null;
-					}
-				}
-				currentWriter.addTimeStamp(received_t, msg.get_localtime()+msg.get_timestamp());
-				long currentMaxAddress = 0;
-				try {
-					currentMaxAddress = currentWriter.getMaxAddress();
-					if(msg.get_max_address()-currentMaxAddress>=MIN_DOWNLOAD_SIZE){
-						ctrlMsg response = new ctrlMsg();
-						response.set_max_address(msg.get_max_address());
-						if (msg.get_min_address() <= currentMaxAddress+1)
-							response.set_min_address(currentMaxAddress+1);
-						else {
-							response.set_min_address(msg.get_min_address());
-						}
-						if(currently_handled.size()<maxnode){
-							currently_handled.add(writers.indexOf(currentWriter));
-							currentWriter.setLastModified(new Date().getTime());
-							moteIF.send(currentWriter.getNodeid(), response);
-						}
-					} else {//if we don't have to download new data, we try to fill a gap
-						Long[] rep;
-						rep = currentWriter.repairGap(msg.get_min_address());
-						if(rep[0]<rep[1]){
+						currentMaxAddress = currentWriter.getMaxAddress();
+						if(msg.get_max_address()-currentMaxAddress>=MIN_DOWNLOAD_SIZE){
 							ctrlMsg response = new ctrlMsg();
-							response.set_min_address(rep[0]);
-							response.set_max_address(rep[1]);
+							response.set_max_address(msg.get_max_address());
+							if (msg.get_min_address() <= currentMaxAddress+1)
+								response.set_min_address(currentMaxAddress+1);
+							else {
+								response.set_min_address(msg.get_min_address());
+							}
 							if(currently_handled.size()<maxnode){
 								currently_handled.add(writers.indexOf(currentWriter));
 								currentWriter.setLastModified(new Date().getTime());
 								moteIF.send(currentWriter.getNodeid(), response);
 							}
-						}
-					}
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					//currentWriter.getMaxAddress()
-					//moteIF.send()
-					e1.printStackTrace();
-				}
-				
-			} else if (message instanceof dataMsg && message.dataLength() == dataMsg.DEFAULT_MESSAGE_SIZE) {
-				dataMsg msg = (dataMsg) message;
-				System.out.print("Data received from "+msg.getSerialPacket().get_header_src()+" address: "+msg.get_address()+"|");
-				dataWriter currentWriter = null;
-				for (int i = 0; i < writers.size(); i++) {
-					if (writers.get(i).getNodeid() == msg.getSerialPacket().get_header_src()) {
-						currentWriter = writers.get(i);
-						break;
-					}
-				}
-				if (currentWriter != null) {
-					try {
-						long prevMaxAddress=currentWriter.getMaxAddress();
-						currentWriter.writeData(msg.get_address(), dataMsg.numElements_data(), msg.get_data());
-						if(msg.get_address()==prevMaxAddress+1){//the next bytes
-							System.out.println("Data OK");
-						} else if(msg.get_address()>prevMaxAddress+1){//we missed some data
-							System.out.println("New gap: " + (prevMaxAddress+1) + "-" + (msg.get_address()-1));
-							currentWriter.addGap(prevMaxAddress+1, msg.get_address()-1);
-						} else { //we fill a gap
-							ArrayList<Gap> gaps =currentWriter.getGaps();
-							for(Gap currentGap:gaps){
-								if(!currentGap.isUnrepairable()){
-									if(((currentGap.getStart()<msg.get_address()+dataMsg.numElements_data())&&(currentGap.getStart()>=msg.get_address()))||
-										((currentGap.getEnd()>=msg.get_address())&&(currentGap.getEnd()<msg.get_address()+dataMsg.numElements_data()))){
-										long start_bef,end_bef,start_aft,end_aft;
-										start_bef=currentGap.getStart();
-										end_bef=msg.get_address()-1;
-										start_aft=msg.get_address()+dataMsg.numElements_data();
-										end_aft=currentGap.getEnd();
-										System.out.print("Remove gap: " + currentGap.getStart()+"-"+currentGap.getEnd()+"|");
-										currentWriter.removeGap(currentGap);
-										if(end_bef>start_bef){//we didn't fill the whole gap
-											System.out.print("New gap: " + start_bef + "-" + end_bef+"|");
-											currentWriter.addGap(start_bef, end_bef);
-										}
-										if(end_aft>start_aft){//we didn't fill the whole gap
-											System.out.print("New gap: " + start_aft + "-" + end_aft+"|");
-											currentWriter.addGap(start_aft, end_aft);
-										}
-										System.out.print("\n");
-										break;
-									}
+						} else {//if we don't have to download new data, we try to fill a gap
+							Long[] rep;
+							rep = currentWriter.repairGap(msg.get_min_address());
+							if(rep[0]<rep[1]){
+								ctrlMsg response = new ctrlMsg();
+								response.set_min_address(rep[0]);
+								response.set_max_address(rep[1]);
+								if(currently_handled.size()<maxnode){
+									currently_handled.add(writers.indexOf(currentWriter));
+									currentWriter.setLastModified(new Date().getTime());
+									moteIF.send(currentWriter.getNodeid(), response);
 								}
 							}
 						}
-					} catch (IOException e) {
+					} catch (IOException e1) {
 						// TODO Auto-generated catch block
-						//getMaxAddress
-						//WriteData
-						e.printStackTrace();
+						//currentWriter.getMaxAddress()
+						//moteIF.send()
+						e1.printStackTrace();
 					}
-				} 
+				} else if (message instanceof dataMsg && message.dataLength() == dataMsg.DEFAULT_MESSAGE_SIZE) {
+					dataMsg msg = (dataMsg) message;
+					System.out.print("Data received from "+msg.getSerialPacket().get_header_src()+" address: "+msg.get_address()+"|");
+					dataWriter currentWriter = null;
+					for (int i = 0; i < writers.size(); i++) {
+						if (writers.get(i).getNodeid() == msg.getSerialPacket().get_header_src()) {
+							currentWriter = writers.get(i);
+							break;
+						}
+					}
+					if (currentWriter != null) {
+						try {
+							long prevMaxAddress=currentWriter.getMaxAddress();
+							currentWriter.writeData(msg.get_address(), dataMsg.numElements_data(), msg.get_data());
+							if(msg.get_address()==prevMaxAddress+1){//the next bytes
+								System.out.println("Data OK");
+							} else if(msg.get_address()>prevMaxAddress+1){//we missed some data
+								System.out.println("New gap: " + (prevMaxAddress+1) + "-" + (msg.get_address()-1));
+								currentWriter.addGap(prevMaxAddress+1, msg.get_address()-1);
+							} else { //we fill a gap
+								ArrayList<Gap> gaps =currentWriter.getGaps();
+								for(Gap currentGap:gaps){
+									if(!currentGap.isUnrepairable()){
+										if(((currentGap.getStart()<msg.get_address()+dataMsg.numElements_data())&&(currentGap.getStart()>=msg.get_address()))||
+											((currentGap.getEnd()>=msg.get_address())&&(currentGap.getEnd()<msg.get_address()+dataMsg.numElements_data()))){
+											long start_bef,end_bef,start_aft,end_aft;
+											start_bef=currentGap.getStart();
+											end_bef=msg.get_address()-1;
+											start_aft=msg.get_address()+dataMsg.numElements_data();
+											end_aft=currentGap.getEnd();
+											System.out.print("Remove gap: " + currentGap.getStart()+"-"+currentGap.getEnd()+"|");
+											currentWriter.removeGap(currentGap);
+											if(end_bef>start_bef){//we didn't fill the whole gap
+												System.out.print("New gap: " + start_bef + "-" + end_bef+"|");
+												currentWriter.addGap(start_bef, end_bef);
+											}
+											if(end_aft>start_aft){//we didn't fill the whole gap
+												System.out.print("New gap: " + start_aft + "-" + end_aft+"|");
+												currentWriter.addGap(start_aft, end_aft);
+											}
+											System.out.print("\n");
+											break;
+										}
+									}
+								}
+							}
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							//getMaxAddress
+							//WriteData
+							e.printStackTrace();
+						}
+					} 
+				}
 			}
 		}
 	}
