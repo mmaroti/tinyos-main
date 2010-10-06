@@ -407,9 +407,9 @@ implementation {
       else
         call PAck.noAck(&pkt);
 
-      // LPL feature MUST NOT be set up here, otherwise there is a risk
-      // of missing after-setup acks and START message!
-
+      // Disable LPL on packets forwarded to BaseStation
+      call LowPowerListening.setRemoteWakeupInterval(&bpkt,0);
+            
       SET_STATE( STATE_SETUP_RCVD )
 
     // BaseStation wants to START the test
