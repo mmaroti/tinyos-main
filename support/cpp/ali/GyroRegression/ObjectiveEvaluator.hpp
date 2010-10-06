@@ -88,7 +88,6 @@ private:
 	const NT* const wy;
 	const NT* const wz;
 
-	//const NT dt;
 	const int N;
 
 	const NT g_ref;
@@ -125,6 +124,7 @@ private:
 
 	void compute_G(const int i, const T* const x) {
 
+		// FIXME C and d does NOT change with i
 		C_11 = x[0] + 1.0;
 		C_12 = x[1];
 		C_13 = x[2];
@@ -329,7 +329,7 @@ private:
 		return;
 	}
 
-	T objective(const T* const x) {
+	T objective() {
 		return -((sx/N)*(sx/N) + (sy/N)*(sy/N) + (sz/N)*(sz/N));
 	}
 
@@ -346,8 +346,6 @@ public:
 		wx(data.wx()),
 		wy(data.wy()),
 		wz(data.wz()),
-
-		//dt(data.dt()),
 
 		N(data.N()),
 
@@ -385,7 +383,7 @@ public:
 
 		}
 
-		return objective(x);
+		return objective();
 	}
 
 	const T s_x() const { return sx/N; }
