@@ -31,15 +31,28 @@
 * Author: Ali Baharev
 */
 
-#ifndef PATHNLP_HPP_
-#define PATHNLP_HPP_
+#ifndef PATHLENGTHDOUBLE_HPP_
+#define PATHLENGTHDOUBLE_HPP_
 
-#ifdef USE_GRADTYPE
-#include "PathNLP_GradType.hpp"
-#elif defined USE_ADOLC
-#include "PathNLP_ADOLC.hpp"
-#else
-#error Must define either USE_GRADTYPE or USE_ADOLC! (GRADTYPE is self-contained)
-#endif
+namespace gyro {
+
+class PathDouble {
+
+public:
+
+	PathDouble(const double* rotmat, const Input& data, std::ostream& os)
+		: obj(PathLength<double> (rotmat, data, os))
+	{
+
+	}
+
+	double evaluate(const double* x) { return obj.f(x); }
+
+private:
+
+	PathLength<double> obj;
+};
+
+}
 
 #endif

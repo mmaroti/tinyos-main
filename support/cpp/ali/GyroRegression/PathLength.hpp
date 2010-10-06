@@ -73,8 +73,8 @@ private:
 
 	void init(const T* const x) {
 
-		v = 0;
-		s = 0;
+		v[X] = v[Y] = v[Z] = 0.0;
+		s = 0.0;
 
 		for (int i=0, k=0; i<3; ++i) {
 			for (int j=0; j<3; ++j) {
@@ -82,25 +82,24 @@ private:
 			}
 		}
 
-		for (int i=0; i<3; ++i) {
-			C[i][i] += 1.0;
-		}
+		C[0][0] = C[0][0] + 1.0;
+		C[1][1] = C[1][1] - 1.0;
+		C[2][2] = C[2][2] + 1.0;
 
 		d[X] = x[ 9];
 		d[Y] = x[10];
 		d[Z] = x[11];
 	}
 
-	T compute_a(int sample) {
+	void update_path_length(int sample) {
 
 		const int p = 9*sample;
-		const int q = 3*sample;
 
 		double am[3];
 
 		for (int i=0; i<3; ++i) {
 			const int k = p + 3*i;
-			am[i] = R[k]*a_x[q]+R[k+1]*a_y[q]+R[k+2]*a_z[q];
+			am[i] = R[k]*a_x[sample]+R[k+1]*a_y[sample]+R[k+2]*a_z[sample];
 		}
 
 		T a[3];
@@ -109,23 +108,31 @@ private:
 			a[i] = C[i][0]*am[X] + C[i][1]*am[Y] + C[i][2]*am[Z] + d[i];
 		}
 
-		a[2] -= g_ref;
+		a[2] = a[2] - g_ref;
 
-		return sqrt(pow(a[X], 2) + pow(a[Y], 2) + pow(a[Z], 2));
+		//log << "====================================================" << endl;
+
+		for (int i=0; i<3; ++i) {
+			//log << "a[" << i << "] = " << a[i] << std::endl;
+		}
+
+		const double dt = (time_stamp[sample]-time_stamp[sample-1])/TICKS_PER_SEC;
+
+		v[X] = v[X] + a[X]*dt;
+		v[Y] = v[Y] + a[Y]*dt;
+		v[Z] = v[Z] + a[Z]*dt;
+
+		for (int i=0; i<3; ++i) {
+			//log << "v[" << i << "] = " << v[i] << std::endl;
+		}
+
+		T v_len = sqrt(pow(v[X], 2) + pow(v[Y], 2) + pow(v[Z], 2));
+
+		s = s + v_len*dt;
+
+		//log << "s = " << s << std::endl;
 	}
 
-	void update_path_length(int i) {
-
-		const T a = compute_a(i);
-
-		const double dt = (time_stamp[i]-time_stamp[i-1])/TICKS_PER_SEC;
-
-		v += (a*dt);
-
-		s += (v*dt);
-	}
-
-	PathLength(const PathLength& );
 	PathLength& operator=(const PathLength& );
 
 	const double* const R;
@@ -139,7 +146,7 @@ private:
 
 	T C[3][3];
 	T d[3];
-	T v;
+	T v[3];
 	T s;
 
 	enum { X, Y, Z };

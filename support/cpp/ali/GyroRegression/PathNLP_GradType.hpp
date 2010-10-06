@@ -31,33 +31,28 @@
 * Author: Ali Baharev
 */
 
-#ifndef PATHNLP_ADOLC_HPP_
-#define PATHNLP_ADOLC_HPP_
+#ifndef PATHNLP_GRADTYPE_HPP_
+#define PATHNLP_GRADTYPE_HPP_
 
 #include <iosfwd>
 #include "IpTNLP.hpp"
-
-class adouble;
 
 using namespace Ipopt;
 
 namespace gyro {
 
 class PathDouble;
-class PathAD;
+class PathGrad;
 class Input;
 class BoundReader;
 
 class PathNLP : public TNLP
 {
-
 public:
 
 	PathNLP(const double* rotmat, const Input& data, std::ostream& os);
 
 	const double* solution() const { return minimizer; }
-
-	int config_file_id() const;
 
 	virtual ~PathNLP();
 
@@ -82,11 +77,6 @@ public:
 			Index m, Index nele_jac, Index* iRow, Index *jCol,
 			Number* values);
 
-	virtual bool eval_h(Index n, const Number* x, bool new_x,
-			Number obj_factor, Index m, const Number* lambda,
-			bool new_lambda, Index nele_hess, Index* iRow,
-			Index* jCol, Number* values);
-
 	virtual void finalize_solution(SolverReturn status,
 			Index n, const Number* x, const Number* z_L, const Number* z_U,
 			Index m, const Number* g, const Number* lambda,
@@ -94,23 +84,12 @@ public:
 			const IpoptData* ip_data,
 			IpoptCalculatedQuantities* ip_cq);
 
-
-	// For ADOL-C
-	virtual void generate_tapes(Index n, Index m);
+	int config_file_id() const;
 
 private:
 
 	PathNLP(const PathNLP&);
 	PathNLP& operator=(const PathNLP&);
-
-	bool eval_obj(Index n, const double *x, double& obj_value);
-
-	bool eval_obj(Index n, const adouble *x, adouble& obj_value);
-
-	// We have no constraints
-	bool eval_constraints(Index n, const double *x, Index m, double* g) {	return true; }
-
-	bool eval_constraints(Index n, const adouble *x, Index m, adouble* g) {	return true; }
 
 	static const int N_VARS;
 	static const int N_CONS;
@@ -118,19 +97,12 @@ private:
 	double* const minimizer;
 
 	PathDouble* const obj;
-
-	PathAD*   const ad;
+	PathGrad*   const grad;
 
 	BoundReader* const config;
-
-	double **Jac;
-
-	double *x_lam;
-	double **Hess;
-
 };
 
 }
 
-#endif
 
+#endif

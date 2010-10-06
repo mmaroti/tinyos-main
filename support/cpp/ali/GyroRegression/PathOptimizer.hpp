@@ -31,15 +31,48 @@
 * Author: Ali Baharev
 */
 
-#ifndef PATHNLP_HPP_
-#define PATHNLP_HPP_
+#ifndef PATHOPTIMIZER_HPP_
+#define PATHOPTIMIZER_HPP_
 
-#ifdef USE_GRADTYPE
-#include "PathNLP_GradType.hpp"
-#elif defined USE_ADOLC
-#include "PathNLP_ADOLC.hpp"
-#else
-#error Must define either USE_GRADTYPE or USE_ADOLC! (GRADTYPE is self-contained)
-#endif
+#include <iostream>
+#include "CompileTimeConstants.hpp"
+
+namespace gyro {
+
+class Input;
+
+class PathOptimizer {
+
+public:
+
+	PathOptimizer(const double* rotmat, const Input& data, std::ostream& os = std::cout);
+
+	const double* solution() const { return minimizer; }
+
+	int n_vars() const { return NUMBER_OF_VARIABLES; }
+
+	double path_length() const { return pathlength; }
+
+	int config_file_id() const { return conf_file_id; }
+
+	const double* var_lb() const { return var_lb_; }
+
+	const double* var_ub() const { return var_ub_; }
+
+private:
+
+	double minimizer[NUMBER_OF_VARIABLES];
+
+	double var_lb_[NUMBER_OF_VARIABLES];
+
+	double var_ub_[NUMBER_OF_VARIABLES];
+
+	int conf_file_id;
+
+	double pathlength;
+
+};
+
+}
 
 #endif

@@ -35,6 +35,7 @@
 #define GRADTYPE_HPP_
 
 #include <iosfwd>
+#include <cmath>
 
 namespace gyro {
 
@@ -97,6 +98,12 @@ public:
 
 	template <int N_VAR>
 	friend const GradType<N_VAR> operator/(const GradType<N_VAR>& x, const double y) { return x*(1.0/y); }
+
+	template <int N_VAR>
+	friend const GradType<N_VAR> pow(const GradType<N_VAR>& x, int n);
+
+	template <int N_VAR>
+	friend const GradType<N_VAR> sqrt(const GradType<N_VAR>& x);
 
 	double value() const { return f; }
 
@@ -232,6 +239,38 @@ const GradType<N_VAR> operator/(const double x, const GradType<N_VAR>& y) {
 	const double p = -z.f/y.f;
 	for (int i=0; i<N_VAR; ++i) {
 		z.g[i] = p*y.g[i];
+	}
+
+	return z;
+}
+
+template <int N_VAR>
+const GradType<N_VAR> pow(const GradType<N_VAR>& x, int n) {
+
+	GradType<N_VAR> z;
+
+	z.f = std::pow(x.f, n);
+
+	const double h = n*std::pow(x.f,n-1);
+
+	for (int i=0; i<N_VAR; ++i) {
+		z.g[i] = h*(x.g[i]);
+	}
+
+	return z;
+}
+
+template <int N_VAR>
+const GradType<N_VAR> sqrt(const GradType<N_VAR>& x) {
+
+	GradType<N_VAR> z;
+
+	z.f = std::sqrt(x.f);
+
+	const double h = 1.0/(2.0*z.f);
+
+	for (int i=0; i<N_VAR; ++i) {
+		z.g[i] = h*(x.g[i]);
 	}
 
 	return z;
