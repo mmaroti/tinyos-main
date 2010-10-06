@@ -37,53 +37,36 @@ configuration RadioTestAppC {}
 
 implementation {
   components MainC, RadioTestC as App, LedsC;
-
+  App.Boot -> MainC.Boot;
+  App.Leds -> LedsC;
+  
+  // Timers
   components new TimerMilliC() as Timer;
   components new TimerMilliC() as TTimer;
-  components new AMReceiverC(AM_CTRLMSG_T)    	as RxBase;
-  components new AMSenderC(AM_RESPONSEMSG_T)  	as TxBase;
-  components new DirectAMSenderC(AM_TESTMSG_T)	as TxTest;
-  components new AMReceiverC(AM_TESTMSG_T)    	as RxTest;
-  //components ActiveMessageC;
+  App.TestEndTimer -> Timer;
+  App.TriggerTimer -> TTimer;
   
-  components CodeProfileC;
-  App.CPControl -> CodeProfileC;
-  App.CodeProfile -> CodeProfileC;
-  
-#if defined(RADIO_CC1000)
-  components CC1000CsmaRadioC     as LplRadio;
- 
-#elif defined(RADIO_CC2420X)
-	#warning "*** USING EXPERIMENTAL CC2420X RADIO DRIVER ***"
-  components Cc2420XActiveMessageC as LplRadio;
-  
-#elif defined(RADIO_CC2420)
-  components CC2420ActiveMessageC as LplRadio;
-
-#elif defined(RADIO_RF230)
-  components RF230ActiveMessageC  as LplRadio;
-  
-#else
-  components LplC                 as LplRadio;
-#endif
-
-
-  App.Boot -> MainC.Boot;
-  
+  // Radiocommunication
+  components new AMReceiverC(AM_CTRLMSG_T)    	    as RxBase;
+  components new DirectAMSenderC(AM_RESPONSEMSG_T)  as TxBase;
   App.RxBase ->RxBase;
   App.TxBase ->TxBase;
 
+  components new DirectAMSenderC(AM_TESTMSG_T)	    as TxTest;
+  components new AMReceiverC(AM_TESTMSG_T)    	    as RxTest;
   App.RxTest -> RxTest;
   App.TxTest -> TxTest;
 
-  App.AMPacket -> TxTest;
-  App.Packet -> TxTest;
-  App.PAck -> TxTest;
-
-  App.Leds -> LedsC;
-  App.AMControl -> LplRadio;
-  App.LowPowerListening -> LplRadio;
-  App.TestEndTimer -> Timer;
-  App.TriggerTimer -> TTimer;
+  components ActiveMessageC;
+  App.AMControl -> ActiveMessageC;
+  App.LowPowerListening -> ActiveMessageC; 
+  App.AMPacket -> ActiveMessageC;
+  App.Packet -> ActiveMessageC;
+  App.PAck -> ActiveMessageC;
+    
+  // Code profiling support
+  components CodeProfileC;
+  App.CPControl -> CodeProfileC;
+  App.CodeProfile -> CodeProfileC; 
 
 }
