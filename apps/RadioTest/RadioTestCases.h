@@ -228,8 +228,15 @@ RT_PROBLEM_NEXT
   {4, 5, SEND_AS_REQ   , 1, 0 }
   RT_NULL_EDGE
 
+/* 13
+* Inverse of problem 0
+*/
+RT_PROBLEM_NEXT
+  { 2, 1, SEND_ON_TTICK, 1, 0 }
+  RT_NULL_EDGE 
+
 }}; // problemSet END
 
-#define PROBLEMSET_COUNT 13
+#define PROBLEMSET_COUNT 14
 
 #endif

@@ -61,10 +61,10 @@ public class RadioTestController implements MessageListener {
 
   // Conformance to the NesC code
   // refer to RadioTestCases.h
-  public static final short PROBLEMSET_COUNT = 11;
-  private static short[] trproblem = new short[] { 1,1,1,1,0,0,0,0,0,0,0 };
-  private static short[] motecount = new short[] { 2,2,3,3,2,2,3,3,2,3,3 };
-  private static short[] edgecount = new short[] { 1,2,3,6,1,2,3,6,2,3,6 };
+  public static final short PROBLEMSET_COUNT = 14;
+  private static short[] trproblem = new short[] { 1,1,1,1,0,0,0,0,0,0,0,1,1,1 };
+  private static short[] motecount = new short[] { 2,2,3,3,2,2,3,3,2,3,3,4,5,2 };
+  private static short[] edgecount = new short[] { 1,2,3,6,1,2,3,6,2,3,6,3,6,1 };
 
 	public RadioTestController(final short p)
 	{
