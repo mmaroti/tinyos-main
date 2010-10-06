@@ -4,8 +4,8 @@
 *
 * File              : main.c
 * Compiler          : IAR C 3.10C Kickstart, AVR-GCC/avr-libc(>= 1.2.5)
-* Revision          : $Revision: 1.2 $
-* Date              : $Date: 2010-09-22 09:39:28 $
+* Revision          : $Revision: 1.3 $
+* Date              : $Date: 2010-10-06 22:58:51 $
 * Updated by        : $Author: szabomeister $
 *
 * Support mail      : avr@atmel.com
@@ -401,7 +401,7 @@ void status(int timeout)
 	PORTA &= (~remnant);
 	#else
 	PORTE =0x00;
-	PORTE |= (remnant<<4);
+	PORTE |= (remnant<<5);
 	#endif
 }
 
