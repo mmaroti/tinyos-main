@@ -31,60 +31,40 @@
 * Author: Ali Baharev
 */
 
-#ifndef ROTATIONMATRIX_HPP_
-#define ROTATIONMATRIX_HPP_
+#include <fstream>
+#include <iomanip>
+#include <cmath>
 
-#include <iosfwd>
+using namespace std;
+
+#include "PathCalculator.hpp"
+#include "PathLength.hpp"
+#include "InputData.hpp"
 
 namespace gyro {
 
-class Input;
+void dump_path(	const double* rotmat,
+				const Input& data,
+				const double x[12],
+				const char* filename)
+{
+	ofstream out;
 
-class RotationMatrix {
+	out.exceptions(ofstream::failbit | ofstream::badbit);
 
-public:
+	string fname(filename);
 
-	RotationMatrix(	const Input& data,
-					const double* const x,
-					std::ostream& log = std::cout,
-					bool verbose = false);
+	fname += "_xyz";
 
-	double at(const int measurement, const int i, const int j) const;
+	out.open(fname.c_str());
 
-	void dump_matrices(std::ostream& log = std::cout) const;
+	out << setprecision(16) << scientific;
 
-	void dump_g_err(std::ostream& log = std::cout) const;
+	PathLength<double> path(rotmat, data, out);
 
-	const double* matrices() const;
+	path.verbose();
 
-	~RotationMatrix();
-
-private:
-
-	RotationMatrix(const RotationMatrix& );
-
-	RotationMatrix& operator=(const RotationMatrix& );
-
-	void compute_M(	const double ax,
-					const double ay,
-					const double az,
-					const Input& data);
-
-	void orthogonality_accept() const;
-
-	void objective_accept(double sx, double sy, double sz) const;
-
-	void dump_angles(const Input& data, std::ostream& log = std::cout) const;
-
-	const double* matrix_at(int i) const;
-
-	double* const R;
-	double* const g_err;
-	const int N;
-
-};
-
+	path.f(x);
 }
 
-#endif
-
+}

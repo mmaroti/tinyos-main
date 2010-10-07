@@ -35,6 +35,7 @@
 #include "CompileTimeConstants.hpp"
 #include "Optimizer.hpp"
 #include "PathOptimizer.hpp"
+#include "PathCalculator.hpp"
 #include "DataIO.hpp"
 #include "RotationMatrix.hpp"
 #include "InputData.hpp"
@@ -53,7 +54,15 @@ void run_solver(const Input& data, const char* outfile) {
 
 	write_result(outfile, opt, data, rot);
 
-	PathOptimizer path(rot.get_rot_matrices(), data);
+	PathOptimizer path(rot.matrices(), data);
+
+	const double* const y = path.solution();
+
+	dump_path(rot.matrices(), data, y, outfile);
+
+	for (int i=0; i<12; ++i) {
+		cout << y[i] << endl;
+	}
 }
 
 int main(int argc, char* argv[]) {

@@ -55,7 +55,7 @@ public:
 		g_ref(data.g_ref()),
 		log(os)
 	{
-
+		logging = false;
 	}
 
 	T f(const T* x)  {
@@ -69,6 +69,10 @@ public:
 		return s;
 	}
 
+	void verbose() {
+		logging = true;
+	}
+
 private:
 
 	void init(const T* const x) {
@@ -76,19 +80,19 @@ private:
 		v[X] = v[Y] = v[Z] = 0.0;
 		r[X] = r[Y] = r[Z] = 0.0;
 		s = 0.0;
-/*
+
 		for (int i=0, k=0; i<3; ++i) {
 			for (int j=0; j<3; ++j) {
 				C[i][j] = x[k++];
 			}
 		}
-*/
-		for (int i=0; i<3; ++i) {
+
+/*		for (int i=0; i<3; ++i) {
 			for (int j=0; j<3; ++j) {
 				C[i][j] = 0.0;
 			}
 		}
-
+*/
 		C[0][0] += 1.0;
 		C[1][1] += 1.0;
 		C[2][2] += 1.0;
@@ -100,19 +104,17 @@ private:
 
 	void update_path_length(int sample) {
 
-		const int p = 9*sample;
+		T am[3];
 
-		double am[3];
+		for (int i=0; i<3; ++i) {
+			am[i] = C[i][0]*a_x[sample] + C[i][1]*a_y[sample] + C[i][2]*a_z[sample] + d[i];
+		}
+
+		const int p = 9*sample;
 
 		for (int i=0; i<3; ++i) {
 			const int k = p + 3*i;
-			am[i] = R[k]*a_x[sample]+R[k+1]*a_y[sample]+R[k+2]*a_z[sample];
-		}
-
-		T a[3];
-
-		for (int i=0; i<3; ++i) {
-			a[i] = C[i][0]*am[X] + C[i][1]*am[Y] + C[i][2]*am[Z] + d[i];
+			a[i] = R[k]*am[X]+R[k+1]*am[Y]+R[k+2]*am[Z];
 		}
 
 		a[2] -= g_ref;
@@ -141,7 +143,20 @@ private:
 
 		s += v_len*dt;
 
+		if (logging) {
+			write(sample);
+		}
+
 		//log << "s = " << s << std::endl;
+	}
+
+	void write(int i) {
+		log << i;
+		log << '\t' << a_x[i] << '\t' << a_y[i] << '\t' << a_z[i];
+		log << '\t' << a[X] << '\t' << a[Y] << '\t' << a[Z];
+		log << '\t' << v[X] << '\t' << v[Y] << '\t' << v[Z];
+		log << '\t' << r[X] << '\t' << r[Y] << '\t' << r[Z] << '\t' << s;
+		log << '\n' << std::flush;
 	}
 
 	PathLength& operator=(const PathLength& );
@@ -154,9 +169,11 @@ private:
 	const int N;
 	const double g_ref;
 	std::ostream& log;
+	bool logging;
 
 	T C[3][3];
 	T d[3];
+	T a[3];
 	T v[3];
 	T r[3];
 	T s;

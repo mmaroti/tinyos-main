@@ -31,60 +31,19 @@
 * Author: Ali Baharev
 */
 
-#ifndef ROTATIONMATRIX_HPP_
-#define ROTATIONMATRIX_HPP_
-
-#include <iosfwd>
+#ifndef PATHCALCULATOR_HPP_
+#define PATHCALCULATOR_HPP_
 
 namespace gyro {
 
 class Input;
 
-class RotationMatrix {
-
-public:
-
-	RotationMatrix(	const Input& data,
-					const double* const x,
-					std::ostream& log = std::cout,
-					bool verbose = false);
-
-	double at(const int measurement, const int i, const int j) const;
-
-	void dump_matrices(std::ostream& log = std::cout) const;
-
-	void dump_g_err(std::ostream& log = std::cout) const;
-
-	const double* matrices() const;
-
-	~RotationMatrix();
-
-private:
-
-	RotationMatrix(const RotationMatrix& );
-
-	RotationMatrix& operator=(const RotationMatrix& );
-
-	void compute_M(	const double ax,
-					const double ay,
-					const double az,
-					const Input& data);
-
-	void orthogonality_accept() const;
-
-	void objective_accept(double sx, double sy, double sz) const;
-
-	void dump_angles(const Input& data, std::ostream& log = std::cout) const;
-
-	const double* matrix_at(int i) const;
-
-	double* const R;
-	double* const g_err;
-	const int N;
-
-};
+void dump_path(	const double* rotmat,
+				const Input& data,
+				const double x[12],
+				const char* filename);
 
 }
 
-#endif
 
+#endif

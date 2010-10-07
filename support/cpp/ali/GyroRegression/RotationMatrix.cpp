@@ -172,7 +172,7 @@ void RotationMatrix::dump_g_err(ostream& log) const {
 	}
 }
 
-const double* RotationMatrix::get_rot_matrices() const {
+const double* RotationMatrix::matrices() const {
 	return R;
 }
 

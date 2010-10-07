@@ -76,12 +76,6 @@ PathOptimizer::PathOptimizer(const double* rotmat, const Input& data, std::ostre
 
 		status = app->OptimizeTNLP(SmartPtr<TNLP>(path_nlp));
 
-		const double* y = path_nlp->solution();
-
-		for (int i=0; i<NUMBER_OF_VARIABLES; ++i) {
-			cout << y[i] << endl;
-		}
-
 		if (status == Invalid_Option) {
 			cerr << "Error: invalid option!" << endl;
 			exit(ERROR_INVALID_OPTION);
@@ -90,7 +84,9 @@ PathOptimizer::PathOptimizer(const double* rotmat, const Input& data, std::ostre
 			cerr << "Error during function or derivative evaluation!" << endl;
 			exit(ERROR_NUMBER_INVALID);
 		}
-		else if (status != Solve_Succeeded && status != Solved_To_Acceptable_Level) {
+		else if (status != Solve_Succeeded &&
+				 status != Solved_To_Acceptable_Level &&
+				 status != Maximum_Iterations_Exceeded) { // FIXME
 			cerr << "Error during optimization, code: " << status << "!" << endl;
 			exit(ERROR_OPTIMIZATION);
 		}
