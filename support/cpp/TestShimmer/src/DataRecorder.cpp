@@ -101,6 +101,15 @@ void DataRecorder::onReceiveMessage(const ActiveMessage & msg)
                     sample.temp = msg.getShort(start + 18);
 
     //			qDebug() << "sample " + sample.toString();
+
+                    if(samples.size() > 2){
+                        int lag = getLag(sample.time);
+                        if(lag > MAX_DUMMY) lag = MAX_DUMMY;
+                        for(int i=lag; i > 0; i--){
+                            Sample dummy;
+                            samples.append(dummy);
+                        }
+                    }
                     samples.append(sample);
             }
             emit sampleAdded();
@@ -121,15 +130,15 @@ void DataRecorder::clearSamples()
 
 Sample::Sample()
 {
-	time = -1;
-	xAccel = -1;
-	yAccel = -1;
-	zAccel = -1;
-	xGyro = -1;
-	yGyro = -1;
-	zGyro = -1;
-	voltage = -1;
-	temp = -1;
+        time = 0;
+        xAccel = 0;
+        yAccel = 0;
+        zAccel = 0;
+        xGyro = 0;
+        yGyro = 0;
+        zGyro = 0;
+        voltage = 0;
+        temp = 0;
         XYangle = 0.0;
         YZangle = 0.0;
         ZXangle = 0.0;
@@ -187,17 +196,24 @@ QString Sample::toCsvString() const
                 s += QString::number(voltage) + ",";
 
         if( temp >= 0 )
-                s += QString::number(temp);
+                s += QString::number(temp) + ",";
+
+        if( rotmat[0] != 1.0 ){
+            for (int k=0; k<9; ++k){
+                s += QString::number(rotmat[k]) + ",";
+            }
+        }
 
         return s;
 }
 
 void DataRecorder::csvToSample(const QString& str)
-{    
-        QStringList list = str.split(",");
-        QStringListIterator csvIterator(list);
-        Sample sample;
-        // FIXME Should check if we actually have next...
+{
+    QStringList list = str.split(",");
+    QStringListIterator csvIterator(list);
+    Sample sample;
+
+    if(csvIterator.hasNext()){
         sample.time = csvIterator.next().toInt();
         sample.xAccel = csvIterator.next().toInt();
         sample.yAccel = csvIterator.next().toInt();
@@ -207,9 +223,14 @@ void DataRecorder::csvToSample(const QString& str)
         sample.zGyro = csvIterator.next().toInt();
         sample.voltage = csvIterator.next().toInt();
         sample.temp = csvIterator.next().toInt();
+    }
+    if(csvIterator.hasNext()){
+        for(int i=0; i<9; i++){
+            sample.rotmat[i] = csvIterator.next().toDouble();
+        }
+    }
 
-        samples.append(sample);
-
+    samples.append(sample);
 }
 
 void DataRecorder::saveSamples(const QString& filename) const {
@@ -223,7 +244,7 @@ void DataRecorder::saveSamples(const QString& filename) const {
 
     QTextStream ts( &f );
 
-    ts << "#Time,Accel_X,Accel_Y,Accel_Z,Gyro_X,Gyro_Y,Gyro_Z,Volt,Temp" << endl;
+    ts << "#Time,Accel_X,Accel_Y,Accel_Z,Gyro_X,Gyro_Y,Gyro_Z,Volt,Temp,RotMat[9]" << endl;
     for (int i=0; i<samples.size(); i++){
       ts << samples[i].toCsvString() << endl;
     }
@@ -232,16 +253,16 @@ void DataRecorder::saveSamples(const QString& filename) const {
 
     ts << "#Accel_X,Accel_Y,Accel_Z,AVG_Accel,XY_Angle,YZ_Angle,ZX_Angle,Gyro_X,Gyro_Y,Gyro_Z" << endl;
     for (int i = 0; i < application.dataRecorder.size(); i++) {
-        xtemp = samples[i].xAccel * accelCalibrationData[0] + samples[i].yAccel * accelCalibrationData[1] + samples[i].zAccel * accelCalibrationData[2] + accelCalibrationData[9];
-        ytemp = samples[i].xAccel * accelCalibrationData[3] + samples[i].yAccel * accelCalibrationData[4] + samples[i].zAccel * accelCalibrationData[5] + accelCalibrationData[10];
-        ztemp = samples[i].xAccel * accelCalibrationData[6] + samples[i].yAccel * accelCalibrationData[7] + samples[i].zAccel * accelCalibrationData[8] + accelCalibrationData[11];
-        avgtemp = sqrt( pow(xtemp, 2.0) + pow(ytemp, 2.0) + pow(ztemp, 2.0) );
-        xyAngle = application.dataRecorder.calculateAngle(xtemp,ytemp);
-        yzAngle = application.dataRecorder.calculateAngle(ytemp,ztemp);
-        zxAngle = application.dataRecorder.calculateAngle(ztemp,xtemp);
-        xGyro = (samples[i].xGyro - gyroMinAvgs[0]) * gyroCalibrationData[0] + (samples[i].yGyro - gyroMinAvgs[1]) * gyroCalibrationData[1] + (samples[i].zGyro - gyroMinAvgs[2]) * gyroCalibrationData[2];
-        yGyro = (samples[i].xGyro - gyroMinAvgs[0]) * gyroCalibrationData[3] + (samples[i].yGyro - gyroMinAvgs[1]) * gyroCalibrationData[4] + (samples[i].zGyro - gyroMinAvgs[2]) * gyroCalibrationData[5];
-        zGyro = (samples[i].xGyro - gyroMinAvgs[0]) * gyroCalibrationData[6] + (samples[i].yGyro - gyroMinAvgs[1]) * gyroCalibrationData[7] + (samples[i].zGyro - gyroMinAvgs[2]) * gyroCalibrationData[8];
+        xtemp = calculateCalibratedValue("xAcc", i);
+        ytemp = calculateCalibratedValue("yAcc", i);
+        ztemp = calculateCalibratedValue("zAcc", i);
+        avgtemp = calculateAbsAcc(i);
+        xyAngle = calculateAngle(xtemp,ytemp);
+        yzAngle = calculateAngle(ytemp,ztemp);
+        zxAngle = calculateAngle(ztemp,xtemp);
+        xGyro = calculateCalibratedValue("xGyro", i);
+        yGyro = calculateCalibratedValue("yGyro", i);
+        zGyro = calculateCalibratedValue("zGyro", i);
 
         ts << xtemp << "," << ytemp << "," << ztemp << "," << avgtemp << "," << xyAngle << "," << yzAngle << "," << zxAngle << "," << xGyro << "," << yGyro << "," << zGyro << endl;
     }
@@ -344,7 +365,7 @@ void DataRecorder::loadCalibFromFile(const QString& filename )
         }
         f.close();
     }
-    saveCalibrationData();
+    //saveCalibrationData();
 }
 
 void DataRecorder::saveCalibToFile(const QString& filename ) const
@@ -379,26 +400,30 @@ void DataRecorder::saveCalibToFile(const QString& filename ) const
 
 void DataRecorder::loadCalibrationData()
 {
-    int size = application.settings.beginReadArray("stationaryCalibrationData");
-    for (int i = 0; i < size; ++i) {
-        application.settings.setArrayIndex(i);
-        accelCalibrationData[i] = application.settings.value("stationaryCalibrationData").toDouble();
-    }
-    application.settings.endArray();
+    if(application.settings.contains("stationaryCalibrationData") && application.settings.contains("gyroCalibrationData")){
+        int size = application.settings.beginReadArray("stationaryCalibrationData");
+        for (int i = 0; i < size; ++i) {
+            application.settings.setArrayIndex(i);
+            accelCalibrationData[i] = application.settings.value("stationaryCalibrationData").toDouble();
+        }
+        application.settings.endArray();
 
-    size = application.settings.beginReadArray("gyroCalibrationData");
-    for (int i = 0; i < size; ++i) {
-        application.settings.setArrayIndex(i);
-        gyroCalibrationData[i] = application.settings.value("gyroCalibrationData").toDouble();
-    }
-    application.settings.endArray();
+        size = application.settings.beginReadArray("gyroCalibrationData");
+        for (int i = 0; i < size; ++i) {
+            application.settings.setArrayIndex(i);
+            gyroCalibrationData[i] = application.settings.value("gyroCalibrationData").toDouble();
+        }
+        application.settings.endArray();
 
-    size = application.settings.beginReadArray("gyroAvgsData");
-    for (int i = 0; i < size; ++i) {
-        application.settings.setArrayIndex(i);
-        gyroMinAvgs[i] = application.settings.value("gyroAvgsData").toDouble();
+        size = application.settings.beginReadArray("gyroAvgsData");
+        for (int i = 0; i < size; ++i) {
+            application.settings.setArrayIndex(i);
+            gyroMinAvgs[i] = application.settings.value("gyroAvgsData").toDouble();
+        }
+        application.settings.endArray();
+    } else {
+        setCalibToZero();
     }
-    application.settings.endArray();
 }
 
 void DataRecorder::saveCalibrationData() const
@@ -424,6 +449,24 @@ void DataRecorder::saveCalibrationData() const
     }
     application.settings.endArray();
 
+}
+
+void DataRecorder::clearCalibrationData()
+{
+    application.settings.clear();
+}
+
+void DataRecorder::setCalibToZero()
+{
+    for(int i=0; i<12; i++){
+        accelCalibrationData[i] = 0;
+    }
+    for(int i=0; i<12; i++){
+        gyroCalibrationData[i] = 0;
+    }
+    for(int i=0; i<3; i++){
+        gyroMinAvgs[i] = 0;
+    }
 }
 
 void DataRecorder::at(int i, double data[ipo::SIZE]) const {
@@ -606,11 +649,31 @@ void DataRecorder::setGyroIdleWindowStart(int index, int start) {
     gyroIdleWindowStart[index] = start;
 }
 
-int DataRecorder::getTime(int i)
+const int DataRecorder::getLag(int time) const
 {
     int returnTime = 0;
 
-    if(i < samples.size()){
+    if( samples.size() > 2 ){
+        int startTime = samples[samples.size()-1].time;
+        if(startTime != 0){
+            if(time-startTime > LAG_THRESHOLD){
+                returnTime =  int((time -startTime) / 160);
+            } else {
+                returnTime = 0;
+            }
+        }
+    } else {
+        returnTime = 0;
+    }
+
+    return returnTime;
+}
+
+const int DataRecorder::getTime(int i) const
+{
+    int returnTime = 0;
+
+    if( (i < samples.size()) && (samples.size() > 2) ){
         int startTime = getFirstTime();
         if(startTime != 0){
             if(samples[i].time-startTime > LAG_THRESHOLD){
@@ -626,7 +689,8 @@ int DataRecorder::getTime(int i)
     return returnTime;
 }
 
-double DataRecorder::calculateAngle(double accel1, double accel2) {
+const double DataRecorder::calculateAngle(double accel1, double accel2) const
+{
     double alfa;
     if( (pow(accel1, 2.0) + pow(accel2, 2.0)) < pow(GRAV/2, 2.0) )
         return 10.0;
@@ -648,7 +712,7 @@ double DataRecorder::calculateAngle(double accel1, double accel2) {
     return alfa;
 }
 
-double DataRecorder::calculateCalibratedValue(QString axis, int time)
+const double DataRecorder::calculateCalibratedValue(QString axis, int time) const
 {
     if( axis == "xAcc"){
         return (samples[time].xAccel * accelCalibrationData[0] + samples[time].yAccel * accelCalibrationData[1] + samples[time].zAccel * accelCalibrationData[2] + accelCalibrationData[9]);
@@ -668,7 +732,7 @@ double DataRecorder::calculateCalibratedValue(QString axis, int time)
     } else return -1;
 }
 
-double DataRecorder::calculateAbsAcc(int time)
+const double DataRecorder::calculateAbsAcc(int time) const
 {
     double avg;
     double x, y ,z;

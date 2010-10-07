@@ -72,6 +72,39 @@ void CalibrationWidget::changeEvent(QEvent *e)
     }
 }
 
+/*void CalibrationWidget::mousePressEvent(QMouseEvent *event)
+{
+    QString instructions = "";
+    if (event->buttons() & Qt::LeftButton) {
+        if ( ui->stationaryButton->isChecked() ) {
+            instructions.append("Stationary Calibration\n\n");
+            instructions.append("Please make a record the following way: \n");
+            instructions.append("1) put down the mote on a stable horizontal surface and leave it idle for at least 3 seconds, \n");
+            instructions.append("2) pick up the mote and put it back on the opposite side, \n");
+            instructions.append("3) repeat 1) and 2) for all 3 side-pairs.");
+        } else if ( ui->periodicalButton->isChecked() ) {
+            instructions.append("Periodical Calibration\n\n");
+            instructions.append("Please make a record the following way: \n");
+            instructions.append("1) put down the mote on a stable horizontal surface and leave it idle for at least 3 seconds, \n");
+            instructions.append("2) pick up the mote and put it back on the opposite side, \n");
+            instructions.append("3) repeat 1) and 2) for all 3 side-pairs.");
+        } else if ( ui->turntableButton->isChecked() ) {
+            instructions.append("Turntable Calibration\n\n");
+            instructions.append("NOTE: you will need a turntable for this calibration! \n\n");
+            instructions.append("Please make a record the following way: \n");
+            instructions.append("1) Set your turntable to 45RPMs, adjust rotation speed if necesary, \n");
+            instructions.append("2) put down the mote on a stable horizontal surface and leave it idle for at least 3 seconds, \n");
+            instructions.append("3) pick up the mote and put it on your spinning turntable. You can turn it off while you place your mote on it, then turn it back on. Leave it spinning for at least 3 seconds, \n");
+            instructions.append("4) pick up your mote and place it back on the turntable on its opposite side, ");
+            instructions.append("5) repeat 3) and 4) for all 3 side-pairs.");
+        } else {
+            instructions = "Please select a module!";
+        }
+
+        ui->instructionsText->setText(instructions);
+    }
+}*/
+
 void CalibrationWidget::on_startButton_clicked()
 {
     QMessageBox msgBox;
@@ -98,13 +131,6 @@ void CalibrationWidget::on_startButton_clicked()
         application.dataRecorder.saveCalibrationData();
         loadCalibrationResults();
         emit calibrationDone();
-    } else if ( ui->loadButton->isChecked() ) {
-        QString file = QFileDialog::getOpenFileName(this, "Select a file to open", "c:/");
-        if ( !file.isEmpty() ) {
-            application.dataRecorder.loadCalibFromFile( file );;
-        }
-        loadCalibrationResults();
-        emit calibrationDone();
     } else {
         message = "Please select a module!";
     }
@@ -122,6 +148,21 @@ void CalibrationWidget::on_exportButton_clicked()
     }
 }
 
+void CalibrationWidget::on_importButton_clicked()
+{
+    QString file = QFileDialog::getOpenFileName(this, "Select a file to open", "c:/");
+    if ( !file.isEmpty() ) {
+        application.dataRecorder.loadCalibFromFile( file );;
+    }
+    loadCalibrationResults();
+    emit calibrationDone();
+}
+
+void CalibrationWidget::on_clearButton_clicked()
+{
+    application.dataRecorder.clearCalibrationData();
+}
+
 void CalibrationWidget::loadCalibrationResults()
 {
     QString message = "";
@@ -132,15 +173,15 @@ void CalibrationWidget::loadCalibrationResults()
         message.append( QString::number(application.dataRecorder.getAccelCalibration()[i]) + "\n" );
     }
 
-    message.append("\n Gyroscope Calibration Data: \n");
-    for (int i = 0; i < 12; ++i) {
-        message.append( QString::number(application.dataRecorder.getGyroCalibration()[i]) + "\n" );
-    }
-
     message.append("\n Gyroscope Avarages Data: \n");
     for (int i = 0; i < 3; ++i) {
         message.append( QString::number(application.dataRecorder.getGyroMinAvgs()[i]) + "\n" );
     }
+
+    message.append("\n Gyroscope Calibration Data: \n");
+    for (int i = 0; i < 12; ++i) {
+        message.append( QString::number(application.dataRecorder.getGyroCalibration()[i]) + "\n" );
+    }   
 
     ui->calibrationResults->setText(message);
     application.dataRecorder.loadCalibrationData();

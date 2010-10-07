@@ -100,6 +100,7 @@ void DataWidget::on_clearBtn_clicked()
 {
     plot->setGraphs(DataPlot::CALIB, false);
     application.dataRecorder.clearSamples();
+    application.dataRecorder.loadCalibrationData();
 }
 
 void DataWidget::on_refreshButton_clicked()
@@ -112,8 +113,10 @@ void DataWidget::on_loadBtn_clicked()
     QString file = QFileDialog::getOpenFileName(this, "Select one or more files to open", "c:/");
     if ( !file.isEmpty() ) {
         application.dataRecorder.loadSamples( file );
+        application.dataRecorder.loadCalibFromFile( file );
     }
-    //plot->DataPlot::onSampleAdded();
+
+
 }
 
 void DataWidget::on_exportBtn_clicked()

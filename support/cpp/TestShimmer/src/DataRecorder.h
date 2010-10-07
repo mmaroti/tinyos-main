@@ -90,6 +90,8 @@ public:
 
         void saveCalibrationData() const;
         void loadCalibrationData();
+        void clearCalibrationData();
+        void setCalibToZero();
 
         const double* getAccelCalibration() const { return accelCalibrationData; }
         const double* getGyroCalibration() const { return gyroCalibrationData; }
@@ -103,10 +105,11 @@ public:
         void setGyroCalibration(int index, double value);
         void setGyroIdleWindowStart(int index, int start);
 
-        double calculateAngle( double acceleration1, double acceleration2 );
-        double calculateCalibratedValue( QString axis, int time );
-        double calculateAbsAcc(int time);
-        int getTime(int i);
+        const double calculateAngle( double acceleration1, double acceleration2 ) const;
+        const double calculateCalibratedValue( QString axis, int time ) const;
+        const double calculateAbsAcc(int time) const;
+        const int getLag(int i) const;
+        const int getTime(int i) const;
 
         void at(int i, double data[ipo::SIZE]) const;
         int from, to;

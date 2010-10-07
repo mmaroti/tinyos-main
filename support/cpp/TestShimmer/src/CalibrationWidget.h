@@ -54,6 +54,7 @@ public:
 
 protected:
     void changeEvent(QEvent *e);
+    //virtual void mousePressEvent(QMouseEvent * event);
 
 private:
     Ui::CalibrationWidget *ui;
@@ -67,6 +68,8 @@ private:
 private slots:
     void on_startButton_clicked();
     void on_exportButton_clicked();
+    void on_importButton_clicked();
+    void on_clearButton_clicked();
 
 signals:
     void calibrationDone();

@@ -236,8 +236,11 @@ void DataPlot::paintEvent(QPaintEvent *event)
                     ytemp1 = application.dataRecorder.calculateCalibratedValue("yAcc", i-1);
                     ytemp2 = application.dataRecorder.calculateCalibratedValue("yAcc", i);
 
-                    alfa1 = application.dataRecorder.calculateAngle(xtemp1, ytemp1);
-                    alfa2 = application.dataRecorder.calculateAngle(xtemp2, ytemp2);
+                    //alfa1 = application.dataRecorder.calculateAngle(xtemp1, ytemp1);
+                    //alfa2 = application.dataRecorder.calculateAngle(xtemp2, ytemp2);
+
+                    alfa1 = atan2(-xtemp1, -ytemp1);
+                    alfa2 = atan2(-xtemp2, -ytemp2);
 
                     //emit angleChanged(alfa1);
                     //HACK
@@ -264,9 +267,11 @@ void DataPlot::paintEvent(QPaintEvent *event)
                     ztemp1 = application.dataRecorder.calculateCalibratedValue("zAcc", i-1);
                     ztemp2 = application.dataRecorder.calculateCalibratedValue("zAcc", i);
 
-                    alfa1 = application.dataRecorder.calculateAngle(ytemp1, ztemp1);
-                    alfa2 = application.dataRecorder.calculateAngle(ytemp2, ztemp2);
+                    //alfa1 = application.dataRecorder.calculateAngle(ztemp1, ytemp1);
+                    //alfa2 = application.dataRecorder.calculateAngle(ztemp2, ytemp2);
 
+                    alfa1 = atan2(-ytemp1, -ztemp1);
+                    alfa2 = atan2(-ytemp2, -ztemp2);
                     //HACK
                     application.dataRecorder.setAngle(i).YZangle = alfa2;
 
@@ -291,8 +296,11 @@ void DataPlot::paintEvent(QPaintEvent *event)
                     ztemp1 = application.dataRecorder.calculateCalibratedValue("zAcc", i-1);
                     ztemp2 = application.dataRecorder.calculateCalibratedValue("zAcc", i);
 
-                    alfa1 = application.dataRecorder.calculateAngle(ztemp1, xtemp1);
-                    alfa2 = application.dataRecorder.calculateAngle(ztemp2, xtemp2);
+                    //alfa1 = application.dataRecorder.calculateAngle(ztemp1, xtemp1);
+                    //alfa2 = application.dataRecorder.calculateAngle(ztemp2, xtemp2);
+
+                    alfa1 = atan2(-xtemp1, -ztemp1);
+                    alfa2 = atan2(-xtemp2, -ztemp2);
 
                     //HACK
                     application.dataRecorder.setAngle(i).ZXangle = alfa2;
