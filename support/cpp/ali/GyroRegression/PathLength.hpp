@@ -74,6 +74,7 @@ private:
 	void init(const T* const x) {
 
 		v[X] = v[Y] = v[Z] = 0.0;
+		r[X] = r[Y] = r[Z] = 0.0;
 		s = 0.0;
 /*
 		for (int i=0, k=0; i<3; ++i) {
@@ -88,9 +89,9 @@ private:
 			}
 		}
 
-		C[0][0] = C[0][0] + 1.0;
-		C[1][1] = C[1][1] + 1.0;
-		C[2][2] = C[2][2] + 1.0;
+		C[0][0] += 1.0;
+		C[1][1] += 1.0;
+		C[2][2] += 1.0;
 
 		d[X] = x[ 9];
 		d[Y] = x[10];
@@ -114,7 +115,7 @@ private:
 			a[i] = C[i][0]*am[X] + C[i][1]*am[Y] + C[i][2]*am[Z] + d[i];
 		}
 
-		a[2] = a[2] - g_ref;
+		a[2] -= g_ref;
 
 		//log << "====================================================" << endl;
 
@@ -124,17 +125,21 @@ private:
 
 		const double dt = (time_stamp[sample]-time_stamp[sample-1])/TICKS_PER_SEC;
 
-		v[X] = v[X] + a[X]*dt;
-		v[Y] = v[Y] + a[Y]*dt;
-		v[Z] = v[Z] + a[Z]*dt;
+		v[X] += (a[X]*dt);
+		v[Y] += (a[Y]*dt);
+		v[Z] += (a[Z]*dt);
 
 		for (int i=0; i<3; ++i) {
 			//log << "v[" << i << "] = " << v[i] << std::endl;
 		}
 
+		r[X] += (v[X]*dt);
+		r[Y] += (v[Y]*dt);
+		r[Z] += (v[Z]*dt);
+
 		T v_len = sqrt(pow(v[X], 2) + pow(v[Y], 2) + pow(v[Z], 2));
 
-		s = s + v_len*dt;
+		s += v_len*dt;
 
 		//log << "s = " << s << std::endl;
 	}
@@ -153,6 +158,7 @@ private:
 	T C[3][3];
 	T d[3];
 	T v[3];
+	T r[3];
 	T s;
 
 	enum { X, Y, Z };

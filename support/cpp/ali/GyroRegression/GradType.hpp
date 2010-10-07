@@ -55,31 +55,18 @@ public:
 	GradType& operator=(double rhs) { init(rhs); return *this; }
 
 	template <int N_VAR>
-	friend void init_vars(GradType<N_VAR> var[N_VAR], const double* const x);
+	friend void init_vars(GradType<N_VAR> var[N_VAR], const double x[N_VAR]);
 
 	template <int N_VAR>
 	friend const GradType<N_VAR> operator-(const GradType<N_VAR>& x);
 
-	template <int N_VAR>
-	friend const GradType<N_VAR> operator+(const GradType<N_VAR>& x, const GradType<N_VAR>& y);
+	const GradType& operator+=(const GradType& x);
 
-	template <int N_VAR>
-	friend const GradType<N_VAR> operator+(const double x, const GradType<N_VAR>& y)
-	{
-		GradType<N_VAR> z(y); z.f += x; return z;
-	}
+	const GradType& operator+=(double x) { f += x; return *this; }
 
-	template <int N_VAR>
-	friend const GradType<N_VAR> operator+(const GradType<N_VAR>& x, const double y) { return y+x; }
+	const GradType& operator-=(const GradType& x);
 
-	template <int N_VAR>
-	friend const GradType<N_VAR> operator-(const GradType<N_VAR>& x, const GradType<N_VAR>& y);
-
-	template <int N_VAR>
-	friend const GradType<N_VAR> operator-(const double x, const GradType<N_VAR>& y) { return x+(-y); }
-
-	template <int N_VAR>
-	friend const GradType<N_VAR> operator-(const GradType<N_VAR>& x, const double y) { return x+(-y); }
+	const GradType& operator-=(double x) { f -= x; return *this; }
 
 	template <int N_VAR>
 	friend const GradType<N_VAR> operator*(const GradType<N_VAR>& x, const GradType<N_VAR>& y);
@@ -88,16 +75,10 @@ public:
 	friend const GradType<N_VAR> operator*(const double x, const GradType<N_VAR>& y);
 
 	template <int N_VAR>
-	friend const GradType<N_VAR> operator*(const GradType<N_VAR>& x, const double y) { return y*x; }
-
-	template <int N_VAR>
 	friend const GradType<N_VAR> operator/(const GradType<N_VAR>& x, const GradType<N_VAR>& y);
 
 	template <int N_VAR>
 	friend const GradType<N_VAR> operator/(const double x, const GradType<N_VAR>& y);
-
-	template <int N_VAR>
-	friend const GradType<N_VAR> operator/(const GradType<N_VAR>& x, const double y) { return x*(1.0/y); }
 
 	template <int N_VAR>
 	friend const GradType<N_VAR> pow(const GradType<N_VAR>& x, int n);
@@ -144,7 +125,7 @@ void GradType<N>::copy(const GradType& other) {
 }
 
 template <int N_VAR>
-void init_vars(GradType<N_VAR> var[N_VAR], const double* x) {
+void init_vars(GradType<N_VAR> var[N_VAR], const double x[N_VAR]) {
 
 	for (int i=0; i<N_VAR; ++i) {
 		var[i] = x[i];
@@ -165,30 +146,73 @@ const GradType<N_VAR> operator-(const GradType<N_VAR>& x) {
 	return z;
 }
 
+template <int N>
+const GradType<N>& GradType<N>::operator+=(const GradType<N>& x) {
+
+	f += x.f;
+	for (int i=0; i<N; ++i) {
+		g[i] += x.g[i];
+	}
+
+	return *this;
+}
+
 template <int N_VAR>
 const GradType<N_VAR> operator+(const GradType<N_VAR>& x, const GradType<N_VAR>& y) {
 
-	GradType<N_VAR> z;
+	GradType<N_VAR> z(x);
 
-	z.f = x.f + y.f;
-	for (int i=0; i<N_VAR; ++i) {
-		z.g[i] = x.g[i] + y.g[i];
+	return z+=y;
+}
+
+template <int N_VAR>
+const GradType<N_VAR> operator+(const double x, const GradType<N_VAR>& y) {
+
+	GradType<N_VAR> z(y);
+
+	return z+=x;
+}
+
+template <int N_VAR>
+const GradType<N_VAR> operator+(const GradType<N_VAR>& x, const double y) {
+
+	GradType<N_VAR> z(x);
+
+	return z+=y;
+}
+
+template <int N>
+const GradType<N>& GradType<N>::operator-=(const GradType<N>& x) {
+
+	f -= x.f;
+	for (int i=0; i<N; ++i) {
+		g[i] -= x.g[i];
 	}
 
-	return z;
+	return *this;
 }
 
 template <int N_VAR>
 const GradType<N_VAR> operator-(const GradType<N_VAR>& x, const GradType<N_VAR>& y) {
 
-	GradType<N_VAR> z;
+	GradType<N_VAR> z(x);
 
-	z.f = x.f - y.f;
-	for (int i=0; i<N_VAR; ++i) {
-		z.g[i] = x.g[i] - y.g[i];
-	}
+	return z-=y;
+}
 
-	return z;
+
+template <int N_VAR>
+const GradType<N_VAR> operator-(const double x, const GradType<N_VAR>& y) {
+
+	return x+(-y);
+}
+
+template <int N_VAR>
+const GradType<N_VAR> operator-(const GradType<N_VAR>& x, const double y) {
+
+	GradType<N_VAR> z(x);
+
+	return z-=y;
 }
 
 template <int N_VAR>
@@ -217,6 +241,13 @@ const GradType<N_VAR> operator*(const double x, const GradType<N_VAR>& y) {
 	return z;
 }
 
+
+template <int N_VAR>
+const GradType<N_VAR> operator*(const GradType<N_VAR>& x, const double y) {
+
+	return y*x;
+}
+
 template <int N_VAR>
 const GradType<N_VAR> operator/(const GradType<N_VAR>& x, const GradType<N_VAR>& y) {
 
@@ -242,6 +273,12 @@ const GradType<N_VAR> operator/(const double x, const GradType<N_VAR>& y) {
 	}
 
 	return z;
+}
+
+template <int N_VAR>
+const GradType<N_VAR> operator/(const GradType<N_VAR>& x, const double y) {
+
+	return x*(1.0/y);
 }
 
 template <int N_VAR>
