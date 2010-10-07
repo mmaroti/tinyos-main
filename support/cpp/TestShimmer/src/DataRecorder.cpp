@@ -649,7 +649,7 @@ void DataRecorder::setGyroIdleWindowStart(int index, int start) {
     gyroIdleWindowStart[index] = start;
 }
 
-const int DataRecorder::getLag(int time) const
+int DataRecorder::getLag(int time) const
 {
     int returnTime = 0;
 
@@ -669,7 +669,7 @@ const int DataRecorder::getLag(int time) const
     return returnTime;
 }
 
-const int DataRecorder::getTime(int i) const
+int DataRecorder::getTime(int i) const
 {
     int returnTime = 0;
 
@@ -689,7 +689,7 @@ const int DataRecorder::getTime(int i) const
     return returnTime;
 }
 
-const double DataRecorder::calculateAngle(double accel1, double accel2) const
+double DataRecorder::calculateAngle(double accel1, double accel2) const
 {
     double alfa;
     if( (pow(accel1, 2.0) + pow(accel2, 2.0)) < pow(GRAV/2, 2.0) )
@@ -712,7 +712,7 @@ const double DataRecorder::calculateAngle(double accel1, double accel2) const
     return alfa;
 }
 
-const double DataRecorder::calculateCalibratedValue(QString axis, int time) const
+double DataRecorder::calculateCalibratedValue(QString axis, int time) const
 {
     if( axis == "xAcc"){
         return (samples[time].xAccel * accelCalibrationData[0] + samples[time].yAccel * accelCalibrationData[1] + samples[time].zAccel * accelCalibrationData[2] + accelCalibrationData[9]);
@@ -732,7 +732,7 @@ const double DataRecorder::calculateCalibratedValue(QString axis, int time) cons
     } else return -1;
 }
 
-const double DataRecorder::calculateAbsAcc(int time) const
+double DataRecorder::calculateAbsAcc(int time) const
 {
     double avg;
     double x, y ,z;

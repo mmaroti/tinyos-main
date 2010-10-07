@@ -105,11 +105,11 @@ public:
         void setGyroCalibration(int index, double value);
         void setGyroIdleWindowStart(int index, int start);
 
-        const double calculateAngle( double acceleration1, double acceleration2 ) const;
-        const double calculateCalibratedValue( QString axis, int time ) const;
-        const double calculateAbsAcc(int time) const;
-        const int getLag(int i) const;
-        const int getTime(int i) const;
+        double calculateAngle( double acceleration1, double acceleration2 ) const;
+        double calculateCalibratedValue( QString axis, int time ) const;
+        double calculateAbsAcc(int time) const;
+        int getLag(int i) const;
+        int getTime(int i) const;
 
         void at(int i, double data[ipo::SIZE]) const;
         int from, to;
