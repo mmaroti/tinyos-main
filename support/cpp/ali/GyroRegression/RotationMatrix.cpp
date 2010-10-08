@@ -32,7 +32,7 @@
 */
 
 // FIXME Remove fstream; add new exit-code for runtime-error
-//#include <fstream>
+#include <fstream>
 #include <stdexcept>
 #include <iostream>
 #include <iomanip>
@@ -117,6 +117,10 @@ RotationMatrix::RotationMatrix(	const Input& data,
 	objective_accept(obj.s_x(), obj.s_y(), obj.s_z());
 
 	orthogonality_accept();
+
+	ofstream out("path_dump");
+
+	dump_path(data, out);
 
 	/*
 	ofstream out("sep01mat");
@@ -267,6 +271,49 @@ void RotationMatrix::dump_angles(const Input& data,
 	}
 
 	log << endl;
+}
+
+void RotationMatrix::dump_path(const Input& data, ostream& log) {
+
+	log << scientific << setprecision(16);
+
+	double v[3];
+	double r[3];
+
+	v[X] = v[Y] = v[Z] = 0.0;
+	r[X] = r[Y] = r[Z] = 0.0;
+
+	double s = 0.0;
+
+	const double* const time_stamp = data.time_stamp();
+
+	const int N = data.N();
+
+	for (int sample=1; sample<N; ++ sample) {
+
+		const double dt = (time_stamp[sample]-time_stamp[sample-1])/TICKS_PER_SEC;
+
+		const double* const a = g_err+3*sample;
+
+		v[X] += (a[X]*dt);
+		v[Y] += (a[Y]*dt);
+		v[Z] += (a[Z]*dt);
+
+		r[X] += (v[X]*dt);
+		r[Y] += (v[Y]*dt);
+		r[Z] += (v[Z]*dt);
+
+		double v_len = sqrt(pow(v[X], 2) + pow(v[Y], 2) + pow(v[Z], 2));
+
+		s += v_len*dt;
+
+		log << sample;
+		log << '\t' << a[X] << '\t' << a[Y] << '\t' << a[Z];
+		log << '\t' << v[X] << '\t' << v[Y] << '\t' << v[Z];
+		log << '\t' << r[X] << '\t' << r[Y] << '\t' << r[Z] << '\t' << s << '\n';
+	}
+
+	log << flush;
 }
 
 }

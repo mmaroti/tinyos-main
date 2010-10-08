@@ -76,6 +76,8 @@ private:
 
 	void dump_angles(const Input& data, std::ostream& log = std::cout) const;
 
+	void dump_path(const Input& data, std::ostream& log);
+
 	const double* matrix_at(int i) const;
 
 	double* const R;
