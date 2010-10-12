@@ -127,10 +127,6 @@ private:
         QPoint getPoint(int x, int y);
         QPoint getSample(int x, int y);
         QPoint lastPos, startPos;
-
-        const double* gyroMinAvgs;
-        const double* gyroCalibrationData;
-        const double* accelCalibrationData;
 };
 
 #endif // DATAPLOT_H

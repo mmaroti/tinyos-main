@@ -61,9 +61,6 @@ DataPlot::DataPlot(PlotScrollArea *parent, Application &app) : QWidget(parent),
         //loadSettingsData();
 
         resize(QWIDGETSIZE_MAX, 1000);
-        gyroMinAvgs = application.dataRecorder.getGyroMinAvgs();
-        gyroCalibrationData = application.dataRecorder.getGyroCalibration();
-        accelCalibrationData = application.dataRecorder.getAccelCalibration();
 
         lag = 0;
 }

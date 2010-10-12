@@ -120,8 +120,7 @@ private:
 
     QVarLengthArray<TurntableWindow> turntableWindows;
     int turntableSidesMins[7];
-    //double gyroMinAvgs[3];
-    double gyroCalibrationData[12];
+
 };
 
 #endif // TURNTABLECALIBRATIONMODULE_H
