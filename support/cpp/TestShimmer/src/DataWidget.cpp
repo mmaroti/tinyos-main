@@ -47,10 +47,6 @@ DataWidget::DataWidget(QWidget *parent, Application &app) :
         ui->scrollArea->setWidget(plot);
         //connect(&plot, SIGNAL(angleChanged(double)), Window::currentGlWidget , SLOT(onAngleChanged(double)) );
 
-        gyroMinAvgs = application.dataRecorder.getGyroMinAvgs();
-        gyroCalibrationData = application.dataRecorder.getGyroCalibration();
-        accelCalibrationData = application.dataRecorder.getAccelCalibration();
-
 }
 
 DataWidget::~DataWidget()

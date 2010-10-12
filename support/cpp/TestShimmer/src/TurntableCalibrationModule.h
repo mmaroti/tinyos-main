@@ -105,12 +105,6 @@ public:
 
     const int & atTurntableSides(int i) const { return turntableSidesMins[i]; }
 
-    //void setGyroCalibrationDataAt(int i, double value) { gyroCalibrationData[i] = value; }
-
-    //const double & getGyroCalibrationDataAt(int i) const { return gyroCalibrationData[i]; }
-
-    //const double & getGyroAvgAt( int i ) const { return gyroMinAvgs[i]; }
-
     void clearTurntableSides();
 
 private:

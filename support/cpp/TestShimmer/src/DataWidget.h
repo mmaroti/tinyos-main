@@ -69,10 +69,6 @@ private:
         Ui::DataWidget *ui;
         Application &application;
 
-        const double* gyroMinAvgs;
-        const double* gyroCalibrationData;
-        const double* accelCalibrationData;
-
 signals:
         void SolverStarted();
         void SolverFinished();

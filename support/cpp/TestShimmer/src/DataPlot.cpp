@@ -619,6 +619,7 @@ void DataPlot::mouseReleaseEvent(QMouseEvent * /* event */)
     emit clicked();
 }
 
+// FIXME This should go into DataRecorder
 /*void DataPlot::loadSettingsData()
 {
     int size = application.settings.beginReadArray("calibrationData");

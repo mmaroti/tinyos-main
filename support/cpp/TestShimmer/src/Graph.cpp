@@ -387,6 +387,7 @@ double Graph::calculateAngle(double accel1, double accel2) {
     return alfa;
 }
 
+// FIXME Can this go to DataRecoreder?
 double Graph::calculateCalibratedValue(QString axis, int time)
 {
     if( axis == "xAcc"){
@@ -491,6 +492,7 @@ void Graph::mouseReleaseEvent(QMouseEvent * /* event */)
     emit clicked();
 }
 
+// FIXME Can this go to the DataRecorder?
 void Graph::loadSettingsData()
 {
     int size = application.settings.beginReadArray("calibrationData");

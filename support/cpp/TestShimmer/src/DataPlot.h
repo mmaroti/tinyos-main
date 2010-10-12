@@ -94,10 +94,6 @@ public:
         void setGraphs(int graphs, bool on);
         int getGraphs() const { return graphs; }
 
-        //double calibrationDataAt(int i) { return calibrationData[i]; }
-        //double gyroMinAvgsAt(int i) { return gyroMinAvgs[i]; }
-        //double gyroCalibrationDataAt(int i) { return gyroCalibrationData[i]; }
-
         //void loadSettingsData();
         void onNewCalibration();
         QPoint& getStartPos() { return startPos; };
