@@ -40,6 +40,7 @@
 #include <QObject>
 #include "Application.h"
 #include "StationaryCalibrationModule.h"
+#include "QMessageBox"
 
 class Application;
 
@@ -71,7 +72,8 @@ private:
     Application &application;
     StationaryCalibrationModule &calibrationModule;
 
-    double gyroMinAvgs[3];
+    QMessageBox msgBox;
+
     QVector<IdleGyroWindow> idleGyroWindows;
     double gyroCalibrationData[12];
 };

@@ -44,12 +44,7 @@ PeriodicalCalibrationModule::PeriodicalCalibrationModule(Application &app, Stati
         application(app),
         calibrationModule(calMod)
 {
-    int size = application.settings.beginReadArray("gyroAvgsData");
-    for (int i = 0; i < size; ++i) {
-        application.settings.setArrayIndex(i);
-        gyroMinAvgs[i] = application.settings.value("gyroAvgsData").toDouble();
-    }
-    application.settings.endArray();
+
 }
 
 PeriodicalCalibrationModule::~PeriodicalCalibrationModule()
@@ -96,24 +91,24 @@ QString PeriodicalCalibrationModule::Calibrate(QString rotAxis)
 
         if( (avgtemp < 1.5*GRAV) && (avgtemp > 0.5*GRAV) && (fabs(idleAxis) < 0.5*GRAV) && (SqSum > 0.25*pow(GRAV,2.0)) && (SqSum < 2*pow(GRAV,2.0)) ){
             if( actSize > 20 ){
-                xtemp1 = getCalibratedData(i-11, "x");
-                xtemp2 = getCalibratedData(i-10, "x");
-                ytemp1 = getCalibratedData(i-11, "y");
-                ytemp2 = getCalibratedData(i-10, "y");
-                ztemp1 = getCalibratedData(i-11, "z");
-                ztemp2 = getCalibratedData(i-10, "z");
+                xtemp1 = application.dataRecorder.calculateCalibratedValue("xAcc", i-11);
+                xtemp2 = application.dataRecorder.calculateCalibratedValue("xAcc", i-10);
+                ytemp1 = application.dataRecorder.calculateCalibratedValue("yAcc", i-11);
+                ytemp2 = application.dataRecorder.calculateCalibratedValue("yAcc", i-10);
+                ztemp1 = application.dataRecorder.calculateCalibratedValue("zAcc", i-11);
+                ztemp2 = application.dataRecorder.calculateCalibratedValue("zAcc", i-10);
 
                 if(rotAxis == "x"){
-                    alfa1 = calculateAngle(ytemp1, ztemp1);
-                    alfa2 = calculateAngle(ytemp2, ztemp2);
+                    alfa1 = atan2(ytemp1, ztemp1);
+                    alfa2 = atan2(ytemp2, ztemp2);
                     pos = 0;
                 } else if(rotAxis == "y"){
-                    alfa1 = calculateAngle(ztemp1, xtemp1);
-                    alfa2 = calculateAngle(ztemp2, xtemp2);
+                    alfa1 = atan2(ztemp1, xtemp1);
+                    alfa2 = atan2(ztemp2, xtemp2);
                     pos = 1;
                 } else if(rotAxis == "z"){
-                    alfa1 = calculateAngle(xtemp1, ytemp1);
-                    alfa2 = calculateAngle(xtemp2, ytemp2);
+                    alfa1 = atan2(xtemp1, ytemp1);
+                    alfa2 = atan2(xtemp2, ytemp2);
                     pos = 2;
                 }
 
@@ -130,9 +125,9 @@ QString PeriodicalCalibrationModule::Calibrate(QString rotAxis)
                 yGyro  = application.dataRecorder.at(i-10).yGyro;
                 zGyro  = application.dataRecorder.at(i-10).zGyro;
 
-                Xint += xGyro - gyroMinAvgs[0];
-                Yint += yGyro - gyroMinAvgs[1];
-                Zint += zGyro - gyroMinAvgs[2];
+                Xint += xGyro - application.dataRecorder.getGyroMinAvgs()[0];
+                Yint += yGyro - application.dataRecorder.getGyroMinAvgs()[1];
+                Zint += zGyro - application.dataRecorder.getGyroMinAvgs()[2];
             }
 
             actSize++;
@@ -264,25 +259,25 @@ QString PeriodicalCalibrationModule::SVD()
 
     Equation* equation10 = linearEquations.createEquation();
     equation10->setConstant(0);
-    equation10->setCoefficient("a11", gyroMinAvgs[0]);
-    equation10->setCoefficient("a12", gyroMinAvgs[1]);
-    equation10->setCoefficient("a13", gyroMinAvgs[2]);
+    equation10->setCoefficient("a11", application.dataRecorder.getGyroMinAvgs()[0]);
+    equation10->setCoefficient("a12", application.dataRecorder.getGyroMinAvgs()[1]);
+    equation10->setCoefficient("a13", application.dataRecorder.getGyroMinAvgs()[2]);
     equation10->setCoefficient("b1", 1);
     linearEquations.addEquation(equation10);
 
     Equation* equation11 = linearEquations.createEquation();
     equation11->setConstant(0);
-    equation11->setCoefficient("a21", gyroMinAvgs[0]);
-    equation11->setCoefficient("a22", gyroMinAvgs[1]);
-    equation11->setCoefficient("a23", gyroMinAvgs[2]);
+    equation11->setCoefficient("a21", application.dataRecorder.getGyroMinAvgs()[0]);
+    equation11->setCoefficient("a22", application.dataRecorder.getGyroMinAvgs()[1]);
+    equation11->setCoefficient("a23", application.dataRecorder.getGyroMinAvgs()[2]);
     equation11->setCoefficient("b2", 1);
     linearEquations.addEquation(equation11);
 
     Equation* equation12 = linearEquations.createEquation();
     equation12->setConstant(0);
-    equation12->setCoefficient("a31", gyroMinAvgs[0]);
-    equation12->setCoefficient("a32", gyroMinAvgs[1]);
-    equation12->setCoefficient("a33", gyroMinAvgs[2]);
+    equation12->setCoefficient("a31", application.dataRecorder.getGyroMinAvgs()[0]);
+    equation12->setCoefficient("a32", application.dataRecorder.getGyroMinAvgs()[1]);
+    equation12->setCoefficient("a33", application.dataRecorder.getGyroMinAvgs()[2]);
     equation12->setCoefficient("b3", 1);
     linearEquations.addEquation(equation12);
 
@@ -294,27 +289,17 @@ QString PeriodicalCalibrationModule::SVD()
     QString returnMessage = "";
 
     if ( solution->getMaximumError() > 0.1 ) {
+        msgBox.setText("Calibration Error! See console for details...");
+        msgBox.exec();
         returnMessage = "Maximum Error is too great! ( > 0.1 )  \n";
         return returnMessage;
     } else {
-        application.settings.beginWriteArray("gyroCalibrationData");
         for (unsigned int i = 0; i < linearEquations.getVariableCount(); i++) {
-            application.settings.setArrayIndex(i);
-            application.settings.setValue("gyroCalibrationData", solution->getValueAt(i));
-            gyroCalibrationData[i] = solution->getValueAt(i);
+            application.dataRecorder.setGyroCalibration(i, solution->getValueAt(i));
         }
-        application.settings.endArray();
 
-        application.settings.beginReadArray("gyroCalibrationData");
-        returnMessage.append("\nGyro Calibration Data: \n");
+        returnMessage.append("\nGyroscope Calibration Data: \n");
 
-        QMap<QString, unsigned int> variables = linearEquations.getVariables();
-        for(int i = 0; i < variables.size(); i++){
-            application.settings.setArrayIndex(i);
-            returnMessage.append(variables.key(i) + "\t");
-            returnMessage.append( application.settings.value("gyroCalibrationData").toString() + "\n" );
-        }
-        application.settings.endArray();
 
         return returnMessage;
     }

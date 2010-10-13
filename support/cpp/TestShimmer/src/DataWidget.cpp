@@ -111,8 +111,6 @@ void DataWidget::on_loadBtn_clicked()
         application.dataRecorder.loadSamples( file );
         application.dataRecorder.loadCalibFromFile( file );
     }
-
-
 }
 
 void DataWidget::on_exportBtn_clicked()

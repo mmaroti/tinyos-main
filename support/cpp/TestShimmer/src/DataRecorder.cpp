@@ -102,14 +102,14 @@ void DataRecorder::onReceiveMessage(const ActiveMessage & msg)
 
     //			qDebug() << "sample " + sample.toString();
 
-                    if(samples.size() > 2){
+                    /*if(samples.size() > 2){
                         int lag = getLag(sample.time);
                         if(lag > MAX_DUMMY) lag = MAX_DUMMY;
                         for(int i=lag; i > 0; i--){
                             Sample dummy;
                             samples.append(dummy);
                         }
-                    }
+                    }*/
                     samples.append(sample);
             }
             emit sampleAdded();
@@ -198,11 +198,10 @@ QString Sample::toCsvString() const
         if( temp >= 0 )
                 s += QString::number(temp) + ",";
 
-        if( rotmat[0] != 1.0 ){
-            for (int k=0; k<9; ++k){
-                s += QString::number(rotmat[k]) + ",";
-            }
+        for (int k=0; k<9; ++k){
+            s += QString::number(rotmat[k]) + ",";
         }
+
 
         return s;
 }
@@ -257,9 +256,9 @@ void DataRecorder::saveSamples(const QString& filename) const {
         ytemp = calculateCalibratedValue("yAcc", i);
         ztemp = calculateCalibratedValue("zAcc", i);
         avgtemp = calculateAbsAcc(i);
-        xyAngle = calculateAngle(xtemp,ytemp);
-        yzAngle = calculateAngle(ytemp,ztemp);
-        zxAngle = calculateAngle(ztemp,xtemp);
+        xyAngle = atan2(xtemp,ytemp);
+        yzAngle = atan2(ytemp,ztemp);
+        zxAngle = atan2(ztemp,xtemp);
         xGyro = calculateCalibratedValue("xGyro", i);
         yGyro = calculateCalibratedValue("yGyro", i);
         zGyro = calculateCalibratedValue("zGyro", i);
@@ -334,10 +333,13 @@ void DataRecorder::loadCalibFromFile(const QString& filename )
             msgBox.setText("Wrong file format!");
             msgBox.exec();
         } else {
+            application.settings.beginWriteArray("stationaryCalibrationData");
             for(int i = 0; i < 12; i++){
                 line = ts.readLine();         // line of text excluding '\n'
-                accelCalibrationData[i] = line.toDouble();            //convert line string to int
+                application.settings.setArrayIndex(i);
+                application.settings.setValue("stationaryCalibrationData", line.toDouble());    //convert line string to int
             }
+            application.settings.endArray();
 
             line = ts.readLine();
             if(line != "#Gyro Calibration Data"){
@@ -345,10 +347,13 @@ void DataRecorder::loadCalibFromFile(const QString& filename )
                 msgBox.setText("Wrong file format!");
                 msgBox.exec();
             } else {
+                application.settings.beginWriteArray("gyroCalibrationData");
                 for(int i = 0; i < 12; i++){
                     line = ts.readLine();         // line of text excluding '\n'
-                    gyroCalibrationData[i] = line.toDouble();            //convert line string to int
+                    application.settings.setArrayIndex(i);
+                    application.settings.setValue("gyroCalibrationData", line.toDouble());    //convert line string to int
                 }
+                application.settings.endArray();
 
                 line = ts.readLine();
                 if(line != "#Gyro Minimum Averages"){
@@ -356,10 +361,13 @@ void DataRecorder::loadCalibFromFile(const QString& filename )
                     msgBox.setText("Wrong file format!");
                     msgBox.exec();
                 } else {
-                    for(int i = 0; i < 3; i++){
+                    application.settings.beginWriteArray("gyroAvgsData");
+                    for (int i = 0; i < 3; i++) {
                         line = ts.readLine();         // line of text excluding '\n'
-                        gyroMinAvgs[i] = line.toDouble();            //convert line string to int
+                        application.settings.setArrayIndex(i);
+                        application.settings.setValue("gyroAvgsData", line.toDouble());
                     }
+                    application.settings.endArray();
                 }
             }
         }
@@ -399,30 +407,33 @@ void DataRecorder::saveCalibToFile(const QString& filename ) const
 }
 
 void DataRecorder::loadCalibrationData()
-{
-    if(application.settings.contains("stationaryCalibrationData") && application.settings.contains("gyroCalibrationData")){
+{    
+    if(!application.settings.contains("stationaryCalibrationData/size") && !application.settings.contains("gyroCalibrationData/size") && !application.settings.contains("gyroAvgsData/size")){
+        setCalibToZero();
+    }
+    if(application.settings.contains("stationaryCalibrationData/size")){
         int size = application.settings.beginReadArray("stationaryCalibrationData");
         for (int i = 0; i < size; ++i) {
             application.settings.setArrayIndex(i);
             accelCalibrationData[i] = application.settings.value("stationaryCalibrationData").toDouble();
         }
         application.settings.endArray();
-
-        size = application.settings.beginReadArray("gyroCalibrationData");
+    }
+    if(application.settings.contains("gyroCalibrationData/size")){
+        int size = application.settings.beginReadArray("gyroCalibrationData");
         for (int i = 0; i < size; ++i) {
             application.settings.setArrayIndex(i);
             gyroCalibrationData[i] = application.settings.value("gyroCalibrationData").toDouble();
         }
         application.settings.endArray();
-
-        size = application.settings.beginReadArray("gyroAvgsData");
+    }
+    if(application.settings.contains("gyroAvgsData/size")){
+        int size = application.settings.beginReadArray("gyroAvgsData");
         for (int i = 0; i < size; ++i) {
             application.settings.setArrayIndex(i);
             gyroMinAvgs[i] = application.settings.value("gyroAvgsData").toDouble();
         }
         application.settings.endArray();
-    } else {
-        setCalibToZero();
     }
 }
 

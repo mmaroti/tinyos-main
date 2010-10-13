@@ -70,6 +70,7 @@ private slots:
     void on_exportButton_clicked();
     void on_importButton_clicked();
     void on_clearButton_clicked();
+    void on_useButton_clicked();
 
 signals:
     void calibrationDone();

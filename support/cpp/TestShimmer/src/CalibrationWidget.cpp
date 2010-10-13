@@ -155,12 +155,19 @@ void CalibrationWidget::on_importButton_clicked()
         application.dataRecorder.loadCalibFromFile( file );;
     }
     loadCalibrationResults();
-    emit calibrationDone();
 }
 
 void CalibrationWidget::on_clearButton_clicked()
 {
     application.dataRecorder.clearCalibrationData();
+    loadCalibrationResults();
+}
+
+void CalibrationWidget::on_useButton_clicked()
+{
+    application.dataRecorder.loadCalibrationData();
+    loadCalibrationResults();
+    emit calibrationDone();
 }
 
 void CalibrationWidget::loadCalibrationResults()
@@ -183,6 +190,25 @@ void CalibrationWidget::loadCalibrationResults()
         message.append( QString::number(application.dataRecorder.getGyroCalibration()[i]) + "\n" );
     }   
 
+    message.append("\nCalibration Data Stored in Registry: \n");
+    message.append("stationaryCalibrationData: ");
+    if( application.settings.contains("stationaryCalibrationData/size") ){
+        message.append("yes\n");
+    } else {
+        message.append("no\n");
+    }
+    message.append("gyroAvgsData: ");
+    if(application.settings.contains("gyroAvgsData/size")){
+        message.append("yes\n");
+    } else {
+        message.append("no\n");
+    }
+    message.append("gyroCalibrationData: ");
+    if(application.settings.contains("gyroCalibrationData/size")){
+        message.append("yes\n");
+    } else {
+        message.append("no\n");
+    }
     ui->calibrationResults->setText(message);
-    application.dataRecorder.loadCalibrationData();
+    //application.dataRecorder.loadCalibrationData();
 }
