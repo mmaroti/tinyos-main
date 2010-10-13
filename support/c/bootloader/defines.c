@@ -15,17 +15,17 @@ void init() {
 	TCCR2B = 1 << CS20;
 
 	// one wrap is 256/32768 = 1/128 sec
-	for(wraps = 128; wraps != 0; --wraps)
+	for(wraps = 255; wraps != 0; --wraps)
 	{
-		while( TCNT1 != 0 )
+		while( TCNT2 != 0 )
 			;
 
-		now = TCNT2;
+		now = TCNT1;
 
-		while( TCNT1 != 32 )	// wait 32/32768 = 1/1024 sec
+		while( TCNT2 != 32 )	// wait 32/32768 = 1/1024 sec
 			;
 
-		cycles = TCNT2;
+		cycles = TCNT1;
 	}
 
 	cycles -= now;
@@ -40,6 +40,6 @@ int baudrateRegister(uint32_t baudrate) {
 	init();
 
 	// we use the fast setting: (cycles * 1024) / (8 * baudrate) - 1
-	return (((uint32_t)cycles) << 7) / baudrate - 1;
+	return (((uint32_t)cycles) << 7) / ((uint32_t)baudrate) - 1;
 }
 
