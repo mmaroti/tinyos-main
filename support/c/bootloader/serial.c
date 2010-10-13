@@ -4,8 +4,8 @@
 *
 * File              : serial.c
 * Compiler          : IAR C 3.10C Kickstart, AVR-GCC/avr-libc(>= 1.2.5)
-* Revision          : $Revision: 1.3 $
-* Date              : $Date: 2010-10-06 22:58:14 $
+* Revision          : $Revision: 1.4 $
+* Date              : $Date: 2010-10-13 12:59:03 $
 * Updated by        : $Author: szabomeister $
 *
 * Support mail      : avr@atmel.com
@@ -20,8 +20,11 @@
 
 void initbootuart(void)
 {
+  BRREG_VALUE = baudrateRegister(BAUD_RATE);
+
   BAUD_RATE_LOW_REG = BRREG_VALUE;
   BAUD_RATE_HIGH_REG= (BRREG_VALUE << 8);
+  UART_STATUS_REG = (1<<UART_DOUBLE_SPEED_BIT);
   UART_CONTROL_REG = (1 << ENABLE_RECEIVER_BIT) |
                      (1 << ENABLE_TRANSMITTER_BIT); // enable receive and transmit
   #ifdef _ATMEGA1281

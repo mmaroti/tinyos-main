@@ -6,26 +6,30 @@
 #include	<avr/io.h>
 
 /* baud rate register value calculation */
-#define	CPU_FREQ	7300000
-#define	BAUD_RATE	19200
+#define	CPU_FREQ	8000000
+//#define	BAUD_RATE	19200
 
 
 /* definitions for UART control */
 #ifdef _ATMEGA1281
+#define BAUD_RATE_HIGH_REG	UBRR0H
 #define	BAUD_RATE_LOW_REG	UBRR0L
 #define	UART_CONTROL_REG	UCSR0B
 #define	ENABLE_TRANSMITTER_BIT	TXEN0
 #define	ENABLE_RECEIVER_BIT	RXEN0
 #define	UART_STATUS_REG	UCSR0A
+#define UART_DOUBLE_SPEED_BIT	U2X0
 #define	TRANSMIT_COMPLETE_BIT	TXC0
 #define	RECEIVE_COMPLETE_BIT	RXC0
 #define	UART_DATA_REG	UDR0
 #else
+#define BAUD_RATE_HIGH_REG	UBRR1H
 #define	BAUD_RATE_LOW_REG	UBRR1L
 #define	UART_CONTROL_REG	UCSR1B
 #define	ENABLE_TRANSMITTER_BIT	TXEN1
 #define	ENABLE_RECEIVER_BIT	RXEN1
 #define	UART_STATUS_REG	UCSR1A
+#define UART_DOUBLE_SPEED_BIT	U2X1
 #define	TRANSMIT_COMPLETE_BIT	TXC1
 #define	RECEIVE_COMPLETE_BIT	RXC1
 #define	UART_DATA_REG	UDR1
@@ -61,14 +65,6 @@ uint32_t counter;
 
 int BRREG_VALUE;
 int blinker;
-
-enum {
-    /* This is expected number of cycles per jiffy at the platform's
-       specified MHz. Assumes PLATFORM_MHZ == 1, 2, 4, 8 or 16. */
-    MAGIC = 488 / (16 / (CPU_FREQ / 1000000))
-  };
-
- uint16_t cycles;
 
 void init(void);
 int baudrateRegister(uint32_t baudrate);

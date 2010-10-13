@@ -4,8 +4,8 @@
 *
 * File              : main.c
 * Compiler          : IAR C 3.10C Kickstart, AVR-GCC/avr-libc(>= 1.2.5)
-* Revision          : $Revision: 1.3 $
-* Date              : $Date: 2010-10-06 22:58:51 $
+* Revision          : $Revision: 1.4 $
+* Date              : $Date: 2010-10-13 12:59:03 $
 * Updated by        : $Author: szabomeister $
 *
 * Support mail      : avr@atmel.com
@@ -82,7 +82,7 @@ void main(void)
 
     /* Initialization */   
     
-    BRREG_VALUE = baudrateRegister(BAUD_RATE);
+    
     
     void (*funcptr)( void ) = 0x0000; // Set up function pointer to RESET vector.
     initbootuart(); // Initialize UART.
