@@ -49,7 +49,7 @@ public:
         int getGraphs() const { return graphs; }
 
         double calibrationDataAt(int i) { return calibrationData[i]; }
-        double gyroMinAvgsAt(int i) { return gyroMinAvgs[i]; }
+
         double gyroCalibrationDataAt(int i) { return gyroCalibrationData[i]; }
         double calculateAngle( double acceleration1, double acceleration2 );
         double calculateCalibratedValue( QString axis, int time );
@@ -84,7 +84,6 @@ private:
         QPoint getSample(int x, int y);
         QPoint lastPos, startPos;
 
-        double gyroMinAvgs[3];
         double gyroCalibrationData[12];
         double calibrationData[12];
 };

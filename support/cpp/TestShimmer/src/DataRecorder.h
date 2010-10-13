@@ -143,7 +143,7 @@ private:
         double gyroCalibrationData[12];
         double gyroMinAvgs[3];
         int accelIdleWindowStart[6];
-        int gyroIdleWindowStart[7]; // FIXME
+        int gyroIdleWindowStart[7];
 
         Application &application; // FIXME
 

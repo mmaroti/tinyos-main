@@ -456,69 +456,7 @@ QString TurntableCalibrationModule::LSF() {
             application.dataRecorder.setGyroCalibration(i, solution->getValueAt(i));
         }
 
-        returnMessage.append("\nGyroscope Calibration Data: \n");
-        // FIXME Why is it in comment???
-        /*application.settings.setArrayIndex(0);
-        returnMessage.append("a11 ");
-        returnMessage.append( application.settings.value("gyroCalibrationData").toString() + "\n" );
-        gyroCalibrationData[0] = application.settings.value("gyroCalibrationData").toDouble();
-
-        application.settings.setArrayIndex(1);
-        returnMessage.append("a12 ");
-        returnMessage.append( application.settings.value("gyroCalibrationData").toString() + "\n" );
-        gyroCalibrationData[1] = application.settings.value("gyroCalibrationData").toDouble();
-
-        application.settings.setArrayIndex(2);
-        returnMessage.append("a13 ");
-        returnMessage.append( application.settings.value("gyroCalibrationData").toString() + "\n" );
-        gyroCalibrationData[2] = application.settings.value("gyroCalibrationData").toDouble();
-
-        application.settings.setArrayIndex(3);
-        returnMessage.append("a21 ");
-        returnMessage.append( application.settings.value("gyroCalibrationData").toString() + "\n" );
-        gyroCalibrationData[3] = application.settings.value("gyroCalibrationData").toDouble();
-
-        application.settings.setArrayIndex(4);
-        returnMessage.append("a22 ");
-        returnMessage.append( application.settings.value("gyroCalibrationData").toString() + "\n" );
-        gyroCalibrationData[4] = application.settings.value("gyroCalibrationData").toDouble();
-
-        application.settings.setArrayIndex(5);
-        returnMessage.append("a23 ");
-        returnMessage.append( application.settings.value("gyroCalibrationData").toString() + "\n" );
-        gyroCalibrationData[5] = application.settings.value("gyroCalibrationData").toDouble();
-
-        application.settings.setArrayIndex(6);
-        returnMessage.append("a31 ");
-        returnMessage.append( application.settings.value("gyroCalibrationData").toString() + "\n" );
-        gyroCalibrationData[6] = application.settings.value("gyroCalibrationData").toDouble();
-
-        application.settings.setArrayIndex(7);
-        returnMessage.append("a32 ");
-        returnMessage.append( application.settings.value("gyroCalibrationData").toString() + "\n" );
-        gyroCalibrationData[7] = application.settings.value("gyroCalibrationData").toDouble();
-
-        application.settings.setArrayIndex(8);
-        returnMessage.append("a33 ");
-        returnMessage.append( application.settings.value("gyroCalibrationData").toString() + "\n" );
-        gyroCalibrationData[8] = application.settings.value("gyroCalibrationData").toDouble();
-
-        application.settings.setArrayIndex(9);
-        returnMessage.append("b1 ");
-        returnMessage.append( application.settings.value("gyroCalibrationData").toString() + "\n" );
-        gyroCalibrationData[9] = application.settings.value("gyroCalibrationData").toDouble();
-
-        application.settings.setArrayIndex(10);
-        returnMessage.append("b2 ");
-        returnMessage.append( application.settings.value("gyroCalibrationData").toString() + "\n" );
-        gyroCalibrationData[10] = application.settings.value("gyroCalibrationData").toDouble();
-
-        application.settings.setArrayIndex(11);
-        returnMessage.append("b3 ");
-        returnMessage.append( application.settings.value("gyroCalibrationData").toString() + "\n" );
-        gyroCalibrationData[11] = application.settings.value("gyroCalibrationData").toDouble();
-
-        application.settings.endArray();*/
+        returnMessage.append("\nGyroscope calibration successful \n");
 
         return returnMessage;
     }

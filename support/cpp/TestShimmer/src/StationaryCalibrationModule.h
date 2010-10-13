@@ -87,13 +87,7 @@ public:
 
     void clearWindows();
 
-    const int & atIdleSides(int i) const { return idleSidesMins[i]; }
-
-    //void setCalibrationDataAt(int i, double value) { calibrationData[i] = value; }
-
-    //const double & getCalibrationDataAt(int i) const { return calibrationData[i]; }
-
-    const double & getGyroAvgAt( int i ) const { return gyroMinAvgs[i]; }
+    int atIdleSides(int i) const { return idleSidesMins[i]; }
 
     void clearIdleSides();
 
@@ -115,7 +109,7 @@ private:
     QVarLengthArray<IdleWindow> idleWindows;
     int idleSidesMins[6];
     double gyroMinAvgs[3];
-    //double calibrationData[12];
+
 };
 
 #endif // StationaryCalibrationModule_H

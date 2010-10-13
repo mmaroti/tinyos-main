@@ -615,28 +615,3 @@ void DataPlot::mouseReleaseEvent(QMouseEvent * /* event */)
 {
     emit clicked();
 }
-
-// FIXME This should go into DataRecorder
-/*void DataPlot::loadSettingsData()
-{
-    int size = application.settings.beginReadArray("calibrationData");
-    for (int i = 0; i < size; ++i) {
-        application.settings.setArrayIndex(i);
-        accelCalibrationData[i] = application.settings.value("calibrationData").toDouble();
-    }
-    application.settings.endArray();
-
-    size = application.settings.beginReadArray("gyroCalibrationData");
-    for (int i = 0; i < size; ++i) {
-        application.settings.setArrayIndex(i);
-        gyroCalibrationData[i] = application.settings.value("gyroCalibrationData").toDouble();
-    }
-    application.settings.endArray();
-
-    size = application.settings.beginReadArray("gyroAvgsData");
-    for (int i = 0; i < size; ++i) {
-        application.settings.setArrayIndex(i);
-        gyroMinAvgs[i] = application.settings.value("gyroAvgsData").toDouble();
-    }
-    application.settings.endArray();
-}*/

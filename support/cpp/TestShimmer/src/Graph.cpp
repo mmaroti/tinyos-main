@@ -509,10 +509,4 @@ void Graph::loadSettingsData()
     }
     application.settings.endArray();
 
-    size = application.settings.beginReadArray("gyroAvgsData");
-    for (int i = 0; i < size; ++i) {
-        application.settings.setArrayIndex(i);
-        gyroMinAvgs[i] = application.settings.value("gyroAvgsData").toDouble();
-    }
-    application.settings.endArray();
 }
