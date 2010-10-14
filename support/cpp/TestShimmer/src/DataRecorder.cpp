@@ -518,87 +518,43 @@ void DataRecorder::at(int i, double data[ipo::SIZE]) const {
     data[GYRO_Z] =  w[Z];
 }
 
-void mat_mat_prod(const double A[3][3], const double B[3][3], double C[3][3]) {
-
-    for (int i=0; i<3; ++i) {
-        for (int j=0; j<3; ++j) {
-            C[i][j] = A[i][0]*B[0][j] + A[i][1]*B[1][j] + A[i][2]*B[2][j];
-        }
-    }
-}
-
-void mat_vec_prod(const double A[3][3], const double b[3], double c[3]) {
-
-    for (int i=0; i<3; ++i) {
-        c[i] = A[i][0]*b[0] + A[i][1]*b[1] + A[i][2]*b[2];
-    }
-}
-
-void mat_inv(const double A[3][3], double B[3][3]) {
-
-    B[0][0] = A[1][1]*A[2][2]-A[2][1]*A[1][2];
-    B[0][1] = A[2][1]*A[0][2]-A[0][1]*A[2][2];
-    B[0][2] = A[0][1]*A[1][2]-A[1][1]*A[0][2];
-
-    B[1][0] = A[2][0]*A[1][2]-A[1][0]*A[2][2];
-    B[1][1] = A[0][0]*A[2][2]-A[2][0]*A[0][2];
-    B[1][2] = A[1][0]*A[0][2]-A[0][0]*A[1][2];
-
-    B[2][0] = A[1][0]*A[2][1]-A[2][0]*A[1][1];
-    B[2][1] = A[2][0]*A[0][1]-A[0][0]*A[2][1];
-    B[2][2] = A[0][0]*A[1][1]-A[1][0]*A[0][1];
-
-    const double det = A[0][0]*B[0][0] + A[0][1]*B[1][0] + A[0][2]*B[2][0];
-
-    assert ( fabs(det) > 1.0e-20 );
-
-    for (int i=0; i<3; ++i) {
-        for (int j=0; j<3; ++j) {
-            B[i][j] /= det;
-        }
-    }
-}
-
 void DataRecorder::update_gyro_calib(const double s[12]) {
 
+    using namespace gyro;
+
     // FIXME Sign of y
-    const double A[][3] = { { gyroCalibrationData[0], gyroCalibrationData[1], gyroCalibrationData[2] } ,
-                            {-gyroCalibrationData[3],-gyroCalibrationData[4],-gyroCalibrationData[5] } ,
-                            { gyroCalibrationData[6], gyroCalibrationData[7], gyroCalibrationData[8] } };
+    const double A_[] = { gyroCalibrationData[0], gyroCalibrationData[1], gyroCalibrationData[2],
+                         -gyroCalibrationData[3],-gyroCalibrationData[4],-gyroCalibrationData[5],
+                          gyroCalibrationData[6], gyroCalibrationData[7], gyroCalibrationData[8] };
 
-    const double b[] = { gyroMinAvgs[0], gyroMinAvgs[1], gyroMinAvgs[2] };
+    matrix3 A(A_);
 
-    const double C[][3] = { {s[0]+1.0, s[1], s[2] }, { s[3], s[4]+1.0, s[5] }, { s[6], s[7], s[8]+1.0 } };
+    matrix3 C = matrix3::identity() + matrix3(s);
 
-    double CA[3][3];
+    matrix3 gain = C*A;
 
-    mat_mat_prod(C, A, CA);
+    gain.copy_to(gyroCalibrationData);
 
-    for (int i=0, k=0; i<3; ++i) {
-        for (int j=0; j<3; ++j) {
-            // FIXME Sign of y
-            gyroCalibrationData[k++] = (i==1?-1:1)*CA[i][j];
-            std::cout << "gyroCalibrationData[" << k-1 << "] = " << gyroCalibrationData[k-1] << std::endl;
-        }
-    }
+    // FIXME Sign of y
+    for (int k=3; k<=5; ++k)
+        gyroCalibrationData[k] = -gyroCalibrationData[k];
 
-    double CAb[3];
+    // FIXME Sign of y
+    vector3 b(gyroCalibrationData[9], -gyroCalibrationData[10], gyroCalibrationData[11]);
 
-    mat_vec_prod(CA, b, CAb);
+    vector3 d = vector3(s+9);
 
-    double CAinv[3][3];
+    vector3 offset = C*b + d;
 
-    mat_inv(CA, CAinv);
+    offset.copy_to(gyroCalibrationData+9);
 
-    double f[] = { CAb[0] - s[9], CAb[1] - s[10], CAb[2] - s[11]};
+    // FIXME Sign of y
+    gyroCalibrationData[10] = -gyroCalibrationData[10];
 
-    double b_corr[3];
+    std::cout << "Gyroscope calibration data updated to: " << std::endl;
 
-    mat_vec_prod(CAinv, f, b_corr);
-
-    for (int i=0; i<3; ++i) {
-        gyroMinAvgs[i] = b_corr[i];
-        std::cout << "gyroMinAvgs[" << i << "] = " << b_corr[i] << std::endl;
+    for (int k=0; k<12; ++k) {
+        std::cout << gyroCalibrationData[k] << std::endl;
     }
 }
 
