@@ -81,7 +81,8 @@ HEADERS += src/DataRecorder.h \
     src/DataReadException.hpp \
     src/Results.hpp \
     src/DataWriteException.hpp \
-    src/EulerAngles.hpp
+    src/EulerAngles.hpp \
+    src/MatrixVector.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

@@ -45,6 +45,7 @@
 #include <math.h>
 #include "Results.hpp"
 #include "EulerAngles.hpp"
+#include "MatrixVector.hpp"
 
 DataRecorder::DataRecorder(Application &app) : application(app)
 {
@@ -484,6 +485,8 @@ void DataRecorder::at(int i, double data[ipo::SIZE]) const {
 
     using namespace ipo;
 
+    using namespace gyro;
+
     if (i<0 || i>=application.dataRecorder.size()) {
 
         throw std::out_of_range("Index out of range!");
@@ -493,22 +496,26 @@ void DataRecorder::at(int i, double data[ipo::SIZE]) const {
 
     data[TIME_STAMP] = s.time;
 
-    const double ax = s.xAccel;
-    const double ay = s.yAccel;
-    const double az = s.zAccel;
+    vector3 accel_measured(s.xAccel, s.yAccel, s.zAccel);
+    matrix3 accel_gain(accelCalibrationData);
+    vector3 accel_offset(accelCalibrationData+9);
 
-    data[ACCEL_X] = ax*accelCalibrationData[0] + ay*accelCalibrationData[1] + az*accelCalibrationData[2] + accelCalibrationData[9];
-    data[ACCEL_Y] = ax*accelCalibrationData[3] + ay*accelCalibrationData[4] + az*accelCalibrationData[5] + accelCalibrationData[10];
-    data[ACCEL_Z] = ax*accelCalibrationData[6] + ay*accelCalibrationData[7] + az*accelCalibrationData[8] + accelCalibrationData[11];
+    vector3 accel = accel_gain*accel_measured + accel_offset;
 
-    const double wx = s.xGyro;
-    const double wy = s.yGyro;
-    const double wz = s.zGyro;
+    data[ACCEL_X] = accel[X];
+    data[ACCEL_Y] = accel[Y];
+    data[ACCEL_Z] = accel[Z];
+
+    vector3 w_measured(s.xGyro, s.yGyro, s.zGyro);
+    matrix3 w_gain(gyroCalibrationData);
+    vector3 w_offset(gyroCalibrationData+9);
+
+    vector3 w = w_gain*w_measured + w_offset;
 
     // FIXME Sign of y
-    data[GYRO_X] =  (wx - gyroMinAvgs[0]) * gyroCalibrationData[0] + (wy - gyroMinAvgs[1]) * gyroCalibrationData[1] + (wz - gyroMinAvgs[2]) * gyroCalibrationData[2];
-    data[GYRO_Y] =-((wx - gyroMinAvgs[0]) * gyroCalibrationData[3] + (wy - gyroMinAvgs[1]) * gyroCalibrationData[4] + (wz - gyroMinAvgs[2]) * gyroCalibrationData[5]);
-    data[GYRO_Z] =  (wx - gyroMinAvgs[0]) * gyroCalibrationData[6] + (wy - gyroMinAvgs[1]) * gyroCalibrationData[7] + (wz - gyroMinAvgs[2]) * gyroCalibrationData[8];
+    data[GYRO_X] =  w[X];
+    data[GYRO_Y] = -w[Y];
+    data[GYRO_Z] =  w[Z];
 }
 
 void mat_mat_prod(const double A[3][3], const double B[3][3], double C[3][3]) {
@@ -615,7 +622,7 @@ void DataRecorder::loadResults(const ipo::Results* res) {
         }
     }
 
-    update_gyro_calib(res->var());
+    //update_gyro_calib(res->var());
 }
 
 bool DataRecorder::euler_angle(int i, int k, double& angle_rad) const {
