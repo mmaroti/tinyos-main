@@ -302,7 +302,6 @@ void consistent_in_range(const double angles_deg[3]) {
 
 void M_consistency( const double rot_z[9],
 					const double a[3],
-					const double u[3],
 					const double v[3],
 					const double w[3] )
 {
@@ -632,7 +631,7 @@ void get_M(const double a[3], double M[9]) {
 
 	dbg::orthogonality(rot_z);
 
-	dbg::M_consistency(rot_z, a, u, v, w);
+	dbg::M_consistency(rot_z, a, v, w);
 
 	// Flip: x -> y; y -> x; z -> -z
 	M[R11] = v[X];
