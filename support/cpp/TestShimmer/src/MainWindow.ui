@@ -105,8 +105,8 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionImport"/>
-    <addaction name="actionExport"/>
+    <addaction name="actionLoad"/>
+    <addaction name="actionSave"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
@@ -118,18 +118,27 @@
     <addaction name="actionCopy"/>
     <addaction name="actionCut"/>
    </widget>
+   <widget class="QMenu" name="menuCalibration">
+    <property name="title">
+     <string>Calibration</string>
+    </property>
+    <addaction name="actionImport"/>
+    <addaction name="actionExport"/>
+    <addaction name="actionClear"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
+   <addaction name="menuCalibration"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="actionImport">
+  <action name="actionLoad">
    <property name="text">
-    <string>Import</string>
+    <string>Load</string>
    </property>
   </action>
-  <action name="actionExport">
+  <action name="actionSave">
    <property name="text">
-    <string>Export</string>
+    <string>Save</string>
    </property>
   </action>
   <action name="actionQuit">
@@ -150,6 +159,21 @@
   <action name="actionCut">
    <property name="text">
     <string>Cut</string>
+   </property>
+  </action>
+  <action name="actionImport">
+   <property name="text">
+    <string>Import</string>
+   </property>
+  </action>
+  <action name="actionExport">
+   <property name="text">
+    <string>Export</string>
+   </property>
+  </action>
+  <action name="actionClear">
+   <property name="text">
+    <string>Clear</string>
    </property>
   </action>
  </widget>

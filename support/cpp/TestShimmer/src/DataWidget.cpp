@@ -106,14 +106,14 @@ void DataWidget::on_refreshButton_clicked()
 
 void DataWidget::on_loadBtn_clicked()
 {
-    QString file = QFileDialog::getOpenFileName(this, "Select one or more files to open", "c:/");
+    QString file = QFileDialog::getOpenFileName(this, "Select one or more files to open", "c:/", "CSV (*.csv);;Any File (*.*)");
     if ( !file.isEmpty() ) {
         application.dataRecorder.loadSamples( file );
         application.dataRecorder.loadCalibFromFile( file );
     }
 }
 
-void DataWidget::on_exportBtn_clicked()
+void DataWidget::on_saveBtn_clicked()
 {
     QString fn = QFileDialog::getSaveFileName(  this, "Choose a filename to save under", "c:/", "CSV (*.csv)");
     if ( !fn.isEmpty() ) {
@@ -244,114 +244,131 @@ void DataWidget::on_eulerZ_clicked()
 void DataWidget::on_rawAccBox_clicked()
 {
     if(ui->rawAccBox->isChecked()){
-        ui->rawAccX->setChecked(true);
-        ui->rawAccY->setChecked(true);
-        ui->rawAccZ->setChecked(true);
+        if(!ui->rawAccX->checkState() && !ui->rawAccY->checkState() && !ui->rawAccZ->checkState()){
+            ui->rawAccX->setChecked(true);
+            ui->rawAccY->setChecked(true);
+            ui->rawAccZ->setChecked(true);
+        }
+        on_rawAccX_clicked();
+        on_rawAccY_clicked();
+        on_rawAccZ_clicked();
     } else {
-        ui->rawAccX->setChecked(false);
-        ui->rawAccY->setChecked(false);
-        ui->rawAccZ->setChecked(false);
+        plot->setGraphs(DataPlot::XRAWACC, false);
+        plot->setGraphs(DataPlot::YRAWACC, false);
+        plot->setGraphs(DataPlot::ZRAWACC, false);
     }
-    on_rawAccX_clicked();
-    on_rawAccY_clicked();
-    on_rawAccZ_clicked();
 }
 
 void DataWidget::on_accelBox_clicked()
 {
     if(ui->accelBox->isChecked()){
-        ui->accX->setChecked(true);
-        ui->accY->setChecked(true);
-        ui->accZ->setChecked(true);
+        if(!ui->accX->checkState() && !ui->accY->checkState() && !ui->accZ->checkState() && !ui->absAcc->checkState()){
+            ui->accX->setChecked(true);
+            ui->accY->setChecked(true);
+            ui->accZ->setChecked(true);
+            ui->absAcc->setChecked(true);
+        }
+        on_accX_clicked();
+        on_accY_clicked();
+        on_accZ_clicked();
+        on_absAcc_clicked();
     } else {
-        ui->accX->setChecked(false);
-        ui->accY->setChecked(false);
-        ui->accZ->setChecked(false);
+        plot->setGraphs(DataPlot::XACC, false);
+        plot->setGraphs(DataPlot::YACC, false);
+        plot->setGraphs(DataPlot::ZACC, false);
+        plot->setGraphs(DataPlot::ABSACC, false);
     }
-    on_accX_clicked();
-    on_accY_clicked();
-    on_accZ_clicked();
 }
 
 void DataWidget::on_gyroBox_clicked()
 {
     if(ui->gyroBox->isChecked()){
-        ui->gyroX->setChecked(true);
-        ui->gyroY->setChecked(true);
-        ui->gyroZ->setChecked(true);
+        if(!ui->gyroX->checkState() && !ui->gyroY->checkState() && !ui->gyroZ->checkState()){
+            ui->gyroX->setChecked(true);
+            ui->gyroY->setChecked(true);
+            ui->gyroZ->setChecked(true);
+        }
+        on_gyroX_clicked();
+        on_gyroY_clicked();
+        on_gyroZ_clicked();
     } else {
-        ui->gyroX->setChecked(false);
-        ui->gyroY->setChecked(false);
-        ui->gyroZ->setChecked(false);
+        plot->setGraphs(DataPlot::XGYRO, false);
+        plot->setGraphs(DataPlot::YGYRO, false);
+        plot->setGraphs(DataPlot::ZGYRO, false);
     }
-    on_gyroX_clicked();
-    on_gyroY_clicked();
-    on_gyroZ_clicked();
 }
 
 void DataWidget::on_rawGyroBox_clicked()
 {
     if(ui->rawGyroBox->isChecked()){
-        ui->rawGyroX->setChecked(true);
-        ui->rawGyroY->setChecked(true);
-        ui->rawGyroZ->setChecked(true);
+        if(!ui->rawGyroX->checkState() && !ui->rawGyroY->checkState() && !ui->rawGyroZ->checkState()){
+            ui->rawGyroX->setChecked(true);
+            ui->rawGyroY->setChecked(true);
+            ui->rawGyroZ->setChecked(true);
+        }
+        on_rawGyroX_clicked();
+        on_rawGyroY_clicked();
+        on_rawGyroZ_clicked();
     } else {
-        ui->rawGyroX->setChecked(false);
-        ui->rawGyroY->setChecked(false);
-        ui->rawGyroZ->setChecked(false);
+        plot->setGraphs(DataPlot::XRAWGYRO, false);
+        plot->setGraphs(DataPlot::YRAWGYRO, false);
+        plot->setGraphs(DataPlot::ZRAWGYRO, false);
     }
-    on_rawGyroX_clicked();
-    on_rawGyroY_clicked();
-    on_rawGyroZ_clicked();
 }
 
 
 void DataWidget::on_anglesBox_clicked()
 {
     if(ui->anglesBox->isChecked()){
-        ui->angXY->setChecked(true);
-        ui->angYZ->setChecked(true);
-        ui->angZX->setChecked(true);
+        if(!ui->angXY->checkState() && !ui->angYZ->checkState() && !ui->angZX->checkState()){
+            ui->angXY->setChecked(true);
+            ui->angYZ->setChecked(true);
+            ui->angZX->setChecked(true);
+        }
+        on_angXY_clicked();
+        on_angYZ_clicked();
+        on_angZX_clicked();
     } else {
-        ui->angXY->setChecked(false);
-        ui->angYZ->setChecked(false);
-        ui->angZX->setChecked(false);
+        plot->setGraphs(DataPlot::XYANG, false);
+        plot->setGraphs(DataPlot::YZANG, false);
+        plot->setGraphs(DataPlot::ZXANG, false);
     }
-    on_angXY_clicked();
-    on_angYZ_clicked();
-    on_angZX_clicked();
 }
 
-void DataWidget::on_angles2Box_clicked()
+void DataWidget::on_tiltAnglesBox_clicked()
 {
-    if(ui->angles2Box->isChecked()){
-        ui->angX->setChecked(true);
-        ui->angY->setChecked(true);
-        ui->angZ->setChecked(true);
+    if(ui->tiltAnglesBox->isChecked()){
+        if(!ui->angX->checkState() && !ui->angY->checkState() && !ui->angZ->checkState()){
+            ui->angX->setChecked(true);
+            ui->angY->setChecked(true);
+            ui->angZ->setChecked(true);
+        }
+        on_angX_clicked();
+        on_angY_clicked();
+        on_angZ_clicked();
     } else {
-        ui->angX->setChecked(false);
-        ui->angY->setChecked(false);
-        ui->angZ->setChecked(false);
+        plot->setGraphs(DataPlot::XANG, false);
+        plot->setGraphs(DataPlot::YANG, false);
+        plot->setGraphs(DataPlot::ZANG, false);
     }
-    on_angX_clicked();
-    on_angY_clicked();
-    on_angZ_clicked();
 }
 
 void DataWidget::on_eulerBox_clicked()
 {
     if(ui->eulerBox->isChecked()){
-        ui->eulerX->setChecked(true);
-        ui->eulerY->setChecked(true);
-        ui->eulerZ->setChecked(true);
+        if(!ui->eulerX->checkState() && !ui->eulerY->checkState() && !ui->eulerZ->checkState()){
+            ui->eulerX->setChecked(true);
+            ui->eulerY->setChecked(true);
+            ui->eulerZ->setChecked(true);
+        }
+        on_eulerX_clicked();
+        on_eulerY_clicked();
+        on_eulerZ_clicked();
     } else {
-        ui->eulerX->setChecked(false);
-        ui->eulerY->setChecked(false);
-        ui->eulerZ->setChecked(false);
+        plot->setGraphs(DataPlot::XEUL, false);
+        plot->setGraphs(DataPlot::YEUL, false);
+        plot->setGraphs(DataPlot::ZEUL, false);
     }
-    on_eulerX_clicked();
-    on_eulerY_clicked();
-    on_eulerZ_clicked();
 }
 
 void DataWidget::onTrim()
@@ -428,5 +445,79 @@ void DataWidget::on_regressionButton_clicked()
         ui->clearBtn->setEnabled(false);
 
         emit SolverStarted();
+    }
+}
+
+void DataWidget::on_presetsComboBox_currentIndexChanged()
+{
+    if(ui->presetsComboBox->currentIndex() == 0){
+        on_rawAccX_clicked();
+        on_rawAccY_clicked();
+        on_rawAccZ_clicked();
+        on_accX_clicked();
+        on_accY_clicked();
+        on_accZ_clicked();
+        on_absAcc_clicked();
+        on_gyroX_clicked();
+        on_gyroY_clicked();
+        on_gyroZ_clicked();
+        on_rawGyroX_clicked();
+        on_rawGyroY_clicked();
+        on_rawGyroZ_clicked();
+        on_angXY_clicked();
+        on_angYZ_clicked();
+        on_angZX_clicked();
+        on_angX_clicked();
+        on_angY_clicked();
+        on_angZ_clicked();
+        on_eulerX_clicked();
+        on_eulerY_clicked();
+        on_eulerZ_clicked();
+    } else if(ui->presetsComboBox->currentIndex() == 1){
+        plot->setGraphs(DataPlot::XRAWACC, true);
+        plot->setGraphs(DataPlot::YRAWACC, true);
+        plot->setGraphs(DataPlot::ZRAWACC, true);
+        plot->setGraphs(DataPlot::XACC, true);
+        plot->setGraphs(DataPlot::YACC, true);
+        plot->setGraphs(DataPlot::ZACC, true);
+        plot->setGraphs(DataPlot::ABSACC, true);
+        plot->setGraphs(DataPlot::XGYRO, true);
+        plot->setGraphs(DataPlot::YGYRO, true);
+        plot->setGraphs(DataPlot::ZGYRO, true);
+        plot->setGraphs(DataPlot::XRAWGYRO, true);
+        plot->setGraphs(DataPlot::YRAWGYRO, true);
+        plot->setGraphs(DataPlot::ZRAWGYRO, true);
+        plot->setGraphs(DataPlot::XYANG, true);
+        plot->setGraphs(DataPlot::YZANG, true);
+        plot->setGraphs(DataPlot::ZXANG, true);
+        plot->setGraphs(DataPlot::XANG, true);
+        plot->setGraphs(DataPlot::YANG, true);
+        plot->setGraphs(DataPlot::ZANG, true);
+        plot->setGraphs(DataPlot::XEUL, true);
+        plot->setGraphs(DataPlot::YEUL, true);
+        plot->setGraphs(DataPlot::ZEUL, true);
+    } else if(ui->presetsComboBox->currentIndex() == 2){
+        plot->setGraphs(DataPlot::XRAWACC, false);
+        plot->setGraphs(DataPlot::YRAWACC, false);
+        plot->setGraphs(DataPlot::ZRAWACC, false);
+        plot->setGraphs(DataPlot::XACC, false);
+        plot->setGraphs(DataPlot::YACC, false);
+        plot->setGraphs(DataPlot::ZACC, false);
+        plot->setGraphs(DataPlot::ABSACC, false);
+        plot->setGraphs(DataPlot::XGYRO, false);
+        plot->setGraphs(DataPlot::YGYRO, false);
+        plot->setGraphs(DataPlot::ZGYRO, false);
+        plot->setGraphs(DataPlot::XRAWGYRO, false);
+        plot->setGraphs(DataPlot::YRAWGYRO, false);
+        plot->setGraphs(DataPlot::ZRAWGYRO, false);
+        plot->setGraphs(DataPlot::XYANG, false);
+        plot->setGraphs(DataPlot::YZANG, false);
+        plot->setGraphs(DataPlot::ZXANG, false);
+        plot->setGraphs(DataPlot::XANG, false);
+        plot->setGraphs(DataPlot::YANG, false);
+        plot->setGraphs(DataPlot::ZANG, false);
+        plot->setGraphs(DataPlot::XEUL, false);
+        plot->setGraphs(DataPlot::YEUL, false);
+        plot->setGraphs(DataPlot::ZEUL, false);
     }
 }

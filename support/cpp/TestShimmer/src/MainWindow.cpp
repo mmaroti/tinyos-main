@@ -62,12 +62,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
 //	Widget3D* widget3d = new Widget3D(ui->openglTab, app);
 //	ui->openglTab->layout()->addWidget(widget3d);
+        ui->tabWidget->removeTab(5);    //temporarly hidden
 
 	DataWidget* dataWidget = new DataWidget(ui->plotTab, app);
 	ui->plotTab->layout()->addWidget(dataWidget);
 
         GraphWidget* graphWidget = new GraphWidget(ui->graphTab, app);
         ui->graphTab->layout()->addWidget(graphWidget);
+        ui->tabWidget->removeTab(2);    //temporarly hidden
 
         CalibrationWidget* calibrationWidget = new CalibrationWidget(ui->calibrationTab, app);
         ui->calibrationTab->layout()->addWidget(calibrationWidget);
@@ -83,8 +85,11 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(calibrationWidget, SIGNAL(calibrationDone()), dataWidget, SLOT(newCalibrationOccured()) );
         //connect(dataWidget->plot, SIGNAL(angleChanged(double)), window, SLOT(onAngleChanged(double)));
         connect(ui->actionQuit, SIGNAL(triggered()), this, SLOT(close()));
-        connect(ui->actionImport, SIGNAL(triggered()), dataWidget, SLOT(on_loadBtn_clicked()));
-        connect(ui->actionExport, SIGNAL(triggered()), dataWidget, SLOT(on_exportBtn_clicked()));
+        connect(ui->actionLoad, SIGNAL(triggered()), dataWidget, SLOT(on_loadBtn_clicked()));
+        connect(ui->actionSave, SIGNAL(triggered()), dataWidget, SLOT(on_saveBtn_clicked()));
+        connect(ui->actionExport, SIGNAL(triggered()), calibrationWidget, SLOT(on_exportButton_clicked()));
+        connect(ui->actionImport, SIGNAL(triggered()), calibrationWidget, SLOT(on_importButton_clicked()));
+        connect(ui->actionClear, SIGNAL(triggered()), calibrationWidget, SLOT(on_clearButton_clicked()));
         connect(ui->actionTrim, SIGNAL(triggered()), dataWidget, SLOT(onTrim()));
         connect(ui->actionCopy, SIGNAL(triggered()), dataWidget, SLOT(onCopy()));
         connect(ui->actionCut, SIGNAL(triggered()), dataWidget, SLOT(onCut()));

@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>513</width>
+    <width>594</width>
     <height>277</height>
    </rect>
   </property>
@@ -112,28 +112,40 @@
          <item>
           <widget class="QPushButton" name="exportButton">
            <property name="text">
-            <string>Export</string>
+            <string>(E)xport</string>
+           </property>
+           <property name="shortcut">
+            <string>E</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="importButton">
            <property name="text">
-            <string>Import</string>
+            <string>(I)mport</string>
+           </property>
+           <property name="shortcut">
+            <string>I</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="clearButton">
            <property name="text">
-            <string>Clear</string>
+            <string>(C)lear</string>
+           </property>
+           <property name="shortcut">
+            <string>C</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="useButton">
            <property name="text">
-            <string>Use</string>
+            <string>(U)se</string>
+           </property>
+           <property name="shortcut">
+            <string>U</string>
            </property>
           </widget>
          </item>

@@ -106,15 +106,17 @@ private slots:
         void on_rawGyroBox_clicked();
         void on_gyroBox_clicked();
         void on_anglesBox_clicked();
-        void on_angles2Box_clicked();
+        void on_tiltAnglesBox_clicked();
         void on_eulerBox_clicked();
 
-        void on_exportBtn_clicked();
+        void on_saveBtn_clicked();
         void on_clearBtn_clicked();
         void on_recordBtn_clicked();
         void on_loadBtn_clicked();
         void on_refreshButton_clicked();
         void on_regressionButton_clicked();
+
+        void on_presetsComboBox_currentIndexChanged();
 
         void newCalibrationOccured();
         void onTrim();

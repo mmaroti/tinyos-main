@@ -120,7 +120,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout_4" stretch="1,1,1,1,1,1,1,0,0,0">
+    <layout class="QVBoxLayout" name="verticalLayout_4" stretch="1,0,1,1,1,1,1,1,0,0,0">
      <property name="margin">
       <number>9</number>
      </property>
@@ -138,6 +138,49 @@
           <property name="checked">
            <bool>true</bool>
           </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="presetsBox">
+       <property name="title">
+        <string>Presets</string>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <item>
+         <widget class="QComboBox" name="presetsComboBox">
+          <item>
+           <property name="text">
+            <string>---</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>All</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>None</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Preset 1</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Preset 2</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Preset 3</string>
+           </property>
+          </item>
          </widget>
         </item>
        </layout>
@@ -872,7 +915,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QGroupBox" name="angles2Box">
+      <widget class="QGroupBox" name="tiltAnglesBox">
        <property name="title">
         <string>TILT angles</string>
        </property>
@@ -970,12 +1013,12 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="exportBtn">
+         <widget class="QPushButton" name="saveBtn">
           <property name="text">
-           <string>(E)xport</string>
+           <string>(S)ave</string>
           </property>
           <property name="shortcut">
-           <string>E</string>
+           <string>S</string>
           </property>
          </widget>
         </item>
