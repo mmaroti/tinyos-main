@@ -45,19 +45,19 @@ class Vector {
 
 public:
 
-	Vector() { }
-
 	Vector(const T& x, const T& y, const T& z) { v[X] = x; v[Y] = y; v[Z] = z; }
 
 	Vector(const T x[3]) { v[X] = x[X]; v[Y] = x[Y]; v[Z] = x[Z]; }
 
-	const Vector& operator+=(const Vector& x);
+	void copy_to(T array[3]) const;
 
-	const Vector& operator-=(const Vector& x);
+	Vector& operator+=(const Vector& x);
 
-	const Vector& operator*=(double x);
+	Vector& operator-=(const Vector& x);
 
-	const Vector& operator/=(double x);
+	Vector& operator*=(double x);
+
+	Vector& operator/=(double x);
 
 	template <typename C>
 	friend const C operator*(const Vector<C>& x, const Vector<C>& y);
@@ -65,6 +65,9 @@ public:
 	const T& operator[] (coordinate i) const { return v[i]; }
 
 	std::ostream& print(std::ostream& os) const  { return os<<v[X]<<'\t'<<v[Y]<<'\t'<<v[Z]; }
+
+	template <typename C>
+	friend class Matrix;
 
 private:
 
@@ -78,7 +81,15 @@ std::ostream& operator<<(std::ostream& os, const Vector<T>& x) {
 }
 
 template <typename T>
-const Vector<T>& Vector<T>::operator+=(const Vector& x) {
+void Vector<T>::copy_to(T array[3]) const {
+
+	for (int i=0; i<3; ++i) {
+		array[i] = v[i];
+	}
+}
+
+template <typename T>
+Vector<T>& Vector<T>::operator+=(const Vector& x) {
 
 	for (int i=0; i<3; ++i) {
 		v[i] += x.v[i];
@@ -96,7 +107,7 @@ const Vector<T> operator+(const Vector<T>& x, const Vector<T>& y) {
 }
 
 template <typename T>
-const Vector<T>& Vector<T>::operator-=(const Vector& x) {
+Vector<T>& Vector<T>::operator-=(const Vector& x) {
 
 	for (int i=0; i<3; ++i) {
 		v[i] -= x.v[i];
@@ -120,7 +131,7 @@ const T operator*(const Vector<T>& x, const Vector<T>& y) {
 }
 
 template <typename T>
-const Vector<T>& Vector<T>::operator*=(double x) {
+Vector<T>& Vector<T>::operator*=(double x) {
 
 	for (int i=0; i<3; ++i) {
 		v[i] *= x;
@@ -144,7 +155,7 @@ const Vector<T> operator*(double x, const Vector<T>& y) {
 }
 
 template <typename T>
-const Vector<T>& Vector<T>::operator/=(double x) {
+Vector<T>& Vector<T>::operator/=(double x) {
 
 	for (int i=0; i<3; ++i) {
 		v[i] /= x;
@@ -166,27 +177,67 @@ class Matrix {
 
 public:
 
-	Matrix(const T mat[9]);
+	Matrix(const T array[9]);
 
-	template <typename C>
-	friend const Vector<C> operator*(const Matrix<C>& M, const Vector<C>& v);
+	void copy_to(T array[9]) const;
 
-	template <typename C>
-	friend const Matrix<C> operator*(const Matrix<C>& M, const Matrix<C>& v);
+	Matrix& operator+=(const Matrix& M);
+
+	const Vector<T> operator*(const Vector<T>& v) const;
+
+	const Matrix operator*(const Matrix& M) const;
 
 	std::ostream& print(std::ostream& os) const;
 
+	static const Matrix identity();
+
 private:
 
-	Vector<T> row[3];
+	Matrix();
+
+	T m[3][3];
 };
 
 template <typename T>
-Matrix<T>::Matrix(const T mat[9]) {
+Matrix<T>::Matrix(const T array[9]) {
 
-	row[0] = Vector<T> (mat[0], mat[1], mat[2]);
-	row[1] = Vector<T> (mat[3], mat[4], mat[5]);
-	row[2] = Vector<T> (mat[6], mat[7], mat[8]);
+	for (int i=0, k=0; i<3; ++i) {
+		for (int j=0; j<3; ++j) {
+			m[i][j] = array[k++];
+		}
+	}
+}
+
+template <typename T>
+void Matrix<T>::copy_to(T array[9]) const {
+
+	for (int i=0, k=0; i<3; ++i) {
+		for (int j=0; j<3; ++j) {
+			array[k++] = m[i][j];
+		}
+	}
+}
+
+template <typename T>
+Matrix<T>::Matrix() {
+
+	for (int i=0; i<3; ++i) {
+		for (int j=0; j<3; ++j) {
+			m[i][j] = T(0.0);
+		}
+	}
+}
+
+template <typename T>
+const Matrix<T> Matrix<T>::identity() {
+
+	Matrix I;
+
+	for (int i=0; i<3; ++i) {
+		I.m[i][i] = T(1.0);
+	}
+
+	return I;
 }
 
 template <typename T>
@@ -195,7 +246,7 @@ std::ostream& Matrix<T>::print(std::ostream& os) const {
 	os << '\n';
 
 	for (int i=0; i<3; ++i) {
-		os << row[i] << '\n';
+		os << m[i][0] << '\t' << m[i][1] << '\t' << m[i][2] << '\n';
 	}
 
 	return os;
@@ -207,10 +258,54 @@ std::ostream& operator<<(std::ostream& os, const Matrix<T>& x) {
 	return x.print(os);
 }
 
-template <typename C>
-const Vector<C> operator*(const Matrix<C>& M, const Vector<C>& v) {
+template <typename T>
+const Vector<T> Matrix<T>::operator*(const Vector<T>& x) const {
 
-	return Vector<C> (M.row[X]*v, M.row[Y]*v, M.row[Z]*v);
+	Vector<T> z(0.0, 0.0, 0.0);
+
+	for (int i=0; i<3; ++i) {
+		for (int j=0; j<3; ++j) {
+			z.v[i] += m[i][j]*x.v[j];
+		}
+	}
+
+	return z;
+}
+
+template <typename T>
+const Matrix<T> Matrix<T>::operator*(const Matrix<T>& M) const {
+
+	Matrix<T> z;
+
+	for (int i=0; i<3; ++i) {
+		for (int j=0; j<3; ++j) {
+			for (int k=0; k<3; ++k) {
+				z.m[i][j] += m[i][k]*M.m[k][j];
+			}
+		}
+	}
+
+	return z;
+}
+
+template <typename T>
+Matrix<T>& Matrix<T>::operator+=(const Matrix<T>& M) {
+
+	for (int i=0; i<3; ++i) {
+		for (int j=0; j<3; ++j) {
+			m[i][j] += M.m[i][j];
+		}
+	}
+
+	return *this;
+}
+
+template <typename T>
+const Matrix<T> operator+(const Matrix<T>& A, const Matrix<T>& B) {
+
+	Matrix<T> C(A);
+
+	return C+=B;
 }
 
 typedef Vector<double> vector3;

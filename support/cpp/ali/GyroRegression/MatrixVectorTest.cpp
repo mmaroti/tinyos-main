@@ -60,6 +60,10 @@ void doubleTest() {
 	cout << b << endl;
 
 	cout << a*b << endl;
+
+	matrix3 I = matrix3::identity();
+
+	cout << "I*I " << I*I << endl;
 }
 
 void gradTypeTest() {
@@ -80,7 +84,11 @@ void gradTypeTest() {
 
 	cout << "mat: " << m << endl;
 
-	m*p;
+	cout << "m*p: " << m*p << endl;
+
+	cout << "m*m: " << m*m << endl;
+
+	cout << "m+m" << m+m << endl;
 
 }
 
