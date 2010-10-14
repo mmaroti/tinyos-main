@@ -31,8 +31,8 @@
 * Author: Ali Baharev
 */
 
-#ifndef VECTOR_HPP_
-#define VECTOR_HPP_
+#ifndef MATRIXVECTOR_HPP_
+#define MATRIXVECTOR_HPP_
 
 #include <iosfwd>
 
@@ -45,15 +45,18 @@ class Vector {
 
 public:
 
+	Vector() { }
+
 	Vector(T x, T y, T z) { v[X] = x; v[Y] = y; v[Z] = z; }
 
 	const Vector& operator+=(const Vector& x);
 
-	const Vector& operator*=(const Vector& x);
-
 	const Vector& operator*=(double x);
 
 	const Vector& operator/=(double x);
+
+	template <typename C>
+	friend const C operator*(const Vector<C>& x, const Vector<C>& y);
 
 	T operator[] (coordinate i) const { return v[i]; }
 
@@ -88,23 +91,10 @@ const Vector<T> operator+(const Vector<T>& x, const Vector<T>& y) {
 	return z += y;
 }
 
-
 template <typename T>
-const Vector<T>& Vector<T>::operator*=(const Vector& x) {
+const T operator*(const Vector<T>& x, const Vector<T>& y) {
 
-	for (int i=0; i<3; ++i) {
-		v[i] *= x.v[i];
-	}
-
-	return *this;
-}
-
-template <typename T>
-const Vector<T> operator*(const Vector<T>& x, const Vector<T>& y) {
-
-	Vector<T> z(x);
-
-	return z *= y;
+	return x.v[X]*y.v[X]+x.v[Y]*y.v[Y]+x.v[Z]*y.v[Z];
 }
 
 template <typename T>
@@ -147,6 +137,58 @@ const Vector<T> operator/(const Vector<T>& x, double y) {
 	Vector<T> z(x);
 
 	return z/=y;
+}
+
+template <typename T>
+class Matrix {
+
+public:
+
+	Matrix(const T mat[9]);
+
+	template <typename C>
+	friend const Vector<C> operator*(const Matrix<C>& M, const Vector<C>& v);
+
+	template <typename C>
+	friend const Matrix<C> operator*(const Matrix<C>& M, const Matrix<C>& v);
+
+	std::ostream& print(std::ostream& os) const;
+
+private:
+
+	Vector<T> row[3];
+};
+
+template <typename T>
+Matrix<T>::Matrix(const T mat[9]) {
+
+	row[0] = Vector<T> (mat[0], mat[1], mat[2]);
+	row[1] = Vector<T> (mat[3], mat[4], mat[5]);
+	row[2] = Vector<T> (mat[6], mat[7], mat[8]);
+}
+
+template <typename T>
+std::ostream& Matrix<T>::print(std::ostream& os) const {
+
+	os << '\n';
+
+	for (int i=0; i<3; ++i) {
+		os << row[i] << '\n';
+	}
+
+	return os;
+}
+
+template <typename T>
+std::ostream& operator<<(std::ostream& os, const Matrix<T>& x) {
+
+	return x.print(os);
+}
+
+template <typename C>
+const Vector<C> operator*(const Matrix<C>& M, const Vector<C>& v) {
+
+	return Vector<C> (M.row[X]*v, M.row[Y]*v, M.row[Z]*v);
 }
 
 }

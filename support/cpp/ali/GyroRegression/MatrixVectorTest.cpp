@@ -33,7 +33,7 @@
 
 #include <iostream>
 #include "GradType.hpp"
-#include "Vector.hpp"
+#include "MatrixVector.hpp"
 
 using namespace std;
 using namespace gyro;
@@ -64,15 +64,23 @@ void doubleTest() {
 
 void gradTypeTest() {
 
-	GradType<3> x(1.0);
-	GradType<3> y(1.0);
-	GradType<3> z(1.0);
+	GradType<5> x(1.0);
+	GradType<5> y(1.0);
+	GradType<5> z(1.0);
 
-	Vector<GradType<3> > p(x, y, z);
+	Vector<GradType<5> > p(x, y, z);
 
-	Vector<GradType<3> > q(2.0, 1.0, 3.0);
+	Vector<GradType<5> > q(2.0, 1.0, 3.0);
 
-	cout << p+q << endl;
+	cout << p*q << endl;
+
+	GradType<5> mat[] = { 2.0, 1.0, 3.0, 5.0, 4.0, 8.0, 9.0, 0.0, 3.0 };
+
+	Matrix<GradType<5> > m(mat);
+
+	cout << "mat: " << m << endl;
+
+	m*p;
 
 }
 
