@@ -47,9 +47,13 @@ public:
 
 	Vector() { }
 
-	Vector(T x, T y, T z) { v[X] = x; v[Y] = y; v[Z] = z; }
+	Vector(const T& x, const T& y, const T& z) { v[X] = x; v[Y] = y; v[Z] = z; }
+
+	Vector(const T x[3]) { v[X] = x[X]; v[Y] = x[Y]; v[Z] = x[Z]; }
 
 	const Vector& operator+=(const Vector& x);
+
+	const Vector& operator-=(const Vector& x);
 
 	const Vector& operator*=(double x);
 
@@ -58,7 +62,7 @@ public:
 	template <typename C>
 	friend const C operator*(const Vector<C>& x, const Vector<C>& y);
 
-	T operator[] (coordinate i) const { return v[i]; }
+	const T& operator[] (coordinate i) const { return v[i]; }
 
 	std::ostream& print(std::ostream& os) const  { return os<<v[X]<<'\t'<<v[Y]<<'\t'<<v[Z]; }
 
@@ -89,6 +93,24 @@ const Vector<T> operator+(const Vector<T>& x, const Vector<T>& y) {
 	Vector<T> z(x);
 
 	return z += y;
+}
+
+template <typename T>
+const Vector<T>& Vector<T>::operator-=(const Vector& x) {
+
+	for (int i=0; i<3; ++i) {
+		v[i] -= x.v[i];
+	}
+
+	return *this;
+}
+
+template <typename T>
+const Vector<T> operator-(const Vector<T>& x, const Vector<T>& y) {
+
+	Vector<T> z(x);
+
+	return z -= y;
 }
 
 template <typename T>
@@ -190,6 +212,9 @@ const Vector<C> operator*(const Matrix<C>& M, const Vector<C>& v) {
 
 	return Vector<C> (M.row[X]*v, M.row[Y]*v, M.row[Z]*v);
 }
+
+typedef Vector<double> vector3;
+typedef Matrix<double> matrix3;
 
 }
 
