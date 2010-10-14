@@ -551,11 +551,7 @@ void DataRecorder::update_gyro_calib(const double s[12]) {
     // FIXME Sign of y
     gyroCalibrationData[10] = -gyroCalibrationData[10];
 
-    std::cout << "Gyroscope calibration data updated to: " << std::endl;
-
-    for (int k=0; k<12; ++k) {
-        std::cout << gyroCalibrationData[k] << std::endl;
-    }
+    dump_calibration_data();
 }
 
 void DataRecorder::loadResults(const ipo::Results* res) {
@@ -579,6 +575,15 @@ void DataRecorder::loadResults(const ipo::Results* res) {
     }
 
     //update_gyro_calib(res->var());
+}
+
+void DataRecorder::dump_calibration_data() const {
+
+    std::cout << "Gyroscope calibration data is: " << std::endl;
+
+    for (int k=0; k<12; ++k) {
+        std::cout << gyroCalibrationData[k] << std::endl;
+    }
 }
 
 bool DataRecorder::euler_angle(int i, int k, double& angle_rad) const {

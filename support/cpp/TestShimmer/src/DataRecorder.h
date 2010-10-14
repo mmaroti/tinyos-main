@@ -93,6 +93,8 @@ public:
         void clearCalibrationData();
         void setCalibToZero();
 
+        void dump_calibration_data() const;
+
         const double* getAccelCalibration() const { return accelCalibrationData; }
         const double* getGyroCalibration() const { return gyroCalibrationData; }
         const double* getGyroMinAvgs() const { return gyroMinAvgs; }

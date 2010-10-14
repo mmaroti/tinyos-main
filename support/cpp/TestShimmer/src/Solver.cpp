@@ -311,7 +311,8 @@ void Solver::finished(int exitCode, QProcess::ExitStatus exitStatus) {
         result = process_result(exitCode);
     }
     else if (exitStatus == QProcess::CrashExit) {
-        msg += "the solver crashed!";
+
+        return; // FIXME Qt also signals error, it is just stupid.
     }
     else {
         msg += "undocumented error code received from Qt!";

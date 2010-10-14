@@ -436,6 +436,8 @@ void DataWidget::on_regressionButton_clicked()
 
     // TODO If no samples are loaded, disable regression button
 
+    application.dataRecorder.dump_calibration_data();
+
     bool error = application.solver.start();
 
     if(!error){
