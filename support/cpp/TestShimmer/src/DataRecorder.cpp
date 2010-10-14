@@ -47,6 +47,7 @@
 #include "EulerAngles.hpp"
 #include "MatrixVector.hpp"
 
+
 DataRecorder::DataRecorder(Application &app) : application(app)
 {
     //loadCalibrationData();
@@ -148,6 +149,8 @@ Sample::Sample()
         rotmat[0] = 1.0;
         rotmat[4] = 1.0;
         rotmat[8] = 1.0;
+        for (int i=0; i<3; ++i)
+            integrated_angle[i] = 0.0;
 }
 
 QString Sample::toString() const
@@ -554,6 +557,41 @@ void DataRecorder::update_gyro_calib(const double s[12]) {
     dump_calibration_data();
 }
 
+void DataRecorder::integrate_angles() {
+
+    using namespace gyro;
+    const int n = samples.size();
+
+    if (n<2)
+        return;
+
+    for (int i=0; i<3; ++i)
+        samples[0].integrated_angle[i] = 0.0;
+
+    const matrix3 A(gyroCalibrationData);
+    const vector3 b(gyroCalibrationData+9);
+    vector3 sum(0, 0, 0);
+
+    for (int i=1; i<n; ++i) {
+        Sample& s1 = samples[i-1];
+        const vector3 x1(s1.xGyro, s1.yGyro, s1.zGyro);
+        const vector3 y1= A*x1+b;
+
+        Sample& s2 = samples[i];
+        const vector3 x2(s2.xGyro, s2.yGyro, s2.zGyro);
+        const vector3 y2 = A*x2+b;
+
+        const double dt = (s2.time-s1.time)/TICKS_PER_SEC;
+
+        const vector3 angle = ((y1+y2)/2)*dt;
+
+        sum += angle;
+        sum.enforce_range_minus_pi_plus_pi();
+        double* const s_angle = s2.integrated_angle;
+        sum.copy_to(s_angle);
+    }
+}
+
 void DataRecorder::loadResults(const ipo::Results* res) {
 
     const int n = samples.size();
@@ -575,6 +613,8 @@ void DataRecorder::loadResults(const ipo::Results* res) {
     }
 
     //update_gyro_calib(res->var());
+
+    integrate_angles();
 }
 
 void DataRecorder::dump_calibration_data() const {
@@ -601,6 +641,15 @@ bool DataRecorder::euler_angle(int i, int k, double& angle_rad) const {
     angle_rad = euler[k];
 
     return degenerate;
+}
+
+double DataRecorder::integrated_angle(int i, int coordinate) const {
+
+    if (coordinate<0 || coordinate>=3) {
+        throw std::out_of_range("Coordinate should be either X, Y or Z!");
+    }
+
+    return samples[i].integrated_angle[coordinate];
 }
 
 void DataRecorder::setAccelIdleWindowStart(int index, int start) {

@@ -64,6 +64,8 @@ public:
 
         const T& operator[] (coordinate i) const { return v[i]; }
 
+        void enforce_range_minus_pi_plus_pi();
+
         std::ostream& print(std::ostream& os) const  { return os<<v[X]<<'\t'<<v[Y]<<'\t'<<v[Z]; }
 
         template <typename C>
@@ -170,6 +172,24 @@ const Vector<T> operator/(const Vector<T>& x, double y) {
         Vector<T> z(x);
 
         return z/=y;
+}
+
+template <typename T>
+void Vector<T>::enforce_range_minus_pi_plus_pi() {
+
+        const double PI(3.14159265358979323846);
+        const double PI_TIMES_2(6.28318530717958647693);
+
+        for (int i=0; i<3; ++i) {
+
+                while (v[i] < -PI) {
+                        v[i] += PI_TIMES_2;
+                }
+
+                while (v[i] >  PI) {
+                        v[i] -= PI_TIMES_2;
+                }
+        }
 }
 
 template <typename T>

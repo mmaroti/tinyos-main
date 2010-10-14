@@ -460,6 +460,15 @@ void DataPlot::paintEvent(QPaintEvent *event)
                     painter.drawLine(getPoint(i-1, angle1_deg * (2048/M_PI) + 2048), getPoint(i, angle2_deg * (2048/M_PI) + 2048));
                 }
             }
+            /*
+            painter.setPen(QPen(Qt::black, 2, Qt::SolidLine));
+
+            for(int i = x0 + 1; i < x1; ++i) {
+                double angle1 = dataRecorder.integrated_angle(i-1, X);
+                double angle2 = dataRecorder.integrated_angle(i  , X);
+                painter.drawLine(getPoint(i-1, angle1*(2048/M_PI)+2048), getPoint(i, angle2*(2048/M_PI)+2048));
+            }
+            */
 
             if( (graphs & CALIB) != 0 )
             {

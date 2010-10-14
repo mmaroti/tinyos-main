@@ -62,6 +62,7 @@ struct Sample
 	int voltage;
 	int temp;
         double rotmat[9];
+        double integrated_angle[3];
         double XYangle, YZangle, ZXangle; // FIXME
 };
 
@@ -125,6 +126,7 @@ public:
 
         void loadResults(const ipo::Results* res);
         bool euler_angle(int sample, int X_or_Y_or_Z, double& angle_in_rad) const;
+        double integrated_angle(int sample, int X_or_Y_or_Z) const;
 
 signals:
 
@@ -137,6 +139,8 @@ public slots:
 
 private:
         void csvToSample(const QString& line); // FIXME
+
+        void integrate_angles();
         void update_gyro_calib(const double correction[12]);
 
 	QVarLengthArray<Sample> samples;
