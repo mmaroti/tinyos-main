@@ -64,6 +64,12 @@ void doubleTest() {
 	matrix3 I = matrix3::identity();
 
 	cout << "I*I " << I*I << endl;
+
+	vector3 angles(-M_PI-1.0e-15, M_PI, 0);
+
+	angles.enforce_range_minus_pi_plus_pi();
+
+	cout << "angles " << angles << endl;
 }
 
 void gradTypeTest() {
