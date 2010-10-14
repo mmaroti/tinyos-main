@@ -4,8 +4,8 @@
 *
 * File              : main.c
 * Compiler          : IAR C 3.10C Kickstart, AVR-GCC/avr-libc(>= 1.2.5)
-* Revision          : $Revision: 1.4 $
-* Date              : $Date: 2010-10-13 12:59:03 $
+* Revision          : $Revision: 1.5 $
+* Date              : $Date: 2010-10-14 16:35:59 $
 * Updated by        : $Author: szabomeister $
 *
 * Support mail      : avr@atmel.com
@@ -59,7 +59,7 @@ void status(int);
 
 #endif /* REMOVE_BLOCK_SUPPORT */
 
-int timeout=30;
+int timeout=100;
 
 void main(void)
 {
@@ -394,14 +394,21 @@ void main(void)
 
 void status(int timeout)
 {
-	unsigned char remnant;
+	unsigned char remnant,d4,shift;
 	remnant = timeout / 10 + 1;
 	#ifdef _ATMEGA1281
 	PORTA |=7;
 	PORTA &= (~remnant);
 	#else
+          d4    = remnant & 1;
+          d4    = d4 << 3;
+          shift = remnant & 0xFE;
+          shift = shift << 4;
+          if (d4)
+            shift |= d4;
 	PORTE =0x00;
-	PORTE |= (remnant<<5);
+	//PORTE |= (remnant<<5);
+        PORTE |= shift;
 	#endif
 }
 
