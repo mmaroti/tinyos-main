@@ -2,7 +2,7 @@
 
 #ifndef	PPINC
 //#define	_ATMEGA1281	// device select: _ATMEGAxxxx
-#define	_B1024	// boot size select: _Bxxxx (words), powers of two only
+#define	_B4096	// boot size select: _Bxxxx (words), powers of two only
 #include	<avr/io.h>
 
 /* baud rate register value calculation */
@@ -39,7 +39,7 @@
 /* definitions for SPM control */
 #define	SPMCR_REG	SPMCSR
 #define	PAGESIZE	128
-#define	APP_END	100000
+#define	APP_END	61440 //100000
 #define	LARGE_MEMORY
 
 /* definitions for device recognition */
