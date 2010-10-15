@@ -463,7 +463,7 @@ void DataPlot::paintEvent(QPaintEvent *event)
 
             if( (graphs & XINT) != 0 )
             {
-                painter.setPen(QPen(Qt::red, 2, Qt::SolidLine));
+                painter.setPen(QPen(Qt::magenta, 2, Qt::SolidLine));
 
                 for(int i = x0 + 1; i < x1; ++i) {
                     double angle1 = dataRecorder.integrated_angle(i-1, X);
@@ -474,7 +474,7 @@ void DataPlot::paintEvent(QPaintEvent *event)
 
             if( (graphs & YINT) != 0 )
             {
-                painter.setPen(QPen(Qt::green, 2, Qt::SolidLine));
+                painter.setPen(QPen(Qt::yellow, 2, Qt::SolidLine));
 
                 for(int i = x0 + 1; i < x1; ++i) {
                     double angle1 = dataRecorder.integrated_angle(i-1, Y);
@@ -485,7 +485,7 @@ void DataPlot::paintEvent(QPaintEvent *event)
 
             if( (graphs & ZINT) != 0 )
             {
-                painter.setPen(QPen(Qt::blue, 2, Qt::SolidLine));
+                painter.setPen(QPen(Qt::black, 2, Qt::SolidLine));
 
                 for(int i = x0 + 1; i < x1; ++i) {
                     double angle1 = dataRecorder.integrated_angle(i-1, Z);
