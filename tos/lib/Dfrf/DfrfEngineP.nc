@@ -612,6 +612,6 @@ implementation
 	default command bool DfrfPolicy.accept[uint8_t id](uint16_t location) { return FALSE; }
 	default command uint8_t DfrfPolicy.received[uint8_t id](uint16_t location, uint8_t priority) { return 0xFF; }
 	default command uint8_t DfrfPolicy.age[uint8_t id](uint8_t priority) { return priority; }
-	default event bool DfrfReceive.receive[uint8_t id](void *data) { return FALSE; }
+	default event bool DfrfReceive.receive[uint8_t id](void *data) { return TRUE; }
 	default event void DfrfSend.sendDone[uint8_t id](void *data) {  }
 }
