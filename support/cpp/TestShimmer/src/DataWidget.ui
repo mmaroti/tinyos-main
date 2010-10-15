@@ -5,14 +5,6 @@
   <property name="windowModality">
    <enum>Qt::NonModal</enum>
   </property>
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>817</width>
-    <height>608</height>
-   </rect>
-  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
@@ -120,7 +112,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout_4" stretch="1,0,1,1,1,1,1,1,0,0,0">
+    <layout class="QVBoxLayout" name="verticalLayout_4" stretch="1,0,1,1,1,1,1,1,0,0,0,0">
      <property name="margin">
       <number>9</number>
      </property>
@@ -978,6 +970,42 @@
         </item>
         <item>
          <widget class="QCheckBox" name="eulerZ">
+          <property name="text">
+           <string>z</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="intBox">
+       <property name="title">
+        <string>Integrated Angles</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <item>
+         <widget class="QCheckBox" name="intX">
+          <property name="text">
+           <string>x</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="intY">
+          <property name="text">
+           <string>y</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="intZ">
           <property name="text">
            <string>z</string>
           </property>

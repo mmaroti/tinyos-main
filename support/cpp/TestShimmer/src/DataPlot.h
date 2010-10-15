@@ -77,18 +77,22 @@ public:
                 ZXANG     = 0x8000,
 
                 VOLTAGE = 0x10000,
-                GRID = 0x20000,
-                TIME = 0x40000,
-                TEMP = 0x80000,
+                GRID    = 0x20000,
+                TIME    = 0x40000,
+                TEMP    = 0x80000,
 
-                XANG      = 0x100000,
-                YANG      = 0x200000,
-                ZANG      = 0x400000,
-                CALIB     = 0x800000,
+                XANG    = 0x100000,
+                YANG    = 0x200000,
+                ZANG    = 0x400000,
+                CALIB   = 0x800000,
 
                 XEUL    = 0x1000000,
                 YEUL    = 0x2000000,
-                ZEUL    = 0x4000000
+                ZEUL    = 0x4000000,
+
+                XINT    = 0x8000000,
+                YINT    = 0x10000000,
+                ZINT    = 0x20000000
         };
 
         void setGraphs(int graphs, bool on);

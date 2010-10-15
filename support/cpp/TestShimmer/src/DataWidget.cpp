@@ -241,6 +241,21 @@ void DataWidget::on_eulerZ_clicked()
     plot->setGraphs(DataPlot::ZEUL, ui->eulerZ->checkState());
 }
 
+void DataWidget::on_intX_clicked()
+{
+    plot->setGraphs(DataPlot::XINT, ui->intX->checkState());
+}
+
+void DataWidget::on_intY_clicked()
+{
+    plot->setGraphs(DataPlot::YINT, ui->intY->checkState());
+}
+
+void DataWidget::on_intZ_clicked()
+{
+    plot->setGraphs(DataPlot::ZINT, ui->intZ->checkState());
+}
+
 void DataWidget::on_rawAccBox_clicked()
 {
     if(ui->rawAccBox->isChecked()){
@@ -368,6 +383,24 @@ void DataWidget::on_eulerBox_clicked()
         plot->setGraphs(DataPlot::XEUL, false);
         plot->setGraphs(DataPlot::YEUL, false);
         plot->setGraphs(DataPlot::ZEUL, false);
+    }
+}
+
+void DataWidget::on_intBox_clicked()
+{
+    if(ui->intBox->isChecked()){
+        if(!ui->intX->checkState() && !ui->intY->checkState() && !ui->intZ->checkState()){
+            ui->intX->setChecked(true);
+            ui->intY->setChecked(true);
+            ui->intZ->setChecked(true);
+        }
+        on_intX_clicked();
+        on_intY_clicked();
+        on_intZ_clicked();
+    } else {
+        plot->setGraphs(DataPlot::XINT, false);
+        plot->setGraphs(DataPlot::YINT, false);
+        plot->setGraphs(DataPlot::ZINT, false);
     }
 }
 

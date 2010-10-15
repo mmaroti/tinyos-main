@@ -101,6 +101,10 @@ private slots:
         void on_eulerY_clicked();
         void on_eulerZ_clicked();
 
+        void on_intX_clicked();
+        void on_intY_clicked();
+        void on_intZ_clicked();
+
         void on_rawAccBox_clicked();
         void on_accelBox_clicked();
         void on_rawGyroBox_clicked();
@@ -108,6 +112,7 @@ private slots:
         void on_anglesBox_clicked();
         void on_tiltAnglesBox_clicked();
         void on_eulerBox_clicked();
+        void on_intBox_clicked();
 
         void on_saveBtn_clicked();
         void on_clearBtn_clicked();
