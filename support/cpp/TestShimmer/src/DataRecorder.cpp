@@ -377,6 +377,7 @@ void DataRecorder::loadCalibFromFile(const QString& filename )
         }
         f.close();
     }
+    emit fileLoaded();
     //saveCalibrationData();
 }
 
@@ -392,6 +393,36 @@ void DataRecorder::saveCalibToFile(const QString& filename ) const
     QTextStream ts( &f );
 
     ts << "#Static Calibration Data" << endl;
+    if(application.settings.contains("stationaryCalibrationData/size")){
+        int size = application.settings.beginReadArray("stationaryCalibrationData");
+        for (int i = 0; i < size; ++i) {
+            application.settings.setArrayIndex(i);
+            ts << QString::number(application.settings.value("stationaryCalibrationData").toDouble()) << endl;
+        }
+        application.settings.endArray();
+    }
+
+    ts << "#Gyro Calibration Data" << endl;
+    if(application.settings.contains("gyroCalibrationData/size")){
+        int size = application.settings.beginReadArray("gyroCalibrationData");
+        for (int i = 0; i < size; ++i) {
+            application.settings.setArrayIndex(i);
+            ts << QString::number(application.settings.value("gyroCalibrationData").toDouble()) << endl;
+        }
+        application.settings.endArray();
+    }
+
+    ts << "#Gyro Minimum Averages" << endl;
+    if(application.settings.contains("gyroAvgsData/size")){
+        int size = application.settings.beginReadArray("gyroAvgsData");
+        for (int i = 0; i < size; ++i) {
+            application.settings.setArrayIndex(i);
+            ts << QString::number(application.settings.value("gyroAvgsData").toDouble()) << endl;
+        }
+        application.settings.endArray();
+    }
+
+    /*ts << "#Static Calibration Data" << endl;
     for (int i = 0; i < 12; ++i) {
         ts << QString::number(accelCalibrationData[i]) + "\n" ;
     }
@@ -404,7 +435,7 @@ void DataRecorder::saveCalibToFile(const QString& filename ) const
     ts << "#Gyro Minimum Averages" << endl;
     for (int i = 0; i < 3; ++i) {
         ts << QString::number(gyroMinAvgs[i]) + "\n" ;
-    }
+    }*/
 
     ts.flush();
     f.close();
@@ -439,6 +470,7 @@ void DataRecorder::loadCalibrationData()
         }
         application.settings.endArray();
     }
+    emit calibrationDataLoaded();
 }
 
 void DataRecorder::saveCalibrationData() const
@@ -469,6 +501,7 @@ void DataRecorder::saveCalibrationData() const
 void DataRecorder::clearCalibrationData()
 {
     application.settings.clear();
+    setCalibToZero();
 }
 
 void DataRecorder::setCalibToZero()

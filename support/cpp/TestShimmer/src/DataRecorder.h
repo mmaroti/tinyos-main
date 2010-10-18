@@ -132,6 +132,8 @@ signals:
 
 	void sampleAdded();
 	void samplesCleared();
+        void fileLoaded();
+        void calibrationDataLoaded();
 
 public slots:
 	void onReceiveMessage(const ActiveMessage & msg); 

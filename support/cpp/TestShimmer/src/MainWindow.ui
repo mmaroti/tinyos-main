@@ -107,6 +107,8 @@
     </property>
     <addaction name="actionLoad"/>
     <addaction name="actionSave"/>
+    <addaction name="actionClear_samples"/>
+    <addaction name="actionDo_regression"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
@@ -133,12 +135,12 @@
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionLoad">
    <property name="text">
-    <string>Load</string>
+    <string>Load Samples</string>
    </property>
   </action>
   <action name="actionSave">
    <property name="text">
-    <string>Save</string>
+    <string>Save Samples</string>
    </property>
   </action>
   <action name="actionQuit">
@@ -174,6 +176,16 @@
   <action name="actionClear">
    <property name="text">
     <string>Clear</string>
+   </property>
+  </action>
+  <action name="actionClear_samples">
+   <property name="text">
+    <string>Clear Samples</string>
+   </property>
+  </action>
+  <action name="actionDo_regression">
+   <property name="text">
+    <string>Do Regression</string>
    </property>
   </action>
  </widget>

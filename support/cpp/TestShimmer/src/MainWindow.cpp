@@ -83,6 +83,8 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(&app, SIGNAL(showMessageSignal(const QString &)), statusBar(), SLOT(showMessage(QString)) );
         connect(&app, SIGNAL(showConsoleSignal(const QString &)), consoleWidget , SLOT(onRecieveConsoleSignal(QString)) );
         connect(calibrationWidget, SIGNAL(calibrationDone()), dataWidget, SLOT(newCalibrationOccured()) );
+        connect(dr, SIGNAL(fileLoaded()), calibrationWidget, SLOT(on_fileLoaded()));
+        connect(dr, SIGNAL(calibrationDataLoaded()), calibrationWidget, SLOT(on_fileLoaded()));
         //connect(dataWidget->plot, SIGNAL(angleChanged(double)), window, SLOT(onAngleChanged(double)));
         connect(ui->actionQuit, SIGNAL(triggered()), this, SLOT(close()));
         connect(ui->actionLoad, SIGNAL(triggered()), dataWidget, SLOT(on_loadBtn_clicked()));
@@ -93,8 +95,11 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(ui->actionTrim, SIGNAL(triggered()), dataWidget, SLOT(onTrim()));
         connect(ui->actionCopy, SIGNAL(triggered()), dataWidget, SLOT(onCopy()));
         connect(ui->actionCut, SIGNAL(triggered()), dataWidget, SLOT(onCut()));
+        connect(ui->actionClear_samples, SIGNAL(triggered()), dataWidget, SLOT(on_clearBtn_clicked()) );
+        connect(ui->actionDo_regression, SIGNAL(triggered()), dataWidget, SLOT(on_regressionButton_clicked()));
         connect(dataWidget, SIGNAL(SolverStarted()), this, SLOT(onSolverRunning()));
         connect(dataWidget, SIGNAL(SolverFinished()), this, SLOT(onSolverRunning()));
+
 }
 
 MainWindow::~MainWindow()
