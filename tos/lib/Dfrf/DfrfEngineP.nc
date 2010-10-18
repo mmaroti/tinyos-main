@@ -276,6 +276,7 @@ implementation
 		dfrf_msg_t* msg = dfrfMsg(&txMsg);
 
 		// set initial (empty) msg length
+		call Packet.clear(&txMsg);
 		call Packet.setPayloadLength(&txMsg, sizeof(dfrf_msg_t));
 
 		// set appId and location
