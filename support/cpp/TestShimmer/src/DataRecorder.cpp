@@ -381,6 +381,60 @@ void DataRecorder::loadCalibFromFile(const QString& filename )
     //saveCalibrationData();
 }
 
+void DataRecorder::loadCalibFromFileToLive(const QString &filename)
+{
+    QFile f( filename );
+    QString line;
+
+    if( f.open( QIODevice::ReadOnly | QIODevice::Text ) ) //file opened successfully
+    {
+        QTextStream ts( &f );
+
+        line = ts.readLine();
+        while ( !line.isEmpty() && line != "#Static Calibration Data" )
+        {
+            line = ts.readLine();         // line of text excluding '\n'
+        }
+        if(line != "#Static Calibration Data"){
+            QMessageBox msgBox;
+            msgBox.setText("Wrong file format!");
+            msgBox.exec();
+        } else {
+            for(int i = 0; i < 12; i++){
+                line = ts.readLine();         // line of text excluding '\n'
+                accelCalibrationData[i] = line.toDouble();    //convert line string to int
+            }
+
+            line = ts.readLine();
+            if(line != "#Gyro Calibration Data"){
+                QMessageBox msgBox;
+                msgBox.setText("Wrong file format!");
+                msgBox.exec();
+            } else {
+                for(int i = 0; i < 12; i++){
+                    line = ts.readLine();         // line of text excluding '\n'
+                    gyroCalibrationData[i] = line.toDouble();    //convert line string to int
+                }
+
+                line = ts.readLine();
+                if(line != "#Gyro Minimum Averages"){
+                    QMessageBox msgBox;
+                    msgBox.setText("Wrong file format!");
+                    msgBox.exec();
+                } else {
+                    for (int i = 0; i < 3; i++) {
+                        line = ts.readLine();         // line of text excluding '\n'
+                        gyroMinAvgs[i] = line.toDouble();
+                    }
+                }
+            }
+        }
+        f.close();
+    }
+    emit fileLoaded();
+    //saveCalibrationData();
+}
+
 void DataRecorder::saveCalibToFile(const QString& filename ) const
 {
     QFile f( filename );
