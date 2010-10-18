@@ -344,6 +344,17 @@ void QextSerialPort::setBaudRate(BaudRateType baudRate)
 #endif
                 break;
 
+                /*230400 baud*/
+            case BAUD230400:
+#ifdef CBAUD
+                Posix_CommConfig.c_cflag&=(~CBAUD);
+                Posix_CommConfig.c_cflag|=B230400;
+#else
+                cfsetispeed(&Posix_CommConfig, B230400);
+                cfsetospeed(&Posix_CommConfig, B230400);
+#endif
+                break;
+
             /*256000 baud*/
             case BAUD256000:
                 TTY_WARNING("QextSerialPort: POSIX does not support 256000 baud operation.  Switching to 115200 baud.");
