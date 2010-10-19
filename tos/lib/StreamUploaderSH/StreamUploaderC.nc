@@ -34,6 +34,7 @@
 #include "StreamUploader.h"
 configuration StreamUploaderC{
 	provides interface StdControl;
+	provides interface Command;
 }
 implementation{
 	components StreamUploaderP;
@@ -59,4 +60,5 @@ implementation{
 	StreamUploaderP.Resource -> StreamStorageClientC;
 	StreamUploaderP.Leds->LedsC;
   	StdControl=StreamUploaderP.StdControl;
+	Command=StreamUploaderP.Command;
 }

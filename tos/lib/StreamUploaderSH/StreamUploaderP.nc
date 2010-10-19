@@ -34,6 +34,7 @@
 #include "StreamUploader.h"
 module StreamUploaderP{
 	provides interface StdControl;
+	provides interface Command;
 	uses {
 		interface Receive;
 		interface AMSend;
@@ -169,10 +170,36 @@ implementation{
 			} else if(rec->min_address==0) {
 				status=ERASE;
 				call Resource.request();
+			} else {
+				status=COMMAND_PENDING;
+				call WaitTimer.startOneShot(RADIO_MIDDLE);
+				signal Command.newCommand(rec->min_address);
+				
 			}
 			
 		}
 		return msg;
+	}
+	
+	command error_t Command.sendData(uint32_t data){
+		if(status==COMMAND_PENDING){
+		    ctrl_msg* msg=call Packet.getPayload(&message, sizeof(ctrl_msg));
+		    error_t err;
+		    call Packet.clear(&message);
+		    msg->min_address=data;
+		    msg->max_address=data;
+		    msg->localtime=call LocalTime.get();
+		    err=call SplitControl.start();
+		    if(err==EALREADY){
+			    if(call TimeSyncAMSendMilli.send(BS_ADDR, &message, sizeof(ctrl_msg),msg->localtime)!=SUCCESS){
+				    post SCStop();
+			    }
+		    }else if(err!=SUCCESS){
+			    post SCStart();
+		    }
+		    return SUCCESS;
+		} else
+		      return FAIL;
 	}
 
 	event void StreamStorageRead.readDone(void *buf, uint8_t len, error_t error){
@@ -209,13 +236,16 @@ implementation{
 				}
 				post SCStop();		
 			}
-		} 
+		}  else if(status==COMMAND_PENDING){
+			post SCStop();
+		}
 		call Packet.clear(&message);
 	}
 
 	event void WaitTimer.fired(){
 		switch(status){
-			case WAIT_FOR_REQ:{
+			case WAIT_FOR_REQ:
+			case COMMAND_PENDING:{
 				post SCStop();	
 			}break;
 			case WAIT_FOR_BS:{
@@ -277,4 +307,6 @@ implementation{
 			}
 		}
 	}
+	
+	default event void Command.newCommand(uint32_t id){}
 }
