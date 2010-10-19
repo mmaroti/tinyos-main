@@ -135,6 +135,8 @@ void M_test(const double a[3]) {
 	rotate_vector(M, a, r);
 
 	cout << "a rotated: " << r[0] << '\t' << r[1] << '\t' << r[2] << endl;
+
+	// FIXME Check length
 }
 
 void M_test() {
@@ -164,7 +166,39 @@ void M_test() {
 	return;
 }
 
+void Euler_check_if_bug() {
+
+	double m[] = { -0.00281969, -0.942722,   0.333568,
+			       0.000693726,  0.333568,   0.942726,
+			       -0.999996,    0.0028896, -0.000286568 };
+
+	const double a[] = { 1, 1, 1};
+
+	double b1[3];
+
+	rotate_vector(m, a, b1);
+
+	double angle[3];
+
+	rotmat_to_angles_deg(m, angle);
+
+	double m2[9];
+
+	angles_deg_to_rotmat(angle, m2);
+
+	double b2[3];
+
+	rotate_vector(m2, a, b2);
+
+	dbg::equal_arrays(b1, b2, 3, "degenerate case");
+
+	cout << "Euler degeneracy test passed" << endl;
+}
+
 int main() {
+
+	// Set TOL_EQUAL to 1.0e-4 if enabled
+	//Euler_check_if_bug();
 
 	M_test();
 
@@ -172,7 +206,7 @@ int main() {
 
 	const int N = 1000000;
 
-	srand(7);
+	srand(127);
 
 	cout << "Testing degeneracy, Y = 90 deg" << endl;
 

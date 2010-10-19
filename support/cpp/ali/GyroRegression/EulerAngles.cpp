@@ -266,6 +266,7 @@ void consistent(const double angles_deg[3]) {
 
 	orthogonality(m2);
 
+	// FIXME Check if rotated vector equals; input [1,1,1] and a random
 	equal_rotmat(m1, m2);
 
 	equal_angles(angles_deg, xyz, degenerate);
