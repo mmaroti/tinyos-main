@@ -36,7 +36,7 @@
 
 namespace gyro {
 
-const double TOL_DEGEN(1.0e-5);
+const double TOL_DEGEN(1.0e-14);
 
 // Based on http://www.gregslabaugh.name/publications/euler.pdf
 // Right-handed coordinate system
