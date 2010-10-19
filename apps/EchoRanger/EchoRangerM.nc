@@ -42,6 +42,7 @@ module EchoRangerM
 
 		interface Get<uint16_t*> as LastBuffer;
 		interface Get<echorange_t*> as LastRange;
+		interface Set<uint8_t> as SetGain;
 	}
 
 	uses
@@ -76,6 +77,10 @@ implementation
 		STATE_LISTEN = 2,
 		STATE_PROCESS = 3,
 	};
+	
+	command void SetGain.set(uint8_t value){
+		call MicSetting.gainAdjust(value);
+	}
 
 	command error_t EchoRanger.read()
 	{

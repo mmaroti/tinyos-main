@@ -44,9 +44,11 @@ implementation{
 	App.Boot -> MainC.Boot;
 	App.Leds->LedsC;
 	App.StdControl -> StreamUploaderC;
+	App.Command -> StreamUploaderC;
 	App.LocalTime->LocalTimeMilliC;
 	App.SensorTimer -> SensorTimer;
 	App.Read -> EchoRangerC;
 	App.LastBuffer -> EchoRangerC;
 	App.LastRange -> EchoRangerC;
+	App.SetGain->EchoRangerC;
 }
