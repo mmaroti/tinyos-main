@@ -6,13 +6,11 @@
   %T/platforms/iris
   %T/platforms/micaz
   %T/platforms/mica
-  %T/chips/rf2xx/rf212
-  %T/chips/rf2xx/layers
-  %T/chips/rf2xx/util
   %T/chips/atm128rfa1
   %T/chips/atm128rfa1/adc
   %T/chips/atm128rfa1/sensors
   %T/chips/atm128rfa1/timer
+  %T/chips/atm128rfa1/radio
   %T/chips/atm1281
   %T/chips/atm1281/adc
   %T/chips/atm1281/timer
@@ -25,6 +23,8 @@
   %T/lib/timer
   %T/lib/serial
   %T/lib/power
+  %T/lib/rfxlink/layers
+  %T/lib/rfxlink/util
   %T/lib/diagmsg
 
   ) );

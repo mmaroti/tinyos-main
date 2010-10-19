@@ -50,7 +50,7 @@ configuration ActiveMessageC
 
 implementation
 {
-	components RF212ActiveMessageC as MessageC;
+	components RFA1ActiveMessageC as MessageC;
 
 	SplitControl = MessageC;
 
