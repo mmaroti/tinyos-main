@@ -286,7 +286,7 @@ void dump_data(const char* filename, int index, uint32 start, uint32 end) {
 		exit("failed to create output file");
 	}
 
-	out << "#" << header << endl;
+	out << "#" << header << ",RotMat[9]" << endl;
 
 	uint32 lines = 0;
 
@@ -296,6 +296,9 @@ void dump_data(const char* filename, int index, uint32 start, uint32 end) {
 		// b.counter removed, currently not supported in TestShimmer
 		out << b.time << ',' << b.ax << ',' << b.ay << ',' << b.az;
 		out << ',' << b.wx << ',' << b.wy << ',' << b.wz  << ',' << b.volt << ',' << b.temp ;
+		out << ',' << 1 << ',' << 0 << ',' << 0;
+		out << ',' << 0 << ',' << 1 << ',' << 0;
+		out << ',' << 0 << ',' << 0 << ',' << 1;
 		out << endl;
 
 		++i;
