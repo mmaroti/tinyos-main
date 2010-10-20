@@ -38,6 +38,191 @@
 #include "InputData.hpp"
 #include "CompileTimeConstants.hpp"
 
+#define OLD_VERSION
+#ifdef NEW_VERSION
+
+#include "MatrixVector.hpp"
+
+typedef double NT;
+
+namespace gyro {
+
+template<typename T>
+class ObjEval {
+
+private:
+
+	//==========================================================================
+
+	const NT* const time_stamp;
+
+	const NT* const acc_x;
+	const NT* const acc_y;
+	const NT* const acc_z;
+
+	const NT* const wx;
+	const NT* const wy;
+	const NT* const wz;
+
+	const int N;
+
+	const NT g_ref;
+
+	T* MR;
+
+	Matrix<T> R;
+	Matrix<T> C;
+	Vector<T> d;
+	Vector<T> s;
+	Matrix<T> M;
+
+	//==========================================================================
+
+	void set_sum_R0_C_d(const T* const x) {
+
+		s = Vector<T>(acc_x[0], acc_y[0], acc_z[0]);
+
+		if (MR) {
+			s = M*s;
+		}
+
+		R = Matrix<T>::identity();
+
+		C = Matrix<T>::identity() + Matrix<T> (x);
+		d = Vector<T>(x+9);
+	}
+
+	const Vector<NT> angular_rate(int i) const {
+
+		return Vector<NT> (wx[i], wy[i], wz[i]);
+	}
+
+	const NT time_step(int i) const {
+
+		return (time_stamp[i]-time_stamp[i-1])/TICKS_PER_SEC;
+	}
+
+	void update_R(const int i) {
+
+		const Vector<NT> angular_rate_avg = (angular_rate(i-1)+angular_rate(i))/2;
+
+		Vector<T> angle = (C*angular_rate_avg+d)*time_step(i);
+
+		T tmp[] = {    T(1.0), -angle[Z],  angle[Y],
+				     angle[Z],    T(1.0), -angle[X],
+				    -angle[Y],  angle[X],    T(1.0)
+		};
+
+		const Matrix<T> G(tmp);
+
+		R = R*G;
+	}
+
+	const T correction(const Vector<T>& v) const {
+
+		return (3-v*v)/2;
+	}
+
+	void normalize_R() {
+
+		const Vector<T> Rx = R[X];
+		const Vector<T> Ry = R[Y];
+
+		T half_error = (Rx*Ry)/2;
+
+		const Vector<T> Rx_new = Rx-half_error*Ry;
+		const Vector<T> Ry_new = Ry-half_error*Rx;
+		const Vector<T> Rz_new = cross_product(Rx_new, Ry_new);
+
+		T Cx = correction(Rx_new);
+		T Cy = correction(Ry_new);
+		T Cz = correction(Rz_new);
+
+
+		R = Matrix<T> (Cx*Rx_new, Cy*Ry_new, Cz*Rz_new);
+	}
+
+	void sum_Ri_ai(const int i) {
+
+		const Vector<NT> a_measured(acc_x[i], acc_y[i], acc_z[i]);
+
+		Vector<T> a = R*a_measured;
+
+		if (MR) {
+
+			a = M*a;
+
+			const Matrix<T> RotMat = M*R;
+			const int k = 9*i;
+			RotMat.copy_to(MR+k);
+		}
+
+		s += a;
+	}
+
+	T objective() {
+		return -((s[X]/N)*(s[X]/N) + (s[Y]/N)*(s[Y]/N) + (s[Z]/N)*(s[Z]/N));
+	}
+
+public:
+
+	ObjEval(const Input& data, std::ostream& , bool ) :
+
+		time_stamp(data.time_stamp()),
+
+		acc_x(data.acc_x()),
+		acc_y(data.acc_y()),
+		acc_z(data.acc_z()),
+
+		wx(data.wx()),
+		wy(data.wy()),
+		wz(data.wz()),
+
+		N(data.N()),
+
+		g_ref(data.g_ref()),
+		MR(0),
+		d(Vector<T>(0,0,0)),
+		s(Vector<T>(0,0,0))
+	{
+
+	}
+
+	T f(const T* const x)  {
+
+		set_sum_R0_C_d(x);
+
+		for (int i=1; i<N; ++i) {
+
+			update_R(i); // R(i)=R(i-1)*G(i-1)
+
+			normalize_R();
+
+			sum_Ri_ai(i);
+
+		}
+
+		return objective();
+	}
+
+	const T s_x() const { return s[X]/N; }
+
+	const T s_y() const { return s[Y]/N; }
+
+	const T s_z() const { return s[Z]/N; }
+
+	void set_M(double* R, double* g_error) {
+
+		M = Matrix<NT> (R);
+		MR = R;
+	}
+
+};
+
+}
+
+#elif defined OLD_VERSION
+
 using std::endl;
 
 typedef double NT;
@@ -409,6 +594,8 @@ public:
 };
 
 }
+
+#endif
 
 #endif
 

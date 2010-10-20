@@ -40,6 +40,9 @@ namespace gyro {
 
 enum coordinate { X, Y, Z };
 
+template <typename C>
+class Matrix;
+
 template <typename T>
 class Vector {
 
@@ -62,7 +65,13 @@ public:
 	template <typename C>
 	friend const C operator*(const Vector<C>& x, const Vector<C>& y);
 
+	template <typename C>
+	friend const Vector<C> operator*(const C& c, const Vector<C>& x);
+
 	const T& operator[] (coordinate i) const { return v[i]; }
+
+	template <typename C>
+	friend const Vector<C> cross_product(const Vector<C>& x, const Vector<C>& y);
 
 	void enforce_range_minus_pi_plus_pi();
 
@@ -70,6 +79,9 @@ public:
 
 	template <typename C>
 	friend class Matrix;
+
+	template <typename U, typename V>
+	friend const Vector<U> operator*(const Matrix<U>& M, const Vector<V>& v);
 
 private:
 
@@ -133,6 +145,12 @@ const T operator*(const Vector<T>& x, const Vector<T>& y) {
 }
 
 template <typename T>
+const Vector<T> operator*(const T& c, const Vector<T>& y) {
+
+	return Vector<T> (c*y.v[X], c*y.v[Y], c*y.v[Z]);
+}
+
+template <typename T>
 Vector<T>& Vector<T>::operator*=(double x) {
 
 	for (int i=0; i<3; ++i) {
@@ -148,12 +166,6 @@ const Vector<T> operator*(const Vector<T>& x, double y) {
 	Vector<T> z(x);
 
 	return z*=y;
-}
-
-template <typename T>
-const Vector<T> operator*(double x, const Vector<T>& y) {
-
-	return y*x;
 }
 
 template <typename T>
@@ -173,6 +185,15 @@ const Vector<T> operator/(const Vector<T>& x, double y) {
 
 	return z/=y;
 }
+
+template <typename T>
+const Vector<T> cross_product(const Vector<T>& x, const Vector<T>& y) {
+	const T* const a = x.v;
+	const T* const b = y.v;
+
+	return Vector<T>(a[Y]*b[Z]-a[Z]*b[Y], a[Z]*b[X]-a[X]*b[Z], a[X]*b[Y]-a[Y]*b[X]);
+}
+
 
 template <typename T>
 void Vector<T>::enforce_range_minus_pi_plus_pi() {
@@ -197,23 +218,28 @@ class Matrix {
 
 public:
 
+	Matrix();
+
 	Matrix(const T array[9]);
+
+	Matrix(const Vector<T>& row_x, const Vector<T>& row_y, const Vector<T>& row_z);
 
 	void copy_to(T array[9]) const;
 
 	Matrix& operator+=(const Matrix& M);
 
-	const Vector<T> operator*(const Vector<T>& v) const;
+	template <typename U, typename V>
+	friend const Vector<U> operator*(const Matrix<U>& M, const Vector<V>& v);
 
 	const Matrix operator*(const Matrix& M) const;
+
+	const Vector<T> operator[] (coordinate i) const;
 
 	std::ostream& print(std::ostream& os) const;
 
 	static const Matrix identity();
 
 private:
-
-	Matrix();
 
 	T m[3][3];
 };
@@ -249,6 +275,14 @@ Matrix<T>::Matrix() {
 }
 
 template <typename T>
+Matrix<T>::Matrix(const Vector<T>& row_x, const Vector<T>& row_y, const Vector<T>& row_z) {
+
+	row_x.copy_to(m[X]);
+	row_y.copy_to(m[Y]);
+	row_z.copy_to(m[Z]);
+}
+
+template <typename T>
 const Matrix<T> Matrix<T>::identity() {
 
 	Matrix I;
@@ -278,14 +312,14 @@ std::ostream& operator<<(std::ostream& os, const Matrix<T>& x) {
 	return x.print(os);
 }
 
-template <typename T>
-const Vector<T> Matrix<T>::operator*(const Vector<T>& x) const {
+template <typename U, typename V>
+const Vector<U> operator*(const Matrix<U>& A, const Vector<V>& x) {
 
-	Vector<T> z(0.0, 0.0, 0.0);
+	Vector<U> z(0.0, 0.0, 0.0);
 
 	for (int i=0; i<3; ++i) {
 		for (int j=0; j<3; ++j) {
-			z.v[i] += m[i][j]*x.v[j];
+			z.v[i] += A.m[i][j]*x.v[j];
 		}
 	}
 
@@ -326,6 +360,12 @@ const Matrix<T> operator+(const Matrix<T>& A, const Matrix<T>& B) {
 	Matrix<T> C(A);
 
 	return C+=B;
+}
+
+template <typename T>
+const Vector<T> Matrix<T>::operator[] (coordinate i) const {
+
+	return Vector<T> (m[i][X], m[i][Y], m[i][Z]);
 }
 
 typedef Vector<double> vector3;
