@@ -33,7 +33,7 @@
  * @author Alec Woo <awoo@archrock.com>
  * @author Jonathan Hui <jhui@archrock.com>
  * @author Philip Levis <pal@cs.stanford.edu> (maintainer)
- * @version $Revision: 1.1 $ $Date: 2010-01-27 20:01:42 $
+ * @version $Revision: 1.2 $ $Date: 2010-10-20 20:47:08 $
  *
  * Modification @ 11/27 (pal): Folded in Alec's reimplementation
  * from the -devel branch. Fixed bug in RX interrupts, where
@@ -92,6 +92,8 @@ implementation{
   }
 
   command error_t StdControl.stop(){
+    call HplUart.disableTxIntr();
+    call HplUart.disableRxIntr();
     call HplUartTxControl.stop();
     call HplUartRxControl.stop();
     return SUCCESS;

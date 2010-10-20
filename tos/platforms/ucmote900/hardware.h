@@ -35,21 +35,20 @@
  *  @author Matt Miller <mmiller@xbow.com>
  *  @author Martin Turon <mturon@xbow.com>
  *
- *  $Id: hardware.h,v 1.1 2010-06-17 00:50:06 mmaroti Exp $
+ *  $Id: hardware.h,v 1.2 2010-10-20 20:44:13 mmaroti Exp $
  */
 
 #ifndef HARDWARE_H
 #define HARDWARE_H
 
-#ifndef MHZ
+#ifndef PLATFORM_MHZ
 /* Clock rate is ~8MHz except if specified by user 
    (this value must be a power of 2, see MicaTimer.h and MeasureClockC.nc) */
-#define MHZ 8
+#define PLATFORM_MHZ 8
 #endif
 
 #include <atm128hardware.h>
 #include <Atm128Adc.h>
-#include <MicaTimer.h>
 
 // enum so components can override power saving, 
 // as per TEP 112. 

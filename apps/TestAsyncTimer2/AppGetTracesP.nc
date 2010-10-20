@@ -39,7 +39,7 @@ module AppGetTracesP
 	{
 		interface Boot;
 		interface Leds;
-		interface HplAtmTimer<uint8_t> as Timer;
+		interface HplAtmCounter<uint8_t> as Counter;
 		interface HplAtmCompare<uint8_t> as Compare;
 		interface DiagMsg;
 		interface SplitControl;
@@ -93,7 +93,7 @@ implementation
 		uint8_t a, b;
 
 		for(a = 0; a < random; ++a)
-			b = call Timer.get();
+			b = call Counter.get();
 
 		++random;
 
@@ -104,12 +104,12 @@ implementation
 	{
 		atomic
 		{
-			trace[0] = call Timer.get();
-			trace[1] = call Timer.test();
-			trace[2] = call Timer.get();
-			trace[3] = call Timer.test();
-			trace[4] = call Timer.get();
-			trace[5] = call Timer.test();
+			trace[0] = call Counter.get();
+			trace[1] = call Counter.test();
+			trace[2] = call Counter.get();
+			trace[3] = call Counter.test();
+			trace[4] = call Counter.get();
+			trace[5] = call Counter.test();
 		}
 
 		if( trace[0] == 0 )
@@ -144,9 +144,8 @@ implementation
 
 		post randomizer();
 
-		call Timer.setMode(ATM1281_WAVE8_NORMAL | ATM1281_ASYNC_ON);
-		call Timer.setScale(ATM1281_CLK8_DIVIDE_8);
-		call Timer.start();
+		call Counter.setMode(ATM1281_CLK8_NORMAL | ATM1281_WGM8_NORMAL | ATM1281_ASYNC_ON);
+		call Counter.start();
 		post testTimer();
 	}
 
@@ -155,7 +154,7 @@ implementation
 
 	uint8_t counter;
 
-	async event void Timer.overflow()
+	async event void Counter.overflow()
 	{
 		if( ++counter == 0 )
 			post reportTask();

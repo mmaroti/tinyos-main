@@ -38,13 +38,14 @@ configuration AppTestCounterC
 implementation
 {
 	components MainC, AppTestCounterP, LedsC, McuSleepC, DiagMsgC, SerialActiveMessageC,
-		Atm1281TimerC;
+		CounterRtc16C;
 
 	AppTestCounterP.Boot -> MainC;
 	AppTestCounterP.Leds -> LedsC;
 	AppTestCounterP.DiagMsg -> DiagMsgC;
-	AppTestCounterP.Counter -> Atm1281TimerC;
+	AppTestCounterP.Counter -> CounterRtc16C;
 	AppTestCounterP.SplitControl -> SerialActiveMessageC;
+	MainC.SoftwareInit -> CounterRtc16C;
 
 	McuSleepC.Leds -> LedsC;
 }

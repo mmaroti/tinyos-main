@@ -24,7 +24,7 @@
 #ifndef __RADIOCONFIG_H__
 #define __RADIOCONFIG_H__
 
-#include <MicaTimer.h>
+#include <HplAtmTimer.h>
 #include <RF212DriverLayer.h>
 #include <util/crc16.h>
 
@@ -76,7 +76,7 @@ inline uint16_t RF212_CRCBYTE_COMMAND(uint16_t crc, uint8_t data)
 /**
  * This is the timer type of the radio alarm interface
  */
-typedef TThree TRadio;
+typedef TMcu TRadio;
 
 /**
  * The number of radio alarm ticks per one microsecond

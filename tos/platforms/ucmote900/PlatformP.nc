@@ -1,4 +1,4 @@
-/// $Id: PlatformP.nc,v 1.1 2010-07-16 23:44:47 mmaroti Exp $
+/// $Id: PlatformP.nc,v 1.2 2010-10-20 20:44:13 mmaroti Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -64,13 +64,13 @@ implementation
       // enable changing the prescaler
       CLKPR = 0x80;
 
-#if MHZ == 8
+#if PLATFORM_MHZ == 8
       CLKPR = 0x00;
-#elif MHZ == 4
+#elif PLATFORM_MHZ == 4
       CLKPR = 0x01;
-#elif MHZ == 2
+#elif PLATFORM_MHZ == 2
       CLKPR = 0x02;
-#elif MHZ == 1
+#elif PLATFORM_MHZ == 1
       CLKPR = 0x03;
 #else
 	#error "Unsupported MHZ"

@@ -37,15 +37,15 @@ configuration AppGetTracesC
 
 implementation
 {
-	components MainC, AppGetTracesP, LedsC, McuSleepC, HplAtm1281Timer2P, 
+	components MainC, AppGetTracesP, LedsC, McuSleepC, HplAtmTimerC, 
 		DiagMsgC, SerialActiveMessageC;
 
 	AppGetTracesP.Boot -> MainC;
 	AppGetTracesP.Leds -> LedsC;
 	AppGetTracesP.SplitControl -> SerialActiveMessageC;
 	AppGetTracesP.DiagMsg -> DiagMsgC;
-	AppGetTracesP.Timer -> HplAtm1281Timer2P;
-	AppGetTracesP.Compare -> HplAtm1281Timer2P;
+	AppGetTracesP -> HplAtmTimerC.RtcCounter;
+	AppGetTracesP -> HplAtmTimerC.RtcCompare[0];
 
 	McuSleepC.Leds -> LedsC;
 }
