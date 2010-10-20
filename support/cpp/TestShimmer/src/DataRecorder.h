@@ -36,6 +36,7 @@
 #include <QObject>
 #include "Data.hpp"
 #include "SerialListener.h"
+#include "MatrixVector.hpp"
 
 #ifndef DATARECORDER_H
 #define DATARECORDER_H
@@ -63,6 +64,7 @@ struct Sample
 	int temp;
         double rotmat[9];
         double integrated_angle[3];
+        double corrigated_angle[3]; // TODO Find a proper name
         double XYangle, YZangle, ZXangle; // FIXME
 };
 
@@ -143,7 +145,10 @@ public slots:
 private:
         void csvToSample(const QString& line); // FIXME
 
+        double time_step(int i) const;
+        gyro::vector3 angular_rate(int i) const;
         void integrate_angles();
+        void corrigated_angles();
         void update_gyro_calib(const double correction[12]);
 
 	QVarLengthArray<Sample> samples;
@@ -153,6 +158,9 @@ private:
         double gyroMinAvgs[3];
         int accelIdleWindowStart[6];
         int gyroIdleWindowStart[7];
+
+        gyro::matrix3 A;
+        gyro::vector3 b;
 
         Application &application; // FIXME
 

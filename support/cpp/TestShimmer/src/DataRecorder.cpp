@@ -28,8 +28,8 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Miklï¿½s Marï¿½ti
+* Author: Pï¿½ter Ruzicska
 */
 
 #include <stdexcept>
@@ -45,10 +45,11 @@
 #include <math.h>
 #include "Results.hpp"
 #include "EulerAngles.hpp"
-#include "MatrixVector.hpp"
 
-
-DataRecorder::DataRecorder(Application &app) : application(app)
+DataRecorder::DataRecorder(Application &app) :
+        A(gyro::matrix3::identity()),
+        b(gyro::vector3(0,0,0)),
+        application(app)
 {
     //loadCalibrationData();
     for(int i=0; i<6; i++){
@@ -642,6 +643,61 @@ void DataRecorder::update_gyro_calib(const double s[12]) {
     gyroCalibrationData[10] = -gyroCalibrationData[10];
 
     dump_calibration_data();
+
+    // FIXME Eliminate gyroCalibrationData
+    this->A = matrix3(gyroCalibrationData);
+    this->b = vector3(gyroCalibrationData+9);
+}
+
+double DataRecorder::time_step(int i) const {
+
+    using namespace gyro;
+
+    return (samples[i].time-samples[i-1].time)/TICKS_PER_SEC;
+}
+
+gyro::vector3 DataRecorder::angular_rate(int i) const {
+
+    using namespace gyro;
+
+    const Sample& s = samples[i];
+    const vector3 x(s.xGyro, s.yGyro, s.zGyro);
+    return A*x+b;
+}
+
+void DataRecorder::corrigated_angles() {
+
+    using namespace gyro;
+    const int n = samples.size();
+
+    if (n<2)
+        return;
+
+    for (int i=0; i<3; ++i)
+        samples[0].corrigated_angle[i] = 0.0;
+
+    vector3 sum(0, 0, 0);
+
+    for (int i=1; i<n; ++i) {
+
+        const vector3 angle = ((angular_rate(i-1)+angular_rate(i))/2)*time_step(i);
+
+        const double alpha = -samples[i].integrated_angle[X];
+        const double s = sin(alpha);
+        const double c = cos(alpha);
+
+        const double x =   angle[X];
+        const double y = c*angle[Y]-s*angle[Z];
+        const double z = s*angle[Y]+c*angle[Z];
+
+        const vector3 diff(x, y, z);
+
+        sum += diff;
+
+        sum.enforce_range_minus_pi_plus_pi();
+
+        sum.copy_to(samples[i].corrigated_angle);
+    }
 }
 
 void DataRecorder::integrate_angles() {
@@ -655,27 +711,13 @@ void DataRecorder::integrate_angles() {
     for (int i=0; i<3; ++i)
         samples[0].integrated_angle[i] = 0.0;
 
-    const matrix3 A(gyroCalibrationData);
-    const vector3 b(gyroCalibrationData+9);
     vector3 sum(0, 0, 0);
 
     for (int i=1; i<n; ++i) {
-        Sample& s1 = samples[i-1];
-        const vector3 x1(s1.xGyro, s1.yGyro, s1.zGyro);
-        const vector3 y1= A*x1+b;
-
-        Sample& s2 = samples[i];
-        const vector3 x2(s2.xGyro, s2.yGyro, s2.zGyro);
-        const vector3 y2 = A*x2+b;
-
-        const double dt = (s2.time-s1.time)/TICKS_PER_SEC;
-
-        const vector3 angle = ((y1+y2)/2)*dt;
-
+        const vector3 angle = ((angular_rate(i-1)+angular_rate(i))/2)*time_step(i);
         sum += angle;
         sum.enforce_range_minus_pi_plus_pi();
-        double* const s_angle = s2.integrated_angle;
-        sum.copy_to(s_angle);
+        sum.copy_to(samples[i].integrated_angle);
     }
 }
 
@@ -699,9 +741,11 @@ void DataRecorder::loadResults(const ipo::Results* res) {
         }
     }
 
-    //update_gyro_calib(res->var());
+    update_gyro_calib(res->var());
 
     integrate_angles();
+
+    corrigated_angles();
 }
 
 void DataRecorder::dump_calibration_data() const {
@@ -712,7 +756,7 @@ void DataRecorder::dump_calibration_data() const {
         std::cout << gyroCalibrationData[k] << std::endl;
     }
 }
-
+/*
 bool DataRecorder::euler_angle(int i, int k, double& angle_rad) const {
 
     using namespace gyro;
@@ -728,6 +772,14 @@ bool DataRecorder::euler_angle(int i, int k, double& angle_rad) const {
     angle_rad = euler[k];
 
     return degenerate;
+}
+*/
+
+bool DataRecorder::euler_angle(int i, int k, double& angle_rad) const {
+
+    angle_rad = samples[i].corrigated_angle[k];
+
+    return false;
 }
 
 double DataRecorder::integrated_angle(int i, int coordinate) const {
