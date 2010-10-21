@@ -38,7 +38,7 @@
 #include "InputData.hpp"
 #include "CompileTimeConstants.hpp"
 
-#define OLD_VERSION
+#define NEW_VERSION
 #ifdef NEW_VERSION
 
 #include "MatrixVector.hpp"
@@ -51,8 +51,6 @@ template<typename T>
 class ObjEval {
 
 private:
-
-	//==========================================================================
 
 	const NT* const time_stamp;
 
@@ -75,8 +73,6 @@ private:
 	Vector<T> d;
 	Vector<T> s;
 	Matrix<T> M;
-
-	//==========================================================================
 
 	void set_sum_R0_C_d(const T* const x) {
 
@@ -134,10 +130,9 @@ private:
 		const Vector<T> Ry_new = Ry-half_error*Rx;
 		const Vector<T> Rz_new = cross_product(Rx_new, Ry_new);
 
-		T Cx = correction(Rx_new);
+		T Cx = correction(Rx_new); // TODO Write *= with arg T, not double
 		T Cy = correction(Ry_new);
 		T Cz = correction(Rz_new);
-
 
 		R = Matrix<T> (Cx*Rx_new, Cy*Ry_new, Cz*Rz_new);
 	}

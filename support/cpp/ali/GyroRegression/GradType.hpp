@@ -90,7 +90,7 @@ public:
 
 	int size() const { return N; }
 
-	std::ostream& print(std::ostream& os) const { os << f; return os; }
+	std::ostream& print(std::ostream& os) const;
 
 private:
 
@@ -100,6 +100,17 @@ private:
 	double f;
 	double g[N];
 };
+
+template <int N>
+std::ostream& GradType<N>::print(std::ostream& os) const {
+	os << f << std::endl;
+	os << g[0];
+	for (int i=1; i<N; ++i) {
+		os << '\t' << g[i];
+	}
+	os << std::endl;
+	return os;
+}
 
 template <int N_VAR>
 std::ostream& operator<<(std::ostream& os, const GradType<N_VAR>& x) {
