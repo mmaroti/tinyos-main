@@ -3,10 +3,7 @@
 PLATFORM = ucmini
 PROGRAMMER ?= avrdude
 
-PROGRAMMER_PART ?= -pm128rfa1 -Uefuse:w:0xff:m
-
-AVR_FUSE_H ?= 0xd9
-AVR_FUSE_L ?= 0xff
+PROGRAMMER_PART ?= -pm128rfa1
 
 $(call TOSMake_include_platform,avr)
 
