@@ -50,7 +50,7 @@ public:
 
 	Vector(const T& x, const T& y, const T& z) { v[X] = x; v[Y] = y; v[Z] = z; }
 
-	Vector(const T x[3]) { v[X] = x[X]; v[Y] = x[Y]; v[Z] = x[Z]; }
+	explicit Vector(const T x[3]) { v[X] = x[X]; v[Y] = x[Y]; v[Z] = x[Z]; }
 
 	void copy_to(T array[3]) const;
 
@@ -73,6 +73,8 @@ public:
 	template <typename C>
 	friend const Vector<C> cross_product(const Vector<C>& x, const Vector<C>& y);
 
+	const T length() const;
+
 	void enforce_range_minus_pi_plus_pi();
 
 	std::ostream& print(std::ostream& os) const  { return os<<v[X]<<'\t'<<v[Y]<<'\t'<<v[Z]; }
@@ -92,6 +94,12 @@ template <typename T>
 std::ostream& operator<<(std::ostream& os, const Vector<T>& x) {
 
 	return x.print(os);
+}
+
+template <typename T>
+const T Vector<T>::length() const {
+
+	return sqrt(pow(v[X],2)+pow(v[Y],2)+pow(v[Z],2));
 }
 
 template <typename T>

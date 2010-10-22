@@ -72,6 +72,8 @@ public:
 
 	GradType& operator*=(double x);
 
+	GradType& operator/=(double x);
+
 	template <int N_VAR>
 	friend const GradType<N_VAR> operator/(const GradType<N_VAR>& x, const GradType<N_VAR>& y);
 
@@ -230,6 +232,17 @@ GradType<N>& GradType<N>::operator*=(double x) {
 	f *= x;
 	for (int i=0; i<N; ++i) {
 		g[i] *= x;
+	}
+
+	return *this;
+}
+
+template <int N>
+GradType<N>& GradType<N>::operator/=(double x) {
+
+	f /= x;
+	for (int i=0; i<N; ++i) {
+		g[i] /= x;
 	}
 
 	return *this;
