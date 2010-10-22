@@ -34,11 +34,13 @@
 #ifdef USE_GRADTYPE
 
 #include <iostream>
-#include "GradType.hpp"
+#include <cmath>
 #include "CompileTimeConstants.hpp"
-#include "Objective.hpp"
 #include "RegressionNLP_GradType.hpp"
 #include "BoundReader.hpp"
+using namespace std;
+#include "Objective.hpp"
+#include "GradType.hpp"
 
 namespace {
 
@@ -141,18 +143,18 @@ bool RegressionNLP::get_bounds_info(Index n, Number* x_l, Number* x_u,
 	// FIXME Either hard-coded or 2 bound readers
 
 	for (int i=0; i<NUM_OF_VARS; ++i) {
-		x_l[i] = -0.001;
-		x_u[i] =  0.001;
+		x_l[i] = -0.02;
+		x_u[i] =  0.02;
 	}
 
 	for (int i=9; i<12; ++i) {
-		x_l[i] = -0.1;
-		x_u[i] =  0.1;
+		x_l[i] = -1;
+		x_u[i] =  1;
 	}
 
 	for (int i=21; i<24; ++i) {
-		x_l[i] = -0.1;
-		x_u[i] =  0.1;
+		x_l[i] = -0.5;
+		x_u[i] =  0.5;
 	}
 
 	// Set the bounds for the constraints

@@ -46,7 +46,7 @@ using namespace Ipopt;
 
 int main() {
 
-	const Input* const data = read_file("oldal6.txt");
+	const Input* const data = read_file("stop_motion.txt");
 
 	RegressionNLP* const nlp = new RegressionNLP(*data, cout);
 

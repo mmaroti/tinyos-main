@@ -71,12 +71,17 @@ private:
 	Vector<T> s;
 	Matrix<T> M;
 
+	Vector<T> a_sum;
+	T error;
+
 	void set_R0_A_b_C_d_sum(const T* const x) {
 
 		R = Matrix<T>::identity();
 
-		A = Matrix<T>::identity() + Matrix<T> (x);
+		//A = Matrix<T>::identity() + Matrix<T> (x);
+		A = Matrix<T>::identity();
 		b = Vector<T>(x+9);
+		//b = Vector<T> (0,0,0);
 
 		C = Matrix<T>::identity() + Matrix<T> (x+12);
 		d = Vector<T>(x+21);
@@ -86,6 +91,8 @@ private:
 		if (MR) {
 			s = M*s;
 		}
+
+		error = (s - a_sum).length();
 	}
 
 	const Vector<NT> acceleration(int i) const {
@@ -158,10 +165,26 @@ private:
 		}
 
 		s += a;
+
+		error += (a - a_sum).length();
 	}
 
 	T objective() {
 		return -((s[X]/N)*(s[X]/N) + (s[Y]/N)*(s[Y]/N) + (s[Z]/N)*(s[Z]/N));
+	}
+
+	void evaluate(const T* const x) {
+
+		set_R0_A_b_C_d_sum(x);
+
+		for (int i=1; i<N; ++i) {
+
+			update_R(i); // R(i)=R(i-1)*G(i-1)
+
+			normalize_R();
+
+			sum_Ri_ai(i);
+		}
 	}
 
 public:
@@ -184,25 +207,23 @@ public:
 		MR(0),
 		b(Vector<T>(0,0,0)),
 		d(Vector<T>(0,0,0)),
-		s(Vector<T>(0,0,0))
+		s(Vector<T>(0,0,0)),
+		a_sum(Vector<T>(0,0,0))
 	{
 
 	}
 
 	T f(const T* const x)  {
 
-		set_R0_A_b_C_d_sum(x);
+		a_sum = Vector<T> (0,0,0);
 
-		for (int i=1; i<N; ++i) {
+		evaluate(x);
 
-			update_R(i); // R(i)=R(i-1)*G(i-1)
+		a_sum = s/N;
 
-			normalize_R();
+		evaluate(x);
 
-			sum_Ri_ai(i);
-		}
-
-		return objective();
+		return error;
 	}
 
 	const T s_x() const { return s[X]/N; }
