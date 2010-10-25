@@ -1,4 +1,4 @@
-/// $Id: PlatformP.nc,v 1.2 2010-09-20 14:11:57 szabomeister Exp $
+/// $Id: PlatformP.nc,v 1.3 2010-10-25 03:25:32 szabomeister Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -52,8 +52,10 @@ implementation
       atomic {
 	MCUCR = _BV(SE);      // Internal RAM, IDLE, rupt vector at 0x0002,
 			      // enable sleep instruction!
-	DDRB = _BV(7);    //
-	PORTB |= _BV(7);  // enable usb-rs232 chip
+	DDRB &= ~(_BV(PB7));    // set it as input
+	//PORTB |= _BV(7);  // enable usb-rs232 chip
+        DDRE &= ~(_BV(PE4)); // set it as input
+	
       }
   }
 
