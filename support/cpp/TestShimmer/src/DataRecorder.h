@@ -47,6 +47,8 @@ namespace ipo {
     class Results;
 }
 
+enum Coordinate { X, Y, Z };
+
 struct Sample
 {
         Sample(); // FIXME
@@ -64,7 +66,7 @@ struct Sample
 	int temp;
         double rotmat[9];
         double integrated_angle[3];
-        double corrigated_angle[3]; // TODO Find a proper name
+        double corrected_angle[3]; // TODO Find a proper name
         double XYangle, YZangle, ZXangle; // FIXME
 };
 
@@ -128,8 +130,9 @@ public:
         void edit(const QString& option);
 
         void loadResults(const ipo::Results* res);
-        bool euler_angle(int sample, int X_or_Y_or_Z, double& angle_in_rad) const;
-        double integrated_angle(int sample, int X_or_Y_or_Z) const;
+        bool euler_angle(int sample, Coordinate k, double& angle_in_rad) const;
+        double integrated_angle(int sample, Coordinate k) const;
+        double corrected_angle(int i, Coordinate k) const;
 
 signals:
 
@@ -148,7 +151,7 @@ private:
         double time_step(int i) const;
         gyro::vector3 angular_rate(int i) const;
         void integrate_angles();
-        void corrigated_angles();
+        void corrected_angles();
         void update_gyro_calib(const double correction[12]);
 
 	QVarLengthArray<Sample> samples;

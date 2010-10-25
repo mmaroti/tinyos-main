@@ -577,6 +577,7 @@ void DataRecorder::at(int i, double data[ipo::SIZE]) const {
     using namespace ipo;
 
     using namespace gyro;
+    using gyro::X; using gyro::Y; using gyro::Z;
 
     if (i<0 || i>=application.dataRecorder.size()) {
 
@@ -665,16 +666,18 @@ gyro::vector3 DataRecorder::angular_rate(int i) const {
     return A*x+b;
 }
 
-void DataRecorder::corrigated_angles() {
+void DataRecorder::corrected_angles() {
 
     using namespace gyro;
+    using gyro::X; using gyro::Y; using gyro::Z;
+
     const int n = samples.size();
 
     if (n<2)
         return;
 
     for (int i=0; i<3; ++i)
-        samples[0].corrigated_angle[i] = 0.0;
+        samples[0].corrected_angle[i] = 0.0;
 
     vector3 sum(0, 0, 0);
 
@@ -696,7 +699,7 @@ void DataRecorder::corrigated_angles() {
 
         sum.enforce_range_minus_pi_plus_pi();
 
-        sum.copy_to(samples[i].corrigated_angle);
+        sum.copy_to(samples[i].corrected_angle);
     }
 }
 
@@ -745,7 +748,7 @@ void DataRecorder::loadResults(const ipo::Results* res) {
 
     integrate_angles();
 
-    corrigated_angles();
+    corrected_angles();
 }
 
 void DataRecorder::dump_calibration_data() const {
@@ -756,14 +759,10 @@ void DataRecorder::dump_calibration_data() const {
         std::cout << gyroCalibrationData[k] << std::endl;
     }
 }
-/*
-bool DataRecorder::euler_angle(int i, int k, double& angle_rad) const {
+
+bool DataRecorder::euler_angle(int i, Coordinate k, double& angle_rad) const {
 
     using namespace gyro;
-
-    if (k<0 || k>=3) {
-        throw std::out_of_range("Coordinate should be either X, Y or Z!");
-    }
 
     double euler[3];
 
@@ -773,22 +772,15 @@ bool DataRecorder::euler_angle(int i, int k, double& angle_rad) const {
 
     return degenerate;
 }
-*/
 
-bool DataRecorder::euler_angle(int i, int k, double& angle_rad) const {
+double DataRecorder::corrected_angle(int i, Coordinate k) const {
 
-    angle_rad = samples[i].corrigated_angle[k];
-
-    return false;
+    return samples[i].corrected_angle[k];
 }
 
-double DataRecorder::integrated_angle(int i, int coordinate) const {
+double DataRecorder::integrated_angle(int i, Coordinate k) const {
 
-    if (coordinate<0 || coordinate>=3) {
-        throw std::out_of_range("Coordinate should be either X, Y or Z!");
-    }
-
-    return samples[i].integrated_angle[coordinate];
+    return samples[i].integrated_angle[k];
 }
 
 void DataRecorder::setAccelIdleWindowStart(int index, int start) {

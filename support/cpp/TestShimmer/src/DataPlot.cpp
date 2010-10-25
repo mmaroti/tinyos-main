@@ -44,11 +44,6 @@
 #include "GLWidget.h"
 #include "constants.h"
 
-namespace {
-
-    enum { X, Y, Z };
-}
-
 DataPlot::DataPlot(PlotScrollArea *parent, Application &app) : QWidget(parent),
         application(app)
 {
