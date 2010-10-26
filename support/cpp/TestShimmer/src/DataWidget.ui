@@ -170,7 +170,7 @@
      <item>
       <widget class="QToolBox" name="toolBox">
        <property name="currentIndex">
-        <number>0</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="accToolBox">
         <property name="geometry">
@@ -473,8 +473,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>255</width>
-          <height>154</height>
+          <width>137</width>
+          <height>124</height>
          </rect>
         </property>
         <attribute name="label">
@@ -784,6 +784,14 @@
         </layout>
        </widget>
        <widget class="QWidget" name="anglesToolBox">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>-56</y>
+          <width>238</width>
+          <height>292</height>
+         </rect>
+        </property>
         <attribute name="label">
          <string>Angles</string>
         </attribute>
@@ -1035,6 +1043,42 @@
             </item>
             <item>
              <widget class="QCheckBox" name="intZ">
+              <property name="text">
+               <string>z</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="corrBox">
+           <property name="title">
+            <string>Corrected Angles</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_8">
+            <item>
+             <widget class="QCheckBox" name="corrX">
+              <property name="text">
+               <string>x</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="corrY">
+              <property name="text">
+               <string>y</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="corrZ">
               <property name="text">
                <string>z</string>
               </property>

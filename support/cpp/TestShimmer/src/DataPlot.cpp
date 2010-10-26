@@ -489,6 +489,39 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 }
             }
 
+            if( (graphs & XINT) != 0 )
+            {
+                painter.setPen(QPen(Qt::red, 2, Qt::SolidLine));
+
+                for(int i = x0 + 1; i < x1; ++i) {
+                    double angle1 = dataRecorder.corrected_angle(i-1, X);
+                    double angle2 = dataRecorder.corrected_angle(i  , X);
+                    painter.drawLine(getPoint(i-1, angle1*(2048/M_PI)+2048), getPoint(i, angle2*(2048/M_PI)+2048));
+                }
+            }
+
+            if( (graphs & YINT) != 0 )
+            {
+                painter.setPen(QPen(Qt::green, 2, Qt::SolidLine));
+
+                for(int i = x0 + 1; i < x1; ++i) {
+                    double angle1 = dataRecorder.corrected_angle(i-1, Y);
+                    double angle2 = dataRecorder.corrected_angle(i  , Y);
+                    painter.drawLine(getPoint(i-1, angle1*(2048/M_PI)+2048), getPoint(i, angle2*(2048/M_PI)+2048));
+                }
+            }
+
+            if( (graphs & ZINT) != 0 )
+            {
+                painter.setPen(QPen(Qt::blue, 2, Qt::SolidLine));
+
+                for(int i = x0 + 1; i < x1; ++i) {
+                    double angle1 = dataRecorder.corrected_angle(i-1, Z);
+                    double angle2 = dataRecorder.corrected_angle(i  , Z);
+                    painter.drawLine(getPoint(i-1, angle1*(2048/M_PI)+2048), getPoint(i, angle2*(2048/M_PI)+2048));
+                }
+            }
+
 
             if( (graphs & CALIB) != 0 )
             {
