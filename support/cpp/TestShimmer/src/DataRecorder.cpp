@@ -773,14 +773,38 @@ bool DataRecorder::euler_angle(int i, Coordinate k, double& angle_rad) const {
     return degenerate;
 }
 
-double DataRecorder::corrected_angle(int i, Coordinate k) const {
+namespace {
 
-    return samples[i].corrected_angle[k];
+    void fix_vertical_lines(double& a, double& b) {
+
+        if (fabs(a-b)<0.75*2*M_PI)
+            return;
+
+        if(b<0)
+            a -= 2*M_PI;
+        else
+            a += 2*M_PI;
+    }
 }
 
-double DataRecorder::integrated_angle(int i, Coordinate k) const {
+Angle_pair DataRecorder::corrected_angle(int i, Coordinate k) const {
 
-    return samples[i].integrated_angle[k];
+    double a = samples[i-1].corrected_angle[k];
+    double b = samples[i  ].corrected_angle[k];
+
+    fix_vertical_lines(a, b);
+
+    return Angle_pair(a, b);
+}
+
+Angle_pair DataRecorder::integrated_angle(int i, Coordinate k) const {
+
+    double a = samples[i-1].integrated_angle[k];
+    double b = samples[i  ].integrated_angle[k];
+
+    fix_vertical_lines(a, b);
+
+    return Angle_pair(a, b);
 }
 
 void DataRecorder::setAccelIdleWindowStart(int index, int start) {

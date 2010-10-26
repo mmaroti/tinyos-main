@@ -70,6 +70,12 @@ struct Sample
         double XYangle, YZangle, ZXangle; // FIXME
 };
 
+struct Angle_pair {
+    Angle_pair(double a, double b) : angle1(a), angle2(b)  { }
+    const double angle1;
+    const double angle2;
+};
+
 class DataRecorder : public QObject
 {
 	Q_OBJECT
@@ -131,8 +137,8 @@ public:
 
         void loadResults(const ipo::Results* res);
         bool euler_angle(int sample, Coordinate k, double& angle_in_rad) const;
-        double integrated_angle(int sample, Coordinate k) const;
-        double corrected_angle(int i, Coordinate k) const;
+        Angle_pair integrated_angle(int sample, Coordinate k) const;
+        Angle_pair corrected_angle(int i, Coordinate k) const;
 
 signals:
 

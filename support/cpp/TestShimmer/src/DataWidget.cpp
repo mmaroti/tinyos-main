@@ -258,17 +258,17 @@ void DataWidget::on_intZ_clicked()
 
 void DataWidget::on_corrX_clicked()
 {
-    plot->setGraphs(DataPlot::XINT, ui->corrX->checkState());
+    plot->setGraphs(DataPlot::XCORRANG, ui->corrX->checkState());
 }
 
 void DataWidget::on_corrY_clicked()
 {
-    plot->setGraphs(DataPlot::YINT, ui->corrY->checkState());
+    plot->setGraphs(DataPlot::YCORRANG, ui->corrY->checkState());
 }
 
 void DataWidget::on_corrZ_clicked()
 {
-    plot->setGraphs(DataPlot::ZINT, ui->corrZ->checkState());
+    plot->setGraphs(DataPlot::ZCORRANG, ui->corrZ->checkState());
 }
 
 void DataWidget::on_rawAccBox_clicked()
@@ -431,9 +431,9 @@ void DataWidget::on_corrBox_clicked()
         on_corrY_clicked();
         on_corrZ_clicked();
     } else {
-        plot->setGraphs(DataPlot::XINT, false);
-        plot->setGraphs(DataPlot::YINT, false);
-        plot->setGraphs(DataPlot::ZINT, false);
+        plot->setGraphs(DataPlot::XCORRANG, false);
+        plot->setGraphs(DataPlot::YCORRANG, false);
+        plot->setGraphs(DataPlot::ZCORRANG, false);
     }
 }
 
@@ -466,12 +466,12 @@ void DataWidget::finished(bool error, const char* msg, const ipo::Results* res) 
     if (!error) {
         application.dataRecorder.loadResults(res);
         bool on = true;
-        int graphs = DataPlot::XEUL | DataPlot::YEUL | DataPlot::ZEUL ;
+        int graphs = DataPlot::XCORRANG | DataPlot::YCORRANG | DataPlot::ZCORRANG ;
         plot->setGraphs(graphs, on);
-        ui->eulerX->setChecked(true);
-        ui->eulerY->setChecked(true);
-        ui->eulerZ->setChecked(true);
-        ui->eulerBox->setChecked(true);
+        ui->corrX->setChecked(true);
+        ui->corrY->setChecked(true);
+        ui->corrZ->setChecked(true);
+        ui->corrBox->setChecked(true);
         plot->update();
     }
     else {

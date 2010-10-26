@@ -86,13 +86,18 @@ public:
                 ZANG    = 0x400000,
                 CALIB   = 0x800000,
 
-                XEUL    = 0x1000000,
-                YEUL    = 0x2000000,
-                ZEUL    = 0x4000000,
+                XEUL    = 0x40000000,
+                YEUL    = 0x80000000,
+                ZEUL    = 0x0000000,
 
                 XINT    = 0x8000000,
                 YINT    = 0x10000000,
-                ZINT    = 0x20000000
+                ZINT    = 0x20000000,
+
+                XCORRANG    = 0x1000000,
+                YCORRANG    = 0x2000000,
+                ZCORRANG    = 0x4000000
+
         };
 
         void setGraphs(int graphs, bool on);

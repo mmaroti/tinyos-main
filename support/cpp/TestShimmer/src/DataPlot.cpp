@@ -441,7 +441,7 @@ void DataPlot::paintEvent(QPaintEvent *event)
                     painter.drawLine(getPoint(i-1, angle1_deg * (2048/M_PI) + 2048), getPoint(i, angle2_deg * (2048/M_PI) + 2048));
                 }
             }
-
+/*
             if( (graphs & ZEUL) != 0 )
             {
                 painter.setPen(QPen(Qt::blue, 2, Qt::SolidLine));
@@ -455,15 +455,14 @@ void DataPlot::paintEvent(QPaintEvent *event)
                     painter.drawLine(getPoint(i-1, angle1_deg * (2048/M_PI) + 2048), getPoint(i, angle2_deg * (2048/M_PI) + 2048));
                 }
             }
-
+*/
             if( (graphs & XINT) != 0 )
             {
-                painter.setPen(QPen(Qt::magenta, 2, Qt::SolidLine));
+                painter.setPen(QPen(Qt::red, 2, Qt::SolidLine));
 
                 for(int i = x0 + 1; i < x1; ++i) {
-                    double angle1 = dataRecorder.integrated_angle(i-1, X);
-                    double angle2 = dataRecorder.integrated_angle(i  , X);
-                    painter.drawLine(getPoint(i-1, angle1*(2048/M_PI)+2048), getPoint(i, angle2*(2048/M_PI)+2048));
+                    Angle_pair a = dataRecorder.integrated_angle(i, X);
+                    painter.drawLine(getPoint(i-1, a.angle1*(2048/M_PI)+2048), getPoint(i, a.angle2*(2048/M_PI)+2048));
                 }
             }
 
@@ -472,9 +471,8 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 painter.setPen(QPen(Qt::yellow, 2, Qt::SolidLine));
 
                 for(int i = x0 + 1; i < x1; ++i) {
-                    double angle1 = dataRecorder.integrated_angle(i-1, Y);
-                    double angle2 = dataRecorder.integrated_angle(i  , Y);
-                    painter.drawLine(getPoint(i-1, angle1*(2048/M_PI)+2048), getPoint(i, angle2*(2048/M_PI)+2048));
+                    Angle_pair a = dataRecorder.integrated_angle(i, Y);
+                    painter.drawLine(getPoint(i-1, a.angle1*(2048/M_PI)+2048), getPoint(i, a.angle2*(2048/M_PI)+2048));
                 }
             }
 
@@ -483,42 +481,38 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 painter.setPen(QPen(Qt::black, 2, Qt::SolidLine));
 
                 for(int i = x0 + 1; i < x1; ++i) {
-                    double angle1 = dataRecorder.integrated_angle(i-1, Z);
-                    double angle2 = dataRecorder.integrated_angle(i  , Z);
-                    painter.drawLine(getPoint(i-1, angle1*(2048/M_PI)+2048), getPoint(i, angle2*(2048/M_PI)+2048));
+                    Angle_pair a = dataRecorder.integrated_angle(i, Z);
+                    painter.drawLine(getPoint(i-1, a.angle1*(2048/M_PI)+2048), getPoint(i, a.angle2*(2048/M_PI)+2048));
                 }
             }
 
-            if( (graphs & XINT) != 0 )
+            if( (graphs & XCORRANG) != 0 )
             {
                 painter.setPen(QPen(Qt::red, 2, Qt::SolidLine));
 
                 for(int i = x0 + 1; i < x1; ++i) {
-                    double angle1 = dataRecorder.corrected_angle(i-1, X);
-                    double angle2 = dataRecorder.corrected_angle(i  , X);
-                    painter.drawLine(getPoint(i-1, angle1*(2048/M_PI)+2048), getPoint(i, angle2*(2048/M_PI)+2048));
+                    Angle_pair a = dataRecorder.corrected_angle(i, X);
+                    painter.drawLine(getPoint(i-1, a.angle1*(2048/M_PI)+2048), getPoint(i, a.angle2*(2048/M_PI)+2048));
                 }
             }
 
-            if( (graphs & YINT) != 0 )
+            if( (graphs & YCORRANG) != 0 )
             {
                 painter.setPen(QPen(Qt::green, 2, Qt::SolidLine));
 
                 for(int i = x0 + 1; i < x1; ++i) {
-                    double angle1 = dataRecorder.corrected_angle(i-1, Y);
-                    double angle2 = dataRecorder.corrected_angle(i  , Y);
-                    painter.drawLine(getPoint(i-1, angle1*(2048/M_PI)+2048), getPoint(i, angle2*(2048/M_PI)+2048));
+                    Angle_pair a = dataRecorder.corrected_angle(i, Y);
+                    painter.drawLine(getPoint(i-1, a.angle1*(2048/M_PI)+2048), getPoint(i, a.angle2*(2048/M_PI)+2048));
                 }
             }
 
-            if( (graphs & ZINT) != 0 )
+            if( (graphs & ZCORRANG) != 0 )
             {
                 painter.setPen(QPen(Qt::blue, 2, Qt::SolidLine));
 
                 for(int i = x0 + 1; i < x1; ++i) {
-                    double angle1 = dataRecorder.corrected_angle(i-1, Z);
-                    double angle2 = dataRecorder.corrected_angle(i  , Z);
-                    painter.drawLine(getPoint(i-1, angle1*(2048/M_PI)+2048), getPoint(i, angle2*(2048/M_PI)+2048));
+                    Angle_pair a = dataRecorder.corrected_angle(i, Z);
+                    painter.drawLine(getPoint(i-1, a.angle1*(2048/M_PI)+2048), getPoint(i, a.angle2*(2048/M_PI)+2048));
                 }
             }
 
