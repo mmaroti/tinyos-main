@@ -32,7 +32,7 @@
 /**
  * @author Alec Woo <awoo@archrock.com>
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.2 $ $Date: 2010-09-20 14:11:57 $
+ * @version $Revision: 1.3 $ $Date: 2010-10-26 09:27:59 $
  */
 
 configuration PlatformSerialC
@@ -44,7 +44,7 @@ configuration PlatformSerialC
 
 implementation
 {
-  components Atm128Uart0C as UartC;//1
+  components Atm128Uart1C as UartC;//1
   StdControl = UartC;
   UartStream = UartC;
   UartByte = UartC;
