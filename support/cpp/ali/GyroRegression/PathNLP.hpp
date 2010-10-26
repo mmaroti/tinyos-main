@@ -36,6 +36,8 @@
 
 #ifdef USE_GRADTYPE
 #include "PathNLP_GradType.hpp"
+#elif defined USE_GRADTYPE2
+#include "PathNLP_GradType.hpp"
 #elif defined USE_ADOLC
 #include "PathNLP_ADOLC.hpp"
 #else

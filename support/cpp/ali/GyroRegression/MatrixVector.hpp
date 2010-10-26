@@ -228,7 +228,7 @@ public:
 
 	Matrix();
 
-	Matrix(const T array[9]);
+	explicit Matrix(const T array[9]);
 
 	Matrix(const Vector<T>& row_x, const Vector<T>& row_y, const Vector<T>& row_z);
 

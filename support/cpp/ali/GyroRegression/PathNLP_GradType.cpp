@@ -35,7 +35,7 @@
 using namespace std;
 #include "PathNLP.hpp"
 
-#ifdef USE_GRADTYPE
+#if defined USE_GRADTYPE or USE_GRADTYPE2
 
 #include "PathLength.hpp"
 #include "PathLengthDouble.hpp"

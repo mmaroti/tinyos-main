@@ -54,6 +54,10 @@ void run_solver(const Input& data, const char* outfile) {
 
 	write_result(outfile, opt, data, rot);
 
+	for (int i=0; i<12; ++i) {
+		cout << x[i] << endl;
+	}
+/*
 	PathOptimizer path(rot.matrices(), data);
 
 	const double* const y = path.solution();
@@ -63,6 +67,7 @@ void run_solver(const Input& data, const char* outfile) {
 	for (int i=0; i<12; ++i) {
 		cout << y[i] << endl;
 	}
+*/
 }
 
 int main(int argc, char* argv[]) {

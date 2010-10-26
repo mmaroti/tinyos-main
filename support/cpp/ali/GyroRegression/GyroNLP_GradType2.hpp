@@ -31,8 +31,8 @@
 * Author: Ali Baharev
 */
 
-#ifndef REGRESSIONNLP_GRADTYPE_HPP_
-#define REGRESSIONNLP_GRADTYPE_HPP_
+#ifndef GYRONLP_GRADTYPE2_HPP_
+#define GYRONLP_GRADTYPE2_HPP_
 
 #include <iosfwd>
 #include "IpTNLP.hpp"
@@ -46,15 +46,15 @@ class RegressionGrad;
 class Input;
 class BoundReader;
 
-class RegressionNLP : public TNLP
+class GyroNLP : public TNLP
 {
 public:
 
-	RegressionNLP(const Input& data, std::ostream& os);
+	GyroNLP(const Input& data, std::ostream& os, bool dummy);
 
 	const double* solution() const { return minimizer; }
 
-	virtual ~RegressionNLP();
+	virtual ~GyroNLP();
 
 	virtual bool get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 			Index& nnz_h_lag, IndexStyleEnum& index_style);
@@ -88,8 +88,8 @@ public:
 
 private:
 
-	RegressionNLP(const RegressionNLP&);
-	RegressionNLP& operator=(const RegressionNLP&);
+	GyroNLP(const GyroNLP&);
+	GyroNLP& operator=(const GyroNLP&);
 
 	static const int N_VARS;
 	static const int N_CONS;

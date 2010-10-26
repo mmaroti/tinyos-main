@@ -31,26 +31,55 @@
 * Author: Ali Baharev
 */
 
-#ifdef USE_GRADTYPE
+/** Copyright (c) 2010, University of Szeged
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions
+* are met:
+*
+* - Redistributions of source code must retain the above copyright
+* notice, this list of conditions and the following disclaimer.
+* - Redistributions in binary form must reproduce the above
+* copyright notice, this list of conditions and the following
+* disclaimer in the documentation and/or other materials provided
+* with the distribution.
+* - Neither the name of University of Szeged nor the names of its
+* contributors may be used to endorse or promote products derived
+* from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+* COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+* OF THE POSSIBILITY OF SUCH DAMAGE.
+*
+* Author: Ali Baharev
+*/
+
+#ifdef USE_GRADTYPE2
 
 #include <iostream>
 #include <cmath>
 #include "CompileTimeConstants.hpp"
-#include "RegressionNLP_GradType.hpp"
+#include "GyroNLP.hpp"
 #include "BoundReader.hpp"
 using namespace std;
 #include "Objective.hpp"
 #include "GradType.hpp"
-
-namespace {
-
-	const int NUM_OF_VARS = 24;
-}
+#include "CompileTimeConstants.hpp"
 
 namespace gyro {
 
-const int RegressionNLP::N_VARS(NUM_OF_VARS);
-const int RegressionNLP::N_CONS(0);
+const int GyroNLP::N_VARS(NUMBER_OF_VARIABLES);
+const int GyroNLP::N_CONS(0);
 
 class RegressionDouble {
 
@@ -74,31 +103,31 @@ class RegressionGrad {
 public:
 
 	RegressionGrad(const Input& data, std::ostream& os) :
-		obj(Objective<GradType<NUM_OF_VARS> > (data, os, false))
+		obj(Objective<GradType<NUMBER_OF_VARIABLES> > (data, os, false))
 	{
 
 	}
 
 	void evaluate(const double* x, double* grad_f) {
 
-		GradType<NUM_OF_VARS> vars[NUM_OF_VARS];
+		GradType<NUMBER_OF_VARIABLES> vars[NUMBER_OF_VARIABLES];
 
 		init_vars(vars, x);
 
-		const GradType<NUM_OF_VARS> result = obj.f(vars);
+		const GradType<NUMBER_OF_VARIABLES> result = obj.f(vars);
 
 		const double* const g = result.gradient();
 
-		for (int i=0; i<NUM_OF_VARS; ++i)
+		for (int i=0; i<NUMBER_OF_VARIABLES; ++i)
 			grad_f[i] = g[i];
 	}
 
 private:
 
-	Objective<GradType<NUM_OF_VARS> > obj;
+	Objective<GradType<NUMBER_OF_VARIABLES> > obj;
 };
 
-RegressionNLP::RegressionNLP(const Input& data, std::ostream& os) :
+GyroNLP::GyroNLP(const Input& data, std::ostream& os, bool ) :
 		minimizer(new double[N_VARS]),
 		obj(new RegressionDouble(data, os)),
 		grad(new  RegressionGrad(data, os)),
@@ -107,7 +136,7 @@ RegressionNLP::RegressionNLP(const Input& data, std::ostream& os) :
 
 }
 
-RegressionNLP::~RegressionNLP(){
+GyroNLP::~GyroNLP(){
 
 	delete[] minimizer;
 	delete obj;
@@ -115,7 +144,7 @@ RegressionNLP::~RegressionNLP(){
 	delete config;
 }
 
-bool RegressionNLP::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
+bool GyroNLP::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 		Index& nnz_h_lag, IndexStyleEnum& index_style)
 {
 	n = N_VARS;
@@ -135,28 +164,28 @@ bool RegressionNLP::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 	return true;
 }
 
-bool RegressionNLP::get_bounds_info(Index n, Number* x_l, Number* x_u,
+bool GyroNLP::get_bounds_info(Index n, Number* x_l, Number* x_u,
 		Index m, Number* g_l, Number* g_u)
 {
-	assert(n==NUM_OF_VARS);
+	assert(n==NUMBER_OF_VARIABLES);
 
 	// FIXME Either hard-coded or 2 bound readers
 
-	for (int i=0; i<NUM_OF_VARS; ++i) {
-		x_l[i] = -0.02;
-		x_u[i] =  0.02;
+	for (int i=0; i<NUMBER_OF_VARIABLES; ++i) {
+		x_l[i] = -0.1;
+		x_u[i] =  0.1;
 	}
 
 	for (int i=9; i<12; ++i) {
 		x_l[i] = -1;
 		x_u[i] =  1;
 	}
-
+/*
 	for (int i=21; i<24; ++i) {
 		x_l[i] = -0.5;
 		x_u[i] =  0.5;
 	}
-
+*/
 	// Set the bounds for the constraints
 	for (Index i=0; i<m; i++) {
 		g_l[i] = 0;
@@ -166,7 +195,7 @@ bool RegressionNLP::get_bounds_info(Index n, Number* x_l, Number* x_u,
 	return true;
 }
 
-bool RegressionNLP::get_starting_point(Index n, bool init_x, Number* x,
+bool GyroNLP::get_starting_point(Index n, bool init_x, Number* x,
 		bool init_z, Number* z_L, Number* z_U,
 		Index m, bool init_lambda,
 		Number* lambda)
@@ -182,7 +211,7 @@ bool RegressionNLP::get_starting_point(Index n, bool init_x, Number* x,
 	return true;
 }
 
-void RegressionNLP::finalize_solution(SolverReturn status,
+void GyroNLP::finalize_solution(SolverReturn status,
 		Index n, const Number* x, const Number* z_L, const Number* z_U,
 		Index m, const Number* g, const Number* lambda,
 		Number obj_value,
@@ -194,33 +223,33 @@ void RegressionNLP::finalize_solution(SolverReturn status,
 	}
 }
 
-int RegressionNLP::config_file_id() const {
+int GyroNLP::config_file_id() const {
 
 	return config->file_id();
 }
 
-bool RegressionNLP::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
+bool GyroNLP::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 {
 	// TODO new_x -> caching?
 	obj_value = obj->evaluate(x);
 	return true;
 }
 
-bool RegressionNLP::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
+bool GyroNLP::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 {
 	// TODO new_x -> caching?
 	grad->evaluate(x, grad_f);
 	return true;
 }
 
-bool RegressionNLP::eval_g(Index n, const Number* x, bool new_x, Index m, Number* g)
+bool GyroNLP::eval_g(Index n, const Number* x, bool new_x, Index m, Number* g)
 {
 	// This problem does not have constraints
 	assert(m == 0);
 	return true;
 }
 
-bool RegressionNLP::eval_jac_g(Index n, const Number* x, bool new_x,
+bool GyroNLP::eval_jac_g(Index n, const Number* x, bool new_x,
 		Index m, Index nele_jac, Index* iRow, Index *jCol,
 		Number* values)
 {
@@ -249,3 +278,5 @@ bool RegressionNLP::eval_jac_g(Index n, const Number* x, bool new_x,
 }
 
 #endif
+
+

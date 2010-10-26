@@ -64,8 +64,8 @@ private:
 	T* MR;
 
 	Matrix<T> R;
-	Matrix<T> A;
-	Vector<T> b;
+	//Matrix<T> A;
+	//Vector<T> b;
 	Matrix<T> C;
 	Vector<T> d;
 	Vector<T> s;
@@ -79,20 +79,22 @@ private:
 		R = Matrix<T>::identity();
 
 		//A = Matrix<T>::identity() + Matrix<T> (x);
-		A = Matrix<T>::identity();
-		b = Vector<T>(x+9);
+		//A = Matrix<T>::identity();
+		//b = Vector<T>(x+9);
 		//b = Vector<T> (0,0,0);
 
-		C = Matrix<T>::identity() + Matrix<T> (x+12);
-		d = Vector<T>(x+21);
+		C = Matrix<T>::identity() + Matrix<T> (x);
+		d = Vector<T>(x+9);
 
-		s = A*acceleration(0)+b;
+		//s = A*acceleration(0)+b;
+		s = Matrix<T>::identity()*acceleration(0);
 
 		if (MR) {
 			s = M*s;
 		}
 
-		error = (s - a_sum).length();
+		//error = (s - a_sum).length();
+		error = s*a_sum;
 	}
 
 	const Vector<NT> acceleration(int i) const {
@@ -151,7 +153,8 @@ private:
 
 	void sum_Ri_ai(const int i) {
 
-		const Vector<T> accel = A*acceleration(i)+b;
+		//const Vector<T> accel = A*acceleration(i)+b;
+		const Vector<NT> accel = acceleration(i);
 
 		Vector<T> a = R*accel;
 
@@ -166,7 +169,8 @@ private:
 
 		s += a;
 
-		error += (a - a_sum).length();
+		//error += (a - a_sum).length();
+		error += a*a_sum;
 	}
 
 	T objective() {
@@ -205,7 +209,7 @@ public:
 
 		g_ref(data.g_ref()),
 		MR(0),
-		b(Vector<T>(0,0,0)),
+		//b(Vector<T>(0,0,0)),
 		d(Vector<T>(0,0,0)),
 		s(Vector<T>(0,0,0)),
 		a_sum(Vector<T>(0,0,0))
@@ -219,7 +223,7 @@ public:
 
 		evaluate(x);
 
-		a_sum = s/N;
+		a_sum = s/((-N)*100000.0);
 
 		evaluate(x);
 

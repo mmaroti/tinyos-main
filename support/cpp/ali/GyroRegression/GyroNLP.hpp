@@ -36,6 +36,8 @@
 
 #ifdef USE_GRADTYPE
 #include "GyroNLP_GradType.hpp"
+#elif defined USE_GRADTYPE2
+#include "GyroNLP_GradType2.hpp"
 #elif defined USE_ADOLC
 #include "GyroNLP_ADOLC.hpp"
 #else
