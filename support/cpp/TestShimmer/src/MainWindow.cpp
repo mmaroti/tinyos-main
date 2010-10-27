@@ -93,8 +93,8 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(ui->actionImport, SIGNAL(triggered()), calibrationWidget, SLOT(on_importButton_clicked()));
         connect(ui->actionClear, SIGNAL(triggered()), calibrationWidget, SLOT(on_clearButton_clicked()));
         connect(ui->actionTrim, SIGNAL(triggered()), dataWidget, SLOT(onTrim()));
-        connect(ui->actionCopy, SIGNAL(triggered()), dataWidget, SLOT(onCopy()));
-        connect(ui->actionCut, SIGNAL(triggered()), dataWidget, SLOT(onCut()));
+        //connect(ui->actionCopy, SIGNAL(triggered()), dataWidget, SLOT(onCopy()));
+        //connect(ui->actionCut, SIGNAL(triggered()), dataWidget, SLOT(onCut()));
         connect(ui->actionClear_samples, SIGNAL(triggered()), dataWidget, SLOT(on_clearBtn_clicked()) );
         connect(ui->actionDo_regression, SIGNAL(triggered()), dataWidget, SLOT(on_regressionButton_clicked()));
         connect(dataWidget, SIGNAL(SolverStarted()), this, SLOT(onSolverRunning()));

@@ -564,6 +564,9 @@ void DataWidget::on_presetsComboBox_currentIndexChanged()
         plot->setGraphs(DataPlot::XEUL, true);
         plot->setGraphs(DataPlot::YEUL, true);
         plot->setGraphs(DataPlot::ZEUL, true);
+        plot->setGraphs(DataPlot::XINT, true);
+        plot->setGraphs(DataPlot::YINT, true);
+        plot->setGraphs(DataPlot::ZINT, true);
     } else if(ui->presetsComboBox->currentIndex() == 2){
         plot->setGraphs(DataPlot::XRAWACC, false);
         plot->setGraphs(DataPlot::YRAWACC, false);
@@ -586,6 +589,35 @@ void DataWidget::on_presetsComboBox_currentIndexChanged()
         plot->setGraphs(DataPlot::ZANG, false);
         plot->setGraphs(DataPlot::XEUL, false);
         plot->setGraphs(DataPlot::YEUL, false);
+        plot->setGraphs(DataPlot::ZEUL, false);        
+        plot->setGraphs(DataPlot::XINT, false);
+        plot->setGraphs(DataPlot::YINT, false);
+        plot->setGraphs(DataPlot::ZINT, false);
+    } else if(ui->presetsComboBox->currentIndex() == 3){
+        plot->setGraphs(DataPlot::XRAWACC, false);
+        plot->setGraphs(DataPlot::YRAWACC, false);
+        plot->setGraphs(DataPlot::ZRAWACC, false);
+        plot->setGraphs(DataPlot::XACC, true);
+        plot->setGraphs(DataPlot::YACC, true);
+        plot->setGraphs(DataPlot::ZACC, true);
+        plot->setGraphs(DataPlot::ABSACC, false);
+        plot->setGraphs(DataPlot::XGYRO, false);
+        plot->setGraphs(DataPlot::YGYRO, false);
+        plot->setGraphs(DataPlot::ZGYRO, false);
+        plot->setGraphs(DataPlot::XRAWGYRO, false);
+        plot->setGraphs(DataPlot::YRAWGYRO, false);
+        plot->setGraphs(DataPlot::ZRAWGYRO, false);
+        plot->setGraphs(DataPlot::XYANG, false);
+        plot->setGraphs(DataPlot::YZANG, false);
+        plot->setGraphs(DataPlot::ZXANG, false);
+        plot->setGraphs(DataPlot::XANG, false);
+        plot->setGraphs(DataPlot::YANG, false);
+        plot->setGraphs(DataPlot::ZANG, false);
+        plot->setGraphs(DataPlot::XEUL, false);
+        plot->setGraphs(DataPlot::YEUL, false);
         plot->setGraphs(DataPlot::ZEUL, false);
+        plot->setGraphs(DataPlot::XINT, false);
+        plot->setGraphs(DataPlot::YINT, false);
+        plot->setGraphs(DataPlot::ZINT, false);
     }
 }

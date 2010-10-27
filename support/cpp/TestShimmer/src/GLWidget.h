@@ -32,12 +32,12 @@
 * Author: Péter Ruzicska
 */
 
-
+/*
 #ifndef GLWIDGET_H
 #define GLWIDGET_H
 
 #include <QtGui>
-#include <QGLWidget>
+//#include <QGLWidget>
 #include "Application.h"
 
 class Application;
@@ -94,4 +94,4 @@ private:
 #endif
 };
 
-#endif
+#endif*/

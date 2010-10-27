@@ -32,37 +32,37 @@
 * Author: Péter Ruzicska
 */
 
-#ifndef WIDGET3D_H
-#define WIDGET3D_H
-
-#include <QWidget>
-#include "window.h"
-
-class Application;
-
-namespace Ui {
-    class Widget3D;
-}
-
-class Widget3D : public QWidget {
-    Q_OBJECT
-
-public:
-    Widget3D(QWidget *parent, Application &app);
-    ~Widget3D();
-
-protected:
-    void changeEvent(QEvent *e);
-
-private:
-    Ui::Widget3D *ui;
-    Application &application;
-    Window *window;
-
-private slots:
-    void on_playButton_clicked();
-    void on_pauseButton_clicked();
-    void on_stopButton_clicked();
-
-};
-#endif // WIDGET3D_H
+//#ifndef WIDGET3D_H
+//#define WIDGET3D_H
+//
+//#include <QWidget>
+//#include "window.h"
+//
+//class Application;
+//
+//namespace Ui {
+//    class Widget3D;
+//}
+//
+//class Widget3D : public QWidget {
+//    Q_OBJECT
+//
+//public:
+//    Widget3D(QWidget *parent, Application &app);
+//    ~Widget3D();
+//
+//protected:
+//    void changeEvent(QEvent *e);
+//
+//private:
+//    Ui::Widget3D *ui;
+//    Application &application;
+//    Window *window;
+//
+//private slots:
+//    void on_playButton_clicked();
+//    void on_pauseButton_clicked();
+//    void on_stopButton_clicked();
+//
+//};
+//#endif // WIDGET3D_H

@@ -149,7 +149,7 @@
           </item>
           <item>
            <property name="text">
-            <string>Preset 1</string>
+            <string>Record</string>
            </property>
           </item>
           <item>
@@ -473,8 +473,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>137</width>
-          <height>124</height>
+          <width>255</width>
+          <height>154</height>
          </rect>
         </property>
         <attribute name="label">
@@ -787,7 +787,7 @@
         <property name="geometry">
          <rect>
           <x>0</x>
-          <y>-56</y>
+          <y>0</y>
           <width>238</width>
           <height>292</height>
          </rect>
@@ -1010,6 +1010,9 @@
               <property name="text">
                <string>z</string>
               </property>
+              <property name="checkable">
+               <bool>false</bool>
+              </property>
              </widget>
             </item>
            </layout>
@@ -1045,6 +1048,9 @@
              <widget class="QCheckBox" name="intZ">
               <property name="text">
                <string>z</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
