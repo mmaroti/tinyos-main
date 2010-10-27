@@ -32,7 +32,7 @@
 */
 
 #include <iostream>
-#include "GradType.hpp"
+#include "GradTypeDyn.hpp"
 #include "ObjectiveEvaluator.hpp"
 #include "DataIO.hpp"
 #include "InputData.hpp"
@@ -41,7 +41,7 @@ using namespace std;
 
 using namespace gyro;
 
-typedef GradType<12> T;
+typedef GradType T;
 
 void test() {
 
@@ -49,7 +49,7 @@ void test() {
 
 	ObjEval<T> obj(*data, cout, false);
 
-	const double x[] = {
+	/*const double x[] = {
 			0.001,
 			0.002,
 			0.003,
@@ -62,21 +62,42 @@ void test() {
 			0.001,
 			-0.001,
 			0.002
+	};*/
+
+	const double x[] = {
+			0.000,
+			0.000,
+			0.000,
+			0.000,
+			0.000,
+			0.000,
+			0.000,
+			0.000,
+			0.000,
+			0.000,
+			0.000,
+			0.000
 	};
 
 	T vars[12];
 
 	init_vars(vars, x);
 
-	obj.f(vars);
+	T sum = obj.f(vars);
 
 	cout << obj.s_x() << endl << obj.s_y() << endl << obj.s_z() << endl;
+
+	cout << endl;
+
+	cout << "objective: " << sum << endl;
 
 	return;
 
 }
 
 int main() {
+
+	set_number_of_variables(12);
 
 	test();
 
