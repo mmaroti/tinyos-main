@@ -170,7 +170,7 @@
      <item>
       <widget class="QToolBox" name="toolBox">
        <property name="currentIndex">
-        <number>2</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="accToolBox">
         <property name="geometry">
@@ -193,6 +193,9 @@
            <property name="checkable">
             <bool>true</bool>
            </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
            <layout class="QHBoxLayout" name="horizontalLayout_14">
             <item>
              <widget class="QCheckBox" name="rawAccX">
@@ -200,7 +203,7 @@
                <string>X</string>
               </property>
               <property name="checked">
-               <bool>true</bool>
+               <bool>false</bool>
               </property>
              </widget>
             </item>
@@ -247,7 +250,7 @@
                <string>Y</string>
               </property>
               <property name="checked">
-               <bool>true</bool>
+               <bool>false</bool>
               </property>
              </widget>
             </item>
@@ -294,7 +297,7 @@
                <string>Z</string>
               </property>
               <property name="checked">
-               <bool>true</bool>
+               <bool>false</bool>
               </property>
              </widget>
             </item>
@@ -313,7 +316,7 @@
             <bool>true</bool>
            </property>
            <property name="checked">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_5">
             <item>
@@ -322,6 +325,9 @@
                <widget class="QCheckBox" name="accX">
                 <property name="text">
                  <string>X</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
@@ -367,6 +373,9 @@
                 <property name="text">
                  <string>Y</string>
                 </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
                </widget>
               </item>
               <item>
@@ -410,6 +419,9 @@
                 </property>
                 <property name="text">
                  <string>Z</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
@@ -459,6 +471,9 @@
                 <property name="text">
                  <string>absolute Accel</string>
                 </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
                </widget>
               </item>
              </layout>
@@ -488,6 +503,9 @@
            </property>
            <property name="checkable">
             <bool>true</bool>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_16">
             <item>
@@ -533,7 +551,7 @@
                <string>X</string>
               </property>
               <property name="checked">
-               <bool>true</bool>
+               <bool>false</bool>
               </property>
              </widget>
             </item>
@@ -580,7 +598,7 @@
                <string>Y</string>
               </property>
               <property name="checked">
-               <bool>true</bool>
+               <bool>false</bool>
               </property>
              </widget>
             </item>
@@ -627,7 +645,7 @@
                <string>Z</string>
               </property>
               <property name="checked">
-               <bool>true</bool>
+               <bool>false</bool>
               </property>
              </widget>
             </item>
