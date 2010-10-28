@@ -16,17 +16,17 @@ QMAKE_LIBDIR += ../QextSerialPort/build
 
 # DEFINES += QWT3D_DLL
 CONFIG(release) += static
+CONFIG(release) += fexceptions
 CONFIG(debug) += CONSOLE
 CONFIG(debug, debug|release):LIBS += -lqextserialport
 else:LIBS += -lqextserialport
 win32:LIBS += -lsetupapi
-
 # LIBS += ../qwtplot3d/lib/libqwtplot3d.a
 DEFINES += QT_DLL
 
 # QWT3D_DLL
-QT += opengl
-isEmpty( ISQT4 ):CONFIG += opengl
+#QT += opengl
+#isEmpty( ISQT4 ):CONFIG += opengl
 SOURCES += src/DataRecorder.cpp \
     src/MainWindow.cpp \
     src/main.cpp \
