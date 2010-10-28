@@ -3,6 +3,9 @@
 
   %T/platforms/ucmini
   %T/platforms/ucmini/chips/rf212
+  %T/platforms/ucmini/chips/sht21
+  %T/platforms/ucmini/chips/bh1750fvi
+  %T/platforms/ucmini/chips/ms5607
   %T/platforms/iris
   %T/platforms/micaz
   %T/platforms/mica
@@ -20,6 +23,9 @@
   %T/chips/atm128/spi
   %T/chips/atm128/i2c
   %T/chips/atm128/timer
+  %T/chips/sht21
+  %T/chips/bh1750fvi
+  %T/chips/ms5607
   %T/lib/timer
   %T/lib/serial
   %T/lib/power
