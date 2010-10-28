@@ -19,8 +19,8 @@ implementation {
   };
 
   uint8_t state = S_OFF;
-  bool stopRequested = false;
-  bool otherSensorRequested=false;    
+  bool stopRequested = FALSE;
+  bool otherSensorRequested=FALSE;    
   command error_t SplitControl.start() {
     if(state == S_STARTING) return EBUSY;
     if(state != S_OFF) return EALREADY;
@@ -40,7 +40,7 @@ implementation {
       state = S_OFF;
       post signalStopDone();
     } else {
-      stopRequested = true;
+      stopRequested = TRUE;
     }
     return SUCCESS;
   }
@@ -48,13 +48,13 @@ implementation {
   command error_t Temperature.read() {
     if(state==S_OFF) return EOFF;
     if(state==S_READ_HUMIDITY){
-      othersensorRequested=true;
+      otherSensorRequested=TRUE;
       return SUCCESS;    
     }    
     if(state!=S_ON) return EBUSY;
 
-    state = S_READ_TEMPERATURE;
-    call I2CPacket.write(0x03, WRITE_ADDRESS, 1, TRIGGER_T_MEASUREMENT_NO_HOLD_MASTER);
+    state = S_READ_TEMP;
+    call I2CPacket.write(0x03, WRITE_ADDRESS, 1, (uint8_t*)TRIGGER_T_MEASUREMENT_NO_HOLD_MASTER);
     //call I2CPacket.read(I2C_START | I2C_STOP, READ_ADDRESS, 2, result);
     //call Timer.startPeriodic(TIMEOUT_14BIT);
 
@@ -63,14 +63,14 @@ implementation {
 
   command error_t Humidity.read() {
     if(state==S_OFF) return EOFF;
-    if(state==S_READ_TEMPERATURE){
-      othersensorRequested=true;
+    if(state==S_READ_TEMP){
+      otherSensorRequested=TRUE;
       return SUCCESS;
     }
     if(state!=S_ON) return EBUSY;
 
     state = S_READ_HUMIDITY;
-    call I2CPacket.write(0x03, WRITE_ADDRESS, 1, TRIGGER_RH_MEASUREMENT_NO_HOLD_MASTER);
+    call I2CPacket.write(0x03, WRITE_ADDRESS, 1, (uint8_t*)TRIGGER_RH_MEASUREMENT_NO_HOLD_MASTER);
     return SUCCESS;
   }
 
@@ -79,9 +79,9 @@ implementation {
       state = S_ON;
       signal SplitControl.startDone(SUCCESS);
     } else if(state==S_READ_HUMIDITY){
-        uint16_t result;
+        //uint16_t result;
         uint8_t res[2];
-        I2CPacket.read(0x03, READ_ADDRESS, 2, res);
+        call I2CPacket.read(0x03, READ_ADDRESS, 2, res);
             
         if(otherSensorRequested){
           state=S_ON;
@@ -92,9 +92,9 @@ implementation {
         }
         //signal Humidity.readDone(error, result);
     } else if(state==S_READ_TEMP){
-        uint16_t result;
+        //uint16_t result;
         uint8_t res[2];
-        I2CPacket.read(0x03, READ_ADDRESS, 2, res);
+        call I2CPacket.read(0x03, READ_ADDRESS, 2, res);
 
         if(otherSensorRequested){
           state=S_ON;
@@ -107,18 +107,18 @@ implementation {
     }
   }
 
-  event void I2CPacket.readDone(error_t error, uint16_t addr, uint8_t length, uint8_t* data) {
-    if(state == S_READ_TEMP) signal Temperature.readDone(SUCCESS, data);
-    if(state == S_READ_HUMIDITY) signal Humidity.readDone(SUCCESS, data);
+  async event void I2CPacket.readDone(error_t error, uint16_t addr, uint8_t length, uint8_t* data) {
+    if(state == S_READ_TEMP) signal Temperature.readDone(SUCCESS, *data);
+    if(state == S_READ_HUMIDITY) signal Humidity.readDone(SUCCESS, *data);
   }
   
-  event void I2CPacket.writeDone(error_t error, uint16_t addr, uint8_t length, uint8_t* data) {
+  async event void I2CPacket.writeDone(error_t error, uint16_t addr, uint8_t length, uint8_t* data) {
     if(state == S_READ_TEMP) call Timer.startOneShot(TIMEOUT_14BIT);
     if(state == S_READ_HUMIDITY) call Timer.startOneShot(TIMEOUT_8BIT);
   }
 
   default event void Temperature.readDone(error_t error, uint16_t val) {}
   default event void Humidity.readDone(error_t error, uint16_t val) {}
-  default event void Splitcontrol.startDone(error_t error) { }
+  default event void SplitControl.startDone(error_t error) { }
   default event void SplitControl.stopDone(error_t error) { }
 }

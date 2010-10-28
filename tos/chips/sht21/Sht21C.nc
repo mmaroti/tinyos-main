@@ -10,5 +10,7 @@ implementation {
   Humidity    = Sht21P.Humidity;
 
   Sht21P.Timer -> TimerMilliC;
-
+  
+  components HplSht21C;
+  Sht21P.I2CPacket -> HplSht21C;
 }
