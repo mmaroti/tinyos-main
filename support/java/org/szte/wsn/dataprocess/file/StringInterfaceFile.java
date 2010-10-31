@@ -52,6 +52,7 @@ import org.szte.wsn.dataprocess.Transfer;
  *	writes and reads strings with file
  */
 public class StringInterfaceFile implements StringInterface {
+	
 	String separator;   
 	StringPacket previous;
 	PacketParser[] packetParsers;   //array of the available PacketParsers
@@ -67,18 +68,18 @@ public class StringInterfaceFile implements StringInterface {
 	 * @param showName controls whether the name of the PacketParser should be written in the file
 	 * @param createNew if true, creates a new file and deletes the old one
 	 */	
-	public StringInterfaceFile(String separator, String path, PacketParser[] packetParsers, boolean showName, boolean reWrite, boolean append ){
+	public StringInterfaceFile(String separator, String path, PacketParser[] packetParsers, boolean showName, byte store){
 		this.separator=separator;  
 		this.packetParsers=packetParsers;
 		previous=new StringPacket("", new String[]{});
 		readPointer=0;
 		this.showName=showName;
 		try {
-			if(new File(path).exists()&&!append&&!reWrite){
+			if(new File(path).exists()&&(store==Transfer.NOREWRITE)){
 				System.out.println("Error "+path+" output file already exist. Change output file, or enable -append or -rewrite option!");
 				System.exit(1);
 			}
-			if(reWrite&&new File(path).exists())
+			if((store==Transfer.REWRITE)&&new File(path).exists())
 				new File(path).delete();
 			file=new RandomAccessFile(path, "rw");
 		} 
