@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 
+
 /**
  * 
  * @author Miklos Toth
@@ -45,6 +46,9 @@ import java.io.IOException;
  * 
  */
 public class Transfer extends Thread  {
+	public final static byte REWRITE=0;
+	public final static byte NOREWRITE=1;
+	public final static byte APPEND=2;
 	private PacketParser[] packetParsers;
 	private BinaryInterface binary;
 	private StringInterface string;
@@ -197,7 +201,7 @@ public class Transfer extends Thread  {
 			usageThanExit();
 			break;
 		}
-
+	
 
 	}
 	public static void usageThanExit(){
