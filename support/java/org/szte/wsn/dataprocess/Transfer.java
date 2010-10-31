@@ -108,13 +108,20 @@ public class Transfer extends Thread  {
 		if(toString){
 			byte data[]=binary.readPacket();
 			while(data!=null){
-				for (PacketParser pp:packetParsers){
+				boolean match=false;
+				int parserCounter=0;
+				while ((!match)&&(parserCounter<packetParsers.length)){
+					PacketParser pp=packetParsers[parserCounter];
 					if(pp.parse(data)!=null){
+						match=true;
 						string.writePacket(new StringPacket(pp.getName(),pp.getFields(),pp.parse(data)));
 					//if the second parameter is different from pp.getFields than it will control the order of writing	
 					}
-
+					parserCounter++;
 				}
+				if(!match){
+					System.out.println("Unmatched frame! Length of frame is: "+data.length+" byte.");
+				} 
 				data=binary.readPacket();
 			}	
 		}
@@ -124,8 +131,14 @@ public class Transfer extends Thread  {
 				PacketParser pp=PacketParserFactory.getParser(sp.getName(), packetParsers);
 
 				try {
-					if(pp.construct(sp.getData())!=null)
+					if(pp.construct(sp.getData())!=null){
 						binary.writePacket(pp.construct(sp.getData()));
+					}
+					else
+					{
+						System.out.print("Warning! Input doesn't match to structure definition.");
+						System.out.println(" Name of structure is: "+sp.getName()+".");
+					}
 				} catch (IOException e) {
 
 					e.printStackTrace();
