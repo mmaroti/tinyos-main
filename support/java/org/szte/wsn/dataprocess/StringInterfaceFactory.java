@@ -54,7 +54,7 @@ public class StringInterfaceFactory {
 	 */
 	public static StringInterface getStringInterface(String type, String source, PacketParser[] packetParsers,String separator, boolean showName){
 		if(type.equals("file"))
-			return new StringInterfaceFile(separator, source, packetParsers,showName, false);//TODO control the last parameter from the main method
+			return new StringInterfaceFile(separator, source, packetParsers,showName, false, false);//TODO control the last parameter from the main method
 			
 		
 		else //if (type.equals("console"))
