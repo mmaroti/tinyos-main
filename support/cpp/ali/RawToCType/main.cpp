@@ -38,7 +38,6 @@
 using namespace std;
 
 const int SECTOR_SIZE = 512;
-char buffer[SECTOR_SIZE];
 
 const int HEADER_LENGTH = 6;
 const int SAMPLE_LENGTH = 22;
@@ -48,27 +47,27 @@ const char SEPARATOR    = ',';
 typedef unsigned short uint16;
 typedef unsigned int uint32;
 
-class raw_sector {
+class sector_iterator {
 
 public:
 
-	explicit raw_sector(const char* sector) : data(sector) { }
+	explicit sector_iterator(const char* sector) : itr(sector) { }
 
 	uint16 next_uint16() {
-		uint16 x = *reinterpret_cast<const uint16*> (data);
-		data += 2;
+		uint16 x = *reinterpret_cast<const uint16*> (itr);
+		itr += 2;
 		return x;
 	}
 
 	uint32 next_uint32() {
-		uint32 x = *reinterpret_cast<const uint32*> (data);
-		data += 4;
+		uint32 x = *reinterpret_cast<const uint32*> (itr);
+		itr += 4;
 		return x;
 	}
 
 private:
 
-	const char* data;
+	const char* itr;
 
 };
 
@@ -76,7 +75,7 @@ class header {
 
 public:
 
-	explicit header(raw_sector& data);
+	explicit header(sector_iterator& itr);
 
 	uint16 sector_length() const { return length; }
 
@@ -89,11 +88,11 @@ private:
 	uint16 length;
 };
 
-header::header(raw_sector& data) {
+header::header(sector_iterator& itr) {
 
-	format_id = data.next_uint16();
-	mote_id   = data.next_uint16();
-	length    = data.next_uint16();
+	format_id = itr.next_uint16();
+	mote_id   = itr.next_uint16();
+	length    = itr.next_uint16();
 }
 
 ostream& operator<<(ostream& out, const header& h) {
@@ -109,7 +108,9 @@ class sample {
 
 public:
 
-	explicit sample(raw_sector& data);
+	sample() { }
+
+	explicit sample(sector_iterator& itr);
 
 	friend ostream& operator<<(ostream& , const sample& );
 
@@ -127,18 +128,18 @@ private:
 	uint16 temp;
 };
 
-sample::sample(raw_sector& data) {
+sample::sample(sector_iterator& itr) {
 
-	time_stamp = data.next_uint32();
-	counter    = data.next_uint16();
-	acc_x      = data.next_uint16();
-	acc_y      = data.next_uint16();
-	acc_z      = data.next_uint16();
-	gyro_x     = data.next_uint16();
-	gyro_y     = data.next_uint16();
-	gyro_z     = data.next_uint16();
-	volt       = data.next_uint16();
-	temp       = data.next_uint16();
+	time_stamp = itr.next_uint32();
+	counter    = itr.next_uint16();
+	acc_x      = itr.next_uint16();
+	acc_y      = itr.next_uint16();
+	acc_z      = itr.next_uint16();
+	gyro_x     = itr.next_uint16();
+	gyro_y     = itr.next_uint16();
+	gyro_z     = itr.next_uint16();
+	volt       = itr.next_uint16();
+	temp       = itr.next_uint16();
 }
 
 ostream& operator<<(ostream& out, const sample& s) {
@@ -157,7 +158,13 @@ ostream& operator<<(ostream& out, const sample& s) {
 	return out;
 }
 
-const char* read_sector(ifstream& in) {
+ifstream in;
+
+ofstream out;
+
+char buffer[SECTOR_SIZE];
+
+const char* read_sector(int i) {
 
 	const char* ret_val = 0;
 
@@ -174,30 +181,44 @@ const char* read_sector(ifstream& in) {
 	return ret_val;
 }
 
-void init(ifstream& in) {
+void init(const char* infile, const char* outfile) {
 
 	in.exceptions(ifstream::failbit | ifstream::badbit | ifstream::eofbit);
 
-	in.open("oct28_2", ios::binary);
+	in.open(infile, ios::binary);
+
+	out.exceptions(ofstream::failbit | ofstream::badbit);
+
+	out.open(outfile);
+}
+
+sample s;
+
+uint32 time_start = 0;
+
+uint32 time_previous = 0;
+
+uint16 counter_previous = 1;
+
+uint32 samples_processed = 0;
+
+int sector_offset = 0;
+
+void process_first_sample_in_sector() {
+
+
+
 }
 
 int main() {
 
-	ifstream in;
+	init("oct28_2", "shimmer_processed.txt");
 
-	init(in);
+	while (const char* sec = read_sector(0)) {
 
-	ofstream out;
+		sector_iterator itr(sec);
 
-	out.exceptions(ofstream::failbit | ofstream::badbit);
-
-	out.open("shimmer_processed.txt");
-
-	while (const char* sec = read_sector(in)) {
-
-		raw_sector data(sec);
-
-		header h(data);
+		header h(itr);
 
 		const int length = h.sector_length();
 
@@ -209,7 +230,7 @@ int main() {
 
 		for (int i=0; i<MAX_SAMPLES; ++i) {
 
-			sample s(data);
+			sample s(itr);
 			out << s;
 		}
 
