@@ -6,5 +6,8 @@ implementation {
   components new TimerMilliC();
 
   Light = bh1750fviP.Light;
-  bh1750P.Timer -> TimerMilliC;
+  bh1750fviP.Timer -> TimerMilliC;
+
+  components Hplbh1750C;
+  bh1750fviP.I2CPacket -> Hplbh1750C;
 }
