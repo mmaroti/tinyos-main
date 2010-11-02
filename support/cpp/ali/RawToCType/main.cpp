@@ -33,6 +33,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstdlib>
 
 using namespace std;
 
@@ -45,6 +46,12 @@ const char SEPARATOR    = ',';
 
 typedef unsigned short uint16;
 typedef unsigned int uint32;
+
+const uint32 SAMPLING_RATE = 160; // FIXME Also in CompileTimeConstants.hpp
+const uint32 TICKS_PER_SEC = 32768;
+const int TOLERANCE = 4;
+
+const int UINT16MAX = 0xFFFF;
 
 class sector_iterator {
 
@@ -107,24 +114,35 @@ class sample {
 
 public:
 
-	sample() { }
-
 	explicit sample(sector_iterator& itr);
 
+	void shift_timestamp(uint32 time_start) { time_stamp -= time_start; }
+
 	bool check_reboot(uint16 counter_previous) const {
-		return counter==1 && counter_previous!=0;
+		return seq_num==1 && counter_previous!=0;
 	}
 
-	bool check_counter(uint16 counter_previous) const {
-		return (counter-counter_previous)==1 || (counter==0&&counter_previous==0xFFFF);
+	int missing(uint16 counter_previous) const {
+		int diff = seq_num-counter_previous;
+		if (diff < 0) diff += (UINT16MAX+1);
+		return diff-1;
 	}
+
+	int error_in_ticks(uint32 time_previous) const {
+		uint32 expected = time_previous + SAMPLING_RATE;
+		return time_stamp - expected;
+	}
+
+	uint32 timestamp() const { return time_stamp; }
+
+	uint16 counter() const { return seq_num; }
 
 	friend ostream& operator<<(ostream& , const sample& );
 
 private:
 
 	uint32 time_stamp;
-	uint16 counter;
+	uint16 seq_num;
 	uint16 acc_x;
 	uint16 acc_y;
 	uint16 acc_z;
@@ -138,7 +156,7 @@ private:
 sample::sample(sector_iterator& itr) {
 
 	time_stamp = itr.next_uint32();
-	counter    = itr.next_uint16();
+	seq_num    = itr.next_uint16();
 	acc_x      = itr.next_uint16();
 	acc_y      = itr.next_uint16();
 	acc_z      = itr.next_uint16();
@@ -152,7 +170,7 @@ sample::sample(sector_iterator& itr) {
 ostream& operator<<(ostream& out, const sample& s) {
 
 	out << s.time_stamp << SEPARATOR;
-	out << s.counter    << SEPARATOR;
+	out << s.seq_num    << SEPARATOR;
 	out << s.acc_x      << SEPARATOR;
 	out << s.acc_y      << SEPARATOR;
 	out << s.acc_z      << SEPARATOR;
@@ -209,16 +227,54 @@ uint32 samples_processed = 0;
 
 int sector_offset = 0;
 
-void check_sample(const sample& s, const int i) {
+bool check_reboot(const sample& s, int i) {
 
 	bool reboot = s.check_reboot(counter_previous);
 
 	if (reboot && i==0) {
 
+		cout << "Found a reboot at sample " << samples_processed << endl;
 		// new file
-		return;
+
+		return true;
 	}
-	// data consistency will warn about missing samples
+
+	return false;
+}
+
+void check_counter(const sample& s) {
+
+	int missed = s.missing(counter_previous);
+
+	if (missed) {
+		clog << "Warning: at sample " << samples_processed;
+		clog << " missing at least ";
+		clog << missed << " samples" << endl;
+	}
+}
+
+void check_timestamp(const sample& s) {
+
+	int dt = s.error_in_ticks(time_previous);
+
+	if (abs(dt)>TOLERANCE) {
+		clog << "Warning: at sample " << samples_processed << " ";
+		clog << dt << " ticks error" << endl;
+	}
+}
+
+void check_sample(const sample& s, const int i) {
+
+	if (!check_reboot(s, i)) {
+
+		check_counter(s);
+
+		check_timestamp(s);
+	}
+
+	time_previous = s.timestamp();
+
+	counter_previous = s.counter();
 }
 
 void write_samples(sector_iterator& itr) {
@@ -228,6 +284,8 @@ void write_samples(sector_iterator& itr) {
 		sample s(itr);
 
 		check_sample(s, i);
+
+		s.shift_timestamp(time_start);
 
 		out << s;
 
