@@ -33,7 +33,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <assert.h>
 
 using namespace std;
 
@@ -111,6 +110,14 @@ public:
 	sample() { }
 
 	explicit sample(sector_iterator& itr);
+
+	bool check_reboot(uint16 counter_previous) const {
+		return counter==1 && counter_previous!=0;
+	}
+
+	bool check_counter(uint16 counter_previous) const {
+		return (counter-counter_previous)==1 || (counter==0&&counter_previous==0xFFFF);
+	}
 
 	friend ostream& operator<<(ostream& , const sample& );
 
@@ -192,8 +199,6 @@ void init(const char* infile, const char* outfile) {
 	out.open(outfile);
 }
 
-sample s;
-
 uint32 time_start = 0;
 
 uint32 time_previous = 0;
@@ -204,37 +209,70 @@ uint32 samples_processed = 0;
 
 int sector_offset = 0;
 
-void process_first_sample_in_sector() {
+void check_sample(const sample& s, const int i) {
 
+	bool reboot = s.check_reboot(counter_previous);
 
+	if (reboot && i==0) {
 
+		// new file
+		return;
+	}
+	// data consistency will warn about missing samples
+}
+
+void write_samples(sector_iterator& itr) {
+
+	for (int i=0; i<MAX_SAMPLES; ++i) {
+
+		sample s(itr);
+
+		check_sample(s, i);
+
+		out << s;
+
+		++samples_processed;
+	}
+
+	out << flush;
+}
+
+bool process_sector(const char* sector) {
+
+	sector_iterator itr(sector);
+
+	header h(itr);
+
+	const int length = h.sector_length();
+
+	if (length == 0) {
+		cout << "Finished!" << endl;
+		return true;
+	}
+
+	if (MAX_SAMPLES != length/SAMPLE_LENGTH) {
+
+		clog << "Warning: invalid length in sector " << sector_offset << endl;
+	}
+	else {
+
+		write_samples(itr);
+	}
+
+	return false;
 }
 
 int main() {
 
 	init("oct28_2", "shimmer_processed.txt");
 
-	while (const char* sec = read_sector(0)) {
+	bool finished = false;
 
-		sector_iterator itr(sec);
+	const char* sector = 0;
 
-		header h(itr);
+	while ((sector = read_sector(sector_offset++)) && !finished ) {
 
-		const int length = h.sector_length();
-
-		if (length == 0) {
-			break;
-		}
-
-		assert(MAX_SAMPLES == length/SAMPLE_LENGTH);
-
-		for (int i=0; i<MAX_SAMPLES; ++i) {
-
-			sample s(itr);
-			out << s;
-		}
-
-		out << flush;
+		finished = process_sector(sector);
 	}
 
 	return 0;
