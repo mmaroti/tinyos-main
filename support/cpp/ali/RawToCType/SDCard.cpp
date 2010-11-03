@@ -33,8 +33,14 @@
 
 #include "SDCard.hpp"
 #include "SDCardImpl.hpp"
+#include "RawDevice.hpp"
 
-SDCard::SDCard(const char* source) : impl(new SDCardImpl(source)) {
+SDCard* SDCard::from_file(const char* filename) {
+	RawDevice* source = new FileAsRawDevice(filename);
+	return new SDCard(source);
+}
+
+SDCard::SDCard(RawDevice* source) : impl(new SDCardImpl(source)) {
 
 }
 

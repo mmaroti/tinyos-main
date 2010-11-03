@@ -36,7 +36,7 @@
 
 #include <iosfwd>
 
-// FIXME Multiple definitions of sector size!
+// FIXME Watch out for multiple definitions of sector size!
 const int SECTOR_SIZE = 512;
 
 class RawDevice {
@@ -50,6 +50,7 @@ public:
 	virtual unsigned long error_code() const = 0;
 
 	virtual ~RawDevice() { }; // FIXME Understand why...
+
 };
 
 class FileAsRawDevice : public RawDevice {
@@ -70,7 +71,7 @@ private:
 
 	char buffer[SECTOR_SIZE];
 
-	std::ifstream* in;
+	std::ifstream* const in;
 
 	double card_size;
 };

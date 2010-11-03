@@ -46,10 +46,9 @@ const int SAMPLE_LENGTH = 22;
 const int MAX_SAMPLES   = (SECTOR_SIZE-HEADER_LENGTH)/SAMPLE_LENGTH;
 const int TOLERANCE = 4;
 
-SDCardImpl::SDCardImpl(const char* source)
-	: device(new FileAsRawDevice(source))
+SDCardImpl::SDCardImpl(RawDevice* source)
+	: device(source), out(new ofstream())
 {
-	out = new ofstream();
 	out->exceptions(ofstream::failbit | ofstream::badbit);
 	time_start = 0;
 	time_previous = 0;
@@ -66,15 +65,18 @@ void SDCardImpl::process_new_measurements() {
 
 	const char* sector = 0;
 
-	while ((sector = device->read_sector(sector_offset++)) && !finished ) {
+	while ((sector = device->read_sector(sector_offset)) && !finished ) {
 
 		finished = process_sector(sector);
+
+		++sector_offset;
 	}
 }
 
 SDCardImpl::~SDCardImpl() {
 
 	delete device;
+	delete out;
 }
 
 void SDCardImpl::create_new_file() {
@@ -91,11 +93,11 @@ void SDCardImpl::create_new_file() {
 	out->open(os.str().c_str());
 }
 
-bool SDCardImpl::reboot(const sample& s, int i) {
+bool SDCardImpl::reboot(const int sample_in_sector) {
 
 	bool reboot = s.check_reboot(counter_previous);
 
-	if (reboot && i==0) {
+	if (reboot && sample_in_sector==0) {
 
 		cout << "Found a reboot at sample " << samples_processed << endl;
 
@@ -111,7 +113,7 @@ bool SDCardImpl::reboot(const sample& s, int i) {
 	return false;
 }
 
-void SDCardImpl::check_counter(const sample& s) {
+void SDCardImpl::check_counter() {
 
 	int missed = s.missing(counter_previous);
 
@@ -122,7 +124,7 @@ void SDCardImpl::check_counter(const sample& s) {
 	}
 }
 
-void SDCardImpl::check_timestamp(const sample& s) {
+void SDCardImpl::check_timestamp() {
 
 	int dt = s.error_in_ticks(time_previous);
 
@@ -132,13 +134,13 @@ void SDCardImpl::check_timestamp(const sample& s) {
 	}
 }
 
-void SDCardImpl::check_sample(const sample& s, const int i) {
+void SDCardImpl::check_sample(const int sample_in_sector) {
 
-	if (!reboot(s, i)) {
+	if (!reboot(sample_in_sector)) {
 
-		check_counter(s);
+		check_counter();
 
-		check_timestamp(s);
+		check_timestamp();
 	}
 
 	time_previous = s.timestamp();
@@ -150,9 +152,9 @@ void SDCardImpl::write_samples(sector_iterator& itr) {
 
 	for (int i=0; i<MAX_SAMPLES; ++i) {
 
-		sample s(itr);
+		s = sample(itr);
 
-		check_sample(s, i);
+		check_sample(i);
 
 		s.shift_timestamp(time_start);
 

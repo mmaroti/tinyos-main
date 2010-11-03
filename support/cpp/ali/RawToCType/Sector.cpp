@@ -36,12 +36,9 @@
 
 using namespace std;
 
-const int SECTOR_SIZE = 512;
-
 const char SEPARATOR    = ',';
 
 const uint32 SAMPLING_RATE = 160; // FIXME Also in CompileTimeConstants.hpp
-const uint32 TICKS_PER_SEC = 32768;
 
 const int UINT16MAX = 0xFFFF;
 

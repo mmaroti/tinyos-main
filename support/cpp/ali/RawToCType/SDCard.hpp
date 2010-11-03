@@ -35,18 +35,21 @@
 #define SDCARD_HPP_
 
 class SDCardImpl;
+class RawDevice;
 
 class SDCard {
 
 public:
 
-	explicit SDCard(const char* source);
+	static SDCard* from_file(const char* filename);
 
 	void process_new_measurements();
 
 	~SDCard();
 
 private:
+
+	explicit SDCard(RawDevice* source);
 
 	SDCard(const SDCard& );
 

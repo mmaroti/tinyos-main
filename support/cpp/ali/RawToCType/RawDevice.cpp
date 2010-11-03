@@ -31,15 +31,15 @@
 * Author: Ali Baharev
 */
 
+#include <iostream>
 #include <fstream>
 #include "RawDevice.hpp"
 
 using namespace std;
 
-FileAsRawDevice::FileAsRawDevice(const char* source) : RawDevice() {
-
-	in = new ifstream();
-
+FileAsRawDevice::FileAsRawDevice(const char* source)
+	: RawDevice(), in(new ifstream())
+{
 	in->exceptions(ifstream::failbit | ifstream::badbit | ifstream::eofbit);
 
 	in->open(source, ios::binary);
@@ -47,17 +47,19 @@ FileAsRawDevice::FileAsRawDevice(const char* source) : RawDevice() {
 
 const char* FileAsRawDevice::read_sector(int i) {
 
-	// FIXME Introduce seek
 	const char* ret_val = 0;
 
 	try {
+
+		in->seekg(i*SECTOR_SIZE);
 
 		in->read(buffer, SECTOR_SIZE);
 
 		ret_val = buffer;
 	}
-	catch (...) {
+	catch (ios_base::failure& excpt) {
 
+		clog << "Warning: exception in read_sector " << excpt.what() << endl;
 	}
 
 	return ret_val;
@@ -76,7 +78,6 @@ unsigned long FileAsRawDevice::error_code() const {
 FileAsRawDevice::~FileAsRawDevice() {
 
 	delete in;
-	in = 0;
 }
 
 

@@ -31,13 +31,16 @@
 * Author: Ali Baharev
 */
 
+#include <memory>
 #include "SDCard.hpp"
 
 int main() {
 
-	SDCard sd("oct28_2");
+	std::auto_ptr<SDCard> sd(SDCard::from_file("oct28_2"));
 
-	sd.process_new_measurements();
+	sd->process_new_measurements();
+
+	sd.reset();
 
 	return 0;
 }

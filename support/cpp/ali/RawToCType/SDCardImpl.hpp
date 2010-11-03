@@ -43,7 +43,7 @@ class SDCardImpl {
 
 public:
 
-	explicit SDCardImpl(const char* source);
+	explicit SDCardImpl(RawDevice* source);
 
 	void process_new_measurements();
 
@@ -51,16 +51,20 @@ public:
 
 private:
 
+	SDCardImpl(const SDCardImpl& );
+	SDCardImpl& operator=(const SDCardImpl& );
+
 	void create_new_file();
-	bool reboot(const sample& s, int i);
-	void check_counter(const sample& s);
-	void check_timestamp(const sample& s);
-	void check_sample(const sample& s, const int i);
+	bool reboot(const int sample_in_sector);
+	void check_counter();
+	void check_timestamp();
+	void check_sample(const int sample_in_sector);
 	void write_samples(sector_iterator& itr);
 	bool process_sector(const char* sector);
 
 	RawDevice* const device;
-	std::ofstream* out;
+	std::ofstream* const out;
+	sample s;
 	uint32 time_start;
 	uint32 time_previous;
 	uint16 counter_previous;

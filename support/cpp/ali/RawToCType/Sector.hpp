@@ -51,6 +51,10 @@ public:
 
 private:
 
+	sector_iterator(const sector_iterator& );
+
+	sector_iterator& operator=(const sector_iterator& );
+
 	const char* itr;
 };
 
@@ -76,6 +80,8 @@ private:
 class sample {
 
 public:
+
+	sample() { }
 
 	explicit sample(sector_iterator& itr);
 
