@@ -33,6 +33,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <iomanip>
 #include <cstdlib>
 
 using namespace std;
@@ -84,6 +86,8 @@ public:
 	explicit header(sector_iterator& itr);
 
 	uint16 sector_length() const { return length; }
+
+	uint16 mote() const { return mote_id; }
 
 	friend ostream& operator<<(ostream& , const header& );
 
@@ -206,15 +210,13 @@ const char* read_sector(int i) {
 	return ret_val;
 }
 
-void init(const char* infile, const char* outfile) {
+void init(const char* infile) {
 
 	in.exceptions(ifstream::failbit | ifstream::badbit | ifstream::eofbit);
 
 	in.open(infile, ios::binary);
 
 	out.exceptions(ofstream::failbit | ofstream::badbit);
-
-	out.open(outfile);
 }
 
 uint32 time_start = 0;
@@ -225,16 +227,39 @@ uint16 counter_previous = 1;
 
 uint32 samples_processed = 0;
 
+uint16 mote_id = 0; // TODO Mote ID is not checked.
+
 int sector_offset = 0;
 
-bool check_reboot(const sample& s, int i) {
+int reboot_seq_num = 0;
+
+void create_new_file() {
+
+	ostringstream os;
+
+	os << 'm' << setfill('0') << setw(2) << mote_id << '_';
+	os << 'r' << setfill('0') << setw(3) << reboot_seq_num << '_';
+	os << 's' << sector_offset << ".csv" << flush;
+
+	if (out.is_open())
+		out.close();
+
+	out.open(os.str().c_str());
+}
+
+bool reboot(const sample& s, int i) {
 
 	bool reboot = s.check_reboot(counter_previous);
 
 	if (reboot && i==0) {
 
 		cout << "Found a reboot at sample " << samples_processed << endl;
-		// new file
+
+		++reboot_seq_num;
+
+		time_start = s.timestamp();
+
+		create_new_file();
 
 		return true;
 	}
@@ -265,7 +290,7 @@ void check_timestamp(const sample& s) {
 
 void check_sample(const sample& s, const int i) {
 
-	if (!check_reboot(s, i)) {
+	if (!reboot(s, i)) {
 
 		check_counter(s);
 
@@ -299,7 +324,7 @@ bool process_sector(const char* sector) {
 
 	sector_iterator itr(sector);
 
-	header h(itr);
+	const header h(itr);
 
 	const int length = h.sector_length();
 
@@ -313,7 +338,7 @@ bool process_sector(const char* sector) {
 		clog << "Warning: invalid length in sector " << sector_offset << endl;
 	}
 	else {
-
+		mote_id = h.mote();
 		write_samples(itr);
 	}
 
@@ -322,7 +347,7 @@ bool process_sector(const char* sector) {
 
 int main() {
 
-	init("oct28_2", "shimmer_processed.txt");
+	init("oct28_2");
 
 	bool finished = false;
 
