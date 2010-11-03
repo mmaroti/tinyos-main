@@ -59,7 +59,7 @@ const char* FileAsRawDevice::read_sector(int i) {
 	}
 	catch (ios_base::failure& excpt) {
 
-		clog << "Warning: exception in read_sector " << excpt.what() << endl;
+		clog << "Warning: exception in read_sector() " << excpt.what() << endl;
 	}
 
 	return ret_val;

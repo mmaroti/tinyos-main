@@ -54,12 +54,32 @@ SDCardImpl::SDCardImpl(RawDevice* source)
 	time_previous = 0;
 	counter_previous = 1;
 	samples_processed = 0;
-	mote_id = 0; // TODO Mote ID is not checked.
+	mote_id = -1;
 	sector_offset = 0;
 	reboot_seq_num = 0;
 }
 
+void SDCardImpl::set_mote_id() {
+
+	const char* const sector = device->read_sector(0);
+
+	if (sector==0) {
+
+		clog << "Error: failed to read the first sector ";
+		clog << "when looking for the mote ID, exiting..." << endl;
+		exit(1);
+	}
+
+	sector_iterator itr(sector);
+
+	header h(itr);
+
+	mote_id = h.mote();
+}
+
 void SDCardImpl::process_new_measurements() {
+
+	set_mote_id();
 
 	bool finished = false;
 
@@ -83,7 +103,7 @@ void SDCardImpl::create_new_file() {
 
 	ostringstream os;
 
-	os << 'm' << setfill('0') << setw(2) << mote_id << '_';
+	os << 'm' << setfill('0') << setw(3) << mote_id << '_';
 	os << 'r' << setfill('0') << setw(3) << reboot_seq_num << '_';
 	os << 's' << sector_offset << ".csv" << flush;
 
@@ -113,22 +133,24 @@ bool SDCardImpl::reboot(const int sample_in_sector) {
 	return false;
 }
 
-void SDCardImpl::check_counter() {
+void SDCardImpl::check_counter() const {
 
 	int missed = s.missing(counter_previous);
 
 	if (missed) {
+
 		clog << "Warning: at sample " << samples_processed;
 		clog << " missing at least ";
 		clog << missed << " samples" << endl;
 	}
 }
 
-void SDCardImpl::check_timestamp() {
+void SDCardImpl::check_timestamp() const {
 
 	int dt = s.error_in_ticks(time_previous);
 
 	if (abs(dt)>TOLERANCE) {
+
 		clog << "Warning: at sample " << samples_processed << " ";
 		clog << dt << " ticks error" << endl;
 	}
@@ -166,6 +188,28 @@ void SDCardImpl::write_samples(sector_iterator& itr) {
 	*out << flush;
 }
 
+void SDCardImpl::check_mote_id(int id) const {
+
+	if (id != mote_id) {
+
+		clog << "Warning: mote id " << id << " in sector " << sector_offset;
+		clog << " does differs from " << mote_id << endl;
+	}
+}
+
+bool SDCardImpl::check_data_length(int length) const {
+
+	bool is_ok = true;
+
+	if (MAX_SAMPLES != length/SAMPLE_LENGTH) {
+
+		clog << "Warning: invalid length in sector " << sector_offset << endl;
+		is_ok = false;
+	}
+
+	return is_ok;
+}
+
 bool SDCardImpl::process_sector(const char* sector) {
 
 	sector_iterator itr(sector);
@@ -175,16 +219,14 @@ bool SDCardImpl::process_sector(const char* sector) {
 	const int length = h.sector_length();
 
 	if (length == 0) {
+
 		cout << "Finished!" << endl;
 		return true;
 	}
 
-	if (MAX_SAMPLES != length/SAMPLE_LENGTH) {
+	if (check_data_length(length)) {
 
-		clog << "Warning: invalid length in sector " << sector_offset << endl;
-	}
-	else {
-		mote_id = h.mote();
+		check_mote_id( h.mote() );
 		write_samples(itr);
 	}
 

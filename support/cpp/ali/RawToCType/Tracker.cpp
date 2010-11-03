@@ -31,50 +31,50 @@
 * Author: Ali Baharev
 */
 
-#ifndef SDCARDIMPL_HPP_
-#define SDCARDIMPL_HPP_
+#include <fstream>
+#include "Tracker.hpp"
 
-#include <iosfwd>
-#include "Sector.hpp"
+using namespace std;
 
-class RawDevice;
+RecordMetaData::RecordMetaData(	int sector_beg_inclusive,
+								int sector_end_exclusive,
+								unsigned int length_in_ticks,
+								int reboot )
+							: sector_beg(sector_beg_inclusive),
+							  sector_end(sector_end_exclusive),
+							  length(length_in_ticks),
+							  reboot(reboot)
+{
 
-class SDCardImpl {
+}
 
-public:
+Tracker::Tracker(int mote_ID)
+	: db(new fstream()),
+	  metadata(RecordMetaData(0,0,0,0))
+{
 
-	explicit SDCardImpl(RawDevice* source);
+	// TODO Check mote ID correctness?
 
-	void process_new_measurements();
+	// Try to open, if fails then create
 
-	~SDCardImpl();
+	// What if exists but empty?
+	//metadata = RecordMetaData(0,0,0,0);
+}
 
-private:
+Tracker::~Tracker() {
 
-	SDCardImpl(const SDCardImpl& );
-	SDCardImpl& operator=(const SDCardImpl& );
+	delete db;
+}
 
-	void create_new_file();
-	bool reboot(const int sample_in_sector);
-	void check_counter() const;
-	void check_timestamp() const;
-	void check_sample(const int sample_in_sector);
-	void write_samples(sector_iterator& itr);
-	void check_mote_id(int id) const;
-	bool check_data_length(int length) const;
-	bool process_sector(const char* sector);
-	void set_mote_id();
+const RecordMetaData Tracker::last_record() const {
 
-	RawDevice* const device;
-	std::ofstream* const out;
-	sample s;
-	uint32 time_start;
-	uint32 time_previous;
-	uint16 counter_previous;
-	uint32 samples_processed;
-	int mote_id;
-	int sector_offset;
-	int reboot_seq_num;
-};
 
-#endif
+	return metadata;
+}
+
+void Tracker::append(const RecordMetaData& data) {
+
+	// write to db
+
+	// update metadata
+}

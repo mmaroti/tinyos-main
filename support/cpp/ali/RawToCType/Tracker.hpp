@@ -31,50 +31,38 @@
 * Author: Ali Baharev
 */
 
-#ifndef SDCARDIMPL_HPP_
-#define SDCARDIMPL_HPP_
+#ifndef TRACKER_HPP_
+#define TRACKER_HPP_
 
-#include <iosfwd>
-#include "Sector.hpp"
+struct RecordMetaData {
 
-class RawDevice;
+	const int sector_beg;
+	const int sector_end;
+	const unsigned int length;
+	const int reboot;
 
-class SDCardImpl {
+	RecordMetaData(	int sector_beg_inclusive,
+			int sector_end_exclusive,
+			unsigned int length_in_ticks,
+			int reboot );
+};
 
-public:
+class Tracker {
 
-	explicit SDCardImpl(RawDevice* source);
+	explicit Tracker(int mote_ID);
 
-	void process_new_measurements();
+	const RecordMetaData last_record() const;
 
-	~SDCardImpl();
+	void append(const RecordMetaData& data);
+
+	~Tracker();
 
 private:
 
-	SDCardImpl(const SDCardImpl& );
-	SDCardImpl& operator=(const SDCardImpl& );
+	std::fstream* const db;
 
-	void create_new_file();
-	bool reboot(const int sample_in_sector);
-	void check_counter() const;
-	void check_timestamp() const;
-	void check_sample(const int sample_in_sector);
-	void write_samples(sector_iterator& itr);
-	void check_mote_id(int id) const;
-	bool check_data_length(int length) const;
-	bool process_sector(const char* sector);
-	void set_mote_id();
-
-	RawDevice* const device;
-	std::ofstream* const out;
-	sample s;
-	uint32 time_start;
-	uint32 time_previous;
-	uint16 counter_previous;
-	uint32 samples_processed;
-	int mote_id;
-	int sector_offset;
-	int reboot_seq_num;
+	RecordMetaData metadata;
 };
 
 #endif
+
