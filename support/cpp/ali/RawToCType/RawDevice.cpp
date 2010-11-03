@@ -31,13 +31,53 @@
 * Author: Ali Baharev
 */
 
-#include "SDCard.hpp"
+#include <fstream>
+#include "RawDevice.hpp"
 
-int main() {
+using namespace std;
 
-	SDCard sd("oct28_2");
+FileAsRawDevice::FileAsRawDevice(const char* source) : RawDevice() {
 
-	sd.process_new_measurements();
+	in = new ifstream();
 
+	in->exceptions(ifstream::failbit | ifstream::badbit | ifstream::eofbit);
+
+	in->open(source, ios::binary);
+}
+
+const char* FileAsRawDevice::read_sector(int i) {
+
+	// FIXME Introduce seek
+	const char* ret_val = 0;
+
+	try {
+
+		in->read(buffer, SECTOR_SIZE);
+
+		ret_val = buffer;
+	}
+	catch (...) {
+
+	}
+
+	return ret_val;
+}
+
+double FileAsRawDevice::card_size_in_GB() const {
+	// TODO Finish implementation
 	return 0;
 }
+
+unsigned long FileAsRawDevice::error_code() const {
+	// TODO Finish implementation
+	return 0;
+}
+
+FileAsRawDevice::~FileAsRawDevice() {
+
+	delete in;
+	in = 0;
+}
+
+
+

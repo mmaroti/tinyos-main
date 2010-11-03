@@ -31,13 +31,49 @@
 * Author: Ali Baharev
 */
 
-#include "SDCard.hpp"
+#ifndef RAWDEVICE_HPP_
+#define RAWDEVICE_HPP_
 
-int main() {
+#include <iosfwd>
 
-	SDCard sd("oct28_2");
+// FIXME Multiple definitions of sector size!
+const int SECTOR_SIZE = 512;
 
-	sd.process_new_measurements();
+class RawDevice {
 
-	return 0;
-}
+public:
+
+	virtual const char* read_sector(int i) = 0;
+
+	virtual double card_size_in_GB() const = 0;
+
+	virtual unsigned long error_code() const = 0;
+
+	virtual ~RawDevice() { }; // FIXME Understand why...
+};
+
+class FileAsRawDevice : public RawDevice {
+
+public:
+
+	explicit FileAsRawDevice(const char* source);
+
+private:
+
+	virtual const char* read_sector(int i);
+
+	virtual double card_size_in_GB() const;
+
+	virtual unsigned long error_code() const;
+
+	virtual ~FileAsRawDevice();
+
+	char buffer[SECTOR_SIZE];
+
+	std::ifstream* in;
+
+	double card_size;
+};
+
+#endif
+

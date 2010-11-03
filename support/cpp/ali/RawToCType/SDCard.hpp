@@ -31,13 +31,28 @@
 * Author: Ali Baharev
 */
 
-#include "SDCard.hpp"
+#ifndef SDCARD_HPP_
+#define SDCARD_HPP_
 
-int main() {
+class SDCardImpl;
 
-	SDCard sd("oct28_2");
+class SDCard {
 
-	sd.process_new_measurements();
+public:
 
-	return 0;
-}
+	explicit SDCard(const char* source);
+
+	void process_new_measurements();
+
+	~SDCard();
+
+private:
+
+	SDCard(const SDCard& );
+
+	SDCard& operator=(const SDCard& );
+
+	SDCardImpl* const impl;
+};
+
+#endif

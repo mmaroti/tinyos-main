@@ -32,12 +32,18 @@
 */
 
 #include "SDCard.hpp"
+#include "SDCardImpl.hpp"
 
-int main() {
+SDCard::SDCard(const char* source) : impl(new SDCardImpl(source)) {
 
-	SDCard sd("oct28_2");
+}
 
-	sd.process_new_measurements();
+void SDCard::process_new_measurements() {
 
-	return 0;
+	impl->process_new_measurements();
+}
+
+SDCard::~SDCard() {
+
+	delete impl;
 }

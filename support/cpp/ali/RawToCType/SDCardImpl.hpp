@@ -31,13 +31,43 @@
 * Author: Ali Baharev
 */
 
-#include "SDCard.hpp"
+#ifndef SDCARDIMPL_HPP_
+#define SDCARDIMPL_HPP_
 
-int main() {
+#include <iosfwd>
+#include "Sector.hpp"
 
-	SDCard sd("oct28_2");
+class RawDevice;
 
-	sd.process_new_measurements();
+class SDCardImpl {
 
-	return 0;
-}
+public:
+
+	explicit SDCardImpl(const char* source);
+
+	void process_new_measurements();
+
+	~SDCardImpl();
+
+private:
+
+	void create_new_file();
+	bool reboot(const sample& s, int i);
+	void check_counter(const sample& s);
+	void check_timestamp(const sample& s);
+	void check_sample(const sample& s, const int i);
+	void write_samples(sector_iterator& itr);
+	bool process_sector(const char* sector);
+
+	RawDevice* const device;
+	std::ofstream* out;
+	uint32 time_start;
+	uint32 time_previous;
+	uint16 counter_previous;
+	uint32 samples_processed;
+	uint16 mote_id;
+	int sector_offset;
+	int reboot_seq_num;
+};
+
+#endif
