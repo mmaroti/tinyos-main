@@ -32,33 +32,87 @@
 */
 
 #include <fstream>
+#include <iomanip>
+#include <sstream>
+#include <ctime>
 #include "Tracker.hpp"
 
 using namespace std;
 
-RecordMetaData::RecordMetaData(	int sector_beg_inclusive,
-								int sector_end_exclusive,
-								unsigned int length_in_ticks,
-								int reboot )
-							: sector_beg(sector_beg_inclusive),
-							  sector_end(sector_end_exclusive),
-							  length(length_in_ticks),
-							  reboot(reboot)
-{
+const unsigned int TICKS_PER_SEC = 32768;
 
+void Tracker::set_filename(int mote_ID) {
+
+	ostringstream os;
+
+	os << 'm' << setfill('0') << setw(3) << mote_ID << ".rdb" << flush;
+
+	filename = os.str();
 }
 
-Tracker::Tracker(int mote_ID)
-	: db(new fstream()),
-	  metadata(RecordMetaData(0,0,0,0))
-{
+void Tracker::process_last_line(const string& line) {
 
-	// TODO Check mote ID correctness?
+	istringstream is(line);
 
-	// Try to open, if fails then create
+	is.exceptions(istringstream::failbit | istringstream::badbit);
 
-	// What if exists but empty?
-	//metadata = RecordMetaData(0,0,0,0);
+	int begin, end, reboot;
+
+	is >> begin;
+
+	is >> end;
+
+	is >> reboot;
+
+	first_sector = end+1;
+
+	reboot_id = reboot;
+}
+
+void Tracker::find_last_line(ifstream& in) {
+
+	string line;
+
+	while (in.good()) {
+
+		string buffer;
+
+		getline(in, buffer);
+
+		if (buffer.length()) {
+			line = buffer;
+		}
+	}
+
+	if (line.length()!=0) {
+
+		process_last_line(line);
+	}
+}
+
+void Tracker::set_first_sector_reboot_id() {
+
+	first_sector = 0;
+
+	reboot_id = 0;
+
+	ifstream in;
+
+	in.open(filename.c_str());
+
+	find_last_line(in);
+}
+
+Tracker::Tracker(int mote_ID) : db(new ofstream()) {
+
+	set_filename(mote_ID);
+
+	set_first_sector_reboot_id();
+
+	db->exceptions(ofstream::failbit | ofstream::badbit);
+
+	db->open(filename.c_str(), ofstream::app);
+
 }
 
 Tracker::~Tracker() {
@@ -66,15 +120,57 @@ Tracker::~Tracker() {
 	delete db;
 }
 
-const RecordMetaData Tracker::last_record() const {
+int Tracker::start_from_here() const {
 
-
-	return metadata;
+	return first_sector;
 }
 
-void Tracker::append(const RecordMetaData& data) {
+int Tracker::reboot() const {
 
-	// write to db
+	return reboot_id;
+}
 
-	// update metadata
+const string Tracker::ticks2time(unsigned int t) const {
+
+	ostringstream os;
+
+	unsigned int hour, min, sec, milli;
+
+	hour = t/(3600*TICKS_PER_SEC);
+	t =    t%(3600*TICKS_PER_SEC);
+
+	min = t/(60*TICKS_PER_SEC);
+	t   = t%(60*TICKS_PER_SEC);
+
+	sec = t/TICKS_PER_SEC;
+	t   = t%TICKS_PER_SEC;
+
+	milli = t/(TICKS_PER_SEC/1000.0);
+
+	os << setfill('0') << setw(2) << hour << ":";
+	os << setfill('0') << setw(2) << min  << ":";
+	os << setfill('0') << setw(2) << sec  << ".";
+	os << setfill('0') << setw(3) << milli<< flush;
+
+	return os.str();
+}
+
+const string Tracker::current_time() const {
+
+	time_t t;
+	time(&t);
+	return string(ctime(&t));
+}
+
+void Tracker::append(int beg, int end, unsigned int len, int reboot) {
+
+	// FIXME Check if width is enough
+	*db << setw(7) << right << beg    << '\t';
+	*db << setw(7) << right << end    << '\t';
+	*db << setw(3) << right << reboot << '\t';
+	*db << ticks2time(len) << '\t';
+	*db << current_time() << flush;
+
+	first_sector = end + 1;
+	reboot_id = reboot + 1;
 }
