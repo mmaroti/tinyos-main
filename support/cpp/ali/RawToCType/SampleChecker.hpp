@@ -31,48 +31,34 @@
 * Author: Ali Baharev
 */
 
-#ifndef SAMPLE_HPP_
-#define SAMPLE_HPP_
+#ifndef SAMPLECHECKER_HPP_
+#define SAMPLECHECKER_HPP_
 
-#include <iosfwd>
-#include "TypeDefs.hpp"
+#include "Sample.hpp"
 
-class BlockIterator;
+// FIXME Check header also
 
-class Sample {
+class SampleChecker {
 
 public:
 
-	Sample() { }
+	explicit SampleChecker(const Sample& s);
 
-	explicit Sample(BlockIterator& itr);
+	void set_current(const Sample& s);
 
-	void shift_timestamp(uint32 time_start) { time_stamp -= time_start; }
+	bool reboot() const;
 
-	bool check_reboot(uint16 counter_previous) const;
+	void counter() const;
 
-	int missing(uint16 counter_previous) const;
-
-	int error_in_ticks(uint32 time_previous) const;
-
-	uint32 timestamp() const { return time_stamp; }
-
-	uint16 counter() const { return seq_num; }
-
-	friend std::ostream& operator<<(std::ostream& , const Sample& );
+	void timestamp() const;
 
 private:
 
-	uint32 time_stamp;
-	uint16 seq_num;
-	uint16 acc_x;
-	uint16 acc_y;
-	uint16 acc_z;
-	uint16 gyro_x;
-	uint16 gyro_y;
-	uint16 gyro_z;
-	uint16 volt;
-	uint16 temp;
+	Sample previous;
+
+	Sample current;
+
+	int mote_ID;
 };
 
 #endif

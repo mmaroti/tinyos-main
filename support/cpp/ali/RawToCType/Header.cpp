@@ -37,14 +37,14 @@
 
 using namespace std;
 
-header::header(BlockIterator& itr) {
+Header::Header(BlockIterator& itr) {
 
 	format_id = itr.next_uint16();
 	mote_id   = itr.next_uint16();
 	length    = itr.next_uint16();
 }
 
-ostream& operator<<(ostream& out, const header& h) {
+ostream& operator<<(ostream& out, const Header& h) {
 
 	out << "format id: " << h.format_id << endl;
 	out << "mote id:   " << h.mote_id   << endl;

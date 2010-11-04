@@ -31,48 +31,29 @@
 * Author: Ali Baharev
 */
 
-#ifndef SAMPLE_HPP_
-#define SAMPLE_HPP_
+#include "SampleChecker.hpp"
 
-#include <iosfwd>
-#include "TypeDefs.hpp"
+SampleChecker::SampleChecker(const Sample& s) {
 
-class BlockIterator;
+	;
+}
 
-class Sample {
+void SampleChecker::set_current(const Sample& s) {
 
-public:
+	;
+}
 
-	Sample() { }
+bool SampleChecker::reboot() const {
 
-	explicit Sample(BlockIterator& itr);
+	return false;
+}
 
-	void shift_timestamp(uint32 time_start) { time_stamp -= time_start; }
+void SampleChecker::counter() const {
 
-	bool check_reboot(uint16 counter_previous) const;
+	;
+}
 
-	int missing(uint16 counter_previous) const;
+void SampleChecker::timestamp() const {
 
-	int error_in_ticks(uint32 time_previous) const;
-
-	uint32 timestamp() const { return time_stamp; }
-
-	uint16 counter() const { return seq_num; }
-
-	friend std::ostream& operator<<(std::ostream& , const Sample& );
-
-private:
-
-	uint32 time_stamp;
-	uint16 seq_num;
-	uint16 acc_x;
-	uint16 acc_y;
-	uint16 acc_z;
-	uint16 gyro_x;
-	uint16 gyro_y;
-	uint16 gyro_z;
-	uint16 volt;
-	uint16 temp;
-};
-
-#endif
+	;
+}

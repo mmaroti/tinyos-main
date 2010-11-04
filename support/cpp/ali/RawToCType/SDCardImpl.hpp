@@ -70,7 +70,7 @@ private:
 	BlockDevice* const device;
 	std::ofstream* const out;
 	Tracker* tracker;
-	sample s;
+	Sample s;
 	uint32 time_start;
 	uint32 time_previous;
 	uint16 counter_previous;

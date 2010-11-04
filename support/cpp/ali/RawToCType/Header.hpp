@@ -39,17 +39,17 @@
 
 class BlockIterator;
 
-class header {
+class Header {
 
 public:
 
-	explicit header(BlockIterator& itr);
+	explicit Header(BlockIterator& itr);
 
 	uint16 data_length() const { return length; }
 
 	uint16 mote() const { return mote_id; }
 
-	friend std::ostream& operator<<(std::ostream& , const header& );
+	friend std::ostream& operator<<(std::ostream& , const Header& );
 
 private:
 

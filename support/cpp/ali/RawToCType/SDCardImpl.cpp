@@ -80,7 +80,7 @@ void SDCardImpl::set_mote_id() {
 
 	BlockIterator itr(block);
 
-	header h(itr);
+	Header h(itr);
 
 	mote_id = h.mote();
 }
@@ -185,7 +185,7 @@ void SDCardImpl::write_samples(BlockIterator& itr) {
 
 	for (int i=0; i<MAX_SAMPLES; ++i) {
 
-		s = sample(itr);
+		s = Sample(itr);
 
 		check_sample(i);
 
@@ -225,7 +225,7 @@ bool SDCardImpl::process_block(const char* block) {
 
 	BlockIterator itr(block);
 
-	const header h(itr);
+	const Header h(itr);
 
 	const int length = h.data_length();
 

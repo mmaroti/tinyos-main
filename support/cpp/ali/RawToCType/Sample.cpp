@@ -41,7 +41,7 @@ using namespace std;
 const char SEPARATOR    = ',';
 const int UINT16MAX = 0xFFFF;
 
-sample::sample(BlockIterator& itr) {
+Sample::Sample(BlockIterator& itr) {
 
 	time_stamp = itr.next_uint32();
 	seq_num    = itr.next_uint16();
@@ -55,7 +55,7 @@ sample::sample(BlockIterator& itr) {
 	temp       = itr.next_uint16();
 }
 
-ostream& operator<<(ostream& out, const sample& s) {
+ostream& operator<<(ostream& out, const Sample& s) {
 
 	out << s.time_stamp << SEPARATOR;
 	out << s.seq_num    << SEPARATOR;
@@ -71,17 +71,17 @@ ostream& operator<<(ostream& out, const sample& s) {
 	return out;
 }
 
-bool sample::check_reboot(uint16 counter_previous) const {
+bool Sample::check_reboot(uint16 counter_previous) const {
 	return seq_num==1 && counter_previous!=0;
 }
 
-int sample::missing(uint16 counter_previous) const {
+int Sample::missing(uint16 counter_previous) const {
 	int diff = seq_num-counter_previous;
 	if (diff < 0) diff += (UINT16MAX+1);
 	return diff-1;
 }
 
-int sample::error_in_ticks(uint32 time_previous) const {
+int Sample::error_in_ticks(uint32 time_previous) const {
 	uint32 expected = time_previous + SAMPLING_RATE;
 	return time_stamp - expected;
 }
