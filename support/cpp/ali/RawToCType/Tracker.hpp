@@ -55,7 +55,7 @@ private:
 
 	void set_filename(int mote_ID);
 
-	void set_first_sector_reboot_id();
+	void set_first_block_reboot_id();
 
 	void find_last_line(std::ifstream& in);
 
@@ -69,7 +69,7 @@ private:
 
 	std::string filename;
 
-	int first_sector;
+	int first_block;
 
 	int reboot_id;
 };

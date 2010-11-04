@@ -36,10 +36,9 @@
 #include <sstream>
 #include <ctime>
 #include "Tracker.hpp"
+#include "Constants.hpp"
 
 using namespace std;
-
-const unsigned int TICKS_PER_SEC = 32768;
 
 void Tracker::set_filename(int mote_ID) {
 
@@ -64,7 +63,7 @@ void Tracker::process_last_line(const string& line) {
 
 	is >> reboot;
 
-	first_sector = end+1;
+	first_block = end+1;
 
 	reboot_id = reboot;
 }
@@ -90,9 +89,9 @@ void Tracker::find_last_line(ifstream& in) {
 	}
 }
 
-void Tracker::set_first_sector_reboot_id() {
+void Tracker::set_first_block_reboot_id() {
 
-	first_sector = 0;
+	first_block = 0;
 
 	reboot_id = 0;
 
@@ -107,7 +106,7 @@ Tracker::Tracker(int mote_ID) : db(new ofstream()) {
 
 	set_filename(mote_ID);
 
-	set_first_sector_reboot_id();
+	set_first_block_reboot_id();
 
 	db->exceptions(ofstream::failbit | ofstream::badbit);
 
@@ -121,7 +120,7 @@ Tracker::~Tracker() {
 
 int Tracker::start_from_here() const {
 
-	return first_sector;
+	return first_block;
 }
 
 int Tracker::reboot() const {
@@ -169,6 +168,6 @@ void Tracker::append(int beg, int end, unsigned int len, int reboot) {
 	*db << ticks2time(len) << '\t';
 	*db << current_time() << flush;
 
-	first_sector = end + 1;
+	first_block = end + 1;
 	reboot_id = reboot + 1;
 }

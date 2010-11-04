@@ -31,27 +31,57 @@
 * Author: Ali Baharev
 */
 
-#include "SDCard.hpp"
-#include "SDCardImpl.hpp"
-#include "BlockDevice.hpp"
+#include <ostream>
+#include "Sample.hpp"
+#include "BlockIterator.hpp"
+#include "Constants.hpp"
 
-SDCard* SDCard::from_file(const char* filename) {
+using namespace std;
 
-	BlockDevice* source = new FileAsBlockDevice(filename);
+const char SEPARATOR    = ',';
+const int UINT16MAX = 0xFFFF;
 
-	return new SDCard(source);
+sample::sample(BlockIterator& itr) {
+
+	time_stamp = itr.next_uint32();
+	seq_num    = itr.next_uint16();
+	acc_x      = itr.next_uint16();
+	acc_y      = itr.next_uint16();
+	acc_z      = itr.next_uint16();
+	gyro_x     = itr.next_uint16();
+	gyro_y     = itr.next_uint16();
+	gyro_z     = itr.next_uint16();
+	volt       = itr.next_uint16();
+	temp       = itr.next_uint16();
 }
 
-SDCard::SDCard(BlockDevice* source) : impl(new SDCardImpl(source)) {
+ostream& operator<<(ostream& out, const sample& s) {
 
+	out << s.time_stamp << SEPARATOR;
+	out << s.seq_num    << SEPARATOR;
+	out << s.acc_x      << SEPARATOR;
+	out << s.acc_y      << SEPARATOR;
+	out << s.acc_z      << SEPARATOR;
+	out << s.gyro_x     << SEPARATOR;
+	out << s.gyro_y     << SEPARATOR;
+	out << s.gyro_z     << SEPARATOR;
+	out << s.volt       << SEPARATOR;
+	out << s.temp       << '\n';
+
+	return out;
 }
 
-void SDCard::process_new_measurements() {
-
-	impl->process_new_measurements();
+bool sample::check_reboot(uint16 counter_previous) const {
+	return seq_num==1 && counter_previous!=0;
 }
 
-SDCard::~SDCard() {
+int sample::missing(uint16 counter_previous) const {
+	int diff = seq_num-counter_previous;
+	if (diff < 0) diff += (UINT16MAX+1);
+	return diff-1;
+}
 
-	delete impl;
+int sample::error_in_ticks(uint32 time_previous) const {
+	uint32 expected = time_previous + SAMPLING_RATE;
+	return time_stamp - expected;
 }

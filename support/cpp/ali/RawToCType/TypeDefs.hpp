@@ -31,27 +31,10 @@
 * Author: Ali Baharev
 */
 
-#include "SDCard.hpp"
-#include "SDCardImpl.hpp"
-#include "BlockDevice.hpp"
+#ifndef TYPEDEFS_HPP_
+#define TYPEDEFS_HPP_
 
-SDCard* SDCard::from_file(const char* filename) {
+typedef unsigned short uint16;
+typedef unsigned int uint32;
 
-	BlockDevice* source = new FileAsBlockDevice(filename);
-
-	return new SDCard(source);
-}
-
-SDCard::SDCard(BlockDevice* source) : impl(new SDCardImpl(source)) {
-
-}
-
-void SDCard::process_new_measurements() {
-
-	impl->process_new_measurements();
-}
-
-SDCard::~SDCard() {
-
-	delete impl;
-}
+#endif

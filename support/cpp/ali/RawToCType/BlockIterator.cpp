@@ -31,27 +31,16 @@
 * Author: Ali Baharev
 */
 
-#include "SDCard.hpp"
-#include "SDCardImpl.hpp"
-#include "BlockDevice.hpp"
+#include "BlockIterator.hpp"
 
-SDCard* SDCard::from_file(const char* filename) {
-
-	BlockDevice* source = new FileAsBlockDevice(filename);
-
-	return new SDCard(source);
+uint16 BlockIterator::next_uint16() {
+	uint16 x = *reinterpret_cast<const uint16*> (itr);
+	itr += 2;
+	return x;
 }
 
-SDCard::SDCard(BlockDevice* source) : impl(new SDCardImpl(source)) {
-
-}
-
-void SDCard::process_new_measurements() {
-
-	impl->process_new_measurements();
-}
-
-SDCard::~SDCard() {
-
-	delete impl;
+uint32 BlockIterator::next_uint32() {
+	uint32 x = *reinterpret_cast<const uint32*> (itr);
+	itr += 4;
+	return x;
 }

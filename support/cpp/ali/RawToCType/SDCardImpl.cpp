@@ -37,21 +37,20 @@
 #include <iomanip>
 #include <cstdlib>
 #include "SDCardImpl.hpp"
-#include "RawDevice.hpp"
+#include "BlockDevice.hpp"
 #include "Tracker.hpp"
+#include "BlockIterator.hpp"
+#include "Header.hpp"
+#include "BlockRelatedConsts.hpp"
+#include "Constants.hpp"
 
 using namespace std;
-
-const int HEADER_LENGTH = 6;
-const int SAMPLE_LENGTH = 22;
-const int MAX_SAMPLES   = (SECTOR_SIZE-HEADER_LENGTH)/SAMPLE_LENGTH;
-const int TOLERANCE = 4;
 
 // FIXME Understand why crashes if offset is incorrect
 // TODO Introduce new datamembers to write metadata to flat-file db
 // TODO Needs explicit closing of out
 
-SDCardImpl::SDCardImpl(RawDevice* source)
+SDCardImpl::SDCardImpl(BlockDevice* source)
 	: device(source), out(new ofstream()), tracker(0)
 {
 	out->exceptions(ofstream::failbit | ofstream::badbit);
@@ -60,7 +59,7 @@ SDCardImpl::SDCardImpl(RawDevice* source)
 	counter_previous = 1;
 	samples_processed = 0;
 	mote_id = -1;
-	sector_offset = 0;
+	block_offset = 0;
 	reboot_seq_num = 0;
 
 	set_mote_id();
@@ -70,16 +69,16 @@ SDCardImpl::SDCardImpl(RawDevice* source)
 
 void SDCardImpl::set_mote_id() {
 
-	const char* const sector = device->read_sector(0);
+	const char* const block = device->read_block(0);
 
-	if (sector==0) {
+	if (block==0) {
 
-		clog << "Error: failed to read the first sector ";
+		clog << "Error: failed to read the first block ";
 		clog << "when looking for the mote ID, exiting..." << endl;
 		exit(1);
 	}
 
-	sector_iterator itr(sector);
+	BlockIterator itr(block);
 
 	header h(itr);
 
@@ -90,17 +89,17 @@ void SDCardImpl::process_new_measurements() {
 
 	bool finished = false;
 
-	const char* sector = 0;
+	const char* block = 0;
 
-	sector_offset = tracker->start_from_here();
+	block_offset = tracker->start_from_here();
 
 	reboot_seq_num = tracker->reboot();
 
-	while ((sector = device->read_sector(sector_offset)) && !finished ) {
+	while ((block = device->read_block(block_offset)) && !finished ) {
 
-		finished = process_sector(sector);
+		finished = process_block(block);
 
-		++sector_offset;
+		++block_offset;
 	}
 }
 
@@ -117,7 +116,7 @@ void SDCardImpl::create_new_file() {
 
 	os << 'm' << setfill('0') << setw(3) << mote_id << '_';
 	os << 'r' << setfill('0') << setw(3) << reboot_seq_num << '_';
-	os << 's' << sector_offset << ".csv" << flush;
+	os << 's' << block_offset << ".csv" << flush;
 
 	if (out->is_open())
 		out->close();
@@ -125,11 +124,11 @@ void SDCardImpl::create_new_file() {
 	out->open(os.str().c_str());
 }
 
-bool SDCardImpl::reboot(const int sample_in_sector) {
+bool SDCardImpl::reboot(const int sample_in_block) {
 
 	bool reboot = s.check_reboot(counter_previous);
 
-	if (reboot && sample_in_sector==0) {
+	if (reboot && sample_in_block==0) {
 
 		cout << "Found a reboot at sample " << samples_processed << endl;
 
@@ -168,9 +167,9 @@ void SDCardImpl::check_timestamp() const {
 	}
 }
 
-void SDCardImpl::check_sample(const int sample_in_sector) {
+void SDCardImpl::check_sample(const int sample_in_block) {
 
-	if (!reboot(sample_in_sector)) {
+	if (!reboot(sample_in_block)) {
 
 		check_counter();
 
@@ -182,7 +181,7 @@ void SDCardImpl::check_sample(const int sample_in_sector) {
 	counter_previous = s.counter();
 }
 
-void SDCardImpl::write_samples(sector_iterator& itr) {
+void SDCardImpl::write_samples(BlockIterator& itr) {
 
 	for (int i=0; i<MAX_SAMPLES; ++i) {
 
@@ -204,7 +203,7 @@ void SDCardImpl::check_mote_id(int id) const {
 
 	if (id != mote_id) {
 
-		clog << "Warning: mote id " << id << " in sector " << sector_offset;
+		clog << "Warning: mote id " << id << " in block " << block_offset;
 		clog << " does differs from " << mote_id << endl;
 	}
 }
@@ -215,20 +214,20 @@ bool SDCardImpl::check_data_length(int length) const {
 
 	if (MAX_SAMPLES != length/SAMPLE_LENGTH) {
 
-		clog << "Warning: invalid length in sector " << sector_offset << endl;
+		clog << "Warning: invalid length in block " << block_offset << endl;
 		is_ok = false;
 	}
 
 	return is_ok;
 }
 
-bool SDCardImpl::process_sector(const char* sector) {
+bool SDCardImpl::process_block(const char* block) {
 
-	sector_iterator itr(sector);
+	BlockIterator itr(block);
 
 	const header h(itr);
 
-	const int length = h.sector_length();
+	const int length = h.data_length();
 
 	if (length == 0) {
 

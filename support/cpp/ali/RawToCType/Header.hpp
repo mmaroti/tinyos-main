@@ -31,49 +31,31 @@
 * Author: Ali Baharev
 */
 
-#ifndef RAWDEVICE_HPP_
-#define RAWDEVICE_HPP_
+#ifndef HEADER_HPP_
+#define HEADER_HPP_
 
 #include <iosfwd>
+#include "TypeDefs.hpp"
 
-// FIXME Watch out for multiple definitions of sector size!
-const int SECTOR_SIZE = 512;
+class BlockIterator;
 
-class RawDevice {
-
-public:
-
-	virtual const char* read_sector(int i) = 0;
-
-	virtual double card_size_in_GB() const = 0;
-
-	virtual unsigned long error_code() const = 0;
-
-	virtual ~RawDevice() { }; // FIXME Understand why...
-
-};
-
-class FileAsRawDevice : public RawDevice {
+class header {
 
 public:
 
-	explicit FileAsRawDevice(const char* source);
+	explicit header(BlockIterator& itr);
+
+	uint16 data_length() const { return length; }
+
+	uint16 mote() const { return mote_id; }
+
+	friend std::ostream& operator<<(std::ostream& , const header& );
 
 private:
 
-	virtual const char* read_sector(int i);
-
-	virtual double card_size_in_GB() const;
-
-	virtual unsigned long error_code() const;
-
-	virtual ~FileAsRawDevice();
-
-	char buffer[SECTOR_SIZE];
-
-	std::ifstream* const in;
-
-	double card_size;
+	uint16 format_id;
+	uint16 mote_id;
+	uint16 length;
 };
 
 #endif

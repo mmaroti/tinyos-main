@@ -35,9 +35,9 @@
 #define SDCARDIMPL_HPP_
 
 #include <iosfwd>
-#include "Sector.hpp"
+#include "Sample.hpp"
 
-class RawDevice;
+class BlockDevice;
 
 class Tracker;
 
@@ -45,7 +45,7 @@ class SDCardImpl {
 
 public:
 
-	explicit SDCardImpl(RawDevice* source);
+	explicit SDCardImpl(BlockDevice* source);
 
 	void process_new_measurements();
 
@@ -57,17 +57,17 @@ private:
 	SDCardImpl& operator=(const SDCardImpl& );
 
 	void create_new_file();
-	bool reboot(const int sample_in_sector);
+	bool reboot(const int sample_in_block);
 	void check_counter() const;
 	void check_timestamp() const;
-	void check_sample(const int sample_in_sector);
-	void write_samples(sector_iterator& itr);
+	void check_sample(const int sample_in_block);
+	void write_samples(BlockIterator& itr);
 	void check_mote_id(int id) const;
 	bool check_data_length(int length) const;
-	bool process_sector(const char* sector);
+	bool process_block(const char* block);
 	void set_mote_id();
 
-	RawDevice* const device;
+	BlockDevice* const device;
 	std::ofstream* const out;
 	Tracker* tracker;
 	sample s;
@@ -76,7 +76,7 @@ private:
 	uint16 counter_previous;
 	uint32 samples_processed;
 	int mote_id;
-	int sector_offset;
+	int block_offset;
 	int reboot_seq_num;
 };
 

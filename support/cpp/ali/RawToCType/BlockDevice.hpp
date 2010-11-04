@@ -31,27 +31,46 @@
 * Author: Ali Baharev
 */
 
-#include "SDCard.hpp"
-#include "SDCardImpl.hpp"
-#include "BlockDevice.hpp"
+#ifndef BLOCKDEVICE_HPP_
+#define BLOCKDEVICE_HPP_
 
-SDCard* SDCard::from_file(const char* filename) {
+#include <iosfwd>
 
-	BlockDevice* source = new FileAsBlockDevice(filename);
+class BlockDevice {
 
-	return new SDCard(source);
-}
+public:
 
-SDCard::SDCard(BlockDevice* source) : impl(new SDCardImpl(source)) {
+	virtual const char* read_block(int i) = 0;
 
-}
+	virtual double card_size_in_GB() const = 0;
 
-void SDCard::process_new_measurements() {
+	virtual unsigned long error_code() const = 0;
 
-	impl->process_new_measurements();
-}
+	virtual ~BlockDevice() { }; // FIXME Understand why...
 
-SDCard::~SDCard() {
+};
 
-	delete impl;
-}
+class FileAsBlockDevice : public BlockDevice {
+
+public:
+
+	explicit FileAsBlockDevice(const char* source);
+
+private:
+
+	virtual const char* read_block(int i);
+
+	virtual double card_size_in_GB() const;
+
+	virtual unsigned long error_code() const;
+
+	virtual ~FileAsBlockDevice();
+
+	std::ifstream* const in;
+
+	char* const buffer;
+
+	double card_size;
+};
+
+#endif

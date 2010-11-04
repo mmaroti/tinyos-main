@@ -35,7 +35,8 @@
 #define SDCARD_HPP_
 
 class SDCardImpl;
-class RawDevice;
+
+class BlockDevice;
 
 class SDCard {
 
@@ -49,7 +50,7 @@ public:
 
 private:
 
-	explicit SDCard(RawDevice* source);
+	explicit SDCard(BlockDevice* source);
 
 	SDCard(const SDCard& );
 

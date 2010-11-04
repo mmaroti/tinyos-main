@@ -31,27 +31,29 @@
 * Author: Ali Baharev
 */
 
-#include "SDCard.hpp"
-#include "SDCardImpl.hpp"
-#include "BlockDevice.hpp"
+#ifndef BLOCKITERATOR_HPP_
+#define BLOCKITERATOR_HPP_
 
-SDCard* SDCard::from_file(const char* filename) {
+#include "TypeDefs.hpp"
 
-	BlockDevice* source = new FileAsBlockDevice(filename);
+class BlockIterator {
 
-	return new SDCard(source);
-}
+public:
 
-SDCard::SDCard(BlockDevice* source) : impl(new SDCardImpl(source)) {
+	explicit BlockIterator(const char* block) : itr(block) { }
 
-}
+	uint16 next_uint16();
 
-void SDCard::process_new_measurements() {
+	uint32 next_uint32();
 
-	impl->process_new_measurements();
-}
+private:
 
-SDCard::~SDCard() {
+	BlockIterator(const BlockIterator& );
 
-	delete impl;
-}
+	BlockIterator& operator=(const BlockIterator& );
+
+	const char* itr;
+};
+
+#endif
+

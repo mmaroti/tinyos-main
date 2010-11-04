@@ -31,54 +31,48 @@
 * Author: Ali Baharev
 */
 
-#include <iostream>
-#include <fstream>
-#include "RawDevice.hpp"
+#ifndef SAMPLE_HPP_
+#define SAMPLE_HPP_
 
-using namespace std;
+#include <iosfwd>
+#include "TypeDefs.hpp"
 
-FileAsRawDevice::FileAsRawDevice(const char* source)
-	: RawDevice(), in(new ifstream())
-{
-	in->exceptions(ifstream::failbit | ifstream::badbit | ifstream::eofbit);
+class BlockIterator;
 
-	in->open(source, ios::binary);
-}
+class sample {
 
-const char* FileAsRawDevice::read_sector(int i) {
+public:
 
-	const char* ret_val = 0;
+	sample() { }
 
-	try {
+	explicit sample(BlockIterator& itr);
 
-		in->seekg(i*SECTOR_SIZE);
+	void shift_timestamp(uint32 time_start) { time_stamp -= time_start; }
 
-		in->read(buffer, SECTOR_SIZE);
+	bool check_reboot(uint16 counter_previous) const;
 
-		ret_val = buffer;
-	}
-	catch (ios_base::failure& excpt) {
+	int missing(uint16 counter_previous) const;
 
-		clog << "Warning: exception in read_sector() " << excpt.what() << endl;
-	}
+	int error_in_ticks(uint32 time_previous) const;
 
-	return ret_val;
-}
+	uint32 timestamp() const { return time_stamp; }
 
-double FileAsRawDevice::card_size_in_GB() const {
-	// TODO Finish implementation
-	return 0;
-}
+	uint16 counter() const { return seq_num; }
 
-unsigned long FileAsRawDevice::error_code() const {
-	// TODO Finish implementation
-	return 0;
-}
+	friend std::ostream& operator<<(std::ostream& , const sample& );
 
-FileAsRawDevice::~FileAsRawDevice() {
+private:
 
-	delete in;
-}
+	uint32 time_stamp;
+	uint16 seq_num;
+	uint16 acc_x;
+	uint16 acc_y;
+	uint16 acc_z;
+	uint16 gyro_x;
+	uint16 gyro_y;
+	uint16 gyro_z;
+	uint16 volt;
+	uint16 temp;
+};
 
-
-
+#endif

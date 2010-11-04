@@ -31,27 +31,12 @@
 * Author: Ali Baharev
 */
 
-#include "SDCard.hpp"
-#include "SDCardImpl.hpp"
-#include "BlockDevice.hpp"
+#ifndef BLOCKRELATEDCONSTS_HPP_
+#define BLOCKRELATEDCONSTS_HPP_
 
-SDCard* SDCard::from_file(const char* filename) {
+const int BLOCK_SIZE = 512;
+const int HEADER_LENGTH = 6;
+const int SAMPLE_LENGTH = 22;
+const int MAX_SAMPLES   = (BLOCK_SIZE-HEADER_LENGTH)/SAMPLE_LENGTH;
 
-	BlockDevice* source = new FileAsBlockDevice(filename);
-
-	return new SDCard(source);
-}
-
-SDCard::SDCard(BlockDevice* source) : impl(new SDCardImpl(source)) {
-
-}
-
-void SDCard::process_new_measurements() {
-
-	impl->process_new_measurements();
-}
-
-SDCard::~SDCard() {
-
-	delete impl;
-}
+#endif

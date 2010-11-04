@@ -31,27 +31,56 @@
 * Author: Ali Baharev
 */
 
-#include "SDCard.hpp"
-#include "SDCardImpl.hpp"
+#include <iostream>
+#include <fstream>
 #include "BlockDevice.hpp"
+#include "BlockRelatedConsts.hpp"
 
-SDCard* SDCard::from_file(const char* filename) {
+using namespace std;
 
-	BlockDevice* source = new FileAsBlockDevice(filename);
+FileAsBlockDevice::FileAsBlockDevice(const char* source)
+	: BlockDevice(), in(new ifstream()), buffer(new char[BLOCK_SIZE])
+{
+	in->exceptions(ifstream::failbit | ifstream::badbit | ifstream::eofbit);
 
-	return new SDCard(source);
+	in->open(source, ios::binary);
 }
 
-SDCard::SDCard(BlockDevice* source) : impl(new SDCardImpl(source)) {
+const char* FileAsBlockDevice::read_block(int i) {
 
+	const char* ret_val = 0;
+
+	try {
+
+		in->seekg(i*BLOCK_SIZE);
+
+		in->read(buffer, BLOCK_SIZE);
+
+		ret_val = buffer;
+	}
+	catch (ios_base::failure& excpt) {
+
+		clog << "Warning: exception in read_block() " << excpt.what() << endl;
+	}
+
+	return ret_val;
 }
 
-void SDCard::process_new_measurements() {
-
-	impl->process_new_measurements();
+double FileAsBlockDevice::card_size_in_GB() const {
+	// TODO Finish implementation
+	return 0;
 }
 
-SDCard::~SDCard() {
-
-	delete impl;
+unsigned long FileAsBlockDevice::error_code() const {
+	// TODO Finish implementation
+	return 0;
 }
+
+FileAsBlockDevice::~FileAsBlockDevice() {
+
+	delete in;
+	delete[] buffer;
+}
+
+
+
