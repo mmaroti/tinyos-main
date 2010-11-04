@@ -39,6 +39,8 @@
 
 class RawDevice;
 
+class Tracker;
+
 class SDCardImpl {
 
 public:
@@ -67,6 +69,7 @@ private:
 
 	RawDevice* const device;
 	std::ofstream* const out;
+	Tracker* tracker;
 	sample s;
 	uint32 time_start;
 	uint32 time_previous;

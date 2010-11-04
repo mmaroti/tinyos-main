@@ -38,6 +38,7 @@
 #include <cstdlib>
 #include "SDCardImpl.hpp"
 #include "RawDevice.hpp"
+#include "Tracker.hpp"
 
 using namespace std;
 
@@ -46,8 +47,12 @@ const int SAMPLE_LENGTH = 22;
 const int MAX_SAMPLES   = (SECTOR_SIZE-HEADER_LENGTH)/SAMPLE_LENGTH;
 const int TOLERANCE = 4;
 
+// FIXME Understand why crashes if offset is incorrect
+// TODO Introduce new datamembers to write metadata to flat-file db
+// TODO Needs explicit closing of out
+
 SDCardImpl::SDCardImpl(RawDevice* source)
-	: device(source), out(new ofstream())
+	: device(source), out(new ofstream()), tracker(0)
 {
 	out->exceptions(ofstream::failbit | ofstream::badbit);
 	time_start = 0;
@@ -57,6 +62,10 @@ SDCardImpl::SDCardImpl(RawDevice* source)
 	mote_id = -1;
 	sector_offset = 0;
 	reboot_seq_num = 0;
+
+	set_mote_id();
+
+	tracker = new Tracker(mote_id);
 }
 
 void SDCardImpl::set_mote_id() {
@@ -79,11 +88,13 @@ void SDCardImpl::set_mote_id() {
 
 void SDCardImpl::process_new_measurements() {
 
-	set_mote_id();
-
 	bool finished = false;
 
 	const char* sector = 0;
+
+	sector_offset = tracker->start_from_here();
+
+	reboot_seq_num = tracker->reboot();
 
 	while ((sector = device->read_sector(sector_offset)) && !finished ) {
 
@@ -97,6 +108,7 @@ SDCardImpl::~SDCardImpl() {
 
 	delete device;
 	delete out;
+	delete tracker;
 }
 
 void SDCardImpl::create_new_file() {

@@ -112,7 +112,6 @@ Tracker::Tracker(int mote_ID) : db(new ofstream()) {
 	db->exceptions(ofstream::failbit | ofstream::badbit);
 
 	db->open(filename.c_str(), ofstream::app);
-
 }
 
 Tracker::~Tracker() {
