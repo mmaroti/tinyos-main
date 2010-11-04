@@ -34,12 +34,10 @@
 #include <ostream>
 #include "Sample.hpp"
 #include "BlockIterator.hpp"
-#include "Constants.hpp"
 
 using namespace std;
 
 const char SEPARATOR    = ',';
-const int UINT16MAX = 0xFFFF;
 
 Sample::Sample(BlockIterator& itr) {
 
@@ -69,19 +67,4 @@ ostream& operator<<(ostream& out, const Sample& s) {
 	out << s.temp       << '\n';
 
 	return out;
-}
-
-bool Sample::check_reboot(uint16 counter_previous) const {
-	return seq_num==1 && counter_previous!=0;
-}
-
-int Sample::missing(uint16 counter_previous) const {
-	int diff = seq_num-counter_previous;
-	if (diff < 0) diff += (UINT16MAX+1);
-	return diff-1;
-}
-
-int Sample::error_in_ticks(uint32 time_previous) const {
-	uint32 expected = time_previous + SAMPLING_RATE;
-	return time_stamp - expected;
 }

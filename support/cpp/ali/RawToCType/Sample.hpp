@@ -49,15 +49,11 @@ public:
 
 	void shift_timestamp(uint32 time_start) { time_stamp -= time_start; }
 
-	bool check_reboot(uint16 counter_previous) const;
-
-	int missing(uint16 counter_previous) const;
-
-	int error_in_ticks(uint32 time_previous) const;
-
 	uint32 timestamp() const { return time_stamp; }
 
 	uint16 counter() const { return seq_num; }
+
+	void force_counter(uint16 i) { seq_num = i; }
 
 	friend std::ostream& operator<<(std::ostream& , const Sample& );
 

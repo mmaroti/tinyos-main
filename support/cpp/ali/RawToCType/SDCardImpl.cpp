@@ -38,11 +38,10 @@
 #include <cstdlib>
 #include "SDCardImpl.hpp"
 #include "BlockDevice.hpp"
-#include "Tracker.hpp"
 #include "BlockIterator.hpp"
-#include "Header.hpp"
 #include "BlockRelatedConsts.hpp"
-#include "Constants.hpp"
+#include "BlockChecker.hpp"
+#include "Tracker.hpp"
 
 using namespace std;
 
@@ -51,23 +50,19 @@ using namespace std;
 // TODO Needs explicit closing of out
 
 SDCardImpl::SDCardImpl(BlockDevice* source)
-	: device(source), out(new ofstream()), tracker(0)
+	: device(source), out(new ofstream()), tracker(0), check(0)
 {
 	out->exceptions(ofstream::failbit | ofstream::badbit);
 	time_start = 0;
-	time_previous = 0;
-	counter_previous = 1;
-	samples_processed = 0;
-	mote_id = -1;
 	block_offset = 0;
 	reboot_seq_num = 0;
 
-	set_mote_id();
+	init_tracker();
 
-	tracker = new Tracker(mote_id);
+	check = new BlockChecker(tracker->mote_id());
 }
 
-void SDCardImpl::set_mote_id() {
+void SDCardImpl::init_tracker() {
 
 	const char* const block = device->read_block(0);
 
@@ -75,14 +70,12 @@ void SDCardImpl::set_mote_id() {
 
 		clog << "Error: failed to read the first block ";
 		clog << "when looking for the mote ID, exiting..." << endl;
-		exit(1);
+		exit(1); // TODO Introduce exit codes
 	}
 
-	BlockIterator itr(block);
+	BlockIterator zeroth_block(block);
 
-	Header h(itr);
-
-	mote_id = h.mote();
+	tracker = new Tracker(zeroth_block);
 }
 
 void SDCardImpl::process_new_measurements() {
@@ -101,6 +94,8 @@ void SDCardImpl::process_new_measurements() {
 
 		++block_offset;
 	}
+
+	cout << "Finished!" << endl;
 }
 
 SDCardImpl::~SDCardImpl() {
@@ -114,7 +109,7 @@ void SDCardImpl::create_new_file() {
 
 	ostringstream os;
 
-	os << 'm' << setfill('0') << setw(3) << mote_id << '_';
+	os << 'm' << setfill('0') << setw(3) << tracker->mote_id() << '_';
 	os << 'r' << setfill('0') << setw(3) << reboot_seq_num << '_';
 	os << 's' << block_offset << ".csv" << flush;
 
@@ -126,66 +121,43 @@ void SDCardImpl::create_new_file() {
 
 bool SDCardImpl::reboot(const int sample_in_block) {
 
-	bool reboot = s.check_reboot(counter_previous);
+	bool reboot = check->reboot();
 
 	if (reboot && sample_in_block==0) {
 
-		cout << "Found a reboot at sample " << samples_processed << endl;
+		cout << "Found a reboot at sample " << check->processed() << endl;
 
 		++reboot_seq_num;
 
-		time_start = s.timestamp();
+		time_start = check->get_current_timestamp();
 
 		create_new_file();
 
 		return true;
 	}
+	// FIXME Should not we log if sample_in_block != 0 ?
 
 	return false;
 }
 
-void SDCardImpl::check_counter() const {
-
-	int missed = s.missing(counter_previous);
-
-	if (missed) {
-
-		clog << "Warning: at sample " << samples_processed;
-		clog << " missing at least ";
-		clog << missed << " samples" << endl;
-	}
-}
-
-void SDCardImpl::check_timestamp() const {
-
-	int dt = s.error_in_ticks(time_previous);
-
-	if (abs(dt)>TOLERANCE) {
-
-		clog << "Warning: at sample " << samples_processed << " ";
-		clog << dt << " ticks error" << endl;
-	}
-}
-
 void SDCardImpl::check_sample(const int sample_in_block) {
 
+	// TODO May this should be pushed into BlockChecker
 	if (!reboot(sample_in_block)) {
 
-		check_counter();
+		check->counter();
 
-		check_timestamp();
+		check->timestamp();
 	}
-
-	time_previous = s.timestamp();
-
-	counter_previous = s.counter();
 }
 
 void SDCardImpl::write_samples(BlockIterator& itr) {
 
 	for (int i=0; i<MAX_SAMPLES; ++i) {
 
-		s = Sample(itr);
+		Sample s(itr);
+
+		check->set_current(s);
 
 		check_sample(i);
 
@@ -193,53 +165,29 @@ void SDCardImpl::write_samples(BlockIterator& itr) {
 
 		*out << s;
 
-		++samples_processed;
 	}
 
 	*out << flush;
 }
 
-void SDCardImpl::check_mote_id(int id) const {
-
-	if (id != mote_id) {
-
-		clog << "Warning: mote id " << id << " in block " << block_offset;
-		clog << " does differs from " << mote_id << endl;
-	}
-}
-
-bool SDCardImpl::check_data_length(int length) const {
-
-	bool is_ok = true;
-
-	if (MAX_SAMPLES != length/SAMPLE_LENGTH) {
-
-		clog << "Warning: invalid length in block " << block_offset << endl;
-		is_ok = false;
-	}
-
-	return is_ok;
-}
-
 bool SDCardImpl::process_block(const char* block) {
+
+	bool finished = false;
 
 	BlockIterator itr(block);
 
-	const Header h(itr);
+	check->set_current_header(itr, block_offset);
 
-	const int length = h.data_length();
+	if (check->finished()) {
 
-	if (length == 0) {
-
-		cout << "Finished!" << endl;
-		return true;
+		finished = true;
 	}
+	else if (check->datalength()) {
 
-	if (check_data_length(length)) {
+		check->mote_id();
 
-		check_mote_id( h.mote() );
 		write_samples(itr);
 	}
 
-	return false;
+	return finished;
 }

@@ -37,15 +37,19 @@
 #include <iosfwd>
 #include <string>
 
+class BlockIterator;
+
 class Tracker {
 
 public:
 
-	explicit Tracker(int mote_ID);
+	explicit Tracker(BlockIterator& zeroth_block);
 
 	int start_from_here() const;
 
 	int reboot() const;
+
+	int mote_id() const;
 
 	void append(int beg, int end, unsigned int time_len, int reboot);
 
@@ -61,10 +65,6 @@ private:
 
 	void process_last_line(const std::string& line);
 
-	const std::string ticks2time(unsigned int length) const;
-
-	const std::string current_time() const;
-
 	std::ofstream* const db;
 
 	std::string filename;
@@ -72,6 +72,8 @@ private:
 	int first_block;
 
 	int reboot_id;
+
+	int mote_ID;
 };
 
 #endif

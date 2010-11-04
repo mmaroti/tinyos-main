@@ -31,29 +31,55 @@
 * Author: Ali Baharev
 */
 
-#include "SampleChecker.hpp"
+#ifndef SAMPLECHECKER_HPP_
+#define SAMPLECHECKER_HPP_
 
-SampleChecker::SampleChecker(const Sample& s) {
+#include "Header.hpp"
+#include "Sample.hpp"
 
-	;
-}
+class BlockIterator;
 
-void SampleChecker::set_current(const Sample& s) {
+class BlockChecker {
 
-	;
-}
+public:
 
-bool SampleChecker::reboot() const {
+	explicit BlockChecker(int mote_id);
 
-	return false;
-}
+	void set_current_header(BlockIterator& i, int block_offset);
 
-void SampleChecker::counter() const {
+	void mote_id() const;
 
-	;
-}
+	bool finished() const;
 
-void SampleChecker::timestamp() const {
+	bool datalength() const;
 
-	;
-}
+	void set_current(const Sample& s);
+
+	bool reboot() const;
+
+	void counter() const;
+
+	void timestamp() const;
+
+	// FIXME These last two should be either in another class or reboot should
+	// be moved here completely from SDCardImpl
+	int processed() const;
+
+	unsigned int get_current_timestamp() const;
+
+private:
+
+	Header header;
+
+	int block_offset;
+
+	Sample previous;
+
+	Sample current;
+
+	int samples_processed;
+
+	const int mote_ID;
+};
+
+#endif

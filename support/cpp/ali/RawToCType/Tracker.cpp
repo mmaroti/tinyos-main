@@ -36,9 +36,47 @@
 #include <sstream>
 #include <ctime>
 #include "Tracker.hpp"
+#include "BlockIterator.hpp"
+#include "Header.hpp"
 #include "Constants.hpp"
 
 using namespace std;
+
+namespace {
+
+const string ticks2time(unsigned int t) {
+
+	ostringstream os;
+
+	unsigned int hour, min, sec, milli;
+
+	hour = t/(3600*TICKS_PER_SEC);
+	t =    t%(3600*TICKS_PER_SEC);
+
+	min = t/(60*TICKS_PER_SEC);
+	t   = t%(60*TICKS_PER_SEC);
+
+	sec = t/TICKS_PER_SEC;
+	t   = t%TICKS_PER_SEC;
+
+	milli = t/(TICKS_PER_SEC/1000.0);
+
+	os << setfill('0') << setw(2) << hour << ":";
+	os << setfill('0') << setw(2) << min  << ":";
+	os << setfill('0') << setw(2) << sec  << ".";
+	os << setfill('0') << setw(3) << milli<< flush;
+
+	return os.str();
+}
+
+const string current_time() {
+
+	time_t t;
+	time(&t);
+	return string(ctime(&t));
+}
+
+}
 
 void Tracker::set_filename(int mote_ID) {
 
@@ -102,7 +140,9 @@ void Tracker::set_first_block_reboot_id() {
 	find_last_line(in);
 }
 
-Tracker::Tracker(int mote_ID) : db(new ofstream()) {
+Tracker::Tracker(BlockIterator& zeroth_block) : db(new ofstream()) {
+
+	mote_ID = Header(zeroth_block).mote();
 
 	set_filename(mote_ID);
 
@@ -128,36 +168,9 @@ int Tracker::reboot() const {
 	return reboot_id;
 }
 
-const string Tracker::ticks2time(unsigned int t) const {
+int Tracker::mote_id() const {
 
-	ostringstream os;
-
-	unsigned int hour, min, sec, milli;
-
-	hour = t/(3600*TICKS_PER_SEC);
-	t =    t%(3600*TICKS_PER_SEC);
-
-	min = t/(60*TICKS_PER_SEC);
-	t   = t%(60*TICKS_PER_SEC);
-
-	sec = t/TICKS_PER_SEC;
-	t   = t%TICKS_PER_SEC;
-
-	milli = t/(TICKS_PER_SEC/1000.0);
-
-	os << setfill('0') << setw(2) << hour << ":";
-	os << setfill('0') << setw(2) << min  << ":";
-	os << setfill('0') << setw(2) << sec  << ".";
-	os << setfill('0') << setw(3) << milli<< flush;
-
-	return os.str();
-}
-
-const string Tracker::current_time() const {
-
-	time_t t;
-	time(&t);
-	return string(ctime(&t));
+	return mote_ID;
 }
 
 void Tracker::append(int beg, int end, unsigned int len, int reboot) {

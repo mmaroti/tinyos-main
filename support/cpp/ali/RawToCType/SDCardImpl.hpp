@@ -35,10 +35,11 @@
 #define SDCARDIMPL_HPP_
 
 #include <iosfwd>
-#include "Sample.hpp"
+#include "TypeDefs.hpp"
 
 class BlockDevice;
-
+class BlockChecker;
+class BlockIterator;
 class Tracker;
 
 class SDCardImpl {
@@ -58,24 +59,16 @@ private:
 
 	void create_new_file();
 	bool reboot(const int sample_in_block);
-	void check_counter() const;
-	void check_timestamp() const;
 	void check_sample(const int sample_in_block);
 	void write_samples(BlockIterator& itr);
-	void check_mote_id(int id) const;
-	bool check_data_length(int length) const;
 	bool process_block(const char* block);
-	void set_mote_id();
+	void init_tracker();
 
 	BlockDevice* const device;
 	std::ofstream* const out;
 	Tracker* tracker;
-	Sample s;
+	BlockChecker* check;
 	uint32 time_start;
-	uint32 time_previous;
-	uint16 counter_previous;
-	uint32 samples_processed;
-	int mote_id;
 	int block_offset;
 	int reboot_seq_num;
 };

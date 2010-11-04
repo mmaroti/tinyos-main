@@ -43,6 +43,8 @@ class Header {
 
 public:
 
+	Header() { }
+
 	explicit Header(BlockIterator& itr);
 
 	uint16 data_length() const { return length; }
