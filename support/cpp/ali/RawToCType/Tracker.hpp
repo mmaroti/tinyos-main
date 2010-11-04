@@ -34,34 +34,44 @@
 #ifndef TRACKER_HPP_
 #define TRACKER_HPP_
 
-struct RecordMetaData {
-
-	const int sector_beg;
-	const int sector_end;
-	const unsigned int length;
-	const int reboot;
-
-	RecordMetaData(	int sector_beg_inclusive,
-			int sector_end_exclusive,
-			unsigned int length_in_ticks,
-			int reboot );
-};
+#include <iosfwd>
+#include <string>
 
 class Tracker {
 
+public:
+
 	explicit Tracker(int mote_ID);
 
-	const RecordMetaData last_record() const;
+	int start_from_here() const;
 
-	void append(const RecordMetaData& data);
+	int reboot() const;
+
+	void append(int beg, int end, unsigned int time_len, int reboot);
 
 	~Tracker();
 
 private:
 
-	std::fstream* const db;
+	void set_filename(int mote_ID);
 
-	RecordMetaData metadata;
+	void set_first_sector_reboot_id();
+
+	void find_last_line(std::ifstream& in);
+
+	void process_last_line(const std::string& line);
+
+	const std::string ticks2time(unsigned int length) const;
+
+	const std::string current_time() const;
+
+	std::ofstream* const db;
+
+	std::string filename;
+
+	int first_sector;
+
+	int reboot_id;
 };
 
 #endif

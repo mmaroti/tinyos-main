@@ -164,7 +164,6 @@ const string Tracker::current_time() const {
 
 void Tracker::append(int beg, int end, unsigned int len, int reboot) {
 
-	// FIXME Check if width is enough
 	*db << setw(7) << right << beg    << '\t';
 	*db << setw(7) << right << end    << '\t';
 	*db << setw(3) << right << reboot << '\t';
