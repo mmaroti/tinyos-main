@@ -144,3 +144,8 @@ unsigned int BlockChecker::get_current_timestamp() const {
 
 	return current.timestamp();
 }
+
+unsigned int BlockChecker::get_previous_timestamp() const {
+
+	return previous.timestamp();
+}

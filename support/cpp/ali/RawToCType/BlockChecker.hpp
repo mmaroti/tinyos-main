@@ -61,11 +61,13 @@ public:
 
 	void timestamp() const;
 
-	// FIXME These last two should be either in another class or reboot should
+	// FIXME These last three should be either in another class or reboot should
 	// be moved here completely from SDCardImpl
 	int processed() const;
 
 	unsigned int get_current_timestamp() const;
+
+	unsigned int get_previous_timestamp() const;
 
 private:
 

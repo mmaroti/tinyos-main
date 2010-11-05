@@ -57,6 +57,7 @@ private:
 	SDCardImpl(const SDCardImpl& );
 	SDCardImpl& operator=(const SDCardImpl& );
 
+	void close_out_if_open();
 	void create_new_file();
 	bool reboot(const int sample_in_block);
 	void check_sample(const int sample_in_block);

@@ -173,14 +173,18 @@ int Tracker::mote_id() const {
 	return mote_ID;
 }
 
-void Tracker::append(int beg, int end, unsigned int len, int reboot) {
+void Tracker::mark_beginning(int block_beg, int reboot) {
 
-	*db << setw(7) << right << beg    << '\t';
-	*db << setw(7) << right << end    << '\t';
-	*db << setw(3) << right << reboot << '\t';
-	*db << ticks2time(len) << '\t';
-	*db << current_time() << flush;
-
-	first_block = end + 1;
-	reboot_id = reboot + 1;
+	first_block = block_beg;
+	reboot_id = reboot;
 }
+
+void Tracker::append_to_db(int last_block, unsigned int time_len) {
+
+	*db << setw(7) << right << first_block << '\t';
+	*db << setw(7) << right << last_block  << '\t';
+	*db << setw(3) << right << reboot_id   << '\t';
+	*db << ticks2time(time_len) << '\t';
+	*db << current_time() << flush;
+}
+

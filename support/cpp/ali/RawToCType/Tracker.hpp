@@ -51,7 +51,9 @@ public:
 
 	int mote_id() const;
 
-	void append(int beg, int end, unsigned int time_len, int reboot);
+	void mark_beginning(int block_beg, int reboot);
+
+	void append_to_db(int block_end, unsigned int time_len);
 
 	~Tracker();
 

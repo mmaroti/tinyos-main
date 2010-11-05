@@ -95,6 +95,8 @@ void SDCardImpl::process_new_measurements() {
 		++block_offset;
 	}
 
+	close_out_if_open();
+
 	cout << "Finished!" << endl;
 }
 
@@ -105,6 +107,18 @@ SDCardImpl::~SDCardImpl() {
 	delete tracker;
 }
 
+void SDCardImpl::close_out_if_open() {
+
+	if (out->is_open()) {
+
+		uint32 length_in_ticks = check->get_previous_timestamp()-time_start;
+
+		tracker->append_to_db(block_offset-1, length_in_ticks);
+
+		out->close();
+	}
+}
+
 void SDCardImpl::create_new_file() {
 
 	ostringstream os;
@@ -113,10 +127,9 @@ void SDCardImpl::create_new_file() {
 	os << 'r' << setfill('0') << setw(3) << reboot_seq_num << '_';
 	os << 's' << block_offset << ".csv" << flush;
 
-	if (out->is_open())
-		out->close();
-
 	out->open(os.str().c_str());
+
+	tracker->mark_beginning(block_offset, reboot_seq_num);
 }
 
 bool SDCardImpl::reboot(const int sample_in_block) {
@@ -124,6 +137,8 @@ bool SDCardImpl::reboot(const int sample_in_block) {
 	bool reboot = check->reboot();
 
 	if (reboot && sample_in_block==0) {
+
+		close_out_if_open();
 
 		cout << "Found a reboot at sample " << check->processed() << endl;
 
