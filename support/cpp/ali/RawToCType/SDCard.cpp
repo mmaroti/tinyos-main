@@ -42,6 +42,13 @@ SDCard* SDCard::from_file(const char* filename) {
 	return new SDCard(source);
 }
 
+SDCard* SDCard::from_win32_drive(const char* drive) {
+
+	BlockDevice* source = new Win32BlockDevice(drive);
+
+	return new SDCard(source);
+}
+
 SDCard::SDCard(BlockDevice* source) : impl(new SDCardImpl(source)) {
 
 }

@@ -31,20 +31,26 @@
 * Author: Ali Baharev
 */
 
-#include <memory>
-#include "SDCard.hpp"
+#ifndef WIN32BLOCKDEVICE_H_
+#define WIN32BLOCKDEVICE_H_
 
-using namespace std;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-int main() {
+const char* read_sector(int i);
 
-	auto_ptr<SDCard> bd(SDCard::from_win32_drive("oct28_2"));
+/* FIXME The letter corresponding to drive should be passed */
+double card_size_in_GB(const char dummy);
 
-	auto_ptr<SDCard> sd(SDCard::from_file("oct28_2"));
+int sector_size();
 
-	sd->process_new_measurements();
+void close_device();
 
-	sd.reset();
+unsigned long error_code();
 
-	return 0;
+#ifdef __cplusplus
 }
+#endif
+
+#endif

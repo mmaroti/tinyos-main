@@ -40,13 +40,16 @@ using namespace std;
 int main() {
 
 	double size = card_size_in_GB('F');
+	
+	cout << "Card size in GB: " << size << endl;
 
 	const char* sector = read_sector(0);
+	
+	cout << "sector: " << (void*) sector << endl;
 
 	unsigned short boot_id = * reinterpret_cast<const unsigned short*> (sector);
 	unsigned short mote_id = * reinterpret_cast<const unsigned short*> (sector+2);
 
-	cout << "Card size in GB: " << size << endl;
 	cout << "Boot ID: " << boot_id << endl;
 	cout << "Mote ID: " << mote_id << endl;
 
@@ -56,7 +59,7 @@ int main() {
 
 	out.open("shimmer_dump", ios::binary);
 
-	for (int i=0; i<1000; ++i) {
+	for (int i=0; i<10; ++i) {
 		const char* sector = read_sector(i);
 		out.write(sector, 512);
 	}

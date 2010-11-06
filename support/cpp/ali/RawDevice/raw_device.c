@@ -59,19 +59,13 @@ const char* read_sector(int i) {
 	ol.InternalHigh = 0;
 	ol.Offset = SECTORSIZE*i;
 	ol.OffsetHigh = 0;
-	ol.Pointer = 0;
+	//ol.Pointer = 0;
 
-	if( FALSE == ReadFile(hDevice, ReadBuffer, SECTORSIZE, &dwBytesRead, (LPOVERLAPPED) &ol) )
-	{
+	if( FALSE == ReadFile(hDevice, ReadBuffer, SECTORSIZE, &dwBytesRead, (LPOVERLAPPED) &ol) )	{
 		ret_val = NULL;
 	}
-	else if (dwBytesRead == SECTORSIZE)
-	{
+	else {
 		ret_val = ReadBuffer;
-	}
-	else
-	{
-		ret_val = NULL;
 	}
 
 	return ret_val;
@@ -85,7 +79,7 @@ double card_size_in_GB(const char drive)
 	DWORD junk;
 	double ret_val = 0;
 
-	hDevice = CreateFile(TEXT("\\\\.\\F:"),  // drive to open
+	hDevice = CreateFile(TEXT("\\\\.\\C:"),  // drive to open
 		GENERIC_READ,                // access to the drive
 		FILE_SHARE_READ | // share mode
 		FILE_SHARE_WRITE, 

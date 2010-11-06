@@ -50,9 +50,15 @@ const unsigned int TWO_GB = 1 << 31;
 FileAsBlockDevice::FileAsBlockDevice(const char* source)
 	: BlockDevice(), in(new ifstream()), buffer(new char[BLOCK_SIZE])
 {
-	in->exceptions(ifstream::failbit | ifstream::badbit | ifstream::eofbit);
 
 	in->open(source, ios::binary);
+
+	if (!in->good()) {
+		clog << "Failed to open file " << source << ", exiting..." << endl;
+		exit(FAILED_TO_OPEN_BINARY_FILE);
+	}
+
+	in->exceptions(ifstream::failbit | ifstream::badbit | ifstream::eofbit);
 
 	in->seekg(0, ios::end);
 
@@ -108,5 +114,67 @@ FileAsBlockDevice::~FileAsBlockDevice() {
 	delete[] buffer;
 }
 
+#ifdef WIN32BLOCKDEVICE
 
+#include "Win32BlockDevice.h"
 
+Win32BlockDevice::Win32BlockDevice(const char* source) {
+
+	char ignored; // FIXME drive should be passed
+	card_size = card_size_in_GB(ignored);
+
+	if (card_size==0) {
+		clog << "Failed to open block device, exiting..." << endl;
+		exit(FAILED_TO_OPEN_WIN32_BLOCK_DEVICE);
+	}
+}
+
+const char* Win32BlockDevice::read_block(int i) {
+
+	// FIXME Check if the block is valid
+	read_block(i);
+}
+
+double Win32BlockDevice::size_GB() const {
+
+	return card_size;
+}
+
+unsigned long Win32BlockDevice::error_code() const {
+
+	return error_code();
+}
+
+Win32BlockDevice::~Win32BlockDevice() {
+
+	close_device();
+}
+
+#else
+
+Win32BlockDevice::Win32BlockDevice(const char* source) {
+
+	clog << "Win32 block device is not compiled!" << endl;
+	exit(WIN32_BLOCK_DEVICE_NOT_COMPILED);
+}
+
+const char* Win32BlockDevice::read_block(int i) {
+
+	return 0;
+}
+
+double Win32BlockDevice::size_GB() const {
+
+	return 0;
+}
+
+unsigned long Win32BlockDevice::error_code() const {
+
+	return 0;
+}
+
+Win32BlockDevice::~Win32BlockDevice() {
+
+}
+
+#endif

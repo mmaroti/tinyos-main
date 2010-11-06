@@ -36,6 +36,8 @@
 
 #include <iosfwd>
 
+//#define WIN32BLOCKDEVICE
+
 class BlockDevice {
 
 public:
@@ -71,6 +73,25 @@ private:
 	char* const buffer;
 
 	int BLOCK_OFFSET_MAX;
+
+	double card_size;
+};
+
+class Win32BlockDevice : public BlockDevice {
+
+public:
+
+	explicit Win32BlockDevice(const char* source);
+
+private:
+
+	virtual const char* read_block(int i);
+
+	virtual double size_GB() const;
+
+	virtual unsigned long error_code() const;
+
+	virtual ~Win32BlockDevice();
 
 	double card_size;
 };
