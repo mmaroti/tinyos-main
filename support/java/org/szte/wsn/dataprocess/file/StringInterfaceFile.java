@@ -84,7 +84,7 @@ public class StringInterfaceFile implements StringInterface {
 			file=new RandomAccessFile(path, "rw");
 		} 
 		catch (FileNotFoundException e) {
-			System.out.println("Unable to open/create string file!");
+			System.out.println("Unable to open/create string file: "+path);
 			e.printStackTrace();
 		}	
 

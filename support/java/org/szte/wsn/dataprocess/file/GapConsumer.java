@@ -44,7 +44,8 @@ public class GapConsumer{
 	private File gapFile; 	
 	
 	public GapConsumer(String path) {
-			String gapPath=path.substring(0, path.length()-4)+".gap";
+		int endOfFileName=path.contains(".")?path.lastIndexOf("."):path.length();
+			String gapPath=path.substring(0,endOfFileName)+".gap"; //TODO
 			initGapFile(gapPath);		
 	}
 	
