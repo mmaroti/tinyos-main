@@ -52,9 +52,9 @@ public class StringInterfaceFactory {
 	 * @param showName controls whether the name of the PacketParser should be written in the file
 	 * @return a StringInterface instance with the specified params
 	 */
-	public static StringInterface getStringInterface(String type, String source, PacketParser[] packetParsers,String separator, boolean showName){
-		if(type.equals("file"))
-			return new StringInterfaceFile(separator, source, packetParsers,showName, Transfer.REWRITE);//TODO control the last parameter from the main method
+	public static StringInterface getStringInterface(String type, String source, PacketParser[] packetParsers,String separator, boolean showName, byte outputMode){
+		if(type.equals("textfile"))
+			return new StringInterfaceFile(separator, source, packetParsers,showName, outputMode);//TODO control the last parameter from the main method
 			
 		
 		else //if (type.equals("console"))

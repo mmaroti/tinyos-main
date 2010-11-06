@@ -50,7 +50,7 @@ public class BinaryInterfaceFactory {
 	 * @return a BinaryInterface instance with the specified params
 	 */
 	public static BinaryInterface getBinaryInterface(String type, String source){
-		if(type.equals("file")){
+		if(type.equals("binfile")){
 				GapConsumer gp=new GapConsumer(source);
 				return new BinaryInterfaceFile(source, gp.getGaps());				
 		}

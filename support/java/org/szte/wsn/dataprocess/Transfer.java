@@ -33,9 +33,18 @@
  */
 package org.szte.wsn.dataprocess;
 
+
+import java.io.BufferedReader;
+
 import java.io.File;
+
+import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import argparser.ArgParser;
+import argparser.BooleanHolder;
+import argparser.IntHolder;
+import argparser.StringHolder;
 
 
 /**
@@ -49,6 +58,19 @@ public class Transfer extends Thread  {
 	public final static byte REWRITE=0;
 	public final static byte NOREWRITE=1;
 	public final static byte APPEND=2;
+	final static String INPUTFILEH="determines the input parameters"+
+	"if the input type is [binfile, textfile, shimmer] it must be followed by the filename(s) seperated by space,"+
+	" or it can be followed by a wild card, which specifies the ending of the files we want to process"+
+	"  e.g: -if *.bin if the input type is [serial], than the location of the source must be provided followed by the bandwith"+
+	"  e.g.: -if serial@/dev/ttyUSB1:57600 if the input type is [console], than this option makes no effect, no default value";
+	final static String OUTPUTFILE="Must be followed by the output file name, can't be used for multiple file names"+
+	"by default the output file(s) will be the same as the input file(s). Only the extension will be replaced with the output extension.";
+	final static String OUTPUTMODE="determines the way of output file handling "
+		+" -rewrite: new output file will be created -append: the output will be added to the end of the existing file,"
+		+" instead of creating a new file-norewrite: throws error, if the output file exists default is norewrite";
+	final static String VERBOSE="determines the level of information printed out during processing,"
+		+"-0: no additional information except IO error -1: prints out warning, when finds an unprocessable frame, which doesn't apply to any of the structs"
+		+" also prints out the length of that frame -2: prints out the whole unmatching frame, default is level 1 ";
 	private PacketParser[] packetParsers;
 	private BinaryInterface binary;
 	private StringInterface string;
@@ -65,10 +87,10 @@ public class Transfer extends Thread  {
 	 * @param separator the string that separates the data in the output
 	 * @param showName controls whether the name of the PacketParser should be written in the file
 	 */
-	public Transfer(String binaryType, String binaryPath, String stringType, String stringPath, String structPath, boolean toString, String separator,boolean showName){
+	public Transfer(String binaryType, String binaryPath, String stringType, String stringPath, String structPath, boolean toString, String separator,boolean showName, byte outputMode){
 		packetParsers=new PacketParserFactory(structPath).getParsers();
 		binary=BinaryInterfaceFactory.getBinaryInterface(binaryType, binaryPath);	
-		string=StringInterfaceFactory.getStringInterface(stringType, stringPath, packetParsers, separator, showName);
+		string=StringInterfaceFactory.getStringInterface(stringType, stringPath, packetParsers, separator, showName, outputMode);
 		this.toString=toString;
 		if((binary==null)||(string==null))
 			usageThanExit();
@@ -82,7 +104,7 @@ public class Transfer extends Thread  {
 	public Transfer(String binaryPath, String stringPath){
 		packetParsers=new PacketParserFactory("structs.txt").getParsers();
 		binary=BinaryInterfaceFactory.getBinaryInterface("file", binaryPath);	
-		string=StringInterfaceFactory.getStringInterface("file", stringPath, packetParsers, ",", true); 
+		string=StringInterfaceFactory.getStringInterface("file", stringPath, packetParsers, ",", true,NOREWRITE); 
 		//separates with "," writes the name of the struct
 		this.toString=true;
 		if((binary==null)||(string==null))
@@ -119,7 +141,7 @@ public class Transfer extends Thread  {
 					if(pp.parse(data)!=null){
 						match=true;
 						string.writePacket(new StringPacket(pp.getName(),pp.getFields(),pp.parse(data)));
-					//if the second parameter is different from pp.getFields than it will control the order of writing	
+						//if the second parameter is different from pp.getFields than it will control the order of writing	
 					}
 					parserCounter++;
 				}
@@ -158,62 +180,125 @@ public class Transfer extends Thread  {
 
 
 	public static void main(String[] args) {	
+		
+		StringHolder structFileh=new StringHolder("structs.ini");
+		StringHolder inputh=new StringHolder("binfile");
+		StringHolder inputFileh=new StringHolder("");
+		StringHolder outputh=new StringHolder("console");
+		StringHolder outputFileh=new StringHolder("");
+		StringHolder outputExth=new StringHolder("txt");
+		StringHolder outputModeh=new StringHolder("norewrite");
+		StringHolder separatorh=new StringHolder(",");
+		BooleanHolder noheaderh=new BooleanHolder(false);
+		BooleanHolder nostructNameh=new BooleanHolder(false);
+		IntHolder verboseh = new IntHolder(1);
+		BooleanHolder versionh=new BooleanHolder(false);
 
-		switch (args.length) {
-		case 1:
-			File path = new File(args[0]);
-			String[] fileNames;
-			if (path.isFile()) {
-				fileNames=new String[]{args[0]};				
-			}
-			else if (path.isDirectory()){
-				FilenameFilter filter = new FilenameFilter() 
-				{ 
-					@Override
-					public boolean accept(File path, String name) 
-					{
-						return name.endsWith(".bin");
-					}
-				}; 
-				fileNames = path.list(filter);
-			}
-			else{
-				fileNames=null;
-				usageThanExit();
-			}
-			for(String file:fileNames){
-				Transfer fp=new Transfer(file,file.substring(0,file.length()-4)+".txt"); //TODO 
-				fp.start();
-			}
-			break;
+		ArgParser parser = new ArgParser("java Transfer");	    
 
-		case 8:
-			boolean toStr=false;
-			if (args[5].equals("toString"))
-				toStr=true;
-			boolean show=false;
-			if (args[7].equals("showName"))
-				show=true;
-			Transfer fp1=new Transfer(args[0],args[1],args[2],args[3],args[4],toStr,args[6], show);
-			fp1.start();
-			break;
-		default:
-			usageThanExit();
-			break;
+		parser.addOption("-s,-structfile %s#The location of the structrures's definition file. Default is structs.ini",structFileh); 
+		parser.addOption("-i,-input %s{binfile,textfile,serial,shimmer,console}#Determines the type of input, default is binfile",inputh); 
+		parser.addOption("-if,-inputfile %s#"+INPUTFILEH,inputFileh);
+		parser.addOption("-o,-output %s{binfile,textfile,serial,console}#Determines the type of output, default is console",outputh);
+		parser.addOption("-of,-outputfile %s#"+OUTPUTFILE,outputFileh);
+		parser.addOption("-ox,-outputext %s#Determines the extension of output files, if there are more files, default is txt",outputExth);
+		parser.addOption("-om,-outputmode %s{rewrite,append,norewrite}#"+OUTPUTMODE+"",outputModeh);
+		parser.addOption("-nh,-noheader %v#the fields name won't be displayed in the output, by default the field's names are displayed at the beginning of every new struct",noheaderh);
+		parser.addOption("-ns,-nostruct %v#the name of the struct won't be displayed in every line of the output, by default every line of the output starts with the name of the actual struct",nostructNameh);
+		parser.addOption("-sr,-separator %s#must be followed by the desired separator, default value is: ','",separatorh);
+		parser.addOption ("-vb, -verbose %d {[0,2]}#"+VERBOSE, verboseh);
+		parser.addOption("-v,-version %v# writes the version",versionh);
+
+
+		String[] unMatched =
+			parser.matchAllArgs (args,0,1);
+		if(versionh.value)
+			versionThanExit();
+		String[] inputFiles;
+		if(inputFileh.value.contains("*")){
+			final String pattern=inputFileh.value.substring(inputFileh.value.lastIndexOf("*")+1);
+			File path = new File(".");
+			FilenameFilter filter = new FilenameFilter() 
+			{ 
+				@Override
+				public boolean accept(File path, String name) 
+				{
+					return name.endsWith(pattern);
+				}
+			}; 
+			inputFiles = path.list(filter);
 		}
-	
+		else{
+			int unMatchedSize=unMatched==null?0:unMatched.length;
+			inputFiles=new String[unMatchedSize+1];
+			inputFiles[0]=inputFileh.value;
+			if (unMatched!=null)
+				System.arraycopy(unMatched, 0, inputFiles, 1, unMatchedSize);
+		}
+		byte outputMode;
+		if(outputModeh.value.equals("append"))
+			outputMode=APPEND;
+		else 
+		if(outputModeh.value.equals("rewrite"))
+			outputMode=REWRITE;
+		else
+			outputMode=NOREWRITE;
+		
+		String[] outputFiles=new String[inputFiles.length];
+		if(inputFiles.length>0){
+			int endOfInputFile;			
+			for(int i=0;i<inputFiles.length;i++){
+				endOfInputFile=inputFiles[i].contains(".")?inputFiles[i].lastIndexOf("."):inputFiles[i].length();
+				outputFiles[i]=inputFiles[i].substring(0,endOfInputFile)+"."+outputExth.value;
+			}
+		}
+		if(!outputFileh.value.equals(""))
+		outputFiles[0]=outputFileh.value;
+		
+
+		if((inputh.value.equals("textfile"))||(inputh.value.equals("binfile"))||(inputh.value.equals("shimmer")))
+			for(String path:inputFiles){
+				
+				File file=new File(path);
+				if(!file.exists()){
+					System.out.println("Not existing input file: "+path+" Use -help option for more information!");
+					System.exit(1);
+				}	
+			}
+		
+
+		if(inputh.value.equals("textfile")||inputh.value.equals("console"))
+			for(int i=0;i<inputFiles.length;i++){
+
+				Transfer fp=new Transfer(outputh.value, outputFiles[i], inputh.value, inputFiles[i], structFileh.value, false, separatorh.value,!nostructNameh.value, outputMode);
+				fp.start();
+
+			}
+
+		else
+			for(int i=0;i<inputFiles.length;i++){
+
+				Transfer fp=new Transfer(inputh.value, inputFiles[i], outputh.value, outputFiles[i], structFileh.value, true, separatorh.value,!nostructNameh.value, outputMode);
+				fp.start();
+
+			}
 
 	}
 	public static void usageThanExit(){
-		System.out.println("Usage:");
-		System.out.println("java Transfer readMode sourcePath writeMode destinationPath structureFile toString seperator showname");
-		System.out.println("java Transfer file 0.bin console stdOut structs.txt	toBinary , no		-reads from console writes to 0.bin, separator=, doesn't shows name");
-		System.out.println("java Transfer serial serial@/dev/ttyUSB1:57600 file foo.txt structs.txt toString : showName -reads from the serialSource on USB1, writes to foo.txt, separator=: shows the name of struct ");
-		System.out.println("If you want to write from .bin to a file, than only need 1 argument");
-		System.out.println("java Transfer sourcefile");		
-		System.out.println("java Transfer 0.bin  -reads 0.bin to 0.txt");		
-		System.out.println("java Transfer .  -scans the directory for .bin files, parse them, and writes to txt");	
-		System.exit(1);
+		try { 
+			BufferedReader reader = new BufferedReader(new FileReader(new File("org/szte/wsn/dataprocess/ReadMe.txt")));
+			String line = null;
+			while ((line=reader.readLine()) != null) 
+				System.out.println(line);
+		} 
+		
+		catch (Exception e){
+			e.printStackTrace();
+		}
+		System.exit(0);
 	}
-
+	public static void versionThanExit(){
+		System.out.println("Transfer version:1.24");
+		System.exit(0);
+	}
 }
