@@ -44,6 +44,8 @@ public:
 
 	static SDCard* from_file(const char* filename);
 
+	double size_GB() const;
+
 	void process_new_measurements();
 
 	~SDCard();

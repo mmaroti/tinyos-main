@@ -36,25 +36,28 @@
 #include <sstream>
 #include <iomanip>
 #include <cstdlib>
+#include "ErrorCodes.hpp"
 #include "SDCardImpl.hpp"
 #include "BlockDevice.hpp"
 #include "BlockIterator.hpp"
 #include "BlockRelatedConsts.hpp"
 #include "BlockChecker.hpp"
+#include "Constants.hpp"
 #include "Tracker.hpp"
 
 using namespace std;
 
 // FIXME Understand why crashes if offset is incorrect
-// TODO Introduce new datamembers to write metadata to flat-file db
-// TODO Needs explicit closing of out
 
 SDCardImpl::SDCardImpl(BlockDevice* source)
 	: device(source), out(new ofstream()), tracker(0), check(0)
 {
 	out->exceptions(ofstream::failbit | ofstream::badbit);
+
 	time_start = 0;
+
 	block_offset = 0;
+
 	reboot_seq_num = 0;
 
 	init_tracker();
@@ -68,14 +71,48 @@ void SDCardImpl::init_tracker() {
 
 	if (block==0) {
 
-		clog << "Error: failed to read the first block ";
+		clog << "Error: failed to read the zeroth block ";
 		clog << "when looking for the mote ID, exiting..." << endl;
-		exit(1); // TODO Introduce exit codes
+		exit(FAILED_TO_READ_ZEROTH_BLOCK);
 	}
 
 	BlockIterator zeroth_block(block);
 
 	tracker = new Tracker(zeroth_block);
+}
+
+double SDCardImpl::size_GB() const {
+
+	return device->size_GB();
+}
+
+void SDCardImpl::print_start_banner() const {
+
+	cout << "Card size is ";
+	cout << setprecision(2) << fixed << device->size_GB() << endl;
+	cout << "Starting at block " << block_offset << ", ";
+	cout << "previous reboot sequence number is " << reboot_seq_num << endl;
+}
+
+void SDCardImpl::print_finished_banner() const {
+
+	const unsigned int GB = 1 << 30;
+
+	const double used_bytes = block_offset*BLOCK_SIZE ;
+
+	const double used_GB = used_bytes/GB;
+
+	const double remaining = device->size_GB()-used_GB;
+
+	const double remaining_blocks = (remaining/BLOCK_SIZE*GB);
+
+	const double remaining_samples = remaining_blocks*MAX_SAMPLES;
+
+	const double remaining_sec = (remaining_samples*SAMPLING_RATE)/TICKS_PER_SEC;
+
+	cout << "Remaining " << remaining << " GB, approximately ";
+	cout << setprecision(2) << fixed << remaining_sec/3600 << " hours" << endl;
+	cout << "Finished!" << endl;
 }
 
 void SDCardImpl::process_new_measurements() {
@@ -88,6 +125,8 @@ void SDCardImpl::process_new_measurements() {
 
 	reboot_seq_num = tracker->reboot();
 
+	print_start_banner();
+
 	while ((block = device->read_block(block_offset)) && !finished ) {
 
 		finished = process_block(block);
@@ -97,7 +136,7 @@ void SDCardImpl::process_new_measurements() {
 
 	close_out_if_open();
 
-	cout << "Finished!" << endl;
+	print_finished_banner();
 }
 
 SDCardImpl::~SDCardImpl() {
@@ -140,9 +179,10 @@ bool SDCardImpl::reboot(const int sample_in_block) {
 
 		close_out_if_open();
 
-		cout << "Found a reboot at sample " << check->processed() << endl;
-
 		++reboot_seq_num;
+
+		cout << "Reboot " << reboot_seq_num << " at processed sample ";
+		cout << check->processed() << endl;
 
 		time_start = check->get_current_timestamp();
 

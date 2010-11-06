@@ -34,9 +34,11 @@
 #include <memory>
 #include "SDCard.hpp"
 
+using namespace std;
+
 int main() {
 
-	std::auto_ptr<SDCard> sd(SDCard::from_file("oct28_2"));
+	auto_ptr<SDCard> sd(SDCard::from_file("oct28_2"));
 
 	sd->process_new_measurements();
 

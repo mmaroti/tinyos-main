@@ -42,7 +42,7 @@ public:
 
 	virtual const char* read_block(int i) = 0;
 
-	virtual double card_size_in_GB() const = 0;
+	virtual double size_GB() const = 0;
 
 	virtual unsigned long error_code() const = 0;
 
@@ -60,7 +60,7 @@ private:
 
 	virtual const char* read_block(int i);
 
-	virtual double card_size_in_GB() const;
+	virtual double size_GB() const;
 
 	virtual unsigned long error_code() const;
 
@@ -69,6 +69,8 @@ private:
 	std::ifstream* const in;
 
 	char* const buffer;
+
+	int BLOCK_OFFSET_MAX;
 
 	double card_size;
 };

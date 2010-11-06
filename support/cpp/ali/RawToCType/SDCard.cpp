@@ -51,6 +51,11 @@ void SDCard::process_new_measurements() {
 	impl->process_new_measurements();
 }
 
+double SDCard::size_GB() const {
+
+	return impl->size_GB();
+}
+
 SDCard::~SDCard() {
 
 	delete impl;

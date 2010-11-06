@@ -33,10 +33,19 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstdlib>
+#include <assert.h>
+#include "ErrorCodes.hpp"
 #include "BlockDevice.hpp"
 #include "BlockRelatedConsts.hpp"
 
 using namespace std;
+
+namespace {
+
+const unsigned int TWO_GB = 1 << 31;
+
+}
 
 FileAsBlockDevice::FileAsBlockDevice(const char* source)
 	: BlockDevice(), in(new ifstream()), buffer(new char[BLOCK_SIZE])
@@ -44,6 +53,21 @@ FileAsBlockDevice::FileAsBlockDevice(const char* source)
 	in->exceptions(ifstream::failbit | ifstream::badbit | ifstream::eofbit);
 
 	in->open(source, ios::binary);
+
+	in->seekg(0, ios::end);
+
+	card_size = in->tellg();
+
+	if (card_size >= TWO_GB) {
+		clog << "Card size is larger than 2GB, exiting..." << endl;
+		exit(CARD_SIZE_IS_LARGER_THAN_2GB);
+	}
+
+	card_size /= (TWO_GB/2);
+
+	int size_in_bytes = static_cast<int> (in->tellg());
+
+	BLOCK_OFFSET_MAX = size_in_bytes/BLOCK_SIZE;
 }
 
 const char* FileAsBlockDevice::read_block(int i) {
@@ -51,6 +75,8 @@ const char* FileAsBlockDevice::read_block(int i) {
 	const char* ret_val = 0;
 
 	try {
+
+		assert(0<=i && i<BLOCK_OFFSET_MAX);
 
 		in->seekg(i*BLOCK_SIZE);
 
@@ -66,9 +92,9 @@ const char* FileAsBlockDevice::read_block(int i) {
 	return ret_val;
 }
 
-double FileAsBlockDevice::card_size_in_GB() const {
-	// TODO Finish implementation
-	return 0;
+double FileAsBlockDevice::size_GB() const {
+
+	return card_size;
 }
 
 unsigned long FileAsBlockDevice::error_code() const {

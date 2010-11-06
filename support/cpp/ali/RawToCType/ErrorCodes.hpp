@@ -31,51 +31,14 @@
 * Author: Ali Baharev
 */
 
-#ifndef SDCARDIMPL_HPP_
-#define SDCARDIMPL_HPP_
+#ifndef ERRORCODES_HPP_
+#define ERRORCODES_HPP_
 
-#include <iosfwd>
-#include "TypeDefs.hpp"
-
-class BlockDevice;
-class BlockChecker;
-class BlockIterator;
-class Tracker;
-
-class SDCardImpl {
-
-public:
-
-	explicit SDCardImpl(BlockDevice* source);
-
-	void process_new_measurements();
-
-	double size_GB() const;
-
-	~SDCardImpl();
-
-private:
-
-	SDCardImpl(const SDCardImpl& );
-	SDCardImpl& operator=(const SDCardImpl& );
-
-	void print_start_banner() const;
-	void print_finished_banner() const;
-	void close_out_if_open();
-	void create_new_file();
-	bool reboot(const int sample_in_block);
-	void check_sample(const int sample_in_block);
-	void write_samples(BlockIterator& itr);
-	bool process_block(const char* block);
-	void init_tracker();
-
-	BlockDevice* const device;
-	std::ofstream* const out;
-	Tracker* tracker;
-	BlockChecker* check;
-	uint32 time_start;
-	int block_offset;
-	int reboot_seq_num;
+enum ErrorCodes {
+	FAILED_TO_READ_ZEROTH_BLOCK = 1,
+	CARD_SIZE_IS_LARGER_THAN_2GB
 };
 
+
 #endif
+
