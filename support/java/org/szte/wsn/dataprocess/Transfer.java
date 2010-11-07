@@ -96,20 +96,6 @@ public class Transfer extends Thread  {
 			usageThanExit();
 	}
 
-	/**
-	 * Simple constructor to read from a binary file to a string file, uses structs.txt
-	 * @param binaryPath
-	 * @param stringPath
-	 */
-	public Transfer(String binaryPath, String stringPath){
-		packetParsers=new PacketParserFactory("structs.txt").getParsers();
-		binary=BinaryInterfaceFactory.getBinaryInterface("file", binaryPath);	
-		string=StringInterfaceFactory.getStringInterface("file", stringPath, packetParsers, ",", true,NOREWRITE); 
-		//separates with "," writes the name of the struct
-		this.toString=true;
-		if((binary==null)||(string==null))
-			usageThanExit();
-	}
 
 
 	/**
