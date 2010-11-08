@@ -52,6 +52,7 @@ public class RawPacketConsumer{
 			return null;
 		try{
 			while(buffer[offset]!=frame||offset>=buffer.length){//find the first framing byte
+				System.err.println("Warning: Missing frame byte");
 				offset++;
 				while(gaps.contains(offset)){
 					offset++;

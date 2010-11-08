@@ -1,7 +1,8 @@
 package org.szte.wsn.downloader;
 
 import java.io.File;
+import java.util.ArrayList;
 
 public interface ParsingReady {
-	void Ready(File[] outputfiles);
+	void Ready(ArrayList<File> outputs);
 }

@@ -11,14 +11,13 @@ import java.util.ArrayList;
 
 public class BinReader2 implements ParsingReady {
 	private long avgWindow;
-	private long startTime;
-	private long endTime;
-	private boolean nicetime;
-	private String timef;
+	private Long startTime;
+	private Long endTime;
 	private File outputfile;
 	private String globalname;
 	private ArrayList<Integer> datacolumns;
 	private int number;
+	private String separator;
 	
 	private final class Data{
 		long timestamp;
@@ -30,16 +29,27 @@ public class BinReader2 implements ParsingReady {
 		}
 	}
 	
-	public BinReader2(long avgWindow, long startTime, long endTime, boolean nicetime, String timef, String globalname, File outputfile, ArrayList<Integer> datacolumns, int number){
+	public BinReader2(long avgWindow, Long startTime, Long endTime, String timef, String globalname, File outputfile, ArrayList<Integer> datacolumns, int number, String separator){
 		this.avgWindow=avgWindow;
-		this.startTime=startTime;
-		this.endTime=endTime;
-		this.nicetime=nicetime;
-		this.timef=timef;
+		if(startTime==null)
+			this.startTime=Long.MIN_VALUE;
+		else
+			this.startTime=startTime;
+		if(endTime==null)
+			this.endTime=Long.MAX_VALUE;
+		else
+			this.endTime=endTime;
 		this.outputfile=outputfile;
 		this.globalname=globalname;
 		this.datacolumns=datacolumns;
 		this.number=number;
+		this.separator=separator;
+		try {
+			this.outputfile.createNewFile();
+		} catch (IOException e) {
+			System.err.println("Can't acces outputfile: "+this.outputfile.getAbsolutePath()+", exiting");
+			System.exit(1);
+		}
 		Converter.waitForParsing(this);
 	}
 	
@@ -49,7 +59,7 @@ public class BinReader2 implements ParsingReady {
 		try {
 			BufferedReader br=new BufferedReader(new FileReader(file));
 			String header=br.readLine();//header line
-			String[] splittedHeader=header.split(",");
+			String[] splittedHeader=header.split(separator);
 			Integer globalcolumn=null;
 			for(int i=0;i<splittedHeader.length;i++){
 				if(splittedHeader[i].equals(globalname)){
@@ -63,7 +73,7 @@ public class BinReader2 implements ParsingReady {
 			}
 			String line;
 			while(time<=after && ((line=br.readLine())!=null) ){					
-				String[] sline=line.split(",");
+				String[] sline=line.split(separator);
 				time=Long.parseLong(sline[globalcolumn]);
 			}
 			br.close();
@@ -94,7 +104,7 @@ public class BinReader2 implements ParsingReady {
 		try {
 			BufferedReader br=new BufferedReader(new FileReader(file));
 			String header=br.readLine();//header line
-			String[] splittedHeader=header.split(",");
+			String[] splittedHeader=header.split(separator);
 			Integer globalcolumn=null;
 			for(int i=0;i<splittedHeader.length;i++){
 				if(splittedHeader[i].equals(globalname)){
@@ -110,7 +120,7 @@ public class BinReader2 implements ParsingReady {
 			Data current=null;
 			Data previous=null;
 			while(current.timestamp<=after && ((line=br.readLine())!=null) ){					
-				String[] sline=line.split(",");
+				String[] sline=line.split(separator);
 				previous=current;
 				current=new Data(Long.parseLong(sline[globalcolumn]), getDatacolumns(sline, datacolumns));
 			}
@@ -118,12 +128,12 @@ public class BinReader2 implements ParsingReady {
 				ret.add(previous);
 				ret.add(current);
 				while(current.timestamp<before && ((line=br.readLine())!=null) ){
-					String[] sline=line.split(",");
+					String[] sline=line.split(separator);
 					current=new Data(Long.parseLong(sline[globalcolumn]), getDatacolumns(sline, datacolumns));
 					ret.add(current);
 				}
 				if((line=br.readLine())!=null){
-					String[] sline=line.split(",");
+					String[] sline=line.split(separator);
 					ret.add(new Data(Long.parseLong(sline[globalcolumn]), getDatacolumns(sline, datacolumns)));
 				}
 			} else
@@ -144,7 +154,7 @@ public class BinReader2 implements ParsingReady {
 			return null;
 	}
 	
-	private long getMinTime(File[] outputfiles){
+	private long getMinTime(ArrayList<File> outputfiles){
 		long mintime=Long.MAX_VALUE;
 		for(File current:outputfiles){
 			long time=getTimeStamp(current, startTime);
@@ -156,22 +166,22 @@ public class BinReader2 implements ParsingReady {
 		return mintime;
 	}
 	
-	String createHeader(File[] datafiles, ArrayList<Integer> datacolumns){
+	String createHeader(ArrayList<File> datafiles, ArrayList<Integer> datacolumns){
 		String ret="";
 		try {
-			BufferedReader br=new BufferedReader(new FileReader(datafiles[0]));
-			String[] header = br.readLine().split(",");
+			BufferedReader br=new BufferedReader(new FileReader(datafiles.get(0)));
+			String[] header = br.readLine().split(separator);
 			ret+="time,";
 			for(File current: datafiles){
 				for(int i=0;i<header.length;i++){
-					ret+=current.getName()+",";
+					ret+=current.getName()+separator;
 				}
 			}
 			ret+=System.getProperty("line.separator");
-			ret+=",";
-			for(int i=0;i<datafiles.length;i++){
+			ret+=separator;
+			for(int i=0;i<datafiles.size();i++){
 				for(String column:header){
-					ret+=column+",";
+					ret+=column+separator;
 				}
 			}
 		} catch (IOException e) {
@@ -181,30 +191,30 @@ public class BinReader2 implements ParsingReady {
 	}
 	
 	@Override
-	public void Ready(File[] outputfiles) {
+	public void Ready(ArrayList<File> outputfiles) {
+		//the binary->csv parsing and global time calculation is ready 		
 		long mintime=getMinTime(outputfiles);
 		boolean isdata=false;
 		try {
-			BufferedWriter outputfile=new BufferedWriter(new FileWriter(this.outputfile));
-			
-			outputfile.write(createHeader(outputfiles, datacolumns));
-			outputfile.newLine();
+			BufferedWriter writer=new BufferedWriter(new FileWriter(this.outputfile));
+			writer.write(createHeader(outputfiles, datacolumns));
+			writer.newLine();
 			while(mintime<endTime&&isdata){
-				outputfile.write(mintime+",");
+				writer.write(mintime+separator);
 				for(File current: outputfiles){
 					Data[] data=getData(current, mintime, mintime+avgWindow*1000, datacolumns);
 					if(data==null){
 						for(int i=0;i<datacolumns.size();i++)
-							outputfile.write(",");
+							writer.write(separator);
 					} else {
 						Data avgdata=calculateAverage(data,mintime, mintime+avgWindow*1000,number);
 						for(String avg:avgdata.data){
-							outputfile.write(avg+",");
+							writer.write(avg+separator);
 						}
 					}
 				}
 				mintime+=avgWindow*1000;
-				outputfile.newLine();
+				writer.newLine();
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -212,22 +222,11 @@ public class BinReader2 implements ParsingReady {
 		}
 		
 	}	
-	
+
 	private Data calculateAverage(Data[] data, long mintime, long maxtime,int number) {
-		double[] ret=new double[data[0].data.length];
-		for(double current:ret)
-			current=0.0;
-		try{
-			for(Data current:data){
-				for(int i=0;i<ret.length;i++){
-					ret[i]+=Double.parseDouble(current.data[i]);
-				}
-			}
-			
-			return new Data(mintime, null);//FIXME
-		}catch(NumberFormatException e){
-			return new Data(mintime, null);
-		}
+		//TODO
+		return null;
+
 	}
 
 
@@ -236,24 +235,25 @@ public class BinReader2 implements ParsingReady {
 		boolean convertToSI=true;
 		long avgWindow=900000;
 		int number=15;
-		long startTime=0;
-		long endTime=startTime;
-		boolean nicetime=false;
+		Long startTime=null;
+		Long endTime=startTime;
+		String separator=",";
 		ArrayList<Integer> datacolumns=new ArrayList<Integer>();
 		datacolumns.add(2);
 		datacolumns.add(3);
 		datacolumns.add(4);
 		File outputfile=new File("global.csv");
-		String timef="yyyy.MM.dd. HH:mm:ss.SSS";
+		String timef=null;//"yyyy.MM.dd. HH:mm:ss.SSS";
 		String globaln="globaltime";
-		
 		
 		for(String file:fileNames){
 			if(file.endsWith(".bin")){
-				new Converter(file,convertToSI);
+				new Converter(file,convertToSI, ".csv", ".ts", separator, timef);
 			}
 		}
-		new BinReader2(avgWindow, startTime, endTime, nicetime, timef, globaln,outputfile, datacolumns,number);
+		new BinReader2(avgWindow, startTime, endTime, timef, globaln,outputfile, datacolumns,number,separator);
 	}
+
+
 
 }

@@ -7,7 +7,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+
 import org.szte.wsn.TimeSyncPoint.LinearFunction;
 import org.szte.wsn.TimeSyncPoint.Regression;
 import argparser.ArgParser;
@@ -18,11 +21,14 @@ import argparser.StringHolder;
 
 public class GlobalTime {
 	
+	private String separator;
+	private String timeformat;
+	
 	private static String switchExtension(String fullname, String newEx){
 		return fullname.substring(0, fullname.lastIndexOf('.'))+newEx;
 	}
 	
-	private static ArrayList<LinearFunction> ParseTimeSyncFile(String inputfile,long maxerror){
+	private ArrayList<LinearFunction> ParseTimeSyncFile(String inputfile,long maxerror){
 		ArrayList<LinearFunction> functions=new ArrayList<LinearFunction>();
 		File tsfile=new File(inputfile);
 		if(tsfile.exists()&&tsfile.isFile()&&tsfile.canRead()){
@@ -54,7 +60,7 @@ public class GlobalTime {
 					}
 					if(!regr.addPoint(motetime, pctime)){//end of running: save the function, then read the next running
 						functions.add(regr.getFunction());
-						System.out.println("pc="+regr.getFunction().getOffset()+"+"+regr.getFunction().getSlope()+"*mote; points:"+regr.getNumPoints());
+						System.out.println("pc="+regr.getFunction().getOffset()+"+"+regr.getFunction().getSlope()+"*mote ("+inputfile+"); points:"+regr.getNumPoints());
 					}
 				}
 			} catch (IOException e) {
@@ -62,7 +68,7 @@ public class GlobalTime {
 				return null;
 			}
 			functions.add(regr.getFunction());
-			System.out.println("pc="+regr.getFunction().getOffset()+"+"+regr.getFunction().getSlope()+"*mote; points:"+regr.getNumPoints());
+			System.out.println("pc="+regr.getFunction().getOffset()+"+"+regr.getFunction().getSlope()+"*mote ("+inputfile+"); points:"+regr.getNumPoints());
 			return functions;
 		} else {
 			System.err.println("Error: Can't read timestamp file: "+inputfile);
@@ -70,7 +76,7 @@ public class GlobalTime {
 		}
 	}
 	
-	private static ArrayList<Long> GetBreaks(File csvfile, int local){
+	private ArrayList<Long> GetBreaks(File csvfile, int local){
 		if(csvfile.exists()&&csvfile.isFile()&&csvfile.canRead()){
 			BufferedReader input;
 			try {
@@ -86,7 +92,7 @@ public class GlobalTime {
 				Long lasttime=null;
 				while (( line = input.readLine()) != null){
 					currentline++;
-					String[] columns = line.split(",");
+					String[] columns = line.split(separator);
 					if(columns.length<local){
 						System.err.println("Warning: Too short line in file: "+csvfile.getName());
 						System.err.println(line);
@@ -116,7 +122,7 @@ public class GlobalTime {
 		
 	}
 	
-	private static void WriteOutputFile(File csvfile, File tempfile, int local, int global, boolean insert, ArrayList<LinearFunction> functions, ArrayList<Long> breaks) {
+	private void WriteOutputFile(File csvfile, File tempfile, int local, int global, boolean insert, ArrayList<LinearFunction> functions, ArrayList<Long> breaks) {
 		if(!tempfile.exists()){
 			try {
 				tempfile.createNewFile();
@@ -147,7 +153,7 @@ public class GlobalTime {
 				currentline++;
 				if(breaks.contains(currentline))
 					currentrun++;
-				String[] columns = line.split(",");
+				String[] columns = line.split(separator);
 				if(columns.length<local){
 					System.err.println("Warning: Too short line in file: "+csvfile.getName());
 					System.err.println(line);
@@ -156,17 +162,24 @@ public class GlobalTime {
 					continue;
 				}
 				if(currentline==1){//header
-					for(int i=0;i<columns.length;i++){
-						if(i==global){
-							if(!insert)
-								columns[i]="globaltime";
-							else {
-								output.write("globaltime,");
+					if(global-1<columns.length){
+						for(int i=0;i<columns.length;i++){
+							if(i==global){
+								if(!insert)
+									columns[i]="globaltime";
+								else {
+									output.write("globaltime,");
+								}
 							}
+							output.write(columns[i]);
+							if(i<columns.length-1)
+								output.write(separator);
 						}
-						output.write(columns[i]);
-						if(i<columns.length-1)
-							output.write(",");
+					} else {
+						output.write(line);
+						for(int i=columns.length;i<global;i++)
+							output.write(separator);
+						output.write("globaltime");
 					}
 					output.newLine();						
 				} else{
@@ -181,18 +194,32 @@ public class GlobalTime {
 						continue;
 					}
 					int currentfunction=breaks.size()-currentrun;
-					if(currentfunction>=0)
+					String currenttstring;
+					if(currentfunction>=0){
 						currenttime=(long) (functions.get(currentfunction).getOffset()+functions.get(currentfunction).getSlope()*currenttime);
-					for(int i=0;i<columns.length;i++){
-						if(i==global-1){
-							if(!insert)
-								columns[i]=currenttime.toString();
-							else
-								output.write(currenttime+",");
+						if(timeformat==null)
+							currenttstring=currenttime.toString();
+						else
+							currenttstring=new SimpleDateFormat(timeformat).format(new Date(currenttime));
+					} else 
+						currenttstring="";
+					if(global-1<columns.length){
+						for(int i=0;i<columns.length;i++){
+							if(i==global-1){
+								if(!insert)
+									columns[i]=currenttstring;
+								else
+									output.write(currenttstring+separator);
+							}
+							output.write(columns[i]);
+							if(i<columns.length-1)
+								output.write(separator);
 						}
-						output.write(columns[i]);
-						if(i<columns.length-1)
-							output.write(",");
+					} else {
+						output.write(line);
+						for(int i=columns.length;i<global;i++)
+							output.write(separator);
+						output.write(currenttstring);
 					}
 					output.newLine();
 				}
@@ -207,54 +234,60 @@ public class GlobalTime {
 		tempfile.renameTo(csvfile);
 	}
 	
-	public GlobalTime(String inputfile, int local, int global, boolean insert, long maxerror, String csvex){
-		ArrayList<LinearFunction> functions=ParseTimeSyncFile(inputfile, maxerror);
+	public GlobalTime(String inputfile, int local, int global, boolean insert, long maxerror, String csvex, String separator, String timeformat){
+		this.separator=separator;
+		this.timeformat=timeformat;
+		ArrayList<LinearFunction> functions=ParseTimeSyncFile(switchExtension(inputfile,".ts"), maxerror);
 		File csvFile=new File(switchExtension(inputfile, csvex));
 		ArrayList<Long> breaks=GetBreaks(csvFile, local);
 		WriteOutputFile(csvFile,new File(switchExtension(inputfile, ".tmp")),local,global,insert,functions,breaks);
 	}
 
 	public static void main(String[] args) {
-		IntHolder globalcolumnh=new IntHolder();
-		IntHolder localcolumnh=new IntHolder();
-		LongHolder errorlimith=new LongHolder(120);
-		StringHolder inputh=new StringHolder();
-		BooleanHolder noinsertcolumnh=new BooleanHolder();
-		BooleanHolder helph=new BooleanHolder();
+		IntHolder globalcolumn=new IntHolder();
+		IntHolder localcolumn=new IntHolder();
+		LongHolder errorlimit=new LongHolder(120);
+		StringHolder input=new StringHolder();
+		BooleanHolder noinsertcolumn=new BooleanHolder();
+		BooleanHolder help=new BooleanHolder();
 		StringHolder timesyncex=new StringHolder(".ts");
 		StringHolder csvex=new StringHolder(".txt");
+		StringHolder separator=new StringHolder(",");
+		StringHolder format=new StringHolder();
 		
 		ArgParser parser = new ArgParser("java GlobalTime [options]",false);
-		parser.addOption("-h,--help %v#Displays help information",helph);
-	    parser.addOption("-l,--local %d#The column number of the local time (counting start with 1)",localcolumnh); 
-	    parser.addOption("-g,--global %d#The column number of the global time (counting start with 1)",globalcolumnh);
-	    parser.addOption("-n,--noinsert %v#Overwrite the given column with the globaltime instead of inserting a column",noinsertcolumnh);
-		parser.addOption("-i,--input %s#The filename of the binary file (default: all the file in the directory)",inputh);
-	    parser.addOption("-e,--maxtimeerror %d#The maximum of the enabled error during timesync in seconds (default: 120)",errorlimith);
-		parser.addOption("-t,--timesyncex %s#Extension of the timesync files (default: .ts)",inputh);
-		parser.addOption("-c,--csvex %s#Extension of the csv files (default: .csv)",inputh);
+		parser.addOption("-h,--help %v#Displays help information",help);
+	    parser.addOption("-l,--local %d#The column number of the local time (counting start with 1)",localcolumn); 
+	    parser.addOption("-g,--global %d#The column number of the global time (counting start with 1)",globalcolumn);
+	    parser.addOption("-n,--noinsert %v#Overwrite the given column with the globaltime instead of inserting a column",noinsertcolumn);
+		parser.addOption("-i,--input %s#The filename of the binary file (default: all the file in the directory)",input);
+	    parser.addOption("-e,--maxtimeerror %d#The maximum of the enabled error during timesync in seconds (default: 120)",errorlimit);
+		parser.addOption("-t,--timesyncex %s#Extension of the timesync files (default: .ts)",input);
+		parser.addOption("-c,--csvex %s#Extension of the csv files (default: .csv)",csvex);
+		parser.addOption("-s,--separator %s#Separator character(s) in the csv (default: ,)",separator);
+		parser.addOption("-f,--format %s#Timeformat, see: http://download.oracle.com/javase/1.4.2/docs/api/java/text/SimpleDateFormat.html (Default: without formatting: ellapsed milliseconds since epoch)",format);
 	    parser.matchAllArgs (args);
 	    
 		
 
-		if(helph.value){
+		if(help.value){
 			System.out.println(parser.getHelpMessage());
 			System.exit(0);
 		}
-		if(localcolumnh.value==0||globalcolumnh.value==0){
+		if(localcolumn.value==0||globalcolumn.value==0){
 			System.out.println("--local (-l) and --global (-g) are obligatory option");
 			System.out.println(parser.getHelpMessage());
 			System.exit(1);
 		}
-		if(inputh.value!=null)
-			new GlobalTime(inputh.value,localcolumnh.value,globalcolumnh.value,noinsertcolumnh.value,errorlimith.value,csvex.value);
+		if(input.value!=null)
+			new GlobalTime(input.value,localcolumn.value,globalcolumn.value,noinsertcolumn.value,errorlimit.value,csvex.value,separator.value,format.value);
 		else{
 			String[] fileNames=new File(".").list();
 			for(String fileName:fileNames){
 				if(fileName.endsWith(timesyncex.value)){
 					File current=new File(fileName);
 					if(current.isFile()&&current.exists()&&current.canRead()&&current.canWrite()){
-						new GlobalTime(fileName,localcolumnh.value,globalcolumnh.value,noinsertcolumnh.value,errorlimith.value,csvex.value);
+						new GlobalTime(fileName,localcolumn.value,globalcolumn.value,noinsertcolumn.value,errorlimit.value,csvex.value,separator.value,format.value);
 					}
 				}
 			}
