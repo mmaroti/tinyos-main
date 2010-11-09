@@ -34,7 +34,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
-#include <assert.h>
+#include <stdexcept>
 #include "ErrorCodes.hpp"
 #include "BlockDevice.hpp"
 #include "BlockRelatedConsts.hpp"
@@ -80,9 +80,11 @@ const char* FileAsBlockDevice::read_block(int i) {
 
 	const char* ret_val = 0;
 
-	try {
+	if (i<0 || i>=BLOCK_OFFSET_MAX) {
+		throw out_of_range("block index");
+	}
 
-		assert(0<=i && i<BLOCK_OFFSET_MAX);
+	try {
 
 		in->seekg(i*BLOCK_SIZE);
 
@@ -104,7 +106,7 @@ double FileAsBlockDevice::size_GB() const {
 }
 
 unsigned long FileAsBlockDevice::error_code() const {
-	// TODO Finish implementation
+
 	return 0;
 }
 
@@ -114,25 +116,39 @@ FileAsBlockDevice::~FileAsBlockDevice() {
 	delete[] buffer;
 }
 
-#ifdef WIN32BLOCKDEVICE
+#ifdef _WIN32
 
 #include "Win32BlockDevice.h"
 
 Win32BlockDevice::Win32BlockDevice(const char* source) {
 
-	char ignored; // FIXME drive should be passed
-	card_size = card_size_in_GB(ignored);
+	if (BLOCK_SIZE != block_size()) {
+		clog << "Implementation is not updated properly: BLOCK_SIZE" << endl;
+		exit(IMPLEMENTATION_NOT_UPDATED_PROPERLY);
+	}
+
+	const char drive = string(source).at(0);
+
+	card_size = card_size_in_GB(drive);
 
 	if (card_size==0) {
 		clog << "Failed to open block device, exiting..." << endl;
 		exit(FAILED_TO_OPEN_WIN32_BLOCK_DEVICE);
 	}
+
+	if (card_size >= TWO_GB) {
+		clog << "Card size is larger than 2GB, exiting..." << endl;
+		exit(CARD_SIZE_IS_LARGER_THAN_2GB);
+	}
 }
 
 const char* Win32BlockDevice::read_block(int i) {
 
-	// FIXME Check if the block is valid
-	read_block(i);
+	if (i<0 || i>=MAX_BLOCK_INDEX) {
+		throw out_of_range("block index");
+	}
+
+	read_device_block(i);
 }
 
 double Win32BlockDevice::size_GB() const {

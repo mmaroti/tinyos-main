@@ -36,8 +36,6 @@
 
 #include <iosfwd>
 
-//#define WIN32BLOCKDEVICE
-
 class BlockDevice {
 
 public:

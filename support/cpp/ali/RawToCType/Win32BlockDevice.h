@@ -31,6 +31,11 @@
 * Author: Ali Baharev
 */
 
+/* WARNING: The OVERLAPPED struct may or may not have the data member Pointer.
+* If exists it that has to be initialized to zero. Check what is supported by
+* your compiler.
+*/
+
 #ifndef WIN32BLOCKDEVICE_H_
 #define WIN32BLOCKDEVICE_H_
 
@@ -38,12 +43,12 @@
 extern "C" {
 #endif
 
-const char* read_sector(int i);
+const char* read_device_block(int i);
 
 /* FIXME The letter corresponding to drive should be passed */
-double card_size_in_GB(const char dummy);
+double card_size_in_GB(const char drive);
 
-int sector_size();
+int block_size();
 
 void close_device();
 

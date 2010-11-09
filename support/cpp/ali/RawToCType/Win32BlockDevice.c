@@ -31,24 +31,24 @@
 * Author: Ali Baharev
 */
 
+#ifdef _WIN32
+
 #define UNICODE 1
 #define _UNICODE 1
 
 #include <windows.h>
 #include <winioctl.h>
-#include <stdio.h>
 
 #define BLOCK_SIZE 512
 
 static HANDLE hDevice = 0;
 static char ReadBuffer[BLOCK_SIZE] = {0};
 
-int sector_size() {
+int block_size() {
 	return BLOCK_SIZE;
 }
 
-// FIXME What if not opened?
-const char* read_sector(int i) {
+const char* read_device_block(int i) {
 
 	DWORD  dwBytesRead = 0;
 	const char* ret_val = NULL;
@@ -59,7 +59,11 @@ const char* read_sector(int i) {
 	ol.InternalHigh = 0;
 	ol.Offset = BLOCK_SIZE*i;
 	ol.OffsetHigh = 0;
+
+/* FIXME Find a better way. Mingw at the moment does not have Pointer. */
+#if _MSC_VER >= 1300
 	ol.Pointer = 0;
+#endif
 
 	if( FALSE == ReadFile(hDevice, ReadBuffer, BLOCK_SIZE, &dwBytesRead, (LPOVERLAPPED) &ol) )
 	{
@@ -77,7 +81,6 @@ const char* read_sector(int i) {
 	return ret_val;
 }
 
-// FIXME What if already opened?
 double card_size_in_GB(const char drive)
 {
 	DISK_GEOMETRY pdg;
@@ -127,7 +130,8 @@ void close_device() {
 }
 
 unsigned long error_code() {
+
 	return GetLastError();
 }
 
-
+#endif
