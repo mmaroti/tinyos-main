@@ -45,8 +45,7 @@ extern "C" {
 
 const char* read_device_block(int i);
 
-/* FIXME The letter corresponding to drive should be passed */
-double card_size_in_GB(const char drive);
+double card_size_in_GB(const wchar_t* drive);
 
 int block_size();
 

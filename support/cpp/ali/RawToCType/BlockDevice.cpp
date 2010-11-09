@@ -33,6 +33,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <string>
 #include <cstdlib>
 #include <stdexcept>
 #include "ErrorCodes.hpp"
@@ -40,12 +41,6 @@
 #include "BlockRelatedConsts.hpp"
 
 using namespace std;
-
-namespace {
-
-const unsigned int TWO_GB = 1 << 31;
-
-}
 
 FileAsBlockDevice::FileAsBlockDevice(const char* source)
 	: BlockDevice(), in(new ifstream()), buffer(new char[BLOCK_SIZE])
@@ -62,15 +57,19 @@ FileAsBlockDevice::FileAsBlockDevice(const char* source)
 
 	in->seekg(0, ios::end);
 
-	card_size = in->tellg();
+	// FIXME Is it safe?
+	card_size = static_cast<double> (in->tellg());
 
-	if (card_size >= TWO_GB) {
+	const unsigned int one = 1;
+	const unsigned int GB = one << 30;
+
+	card_size /= GB;
+
+	if (card_size >= 2.0) {
 		clog << "Card size is larger than 2GB, exiting..." << endl;
 		exit(CARD_SIZE_IS_LARGER_THAN_2GB);
 	}
-
-	card_size /= (TWO_GB/2);
-
+	// FIXME Is it safe?
 	int size_in_bytes = static_cast<int> (in->tellg());
 
 	BLOCK_OFFSET_MAX = size_in_bytes/BLOCK_SIZE;
@@ -127,16 +126,19 @@ Win32BlockDevice::Win32BlockDevice(const char* source) {
 		exit(IMPLEMENTATION_NOT_UPDATED_PROPERLY);
 	}
 
-	const char drive = string(source).at(0);
+	const char drive_letter = string(source).at(0);
+	wstring path(L"\\\\.\\");
+	path += drive_letter;
+	path += ':';
 
-	card_size = card_size_in_GB(drive);
+	card_size = card_size_in_GB(path.c_str());
 
 	if (card_size==0) {
-		clog << "Failed to open block device, exiting..." << endl;
+		clog << "Failed to open block device " << source << ", exiting..." << endl;
 		exit(FAILED_TO_OPEN_WIN32_BLOCK_DEVICE);
 	}
 
-	if (card_size >= TWO_GB) {
+	if (card_size >= 2.0) {
 		clog << "Card size is larger than 2GB, exiting..." << endl;
 		exit(CARD_SIZE_IS_LARGER_THAN_2GB);
 	}
@@ -148,7 +150,7 @@ const char* Win32BlockDevice::read_block(int i) {
 		throw out_of_range("block index");
 	}
 
-	read_device_block(i);
+	return read_device_block(i);
 }
 
 double Win32BlockDevice::size_GB() const {

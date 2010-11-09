@@ -31,6 +31,7 @@
 * Author: Ali Baharev
 */
 
+#include <iostream>
 #include <memory>
 #include "SDCard.hpp"
 
@@ -38,7 +39,11 @@ using namespace std;
 
 int main() {
 
-	auto_ptr<SDCard> bd(SDCard::from_win32_drive("oct28_2"));
+	//auto_ptr<SDCard> bd(SDCard::from_win32_drive("D"));
+
+	//cout << "Drive size in GB: " << bd->size_GB() << endl;
+
+	//bd.reset();
 
 	auto_ptr<SDCard> sd(SDCard::from_file("oct28_2"));
 

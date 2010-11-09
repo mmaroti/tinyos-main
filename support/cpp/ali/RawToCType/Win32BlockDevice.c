@@ -81,14 +81,14 @@ const char* read_device_block(int i) {
 	return ret_val;
 }
 
-double card_size_in_GB(const char drive)
+double card_size_in_GB(const wchar_t* drive)
 {
 	DISK_GEOMETRY pdg;
 	BOOL bResult;
 	DWORD junk;
 	double ret_val = 0;
 
-	hDevice = CreateFile(TEXT("\\\\.\\F:"),  // drive to open
+	hDevice = CreateFile(drive,  // drive to open
 		GENERIC_READ,                // access to the drive
 		FILE_SHARE_READ | // share mode
 		FILE_SHARE_WRITE,
