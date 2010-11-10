@@ -153,11 +153,6 @@ Tracker::Tracker(BlockIterator& zeroth_block) : db(new ofstream()) {
 	db->open(filename.c_str(), ofstream::app);
 }
 
-Tracker::~Tracker() {
-
-	delete db;
-}
-
 int Tracker::start_from_here() const {
 
 	return first_block;

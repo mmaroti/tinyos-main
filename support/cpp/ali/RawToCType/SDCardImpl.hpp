@@ -35,6 +35,7 @@
 #define SDCARDIMPL_HPP_
 
 #include <iosfwd>
+#include <memory>
 #include "TypeDefs.hpp"
 
 class BlockDevice;
@@ -52,8 +53,6 @@ public:
 
 	double size_GB() const;
 
-	~SDCardImpl();
-
 private:
 
 	SDCardImpl(const SDCardImpl& );
@@ -69,10 +68,10 @@ private:
 	bool process_block(const char* block);
 	void init_tracker();
 
-	BlockDevice* const device;
-	std::ofstream* const out;
-	Tracker* tracker;
-	BlockChecker* check;
+	const std::auto_ptr<BlockDevice> device;
+	const std::auto_ptr<std::ofstream> out;
+	std::auto_ptr<Tracker> tracker;
+	std::auto_ptr<BlockChecker> check;
 	uint32 time_start;
 	int block_offset;
 	int reboot_seq_num;

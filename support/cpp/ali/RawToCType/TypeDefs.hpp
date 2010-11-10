@@ -34,6 +34,8 @@
 #ifndef TYPEDEFS_HPP_
 #define TYPEDEFS_HPP_
 
+// FIXME Major flaw: use cstdint instead!!!
+
 typedef unsigned short uint16;
 typedef unsigned int uint32;
 

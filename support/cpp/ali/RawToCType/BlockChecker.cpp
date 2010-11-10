@@ -38,7 +38,9 @@
 #include "Constants.hpp"
 #include "BlockRelatedConsts.hpp"
 
-using namespace std;
+using std::clog;
+using std::endl;
+using std::abs;
 
 namespace {
 

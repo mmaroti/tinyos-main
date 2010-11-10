@@ -34,9 +34,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <cstdlib>
 #include <stdexcept>
-#include "ErrorCodes.hpp"
 #include "BlockDevice.hpp"
 #include "BlockRelatedConsts.hpp"
 
@@ -49,8 +47,9 @@ FileAsBlockDevice::FileAsBlockDevice(const char* source)
 	in->open(source, ios::binary);
 
 	if (!in->good()) {
-		clog << "Failed to open file " << source << ", exiting..." << endl;
-		exit(FAILED_TO_OPEN_BINARY_FILE);
+		string msg("Failed to open file ");
+		msg += source;
+		throw runtime_error(msg);
 	}
 
 	in->exceptions(ifstream::failbit | ifstream::badbit | ifstream::eofbit);
@@ -66,8 +65,7 @@ FileAsBlockDevice::FileAsBlockDevice(const char* source)
 	card_size /= GB;
 
 	if (card_size >= 2.0) {
-		clog << "Card size is larger than 2GB, exiting..." << endl;
-		exit(CARD_SIZE_IS_LARGER_THAN_2GB);
+		throw runtime_error("Card size is larger than 2GB");
 	}
 	// FIXME Is it safe?
 	int size_in_bytes = static_cast<int> (in->tellg());
@@ -77,19 +75,19 @@ FileAsBlockDevice::FileAsBlockDevice(const char* source)
 
 const char* FileAsBlockDevice::read_block(int i) {
 
-	const char* ret_val = 0;
-
 	if (i<0 || i>=BLOCK_OFFSET_MAX) {
 		throw out_of_range("block index");
 	}
+
+	const char* ret_val = 0;
 
 	try {
 
 		in->seekg(i*BLOCK_SIZE);
 
-		in->read(buffer, BLOCK_SIZE);
+		in->read(buffer.get(), BLOCK_SIZE);
 
-		ret_val = buffer;
+		ret_val = buffer.get();
 	}
 	catch (ios_base::failure& excpt) {
 
@@ -109,12 +107,6 @@ unsigned long FileAsBlockDevice::error_code() const {
 	return 0;
 }
 
-FileAsBlockDevice::~FileAsBlockDevice() {
-
-	delete in;
-	delete[] buffer;
-}
-
 #ifdef _WIN32
 
 #include "Win32BlockDevice.h"
@@ -122,8 +114,7 @@ FileAsBlockDevice::~FileAsBlockDevice() {
 Win32BlockDevice::Win32BlockDevice(const char* source) {
 
 	if (BLOCK_SIZE != block_size()) {
-		clog << "Implementation is not updated properly: BLOCK_SIZE" << endl;
-		exit(IMPLEMENTATION_NOT_UPDATED_PROPERLY);
+		throw logic_error("Implementation is not updated properly: BLOCK_SIZE");
 	}
 
 	const char drive_letter = string(source).at(0);
@@ -134,13 +125,14 @@ Win32BlockDevice::Win32BlockDevice(const char* source) {
 	card_size = card_size_in_GB(path.c_str());
 
 	if (card_size==0) {
-		clog << "Failed to open block device " << source << ", exiting..." << endl;
-		exit(FAILED_TO_OPEN_WIN32_BLOCK_DEVICE);
+		string msg("Failed to open block device: ");
+		msg += source;
+		throw runtime_error(msg);
 	}
 
 	if (card_size >= 2.0) {
-		clog << "Card size is larger than 2GB, exiting..." << endl;
-		exit(CARD_SIZE_IS_LARGER_THAN_2GB);
+		close_device();
+		throw runtime_error("Card size is larger than 2GB");
 	}
 }
 
@@ -172,8 +164,7 @@ Win32BlockDevice::~Win32BlockDevice() {
 
 Win32BlockDevice::Win32BlockDevice(const char* source) {
 
-	clog << "Win32 block device is not compiled!" << endl;
-	exit(WIN32_BLOCK_DEVICE_NOT_COMPILED);
+	throw logic_error("Win32 block device is not compiled!");
 }
 
 const char* Win32BlockDevice::read_block(int i) {

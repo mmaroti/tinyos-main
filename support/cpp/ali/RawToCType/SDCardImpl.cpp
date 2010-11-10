@@ -35,8 +35,7 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
-#include <cstdlib>
-#include "ErrorCodes.hpp"
+#include <stdexcept>
 #include "SDCardImpl.hpp"
 #include "BlockDevice.hpp"
 #include "BlockIterator.hpp"
@@ -62,7 +61,7 @@ SDCardImpl::SDCardImpl(BlockDevice* source)
 
 	init_tracker();
 
-	check = new BlockChecker(tracker->mote_id());
+	check.reset(new BlockChecker(tracker->mote_id()));
 }
 
 void SDCardImpl::init_tracker() {
@@ -70,15 +69,12 @@ void SDCardImpl::init_tracker() {
 	const char* const block = device->read_block(0);
 
 	if (block==0) {
-
-		clog << "Error: failed to read the zeroth block ";
-		clog << "when looking for the mote ID, exiting..." << endl;
-		exit(FAILED_TO_READ_ZEROTH_BLOCK);
+		throw runtime_error("Failed to read the zeroth block when looking for the mote ID");
 	}
 
 	BlockIterator zeroth_block(block);
 
-	tracker = new Tracker(zeroth_block);
+	tracker.reset(new Tracker(zeroth_block));
 }
 
 double SDCardImpl::size_GB() const {
@@ -137,13 +133,6 @@ void SDCardImpl::process_new_measurements() {
 	close_out_if_open();
 
 	print_finished_banner();
-}
-
-SDCardImpl::~SDCardImpl() {
-
-	delete device;
-	delete out;
-	delete tracker;
 }
 
 void SDCardImpl::close_out_if_open() {

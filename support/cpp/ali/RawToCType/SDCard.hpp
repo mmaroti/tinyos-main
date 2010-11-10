@@ -34,6 +34,8 @@
 #ifndef SDCARD_HPP_
 #define SDCARD_HPP_
 
+#include <memory>
+
 class SDCardImpl;
 
 class BlockDevice;
@@ -50,8 +52,6 @@ public:
 
 	void process_new_measurements();
 
-	~SDCard();
-
 private:
 
 	explicit SDCard(BlockDevice* source);
@@ -60,7 +60,7 @@ private:
 
 	SDCard& operator=(const SDCard& );
 
-	SDCardImpl* const impl;
+	const std::auto_ptr<SDCardImpl> impl;
 };
 
 #endif

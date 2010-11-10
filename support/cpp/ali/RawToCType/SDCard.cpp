@@ -62,8 +62,3 @@ double SDCard::size_GB() const {
 
 	return impl->size_GB();
 }
-
-SDCard::~SDCard() {
-
-	delete impl;
-}

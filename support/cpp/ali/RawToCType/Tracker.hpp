@@ -35,6 +35,7 @@
 #define TRACKER_HPP_
 
 #include <iosfwd>
+#include <memory>
 #include <string>
 
 class BlockIterator;
@@ -55,8 +56,6 @@ public:
 
 	void append_to_db(int block_end, unsigned int time_len);
 
-	~Tracker();
-
 private:
 
 	void set_filename(int mote_ID);
@@ -67,7 +66,7 @@ private:
 
 	void process_last_line(const std::string& line);
 
-	std::ofstream* const db;
+	const std::auto_ptr<std::ofstream> db;
 
 	std::string filename;
 

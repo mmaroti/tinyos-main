@@ -32,7 +32,7 @@
 */
 
 /* WARNING: The OVERLAPPED struct may or may not have the data member Pointer.
-* If exists it that has to be initialized to zero. Check what is supported by
+* If exists it that HAS TO be initialized to zero. Check what is supported by
 * your compiler.
 */
 

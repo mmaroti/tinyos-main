@@ -35,6 +35,7 @@
 #define BLOCKDEVICE_HPP_
 
 #include <iosfwd>
+#include <memory>
 
 class BlockDevice {
 
@@ -46,7 +47,7 @@ public:
 
 	virtual unsigned long error_code() const = 0;
 
-	virtual ~BlockDevice() { }; // FIXME Understand why...
+	virtual ~BlockDevice() { };
 
 };
 
@@ -64,11 +65,9 @@ private:
 
 	virtual unsigned long error_code() const;
 
-	virtual ~FileAsBlockDevice();
+	const std::auto_ptr<std::ifstream> in;
 
-	std::ifstream* const in;
-
-	char* const buffer;
+	const std::auto_ptr<char> buffer;
 
 	int BLOCK_OFFSET_MAX;
 

@@ -81,6 +81,14 @@ const char* read_device_block(int i) {
 	return ret_val;
 }
 
+void close_device() {
+
+	CloseHandle(hDevice);
+
+	hDevice = 0;
+}
+
+/* If returns zero than device must be closed */
 double card_size_in_GB(const wchar_t* drive)
 {
 	DISK_GEOMETRY pdg;
@@ -110,7 +118,7 @@ double card_size_in_GB(const wchar_t* drive)
 		(LPOVERLAPPED) NULL);  // synchronous I/O
 
 	if (FALSE == bResult) {
-
+		close_device();
 		return 0;
 	}
 
@@ -120,13 +128,6 @@ double card_size_in_GB(const wchar_t* drive)
 	ret_val /= (1024 * 1024 * 1024);
 
 	return ret_val;
-}
-
-void close_device() {
-
-	CloseHandle(hDevice);
-
-	hDevice = 0;
 }
 
 unsigned long error_code() {
