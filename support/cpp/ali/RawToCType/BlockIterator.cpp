@@ -33,6 +33,8 @@
 
 #include "BlockIterator.hpp"
 
+namespace sdc {
+
 uint16 BlockIterator::next_uint16() {
 	uint16 x = *reinterpret_cast<const uint16*> (itr);
 	itr += 2;
@@ -43,4 +45,6 @@ uint32 BlockIterator::next_uint32() {
 	uint32 x = *reinterpret_cast<const uint32*> (itr);
 	itr += 4;
 	return x;
+}
+
 }

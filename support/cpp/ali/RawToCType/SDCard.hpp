@@ -36,6 +36,8 @@
 
 #include <memory>
 
+namespace sdc {
+
 class SDCardImpl;
 
 class BlockDevice;
@@ -62,5 +64,7 @@ private:
 
 	const std::auto_ptr<SDCardImpl> impl;
 };
+
+}
 
 #endif

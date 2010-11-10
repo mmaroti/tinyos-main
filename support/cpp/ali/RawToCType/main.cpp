@@ -39,6 +39,8 @@
 
 using namespace std;
 
+using namespace sdc;
+
 namespace {
 
 	enum { SUCCESS, FAILURE };

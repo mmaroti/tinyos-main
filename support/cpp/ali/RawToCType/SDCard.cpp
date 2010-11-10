@@ -35,6 +35,8 @@
 #include "SDCardImpl.hpp"
 #include "BlockDevice.hpp"
 
+namespace sdc {
+
 SDCard* SDCard::from_file(const char* filename) {
 
 	BlockDevice* source = new FileAsBlockDevice(filename);
@@ -61,4 +63,6 @@ void SDCard::process_new_measurements() {
 double SDCard::size_GB() const {
 
 	return impl->size_GB();
+}
+
 }

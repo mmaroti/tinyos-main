@@ -40,6 +40,8 @@
 
 using namespace std;
 
+namespace sdc {
+
 FileAsBlockDevice::FileAsBlockDevice(const char* source)
 	: BlockDevice(), in(new ifstream()), buffer(new char[BLOCK_SIZE])
 {
@@ -187,3 +189,6 @@ Win32BlockDevice::~Win32BlockDevice() {
 }
 
 #endif
+
+}
+

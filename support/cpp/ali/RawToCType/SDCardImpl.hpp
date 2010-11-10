@@ -38,6 +38,8 @@
 #include <memory>
 #include "TypeDefs.hpp"
 
+namespace sdc {
+
 class BlockDevice;
 class BlockChecker;
 class BlockIterator;
@@ -76,5 +78,7 @@ private:
 	int block_offset;
 	int reboot_seq_num;
 };
+
+}
 
 #endif

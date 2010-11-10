@@ -42,14 +42,12 @@ using std::clog;
 using std::endl;
 using std::abs;
 
-namespace {
+namespace sdc {
 
 void fix_counter_overflow(int& i) {
 
 	if (i < 0)
 		i += 0x10000;
-}
-
 }
 
 BlockChecker::BlockChecker(int mote_id) : mote_ID(mote_id) {
@@ -104,7 +102,7 @@ void BlockChecker::set_current(const Sample& s) {
 }
 
 bool BlockChecker::reboot() const {
-	// FIXME Bug: unnoticed reboot with 1/4095 probability
+	// FIXME Bug: reboot may be unnoticed
 	return current.counter()==1 && previous.counter()!=0;
 }
 
@@ -151,3 +149,6 @@ unsigned int BlockChecker::get_previous_timestamp() const {
 
 	return previous.timestamp();
 }
+
+}
+

@@ -46,6 +46,8 @@
 
 using namespace std;
 
+namespace sdc {
+
 // FIXME Understand why crashes if offset is incorrect
 
 SDCardImpl::SDCardImpl(BlockDevice* source)
@@ -234,4 +236,6 @@ bool SDCardImpl::process_block(const char* block) {
 	}
 
 	return finished;
+}
+
 }

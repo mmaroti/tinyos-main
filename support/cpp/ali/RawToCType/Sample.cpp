@@ -37,6 +37,8 @@
 
 using namespace std;
 
+namespace sdc {
+
 const char SEPARATOR    = ',';
 
 Sample::Sample(BlockIterator& itr) {
@@ -67,4 +69,6 @@ ostream& operator<<(ostream& out, const Sample& s) {
 	out << s.temp       << '\n';
 
 	return out;
+}
+
 }

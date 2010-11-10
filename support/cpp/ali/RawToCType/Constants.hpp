@@ -34,9 +34,13 @@
 #ifndef CONSTANTS_HPP_
 #define CONSTANTS_HPP_
 
+namespace sdc {
+
 const unsigned int TICKS_PER_SEC = 32768;
 const unsigned int SAMPLING_RATE = 160;
 const int TOLERANCE = 4;
+
+}
 
 #endif
 

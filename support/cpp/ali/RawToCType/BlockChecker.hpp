@@ -37,6 +37,8 @@
 #include "Header.hpp"
 #include "Sample.hpp"
 
+namespace sdc {
+
 class BlockIterator;
 
 class BlockChecker {
@@ -83,5 +85,7 @@ private:
 
 	const int mote_ID;
 };
+
+}
 
 #endif

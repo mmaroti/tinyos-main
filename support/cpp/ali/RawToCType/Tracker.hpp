@@ -38,6 +38,8 @@
 #include <memory>
 #include <string>
 
+namespace sdc {
+
 class BlockIterator;
 
 class Tracker {
@@ -77,5 +79,6 @@ private:
 	int mote_ID;
 };
 
-#endif
+}
 
+#endif

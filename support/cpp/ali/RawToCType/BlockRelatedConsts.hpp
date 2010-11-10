@@ -34,10 +34,14 @@
 #ifndef BLOCKRELATEDCONSTS_HPP_
 #define BLOCKRELATEDCONSTS_HPP_
 
+namespace sdc {
+
 const int BLOCK_SIZE = 512;
 const int HEADER_LENGTH = 6;
 const int SAMPLE_LENGTH = 22;
 const int MAX_SAMPLES   = (BLOCK_SIZE-HEADER_LENGTH)/SAMPLE_LENGTH;
 const int MAX_BLOCK_INDEX = (1 << 23) - 1;
+
+}
 
 #endif

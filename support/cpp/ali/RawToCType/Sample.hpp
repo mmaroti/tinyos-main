@@ -37,6 +37,8 @@
 #include <iosfwd>
 #include "TypeDefs.hpp"
 
+namespace sdc {
+
 class BlockIterator;
 
 class Sample {
@@ -70,5 +72,7 @@ private:
 	uint16 volt;
 	uint16 temp;
 };
+
+}
 
 #endif

@@ -42,7 +42,7 @@
 
 using namespace std;
 
-namespace {
+namespace sdc {
 
 const string ticks2time(unsigned int t) {
 
@@ -74,8 +74,6 @@ const string current_time() {
 	time_t t;
 	time(&t);
 	return string(ctime(&t));
-}
-
 }
 
 void Tracker::set_filename(int mote_ID) {
@@ -183,3 +181,4 @@ void Tracker::append_to_db(int last_block, unsigned int time_len) {
 	*db << current_time() << flush;
 }
 
+}

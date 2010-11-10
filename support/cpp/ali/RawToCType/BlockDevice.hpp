@@ -37,6 +37,8 @@
 #include <iosfwd>
 #include <memory>
 
+namespace sdc {
+
 class BlockDevice {
 
 public:
@@ -92,5 +94,7 @@ private:
 
 	double card_size;
 };
+
+}
 
 #endif

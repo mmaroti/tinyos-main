@@ -36,6 +36,8 @@
 
 #include "TypeDefs.hpp"
 
+namespace sdc {
+
 class BlockIterator {
 
 public:
@@ -55,5 +57,6 @@ private:
 	const char* itr;
 };
 
-#endif
+}
 
+#endif

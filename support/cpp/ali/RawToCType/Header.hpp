@@ -37,6 +37,8 @@
 #include <iosfwd>
 #include "TypeDefs.hpp"
 
+namespace sdc {
+
 class BlockIterator;
 
 class Header {
@@ -60,5 +62,6 @@ private:
 	uint16 length;
 };
 
-#endif
+}
 
+#endif

@@ -37,6 +37,8 @@
 
 using namespace std;
 
+namespace sdc {
+
 Header::Header(BlockIterator& itr) {
 
 	format_id = itr.next_uint16();
@@ -51,4 +53,6 @@ ostream& operator<<(ostream& out, const Header& h) {
 	out << "length:    " << h.length    << endl;
 
 	return out;
+}
+
 }
