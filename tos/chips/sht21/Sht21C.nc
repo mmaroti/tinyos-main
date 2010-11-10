@@ -13,4 +13,8 @@ implementation {
   
   components HplSht21C;
   Sht21P.I2CPacket -> HplSht21C;
+  Sht21P.I2CResource -> HplSht21C.Resource;
+
+  components DiagMsgC;
+  Sht21P.DiagMsg -> DiagMsgC;
 }

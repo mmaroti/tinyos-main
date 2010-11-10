@@ -7,6 +7,9 @@ module Sht21P {
   provides interface SplitControl;
   uses interface I2CPacket<TI2CBasicAddr>;
   uses interface Timer<TMilli>;
+  uses interface Resource as I2CResource;
+
+  uses interface DiagMsg;
 }
 implementation {
   uint16_t mesrslt;
@@ -20,6 +23,7 @@ implementation {
   };
 
   uint8_t state = S_OFF;
+  bool on=0;
   //uint8_t res[2];
   bool stopRequested = FALSE;
   bool otherSensorRequested=FALSE;    
@@ -48,6 +52,13 @@ implementation {
   }
 
   command error_t Temperature.read() {
+    if (!on) atomic state = S_ON;
+    on++;
+    if(call DiagMsg.record()){
+			call DiagMsg.str("sht21p.tempread");
+			call DiagMsg.uint8(state);
+			call DiagMsg.send();
+		}
     if(state==S_OFF) return EOFF;
     if(state==S_READ_HUMIDITY){
       otherSensorRequested=TRUE;
@@ -56,9 +67,21 @@ implementation {
     if(state!=S_ON) return EBUSY;
 
     atomic state = S_READ_TEMP;
-    call I2CPacket.write(0x03, WRITE_ADDRESS, 1, (uint8_t*) TRIGGER_T_MEASUREMENT_NO_HOLD_MASTER);
+    /*if(call DiagMsg.record()){
+			call DiagMsg.str("before i2cwrite");
+			call DiagMsg.uint8(state);
+			call DiagMsg.send();
+		}*/
+    
+    call I2CResource.request();
+    //call I2CPacket.write(0x03, WRITE_ADDRESS, 1, (uint8_t*)TRIGGER_T_MEASUREMENT_NO_HOLD_MASTER);
     //call I2CPacket.read(I2C_START | I2C_STOP, READ_ADDRESS, 2, result);
     //call Timer.startPeriodic(TIMEOUT_14BIT);
+    /*if(call DiagMsg.record()){
+			call DiagMsg.str("sht2afteri2cwrite");
+			call DiagMsg.uint8(state);
+			call DiagMsg.send();
+		}*/
 
     return SUCCESS;
   }
@@ -94,9 +117,24 @@ implementation {
         }
         //signal Humidity.readDone(error, result);
     } else if(state==S_READ_TEMP){
+
+
+
         //uint16_t result;
-        uint8_t res[2];
-        call I2CPacket.read(0x03, READ_ADDRESS, 2, res);
+        uint8_t res[2]= {0,0};
+
+if(call DiagMsg.record()){
+			call DiagMsg.str("sht21p.timer fired temp");
+			call DiagMsg.uint8(state);
+			call DiagMsg.send();
+		}
+        call I2CPacket.read(0x03, WRITE_ADDRESS, 2, res);
+   if(call DiagMsg.record()){
+			call DiagMsg.str("data");
+			call DiagMsg.uint8(res[0]);
+                        call DiagMsg.uint8(res[1]);
+			call DiagMsg.send();
+		}
 
         if(otherSensorRequested){
           atomic state=S_ON;
@@ -105,7 +143,9 @@ implementation {
           atomic state=S_ON;
           call SplitControl.stop();
         }
-        //signal Temperature.readDone(error, result);
+        //result = (res[0]<<8);
+        //result |= res[1];
+        //signal Temperature.readDone(SUCCESS, result);
     }
   }
 
@@ -113,12 +153,17 @@ implementation {
   {
   if(state == S_READ_TEMP) atomic signal Temperature.readDone(SUCCESS, mesrslt);
   if(state == S_READ_HUMIDITY) atomic signal Humidity.readDone(SUCCESS, mesrslt);
+  
   }
 
   async event void I2CPacket.readDone(error_t error, uint16_t addr, uint8_t length, uint8_t* data) {
     mesrslt = data[0]<<8;
     mesrslt |= data[1]; 
-    
+     if(call DiagMsg.record()){
+			call DiagMsg.str("I2CMP.rdDn");
+			call DiagMsg.uint8(state);
+			call DiagMsg.send();
+		}
    post signalReadDone();
   }
   
@@ -130,7 +175,29 @@ implementation {
   
 
   async event void I2CPacket.writeDone(error_t error, uint16_t addr, uint8_t length, uint8_t* data) {
+  if(call DiagMsg.record()){
+			call DiagMsg.str("i2cwritedone");
+			call DiagMsg.uint8(state);
+			call DiagMsg.send();
+		}
    post startTimeout();
+  }
+
+  event void I2CResource.granted() {
+  /*if(call DiagMsg.record()){
+			call DiagMsg.str("sht21p. Granted");
+			call DiagMsg.uint8((uint8_t*)TRIGGER_T_MEASUREMENT_NO_HOLD_MASTER);
+			call DiagMsg.send();
+		}*/
+    call I2CPacket.write(I2C_START, WRITE_ADDRESS, 1, (uint8_t*)TRIGGER_T_MEASUREMENT_NO_HOLD_MASTER);
+               {
+                if(call DiagMsg.record()){
+			call DiagMsg.str("sht21.writeSUCC");
+			call DiagMsg.uint8(WRITE_ADDRESS);
+			call DiagMsg.send();
+		}
+               call I2CResource.release();
+               }
   }
 
   default event void Temperature.readDone(error_t error, uint16_t val) {}
