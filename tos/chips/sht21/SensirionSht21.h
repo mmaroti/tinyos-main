@@ -24,8 +24,8 @@ enum {
 } Sht21Heater;
 
 enum {
-  WRITE_ADDRESS =  128,
-  READ_ADDRESS  =  129,
+  WRITE_ADDRESS =  64,
+  READ_ADDRESS  =  64,
 } Sht21Header;
 
 enum {

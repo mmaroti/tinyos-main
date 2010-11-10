@@ -106,7 +106,7 @@ implementation {
     } else if(state==S_READ_HUMIDITY){
         //uint16_t result;
         uint8_t res[2];
-        call I2CPacket.read(0x03, READ_ADDRESS, 2, res);
+        call I2CPacket.read(I2C_START, READ_ADDRESS, 2, res);
             
         if(otherSensorRequested){
           atomic state=S_ON;
@@ -162,8 +162,10 @@ if(call DiagMsg.record()){
      if(call DiagMsg.record()){
 			call DiagMsg.str("I2CMP.rdDn");
 			call DiagMsg.uint8(state);
+			call DiagMsg.uint16(mesrslt);
 			call DiagMsg.send();
 		}
+   call I2CResource.release();
    post signalReadDone();
   }
   
@@ -181,6 +183,7 @@ if(call DiagMsg.record()){
 			call DiagMsg.send();
 		}
    post startTimeout();
+   
   }
 
   event void I2CResource.granted() {
@@ -189,15 +192,18 @@ if(call DiagMsg.record()){
 			call DiagMsg.uint8((uint8_t*)TRIGGER_T_MEASUREMENT_NO_HOLD_MASTER);
 			call DiagMsg.send();
 		}*/
-    call I2CPacket.write(I2C_START, WRITE_ADDRESS, 1, (uint8_t*)TRIGGER_T_MEASUREMENT_NO_HOLD_MASTER);
-               {
-                if(call DiagMsg.record()){
-			call DiagMsg.str("sht21.writeSUCC");
-			call DiagMsg.uint8(WRITE_ADDRESS);
-			call DiagMsg.send();
-		}
-               call I2CResource.release();
-               }
+
+    uint8_t data=0xf3;
+    error_t err=call I2CPacket.write(I2C_START, WRITE_ADDRESS, 1, &data);
+
+    if(call DiagMsg.record()){
+	    call DiagMsg.str("sht21.writeSUCC");
+	    call DiagMsg.uint8(WRITE_ADDRESS);
+	    call DiagMsg.uint8(err);
+	    call DiagMsg.send();
+    }
+    
+               
   }
 
   default event void Temperature.readDone(error_t error, uint16_t val) {}
