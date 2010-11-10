@@ -32,12 +32,19 @@
 */
 
 #include <iostream>
+#include <stdexcept>
+#include <typeinfo>
 #include <memory>
 #include "SDCard.hpp"
 
 using namespace std;
 
-int main() {
+namespace {
+
+	enum { SUCCESS, FAILURE };
+}
+
+int Main(const char* source) {
 
 	//auto_ptr<SDCard> bd(SDCard::from_win32_drive("D"));
 
@@ -45,11 +52,39 @@ int main() {
 
 	//bd.reset();
 
-	auto_ptr<SDCard> sd(SDCard::from_file("oct28_2"));
+	auto_ptr<SDCard> sd(SDCard::from_file(source));
 
 	sd->process_new_measurements();
 
-	sd.reset();
-
 	return 0;
+}
+
+int run(const char* source) {
+
+	int error_code = SUCCESS;
+
+	try {
+
+		Main(source);
+	}
+	catch (exception& e) {
+
+		clog << e.what() << " (" << typeid(e).name() << ")" << endl;
+
+		error_code = FAILURE;
+	}
+
+	return error_code;
+}
+
+int main(int argc, char* argv[]) {
+
+	if (argc != 2) {
+
+		clog << "Error: source not specified or too many arguments!" << endl;
+
+		return FAILURE;
+	}
+
+	return run(argv[1]);
 }
