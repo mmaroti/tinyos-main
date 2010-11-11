@@ -43,13 +43,21 @@ class BlockDevice {
 
 public:
 
+	BlockDevice() { }
+
 	virtual const char* read_block(int i) = 0;
 
 	virtual double size_GB() const = 0;
 
 	virtual unsigned long error_code() const = 0;
 
-	virtual ~BlockDevice() { };
+	virtual ~BlockDevice() { }
+
+private:
+
+	BlockDevice(const BlockDevice& );
+
+	BlockDevice& operator=(const BlockDevice& );
 
 };
 
@@ -66,6 +74,8 @@ private:
 	virtual double size_GB() const;
 
 	virtual unsigned long error_code() const;
+
+	virtual ~FileAsBlockDevice();
 
 	const std::auto_ptr<std::ifstream> in;
 

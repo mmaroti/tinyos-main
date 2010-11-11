@@ -31,7 +31,7 @@
 * Author: Ali Baharev
 */
 
-#include <iostream>
+#include <sstream>
 #include <fstream>
 #include <string>
 #include <stdexcept>
@@ -42,8 +42,17 @@ using namespace std;
 
 namespace sdc {
 
+const string failed_to_read_block(int i) {
+
+	ostringstream os;
+	
+	os << "Failed to read block " << i << flush;
+	
+	return os.str();
+}
+
 FileAsBlockDevice::FileAsBlockDevice(const char* source)
-	: BlockDevice(), in(new ifstream()), buffer(new char[BLOCK_SIZE])
+	: in(new ifstream()), buffer(new char[BLOCK_SIZE])
 {
 
 	in->open(source, ios::binary);
@@ -91,9 +100,9 @@ const char* FileAsBlockDevice::read_block(int i) {
 
 		ret_val = buffer.get();
 	}
-	catch (ios_base::failure& excpt) {
+	catch (ios_base::failure& ) {
 
-		clog << "Warning: exception in read_block() " << excpt.what() << endl;
+		throw runtime_error(failed_to_read_block(i));
 	}
 
 	return ret_val;
@@ -107,6 +116,10 @@ double FileAsBlockDevice::size_GB() const {
 unsigned long FileAsBlockDevice::error_code() const {
 
 	return 0;
+}
+
+FileAsBlockDevice::~FileAsBlockDevice() {
+	// Do NOT remove this empty dtor: required to generate the dtor of auto_ptr
 }
 
 #ifdef _WIN32
@@ -144,7 +157,14 @@ const char* Win32BlockDevice::read_block(int i) {
 		throw out_of_range("block index");
 	}
 
-	return read_device_block(i);
+	const char* const block = read_device_block(i);
+
+	if (block==0) {
+
+		throw runtime_error(failed_to_read_block(i));
+	}
+
+	return block;
 }
 
 double Win32BlockDevice::size_GB() const {

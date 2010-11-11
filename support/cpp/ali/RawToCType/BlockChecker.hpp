@@ -73,6 +73,10 @@ public:
 
 private:
 
+	BlockChecker(const BlockChecker& );
+
+	BlockChecker& operator=(const BlockChecker& );
+
 	Header header;
 
 	int block_offset;

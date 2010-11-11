@@ -58,7 +58,13 @@ public:
 
 	void append_to_db(int block_end, unsigned int time_len);
 
+	~Tracker();
+
 private:
+
+	Tracker(const Tracker& );
+
+	Tracker& operator=(const Tracker& );
 
 	void set_filename(int mote_ID);
 

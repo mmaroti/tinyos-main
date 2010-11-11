@@ -34,47 +34,14 @@
 #include <fstream>
 #include <iomanip>
 #include <sstream>
-#include <ctime>
 #include "Tracker.hpp"
 #include "BlockIterator.hpp"
 #include "Header.hpp"
-#include "Constants.hpp"
+#include "Utility.hpp"
 
 using namespace std;
 
 namespace sdc {
-
-const string ticks2time(unsigned int t) {
-
-	ostringstream os;
-
-	unsigned int hour, min, sec, milli;
-
-	hour = t/(3600*TICKS_PER_SEC);
-	t =    t%(3600*TICKS_PER_SEC);
-
-	min = t/(60*TICKS_PER_SEC);
-	t   = t%(60*TICKS_PER_SEC);
-
-	sec = t/TICKS_PER_SEC;
-	t   = t%TICKS_PER_SEC;
-
-	milli = static_cast<unsigned int> ( t/(TICKS_PER_SEC/1000.0) );
-
-	os << setfill('0') << setw(2) << hour << ":";
-	os << setfill('0') << setw(2) << min  << ":";
-	os << setfill('0') << setw(2) << sec  << ".";
-	os << setfill('0') << setw(3) << milli<< flush;
-
-	return os.str();
-}
-
-const string current_time() {
-
-	time_t t;
-	time(&t);
-	return string(ctime(&t));
-}
 
 void Tracker::set_filename(int mote_ID) {
 
@@ -173,12 +140,17 @@ void Tracker::mark_beginning(int block_beg, int reboot) {
 }
 
 void Tracker::append_to_db(int last_block, unsigned int time_len) {
-
+	
 	*db << setw(7) << right << first_block << '\t';
 	*db << setw(7) << right << last_block  << '\t';
 	*db << setw(3) << right << reboot_id   << '\t';
 	*db << ticks2time(time_len) << '\t';
+	*db << recorded_length(first_block, last_block) << '\t';
 	*db << current_time() << flush;
+}
+
+Tracker::~Tracker() {
+	// Do NOT remove this empty dtor: required to generate the dtor of auto_ptr
 }
 
 }

@@ -31,11 +31,6 @@
 * Author: Ali Baharev
 */
 
-/* WARNING: The OVERLAPPED struct may or may not have the data member Pointer.
-* If exists it that HAS TO be initialized to zero. Check what is supported by
-* your compiler.
-*/
-
 #ifndef WIN32BLOCKDEVICE_H_
 #define WIN32BLOCKDEVICE_H_
 

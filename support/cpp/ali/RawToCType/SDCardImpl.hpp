@@ -55,6 +55,8 @@ public:
 
 	double size_GB() const;
 
+	~SDCardImpl();
+
 private:
 
 	SDCardImpl(const SDCardImpl& );

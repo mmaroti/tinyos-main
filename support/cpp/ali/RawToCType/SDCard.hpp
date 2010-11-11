@@ -54,6 +54,8 @@ public:
 
 	void process_new_measurements();
 
+	~SDCard();
+
 private:
 
 	explicit SDCard(BlockDevice* source);

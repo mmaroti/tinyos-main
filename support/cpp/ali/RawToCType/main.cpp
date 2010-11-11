@@ -48,15 +48,15 @@ namespace {
 
 int Main(const char* source) {
 
-	//auto_ptr<SDCard> bd(SDCard::from_win32_drive("D"));
+	//auto_ptr<SDCard> sd(SDCard::from_win32_drive(source));
+	
+	//sd->process_new_measurements();
 
-	//cout << "Drive size in GB: " << bd->size_GB() << endl;
+	auto_ptr<SDCard> bd(SDCard::from_file(source));
 
-	//bd.reset();
+	bd->process_new_measurements();
 
-	auto_ptr<SDCard> sd(SDCard::from_file(source));
-
-	sd->process_new_measurements();
+	bd.reset();
 
 	return 0;
 }

@@ -43,6 +43,7 @@
 #include "BlockChecker.hpp"
 #include "Constants.hpp"
 #include "Tracker.hpp"
+#include "Utility.hpp"
 
 using namespace std;
 
@@ -70,10 +71,6 @@ void SDCardImpl::init_tracker() {
 
 	const char* const block = device->read_block(0);
 
-	if (block==0) {
-		throw runtime_error("Failed to read the zeroth block when looking for the mote ID");
-	}
-
 	BlockIterator zeroth_block(block);
 
 	tracker.reset(new Tracker(zeroth_block));
@@ -87,7 +84,7 @@ double SDCardImpl::size_GB() const {
 void SDCardImpl::print_start_banner() const {
 
 	cout << "Card size is ";
-	cout << setprecision(2) << fixed << device->size_GB() << endl;
+	cout << setprecision(2) << fixed << device->size_GB() << " GB" << endl;
 	cout << "Starting at block " << block_offset << ", ";
 	cout << "previous reboot sequence number is " << reboot_seq_num << endl;
 }
@@ -117,15 +114,15 @@ void SDCardImpl::process_new_measurements() {
 
 	bool finished = false;
 
-	const char* block = 0;
-
 	block_offset = tracker->start_from_here();
 
 	reboot_seq_num = tracker->reboot();
 
 	print_start_banner();
 
-	while ((block = device->read_block(block_offset)) && !finished ) {
+	while (!finished ) {
+
+		const char* const block = device->read_block(block_offset);
 
 		finished = process_block(block);
 
@@ -155,6 +152,7 @@ void SDCardImpl::create_new_file() {
 
 	os << 'm' << setfill('0') << setw(3) << tracker->mote_id() << '_';
 	os << 'r' << setfill('0') << setw(3) << reboot_seq_num << '_';
+	os << time_to_filename() << '_';
 	os << 's' << block_offset << ".csv" << flush;
 
 	out->open(os.str().c_str());
@@ -236,6 +234,10 @@ bool SDCardImpl::process_block(const char* block) {
 	}
 
 	return finished;
+}
+
+SDCardImpl::~SDCardImpl() {
+	// Do NOT remove this empty dtor: required to generate the dtor of auto_ptr
 }
 
 }

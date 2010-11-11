@@ -57,13 +57,8 @@ const char* read_device_block(int i) {
 	ol.hEvent = 0;
 	ol.Internal = 0;
 	ol.InternalHigh = 0;
-	ol.Offset = BLOCK_SIZE*i;
+	ol.Offset = (DWORD) BLOCK_SIZE*i;
 	ol.OffsetHigh = 0;
-
-/* FIXME Find a better way. Mingw at the moment does not have Pointer. */
-#if _MSC_VER >= 1300
-	ol.Pointer = 0;
-#endif
 
 	if( FALSE == ReadFile(hDevice, ReadBuffer, BLOCK_SIZE, &dwBytesRead, (LPOVERLAPPED) &ol) )
 	{
