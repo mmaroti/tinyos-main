@@ -29,12 +29,12 @@ enum {
 } Sht21Header;
 
 enum {
-  TIMEOUT_14BIT =       85,
+  TIMEOUT_14BIT =       100,//85,
   TIMEOUT_13BIT =       43,
-  TIMEOUT_12BIT =       22,
-  TIMEOUT_11BIT =       11,
-  TIMEOUT_10BIT =       6,
-  TIMEOUT_8BIT  =       3,
+  TIMEOUT_12BIT =       29,//22,
+  TIMEOUT_11BIT =       15,//11,
+  TIMEOUT_10BIT =       9,//6,
+  TIMEOUT_8BIT  =       4,//3,
   TIMEOUT_RESET =       15,
 } Sht21Timeout;
 

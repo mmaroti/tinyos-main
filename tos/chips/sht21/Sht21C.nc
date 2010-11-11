@@ -17,4 +17,7 @@ implementation {
 
   components DiagMsgC;
   Sht21P.DiagMsg -> DiagMsgC;
+
+  components LedsC;
+  Sht21P.Leds -> LedsC;
 }
