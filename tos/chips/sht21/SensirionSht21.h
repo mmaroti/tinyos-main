@@ -24,12 +24,11 @@ enum {
 } Sht21Heater;
 
 enum {
-  WRITE_ADDRESS =  64,
-  READ_ADDRESS  =  64,
+  I2C_ADDRESS =  64,
 } Sht21Header;
 
 enum {
-  TIMEOUT_14BIT =       100,//85,
+  TIMEOUT_14BIT =       85,//85,
   TIMEOUT_13BIT =       43,
   TIMEOUT_12BIT =       29,//22,
   TIMEOUT_11BIT =       15,//11,

@@ -1,3 +1,42 @@
+/*
+* Copyright (c) 2010, University of Szeged
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions
+* are met:
+*
+* - Redistributions of source code must retain the above copyright
+* notice, this list of conditions and the following disclaimer.
+* - Redistributions in binary form must reproduce the above
+* copyright notice, this list of conditions and the following
+* disclaimer in the documentation and/or other materials provided
+* with the distribution.
+* - Neither the name of University of Szeged nor the names of its
+* contributors may be used to endorse or promote products derived
+* from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+* COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+* OF THE POSSIBILITY OF SUCH DAMAGE.
+*
+* Author: Zsolt Szabo
+*/
+
+/*
+ * Bug at the I2CResource.granted event, need waiting so thus the Diagmsg part included
+ * probably problem occurs in Atm128 I2C lib during seizure of Resource
+ */
+
 #include "SensirionSht21.h"
 
 module Sht21P {
@@ -10,10 +49,10 @@ module Sht21P {
   uses interface Resource as I2CResource;
 
   uses interface DiagMsg;
-  uses interface Leds;
 }
 implementation {
   uint16_t mesrslt=0;
+  uint8_t res[2];
   enum {
     S_OFF = 0,
     S_STARTING,
@@ -25,7 +64,7 @@ implementation {
 
   uint8_t state = S_OFF;
   bool on=0;
-  //uint8_t res[2];
+  
   bool stopRequested = FALSE;
   bool otherSensorRequested=FALSE;    
   command error_t SplitControl.start() {
@@ -55,12 +94,7 @@ implementation {
   command error_t Temperature.read() {
     if (!on) atomic state = S_ON;
     on++;
-    //call Leds.led0On();
-    if(call DiagMsg.record()){
-			call DiagMsg.str("sht21p.tempread");
-			call DiagMsg.uint8(state);
-			call DiagMsg.send();
-		}
+   
     if(state==S_OFF) return EOFF;
     if(state==S_READ_HUMIDITY){
       otherSensorRequested=TRUE;
@@ -86,7 +120,7 @@ implementation {
     if(state!=S_ON) return EBUSY;
 
     atomic state = S_READ_HUMIDITY;
-    //call I2CPacket.write(0x03, WRITE_ADDRESS, 1, (uint8_t*) TRIGGER_RH_MEASUREMENT_NO_HOLD_MASTER);
+    
     call I2CResource.request();
     return SUCCESS;
   }
@@ -96,9 +130,7 @@ implementation {
       atomic state = S_ON;
       signal SplitControl.startDone(SUCCESS);
     } else if(state==S_READ_HUMIDITY){
-        //uint16_t result;
-        uint8_t res[2];
-        call I2CPacket.read(I2C_START | I2C_STOP, READ_ADDRESS, 2, res);
+        call I2CPacket.read(I2C_START | I2C_STOP, I2C_ADDRESS, 2, res);
             
         if(otherSensorRequested){
           atomic state=S_ON;
@@ -107,28 +139,10 @@ implementation {
           atomic state=S_ON;
           call SplitControl.stop();
         }
-        //signal Humidity.readDone(error, result);
-    } else if(state==S_READ_TEMP){
-
-
-
-        //uint16_t result;
-        uint8_t res[2]= {0,0};
-
-if(call DiagMsg.record()){
-			call DiagMsg.str("sht21p.timer fired temp");
-			call DiagMsg.uint8(state);
-			call DiagMsg.send();
-		}
-        call Leds.led1On();
-        call I2CPacket.read(I2C_START | I2C_STOP, WRITE_ADDRESS, 2, res);
-   if(call DiagMsg.record()){
-			call DiagMsg.str("data");
-			call DiagMsg.uint8(res[0]);
-                        call DiagMsg.uint8(res[1]);
-			call DiagMsg.send();
-		}
-
+       
+    } else if(state==S_READ_TEMP){       
+        call I2CPacket.read(I2C_START | I2C_STOP, I2C_ADDRESS, 2, res);
+   
         if(otherSensorRequested){
           atomic state=S_ON;
           call Humidity.read();
@@ -136,15 +150,13 @@ if(call DiagMsg.record()){
           atomic state=S_ON;
           call SplitControl.stop();
         }
-        //result = (res[0]<<8);
-        //result |= res[1];
-        //signal Temperature.readDone(SUCCESS, result);
+
     }
   }
 
   task void signalReadDone()
   {
-  if(state == S_READ_TEMP) atomic {state= S_ON; signal Temperature.readDone(SUCCESS, mesrslt);call Leds.led0Off();}
+  if(state == S_READ_TEMP) atomic {state= S_ON; signal Temperature.readDone(SUCCESS, mesrslt);}
   if(state == S_READ_HUMIDITY) atomic {state= S_ON; signal Humidity.readDone(SUCCESS, mesrslt);}
   
   }
@@ -152,18 +164,9 @@ if(call DiagMsg.record()){
   async event void I2CPacket.readDone(error_t error, uint16_t addr, uint8_t length, uint8_t* data) {
     mesrslt = data[0]<<8;
     mesrslt |= (data[1]&0xfc);
-    //mesrslt = mesrslt >> 2; 
-     if(call DiagMsg.record()){
-			call DiagMsg.str("I2CMP.rdDn");
-			call DiagMsg.uint8(state);
-			call DiagMsg.uint8(data[0]);
-                        call DiagMsg.uint8(data[1]);
-			call DiagMsg.uint16(mesrslt);
-			call DiagMsg.send();
-		}
-   call I2CResource.release();
-   call Leds.led2On();
-   post signalReadDone();
+    call I2CResource.release();
+  
+    post signalReadDone();
   }
   
   task void startTimeout()
@@ -174,36 +177,30 @@ if(call DiagMsg.record()){
   
 
   async event void I2CPacket.writeDone(error_t error, uint16_t addr, uint8_t length, uint8_t* data) {
-  /*if(call DiagMsg.record()){
-                        
-			call DiagMsg.str("i2cwritedone");
-			call DiagMsg.uint8(state);
-			call DiagMsg.send();
-		}*/
-   post startTimeout();
-   call Leds.led0On();
+    post startTimeout(); 
   }
 
   event void I2CResource.granted() {
     if(state == S_READ_TEMP) {
       uint8_t data=0xf3;
-      error_t err=call I2CPacket.write(I2C_START, WRITE_ADDRESS, 1, &data);
+      error_t err=call I2CPacket.write(I2C_START, I2C_ADDRESS, 1, &data);
 
       if(call DiagMsg.record()){
 	    call DiagMsg.str("sht21.writeSUCC");
-	    call DiagMsg.uint8(WRITE_ADDRESS);
+	    call DiagMsg.uint8(I2C_ADDRESS);
 	    call DiagMsg.uint8(err);
 	    call DiagMsg.send();
       }// ha ezt a blokkot kiveszem, akkor megakad
    } else if (state == S_READ_HUMIDITY) {
      uint8_t data=0xf5;
-     error_t err=call I2CPacket.write(I2C_START, WRITE_ADDRESS, 1, &data);
+     
+     error_t err=call I2CPacket.write(I2C_START, I2C_ADDRESS, 1, &data);
      if(call DiagMsg.record()){
 	    call DiagMsg.str("sht21.wrhumSUCC");
-	    call DiagMsg.uint8(WRITE_ADDRESS);
+	    call DiagMsg.uint8(I2C_ADDRESS);
 	    call DiagMsg.uint8(err);
 	    call DiagMsg.send();
-      }
+      }// ha ezt a blokkot kiveszem, akkor megakad
    }
              
   }
