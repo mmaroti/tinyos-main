@@ -71,7 +71,6 @@
 #include <RadioAssert.h>
 #include <TimeSyncMessageLayer.h>
 #include <RadioConfig.h>
-#include "printf.h"
 
 module RFA1DriverLayerP
 {
@@ -226,22 +225,17 @@ implementation
 
   command error_t PlatformInit.init()
   {
-    printf("pinit\n");
-    printfflush();
-
     rxMsg = &rxMsgBuffer;
 
     // these are just good approximates
     rssiClear = 0;
     rssiBusy = 90;
-
+    
     return SUCCESS;
   }
 
   command error_t SoftwareInit.init()
   {
-    printf("swinit\n");
-    printfflush();
     CCA_THRES=RFA1_CCA_THRES_VALUE;
     //TODO PA_EXT settings with defines
     PHY_TX_PWR=RFA1_PA_BUF_LT | RFA1_PA_LT | (RFA1_DEF_RFPOWER&RFA1_TX_PWR_MASK)<<TX_PWR0;
@@ -292,7 +286,6 @@ implementation
       state = STATE_TRX_OFF_2_RX_ON;
     else
       cmd = CMD_SIGNAL_DONE;
-    //TODO kérdés: ezt ki hajtja végre??
   }
 
   /*----------------- TURN ON/OFF -----------------*/
@@ -376,7 +369,6 @@ implementation
       return EBUSY;
     else if( state == STATE_RX_ON )
       return EALREADY;
-
     cmd = CMD_TURNON;
     call Tasklet.schedule();
 
@@ -413,7 +405,6 @@ implementation
       return EBUSY;
 
     TRX_STATE=CMD_PLL_ON;
-
     // do something useful, just to wait a little
     time32 = call LocalTime.get();
     timesync = call PacketTimeSyncOffset.isSet(msg) ? ((void*)msg) + call PacketTimeSyncOffset.get(msg) : 0;
@@ -624,6 +615,7 @@ implementation
 	
 	  atomic time = capturedTime;
 	  irq=radioIrq;
+	  radioIrq=0;
 	
 	
 	  #ifdef RF230_RSSI_ENERGY
@@ -843,6 +835,7 @@ implementation
 	
   async command uint8_t RadioPacket.headerLength(message_t* msg)
   {
+    
     return call Config.headerLength(msg) + sizeof(rfa1_header_t);
   }
 
@@ -855,7 +848,6 @@ implementation
   {
     ASSERT( 1 <= length && length <= 125 );
     ASSERT( call RadioPacket.headerLength(msg) + length + call RadioPacket.metadataLength(msg) <= sizeof(message_t) );
-
     // we add the length of the CRC, which is automatically generated
     getHeader(msg)->length = length + 2;
   }
