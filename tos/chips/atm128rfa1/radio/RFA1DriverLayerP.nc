@@ -225,6 +225,8 @@ implementation
 
   command error_t PlatformInit.init()
   {
+    
+    ASSERT(FALSE);
     rxMsg = &rxMsgBuffer;
 
     // these are just good approximates
@@ -534,7 +536,6 @@ implementation
     bool sendSignal=TRUE;
 
     length = TST_RX_LENGTH;
-
     // if correct length
     if( length >= 3 && length <= call RadioPacket.maxPayloadLength() + 2 )
     {
@@ -561,13 +562,17 @@ implementation
         memcpy(data,(void*)(&TRXFBST+read),length);
         
         call PacketLinkQuality.set(rxMsg, (uint16_t)(&TRXFBST+TST_RX_LENGTH));
+ 
       }
       else
         sendSignal = FALSE;
     }
     else
       sendSignal=FALSE;
-
+    
+    if(PHY_RSSI&RX_CRC_VALID)
+        sendSignal=FALSE;
+    
     state = STATE_RX_ON;
 
     #ifdef RADIO_DEBUG_MESSAGES
@@ -578,7 +583,7 @@ implementation
       call DiagMsg.chr('r');
       call DiagMsg.uint32(call PacketTimeStamp.isValid(rxMsg) ? call PacketTimeStamp.timestamp(rxMsg) : 0);
       call DiagMsg.uint16(call RadioAlarm.getNow());
-      call DiagMsg.int8(crc == 0 ? length : -length);
+      call DiagMsg.int8(sendSignal ? length : -length);
       call DiagMsg.hex8s(getPayload(rxMsg), length - 2);
       call DiagMsg.int8(call PacketRSSI.isSet(rxMsg) ? call PacketRSSI.get(rxMsg) : -1);
       call DiagMsg.uint8(call PacketLinkQuality.isSet(rxMsg) ? call PacketLinkQuality.get(rxMsg) : 0);
@@ -589,7 +594,7 @@ implementation
     cmd = CMD_NONE;
 
     // signal only if it has passed the CRC check
-    if( sendSignal &&  PHY_RSSI&RX_CRC_VALID)
+    if( sendSignal )
       rxMsg = signal RadioReceive.receive(rxMsg);
   }
   
@@ -619,10 +624,7 @@ implementation
 	
 	
 	  #ifdef RF230_RSSI_ENERGY
-	  //TODO
-	  if( irq & RF230_IRQ_TRX_END )
-	  {
-	    if( irq == RF230_IRQ_TRX_END || irq == (RF230_IRQ_RX_START | RF230_IRQ_TRX_END) && cmd == CMD_NONE) )
+	    if( irq == IRQ_RX_END || (irq == (IRQ_RX_START | IRQ_RX_END) && cmd == CMD_NONE) )
 	      call PacketRSSI.set(rxMsg, PHY_ED_LEVEL);
 	    else
 	      call PacketRSSI.clear(rxMsg);
@@ -722,7 +724,6 @@ implementation
 		    // the most likely place for clear channel (hope to avoid acks)
 		    rssiClear += (PHY_RSSI & RFA1_RSSI_MASK) - (rssiClear >> 2);
 		  }
-		
 		  cmd = CMD_DOWNLOAD;
 	  }
   }
@@ -779,7 +780,7 @@ implementation
     {
       capturedTime = call LocalTime.get();
       radioIrq |= IRQ_RX_START;
-    }
+    }  
     call Tasklet.schedule();
   }
   
