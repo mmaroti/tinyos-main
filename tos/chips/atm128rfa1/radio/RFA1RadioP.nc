@@ -73,7 +73,7 @@ implementation
 
 	async command uint8_t RFA1DriverConfig.headerLength(message_t* msg)
 	{
-		return offsetof(message_t, data) - sizeof(rfa1packet_header_t);
+		return (uint8_t)(offsetof(message_t, data) - sizeof(rfa1packet_header_t));
 	}
 
 	async command uint8_t RFA1DriverConfig.maxPayloadLength()
