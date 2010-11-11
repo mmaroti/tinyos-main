@@ -23,20 +23,20 @@
 #ifndef PLATFORM_MESSAGE_H
 #define PLATFORM_MESSAGE_H
 
-//#include <RF212Radio.h>
+#include <RFA1Radio.h>
 #include <Serial.h>
 
 typedef union message_header {
-	//rf212packet_header_t rf212;
+	rfa1packet_header_t rfa1;
 	serial_header_t serial;
 } message_header_t;
 
 typedef union message_footer {
-	//rf212packet_footer_t rf212;
+	rfa1packet_footer_t rfa1;
 } message_footer_t;
 
 typedef union message_metadata {
-	//rf212packet_metadata_t rf212;
+	rfa1packet_metadata_t rfa1;
 } message_metadata_t;
 
 #endif
