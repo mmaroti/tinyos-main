@@ -6,8 +6,6 @@
   %T/platforms/ucmini/chips/sht21
   %T/platforms/ucmini/chips/bh1750fvi
   %T/platforms/ucmini/chips/ms5607
-  %T/platforms/iris
-  %T/platforms/micaz
   %T/platforms/mica
   %T/chips/atm128rfa1
   %T/chips/atm128rfa1/adc
