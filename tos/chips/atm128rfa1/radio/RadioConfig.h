@@ -33,6 +33,7 @@
  * Author: Andras Biro
  */
 
+//TODO clean this file
 #ifndef __RADIOCONFIG_H__
 #define __RADIOCONFIG_H__
 
@@ -95,6 +96,7 @@ typedef TOne TRadio;
  * Ok, further hacks were required for deputy, I removed 00 from the
  * beginning and end to ba able to handle longer wait periods.
  */
+
 #define RADIO_ALARM_MICROSEC	(73728UL / MHZ / 32) * (1 << MICA_DIVIDE_ONE_FOR_32KHZ_LOG2) / 10000UL
 
 /**
