@@ -73,7 +73,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
         GraphWidget* graphWidget = new GraphWidget(ui->graphTab, app);
         ui->graphTab->layout()->addWidget(graphWidget);
-        ui->tabWidget->removeTab(3);    //temporarly hidden
+        //ui->tabWidget->removeTab(3);    //temporarly hidden
 
         CalibrationWidget* calibrationWidget = new CalibrationWidget(ui->calibrationTab, app);
         ui->calibrationTab->layout()->addWidget(calibrationWidget);

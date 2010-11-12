@@ -51,6 +51,13 @@ SOURCES += src/DataRecorder.cpp \
     src/Widget3D.cpp \
     src/GraphWidget.cpp \
     src/Graph.cpp \
+    src/Solver.cpp \
+    src/Data.cpp \
+    src/DataWriter.cpp \
+    src/DataReader.cpp \
+    src/Results.cpp \
+    src/EulerAngles.cpp \
+    src/SDownloadWidget.cpp
     src/Solver/Solver.cpp \
     src/Solver/Results.cpp \
     src/Solver/EulerAngles.cpp \
@@ -87,6 +94,17 @@ HEADERS += src/DataRecorder.h \
     src/Graph.h \
     src/constants.h \
     src/Widget3D.h \
+    src/Solver.hpp \
+    src/Data.hpp \
+    src/CompileTimeConstants.hpp \
+    src/DataWriter.hpp \
+    src/DataReader.hpp \
+    src/DataReadException.hpp \
+    src/Results.hpp \
+    src/DataWriteException.hpp \
+    src/EulerAngles.hpp \
+    src/MatrixVector.hpp \
+    src/SDownloadWidget.h
     src/Solver/Solver.hpp \
     src/Solver/Results.hpp \
     src/Solver/MatrixVector.hpp \
@@ -116,6 +134,7 @@ FORMS += src/MainWindow.ui \
     src/ConsoleWidget.ui \
     src/DataWidget.ui \
     src/Widget3D.ui \
-    src/GraphWidget.ui
+    src/GraphWidget.ui \
+    src/SDownloadWidget.ui
 RESOURCES += src/Resources.qrc \
     src/textures.qrc
