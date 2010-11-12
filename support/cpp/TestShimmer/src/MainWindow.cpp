@@ -43,6 +43,7 @@
 #include "GraphWidget.h"
 #include "Widget3D.h"
 #include "window.h"
+#include "SDownloadWidget.h"
 
 // FIXME Eliminate this hideous workaround
 extern DataRecorder* dr;
@@ -64,12 +65,15 @@ MainWindow::MainWindow(QWidget *parent) :
 //	ui->openglTab->layout()->addWidget(widget3d);
         ui->tabWidget->removeTab(5);    //temporarly hidden
 
+        SDownloadWidget* sdownloadWidget = new SDownloadWidget(ui->sdownloadTab, app);
+        ui->sdownloadTab->layout()->addWidget(sdownloadWidget);
+
 	DataWidget* dataWidget = new DataWidget(ui->plotTab, app);
 	ui->plotTab->layout()->addWidget(dataWidget);
 
         GraphWidget* graphWidget = new GraphWidget(ui->graphTab, app);
         ui->graphTab->layout()->addWidget(graphWidget);
-        ui->tabWidget->removeTab(2);    //temporarly hidden
+        ui->tabWidget->removeTab(3);    //temporarly hidden
 
         CalibrationWidget* calibrationWidget = new CalibrationWidget(ui->calibrationTab, app);
         ui->calibrationTab->layout()->addWidget(calibrationWidget);
