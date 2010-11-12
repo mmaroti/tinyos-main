@@ -10,6 +10,9 @@ TARGET = TestShimmer
 # INCLUDEPATH += c:\Octave\3.2.4_gcc-4.4.0\include
 INCLUDEPATH += ../TntJama/
 INCLUDEPATH += ../QextSerialPort/
+INCLUDEPATH += src/
+INCLUDEPATH += src/Solver/
+INCLUDEPATH += src/SDCard/
 
 # INCLUDEPATH += ../qwtplot3d/include
 QMAKE_LIBDIR += ../QextSerialPort/build
@@ -21,12 +24,13 @@ CONFIG(debug) += CONSOLE
 CONFIG(debug, debug|release):LIBS += -lqextserialport
 else:LIBS += -lqextserialport
 win32:LIBS += -lsetupapi
+
 # LIBS += ../qwtplot3d/lib/libqwtplot3d.a
 DEFINES += QT_DLL
 
 # QWT3D_DLL
-#QT += opengl
-#isEmpty( ISQT4 ):CONFIG += opengl
+# QT += opengl
+# isEmpty( ISQT4 ):CONFIG += opengl
 SOURCES += src/DataRecorder.cpp \
     src/MainWindow.cpp \
     src/main.cpp \
@@ -47,12 +51,22 @@ SOURCES += src/DataRecorder.cpp \
     src/Widget3D.cpp \
     src/GraphWidget.cpp \
     src/Graph.cpp \
-    src/Solver.cpp \
-    src/Data.cpp \
-    src/DataWriter.cpp \
-    src/DataReader.cpp \
-    src/Results.cpp \
-    src/EulerAngles.cpp
+    src/Solver/Solver.cpp \
+    src/Solver/Results.cpp \
+    src/Solver/EulerAngles.cpp \
+    src/Solver/DataWriter.cpp \
+    src/Solver/DataReader.cpp \
+    src/Solver/Data.cpp \
+    src/SDCard/Win32BlockDevice.c \
+    src/SDCard/Utility.cpp \
+    src/SDCard/Tracker.cpp \
+    src/SDCard/SDCardImpl.cpp \
+    src/SDCard/SDCard.cpp \
+    src/SDCard/Sample.cpp \
+    src/SDCard/Header.cpp \
+    src/SDCard/BlockIterator.cpp \
+    src/SDCard/BlockDevice.cpp \
+    src/SDCard/BlockChecker.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -73,16 +87,29 @@ HEADERS += src/DataRecorder.h \
     src/Graph.h \
     src/constants.h \
     src/Widget3D.h \
-    src/Solver.hpp \
-    src/Data.hpp \
-    src/CompileTimeConstants.hpp \
-    src/DataWriter.hpp \
-    src/DataReader.hpp \
-    src/DataReadException.hpp \
-    src/Results.hpp \
-    src/DataWriteException.hpp \
-    src/EulerAngles.hpp \
-    src/MatrixVector.hpp
+    src/Solver/Solver.hpp \
+    src/Solver/Results.hpp \
+    src/Solver/MatrixVector.hpp \
+    src/Solver/EulerAngles.hpp \
+    src/Solver/DataWriter.hpp \
+    src/Solver/DataWriteException.hpp \
+    src/Solver/DataReadException.hpp \
+    src/Solver/DataReader.hpp \
+    src/Solver/Data.hpp \
+    src/Solver/CompileTimeConstants.hpp \
+    src/SDCard/Utility.hpp \
+    src/SDCard/Win32BlockDevice.h \
+    src/SDCard/TypeDefs.hpp \
+    src/SDCard/Tracker.hpp \
+    src/SDCard/SDCardImpl.hpp \
+    src/SDCard/SDCard.hpp \
+    src/SDCard/Sample.hpp \
+    src/SDCard/Header.hpp \
+    src/SDCard/Constants.hpp \
+    src/SDCard/BlockRelatedConsts.hpp \
+    src/SDCard/BlockIterator.hpp \
+    src/SDCard/BlockDevice.hpp \
+    src/SDCard/BlockChecker.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

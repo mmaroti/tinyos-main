@@ -28,50 +28,47 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include <QtGui/QApplication>
-#include <QDir>
-#include <QMessageBox>
-#include <iostream>
-#include <cstdlib>
-#include "MainWindow.h"
-//#include "window.h"
-#include <QDesktopWidget>
+#include <ostream>
+#include "Sample.hpp"
+#include "BlockIterator.hpp"
 
-void cwd() {
-    bool success = QDir::setCurrent("data");
-    if (!success) {
-        QString msg("Error: create a directory \"data\" in:\n");
-        msg.append(QDir::currentPath());
-        QMessageBox mbox;
-        mbox.setText(msg);
-        mbox.exec();
-        exit(EXIT_FAILURE);
-    }
+using namespace std;
 
-    std::cout << "PWD is now ./data!" << std::endl;
+namespace sdc {
+
+const char SEPARATOR    = ',';
+
+Sample::Sample(BlockIterator& itr) {
+
+	time_stamp = itr.next_uint32();
+	seq_num    = itr.next_uint16();
+	acc_x      = itr.next_uint16();
+	acc_y      = itr.next_uint16();
+	acc_z      = itr.next_uint16();
+	gyro_x     = itr.next_uint16();
+	gyro_y     = itr.next_uint16();
+	gyro_z     = itr.next_uint16();
+	volt       = itr.next_uint16();
+	temp       = itr.next_uint16();
 }
 
-int main(int argc, char *argv[])
-{
-	QApplication a(argc, argv);
-        cwd();
-        MainWindow w;
-	w.show();
-        //Plot plot;
-        //plot.show();
-        /*Window window;
-        window.resize(window.sizeHint());
-        int desktopArea = QApplication::desktop()->width() *
-                         QApplication::desktop()->height();
-        int widgetArea = window.width() * window.height();
-        if (((float)widgetArea / (float)desktopArea) < 0.75f)
-            window.show();
-        else
-            window.showMaximized();*/
+ostream& operator<<(ostream& out, const Sample& s) {
 
-	return a.exec();
+	out << s.time_stamp << SEPARATOR;
+	out << s.seq_num    << SEPARATOR;
+	out << s.acc_x      << SEPARATOR;
+	out << s.acc_y      << SEPARATOR;
+	out << s.acc_z      << SEPARATOR;
+	out << s.gyro_x     << SEPARATOR;
+	out << s.gyro_y     << SEPARATOR;
+	out << s.gyro_z     << SEPARATOR;
+	out << s.volt       << SEPARATOR;
+	out << s.temp       << '\n';
+
+	return out;
+}
+
 }

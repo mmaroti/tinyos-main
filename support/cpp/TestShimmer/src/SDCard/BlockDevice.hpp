@@ -28,50 +28,83 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include <QtGui/QApplication>
-#include <QDir>
-#include <QMessageBox>
-#include <iostream>
-#include <cstdlib>
-#include "MainWindow.h"
-//#include "window.h"
-#include <QDesktopWidget>
+#ifndef BLOCKDEVICE_HPP_
+#define BLOCKDEVICE_HPP_
 
-void cwd() {
-    bool success = QDir::setCurrent("data");
-    if (!success) {
-        QString msg("Error: create a directory \"data\" in:\n");
-        msg.append(QDir::currentPath());
-        QMessageBox mbox;
-        mbox.setText(msg);
-        mbox.exec();
-        exit(EXIT_FAILURE);
-    }
+#include <iosfwd>
+#include <memory>
 
-    std::cout << "PWD is now ./data!" << std::endl;
+namespace sdc {
+
+class BlockDevice {
+
+public:
+
+	BlockDevice() { }
+
+	virtual const char* read_block(int i) = 0;
+
+	virtual double size_GB() const = 0;
+
+	virtual unsigned long error_code() const = 0;
+
+	virtual ~BlockDevice() { }
+
+private:
+
+	BlockDevice(const BlockDevice& );
+
+	BlockDevice& operator=(const BlockDevice& );
+
+};
+
+class FileAsBlockDevice : public BlockDevice {
+
+public:
+
+	explicit FileAsBlockDevice(const char* source);
+
+private:
+
+	virtual const char* read_block(int i);
+
+	virtual double size_GB() const;
+
+	virtual unsigned long error_code() const;
+
+	virtual ~FileAsBlockDevice();
+
+	const std::auto_ptr<std::ifstream> in;
+
+	const std::auto_ptr<char> buffer;
+
+	int BLOCK_OFFSET_MAX;
+
+	double card_size;
+};
+
+class Win32BlockDevice : public BlockDevice {
+
+public:
+
+	explicit Win32BlockDevice(const char* source);
+
+private:
+
+	virtual const char* read_block(int i);
+
+	virtual double size_GB() const;
+
+	virtual unsigned long error_code() const;
+
+	virtual ~Win32BlockDevice();
+
+	double card_size;
+};
+
 }
 
-int main(int argc, char *argv[])
-{
-	QApplication a(argc, argv);
-        cwd();
-        MainWindow w;
-	w.show();
-        //Plot plot;
-        //plot.show();
-        /*Window window;
-        window.resize(window.sizeHint());
-        int desktopArea = QApplication::desktop()->width() *
-                         QApplication::desktop()->height();
-        int widgetArea = window.width() * window.height();
-        if (((float)widgetArea / (float)desktopArea) < 0.75f)
-            window.show();
-        else
-            window.showMaximized();*/
-
-	return a.exec();
-}
+#endif

@@ -28,50 +28,59 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include <QtGui/QApplication>
-#include <QDir>
-#include <QMessageBox>
-#include <iostream>
-#include <cstdlib>
-#include "MainWindow.h"
-//#include "window.h"
-#include <QDesktopWidget>
+#ifndef SDCARDIMPL_HPP_
+#define SDCARDIMPL_HPP_
 
-void cwd() {
-    bool success = QDir::setCurrent("data");
-    if (!success) {
-        QString msg("Error: create a directory \"data\" in:\n");
-        msg.append(QDir::currentPath());
-        QMessageBox mbox;
-        mbox.setText(msg);
-        mbox.exec();
-        exit(EXIT_FAILURE);
-    }
+#include <iosfwd>
+#include <memory>
+#include "TypeDefs.hpp"
 
-    std::cout << "PWD is now ./data!" << std::endl;
+namespace sdc {
+
+class BlockDevice;
+class BlockChecker;
+class BlockIterator;
+class Tracker;
+
+class SDCardImpl {
+
+public:
+
+	explicit SDCardImpl(BlockDevice* source);
+
+	void process_new_measurements();
+
+	double size_GB() const;
+
+	~SDCardImpl();
+
+private:
+
+	SDCardImpl(const SDCardImpl& );
+	SDCardImpl& operator=(const SDCardImpl& );
+
+	void print_start_banner() const;
+	void print_finished_banner() const;
+	void close_out_if_open();
+	void create_new_file();
+	bool reboot(const int sample_in_block);
+	void check_sample(const int sample_in_block);
+	void write_samples(BlockIterator& itr);
+	bool process_block(const char* block);
+	void init_tracker();
+
+	const std::auto_ptr<BlockDevice> device;
+	const std::auto_ptr<std::ofstream> out;
+	std::auto_ptr<Tracker> tracker;
+	std::auto_ptr<BlockChecker> check;
+	uint32 time_start;
+	int block_offset;
+	int reboot_seq_num;
+};
+
 }
 
-int main(int argc, char *argv[])
-{
-	QApplication a(argc, argv);
-        cwd();
-        MainWindow w;
-	w.show();
-        //Plot plot;
-        //plot.show();
-        /*Window window;
-        window.resize(window.sizeHint());
-        int desktopArea = QApplication::desktop()->width() *
-                         QApplication::desktop()->height();
-        int widgetArea = window.width() * window.height();
-        if (((float)widgetArea / (float)desktopArea) < 0.75f)
-            window.show();
-        else
-            window.showMaximized();*/
-
-	return a.exec();
-}
+#endif

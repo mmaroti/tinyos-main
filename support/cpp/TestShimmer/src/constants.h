@@ -52,8 +52,8 @@ enum HighSensitivity{
 #define yI_U    0.4*yMinGyroAvg+0.6*yMaxGyroAvg
 #define yCLW    0.15*yMinGyroAvg+0.85*yMaxGyroAvg
 #define zCCLW   0.85*zMinGyroAvg+0.15*zMaxGyroAvg
-#define zI_L    0.6*zMinGyroAvg+0.4*zMaxGyroAvg
-#define zI_U    0.4*zMinGyroAvg+0.6*zMaxGyroAvg
+#define zI_L    0.7*zMinGyroAvg+0.3*zMaxGyroAvg
+#define zI_U    0.3*zMinGyroAvg+0.7*zMaxGyroAvg
 #define zCLW    0.15*zMinGyroAvg+0.85*zMaxGyroAvg
 
 #endif // CONSTANTS_H

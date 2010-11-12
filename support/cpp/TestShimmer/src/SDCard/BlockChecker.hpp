@@ -28,50 +28,68 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include <QtGui/QApplication>
-#include <QDir>
-#include <QMessageBox>
-#include <iostream>
-#include <cstdlib>
-#include "MainWindow.h"
-//#include "window.h"
-#include <QDesktopWidget>
+#ifndef SAMPLECHECKER_HPP_
+#define SAMPLECHECKER_HPP_
 
-void cwd() {
-    bool success = QDir::setCurrent("data");
-    if (!success) {
-        QString msg("Error: create a directory \"data\" in:\n");
-        msg.append(QDir::currentPath());
-        QMessageBox mbox;
-        mbox.setText(msg);
-        mbox.exec();
-        exit(EXIT_FAILURE);
-    }
+#include "Header.hpp"
+#include "Sample.hpp"
 
-    std::cout << "PWD is now ./data!" << std::endl;
+namespace sdc {
+
+class BlockIterator;
+
+class BlockChecker {
+
+public:
+
+	explicit BlockChecker(int mote_id);
+
+	void set_current_header(BlockIterator& i, int block_offset);
+
+	void mote_id() const;
+
+	bool finished() const;
+
+	bool datalength() const;
+
+	void set_current(const Sample& s);
+
+	bool reboot() const;
+
+	void counter() const;
+
+	void timestamp() const;
+
+	// FIXME These last three should be either in another class or reboot should
+	// be moved here completely from SDCardImpl
+	int processed() const;
+
+	unsigned int get_current_timestamp() const;
+
+	unsigned int get_previous_timestamp() const;
+
+private:
+
+	BlockChecker(const BlockChecker& );
+
+	BlockChecker& operator=(const BlockChecker& );
+
+	Header header;
+
+	int block_offset;
+
+	Sample previous;
+
+	Sample current;
+
+	int samples_processed;
+
+	const int mote_ID;
+};
+
 }
 
-int main(int argc, char *argv[])
-{
-	QApplication a(argc, argv);
-        cwd();
-        MainWindow w;
-	w.show();
-        //Plot plot;
-        //plot.show();
-        /*Window window;
-        window.resize(window.sizeHint());
-        int desktopArea = QApplication::desktop()->width() *
-                         QApplication::desktop()->height();
-        int widgetArea = window.width() * window.height();
-        if (((float)widgetArea / (float)desktopArea) < 0.75f)
-            window.show();
-        else
-            window.showMaximized();*/
-
-	return a.exec();
-}
+#endif

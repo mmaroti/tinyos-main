@@ -28,50 +28,31 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include <QtGui/QApplication>
-#include <QDir>
-#include <QMessageBox>
-#include <iostream>
-#include <cstdlib>
-#include "MainWindow.h"
-//#include "window.h"
-#include <QDesktopWidget>
+#include <ostream>
+#include "Header.hpp"
+#include "BlockIterator.hpp"
 
-void cwd() {
-    bool success = QDir::setCurrent("data");
-    if (!success) {
-        QString msg("Error: create a directory \"data\" in:\n");
-        msg.append(QDir::currentPath());
-        QMessageBox mbox;
-        mbox.setText(msg);
-        mbox.exec();
-        exit(EXIT_FAILURE);
-    }
+using namespace std;
 
-    std::cout << "PWD is now ./data!" << std::endl;
+namespace sdc {
+
+Header::Header(BlockIterator& itr) {
+
+	format_id = itr.next_uint16();
+	mote_id   = itr.next_uint16();
+	length    = itr.next_uint16();
 }
 
-int main(int argc, char *argv[])
-{
-	QApplication a(argc, argv);
-        cwd();
-        MainWindow w;
-	w.show();
-        //Plot plot;
-        //plot.show();
-        /*Window window;
-        window.resize(window.sizeHint());
-        int desktopArea = QApplication::desktop()->width() *
-                         QApplication::desktop()->height();
-        int widgetArea = window.width() * window.height();
-        if (((float)widgetArea / (float)desktopArea) < 0.75f)
-            window.show();
-        else
-            window.showMaximized();*/
+ostream& operator<<(ostream& out, const Header& h) {
 
-	return a.exec();
+	out << "format id: " << h.format_id << endl;
+	out << "mote id:   " << h.mote_id   << endl;
+	out << "length:    " << h.length    << endl;
+
+	return out;
+}
+
 }
