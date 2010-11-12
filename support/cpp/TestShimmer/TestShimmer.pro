@@ -57,7 +57,7 @@ SOURCES += src/DataRecorder.cpp \
     src/DataReader.cpp \
     src/Results.cpp \
     src/EulerAngles.cpp \
-    src/SDownloadWidget.cpp
+    src/SDownloadWidget.cpp \
     src/Solver/Solver.cpp \
     src/Solver/Results.cpp \
     src/Solver/EulerAngles.cpp \
@@ -104,7 +104,7 @@ HEADERS += src/DataRecorder.h \
     src/DataWriteException.hpp \
     src/EulerAngles.hpp \
     src/MatrixVector.hpp \
-    src/SDownloadWidget.h
+    src/SDownloadWidget.h \
     src/Solver/Solver.hpp \
     src/Solver/Results.hpp \
     src/Solver/MatrixVector.hpp \
