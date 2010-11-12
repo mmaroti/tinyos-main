@@ -58,7 +58,7 @@ void cwd() {
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
-        cwd();
+        //cwd();
         MainWindow w;
 	w.show();
         //Plot plot;
