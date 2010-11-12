@@ -20,8 +20,8 @@ enum {
 } bh1750fviTimeout;
 
 enum {
-  WRITE_ADDRESS =       0x46,  //if addr== H then it would be 0xb8
-  READ_ADDRESS  =       0x47,  //                             0xb9     
+  WRITE_ADDRESS =       0x23,//0x46,  //if addr== H then it would be 0xb8
+  READ_ADDRESS  =       0x23,//0x47,  //                             0xb9     
 } bh1750fviHeader;
 
 #endif

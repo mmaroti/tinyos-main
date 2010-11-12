@@ -35,6 +35,7 @@
 configuration Sht21C {
   provides interface Read<uint16_t> as Temperature;
   provides interface Read<uint16_t> as Humidity;
+  provides interface SplitControl;
 }
 implementation {
   components Sht21P;
@@ -51,5 +52,7 @@ implementation {
 
   components DiagMsgC;
   Sht21P.DiagMsg -> DiagMsgC;
+
+  SplitControl = Sht21P;
 
 }

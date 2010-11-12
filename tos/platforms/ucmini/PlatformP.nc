@@ -1,4 +1,4 @@
-/// $Id: PlatformP.nc,v 1.3 2010-10-25 03:25:32 szabomeister Exp $
+/// $Id: PlatformP.nc,v 1.4 2010-11-12 19:37:01 szabomeister Exp $
 
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
@@ -55,7 +55,13 @@ implementation
 	DDRB &= ~(_BV(PB7));    // set it as input
 	//PORTB |= _BV(7);  // enable usb-rs232 chip
         DDRE &= ~(_BV(PE4)); // set it as input
+       
+        //DDRF |= _BV(PF2);
+        //PORTF |= _BV(PF2); //empowering i2c sensors for testing purposes
 	
+       // DDRD |= _BV(PD0);
+       // DDRD |= _BV(PD1);
+       // PORTD |= _BV(PD0) | _BV(PD1);
       }
   }
 

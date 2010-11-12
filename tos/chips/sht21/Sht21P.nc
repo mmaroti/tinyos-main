@@ -126,7 +126,11 @@ implementation {
   }
 
   event void Timer.fired() {
-    if(state==S_STARTING){
+    if(state==S_OFF) {
+      atomic state==S_ON;
+      signal SplitControl.startDone(SUCCESS);
+    }
+    else if(state==S_STARTING){
       atomic state = S_ON;
       signal SplitControl.startDone(SUCCESS);
     } else if(state==S_READ_HUMIDITY){
