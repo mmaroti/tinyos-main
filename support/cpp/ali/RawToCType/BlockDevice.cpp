@@ -184,12 +184,12 @@ Win32BlockDevice::~Win32BlockDevice() {
 
 #else
 
-Win32BlockDevice::Win32BlockDevice(const char* source) {
+Win32BlockDevice::Win32BlockDevice(const char* ) {
 
 	throw logic_error("Win32 block device is not compiled!");
 }
 
-const char* Win32BlockDevice::read_block(int i) {
+const char* Win32BlockDevice::read_block(int ) {
 
 	return 0;
 }
