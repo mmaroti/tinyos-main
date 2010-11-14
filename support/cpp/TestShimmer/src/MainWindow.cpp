@@ -104,6 +104,9 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(dataWidget, SIGNAL(SolverStarted()), this, SLOT(onSolverRunning()));
         connect(dataWidget, SIGNAL(SolverFinished()), this, SLOT(onSolverRunning()));
 
+        //ALINAK
+        //connect(ui->tabWidget,SIGNAL(currentChanged(int)), VALAMI, SLOT(on_currentTabChanged(int)));
+
 }
 
 MainWindow::~MainWindow()

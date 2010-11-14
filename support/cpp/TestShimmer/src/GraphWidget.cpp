@@ -38,6 +38,7 @@
 #include "QtDebug"
 #include "Graph.h"
 #include <QtGui>
+#include "DataPlot.h"
 
 
 GraphWidget::GraphWidget(QWidget *parent, Application &app) :
@@ -56,6 +57,7 @@ GraphWidget::GraphWidget(QWidget *parent, Application &app) :
     //connect(currentGraph, SIGNAL(clicked()), this, SLOT(setCurrentGraphWidget()));
 
     //setLayout(mainLayout);
+
 }
 
 GraphWidget::~GraphWidget()
@@ -103,4 +105,26 @@ void GraphWidget::on_addButton_clicked()
     }
 
     currentGraph = graphWidgets[0][0];
+}
+
+void GraphWidget::on_xComboBox_currentIndexChanged()
+{
+    if(ui->xComboBox->currentIndex() == 0){
+
+    } else if(ui->xComboBox->currentIndex() == 1){
+
+    }
+}
+
+void GraphWidget::on_yComboBox_currentIndexChanged()
+{
+    if(ui->yComboBox->currentIndex() == 0){
+
+    } else if(ui->yComboBox->currentIndex() == 1){
+        scrollAreas[0][0] = new PlotScrollArea(this);
+        graphWidgets[0][0] = new Graph(scrollAreas[0][0], application);
+
+
+        ui->mainLayout->addWidget(scrollAreas[0][0],0,0);
+    }
 }

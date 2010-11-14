@@ -97,7 +97,6 @@ public:
                 XCORRANG    = 0x1000000,
                 YCORRANG    = 0x2000000,
                 ZCORRANG    = 0x4000000
-
         };
 
         void setGraphs(int graphs, bool on);

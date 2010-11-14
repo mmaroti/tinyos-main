@@ -15,7 +15,7 @@ Graph::Graph(PlotScrollArea *parent, Application &app) : QWidget(parent),
         application(app)
 {
         scrollArea = parent;
-        graphs = XRAWACC | YRAWACC | ZRAWACC | XRAWGYRO | YRAWGYRO | ZRAWGYRO | TIME | GRID;
+        graphs = XANG | YANG | TIME | GRID;
 
         connect(&app.dataRecorder, SIGNAL(sampleAdded()), this, SLOT(onSampleAdded()));
         connect(&app.dataRecorder, SIGNAL(samplesCleared()), this, SLOT(onSamplesCleared()));

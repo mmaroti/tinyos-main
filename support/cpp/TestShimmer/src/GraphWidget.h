@@ -66,8 +66,6 @@ private:
     Ui::GraphWidget *ui;
     Application &application;
 
-
-
     Graph *graphWidgets[3][3];
     Graph *currentGraph;
 
@@ -76,6 +74,8 @@ private:
 
 private slots:
     void on_addButton_clicked();
+    void on_xComboBox_currentIndexChanged();
+    void on_yComboBox_currentIndexChanged();
 };
 
 #endif // GRAPHWIDGET_H
