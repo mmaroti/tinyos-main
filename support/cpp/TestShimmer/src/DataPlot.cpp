@@ -50,7 +50,7 @@ DataPlot::DataPlot(PlotScrollArea *parent, Application &app) : QWidget(parent),
         scrollArea = parent;
         graphs = XACC| YACC | ZACC | TIME | GRID;
 
-        connect(&app.dataRecorder, SIGNAL(sampleAdded()), this, SLOT(onSampleAdded()));
+        connect(&app.dataRecorder, SIGNAL(sampleAdded()), this, SLOT(onSampleAdded()), Qt::QueuedConnection);
         connect(&app.dataRecorder, SIGNAL(samplesCleared()), this, SLOT(onSamplesCleared()));
 
         //loadSettingsData();

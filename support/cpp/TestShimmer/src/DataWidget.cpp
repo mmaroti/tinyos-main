@@ -80,7 +80,7 @@ void DataWidget::on_recordBtn_clicked()
     {
             ui->recordBtn->setText("S(t)op");
             ui->recordBtn->setShortcut(Qt::Key_T);
-            connect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)), &application.dataRecorder, SLOT(onReceiveMessage(ActiveMessage)));
+            connect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)), &application.dataRecorder, SLOT(onReceiveMessage(ActiveMessage)), Qt::DirectConnection);
             ui->regressionButton->setEnabled(false);
     }
     else
