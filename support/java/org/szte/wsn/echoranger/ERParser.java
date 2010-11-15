@@ -1,6 +1,7 @@
 package org.szte.wsn.echoranger;
 
-import org.szte.wsn.downloader.*;
+//import org.szte.wsn.downloader.*;
+import org.szte.wsn.dataprocess.file.*;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -46,7 +47,7 @@ public class ERParser {
 		}
 	}
 	
-	ArrayList<Byte[]> frames;
+	ArrayList<byte[]> frames;
 	
 	public static long toLong(byte data[],boolean is2complement, boolean isLittleEndian){
 		long ret=0;
@@ -96,7 +97,7 @@ public class ERParser {
 		return ret;
 	}
 	
-	public static int toInt(Byte data[],boolean is2complement, boolean isLittleEndian, int offset, int length){
+	public static int toInt(byte data[],boolean is2complement, boolean isLittleEndian, int offset, int length){
 		byte cutdata[]=new byte[length];
 		for(int i=0;i<length;i++){
 			cutdata[i]=data[offset+i];
@@ -104,7 +105,7 @@ public class ERParser {
 		return  toInt(cutdata, is2complement, isLittleEndian);
 	}
 	
-	public static long toLong(Byte data[],boolean is2complement, boolean isLittleEndian, int offset, int length){
+	public static long toLong(byte data[],boolean is2complement, boolean isLittleEndian, int offset, int length){
 		byte cutdata[]=new byte[length];
 		for(int i=0;i<length;i++){
 			cutdata[i]=data[offset+i];
@@ -124,13 +125,20 @@ public class ERParser {
 		try {
 			int badframes=0;
 			ArrayList<Gap> gaps=(new GapConsumer(nodeidToPath(nodeid, ".gap"))).getGaps();
-			RawPacketConsumer rpc=new RawPacketConsumer(nodeidToPath(nodeid, ".bin"),gaps,(byte)0x5e,(byte)0x5d,(byte)0x20);
-			frames=rpc.getFrames();
+			//RawPacketConsumer rpc=new RawPacketConsumer(nodeidToPath(nodeid, ".bin"),gaps,(byte)0x5e,(byte)0x5d,(byte)0x20);
+			BinaryInterfaceFile bf=new BinaryInterfaceFile(nodeidToPath(nodeid, ".bin"), gaps);
+			frames = new ArrayList<byte[]>();
+			byte[] frame=bf.readPacket();
+			while(frame!=null){
+				frames.add(frame);
+				frame=bf.readPacket();
+			}
+			//frames=rpc.getFrames();
 			BufferedWriter esWriter=new BufferedWriter(new FileWriter(esFile));
 			BufferedWriter wfWriter=new BufferedWriter(new FileWriter(wfFile));
 			esWriter.write(EchoStruct.header());
 			wfWriter.write(Waveform.header());
-			for(Byte[] currentFrame:frames){
+			for(byte[] currentFrame:frames){
 				if((currentFrame[0]==0x00)&&(currentFrame.length==23)){
 					EchoStruct es=new EchoStruct();
 					es.seqno=toInt(currentFrame, false, true, 1, 2);
