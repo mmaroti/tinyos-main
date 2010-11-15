@@ -19,6 +19,8 @@ private:
     Ui::SDownloadWidget *ui;
     Application &application;
 
+    void setFlatFileModel(const QString &filename);
+
 private slots:
     void on_downloadButton_clicked();
     void on_clearButton_clicked();
