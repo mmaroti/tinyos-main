@@ -541,6 +541,9 @@ void DataWidget::on_presetsComboBox_currentIndexChanged()
         on_eulerX_clicked();
         on_eulerY_clicked();
         on_eulerZ_clicked();
+        on_corrX_clicked();
+        on_corrY_clicked();
+        on_corrZ_clicked();
     } else if(ui->presetsComboBox->currentIndex() == 1){
         plot->setGraphs(DataPlot::XRAWACC, true);
         plot->setGraphs(DataPlot::YRAWACC, true);
@@ -567,6 +570,9 @@ void DataWidget::on_presetsComboBox_currentIndexChanged()
         plot->setGraphs(DataPlot::XINT, true);
         plot->setGraphs(DataPlot::YINT, true);
         plot->setGraphs(DataPlot::ZINT, true);
+        plot->setGraphs(DataPlot::XCORRANG, true);
+        plot->setGraphs(DataPlot::YCORRANG, true);
+        plot->setGraphs(DataPlot::ZCORRANG, true);
     } else if(ui->presetsComboBox->currentIndex() == 2){
         plot->setGraphs(DataPlot::XRAWACC, false);
         plot->setGraphs(DataPlot::YRAWACC, false);
@@ -593,6 +599,9 @@ void DataWidget::on_presetsComboBox_currentIndexChanged()
         plot->setGraphs(DataPlot::XINT, false);
         plot->setGraphs(DataPlot::YINT, false);
         plot->setGraphs(DataPlot::ZINT, false);
+        plot->setGraphs(DataPlot::XCORRANG, false);
+        plot->setGraphs(DataPlot::YCORRANG, false);
+        plot->setGraphs(DataPlot::ZCORRANG, false);
     } else if(ui->presetsComboBox->currentIndex() == 3){
         plot->setGraphs(DataPlot::XRAWACC, false);
         plot->setGraphs(DataPlot::YRAWACC, false);
@@ -619,5 +628,8 @@ void DataWidget::on_presetsComboBox_currentIndexChanged()
         plot->setGraphs(DataPlot::XINT, false);
         plot->setGraphs(DataPlot::YINT, false);
         plot->setGraphs(DataPlot::ZINT, false);
+        plot->setGraphs(DataPlot::XCORRANG, false);
+        plot->setGraphs(DataPlot::YCORRANG, false);
+        plot->setGraphs(DataPlot::ZCORRANG, false);
     }
 }

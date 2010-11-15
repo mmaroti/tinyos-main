@@ -32,7 +32,7 @@ void SDownloadWidget::on_downloadButton_clicked()
             //something something DAARK SIDE
         }
     #else
-        QString file = QFileDialog::getOpenFileName(this, "Select one or more files to open", "c:/", "CSV (*.csv);;Any File (*.*)");
+        QString file = QFileDialog::getOpenFileName(this, "Select one or more files to open", "c:/", "Any File (*.*)");
         if ( !file.isEmpty() ) {
             //something something DEESTROOY
         }
