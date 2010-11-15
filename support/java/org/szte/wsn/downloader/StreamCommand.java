@@ -126,17 +126,18 @@ public class StreamCommand implements MessageListener {
 						//TODO
 					}
 				}
+			} else if(commanded.contains(msg.getSerialPacket().get_header_src())){
+					System.out.println("Command done: "+msg.get_min_address());
+					commanded.remove(msg.getSerialPacket().get_header_src());
+					if(nodeid!=ALL_NODE&&commanded.size()==0)
+						System.exit(0);
 			} else {
 					System.out.print("New message from node#"+msg.getSerialPacket().get_header_src()+": ");
 					if(msg.get_min_address()==0||msg.get_min_address()!=msg.get_max_address()){
 						System.out.println("MinAddress: " + msg.get_min_address()+" MaxAddress: "+msg.get_max_address());
 					} else if(msg.get_min_address()==twopow(32)){ 
 						System.out.println("StreamStorage didn't started! Maybe you should erase the mote");
-					}else {
-						System.out.println("Command done: "+msg.get_min_address());
 					}
-					if(nodeid!=ALL_NODE)
-						System.exit(0);
 			}
 		}
 	}
