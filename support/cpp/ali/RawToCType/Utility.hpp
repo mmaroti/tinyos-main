@@ -46,6 +46,8 @@ const std::string time_to_filename();
 
 const std::string recorded_length(int first_block, int last_block);
 
+const std::string failed_to_read_block(int i);
+
 }
 
 #endif

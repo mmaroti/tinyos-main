@@ -33,7 +33,8 @@
 
 #include "SDCard.hpp"
 #include "SDCardImpl.hpp"
-#include "BlockDevice.hpp"
+#include "FileAsBlockDevice.hpp"
+#include "Win32BlockDevice.hpp"
 
 namespace sdc {
 

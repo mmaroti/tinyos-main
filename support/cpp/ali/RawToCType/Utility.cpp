@@ -99,4 +99,13 @@ const string recorded_length(int first_block, int last_block) {
 	return ticks2time(length_in_ticks);
 }
 
+const string failed_to_read_block(int i) {
+
+	ostringstream os;
+
+	os << "Failed to read block " << i << flush;
+
+	return os.str();
+}
+
 }

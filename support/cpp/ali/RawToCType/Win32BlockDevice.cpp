@@ -31,33 +31,97 @@
 * Author: Ali Baharev
 */
 
-#ifndef BLOCKDEVICE_HPP_
-#define BLOCKDEVICE_HPP_
+#include <stdexcept>
+#include "Win32BlockDevice.hpp"
 
 namespace sdc {
 
-class BlockDevice {
+#ifdef _WIN32
 
-public:
+#include "Win32BlockDevice.h"
 
-	BlockDevice() { }
+Win32BlockDevice::Win32BlockDevice(const char* source) {
 
-	virtual const char* read_block(int i) = 0;
+	if (BLOCK_SIZE != block_size()) {
+		throw logic_error("Implementation is not updated properly: BLOCK_SIZE");
+	}
 
-	virtual double size_GB() const = 0;
+	const char drive_letter = string(source).at(0);
+	wstring path(L"\\\\.\\");
+	path += drive_letter;
+	path += ':';
 
-	virtual unsigned long error_code() const = 0;
+	card_size = card_size_in_GB(path.c_str());
 
-	virtual ~BlockDevice() { }
+	if (card_size==0) {
+		string msg("Failed to open block device: ");
+		msg += source;
+		throw runtime_error(msg);
+	}
 
-private:
+	if (card_size >= 2.0) {
+		close_device();
+		throw runtime_error("Card size is larger than 2GB");
+	}
+}
 
-	BlockDevice(const BlockDevice& );
+const char* Win32BlockDevice::read_block(int i) {
 
-	BlockDevice& operator=(const BlockDevice& );
+	if (i<0 || i>=MAX_BLOCK_INDEX) {
+		throw out_of_range("block index");
+	}
 
-};
+	const char* const block = read_device_block(i);
+
+	if (block==0) {
+
+		throw runtime_error(failed_to_read_block(i));
+	}
+
+	return block;
+}
+
+double Win32BlockDevice::size_GB() const {
+
+	return card_size;
+}
+
+unsigned long Win32BlockDevice::error_code() const {
+
+	return error_code();
+}
+
+Win32BlockDevice::~Win32BlockDevice() {
+
+	close_device();
+}
+
+#else
+
+Win32BlockDevice::Win32BlockDevice(const char* ) {
+
+	throw std::logic_error("Win32 block device is not compiled!");
+}
+
+const char* Win32BlockDevice::read_block(int ) {
+
+	return 0;
+}
+
+double Win32BlockDevice::size_GB() const {
+
+	return 0;
+}
+
+unsigned long Win32BlockDevice::error_code() const {
+
+	return 0;
+}
+
+Win32BlockDevice::~Win32BlockDevice() {
 
 }
 
 #endif
+
+}

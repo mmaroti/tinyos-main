@@ -31,31 +31,30 @@
 * Author: Ali Baharev
 */
 
-#ifndef BLOCKDEVICE_HPP_
-#define BLOCKDEVICE_HPP_
+#ifndef WIN32BLOCKDEVICE_HPP_
+#define WIN32BLOCKDEVICE_HPP_
+
+#include "BlockDevice.hpp"
 
 namespace sdc {
 
-class BlockDevice {
+class Win32BlockDevice : public BlockDevice {
 
 public:
 
-	BlockDevice() { }
-
-	virtual const char* read_block(int i) = 0;
-
-	virtual double size_GB() const = 0;
-
-	virtual unsigned long error_code() const = 0;
-
-	virtual ~BlockDevice() { }
+	explicit Win32BlockDevice(const char* source);
 
 private:
 
-	BlockDevice(const BlockDevice& );
+	virtual const char* read_block(int i);
 
-	BlockDevice& operator=(const BlockDevice& );
+	virtual double size_GB() const;
 
+	virtual unsigned long error_code() const;
+
+	virtual ~Win32BlockDevice();
+
+	double card_size;
 };
 
 }

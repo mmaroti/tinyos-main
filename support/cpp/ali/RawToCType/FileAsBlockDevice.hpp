@@ -31,30 +31,38 @@
 * Author: Ali Baharev
 */
 
-#ifndef BLOCKDEVICE_HPP_
-#define BLOCKDEVICE_HPP_
+#ifndef FILEASBLOCKDEVICE_HPP_
+#define FILEASBLOCKDEVICE_HPP_
+
+#include <iosfwd>
+#include <memory>
+#include "BlockDevice.hpp"
 
 namespace sdc {
 
-class BlockDevice {
+class FileAsBlockDevice : public BlockDevice {
 
 public:
 
-	BlockDevice() { }
-
-	virtual const char* read_block(int i) = 0;
-
-	virtual double size_GB() const = 0;
-
-	virtual unsigned long error_code() const = 0;
-
-	virtual ~BlockDevice() { }
+	explicit FileAsBlockDevice(const char* source);
 
 private:
 
-	BlockDevice(const BlockDevice& );
+	virtual const char* read_block(int i);
 
-	BlockDevice& operator=(const BlockDevice& );
+	virtual double size_GB() const;
+
+	virtual unsigned long error_code() const;
+
+	virtual ~FileAsBlockDevice();
+
+	const std::auto_ptr<std::ifstream> in;
+
+	const std::auto_ptr<char> buffer;
+
+	int BLOCK_OFFSET_MAX;
+
+	double card_size;
 
 };
 
