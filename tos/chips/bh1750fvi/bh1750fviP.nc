@@ -166,14 +166,14 @@ implementation {
       //call I2CPacket.write(I2C_START | I2C_STOP, WRITE_ADDRESS, 1, &cmd);
       //call I2CPacket.read(I2C_START | I2C_STOP, WRITE_ADDRESS, 2, res);
       
-//call Timer.startOneShot(TIMEOUT_H_RES);
-err=call I2CPacket.read(I2C_START | I2C_STOP, READ_ADDRESS, 2, res);
+call Timer.startOneShot(TIMEOUT_H_RES);
+/*err=call I2CPacket.read(I2C_START | I2C_STOP, READ_ADDRESS, 2, res);
       if(call DiagMsg.record()){
 	    call DiagMsg.str("P.granted");
             call DiagMsg.uint8(state);
             call DiagMsg.uint8(err);
 	    call DiagMsg.send();
-      }
+      }*/
     }
   }
 
