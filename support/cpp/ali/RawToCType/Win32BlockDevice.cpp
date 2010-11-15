@@ -33,25 +33,26 @@
 
 #include <stdexcept>
 #include "Win32BlockDevice.hpp"
+#ifdef _WIN32
+#include "BlockRelatedConsts.hpp"
+#include "Utility.hpp"
+#include "WinBlockDevice.h"
+#endif
+
+using namespace std;
 
 namespace sdc {
 
 #ifdef _WIN32
 
-#include "Win32BlockDevice.h"
-
-Win32BlockDevice::Win32BlockDevice(const char* source) {
-
-	if (BLOCK_SIZE != block_size()) {
-		throw logic_error("Implementation is not updated properly: BLOCK_SIZE");
-	}
+Win32BlockDevice::Win32BlockDevice(const char* source) : buffer(new char[BLOCK_SIZE]) {
 
 	const char drive_letter = string(source).at(0);
 	wstring path(L"\\\\.\\");
 	path += drive_letter;
 	path += ':';
 
-	card_size = card_size_in_GB(path.c_str());
+	card_size = card_size_in_GB(path.c_str(), &hDevice);
 
 	if (card_size==0) {
 		string msg("Failed to open block device: ");
@@ -60,7 +61,7 @@ Win32BlockDevice::Win32BlockDevice(const char* source) {
 	}
 
 	if (card_size >= 2.0) {
-		close_device();
+		close_device(&hDevice);
 		throw runtime_error("Card size is larger than 2GB");
 	}
 }
@@ -71,7 +72,9 @@ const char* Win32BlockDevice::read_block(int i) {
 		throw out_of_range("block index");
 	}
 
-	const char* const block = read_device_block(i);
+	unsigned int size = static_cast<unsigned int> (BLOCK_SIZE);
+
+	const char* const block = read_device_block(&hDevice, i, buffer.get(), size);
 
 	if (block==0) {
 
@@ -93,14 +96,14 @@ unsigned long Win32BlockDevice::error_code() const {
 
 Win32BlockDevice::~Win32BlockDevice() {
 
-	close_device();
+	close_device(&hDevice);
 }
 
 #else
 
 Win32BlockDevice::Win32BlockDevice(const char* ) {
 
-	throw std::logic_error("Win32 block device is not compiled!");
+	throw logic_error("Win32 block device is not compiled!");
 }
 
 const char* Win32BlockDevice::read_block(int ) {

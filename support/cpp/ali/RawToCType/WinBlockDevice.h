@@ -31,25 +31,29 @@
 * Author: Ali Baharev
 */
 
-#ifndef WIN32BLOCKDEVICE_H_
-#define WIN32BLOCKDEVICE_H_
+#ifdef _WIN32
+
+#include <windows.h>
+
+#ifndef WINBLOCKDEVICE_H_
+#define WINBLOCKDEVICE_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-const char* read_device_block(int i);
+const char* read_device_block(PHANDLE pHandle, int i, char* buffer, const unsigned int BLOCK_SIZE);
 
-double card_size_in_GB(const wchar_t* drive);
+double card_size_in_GB(const wchar_t* drive, PHANDLE pHandle);
 
-int block_size();
-
-void close_device();
+void close_device(PHANDLE pHandle);
 
 unsigned long error_code();
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 #endif

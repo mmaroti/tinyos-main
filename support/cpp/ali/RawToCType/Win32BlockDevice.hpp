@@ -34,6 +34,10 @@
 #ifndef WIN32BLOCKDEVICE_HPP_
 #define WIN32BLOCKDEVICE_HPP_
 
+#ifdef _WIN32
+#include <memory>
+#include <windows.h>
+#endif
 #include "BlockDevice.hpp"
 
 namespace sdc {
@@ -54,7 +58,15 @@ private:
 
 	virtual ~Win32BlockDevice();
 
+#ifdef _WIN32
+
+	const std::auto_ptr<char> buffer;
+
+	HANDLE hDevice;
+
 	double card_size;
+
+#endif
 };
 
 }

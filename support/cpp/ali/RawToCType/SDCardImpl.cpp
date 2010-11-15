@@ -49,8 +49,6 @@ using namespace std;
 
 namespace sdc {
 
-// FIXME Understand why crashes if offset is incorrect
-
 SDCardImpl::SDCardImpl(BlockDevice* source)
 	: device(source), out(new ofstream()), tracker(0), check(0)
 {
@@ -164,7 +162,7 @@ bool SDCardImpl::reboot(const int sample_in_block) {
 
 	bool reboot = check->reboot();
 
-	if (reboot && sample_in_block==0) {
+	if ((reboot && sample_in_block==0) || !out->is_open()) {
 
 		close_out_if_open();
 
@@ -186,7 +184,7 @@ bool SDCardImpl::reboot(const int sample_in_block) {
 
 void SDCardImpl::check_sample(const int sample_in_block) {
 
-	// TODO May this should be pushed into BlockChecker
+	// TODO Maybe this should be pushed into BlockChecker
 	if (!reboot(sample_in_block)) {
 
 		check->counter();
