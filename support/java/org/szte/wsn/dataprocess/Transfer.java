@@ -41,7 +41,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import argparser.ArgParser;
 import argparser.BooleanHolder;
@@ -313,7 +312,7 @@ public class Transfer extends Thread  {
 		System.exit(0);
 	}
 	public static void versionThanExit(){
-		System.out.println("Transfer version:1.26");
+		System.out.println("Transfer version:1.27");
 		System.exit(0);
 	}
 }
