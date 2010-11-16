@@ -31,6 +31,8 @@ The following options can be used with Transfer.java
     can't be used for multiple file names 
     by default the output file(s) will be the same as the input file(s)
     only the extension will be replaced with the output extension 
+    if the output is serial, this option determines the destination
+     e.g.: -if serial@/dev/ttyUSB1:57600
 
 -ox, -outputext
     determines the extension of output files, if there are more files
@@ -44,6 +46,10 @@ The following options can be used with Transfer.java
        instead of creating a new file
     -norewrite: throws error, if the output file exists
     default is norewrite
+    
+-ms, -monostruct 
+	 different structures have to be written into different files
+	 the name of the struct showed in the filename    
 
 -nh, -noheader 
     the fields name won't be displayed in the output
@@ -78,7 +84,8 @@ Using Transfer as Thread:
 You can use Transfer as a thread in your application. You have to determine the binary and string media and the direction of communication.
 Here are the constructors:
 
-public Transfer(String binaryType, String binaryPath, String stringType, String stringPath, String structPath, boolean toString, String separator,boolean showName)
+public Transfer(String binaryType, String binaryPath, String stringType, String stringPath, String structPath, boolean toString,
+	 String separator,boolean showName, byte outputMode, boolean monoStruct)
 public Transfer(PacketParser[] packetParsers, BinaryInterface binary, StringInterface string, boolean toString)
 
 

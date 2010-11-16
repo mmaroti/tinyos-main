@@ -52,13 +52,16 @@ import org.szte.wsn.dataprocess.Transfer;
  *	writes and reads strings with file
  */
 public class StringInterfaceFile implements StringInterface {
-	
+
 	String separator;   
 	StringPacket previous;
 	PacketParser[] packetParsers;   //array of the available PacketParsers
 	long readPointer;		//the position of the next byte to read
-	RandomAccessFile file;
+	RandomAccessFile[] files;
 	boolean showName;      //controls whether the name of the PacketParser should be writed in the file
+	boolean noheader;
+	boolean monoStruct;
+	String[] fileNames;
 
 	/**
 	 * 
@@ -66,23 +69,38 @@ public class StringInterfaceFile implements StringInterface {
 	 * @param path file path String
 	 * @param packetParsers array of the available PacketParsers
 	 * @param showName controls whether the name of the PacketParser should be written in the file
-	 * @param createNew if true, creates a new file and deletes the old one
+	 * @param outputMode determines the way of output file handling
+	 * @param monoStruct if true different structures have to be written into different files
+	 * @param noheader the fields name won't be displayed in the output
 	 */	
-	public StringInterfaceFile(String separator, String path, PacketParser[] packetParsers, boolean showName, byte store){
+	public StringInterfaceFile(String separator, String path, PacketParser[] packetParsers, boolean showName, 
+			byte outputMode, boolean monoStruct, boolean noheader){
+		this.monoStruct=monoStruct;
 		this.separator=separator;  
+		this.noheader=noheader;
 		this.packetParsers=packetParsers;
 		previous=new StringPacket("", new String[]{});
 		readPointer=0;
 		this.showName=showName;
-		try {
-			if(new File(path).exists()&&(store==Transfer.NOREWRITE)){
-				System.out.println("Error "+path+" output file already exist. Change output file, or enable -append or -rewrite option!");
-				System.exit(1);
+		int endOfPath=path.contains(".")?path.lastIndexOf("."):path.length();
+		
+		fileNames=monoStruct?new String[packetParsers.length]:new String[]{path};
+		if(monoStruct)
+			for(int i=0;i<packetParsers.length;i++){
+				fileNames[i]=path.substring(0,endOfPath)+packetParsers[i].getName()+path.substring(endOfPath);
 			}
-			if((store==Transfer.REWRITE)&&new File(path).exists())
-				new File(path).delete();
-			file=new RandomAccessFile(path, "rw");
-		} 
+		files=new RandomAccessFile[fileNames.length];
+		try {
+			for(int i=0;i<fileNames.length;i++){
+				if(new File(fileNames[i]).exists()&&(outputMode==Transfer.NOREWRITE)){
+					System.out.println("Error "+fileNames[i]+" output file already exist. Change output file, or enable -append or -rewrite option!");
+					System.exit(1);
+				}
+				if((outputMode==Transfer.REWRITE)&& new File(fileNames[i]).exists())
+					new File(fileNames[i]).delete();
+				files[i]=new RandomAccessFile(fileNames[i], "rw");
+			} 
+		}
 		catch (FileNotFoundException e) {
 			System.out.println("Unable to open/create string file: "+path);
 			e.printStackTrace();
@@ -97,11 +115,17 @@ public class StringInterfaceFile implements StringInterface {
 	 * 
 	 */
 	public void writePacket(StringPacket packet) {
+		int count=0;
+		for(int i=0;i<packetParsers.length;i++){
+			if(packet.getName().equals(packetParsers[i].getName()))
+				count=i;
+		}
+		RandomAccessFile file=files[count];
 		try{			
 			if (packet.getData()!=null){
 				file.seek(file.length());   //jump to the end of the file
 
-				if(!packet.getName().equals(previous.getName())){	
+				if(!packet.getName().equals(previous.getName())&&(!noheader)){	
 					if(showName)
 						file.writeBytes(packet.getName()+separator);
 					for(String head:packet.getFields())
@@ -142,6 +166,7 @@ public class StringInterfaceFile implements StringInterface {
 	 */
 	public StringPacket readPacket() {	
 		StringPacket ret=null;
+		RandomAccessFile file=files[0];
 		try{
 			file.seek(readPointer);
 			String line=file.readLine();

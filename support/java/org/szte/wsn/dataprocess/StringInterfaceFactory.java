@@ -51,14 +51,18 @@ public class StringInterfaceFactory {
 	 * @param separator the string that separates the data in the output
 	 * @param showName controls whether the name of the PacketParser should be written in the file
 	 * @return a StringInterface instance with the specified params
+	 * @param outputMode determines the way of output file handling
+	 * @param monoStruct if true different structures have to be written into different files
+	 * @param noheader the fields name won't be displayed in the output
 	 */
-	public static StringInterface getStringInterface(String type, String source, PacketParser[] packetParsers,String separator, boolean showName, byte outputMode){
+	public static StringInterface getStringInterface(String type, String source, PacketParser[] packetParsers,
+			String separator, boolean showName, byte outputMode, boolean monoStruct, boolean noheader){
 		if(type.equals("textfile"))
-			return new StringInterfaceFile(separator, source, packetParsers,showName, outputMode);//TODO control the last parameter from the main method
+			return new StringInterfaceFile(separator, source, packetParsers,showName, outputMode, monoStruct, noheader);
 			
 		
 		else //if (type.equals("console"))
-			return new StringInterfaceConsole(separator, packetParsers, showName);
+			return new StringInterfaceConsole(separator, packetParsers, showName, noheader);
 
 	}
 	

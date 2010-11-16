@@ -41,6 +41,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.ArrayList;
+
 import argparser.ArgParser;
 import argparser.BooleanHolder;
 import argparser.IntHolder;
@@ -86,11 +88,15 @@ public class Transfer extends Thread  {
 	 * @param toString if true writes from binary to string, else writes from string to binary 
 	 * @param separator the string that separates the data in the output
 	 * @param showName controls whether the name of the PacketParser should be written in the file
+	 * @param outputMode determines the way of output file handling
+	 * @param monoStruct if true different structures have to be written into different files
+	 * @param noheader the fields name won't be displayed in the output
 	 */
-	public Transfer(String binaryType, String binaryPath, String stringType, String stringPath, String structPath, boolean toString, String separator,boolean showName, byte outputMode){
+	public Transfer(String binaryType, String binaryPath, String stringType, String stringPath, String structPath,
+			boolean toString, String separator,boolean showName, byte outputMode, boolean monoStruct, boolean noheader){
 		packetParsers=new PacketParserFactory(structPath).getParsers();
 		binary=BinaryInterfaceFactory.getBinaryInterface(binaryType, binaryPath);	
-		string=StringInterfaceFactory.getStringInterface(stringType, stringPath, packetParsers, separator, showName, outputMode);
+		string=StringInterfaceFactory.getStringInterface(stringType, stringPath, packetParsers, separator, showName, outputMode, monoStruct, noheader);
 		this.toString=toString;
 		if((binary==null)||(string==null))
 			usageThanExit();
@@ -166,7 +172,7 @@ public class Transfer extends Thread  {
 
 
 	public static void main(String[] args) {	
-		
+
 		StringHolder structFileh=new StringHolder("structs.ini");
 		StringHolder inputh=new StringHolder("binfile");
 		StringHolder inputFileh=new StringHolder("");
@@ -179,6 +185,7 @@ public class Transfer extends Thread  {
 		BooleanHolder nostructNameh=new BooleanHolder(false);
 		IntHolder verboseh = new IntHolder(1);
 		BooleanHolder versionh=new BooleanHolder(false);
+		BooleanHolder monoStructh=new BooleanHolder(false);
 
 		ArgParser parser = new ArgParser("java Transfer");	    
 
@@ -188,6 +195,7 @@ public class Transfer extends Thread  {
 		parser.addOption("-o,-output %s{binfile,textfile,serial,console}#Determines the type of output, default is console",outputh);
 		parser.addOption("-of,-outputfile %s#"+OUTPUTFILE,outputFileh);
 		parser.addOption("-ox,-outputext %s#Determines the extension of output files, if there are more files, default is txt",outputExth);
+		parser.addOption("-ms, -monostruct %v# The outputfiles consist only one struct, the name of the struct showed in the filename", monoStructh);
 		parser.addOption("-om,-outputmode %s{rewrite,append,norewrite}#"+OUTPUTMODE+"",outputModeh);
 		parser.addOption("-nh,-noheader %v#the fields name won't be displayed in the output, by default the field's names are displayed at the beginning of every new struct",noheaderh);
 		parser.addOption("-ns,-nostruct %v#the name of the struct won't be displayed in every line of the output, by default every line of the output starts with the name of the actual struct",nostructNameh);
@@ -225,11 +233,11 @@ public class Transfer extends Thread  {
 		if(outputModeh.value.equals("append"))
 			outputMode=APPEND;
 		else 
-		if(outputModeh.value.equals("rewrite"))
-			outputMode=REWRITE;
-		else
-			outputMode=NOREWRITE;
-		
+			if(outputModeh.value.equals("rewrite"))
+				outputMode=REWRITE;
+			else
+				outputMode=NOREWRITE;
+
 		String[] outputFiles=new String[inputFiles.length];
 		if(inputFiles.length>0){
 			int endOfInputFile;			
@@ -238,25 +246,35 @@ public class Transfer extends Thread  {
 				outputFiles[i]=inputFiles[i].substring(0,endOfInputFile)+"."+outputExth.value;
 			}
 		}
-		if(!outputFileh.value.equals(""))
-		outputFiles[0]=outputFileh.value;
+		if(!outputFileh.value.equals("")) 
+			outputFiles[0]=outputFileh.value;
 		
+		if(inputFileh.value.equals("")&&(!inputh.value.equals("console"))){ 
+			System.out.println("Error! No input file provided.\n");			
+			Transfer.usageThanExit();
+		}
 
 		if((inputh.value.equals("textfile"))||(inputh.value.equals("binfile"))||(inputh.value.equals("shimmer")))
 			for(String path:inputFiles){
-				
+
 				File file=new File(path);
 				if(!file.exists()){
 					System.out.println("Not existing input file: "+path+" Use -help option for more information!");
 					System.exit(1);
 				}	
 			}
-		
+		File file=new File(structFileh.value);
+		if(!file.exists()){
+			System.out.println("Not existing structure file: "+structFileh.value+" Use -help option for more information!");
+			System.exit(1);
+		}	
+
 
 		if(inputh.value.equals("textfile")||inputh.value.equals("console"))
 			for(int i=0;i<inputFiles.length;i++){
 
-				Transfer fp=new Transfer(outputh.value, outputFiles[i], inputh.value, inputFiles[i], structFileh.value, false, separatorh.value,!nostructNameh.value, outputMode);
+				Transfer fp=new Transfer(outputh.value, outputFiles[i], inputh.value, inputFiles[i], structFileh.value, false, 
+						separatorh.value,!nostructNameh.value, outputMode, monoStructh.value, noheaderh.value);
 				fp.start();
 
 			}
@@ -264,7 +282,8 @@ public class Transfer extends Thread  {
 		else
 			for(int i=0;i<inputFiles.length;i++){
 
-				Transfer fp=new Transfer(inputh.value, inputFiles[i], outputh.value, outputFiles[i], structFileh.value, true, separatorh.value,!nostructNameh.value, outputMode);
+				Transfer fp=new Transfer(inputh.value, inputFiles[i], outputh.value, outputFiles[i], structFileh.value, true, 
+						separatorh.value,!nostructNameh.value, outputMode, monoStructh.value, noheaderh.value);
 				fp.start();
 
 			}
@@ -274,17 +293,27 @@ public class Transfer extends Thread  {
 		try { 
 			BufferedReader reader = new BufferedReader(new FileReader(new File("org/szte/wsn/dataprocess/ReadMe.txt")));
 			String line = null;
-			while ((line=reader.readLine()) != null) 
+			int fullPage=0;
+			while ((line=reader.readLine()) != null){ 
+				fullPage++;
+				if(fullPage>35){
+					System.out.println("\nPress <<ENTER>> to continue!");
+					System.in.read();
+					fullPage=0;
+				}					
 				System.out.println(line);
+
+
+			}
 		} 
-		
+
 		catch (Exception e){
 			e.printStackTrace();
 		}
 		System.exit(0);
 	}
 	public static void versionThanExit(){
-		System.out.println("Transfer version:1.24");
+		System.out.println("Transfer version:1.26");
 		System.exit(0);
 	}
 }
