@@ -54,12 +54,14 @@ public class StringInterfaceConsole implements StringInterface {
 	StringPacket previous;
 	PacketParser[] packetParsers;
 	boolean showName;
+	boolean noheader;
 
-	public StringInterfaceConsole(String separator, PacketParser[] packetParsers, boolean showName){
+	public StringInterfaceConsole(String separator, PacketParser[] packetParsers, boolean showName, boolean noheader){
 		this.separator=separator;
 		this.packetParsers=packetParsers;
 		previous=new StringPacket("", new String[]{});
 		this.showName=showName;
+		this.noheader=noheader;
 	}
 
 
@@ -70,7 +72,7 @@ public class StringInterfaceConsole implements StringInterface {
 	 */
 	public void writePacket(StringPacket packet) {
 		if (packet.getData()!=null){			
-			if(!packet.getName().equals(previous.getName())){
+			if(!packet.getName().equals(previous.getName())&&(!noheader)){
 				if(showName)
 					System.out.print(packet.getName()+separator);
 				for(String head:packet.getFields())
