@@ -561,7 +561,7 @@ implementation
       {
         memcpy(data,(void*)(&TRXFBST+read),length);
         
-        call PacketLinkQuality.set(rxMsg, (uint16_t)(&TRXFBST+TST_RX_LENGTH));
+        call PacketLinkQuality.set(rxMsg, (uint8_t)*(&TRXFBST+TST_RX_LENGTH));
  
       }
       else
