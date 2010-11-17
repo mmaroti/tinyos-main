@@ -1,10 +1,9 @@
 
 #include "message.h"
+#include "SyncMsg.h"
 #include "Assert.h"
 
 enum {
-	
-	AM_ID = 0x44,
 	UINT32_MAX = 0xffffffff
 };
 
@@ -53,11 +52,11 @@ implementation {
 			return;	
 		}
 		
-		payload = call Packet.getPayload(&pkt, sizeof(first_block));
+		payload = call Packet.getPayload(&pkt, PAYLOAD_LENGTH);
 		ASSERT(payload != NULL);
 		*payload = first_block;
 		
-		error = call TimeSyncAMSend.send(TOS_BCAST_ADDR, &pkt, sizeof(first_block), call LocalTime.get());
+		error = call TimeSyncAMSend.send(TOS_BCAST_ADDR, &pkt, PAYLOAD_LENGTH, call LocalTime.get());
 		
 		if (error==SUCCESS) {
 			busy = TRUE;

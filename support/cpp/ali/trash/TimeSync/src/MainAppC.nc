@@ -12,6 +12,7 @@ implementation{
 	components TimeSyncMessageC;
 	components LedsC;
 	components SyncMsgSenderC;
+	components SyncMsgReceiverP;
 
 	MainAppP.Boot -> MainC;
 	MainAppP.Timer -> TimerMilli;
