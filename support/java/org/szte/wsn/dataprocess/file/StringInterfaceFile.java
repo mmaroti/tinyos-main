@@ -62,7 +62,7 @@ public class StringInterfaceFile implements StringInterface {
 	boolean noheader;
 	boolean monoStruct;
 	String[] fileNames;
-
+	boolean[] starts;
 	/**
 	 * 
 	 * @param separator the string that separates the data in the output
@@ -90,15 +90,17 @@ public class StringInterfaceFile implements StringInterface {
 				fileNames[i]=path.substring(0,endOfPath)+packetParsers[i].getName()+path.substring(endOfPath);
 			}
 		files=new RandomAccessFile[fileNames.length];
+		starts=new boolean[fileNames.length];
 		try {
 			for(int i=0;i<fileNames.length;i++){
 				if(new File(fileNames[i]).exists()&&(outputMode==Transfer.NOREWRITE)){
-					System.out.println("Error "+fileNames[i]+" output file already exist. Change output file, or enable -append or -rewrite option!");
+					System.out.println("Error: "+fileNames[i]+" output file already exist. Change output file, or change output mode to append or rewrite! Eg.: -om append" );
 					System.exit(1);
 				}
 				if((outputMode==Transfer.REWRITE)&& new File(fileNames[i]).exists())
 					new File(fileNames[i]).delete();
 				files[i]=new RandomAccessFile(fileNames[i], "rw");
+				starts[i]=true;
 			} 
 		}
 		catch (FileNotFoundException e) {
@@ -125,13 +127,15 @@ public class StringInterfaceFile implements StringInterface {
 			if (packet.getData()!=null){
 				file.seek(file.length());   //jump to the end of the file
 
-				if(!packet.getName().equals(previous.getName())&&(!noheader)){	
+				if(!noheader)
+				if((!packet.getName().equals(previous.getName())&&!monoStruct)||((starts[count])&&(monoStruct))){	
 					if(showName)
 						file.writeBytes(packet.getName()+separator);
 					for(String head:packet.getFields())
 						file.writeBytes(head+separator);
 					file.seek(file.getFilePointer()-separator.length()); //deletes the last separator
 					file.writeBytes("\n");
+					starts[count]=false;
 				}
 				if(showName)
 					file.writeBytes(packet.getName()+separator);
