@@ -119,7 +119,7 @@ public class StringInterfaceFile implements StringInterface {
 	public void writePacket(StringPacket packet) {
 		int count=0;
 		for(int i=0;i<packetParsers.length;i++){
-			if(packet.getName().equals(packetParsers[i].getName()))
+			if(packet.getName().equals(packetParsers[i].getName())&&monoStruct)
 				count=i;
 		}
 		RandomAccessFile file=files[count];

@@ -33,15 +33,9 @@
  */
 package org.szte.wsn.dataprocess;
 
-
-import java.io.BufferedReader;
-
 import java.io.File;
-
-import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
-
 import argparser.ArgParser;
 import argparser.BooleanHolder;
 import argparser.IntHolder;
@@ -76,6 +70,8 @@ public class Transfer extends Thread  {
 	private BinaryInterface binary;
 	private StringInterface string;
 	boolean toString;
+	static ArgParser parser;
+	
 
 	/**
 	 * Sets the interfaces from String parameters
@@ -186,7 +182,7 @@ public class Transfer extends Thread  {
 		BooleanHolder versionh=new BooleanHolder(false);
 		BooleanHolder monoStructh=new BooleanHolder(false);
 
-		ArgParser parser = new ArgParser("java Transfer");	    
+		parser = new ArgParser("java Transfer");	    
 
 		parser.addOption("-s,-structfile %s#The location of the structrures's definition file. Default is structs.ini",structFileh); 
 		parser.addOption("-i,-input %s{binfile,textfile,serial,shimmer,console}#Determines the type of input, default is binfile",inputh); 
@@ -289,30 +285,11 @@ public class Transfer extends Thread  {
 
 	}
 	public static void usageThanExit(){
-		try { 
-			BufferedReader reader = new BufferedReader(new FileReader(new File("org/szte/wsn/dataprocess/ReadMe.txt")));
-			String line = null;
-			int fullPage=0;
-			while ((line=reader.readLine()) != null){ 
-				fullPage++;
-				if(fullPage>35){
-					System.out.println("\nPress <<ENTER>> to continue!");
-					System.in.read();
-					fullPage=0;
-				}					
-				System.out.println(line);
-
-
-			}
-		} 
-
-		catch (Exception e){
-			e.printStackTrace();
-		}
+		System.out.println(parser.getHelpMessage());
 		System.exit(0);
 	}
 	public static void versionThanExit(){
-		System.out.println("Transfer version:1.27");
+		System.out.println("Transfer version:1.28");
 		System.exit(0);
 	}
 }
