@@ -39,7 +39,7 @@ public class Converter {
 		String outputfile=switchExtension(file, csvext);
 		Transfer fp=new Transfer(pp,
 				BinaryInterfaceFactory.getBinaryInterface("file", file),
-				new StringInterfaceFile(separator,outputfile , pp, false,Transfer.REWRITE),
+				new StringInterfaceFile(separator,outputfile , pp, false,Transfer.REWRITE, false, false),
 				true);
 		fp.start();
 		parsers.add(fp);
