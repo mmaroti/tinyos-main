@@ -18,4 +18,5 @@ implementation {
 	components TimeSyncMessageC;
 	
 	SyncMsgSenderP.TimeSyncAMSend -> TimeSyncMessageC.TimeSyncAMSendMilli[AM_ID];
+	SyncMsgSenderP.Packet -> TimeSyncMessageC;
 }
