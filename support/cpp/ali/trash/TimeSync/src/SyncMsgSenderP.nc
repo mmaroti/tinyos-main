@@ -45,7 +45,7 @@ implementation {
 	task void sendSyncMsg() {
 		
 		error_t error = FAIL;
-		uint32_t* payload = NULL;
+		SyncMsg* payload = NULL;
 		
 		if (busy) {
 			signal SyncMsgSender.sendDone(EBUSY);	
@@ -54,9 +54,10 @@ implementation {
 		
 		payload = call Packet.getPayload(&pkt, PAYLOAD_LENGTH);
 		ASSERT(payload != NULL);
-		*payload = first_block;
+		payload->first_block = first_block;
+		payload->event_time = call LocalTime.get();
 		
-		error = call TimeSyncAMSend.send(TOS_BCAST_ADDR, &pkt, PAYLOAD_LENGTH, call LocalTime.get());
+		error = call TimeSyncAMSend.send(TOS_BCAST_ADDR, &pkt, PAYLOAD_LENGTH, payload->event_time);
 		
 		if (error==SUCCESS) {
 			busy = TRUE;

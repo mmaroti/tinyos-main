@@ -12,7 +12,7 @@ implementation {
 	
 	CounterToLocalTimeC.Counter -> Counter;
 	SyncMsgSenderP.LocalTime -> CounterToLocalTimeC;
-	SyncMsgSenderP.TimeSyncAMSend -> TimeSyncMessageC.TimeSyncAMSendMilli[AM_ID];
+	SyncMsgSenderP.TimeSyncAMSend -> TimeSyncMessageC.TimeSyncAMSendMilli[AM_SYNCMSG];
 	SyncMsgSenderP.Packet -> TimeSyncMessageC;
 	SyncMsgSender = SyncMsgSenderP;
 	
