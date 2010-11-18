@@ -1,4 +1,4 @@
-// $Id: BlinkAppC.nc,v 1.1 2010-10-22 15:20:39 szabomeister Exp $
+// $Id: BlinkAppC.nc,v 1.2 2010-11-18 21:58:45 andrasbiro Exp $
 
 /*									tab:4
  * Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -54,17 +54,12 @@ configuration BlinkAppC
 implementation
 {
   components MainC, BlinkC;
-  components new Led5C(FALSE);
+  components LedsC;
   components new TimerMilliC() as Timer0;
-//  components new TimerMilliC() as Timer1;
-//  components new TimerMilliC() as Timer2;
-
 
   BlinkC -> MainC.Boot;
 
   BlinkC.Timer0 -> Timer0;
- // BlinkC.Timer1 -> Timer1;
- // BlinkC.Timer2 -> Timer2;
-  BlinkC.Leds -> Led5C;
+  BlinkC.Leds -> LedsC;
 }
 

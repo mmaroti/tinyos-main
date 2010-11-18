@@ -1,4 +1,4 @@
-// $Id: BlinkC.nc,v 1.1 2010-10-22 15:20:39 szabomeister Exp $
+// $Id: BlinkC.nc,v 1.2 2010-11-18 21:58:45 andrasbiro Exp $
 
 /*									tab:4
  * Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -50,9 +50,7 @@
 module BlinkC @safe()
 {
   uses interface Timer<TMilli> as Timer0;
-  //uses interface Timer<TMilli> as Timer1;
-  //uses interface Timer<TMilli> as Timer2;
-  uses interface Led5 as Leds;
+  uses interface Leds;
   uses interface Boot;
 }
 implementation
@@ -61,28 +59,12 @@ implementation
   event void Boot.booted()
   {
     call Timer0.startPeriodic( 250 );
-    //call Timer1.startPeriodic( 500 );
-    //call Timer2.startPeriodic( 1000 );
   }
 
   event void Timer0.fired()
   {
-    //dbg("BlinkC", "Timer 0 fired @ %s.\n", sim_time_string());
-    //call Leds.led0Toggle();
     cnt++;
     call Leds.set(cnt);
   }
-  
-  /*event void Timer1.fired()
-  {
-    dbg("BlinkC", "Timer 1 fired @ %s \n", sim_time_string());
-    call Leds.led1Toggle();
-  }
-  
-  event void Timer2.fired()
-  {
-    dbg("BlinkC", "Timer 2 fired @ %s.\n", sim_time_string());
-    call Leds.led2Toggle();
-  }*/
 }
 
