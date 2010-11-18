@@ -1,4 +1,4 @@
-// $Id: LedsP.nc,v 1.1 2010-11-11 12:09:49 andrasbiro Exp $
+// $Id: LedsP.nc,v 1.2 2010-11-18 21:57:02 andrasbiro Exp $
 
 /*
  * Copyright (c) 2000-2005 The Regents of the University  of California.  
@@ -50,6 +50,7 @@ module LedsP @safe() {
     interface GeneralIO as Led0;
     interface GeneralIO as Led1;
     interface GeneralIO as Led2;
+    interface GeneralIO as Led3;
   }
 }
 implementation {
@@ -59,9 +60,11 @@ implementation {
       call Led0.makeOutput();
       call Led1.makeOutput();
       call Led2.makeOutput();
+      call Led3.makeOutput();
       call Led0.clr();
       call Led1.clr();
       call Led2.clr();
+      call Led3.clr();
     }
     return SUCCESS;
   }
@@ -116,6 +119,21 @@ implementation {
     DBGLED(2);
   }
 
+  async command void Leds.led3On() {
+    call Led3.set();
+    DBGLED(2);
+  }
+
+  async command void Leds.led3Off() {
+    call Led3.clr();
+    DBGLED(3);
+  }
+
+  async command void Leds.led3Toggle() {
+    call Led3.toggle();
+    DBGLED(3);
+  }
+
   async command uint8_t Leds.get() {
     uint8_t rval;
     atomic {
@@ -128,6 +146,9 @@ implementation {
       }
       if (call Led2.get()) {
 	rval |= LEDS_LED2;
+      }
+      if (call Led3.get()) {
+	rval |= LEDS_LED3;
       }
     }
     return rval;
@@ -153,6 +174,13 @@ implementation {
       else {
 	call Leds.led2Off();
       }
+      if (val & LEDS_LED3) {
+	call Leds.led3On();
+      }
+      else {
+	call Leds.led3Off();
+      }
+
     }
   }
 }
