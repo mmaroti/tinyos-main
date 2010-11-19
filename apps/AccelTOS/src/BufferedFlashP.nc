@@ -150,10 +150,10 @@ implementation
 				return FAIL;
 		}
 		
-		if (position==0) {
-			memcpy(messages[current].data, &timesync_info, sizeof(timesync_info));
-			position += sizeof(timesync_info);
-		}
+		//if (position==0) {
+		//	memcpy(messages[current].data, &timesync_info, sizeof(timesync_info));
+		//	position += sizeof(timesync_info);
+		//}
 
 		memcpy(messages[current].data + position, data, length);
 		position += length;
