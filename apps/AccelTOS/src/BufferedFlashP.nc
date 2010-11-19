@@ -1,4 +1,4 @@
-/*
+/**
 * Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
@@ -32,6 +32,8 @@
 * Author: Miklos Maroti
 */
 
+#include "TimeSyncInfo.h"
+
 module BufferedFlashP
 {
 	provides
@@ -59,11 +61,37 @@ implementation
 	} buffer_t;
 
 	buffer_t messages[BUFFER_SIZE];
+	
+	timesync_info_t timesync_info;
 
 	uint8_t current;	// the currently recorded message buffer
 	uint16_t position;	// the write position in the current buffer
 	uint8_t pending;	// the number of full messages
 	bool sending; // FIXME Guards what? messages?
+	
+	// TODO Implement these two with memset and memcpy?
+	event void SimpleFile.booted(uint32_t starting_at_block) {
+		
+		timesync_info.local_start  = starting_at_block;
+		timesync_info.local_time   = 0;
+		timesync_info.remote_id    = 0;
+		timesync_info.remote_start = 0;
+		timesync_info.remote_time  = 0;
+	}
+	
+	command void BufferedFlash.updateTimeSyncInfo(timesync_info_t* data) {
+		
+		timesync_info.local_time   = data->local_time;
+		timesync_info.remote_id    = data->remote_id;
+		timesync_info.remote_start = data->remote_start;
+		timesync_info.remote_time  = data->remote_time;	
+	}
+	
+	void writeTimeSyncInfo() {
+
+		memcpy(messages[current].data + position, &timesync_info, sizeof(timesync_info));
+		position += sizeof(timesync_info);
+	}
 
 	task void sendMessage()
 	{
@@ -84,6 +112,9 @@ implementation
 	{
 		if( pending >= BUFFER_SIZE )
 			return EBUSY;
+			
+		if (position==0)
+			writeTimeSyncInfo();
 
 		if( position + length > MAX_DATA_LENGTH )
 		{

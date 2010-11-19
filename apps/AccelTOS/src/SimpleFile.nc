@@ -75,4 +75,7 @@ interface SimpleFile
 	 * Returns the length of the read packet.
 	 */
 	event void readDone(error_t error, uint16_t length);
+	
+	/** Just a messy workaround. */ 
+	event void booted(uint32_t starting_at_block);
 }

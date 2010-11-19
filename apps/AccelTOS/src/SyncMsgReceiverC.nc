@@ -1,5 +1,4 @@
-/*
-* Copyright (c) 2010, University of Szeged
+/** Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -29,27 +28,25 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklos Maroti
+* Author: Ali Baharev
 */
 
-#include "TimeSyncInfo.h"
+#include "SyncMsg.h"
 
-interface BufferedFlash
-{
-	/**
-	 * Add the given data block to the send message buffer. If the 
-	 * send buffer is full, then it sends the message via a AMSend
-	 * interface. If all of the message buffers are full, then we
-	 * drop this data.
-	 */
-	command error_t send(void *data, uint8_t length);
+configuration SyncMsgReceiverC {
+	
+}
 
-	/**
-	 * Send out all data even if the message_t buffer is not full.
-	 */
-	command void flush();
+implementation {
 	
-	/** Just a messy workaround. */
-	command void updateTimeSyncInfo(timesync_info_t* );
+	components TimeSyncMessageC;
+	components LedsC;
+	components BufferedFlashC;
+	components SyncMsgReceiverP;
 	
+	SyncMsgReceiverP.Receive -> TimeSyncMessageC.Receive[AM_SYNCMSG];
+	SyncMsgReceiverP.AMPacket -> TimeSyncMessageC;
+	SyncMsgReceiverP.TimeSyncPacket -> TimeSyncMessageC.TimeSyncPacketMilli;
+	SyncMsgReceiverP.Leds -> LedsC;
+	SyncMsgReceiverP.BufferedFlash -> BufferedFlashC;
 }

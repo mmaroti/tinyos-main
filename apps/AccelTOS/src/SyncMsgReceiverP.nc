@@ -1,5 +1,4 @@
-/*
-* Copyright (c) 2010, University of Szeged
+/** Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -29,27 +28,57 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklos Maroti
+* Author: Ali Baharev
 */
 
+#include "Timer.h"
+#include "Assert.h"
+#include "SyncMsg.h"
 #include "TimeSyncInfo.h"
 
-interface BufferedFlash
-{
-	/**
-	 * Add the given data block to the send message buffer. If the 
-	 * send buffer is full, then it sends the message via a AMSend
-	 * interface. If all of the message buffers are full, then we
-	 * drop this data.
-	 */
-	command error_t send(void *data, uint8_t length);
+module SyncMsgReceiverP {
+	
+	uses {
+		interface Receive;
+		interface AMPacket;
+		interface TimeSyncPacket<TMilli, uint32_t>;
+		interface Leds;
+		interface BufferedFlash;
+	}
+}
 
-	/**
-	 * Send out all data even if the message_t buffer is not full.
-	 */
-	command void flush();
+implementation {
 	
-	/** Just a messy workaround. */
-	command void updateTimeSyncInfo(timesync_info_t* );
+	timesync_info_t timesync_info;
 	
+	task void informBufferedFlash() {
+		
+		call BufferedFlash.updateTimeSyncInfo(&timesync_info);
+	}
+	
+	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len) {
+		
+		SyncMsg* data = 0;
+		
+		ASSERT(len==PAYLOAD_LENGTH);
+		
+		call Leds.led2Toggle();
+		
+		if (call TimeSyncPacket.isValid(msg)) {
+						
+			timesync_info.local_time = call TimeSyncPacket.eventTime(msg);
+			
+			data = (SyncMsg*) payload;
+			
+			timesync_info.remote_time = data->event_time;
+			
+			timesync_info.remote_start = data->first_block;
+					
+			timesync_info.remote_id = call AMPacket.source(msg);
+			
+			post informBufferedFlash();
+		}
+		
+		return msg;
+	}
 }

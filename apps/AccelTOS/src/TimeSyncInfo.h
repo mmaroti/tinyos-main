@@ -1,5 +1,4 @@
-/*
-* Copyright (c) 2010, University of Szeged
+/** Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -29,27 +28,18 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklos Maroti
+* Author: Ali Baharev
 */
 
-#include "TimeSyncInfo.h"
+#ifndef TIME_SYNC_INFO_H
+#define TIME_SYNC_INFO_H
 
-interface BufferedFlash
-{
-	/**
-	 * Add the given data block to the send message buffer. If the 
-	 * send buffer is full, then it sends the message via a AMSend
-	 * interface. If all of the message buffers are full, then we
-	 * drop this data.
-	 */
-	command error_t send(void *data, uint8_t length);
+typedef struct {
+	uint16_t remote_id;
+	uint32_t local_time;
+	uint32_t remote_time;
+	uint32_t local_start;
+	uint32_t remote_start;
+} timesync_info_t;
 
-	/**
-	 * Send out all data even if the message_t buffer is not full.
-	 */
-	command void flush();
-	
-	/** Just a messy workaround. */
-	command void updateTimeSyncInfo(timesync_info_t* );
-	
-}
+#endif /* TIME_SYNC_INFO_H */

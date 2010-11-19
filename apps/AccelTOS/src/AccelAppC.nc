@@ -31,6 +31,9 @@
 * Author: Ali Baharev
 */
 
+// That is just sloppy
+#include "Timer.h"
+
 configuration AccelAppC {
 	
 }
@@ -39,16 +42,19 @@ implementation {
 
 	components MainC;
 	components AssertC;
+	components TimeSyncMessageC;
 	components AccelAppP;
 	components SimpleFileC;
 	components LedHandlerC;
 	components MeterC;
+	components SyncMsgSenderC;
+	components SyncMsgReceiverC;
 	
 	AccelAppP.Boot -> MainC;	
-	AccelAppP.DiskCtrl -> SimpleFileC;	
+	AccelAppP.DiskCtrl -> SimpleFileC;
+	AccelAppP.TimeSyncMsg -> TimeSyncMessageC.SplitControl;
 	AccelAppP.LedHandler -> LedHandlerC;
 	AccelAppP.Sampling -> MeterC.Sampling;
 	AccelAppP.MeterCtrl -> MeterC.StdControl;
-
+	AccelAppP.SyncMsgCtrl -> SyncMsgSenderC;	
 }
-

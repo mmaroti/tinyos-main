@@ -1,4 +1,4 @@
-/*
+/**
 * Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
@@ -117,7 +117,9 @@ implementation
 	void ready() {
 
 		state = STATE_READY;
-
+		
+		signal SimpleFile.booted(writePos); // Messy workaround
+		
 		signal SplitControl.startDone(SUCCESS);
 	}
 

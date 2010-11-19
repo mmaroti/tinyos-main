@@ -36,18 +36,24 @@ module AccelAppP {
    uses {
    		interface Boot;
 		interface LedHandler;
+		interface SplitControl as TimeSyncMsg;
 		interface SplitControl as DiskCtrl;
 		interface StdControl as MeterCtrl;
 		interface SplitControl as Sampling;
+		interface StdControl as SyncMsgCtrl;
    }
 }
 
 implementation {
 
-	event void Boot.booted(){		
+	event void Boot.booted() {
+		
 		error_t error;
+		
 		call LedHandler.led1On();
+		
 		error = call DiskCtrl.start();
+		
 		if (error) {
 			call LedHandler.error();
 		}
@@ -59,31 +65,56 @@ implementation {
 			call LedHandler.error();
 			return;
 		}
-		error = call MeterCtrl.start();
+		
+		error = call TimeSyncMsg.start();
+		
+		if (error) {
+			call LedHandler.error();
+		}
+	}
+	
+	event void TimeSyncMsg.startDone(error_t error) {
+		
 		if (error) {
 			call LedHandler.error();
 			return;
 		}
+		
+		error = call MeterCtrl.start();
+		
+		if (error) {
+			call LedHandler.error();
+			return;
+		}
+		
 		error = call Sampling.start();
+		
 		if (error) {
 			call LedHandler.error();
 		}
 	}
 
-	event void Sampling.startDone(error_t error){
+	event void Sampling.startDone(error_t error) {
+		
 		if (error) {
 			call LedHandler.error();
 			return;
 		}
+		
+		call SyncMsgCtrl.start();
+		
 		call LedHandler.led1Off();
 	}
 
-	event void DiskCtrl.stopDone(error_t error){
+	event void DiskCtrl.stopDone(error_t error) {
 		call LedHandler.error();
 	}
 
-	event void Sampling.stopDone(error_t error){
+	event void Sampling.stopDone(error_t error) {
+		call LedHandler.error();
+	}
+
+	event void TimeSyncMsg.stopDone(error_t error) {
 		call LedHandler.error();
 	}
 }
-
