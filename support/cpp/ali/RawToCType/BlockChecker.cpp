@@ -63,9 +63,6 @@ void BlockChecker::set_current_header(BlockIterator& i, int offset) {
 
 	header = Header(i);
 	block_offset = offset;
-
-	clog << "Offset: " << offset << endl;
-	clog << "Header:" << endl << header << endl;
 }
 
 void BlockChecker::mote_id() const {

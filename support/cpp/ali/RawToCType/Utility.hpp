@@ -42,7 +42,7 @@ const std::string ticks2time(unsigned int t);
 
 const std::string current_time();
 
-const std::string time_to_filename();
+const std::string time_to_filename(); // TODO Do we need this function?
 
 const std::string recorded_length(int first_block, int last_block);
 

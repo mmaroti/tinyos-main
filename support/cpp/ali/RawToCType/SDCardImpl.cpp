@@ -150,7 +150,6 @@ void SDCardImpl::create_new_file() {
 
 	os << 'm' << setfill('0') << setw(3) << tracker->mote_id() << '_';
 	os << 'r' << setfill('0') << setw(3) << reboot_seq_num << '_';
-	os << time_to_filename() << '_';
 	os << 's' << block_offset << ".csv" << flush;
 
 	out->open(os.str().c_str());
