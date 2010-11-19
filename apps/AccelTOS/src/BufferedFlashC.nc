@@ -7,8 +7,10 @@ configuration BufferedFlashC {
 // FIXME Code duplication! BufferedFlashP already inconsistent with BufferedSendP
 implementation{
 	
-	components BufferedFlashP, SimpleFileC;
+	components BufferedFlashP, SimpleFileC, LedHandlerC, DiagMsgC;
 	
 	BufferedFlash = BufferedFlashP;
+	BufferedFlashP.LedHandler -> LedHandlerC;
 	BufferedFlashP.SimpleFile -> SimpleFileC;
+	BufferedFlashP.DiagMsg -> DiagMsgC;
 }

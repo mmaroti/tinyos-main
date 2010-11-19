@@ -44,6 +44,8 @@ module BufferedFlashP
 	uses
 	{
 		interface SimpleFile;
+		interface LedHandler;
+		interface DiagMsg;
 	}
 }
 
@@ -69,6 +71,22 @@ implementation
 	uint8_t pending;	// the number of full messages
 	bool sending; // FIXME Guards what? messages?
 	
+	void dumpUint32(char* msg, uint32_t i) {
+		if( call DiagMsg.record() ) {
+			call DiagMsg.str(msg);
+			call DiagMsg.uint32(i);
+			call DiagMsg.send();
+		}		
+	}
+	
+	void dumpPending(uint16_t line) {
+		if( call DiagMsg.record() ) {
+			call DiagMsg.uint16(line);
+			call DiagMsg.uint8(pending);
+			call DiagMsg.send();
+		}		
+	}
+	
 	// TODO Implement these two with memset and memcpy?
 	event void SimpleFile.booted(uint32_t starting_at_block) {
 		
@@ -84,11 +102,14 @@ implementation
 		timesync_info.local_time   = data->local_time;
 		timesync_info.remote_id    = data->remote_id;
 		timesync_info.remote_start = data->remote_start;
-		timesync_info.remote_time  = data->remote_time;	
+		timesync_info.remote_time  = data->remote_time;
+		call LedHandler.led2Off();
 	}
 
 	task void sendMessage()
 	{
+		dumpPending(__LINE__);
+		
 		if( ! sending && pending > 0 )
 		{
 			int8_t first = current - pending;
@@ -104,6 +125,9 @@ implementation
 
 	command error_t BufferedFlash.send(void *data, uint8_t length)
 	{
+		//dumpUint32("start", timesync_info.local_start);
+		//dumpPending(__LINE__);
+		
 		if( pending >= BUFFER_SIZE )
 			return EBUSY;
 			
@@ -137,6 +161,8 @@ implementation
 			--pending;
 		else
 			post sendMessage();
+			
+		dumpPending(__LINE__);
 	}
 
 	command void BufferedFlash.flush()
@@ -152,6 +178,7 @@ implementation
 
 			++pending;
 			post sendMessage();
+			dumpPending(__LINE__);
 		}
 	}
 
