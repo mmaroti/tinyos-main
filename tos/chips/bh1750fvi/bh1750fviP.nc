@@ -82,9 +82,13 @@ implementation {
       //call I2CPacket.write(I2C_START | I2C_STOP, WRITE_ADDRESS, 1, POWER_ON);
      // signal SplitControl.startDone(SUCCESS);
     } else if(state == S_BUSY) {
+       unsigned int i;
        error_t err;
         call Leds.led0On();
         err=call I2CPacket.read(I2C_START | I2C_STOP, READ_ADDRESS, 2, res);
+        
+          for(i=0; i<65535; i++)
+            asm volatile ("nop"::);
         if(call DiagMsg.record()){
 	    call DiagMsg.str("P.firBUS");
             call DiagMsg.uint8(state);
@@ -98,7 +102,7 @@ implementation {
         }
       //signal Light.readDone(error, result);
     } else if(state == S_STARTING) {
-        uint8_t cmd=0x10;
+        uint8_t cmd=0x20;
         error_t err;
       atomic state= S_ON;
         err=call I2CPacket.write(I2C_START | I2C_STOP, WRITE_ADDRESS, 1, &cmd);
@@ -141,7 +145,7 @@ implementation {
   task void startTimeout() {
     if(state == S_ON) call Timer.startOneShot(TIMEOUT_H_RES);//signal SplitControl.startDone(SUCCESS);
     else if(state == S_STARTING) call Timer.startOneShot(11);
-    //if(state == S_BUSY) call Timer.startOneShot(TIMEOUT_H_RES);
+    else if(state == S_BUSY) call Timer.startOneShot(TIMEOUT_H_RES);
   }
 
   async event void I2CPacket.writeDone(error_t error, uint16_t addr, uint8_t length, uint8_t* data) {
@@ -162,11 +166,11 @@ implementation {
       }
     } else if(state == S_BUSY) {
  error_t err;
-      //uint8_t cmd=0x10;
-      //call I2CPacket.write(I2C_START | I2C_STOP, WRITE_ADDRESS, 1, &cmd);
+      uint8_t cmd=0x01;
+      call I2CPacket.write(I2C_START | I2C_STOP, WRITE_ADDRESS, 1, &cmd);
       //call I2CPacket.read(I2C_START | I2C_STOP, WRITE_ADDRESS, 2, res);
       
-call Timer.startOneShot(TIMEOUT_H_RES);
+//call Timer.startOneShot(TIMEOUT_H_RES);
 /*err=call I2CPacket.read(I2C_START | I2C_STOP, READ_ADDRESS, 2, res);
       if(call DiagMsg.record()){
 	    call DiagMsg.str("P.granted");

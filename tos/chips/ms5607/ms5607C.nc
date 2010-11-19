@@ -14,4 +14,10 @@ implementation {
   ms5607P.I2CResource -> HplMs5607C.Resource;
 
   SplitControl = ms5607P;
+
+  components DiagMsgC;
+  ms5607P.DiagMsg -> DiagMsgC;
+
+  components LedsC;
+  ms5607P.Leds -> LedsC;
 }

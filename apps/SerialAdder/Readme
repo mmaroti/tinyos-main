@@ -1,0 +1,10 @@
+This application is to transmit two integer numbers via serial pc-eo-mote
+connection. The mote sums up those and passes back the result to pc via
+serial connection.
+
+usage:
+install on mote: make <platform> install
+
+on pc: java TestSerial -comm serial@<port:speed>
+
+by szabomeister /Zsolt Szabo/

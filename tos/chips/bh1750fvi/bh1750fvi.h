@@ -14,8 +14,8 @@ enum {
 } bh1750fviCommand;
 
 enum {
-  TIMEOUT_H_RES =       120, // max 180
-  TIMEOUT_H2_RES=       120, // max 180
+  TIMEOUT_H_RES =       180, // max 180
+  TIMEOUT_H2_RES=       180, // max 180
   TIMEOUT_L_RES =        16, // max 24
 } bh1750fviTimeout;
 

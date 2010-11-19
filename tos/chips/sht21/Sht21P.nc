@@ -127,7 +127,7 @@ implementation {
 
   event void Timer.fired() {
     if(state==S_OFF) {
-      atomic state==S_ON;
+      atomic state=S_ON;
       signal SplitControl.startDone(SUCCESS);
     }
     else if(state==S_STARTING){
