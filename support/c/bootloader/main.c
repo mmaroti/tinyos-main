@@ -4,9 +4,9 @@
 *
 * File              : main.c
 * Compiler          : IAR C 3.10C Kickstart, AVR-GCC/avr-libc(>= 1.2.5)
-* Revision          : $Revision: 1.5 $
-* Date              : $Date: 2010-10-14 16:35:59 $
-* Updated by        : $Author: szabomeister $
+* Revision          : $Revision: 1.6 $
+* Date              : $Date: 2010-11-19 14:57:44 $
+* Updated by        : $Author: andrasbiro $
 *
 * Support mail      : avr@atmel.com
 *
@@ -24,9 +24,17 @@
 *                 defines.h file and linker-file code-segment definition for
 *                 the device you are compiling for.
 ****************************************************************************/
+#ifdef _ATMEGA1281
+  #define F_CPU 8000000
+#else
+  #define F_CPU 16000000
+#endif
+
 #include "defines.h"
 #include "serial.h"
 #include "flash.h"
+#include "util/delay.h"
+
 
 /* Uncomment the following to save code space */
 //#define REMOVE_AVRPROG_SUPPORT
@@ -58,14 +66,37 @@ void status(int);
 #define BLOCKSIZE PAGESIZE
 
 #endif /* REMOVE_BLOCK_SUPPORT */
+#define TIMEOUT 20
+int timeout=TIMEOUT;
 
-int timeout=100;
+void exitbl(){
+	void (*funcptr)( void ) = 0x0000; // Set up function pointer to RESET vector.
+	int i;
+	#ifdef _ATMEGA1281
+	PORTA&=~((1<<0)|(1<<1)|(1<<2));
+	#else
+	PORTE&=~((1<<3)|(1<<5)|(1<<6)|(1<<7));
+	#endif
+	for(i=0;i<3;i++){
+	  _delay_ms(100);
+	  #ifdef _ATMEGA1281
+	  PORTA|=(1<<0)|(1<<1)|(1<<2);
+	  _delay_ms(100);
+	  PORTA&=~((1<<0)|(1<<1)|(1<<2));
+	  #else
+	  PORTE|=(1<<3)|(1<<5)|(1<<6)|(1<<7);
+	  _delay_ms(100);
+	  PORTE&=~((1<<3)|(1<<5)|(1<<6)|(1<<7));
+	  #endif
+     }
+     funcptr();
+}
 
-void main(void)
+int main(void)
 {
     ADDR_T address;
     
-    unsigned int temp_int;
+    unsigned int temp_int=0;
     unsigned char val;
 	#ifdef _ATMEGA1281
 	DDRA |= _BV(2);
@@ -73,6 +104,7 @@ void main(void)
 	DDRA |= _BV(0);
 	PORTA = 7;
 	#else
+	DDRE |= _BV(3);
 	DDRE |= _BV(5);
 	DDRE |= _BV(6);
 	DDRE |= _BV(7);
@@ -83,17 +115,18 @@ void main(void)
     /* Initialization */   
     
     
-    
-    void (*funcptr)( void ) = 0x0000; // Set up function pointer to RESET vector.
     initbootuart(); // Initialize UART.
     blinker = 0;
 
+
+    
     /* Branch to bootloader or application code? */
     //if( !(PROGPIN & (1<<PROG_NO)) ) // If PROGPIN is pulled low, enter programmingmode.
-//      for(;;)
-//      {
-//        sendchar('A');
-//      }
+      for(;;)
+//       {
+// 		//initbootuart();
+//         sendchar('s');
+//       }
 //        /* Main loop */
         for(;;)
         {
@@ -122,6 +155,7 @@ void main(void)
             // Chip erase.
             else if(val=='e')
             {  
+		timeout=100;
 		#ifdef _ATMEGA1281
 		PORTA = 7;
 		PORTA &= ~(_BV(PA2));
@@ -309,7 +343,7 @@ void main(void)
                 _WAIT_FOR_SPM();        
                 _ENABLE_RWW_SECTION();
                 sendchar('\r');
-                funcptr(); // Jump to Reset vector 0x0000 in Application Section.
+                exitbl(); // Jump to Reset vector 0x0000 in Application Section.
             }
 
     
@@ -374,7 +408,7 @@ void main(void)
               {
                 _WAIT_FOR_SPM();        
                 _ENABLE_RWW_SECTION();
-                funcptr(); // Jump to Reset vector 0x0000 in Application Section.
+                exitbl(); // Jump to Reset vector 0x0000 in Application Section.
               }
               else
               {
@@ -393,23 +427,49 @@ void main(void)
 
 
 void status(int timeout)
+
 {
-	unsigned char remnant,d4,shift;
-	remnant = timeout / 10 + 1;
 	#ifdef _ATMEGA1281
-	PORTA |=7;
-	PORTA &= (~remnant);
+	if(timeout>2*TIMEOUT/3){
+	  PORTA|=(1<<0)|(1<<1)|(1<<2);
+	}else if(timeout>TIMEOUT/3){
+	  PORTA|=(1<<1)|(1<<2);
+	  PORTA&=~(1<<0);
+	}else{
+	  PORTA|=(1<<2);
+	  PORTA&=~((1<<0)|(1<<1));
+	}
 	#else
-          d4    = remnant & 1;
-          d4    = d4 << 3;
-          shift = remnant & 0xFE;
-          shift = shift << 4;
-          if (d4)
-            shift |= d4;
-	PORTE =0x00;
-	//PORTE |= (remnant<<5);
-        PORTE |= shift;
+	if(timeout>3*TIMEOUT/4){
+	  PORTE|=(1<<3)|(1<<5)|(1<<6)|(1<<7);
+	}else if(timeout>2*TIMEOUT/4){
+	  PORTE|=(1<<5)|(1<<6)|(1<<7);
+	  PORTE&=~(1<<3);
+	}else if(timeout>TIMEOUT/4){
+	  PORTE|=(1<<5)|(1<<6);
+	  PORTE&=~((1<<3)|(1<<7));
+	}else{
+	  PORTE|=(1<<5);
+	  PORTE&=~((1<<3)|(1<<6)|(1<<7));
+	}
 	#endif
+	
+// 	unsigned char remnant,d4,shift;
+// 	remnant = timeout / 10 + 1;
+// 	#ifdef _ATMEGA1281
+// 	PORTA |=7;
+// 	PORTA &= (~remnant);
+// 	#else
+//           d4    = remnant & 1;
+//           d4    = d4 << 3;
+//           shift = remnant & 0xFE;
+//           shift = shift << 4;
+//           if (d4)
+//             shift |= d4;
+// 	PORTE =0x00;
+// 	//PORTE |= (remnant<<5);
+//         PORTE |= shift;
+// 	#endif
 }
 
 #ifndef REMOVE_BLOCK_SUPPORT

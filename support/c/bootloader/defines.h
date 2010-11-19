@@ -5,10 +5,6 @@
 #define	_B4096	// boot size select: _Bxxxx (words), powers of two only
 #include	<avr/io.h>
 
-/* baud rate register value calculation */
-#define	CPU_FREQ	8000000
-//#define	BAUD_RATE	19200
-
 
 /* definitions for UART control */
 #ifdef _ATMEGA1281
