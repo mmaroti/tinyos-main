@@ -4,9 +4,9 @@
 *
 * File              : main.c
 * Compiler          : IAR C 3.10C Kickstart, AVR-GCC/avr-libc(>= 1.2.5)
-* Revision          : $Revision: 1.7 $
-* Date              : $Date: 2010-11-19 17:13:55 $
-* Updated by        : $Author: andrasbiro $
+* Revision          : $Revision: 1.8 $
+* Date              : $Date: 2010-11-19 22:43:58 $
+* Updated by        : $Author: szabomeister $
 *
 * Support mail      : avr@atmel.com
 *
@@ -155,7 +155,7 @@ int main(void)
 		PORTA &= ~(_BV(PA2));
 		#else
 		PORTE =0;
-		PORTE |= _BV(PE7);
+		PORTE = _BV(PE7);
 		#endif
 
                 for(address = 0; address < APP_END;address += PAGESIZE)
