@@ -148,13 +148,18 @@ implementation
 		if (rem==0) {
 			call LedHandler.led2On();
 		}
-		else if (rem==10) {
+		else if (rem==50) {
 			call LedHandler.led2Off();
 		}
 
 		error = call BufferedFlash.send(data, 2*length);
 		
-		ASSERT(error==SUCCESS);
+		if (error==EBUSY) {
+			dump("BF_EBUSY");
+		}
+		else if (error==FAIL) {
+			dump("BF_FAIL");
+		}
 	}
 
 	task void signalStartDone() {
@@ -165,7 +170,7 @@ implementation
 	command error_t Sampling.start(){
 
 		// It can only fail if the previous sampling is not shut down.
-		error_t error = call ShimmerAdc.sample(160);
+		error_t error = call ShimmerAdc.sample(110);
 		
 		if (!error)
 			post signalStartDone();

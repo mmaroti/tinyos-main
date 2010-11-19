@@ -54,7 +54,7 @@ implementation
 {
 	enum
 	{
-		BUFFER_SIZE = 2,
+		BUFFER_SIZE = 3,
 		MAX_DATA_LENGTH = 506 // FIXME It should not know this implementation detail
 	};
 	
@@ -71,7 +71,7 @@ implementation
 	uint16_t position;	// the write position in the current buffer
 	uint8_t pending;	// the number of full messages
 	bool sending; // FIXME Guards what? messages?
-	
+/*	
 	void dumpUint32(char* msg, uint32_t i) {
 		if( call DiagMsg.record() ) {
 			call DiagMsg.str(msg);
@@ -87,7 +87,7 @@ implementation
 			call DiagMsg.send();
 		}		
 	}
-	
+*/	
 	// TODO Implement these two with memset and memcpy?
 	event void SimpleFile.booted(uint32_t starting_at_block) {
 		
@@ -120,6 +120,11 @@ implementation
 			int8_t first = current - pending;
 			if( first < 0 )
 				first += BUFFER_SIZE;
+				
+			if (first < 0 || first >= BUFFER_SIZE) {
+				ASSERT(FALSE);
+				return;	
+			}
 
 			if( call SimpleFile.append(messages[first].data, messages[first].length) == SUCCESS )
 				sending = TRUE;
@@ -127,7 +132,7 @@ implementation
 				post sendMessage();
 		}
 		
-		dumpPending(__LINE__);
+		//dumpPending(__LINE__);
 	}
 
 	command error_t BufferedFlash.send(void *data, uint8_t length)
@@ -146,15 +151,24 @@ implementation
 		{
 			call BufferedFlash.flush(); // Just posts a task and increments current
 
-			if( pending >= BUFFER_SIZE )
-				return FAIL;
+			if( pending == BUFFER_SIZE )
+				return EBUSY;
 		}
 		
-		//if (position==0) {
-		//	memcpy(messages[current].data, &timesync_info, sizeof(timesync_info));
-		//	position += sizeof(timesync_info);
-		//}
+		if (current >= BUFFER_SIZE) {
+			ASSERT(FALSE);
+			return FAIL;	
+		}
+		
 
+		if (position==0) {
+			memcpy(messages[current].data, &timesync_info, sizeof(timesync_info));
+			position += sizeof(timesync_info);
+		}
+		
+		// FIXME Should properly check if the size of buffer is enough		
+		ASSERT(position+length<=MAX_DATA_LENGTH);
+		
 		memcpy(messages[current].data + position, data, length);
 		position += length;
 
@@ -177,7 +191,7 @@ implementation
 			ASSERT(pending<=BUFFER_SIZE);
 		}
 		
-		dumpPending(__LINE__);
+		//dumpPending(__LINE__);
 	}
 
 	command void BufferedFlash.flush()
@@ -187,6 +201,12 @@ implementation
 		
 		if( position > 0 )
 		{
+			
+			if (current >= BUFFER_SIZE) {
+				ASSERT(FALSE);
+				return;	
+			}
+			
 			// store the length
 			messages[current].length = position;
 
@@ -198,7 +218,7 @@ implementation
 			post sendMessage();
 		}
 		
-		dumpPending(__LINE__);
+		//dumpPending(__LINE__);
 	}
 
 	event void SimpleFile.formatDone(error_t error){

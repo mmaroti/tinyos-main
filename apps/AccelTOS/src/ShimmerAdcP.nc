@@ -61,7 +61,7 @@ implementation
 	enum
 	{
 		SAMPLE_COUNT = 16,	// the maximum number of channels
-		QUEUESIZE    = 512
+		QUEUESIZE    = 770
 	};
 
 	uint16_t dt = 160; // 204.8 Hz

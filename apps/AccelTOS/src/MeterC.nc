@@ -61,7 +61,7 @@ implementation
 	MeterP.Gyro -> Idg300C;
 
     // FIXME Turn off the disc? (Data corruption)
-	components BufferedFlashP; // FIXME Move these to a new configuration!!!
-	MeterP.BufferedFlash -> BufferedFlashP;
-	BufferedFlashP.SimpleFile -> SimpleFileC;
+	components BufferedFlashC;
+	MeterP.BufferedFlash -> BufferedFlashC;
+
 }
