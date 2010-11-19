@@ -86,12 +86,6 @@ implementation
 		timesync_info.remote_start = data->remote_start;
 		timesync_info.remote_time  = data->remote_time;	
 	}
-	
-	void writeTimeSyncInfo() {
-
-		memcpy(messages[current].data + position, &timesync_info, sizeof(timesync_info));
-		position += sizeof(timesync_info);
-	}
 
 	task void sendMessage()
 	{
@@ -121,8 +115,10 @@ implementation
 				return FAIL;
 		}
 		
-		//if (position==0)
-		//	writeTimeSyncInfo();
+		//if (position==0) {
+		//	memcpy(messages[current].data, &timesync_info, sizeof(timesync_info));
+		//	position += sizeof(timesync_info);
+		//}
 
 		memcpy(messages[current].data + position, data, length);
 		position += length;
