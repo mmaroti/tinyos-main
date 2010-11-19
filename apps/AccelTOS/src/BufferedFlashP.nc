@@ -113,9 +113,6 @@ implementation
 		if( pending >= BUFFER_SIZE )
 			return EBUSY;
 			
-		if (position==0)
-			writeTimeSyncInfo();
-
 		if( position + length > MAX_DATA_LENGTH )
 		{
 			call BufferedFlash.flush(); // Just posts a task and increments current
@@ -123,6 +120,9 @@ implementation
 			if( pending >= BUFFER_SIZE )
 				return FAIL;
 		}
+		
+		//if (position==0)
+		//	writeTimeSyncInfo();
 
 		memcpy(messages[current].data + position, data, length);
 		position += length;
