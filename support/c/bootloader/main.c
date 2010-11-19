@@ -4,8 +4,8 @@
 *
 * File              : main.c
 * Compiler          : IAR C 3.10C Kickstart, AVR-GCC/avr-libc(>= 1.2.5)
-* Revision          : $Revision: 1.6 $
-* Date              : $Date: 2010-11-19 14:57:44 $
+* Revision          : $Revision: 1.7 $
+* Date              : $Date: 2010-11-19 17:13:55 $
 * Updated by        : $Author: andrasbiro $
 *
 * Support mail      : avr@atmel.com
@@ -114,7 +114,7 @@ int main(void)
 
     /* Initialization */   
     
-    
+    //_delay_ms(2000);
     initbootuart(); // Initialize UART.
     blinker = 0;
 
@@ -122,16 +122,10 @@ int main(void)
     
     /* Branch to bootloader or application code? */
     //if( !(PROGPIN & (1<<PROG_NO)) ) // If PROGPIN is pulled low, enter programmingmode.
-      for(;;)
-//       {
-// 		//initbootuart();
-//         sendchar('s');
-//       }
-//        /* Main loop */
         for(;;)
         {
             val=recchar(); // Wait for command character.
-		status(timeout);
+			status(timeout);
             // Check autoincrement status.
             if(val=='a')
             {
@@ -169,7 +163,7 @@ int main(void)
                     _WAIT_FOR_SPM();        
                     _PAGE_ERASE( address );
                 }
-		
+                _delay_ms(1);//if write the program just after we erased the flash, sometimes the first few byte is wrong
                 sendchar('\r'); // Send OK back.
 		#ifdef _ATMEGA1281
                 PORTA = 7;
@@ -251,7 +245,6 @@ int main(void)
                     _WAIT_FOR_SPM();      
                     _PAGE_WRITE( address << 1 ); // Convert word-address to byte-address and write.
                 }
-
                 sendchar('\r'); // Send OK back.
             }
 #endif /* REMOVE_FLASH_BYTE_SUPPORT */
@@ -453,23 +446,6 @@ void status(int timeout)
 	  PORTE&=~((1<<3)|(1<<6)|(1<<7));
 	}
 	#endif
-	
-// 	unsigned char remnant,d4,shift;
-// 	remnant = timeout / 10 + 1;
-// 	#ifdef _ATMEGA1281
-// 	PORTA |=7;
-// 	PORTA &= (~remnant);
-// 	#else
-//           d4    = remnant & 1;
-//           d4    = d4 << 3;
-//           shift = remnant & 0xFE;
-//           shift = shift << 4;
-//           if (d4)
-//             shift |= d4;
-// 	PORTE =0x00;
-// 	//PORTE |= (remnant<<5);
-//         PORTE |= shift;
-// 	#endif
 }
 
 #ifndef REMOVE_BLOCK_SUPPORT
