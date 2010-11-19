@@ -45,8 +45,8 @@ implementation {
     call POWER.set();
 
     call TemphumSplit.start();
-    call LightSplit.start();
-    call PressureSplit.start();
+    //call LightSplit.start();
+    //call PressureSplit.start();
     return SUCCESS;
   }
 

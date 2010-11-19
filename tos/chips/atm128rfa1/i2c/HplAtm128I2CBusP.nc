@@ -1,4 +1,4 @@
-/// $Id: HplAtm128I2CBusP.nc,v 1.1 2010-11-10 15:16:55 szabomeister Exp $
+/// $Id: HplAtm128I2CBusP.nc,v 1.2 2010-11-19 22:55:12 szabomeister Exp $
 
 /*
  *  Copyright (c) 2004-2005 Crossbow Technology, Inc.
@@ -32,7 +32,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define F_CPU       7372800
+#define F_CPU       16000000
 
 #include "Atm128I2C.h"
 
@@ -44,7 +44,7 @@
  * @author Martin Turon <mturon@xbow.com>
  * @author Philip Levis
  *
- * @version $Id: HplAtm128I2CBusP.nc,v 1.1 2010-11-10 15:16:55 szabomeister Exp $
+ * @version $Id: HplAtm128I2CBusP.nc,v 1.2 2010-11-19 22:55:12 szabomeister Exp $
  */
 module HplAtm128I2CBusP {
   provides interface HplAtm128I2CBus as I2C;
@@ -52,6 +52,7 @@ module HplAtm128I2CBusP {
   uses {
     interface GeneralIO as I2CClk;
     interface GeneralIO as I2CData;
+    interface DiagMsg;
   }
 }
 implementation {
@@ -69,7 +70,7 @@ implementation {
     call I2CData.makeInput();
     TWSR = 0;                             // set prescaler == 0
     TWBR = (F_CPU / 50000UL - 16) / 2;   // set I2C baud rate
-    //TWBR = 50;
+    //TWBR = 200;
     TWAR = 0;
     TWCR = 0;
   }
@@ -85,6 +86,12 @@ implementation {
 
   async command void I2C.sendCommand() {
     atomic TWCR = current;
+     /*if(call DiagMsg.record()){
+			call DiagMsg.str("Hpl.seComm");
+			call DiagMsg.uint8(current);
+      call DiagMsg.uint8(TWCR);
+			call DiagMsg.send();
+		}*/
   }
 
   async command void I2C.readCurrent() {
