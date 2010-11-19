@@ -22,7 +22,7 @@ void init() {
 			;
 		now = TCNT1;
 
-		while( TCNT2 != 128 )	// wait 128/32768 = 4/1024 sec
+		while( TCNT2 != 64 )	// wait 64/32768 = 2/1024 sec
 			;
 
 		cycles = TCNT1;
@@ -40,7 +40,7 @@ int baudrateRegister(uint32_t baudrate) {
 	
 	init();
 
-	// we use the fast setting: (cycles * (1024/4)) / (8 * baudrate) - 1
-	return (((uint32_t)cycles) << 5) / ((uint32_t)baudrate) - 1;
+	// we use the fast setting: (cycles * (1024/2)) / (8 * baudrate) - 1
+	return (((uint32_t)cycles) << 6) / ((uint32_t)baudrate) - 1;
 }
 
