@@ -32,6 +32,7 @@
 * Author: Miklos Maroti
 */
 
+#include "Assert.h"
 #include "TimeSyncInfo.h"
 
 module BufferedFlashP
@@ -108,7 +109,11 @@ implementation
 
 	task void sendMessage()
 	{
-		dumpPending(__LINE__);
+
+		if (pending > BUFFER_SIZE) {
+			ASSERT(FALSE);
+			return;
+		}
 		
 		if( ! sending && pending > 0 )
 		{
@@ -121,14 +126,20 @@ implementation
 			else
 				post sendMessage();
 		}
+		
+		dumpPending(__LINE__);
 	}
 
 	command error_t BufferedFlash.send(void *data, uint8_t length)
 	{
-		//dumpUint32("start", timesync_info.local_start);
 		//dumpPending(__LINE__);
 		
-		if( pending >= BUFFER_SIZE )
+		if (pending > BUFFER_SIZE) {
+			ASSERT(FALSE);
+			return FAIL;
+		}
+		
+		if( pending == BUFFER_SIZE )
 			return EBUSY;
 			
 		if( position + length > MAX_DATA_LENGTH )
@@ -157,16 +168,23 @@ implementation
 		
 		sending = FALSE;
 	
-		if( error == SUCCESS )
+		if( error == SUCCESS ) {
 			--pending;
-		else
+			ASSERT(pending<BUFFER_SIZE);
+		}
+		else {
 			post sendMessage();
-			
+			ASSERT(pending<=BUFFER_SIZE);
+		}
+		
 		dumpPending(__LINE__);
 	}
 
 	command void BufferedFlash.flush()
 	{
+		
+		ASSERT(pending<BUFFER_SIZE);
+		
 		if( position > 0 )
 		{
 			// store the length
@@ -178,8 +196,9 @@ implementation
 
 			++pending;
 			post sendMessage();
-			dumpPending(__LINE__);
 		}
+		
+		dumpPending(__LINE__);
 	}
 
 	event void SimpleFile.formatDone(error_t error){
