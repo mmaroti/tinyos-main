@@ -50,6 +50,7 @@ module SyncMsgSenderP {
    		interface LocalTime<TMilli>;
    		interface TimeSyncAMSend<TMilli, uint32_t>;
    		interface Packet;
+   		interface LedHandler;
    		interface SimpleFile;
 	}
 }
@@ -110,6 +111,7 @@ implementation {
 		
 		if (error==SUCCESS) {
 			busy = TRUE;
+			call LedHandler.led1On();
 		}
 		
 		ASSERT(!error);
@@ -118,7 +120,7 @@ implementation {
 	event void TimeSyncAMSend.sendDone(message_t *msg, error_t error) {
 		
 		busy = FALSE;
-		
+		call LedHandler.led1Off();
 		ASSERT(&pkt==msg);
 		
 		ASSERT(!error);

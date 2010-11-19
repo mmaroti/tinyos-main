@@ -44,6 +44,7 @@ implementation {
 	components CounterMilli32C as Counter;
 	components new CounterToLocalTimeC(TMilli);
 	components TimeSyncMessageC;
+	components LedHandlerC;
 	components SimpleFileC;
 	components SyncMsgSenderP;
 	
@@ -52,6 +53,7 @@ implementation {
 	SyncMsgSenderP.LocalTime -> CounterToLocalTimeC;
 	SyncMsgSenderP.TimeSyncAMSend -> TimeSyncMessageC.TimeSyncAMSendMilli[AM_SYNCMSG];
 	SyncMsgSenderP.Packet -> TimeSyncMessageC;
+	SyncMsgSenderP.LedHandler -> LedHandlerC;
 	SyncMsgSenderP.SimpleFile -> SimpleFileC;
 	StdControl = SyncMsgSenderP;
 }

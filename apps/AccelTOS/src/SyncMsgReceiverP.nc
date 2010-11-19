@@ -42,7 +42,7 @@ module SyncMsgReceiverP {
 		interface Receive;
 		interface AMPacket;
 		interface TimeSyncPacket<TMilli, uint32_t>;
-		interface Leds;
+		interface LedHandler;
 		interface BufferedFlash;
 	}
 }
@@ -59,10 +59,10 @@ implementation {
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len) {
 		
 		SyncMsg* data = 0;
+			
+		call LedHandler.led2On();
 		
 		ASSERT(len==PAYLOAD_LENGTH);
-		
-		call Leds.led2Toggle();
 		
 		if (call TimeSyncPacket.isValid(msg)) {
 						
