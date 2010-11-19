@@ -1,4 +1,4 @@
-
+//#include "util/delay.h"
 #include "defines.h"
 
 // number of CPU cycles per 1/1024 sec
@@ -8,8 +8,9 @@ uint16_t cycles;
 void init() {
 	uint8_t wraps;
 	uint16_t now;
-
+	
 	/* Setup timer2 to at 32768 Hz, and timer1 cpu cycles */
+	
 	TCCR1B = 1 << CS10;
 	ASSR = 1 << AS2;
 	TCCR2B = 1 << CS20;
@@ -19,16 +20,15 @@ void init() {
 	{
 		while( TCNT2 != 0 )
 			;
-
 		now = TCNT1;
 
-		while( TCNT2 != 32 )	// wait 32/32768 = 1/1024 sec
+		while( TCNT2 != 128 )	// wait 128/32768 = 4/1024 sec
 			;
 
 		cycles = TCNT1;
-	}
 
-	cycles -= now;
+	}
+	cycles-=now;
 
 	/* Reset to boot state */
 	TCCR1B = 0;
@@ -37,9 +37,10 @@ void init() {
 }
 
 int baudrateRegister(uint32_t baudrate) {
+	
 	init();
 
-	// we use the fast setting: (cycles * 1024) / (8 * baudrate) - 1
-	return (((uint32_t)cycles) << 7) / ((uint32_t)baudrate) - 1;
+	// we use the fast setting: (cycles * (1024/4)) / (8 * baudrate) - 1
+	return (((uint32_t)cycles) << 5) / ((uint32_t)baudrate) - 1;
 }
 
