@@ -66,14 +66,14 @@ final class Sender {
 
 final class Receiver implements MessageListener {
 	
-	private final Sender s;
+//	private final Sender s;
 
     private final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	
 	int counter = 0;
 	
 	Receiver(Sender s) {
-		this.s = s;
+//		this.s = s;
 	}
 
 	@Override
@@ -101,16 +101,16 @@ public final class AccelPC {
 
 	private static final short ALTERING      = 0;
 	private static final short CONTINUOUS    = 1;
-	//private static final short FORMAT        = 2;
+	private static final short FORMAT        = 2;
 	private static final short STARTSAMPLING = 5;
-	//private static final short STOPSAMPLING  = 6;
+	private static final short STOPSAMPLING  = 6;
 	private static final short SENDSAMPLES   = 7;
-	private static final short RADIOOFF      = 8;
+//	private static final short RADIOOFF      = 8;
 
 	public AccelPC(MoteIF mif) {
 		s = new Sender(mif);
 		r = new Receiver(s);
-		mif.registerListener(new ReportMsg(), r); // FIXME Escape of this...
+		mif.registerListener(new ReportMsg(), r);
 		mif.registerListener(new DataMsg(), r);
 	}
 
