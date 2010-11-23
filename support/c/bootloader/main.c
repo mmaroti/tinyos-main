@@ -40,8 +40,8 @@
 //#define REMOVE_AVRPROG_SUPPORT
 //#define REMOVE_FUSE_AND_LOCK_BIT_SUPPORT
 //#define REMOVE_BLOCK_SUPPORT
-//#define REMOVE_EEPROM_BYTE_SUPPORT
-//#define REMOVE_FLASH_BYTE_SUPPORT
+#define REMOVE_EEPROM_BYTE_SUPPORT
+#define REMOVE_FLASH_BYTE_SUPPORT
 
 /*
  * GCC doesn't optimize long int arithmetics very clever.  As the
@@ -169,7 +169,7 @@ int main(void)
                     _WAIT_FOR_SPM();        
                     _PAGE_ERASE( address );
                 }
-                _delay_ms(2);//if write the program just after we erased the flash, sometimes the first few byte is wrong
+                _delay_ms(5);//if write the program just after we erased the flash, sometimes the first few byte is wrong
                 sendchar('\r'); // Send OK back.
 		#ifdef _ATMEGA1281
                 PORTA = 7;
@@ -501,8 +501,8 @@ unsigned char BlockLoad(unsigned int size, unsigned char mem, ADDR_T *address)
             (*address)+=2; // Select next word in memory.
             size -= 2; // Reduce number of bytes to write by two.
         } while(size); // Loop until all bytes written.
-		//bootloader protection. TODO: it doesn't allow to write the last 4 bytes (2 words)
-		if(((*address)>>1)>=APP_END)
+		//bootloader protection.
+		if(((*address)>>1)>APP_END)
 			return '?';
 
 		_PAGE_WRITE(tempaddress);
