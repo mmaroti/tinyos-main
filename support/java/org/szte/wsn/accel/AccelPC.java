@@ -101,9 +101,9 @@ public final class AccelPC {
 
 	private static final short ALTERING      = 0;
 	private static final short CONTINUOUS    = 1;
-	private static final short FORMAT        = 2;
+	//private static final short FORMAT        = 2;
 	private static final short STARTSAMPLING = 5;
-	private static final short STOPSAMPLING  = 6;
+	//private static final short STOPSAMPLING  = 6;
 	private static final short SENDSAMPLES   = 7;
 	private static final short RADIOOFF      = 8;
 
