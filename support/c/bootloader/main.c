@@ -501,13 +501,13 @@ unsigned char BlockLoad(unsigned int size, unsigned char mem, ADDR_T *address)
             (*address)+=2; // Select next word in memory.
             size -= 2; // Reduce number of bytes to write by two.
         } while(size); // Loop until all bytes written.
-	//BOOTLOADER protection. TODO
-	if(((*address)>>1)>=APP_END)
-	    return '?';
+		//bootloader protection. TODO: it doesn't allow to write the last 4 bytes (2 words)
+		if(((*address)>>1)>=APP_END)
+			return '?';
 
-	_PAGE_WRITE(tempaddress);
-	_WAIT_FOR_SPM();
-	_ENABLE_RWW_SECTION();
+		_PAGE_WRITE(tempaddress);
+		_WAIT_FOR_SPM();
+		_ENABLE_RWW_SECTION();
 
         (*address) >>= 1; // Convert address back to Flash words again.
         return '\r'; // Report programming OK
