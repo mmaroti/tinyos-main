@@ -5,7 +5,7 @@
 * File              : main.c
 * Compiler          : IAR C 3.10C Kickstart, AVR-GCC/avr-libc(>= 1.2.5)
 * Revision          : $Revision: 1.8 $
-* Date              : $Date: 2010-11-19 22:43:58 $
+* Date              : $Date: 2010/11/19 22:43:58 $
 * Updated by        : $Author: szabomeister $
 *
 * Support mail      : avr@atmel.com
@@ -69,7 +69,7 @@ void status(int);
 #define TIMEOUT 20
 int timeout=TIMEOUT;
 
-void exitbl(){
+void exitbl(void){
 	void (*funcptr)( void ) = 0x0000; // Set up function pointer to RESET vector.
 	int i;
 	#ifdef _ATMEGA1281
@@ -113,16 +113,22 @@ int main(void)
 	#endif
 
     /* Initialization */   
-    
-    //_delay_ms(2000);
+
     initbootuart(); // Initialize UART.
     blinker = 0;
 
-
+//isWriting=1;
     
     /* Branch to bootloader or application code? */
     //if( !(PROGPIN & (1<<PROG_NO)) ) // If PROGPIN is pulled low, enter programmingmode.
-        for(;;)
+//	for baudrate test
+// 	for(;;)
+// 	{
+// 	  val=recchar();
+// 	  if(val!=255)
+// 	    sendchar(val);
+// 	}
+	for(;;)
         {
             val=recchar(); // Wait for command character.
 			status(timeout);
@@ -163,7 +169,7 @@ int main(void)
                     _WAIT_FOR_SPM();        
                     _PAGE_ERASE( address );
                 }
-                _delay_ms(1);//if write the program just after we erased the flash, sometimes the first few byte is wrong
+                _delay_ms(2);//if write the program just after we erased the flash, sometimes the first few byte is wrong
                 sendchar('\r'); // Send OK back.
 		#ifdef _ATMEGA1281
                 PORTA = 7;
@@ -185,7 +191,7 @@ int main(void)
 
             // Start block load.
     		else if(val=='B')
-    		{
+    		{isWriting=1;
 	    	    temp_int = (recchar()<<8) | recchar(); // Get block size.
 		    	val = recchar(); // Get memtype.
 			    sendchar( BlockLoad(temp_int,val,&address) ); // Block load.
@@ -194,7 +200,7 @@ int main(void)
 		    
 		    // Start block read.
     		else if(val=='g')
-    		{
+    		{isWriting=0;
 	    	    temp_int = (recchar()<<8) | recchar(); // Get block size.
     			val = recchar(); // Get memtype
 	    		BlockRead(temp_int,val,&address); // Block read
@@ -483,6 +489,7 @@ unsigned char BlockLoad(unsigned int size, unsigned char mem, ADDR_T *address)
     // Flash memory type.
 	else if(mem=='F')
     { // NOTE: For flash programming, 'address' is given in words.
+
         (*address) <<= 1; // Convert address to bytes temporarily.
         tempaddress = (*address);  // Store address in page.
 	
@@ -494,6 +501,9 @@ unsigned char BlockLoad(unsigned int size, unsigned char mem, ADDR_T *address)
             (*address)+=2; // Select next word in memory.
             size -= 2; // Reduce number of bytes to write by two.
         } while(size); // Loop until all bytes written.
+	//BOOTLOADER protection. TODO
+	if(((*address)>>1)>=APP_END)
+	    return '?';
 
 	_PAGE_WRITE(tempaddress);
 	_WAIT_FOR_SPM();
