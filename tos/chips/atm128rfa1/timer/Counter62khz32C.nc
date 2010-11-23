@@ -42,6 +42,7 @@ configuration Counter62khz32C
 		interface Counter<T62khz, uint32_t>;
 
 		interface Alarm<T62khz, uint32_t> as Alarm[uint8_t id];
+		interface Init as AlarmInit[uint8_t id];
 	}
 }
 
@@ -58,8 +59,15 @@ implementation
 	Counter = AtmegaCounterP;
 	AtmegaCounterP.AtmegaCounter -> HplAtmRfa1TimerMacP;
 
-	components new AtmegaCompareP(T62khz, uint32_t, 0, 2);
-	Alarm[0] = AtmegaCompareP;
-	AtmegaCompareP.AtmegaCounter -> HplAtmRfa1TimerMacP;
-	AtmegaCompareP.AtmegaCompare -> HplAtmRfa1TimerMacP.CompareA;
+	components new AtmegaCompareP(T62khz, uint32_t, 0, 2) as AtmegaCompareAP;
+	Alarm[0] = AtmegaCompareAP;
+	AlarmInit[0] = AtmegaCompareAP;
+	AtmegaCompareAP.AtmegaCounter -> HplAtmRfa1TimerMacP;
+	AtmegaCompareAP.AtmegaCompare -> HplAtmRfa1TimerMacP.CompareA;
+
+	components new AtmegaCompareP(T62khz, uint32_t, 0, 2) as AtmegaCompareBP;
+	Alarm[1] = AtmegaCompareBP;
+	AlarmInit[1] = AtmegaCompareBP;
+	AtmegaCompareBP.AtmegaCounter -> HplAtmRfa1TimerMacP;
+	AtmegaCompareBP.AtmegaCompare -> HplAtmRfa1TimerMacP.CompareB;
 }

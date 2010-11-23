@@ -32,49 +32,23 @@
  * Author: Miklos Maroti
  */
 
-generic module AtmegaCounterP(typedef precision_tag, typedef size_type @integer(), uint8_t mode)
+#include "HplAtmRfa1Timer.h"
+
+configuration CounterMilli32C
 {
 	provides
 	{
 		interface Init;
-		interface Counter<precision_tag, size_type>;
-	}
-
-	uses
-	{
-		interface AtmegaCounter<size_type>;
+		interface Counter<TMilli, uint32_t>;
 	}
 }
 
 implementation
 {
-	command error_t Init.init()
-	{
-		call AtmegaCounter.setMode(mode);
-		call AtmegaCounter.start();
+	components Counter62khz32C;
+	components new TransformCounterC(TMilli, uint32_t, T62khz, uint32_t, 6, uint32_t);
 
-		return SUCCESS;
-	}
-
-	async command size_type Counter.get()
-	{
-		return call AtmegaCounter.get();
-	}
-
-	default async event void Counter.overflow() { }
-
-	async event void AtmegaCounter.overflow()
-	{
-		signal Counter.overflow();
-	}
-
-	async command bool Counter.isOverflowPending()
-	{
-		atomic return call AtmegaCounter.test();
-	}
-
-	async command void Counter.clearOverflow()
-	{
-		call AtmegaCounter.reset();
-	}
+	Init = Counter62khz32C;
+	Counter = TransformCounterC;
+	TransformCounterC.CounterFrom -> Counter62khz32C;
 }

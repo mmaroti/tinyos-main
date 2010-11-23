@@ -38,6 +38,7 @@ generic configuration Alarm62khz32C()
 {
 	provides
 	{
+		interface Init;
 		interface Alarm<T62khz, uint32_t>;
 	}
 }
@@ -46,5 +47,10 @@ implementation
 {
 	components Counter62khz32C;
 
-	Alarm = Counter62khz32C.Alarm[unique(UQ_T62KHZ_ALARM)];
+	enum {
+		ALARM_ID = unique(UQ_T62KHZ_ALARM),
+	};
+
+	Init = Counter62khz32C.AlarmInit[ALARM_ID];
+	Alarm = Counter62khz32C.Alarm[ALARM_ID];
 }

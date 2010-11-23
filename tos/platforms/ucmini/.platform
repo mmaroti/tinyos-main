@@ -6,7 +6,6 @@
   %T/platforms/ucmini/chips/sht21
   %T/platforms/ucmini/chips/bh1750fvi
   %T/platforms/ucmini/chips/ms5607
-  %T/platforms/mica
   %T/chips/atm128rfa1
   %T/chips/atm128rfa1/adc
   %T/chips/atm128rfa1/sensors
@@ -14,6 +13,7 @@
   %T/chips/atm128rfa1/radio
   %T/chips/atm128rfa1/i2c  
   %T/chips/atm128rfa1/spi
+  %T/platforms/mica
   %T/chips/atm1281
   %T/chips/atm1281/adc
   %T/chips/atm1281/timer
