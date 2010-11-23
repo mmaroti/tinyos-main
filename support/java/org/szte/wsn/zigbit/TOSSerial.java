@@ -122,7 +122,7 @@ public class TOSSerial extends NativeSerial implements SerialPort {
       if (didEventOccur(event)) {
         SerialPortEvent ev = new SerialPortEvent(TOSSerial.this, event);
         synchronized (m_listeners) {
-          Iterator i = m_listeners.iterator();
+          Iterator<SerialPortListener> i = m_listeners.iterator();
           while (i.hasNext())
             ((SerialPortListener) i.next()).serialEvent(ev);
         }
@@ -204,7 +204,7 @@ public class TOSSerial extends NativeSerial implements SerialPort {
 
   private SerialOutputStream m_out;
 
-  private Vector m_listeners = new Vector();
+  private Vector<SerialPortListener> m_listeners = new Vector<SerialPortListener>();
 
   private EventDispatcher m_dispatch;
 
