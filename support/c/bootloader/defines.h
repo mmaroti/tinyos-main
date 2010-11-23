@@ -35,7 +35,7 @@
 /* definitions for SPM control */
 #define	SPMCR_REG	SPMCSR
 #define	PAGESIZE	128
-#define	APP_END	61440 //100000
+#define	APP_END		0xefff
 #define	LARGE_MEMORY
 
 /* definitions for device recognition */
@@ -61,6 +61,7 @@ uint32_t counter;
 
 int BRREG_VALUE;
 int blinker;
+int isWriting;
 
 void init(void);
 int baudrateRegister(uint32_t baudrate);
