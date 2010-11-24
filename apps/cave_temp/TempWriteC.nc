@@ -48,6 +48,7 @@ module TempWriteC {
         uses interface Packet;
 	uses interface LogRead;
 	uses interface SplitControl as RadioControl;
+	uses interface LowPowerListening as LPL;
 	
 }
 implementation {
@@ -69,6 +70,7 @@ implementation {
 
 	event void Boot.booted() {
 		call RadioControl.start();
+		call LPL.setLocalDutyCycle(50);
 	}
 
 	event void RadioControl.startDone(error_t err){

@@ -65,5 +65,8 @@ implementation {
 	App.GlobalTime -> TimeSyncC;
 	App.TimeSyncNotify -> TimeSyncC;
  	App.TimeSyncInfo -> TimeSyncC;
+
+	components CC2420ActiveMessageC as LPLProvider;
+  	App.LPL -> LPLProvider;
 	
 }
