@@ -45,12 +45,11 @@ generic configuration Alarm62khz32C()
 
 implementation
 {
-	components Counter62khz32C;
+	components new AtmegaCompareP(T62khz, uint32_t, 0, 2);
+	Init = AtmegaCompareP;
+	Alarm = AtmegaCompareP;
 
-	enum {
-		ALARM_ID = unique(UQ_T62KHZ_ALARM),
-	};
-
-	Init = Counter62khz32C.AlarmInit[ALARM_ID];
-	Alarm = Counter62khz32C.Alarm[ALARM_ID];
+	components HplAtmRfa1TimerMacC;
+	AtmegaCompareP.AtmegaCounter -> HplAtmRfa1TimerMacC;
+	AtmegaCompareP.AtmegaCompare -> HplAtmRfa1TimerMacC.Compare[unique(UQ_T62KHZ_ALARM)];
 }
