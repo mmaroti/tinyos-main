@@ -127,8 +127,11 @@ implementation
 
 	async command void Counter.setMode(uint8_t mode)
 	{
-		mode = ((mode & ATMRFA1_SCCK_ENABLE) ? (1 << SCEN) : 0)
-			| ((mode & ATMRFA1_SCCK_RTC) ? (1 << SCCKSEL) : 0);
+		mode &= (1 << SCEN) | (1 << SCCKSEL);
+
+		// RTC needs to be enabled, otherwise it does not work
+		if( (mode & (1 << SCCKSEL)) != 0 )
+			ASSR = 1 << AS2;
 
 		atomic SCCR0 = (SCCR0 & ~((1 << SCEN) | (1 << SCCKSEL))) | mode;
 

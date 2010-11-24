@@ -38,7 +38,7 @@ generic configuration AlarmMilli32C()
 {
 	provides
 	{
-		interface Init;
+		interface Init @exactlyonce();
 		interface Alarm<TMilli, uint32_t>;
 	}
 }

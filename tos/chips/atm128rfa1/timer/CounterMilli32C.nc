@@ -38,7 +38,7 @@ configuration CounterMilli32C
 {
 	provides
 	{
-		interface Init;
+		interface Init @exactlyonce();
 		interface Counter<TMilli, uint32_t>;
 	}
 }

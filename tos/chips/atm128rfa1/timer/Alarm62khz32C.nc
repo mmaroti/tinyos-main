@@ -38,7 +38,7 @@ generic configuration Alarm62khz32C()
 {
 	provides
 	{
-		interface Init;
+		interface Init @exactlyonce();
 		interface Alarm<T62khz, uint32_t>;
 	}
 }

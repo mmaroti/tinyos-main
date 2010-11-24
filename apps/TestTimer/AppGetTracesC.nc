@@ -1,4 +1,4 @@
-/** Copyright (c) 2009, University of Szeged
+/** Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -31,27 +31,19 @@
 * Author: Miklos Maroti
 */
 
-module TestAppP
-{
-	uses
-	{
-		interface Boot;
-		interface Leds;
-		interface Timer<TMilli>;
-	}
-}
+configuration AppGetTracesC
+{ 
+} 
 
 implementation
 {
-	event void Boot.booted()
-	{
-#ifdef TOGGLE_AT_1023HZ
-		call Timer.startPeriodic(1023);
-#endif
-	}
+	components MainC, AppGetTracesP, LedsC, DiagMsgC, SerialActiveMessageC;
 
-	event void Timer.fired()
-	{
-		call Leds.led1Toggle();
-	}
+	AppGetTracesP.Boot -> MainC;
+	AppGetTracesP.Leds -> LedsC;
+	AppGetTracesP.SplitControl -> SerialActiveMessageC;
+	AppGetTracesP.DiagMsg -> DiagMsgC;
+
+	components HplAtmRfa1TimerMacC;
+	AppGetTracesP.Counter -> HplAtmRfa1TimerMacC;
 }

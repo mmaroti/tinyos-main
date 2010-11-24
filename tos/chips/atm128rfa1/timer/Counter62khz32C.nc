@@ -38,14 +38,14 @@ configuration Counter62khz32C
 {
 	provides
 	{
-		interface Init;
+		interface Init @exactlyonce();
 		interface Counter<T62khz, uint32_t>;
 	}
 }
 
 implementation
 {
-	components new AtmegaCounterP(T62khz, uint32_t, ATMRFA1_SCCK_RTC | ATMRFA1_SCCK_ENABLE);
+	components new AtmegaCounterP(T62khz, uint32_t, ATMRFA1_SCCK_RTC);
 	Init = AtmegaCounterP;
 	Counter = AtmegaCounterP;
 
