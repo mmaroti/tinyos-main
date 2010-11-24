@@ -2,12 +2,14 @@
   push( @includes, qw(
 
   %T/platforms/ucmini
+  %T/platforms/ucmini/chips/cp2102    
   %T/platforms/ucmini/chips/stm25p
   %T/platforms/ucmini/chips/sht21
   %T/platforms/ucmini/chips/bh1750fvi
   %T/platforms/ucmini/chips/ms5607
   %T/chips/atm128rfa1
   %T/chips/atm128rfa1/adc
+  %T/chips/atm128rfa1/pins
   %T/chips/atm128rfa1/sensors
   %T/chips/atm128rfa1/timer
   %T/chips/atm128rfa1/radio
@@ -23,6 +25,7 @@
   %T/chips/atm128/spi
   %T/chips/atm128/i2c
   %T/chips/atm128/timer
+  %T/chips/cp2102
   %T/chips/stm25p
   %T/chips/sht21
   %T/chips/bh1750fvi
