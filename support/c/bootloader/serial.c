@@ -56,7 +56,7 @@ unsigned char recchar(void)
     PORTE = PORTE & 0xF7;
     #endif
   }
-  counter=100000;
+  counter=50000;
   while( (!(UART_STATUS_REG & (1 << RECEIVE_COMPLETE_BIT))) && (counter>0))
   {
     counter--;

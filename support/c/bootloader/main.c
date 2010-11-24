@@ -66,7 +66,7 @@ void status(int);
 #define BLOCKSIZE PAGESIZE
 
 #endif /* REMOVE_BLOCK_SUPPORT */
-#define TIMEOUT 20
+#define TIMEOUT 30
 int timeout=TIMEOUT;
 
 void exitbl(void){
@@ -155,7 +155,6 @@ int main(void)
             // Chip erase.
             else if(val=='e')
             {  
-		timeout=100;
 		#ifdef _ATMEGA1281
 		PORTA = 7;
 		PORTA &= ~(_BV(PA2));
@@ -412,7 +411,8 @@ int main(void)
               else
               {
                 timeout--;
-                sendchar('?');
+		if(timeout&0x03)
+		  sendchar('?');
               }
             }
 
@@ -425,13 +425,13 @@ int main(void)
 } // end: main
 
 
-void status(int timeout)
+void status(int time_out)
 
 {
 	#ifdef _ATMEGA1281
-	if(timeout>2*TIMEOUT/3){
+	if(time_out>2*TIMEOUT/3){
 	  PORTA|=(1<<0)|(1<<1)|(1<<2);
-	}else if(timeout>TIMEOUT/3){
+	}else if(time_out>TIMEOUT/3){
 	  PORTA|=(1<<1)|(1<<2);
 	  PORTA&=~(1<<0);
 	}else{
@@ -439,12 +439,12 @@ void status(int timeout)
 	  PORTA&=~((1<<0)|(1<<1));
 	}
 	#else
-	if(timeout>3*TIMEOUT/4){
+	if(time_out>3*TIMEOUT/4){
 	  PORTE|=(1<<3)|(1<<5)|(1<<6)|(1<<7);
-	}else if(timeout>2*TIMEOUT/4){
+	}else if(time_out>2*TIMEOUT/4){
 	  PORTE|=(1<<5)|(1<<6)|(1<<7);
 	  PORTE&=~(1<<3);
-	}else if(timeout>TIMEOUT/4){
+	}else if(time_out>TIMEOUT/4){
 	  PORTE|=(1<<5)|(1<<6);
 	  PORTE&=~((1<<3)|(1<<7));
 	}else{
