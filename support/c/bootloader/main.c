@@ -411,7 +411,7 @@ int main(void)
               else
               {
                 timeout--;
-		if(timeout&0x03)
+		if((timeout&0x03)==0)
 		  sendchar('?');
               }
             }
