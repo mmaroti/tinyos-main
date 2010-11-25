@@ -36,11 +36,7 @@
 
 generic configuration AlarmMilli32C()
 {
-	provides
-	{
-		interface Init @exactlyonce();
-		interface Alarm<TMilli, uint32_t>;
-	}
+	provides interface Alarm<TMilli, uint32_t>;
 }
 
 implementation
@@ -49,7 +45,6 @@ implementation
 	components CounterMilli32C;
 	components new TransformAlarmC(TMilli, uint32_t, T62khz, uint32_t, 6);
 
-	Init = Alarm62khz32C;
 	Alarm = TransformAlarmC;
 
 	TransformAlarmC.AlarmFrom -> Alarm62khz32C;

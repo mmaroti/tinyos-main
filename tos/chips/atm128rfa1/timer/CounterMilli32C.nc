@@ -45,10 +45,10 @@ configuration CounterMilli32C
 
 implementation
 {
-	components Counter62khz32C;
-	components new TransformCounterC(TMilli, uint32_t, T62khz, uint32_t, 6, uint32_t);
-
-	Init = Counter62khz32C;
+	components new TransformCounterC(TMilli, uint32_t, T62khz, uint32_t, 6, uint8_t);
 	Counter = TransformCounterC;
+
+	components Counter62khz32C;
+	Init = Counter62khz32C;
 	TransformCounterC.CounterFrom -> Counter62khz32C;
 }

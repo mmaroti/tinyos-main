@@ -32,33 +32,29 @@
  * Author: Miklos Maroti
  */
 
-#include "HplAtmRfa1Timer.h"
+#include "TimerConfig.h"
 
-configuration HilTimerMilliC
+configuration CounterMcu32C
 {
-	provides
-	{
-		interface Init;
-		interface Timer<TMilli> as TimerMilli[uint8_t id];
-		interface LocalTime<TMilli>;
-	}
+	provides interface Counter<TMcu, uint32_t>;
 }
 
 implementation
 {
-	components CounterMilli32C;
-	Init = CounterMilli32C;
+	components new TransformCounterC(TMcu, uint32_t, TMcu, uint16_t, 0, uint16_t);
+	Counter = TransformCounterC;
+	TransformCounterC.CounterFrom -> AtmegaCounterP;
 
-	components new CounterToLocalTimeC(TMilli);
-	LocalTime = CounterToLocalTimeC;
-	CounterToLocalTimeC.Counter -> CounterMilli32C;
+	components new AtmegaCounterP(TMcu, uint16_t, MCU_TIMER_MODE);
 
-	components new AlarmMilli32C();
+	components RealMainP;
+	RealMainP.PlatformInit -> AtmegaCounterP.Init;
 
-	components new AlarmToTimerC(TMilli);
-	AlarmToTimerC.Alarm -> AlarmMilli32C;
+#if MCU_TIMER_NO == 1
+	components HplAtmRfa1Timer1C as HplAtmRfa1TimerC;
+#elif MCU_TIMER_NO == 3
+	components HplAtmRfa1Timer3C as HplAtmRfa1TimerC;
+#endif
 
-	components new VirtualizeTimerC(TMilli, uniqueCount(UQ_TIMER_MILLI));
-	TimerMilli = VirtualizeTimerC;
-	VirtualizeTimerC.TimerFrom -> AlarmToTimerC;
+	AtmegaCounterP.AtmegaCounter -> HplAtmRfa1TimerC;
 }

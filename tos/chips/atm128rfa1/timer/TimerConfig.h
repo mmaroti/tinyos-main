@@ -32,33 +32,27 @@
  * Author: Miklos Maroti
  */
 
+#ifndef __TIMERCONFIG_H__
+#define __TIMERCONFIG_H__
+
 #include "HplAtmRfa1Timer.h"
 
-configuration HilTimerMilliC
-{
-	provides
-	{
-		interface Init;
-		interface Timer<TMilli> as TimerMilli[uint8_t id];
-		interface LocalTime<TMilli>;
-	}
-}
+// Set the MCU timer parameters
 
-implementation
-{
-	components CounterMilli32C;
-	Init = CounterMilli32C;
+#define PLATFORM_MHZ 16
 
-	components new CounterToLocalTimeC(TMilli);
-	LocalTime = CounterToLocalTimeC;
-	CounterToLocalTimeC.Counter -> CounterMilli32C;
+typedef struct T16mhz { } T16mhz;
+typedef T16mhz TMcu;
 
-	components new AlarmMilli32C();
+enum {
+	MCU_TIMER_MODE = ATMRFA1_CLK16_NORMAL,
+	MCU_ALARM_MODE = 0,
+	MCU_ALARM_MINDT = 100,
+};
 
-	components new AlarmToTimerC(TMilli);
-	AlarmToTimerC.Alarm -> AlarmMilli32C;
+// selects which 16-bit TimerCounter should be used (1 or 3)
+#define MCU_TIMER_NO 1
 
-	components new VirtualizeTimerC(TMilli, uniqueCount(UQ_TIMER_MILLI));
-	TimerMilli = VirtualizeTimerC;
-	VirtualizeTimerC.TimerFrom -> AlarmToTimerC;
-}
+#define UQ_MCU_ALARM	"UQ_MCU_ALARM"
+
+#endif//__TIMERCONFIG_H__

@@ -32,33 +32,32 @@
  * Author: Miklos Maroti
  */
 
-#include "HplAtmRfa1Timer.h"
+#include "TimerConfig.h"
 
-configuration HilTimerMilliC
+generic configuration AlarmMcu32C()
 {
-	provides
-	{
-		interface Init;
-		interface Timer<TMilli> as TimerMilli[uint8_t id];
-		interface LocalTime<TMilli>;
-	}
+	provides interface Alarm<TMcu, uint32_t>;
 }
 
 implementation
 {
-	components CounterMilli32C;
-	Init = CounterMilli32C;
+	components new TransformAlarmC(TMcu, uint32_t, TMcu, uint16_t, 0);
+	Alarm = TransformAlarmC;
+	TransformAlarmC.Counter -> CounterMcu32C;
+	TransformAlarmC.AlarmFrom -> AtmegaCompareP;
+	
+	components CounterMcu32C;
+	components new AtmegaCompareP(TMcu, uint16_t, MCU_ALARM_MODE, MCU_ALARM_MINDT);
 
-	components new CounterToLocalTimeC(TMilli);
-	LocalTime = CounterToLocalTimeC;
-	CounterToLocalTimeC.Counter -> CounterMilli32C;
+	components RealMainP;
+	RealMainP.PlatformInit -> AtmegaCompareP.Init;
 
-	components new AlarmMilli32C();
+#if MCU_TIMER_NO == 1
+	components HplAtmRfa1Timer1C as HplAtmRfa1TimerC;
+#elif MCU_TIMER_NO == 3
+	components HplAtmRfa1Timer3C as HplAtmRfa1TimerC;
+#endif
 
-	components new AlarmToTimerC(TMilli);
-	AlarmToTimerC.Alarm -> AlarmMilli32C;
-
-	components new VirtualizeTimerC(TMilli, uniqueCount(UQ_TIMER_MILLI));
-	TimerMilli = VirtualizeTimerC;
-	VirtualizeTimerC.TimerFrom -> AlarmToTimerC;
+	AtmegaCompareP.AtmegaCounter -> HplAtmRfa1TimerC;
+	AtmegaCompareP.AtmegaCompare -> HplAtmRfa1TimerC.Compare[unique(UQ_MCU_ALARM)];
 }
