@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Vanderbilt University
+ * Copyright (c) 2010, University of Szeged
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,18 +32,26 @@
  * Author: Miklos Maroti
  */
 
-#include "Timer.h"
+#include "TimerConfig.h"
 
-configuration LocalTimeMicroC
+generic configuration AlarmMicro32C()
 {
-	provides interface LocalTime<TMicro>;
+	provides interface Alarm<TMicro, uint32_t>;
 }
 
 implementation
 {
+#if MCU_TIMER_MHZ_LOG2 == 0
+	components new AlarmMcu32C();
+	Alarm = AlarmMcu32C;
+#else
+	components new AlarmMcu32C();
 	components CounterMicro32C;
-	components new CounterToLocalTimeC(TMicro);
+	components new TransformAlarmC(TMicro, uint32_t, TMcu, uint32_t, MCU_TIMER_MHZ_LOG2);
 
-	CounterToLocalTimeC.Counter -> CounterMicro32C;
-	LocalTime = CounterToLocalTimeC;
+	Alarm = TransformAlarmC;
+
+	TransformAlarmC.AlarmFrom -> AlarmMcu32C;
+	TransformAlarmC.Counter -> CounterMicro32C;
+#endif
 }

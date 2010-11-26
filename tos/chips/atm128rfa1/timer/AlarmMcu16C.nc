@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Vanderbilt University
+ * Copyright (c) 2010, University of Szeged
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,18 +32,27 @@
  * Author: Miklos Maroti
  */
 
-#include "Timer.h"
+#include "TimerConfig.h"
 
-configuration LocalTimeMicroC
+generic configuration AlarmMcu16C()
 {
-	provides interface LocalTime<TMicro>;
+	provides interface Alarm<TMcu, uint16_t>;
 }
 
 implementation
 {
-	components CounterMicro32C;
-	components new CounterToLocalTimeC(TMicro);
+	components new AtmegaCompareP(TMcu, uint16_t, MCU_ALARM_MODE, MCU_ALARM_MINDT);
+	Alarm = AtmegaCompareP;
 
-	CounterToLocalTimeC.Counter -> CounterMicro32C;
-	LocalTime = CounterToLocalTimeC;
+	components RealMainP;
+	RealMainP.PlatformInit -> AtmegaCompareP.Init;
+
+#if MCU_TIMER_NO == 1
+	components HplAtmRfa1Timer1C as HplAtmRfa1TimerC;
+#elif MCU_TIMER_NO == 3
+	components HplAtmRfa1Timer3C as HplAtmRfa1TimerC;
+#endif
+
+	AtmegaCompareP.AtmegaCounter -> HplAtmRfa1TimerC;
+	AtmegaCompareP.AtmegaCompare -> HplAtmRfa1TimerC.Compare[unique(UQ_MCU_ALARM)];
 }

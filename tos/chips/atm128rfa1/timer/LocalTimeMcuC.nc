@@ -32,18 +32,18 @@
  * Author: Miklos Maroti
  */
 
-#include "Timer.h"
+#include "TimerConfig.h"
 
-configuration LocalTimeMicroC
+configuration LocalTimeMcuC
 {
-	provides interface LocalTime<TMicro>;
+	provides interface LocalTime<TMcu>;
 }
 
 implementation
 {
-	components CounterMicro32C;
-	components new CounterToLocalTimeC(TMicro);
+	components CounterMcu32C;
+	components new CounterToLocalTimeC(TMcu);
 
-	CounterToLocalTimeC.Counter -> CounterMicro32C;
+	CounterToLocalTimeC.Counter -> CounterMcu32C;
 	LocalTime = CounterToLocalTimeC;
 }

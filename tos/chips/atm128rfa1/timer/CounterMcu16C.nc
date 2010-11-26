@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Vanderbilt University
+ * Copyright (c) 2010, University of Szeged
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,18 +32,26 @@
  * Author: Miklos Maroti
  */
 
-#include "Timer.h"
+#include "TimerConfig.h"
 
-configuration LocalTimeMicroC
+configuration CounterMcu16C
 {
-	provides interface LocalTime<TMicro>;
+	provides interface Counter<TMcu, uint16_t>;
 }
 
 implementation
 {
-	components CounterMicro32C;
-	components new CounterToLocalTimeC(TMicro);
+	components new AtmegaCounterP(TMcu, uint16_t, MCU_TIMER_MODE);
+	Counter = AtmegaCounterP;
 
-	CounterToLocalTimeC.Counter -> CounterMicro32C;
-	LocalTime = CounterToLocalTimeC;
+	components RealMainP;
+	RealMainP.PlatformInit -> AtmegaCounterP.Init;
+
+#if MCU_TIMER_NO == 1
+	components HplAtmRfa1Timer1C as HplAtmRfa1TimerC;
+#elif MCU_TIMER_NO == 3
+	components HplAtmRfa1Timer3C as HplAtmRfa1TimerC;
+#endif
+
+	AtmegaCounterP.AtmegaCounter -> HplAtmRfa1TimerC;
 }

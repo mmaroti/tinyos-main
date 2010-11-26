@@ -39,19 +39,22 @@
 
 // Set the MCU timer parameters
 
-#define PLATFORM_MHZ 16
+#ifndef PLATFORM_MHZ
+#define PLATFORM_MHZ	16
+#endif
 
-typedef struct T16mhz { } T16mhz;
-typedef T16mhz TMcu;
+// typedef struct T2mhz { } T2mhz;
+typedef T2mhz TMcu;
 
-enum {
-	MCU_TIMER_MODE = ATMRFA1_CLK16_NORMAL,
-	MCU_ALARM_MODE = 0,
-	MCU_ALARM_MINDT = 100,
-};
+#define MCU_TIMER_MODE		ATMRFA1_CLK16_DIVIDE_8
+#define MCU_TIMER_MHZ		2
+#define MCU_TIMER_MHZ_LOG2	1
 
 // selects which 16-bit TimerCounter should be used (1 or 3)
-#define MCU_TIMER_NO 1
+#define MCU_TIMER_NO		1
+
+#define MCU_ALARM_MODE		0
+#define MCU_ALARM_MINDT		100
 
 #define UQ_MCU_ALARM	"UQ_MCU_ALARM"
 
