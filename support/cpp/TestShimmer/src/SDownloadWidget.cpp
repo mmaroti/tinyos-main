@@ -4,6 +4,11 @@
 #include <QFileDialog>
 #include <QDebug>
 #include "FlatFileModel.h"
+#include <QListView>
+#include <QListWidgetItem>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
+#include "XmlStreamReader.h"
 
 SDownloadWidget::SDownloadWidget(QWidget *parent, Application &app) :
         QWidget(parent),
@@ -12,6 +17,11 @@ SDownloadWidget::SDownloadWidget(QWidget *parent, Application &app) :
 {
     ui->setupUi(this);
     ui->sdDataView->setAlternatingRowColors(true);
+    ui->sdDataView->setSortingEnabled(true);
+
+    XmlStreamReader reader(ui->sdDataView);
+
+
 }
 
 SDownloadWidget::~SDownloadWidget()
@@ -28,7 +38,7 @@ void SDownloadWidget::on_downloadButton_clicked()
     #ifdef _WIN32
     QString file = QFileDialog::getOpenFileName(this, "Select one or more files to open", "c:/", "Any File (*.*)");
     if ( !file.isEmpty() ) {
-        setFlatFileModel(file);
+
 
     }
         /*QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
@@ -41,6 +51,7 @@ void SDownloadWidget::on_downloadButton_clicked()
     #else
         QString file = QFileDialog::getOpenFileName(this, "Select one or more files to open", "c:/", "Any File (*.*)");
         if ( !file.isEmpty() ) {
+            reader->readFile(file);
             //something something DEESTROOY
         }
     #endif
@@ -48,5 +59,6 @@ void SDownloadWidget::on_downloadButton_clicked()
 
 void SDownloadWidget::setFlatFileModel(const QString &filename)
 {
-    ui->sdDataView->setModel(new FlatFileModel(filename));
+    //ui->sdDataView->setModel(new FlatFileModel(filename));
 }
+

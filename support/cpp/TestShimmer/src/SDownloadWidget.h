@@ -2,6 +2,7 @@
 #define SDOWNLOADWIDGET_H
 
 #include <QWidget>
+#include "XmlStreamReader.h"
 
 class Application;
 
@@ -19,7 +20,10 @@ private:
     Ui::SDownloadWidget *ui;
     Application &application;
 
+    XmlStreamReader *reader;
+
     void setFlatFileModel(const QString &filename);
+    QWidget setupListTab();
 
 private slots:
     void on_downloadButton_clicked();
