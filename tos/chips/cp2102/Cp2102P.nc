@@ -7,6 +7,21 @@ module Cp2102P{
 }
 implementation{
   
+  bool Suspended;
+  
+  task void powerOff(){
+    signal UsbState.powerOff();
+  }
+  task void powerOn(){
+    signal UsbState.powerOn();
+  }
+  task void activated(){
+    signal UsbState.activated();
+  }
+  task void suspended(){
+    signal UsbState.suspended();
+  }
+  
   command error_t PlatformInit.init(){
     call Vdd.enable();
     return SUCCESS;
@@ -20,11 +35,11 @@ implementation{
 	return call Vdd.get();
   }
   
-  event void Vdd.fired(bool toHigh){
+  async event void Vdd.fired(bool toHigh){
     if(!toHigh){
-      signal UsbState.powerOff();
+      post powerOff();
     } else {
-      signal UsbState.powerOn();
+      post powerOn();
     }
   }
   
