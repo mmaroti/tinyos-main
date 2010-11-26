@@ -28,8 +28,7 @@ implementation
   #define mask  (*TCAST(volatile uint8_t * ONE, mask_addr))
   #define flag  (*TCAST(volatile uint8_t * ONE, flag_addr))
   uint8_t state;
-  uint8_t irqstate;
-  bool UnknownEnabled=FALSE;
+  bool UnknownEnabled=FALSE;//TODO non-atomic read in line 64
   
   inline bool pinget(uint8_t pin);
   
@@ -71,7 +70,7 @@ implementation
 	}
   }
   
-  command error_t UnknownPCInt.enable(){
+  async command error_t UnknownPCInt.enable(){
 	if(UnknownEnabled)
 	  return EALREADY;
 	else{
@@ -80,7 +79,7 @@ implementation
 	}
   }
   
-  command error_t UnknownPCInt.disable(){
+  async command error_t UnknownPCInt.disable(){
 	if(!UnknownEnabled)
 	  return EALREADY;
 	else{
@@ -89,21 +88,19 @@ implementation
 	}
   } 
   
-  command bool UnknownPCInt.get(){
+  async command bool UnknownPCInt.get(){
 	return FALSE;
   }
   
   inline void signalfired(uint8_t pin, bool toHigh);
   
-  task void signalIrqs(){
+  inline void signalIrqs(uint8_t irqstate){
 	uint8_t i;
-	uint8_t irqstate_sync;
-	atomic irqstate_sync=irqstate;
-	if(state==irqstate_sync)
+	if(state==irqstate)
 	  signal UnknownPCInt.fired(FALSE);
 	else {
 	  for(i=0;i<8;i++){
-		if( (state & (1<<i) ) != (irqstate_sync & (1<<i) ) ){
+		if( (state & (1<<i) ) != (irqstate & (1<<i) ) ){
 		  if(state & (1<<i) ){
 			signalfired(i,FALSE);
 		  } else {
@@ -111,20 +108,20 @@ implementation
 		  }
 		}
 	  }
-	  state=irqstate_sync;
+	  state=irqstate;
 	}
   }
   
   async event void IrqSignal.fired(){
 	uint8_t i;
-	irqstate=0;
+	uint8_t irqstate=0;
 	for(i=0;i<8;i++){
 	  if(mask&(1<<i)){ //enabled
 		if(pinget(i))
 		  irqstate|=1<<i;
 	  }
 	}
-	post signalIrqs();
+	signalIrqs(irqstate);
   }
   
 
@@ -197,109 +194,109 @@ implementation
 	}
   }
   
-  command error_t GpioPCInterrupt0.enable(){
+  async command error_t GpioPCInterrupt0.enable(){
 	return InterruptEnable(0);
   }
   
-  command error_t GpioPCInterrupt1.enable(){
+  async command error_t GpioPCInterrupt1.enable(){
 	return InterruptEnable(1);
   }
   
-  command error_t GpioPCInterrupt2.enable(){
+  async command error_t GpioPCInterrupt2.enable(){
 	return InterruptEnable(2);
   }
   
-  command error_t GpioPCInterrupt3.enable(){
+  async command error_t GpioPCInterrupt3.enable(){
 	return InterruptEnable(3);
   }
   
-  command error_t GpioPCInterrupt4.enable(){
+  async command error_t GpioPCInterrupt4.enable(){
 	return InterruptEnable(4);
   }
   
-  command error_t GpioPCInterrupt5.enable(){
+  async command error_t GpioPCInterrupt5.enable(){
 	return InterruptEnable(5);
   }
   
-  command error_t GpioPCInterrupt6.enable(){
+  async command error_t GpioPCInterrupt6.enable(){
 	return InterruptEnable(6);
   }
   
-  command error_t GpioPCInterrupt7.enable(){
+  async command error_t GpioPCInterrupt7.enable(){
 	return InterruptEnable(7);
   }  
   
-  command error_t GpioPCInterrupt0.disable(){
+  async command error_t GpioPCInterrupt0.disable(){
 	return InterruptDisable(0);
   }
   
-  command error_t GpioPCInterrupt1.disable(){
+  async command error_t GpioPCInterrupt1.disable(){
 	return InterruptDisable(1);
   }
   
-  command error_t GpioPCInterrupt2.disable(){
+  async command error_t GpioPCInterrupt2.disable(){
 	return InterruptDisable(2);
   }
   
-  command error_t GpioPCInterrupt3.disable(){
+  async command error_t GpioPCInterrupt3.disable(){
 	return InterruptDisable(3);
   }
   
-  command error_t GpioPCInterrupt4.disable(){
+  async command error_t GpioPCInterrupt4.disable(){
 	return InterruptDisable(4);
   }
   
-  command error_t GpioPCInterrupt5.disable(){
+  async command error_t GpioPCInterrupt5.disable(){
 	return InterruptDisable(5);
   }
   
-  command error_t GpioPCInterrupt6.disable(){
+  async command error_t GpioPCInterrupt6.disable(){
 	return InterruptDisable(6);
   }
   
-  command error_t GpioPCInterrupt7.disable(){
+  async command error_t GpioPCInterrupt7.disable(){
 	return InterruptDisable(7);
   }  
   
-  command error_t GpioPCInterrupt0.get(){
+  async command error_t GpioPCInterrupt0.get(){
 	return InterruptGet(0);
   }
   
-  command error_t GpioPCInterrupt1.get(){
+  async command error_t GpioPCInterrupt1.get(){
 	return InterruptGet(1);
   }
   
-  command error_t GpioPCInterrupt2.get(){
+  async command error_t GpioPCInterrupt2.get(){
 	return InterruptGet(2);
   }
   
-  command error_t GpioPCInterrupt3.get(){
+  async command error_t GpioPCInterrupt3.get(){
 	return InterruptGet(3);
   }
   
-  command error_t GpioPCInterrupt4.get(){
+  async command error_t GpioPCInterrupt4.get(){
 	return InterruptGet(4);
   }
   
-  command error_t GpioPCInterrupt5.get(){
+  async command error_t GpioPCInterrupt5.get(){
 	return InterruptGet(5);
   }
   
-  command error_t GpioPCInterrupt6.get(){
+  async command error_t GpioPCInterrupt6.get(){
 	return InterruptGet(6);
   }
   
-  command error_t GpioPCInterrupt7.get(){
+  async command error_t GpioPCInterrupt7.get(){
 	return InterruptGet(7);
   }  
   
-  default event void GpioPCInterrupt0.fired(bool toHigh){}
-  default event void GpioPCInterrupt1.fired(bool toHigh){}
-  default event void GpioPCInterrupt2.fired(bool toHigh){}
-  default event void GpioPCInterrupt3.fired(bool toHigh){}
-  default event void GpioPCInterrupt4.fired(bool toHigh){}
-  default event void GpioPCInterrupt5.fired(bool toHigh){}
-  default event void GpioPCInterrupt6.fired(bool toHigh){}
-  default event void GpioPCInterrupt7.fired(bool toHigh){}
-  default event void UnknownPCInt.fired(bool toHigh){}
+  default async event void GpioPCInterrupt0.fired(bool toHigh){}
+  default async event void GpioPCInterrupt1.fired(bool toHigh){}
+  default async event void GpioPCInterrupt2.fired(bool toHigh){}
+  default async event void GpioPCInterrupt3.fired(bool toHigh){}
+  default async event void GpioPCInterrupt4.fired(bool toHigh){}
+  default async event void GpioPCInterrupt5.fired(bool toHigh){}
+  default async event void GpioPCInterrupt6.fired(bool toHigh){}
+  default async event void GpioPCInterrupt7.fired(bool toHigh){}
+  default async event void UnknownPCInt.fired(bool toHigh){}
 }

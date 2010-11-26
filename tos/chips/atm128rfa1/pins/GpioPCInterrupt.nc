@@ -50,22 +50,22 @@ interface GpioPCInterrupt {
    *
    * @return SUCCESS if the interrupt has been enabled
    */
-  command error_t enable();
+  async command error_t enable();
 
   /**  
    * Diables an edge interrupt or capture interrupt
    * 
    * @return SUCCESS if the interrupt has been disabled
    */ 
-  command error_t disable();
+  async command error_t disable();
   
-  command bool get();
+  async command bool get();
 
   /**
    * Fired when an edge interrupt occurs.
    *
    * NOTE: Interrupts keep running until "disable()" is called
    */
-  event void fired(bool toHigh);
+  async event void fired(bool toHigh);
 
 }
