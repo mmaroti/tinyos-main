@@ -18,7 +18,6 @@
   %T/platforms/mica
   %T/chips/atm1281
   %T/chips/atm1281/adc
-  %T/chips/atm1281/timer
   %T/chips/atm128
   %T/chips/atm128/adc
   %T/chips/atm128/pins
