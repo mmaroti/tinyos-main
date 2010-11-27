@@ -51,6 +51,7 @@ SOURCES += src/DataRecorder.cpp \
     src/Widget3D.cpp \
     src/GraphWidget.cpp \
     src/Graph.cpp \
+    src/XmlStreamReader.cpp \
     src/SDownloadWidget.cpp \
     src/Solver/Solver.cpp \
     src/Solver/Results.cpp \
@@ -90,6 +91,7 @@ HEADERS += src/DataRecorder.h \
     src/constants.h \
     src/Widget3D.h \
     src/SDownloadWidget.h \
+    src/XmlStreamReader.h \
     src/Solver/Solver.hpp \
     src/Solver/Results.hpp \
     src/Solver/MatrixVector.hpp \
