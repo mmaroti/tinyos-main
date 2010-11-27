@@ -1,14 +1,9 @@
+#include <QFileDialog>
+#include <QDebug>
+#include <QTreeWidget>
 #include "SDownloadWidget.h"
 #include "Application.h"
 #include "ui_SDownloadWidget.h"
-#include <QFileDialog>
-#include <QDebug>
-#include "FlatFileModel.h"
-#include <QListView>
-#include <QListWidgetItem>
-#include <QTreeWidget>
-#include <QTreeWidgetItem>
-#include "XmlStreamReader.h"
 
 SDownloadWidget::SDownloadWidget(QWidget *parent, Application &app) :
         QWidget(parent),
@@ -27,9 +22,6 @@ SDownloadWidget::SDownloadWidget(QWidget *parent, Application &app) :
     it->setText(2,"3675");
     it->setText(3,"2010-10-30 12:00 00:00");
     it->setText(4,"2010-11-01 11:34 00:00");
-
-    //XmlStreamReader reader(ui->sdDataView);
-
 
 }
 
@@ -58,9 +50,11 @@ void SDownloadWidget::on_downloadButton_clicked()
             //something something DAARK SIDE
         }*/
     #else
+    // TODO On Linux we do not have C:/
+    // TODO Do not use filter, *.* assumes that we have extension
         QString file = QFileDialog::getOpenFileName(this, "Select one or more files to open", "c:/", "Any File (*.*)");
         if ( !file.isEmpty() ) {
-            reader->readFile(file);
+
             //something something DEESTROOY
         }
     #endif
