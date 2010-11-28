@@ -79,6 +79,7 @@ enum
  * This is the timer type of the radio alarm interface
  */
 typedef TMcu TRadio;
+typedef uint16_t tradio_size;
 
 /**
  * The number of radio alarm ticks per one microsecond
