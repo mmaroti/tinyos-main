@@ -40,6 +40,8 @@ configuration HplAtmRfa1TimerMacC
 	{
 		interface AtmegaCounter<uint32_t> as Counter;
 		interface AtmegaCompare<uint32_t> as Compare[uint8_t id];
+		interface AtmegaCapture<uint32_t> as SfdCapture;
+		interface AtmegaCapture<uint32_t> as BeaconCapture;
 	}
 }
 
@@ -50,6 +52,9 @@ implementation
 	Counter = HplAtmRfa1TimerMacP;
 	Compare[0] = HplAtmRfa1TimerMacP.CompareA;
 	Compare[1] = HplAtmRfa1TimerMacP.CompareB;
+	Compare[2] = HplAtmRfa1TimerMacP.CompareC;
+	SfdCapture = HplAtmRfa1TimerMacP.SfdCapture;
+	BeaconCapture = HplAtmRfa1TimerMacP.BeaconCapture;
 
 	components McuSleepC;
 	HplAtmRfa1TimerMacP.McuPowerState -> McuSleepC;

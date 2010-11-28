@@ -181,8 +181,6 @@ implementation
 		SET_BIT(TCCR1B, FOC1A);
 	}
 
-
-
 // ----- CAPTURE: input capture register (ICR)
 
 	async command uint16_t Capture.get()

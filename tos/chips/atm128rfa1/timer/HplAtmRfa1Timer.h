@@ -149,4 +149,12 @@ enum
 	ATMRFA1_COMSC_RELATIVE = 1,
 };
 
+// ----- AtmegaCompare.setMode for the mac symbol counter
+
+enum
+{
+	ATMRFA1_CAPSC_OFF = 0,
+	ATMRFA1_CAPSC_ON = 1,
+};
+
 #endif//__HPLATMRFA1TIMER_H__

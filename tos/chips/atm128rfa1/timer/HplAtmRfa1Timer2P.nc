@@ -41,6 +41,7 @@ module HplAtmRfa1Timer2P @safe()
 		interface AtmegaCounter<uint8_t> as Timer;
 		interface AtmegaCompare<uint8_t> as CompareA;
 //		interface AtmegaCompare<uint8_t> as CompareB;
+//		interface AtmegaCompare<uint8_t> as CompareC;
 		interface McuPowerOverride;
 	}
 
@@ -65,6 +66,7 @@ implementation
 
 	async command uint8_t Timer.get()
 	{
+		// TODO: make sure we wait at least one 1/32768 clock tick after wakeup
 		return TCNT2;
 	}
 
@@ -102,14 +104,12 @@ implementation
 	async command void Timer.start()
 	{
 		SET_BIT(TIMSK2, TOIE2);
-
 		call McuPowerState.update();
 	}
 
 	async command void Timer.stop()
 	{
 		CLR_BIT(TIMSK2, TOIE2);
-
 		call McuPowerState.update();
 	}
 
@@ -193,14 +193,12 @@ implementation
 	async command void CompareA.start()
 	{
 		SET_BIT(TIMSK2, OCIE2A);
-
 		call McuPowerState.update();
 	}
 
 	async command void CompareA.stop()
 	{
 		CLR_BIT(TIMSK2, OCIE2A);
-
 		call McuPowerState.update();
 	}
 
