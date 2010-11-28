@@ -155,7 +155,7 @@ implementation
 		call Leds.led0On();
 		post randomizer();
 
-		call Counter.setMode(ATMRFA1_SCCK_RTC);
+		call Counter.setMode(ATMRFA1_CLKSC_RTC);
 		call Counter.start();
 
 		post testTimer();

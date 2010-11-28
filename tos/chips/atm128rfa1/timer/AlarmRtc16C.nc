@@ -32,27 +32,25 @@
  * Author: Miklos Maroti
  */
 
-configuration HplAtmRfa1Timer1C
+#include "TimerConfig.h"
+
+generic configuration AlarmRtc16C()
 {
-	provides
-	{
-		interface AtmegaCounter<uint16_t> as Counter;
-		interface AtmegaCompare<uint16_t> as Compare[uint8_t id];
-		interface AtmegaCapture<uint16_t> as Capture;
-	}
+	provides interface Alarm<TRtc, uint16_t>;
 }
 
 implementation
 {
-	components HplAtmRfa1Timer1P;
+	components new AtmegaRtcCompareP(TRtc, 0, RTC_ALARM_MINDT);
+	Alarm = AtmegaRtcCompareP;
 
-	Counter = HplAtmRfa1Timer1P;
-	Compare[0] = HplAtmRfa1Timer1P.CompareA;
-//	Compare[1] = HplAtmRfa1Timer1P.CompareB;
-//	Compare[2] = HplAtmRfa1Timer1P.CompareC;
-	Capture = HplAtmRfa1Timer1P;
+	components RealMainP;
+	RealMainP.PlatformInit -> AtmegaRtcCompareP.Init;
 
-	components McuSleepC;
-	HplAtmRfa1Timer1P.McuPowerState -> McuSleepC;
-	HplAtmRfa1Timer1P.McuPowerOverride <- McuSleepC;
+	components HplAtmRfa1Timer2C, CounterRtc16C;
+
+	AtmegaRtcCompareP.AtmegaCounter -> HplAtmRfa1Timer2C;
+	AtmegaRtcCompareP.AtmegaCompare -> HplAtmRfa1Timer2C.Compare[unique(UQ_RTC_ALARM)];
+	AtmegaRtcCompareP.Counter -> CounterRtc16C;
+	AtmegaRtcCompareP.getCounterHigh -> CounterRtc16C;
 }

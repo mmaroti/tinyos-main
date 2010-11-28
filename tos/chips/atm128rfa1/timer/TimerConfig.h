@@ -37,7 +37,7 @@
 
 #include "HplAtmRfa1Timer.h"
 
-// Set the MCU timer parameters
+// ------ MCU timer parameters ------
 
 #ifndef PLATFORM_MHZ
 #define PLATFORM_MHZ	16
@@ -53,9 +53,16 @@ typedef T2mhz TMcu;
 // selects which 16-bit TimerCounter should be used (1 or 3)
 #define MCU_TIMER_NO		1
 
-#define MCU_ALARM_MODE		0
 #define MCU_ALARM_MINDT		100
-
 #define UQ_MCU_ALARM	"UQ_MCU_ALARM"
+
+// ------ RTC timer parameters ------
+
+typedef T32khz TRtc;
+
+#define RTC_TIMER_MODE		(ATMRFA1_CLK8_NORMAL | ATMRFA1_WGM8_NORMAL | ATMRFA1_ASYNC_ON)
+
+#define RTC_ALARM_MINDT		4
+#define UQ_RTC_ALARM	"UQ_RTC_ALARM"
 
 #endif//__TIMERCONFIG_H__

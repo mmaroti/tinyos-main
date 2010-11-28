@@ -155,7 +155,7 @@ implementation
 			| ((c >> CS20) & 0x7) << 0;
 	}
 
-// ----- COMPAREA: output compare register (OCR)
+// ----- COMPARE A: output compare register (OCR)
 
 	async command uint8_t CompareA.get() { return OCR2A; }
 
@@ -172,7 +172,7 @@ implementation
 		call McuPowerState.update();
 	}
 
-// ----- COMPAREA: timer interrupt flag register (TIFR), output comare match flag (OCF)
+// ----- COMPARE A: timer interrupt flag register (TIFR), output comare match flag (OCF)
 
 	default async event void CompareA.fired() { }
 
@@ -188,7 +188,7 @@ implementation
 
 	async command void CompareA.reset() { TIFR2 = 1 << OCF2A; }
 
-// ----- COMPAREA: timer interrupt mask register (TIMSK), output compare interrupt enable (OCIE)
+// ----- COMPARE A: timer interrupt mask register (TIMSK), output compare interrupt enable (OCIE)
 
 	async command void CompareA.start()
 	{
@@ -206,7 +206,7 @@ implementation
 
 	async command bool CompareA.isOn() { return TIMSK2 & (1 << OCIE2A); }
 
-// ----- COMPAREA: timer control register (TCCR), compare output mode (COM)
+// ----- COMPARE A: timer control register (TCCR), compare output mode (COM)
 
 	async command void CompareA.setMode(uint8_t mode)
 	{
@@ -227,7 +227,7 @@ implementation
 		return (TCCR2A >> COM2A0) & 0x3;
 	}
 
-// ----- COMPAREA: timer control register (TCCR), force output compare (FOC)
+// ----- COMPARE A: timer control register (TCCR), force output compare (FOC)
 
 	async command void CompareA.force()
 	{
@@ -252,7 +252,7 @@ implementation
 
 		// if we need to wake up by this clock
 		if( TIMSK2 & (1 << TOIE2 | 1 << OCIE2A | 1 << OCIE2B) )
-			return ATM128_POWER_SAVE;
+			return ATM128_POWER_STANDBY;
 		else
 			return ATM128_POWER_DOWN;
 	}

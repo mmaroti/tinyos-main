@@ -32,27 +32,18 @@
  * Author: Miklos Maroti
  */
 
-configuration HplAtmRfa1Timer1C
+#include "TimerConfig.h"
+
+configuration CounterRtc32C
 {
-	provides
-	{
-		interface AtmegaCounter<uint16_t> as Counter;
-		interface AtmegaCompare<uint16_t> as Compare[uint8_t id];
-		interface AtmegaCapture<uint16_t> as Capture;
-	}
+	provides interface Counter<TRtc, uint32_t>;
 }
 
 implementation
 {
-	components HplAtmRfa1Timer1P;
+	components new TransformCounterC(TRtc, uint32_t, TRtc, uint16_t, 0, uint16_t);
+	Counter = TransformCounterC;
+	TransformCounterC.CounterFrom -> CounterRtc16C;
 
-	Counter = HplAtmRfa1Timer1P;
-	Compare[0] = HplAtmRfa1Timer1P.CompareA;
-//	Compare[1] = HplAtmRfa1Timer1P.CompareB;
-//	Compare[2] = HplAtmRfa1Timer1P.CompareC;
-	Capture = HplAtmRfa1Timer1P;
-
-	components McuSleepC;
-	HplAtmRfa1Timer1P.McuPowerState -> McuSleepC;
-	HplAtmRfa1Timer1P.McuPowerOverride <- McuSleepC;
+	components CounterRtc16C;
 }

@@ -41,7 +41,7 @@ generic configuration AlarmMcu16C()
 
 implementation
 {
-	components new AtmegaCompareP(TMcu, uint16_t, MCU_ALARM_MODE, MCU_ALARM_MINDT);
+	components new AtmegaCompareP(TMcu, uint16_t, 0, MCU_ALARM_MINDT);
 	Alarm = AtmegaCompareP;
 
 	components RealMainP;
