@@ -39,6 +39,11 @@ module I2CTestDriverP {
 	provides interface I2CRead as ReadAck;
 	provides interface I2CRead as ReadNack;
 	provides interface Init;
+	uses interface GeneralIO as I2CClk;
+  uses interface GeneralIO as I2CData;
+
+	uses interface DiagMsg;
+	uses interface Led5 as Leds;
 }
 implementation {
 	
@@ -49,6 +54,7 @@ implementation {
 		WRITEBYTE,
 		R_ACK,
 		R_NACK,
+		TWCR_def= (1 << TWEN) | (1 << TWINT) | (1 << TWIE) | (1 << TWEA),
 	}	;
 	
 	uint8_t state = IDLE;
@@ -60,90 +66,137 @@ implementation {
 	void TWI_Write(uint8_t);
 	void TWI_Stop();
 
-	void TWI_Init() {
+	inline void TWI_Init() {
 		atomic {
-			TWSR = 0;
-			TWSR = 48;
-			TWCR = (1 << TWEN);//4; //TWEN
+			TWSR &= ~((uint8_t)3);
+			//TWBR = (8000000 / 50000UL - 16) / 2;//48;
+			TWBR = 72;
+			TWCR = TWCR_def;//4; //TWEN
 		}//atomic
 	}//TWI_Init
 
-	void TWI_Start() {
+	inline void TWI_Start() {
 		atomic {
 			state = STARTCOND;
-			TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);//164; //TWINT | TWSTA | TWEN
+			TWCR = TWCR_def | (1 << TWSTA);//164; //TWIE | TWSTA | TWEN
 		}//atomic
 	}//TWI_Start
 
-	uint8_t TWI_Status() {
+	inline uint8_t TWI_Status() {
 		atomic {
 			return TWSR & 0xF8; //only first 5 bits that we need
 		}//atomic
 	}//TWI_Status
 
-  void TWI_Write(uint8_t data) {
+  inline void TWI_Write(uint8_t data) {
 		atomic {
 			state = WRITEBYTE;
 			TWDR = data;
-			TWCR = (1 << TWINT) | (1 << TWEN);//132; //TWINT | TWEN
+			TWCR = TWCR_def;//132; //TWIE | TWEN
 		}//atomic
 	}//TWI_Write
 
-	void TWI_Read(bool enableAck) {
-		atomic {
-			TWCR = (1 << TWINT) | (1 << TWEN);//132; //TWINT | TWEN
+	inline void TWI_Read(bool enableAck) {
+		//atomic {
+			TWCR = TWCR_def;//132; //TWIE | TWEN
 			if(enableAck) {
 				TWCR |= (1 << TWEA);
 			}//if
-		}//atomic
+		//}//atomic
 	}//TWI_Read
 
-	void TWI_Stop() {
+	inline void TWI_Stop() {
 		atomic {
 			state = STOPCOND;
-			TWCR = (1 << TWSTO) | (1 << TWEN);//148; //TWSTO | TWEN
+			TWCR = TWCR_def | (1 << TWSTO);//148; //TWSTO | TWEN
 		}//atomic
   }//TWI_Stop
 
 //------------Init--------------
 	command error_t Init.init() {
+		DDRF |= _BV(PF2);
+		PORTF |= _BV(PF2); //empowering i2c sensors for testing purposes
+		call I2CClk.set();
+		call I2CData.set();
+		call I2CClk.makeInput();
+		call I2CData.makeInput();
 		TWI_Init();
+		//call Leds.led0On();
+		/*if(call DiagMsg.record()) {
+			call DiagMsg.str("Dr.init");
+			call DiagMsg.uint8(state);
+      call DiagMsg.send();
+		}*/
 		return SUCCESS;
 	}
 
 //-----------Splitcontrol-------
 	command error_t SplitControl.start() {
+		//TWI_Init();
+		
 		TWI_Start();
+		if(call DiagMsg.record()) {
+			call DiagMsg.str("Dr.start");
+			call DiagMsg.uint8(state);
+			call DiagMsg.send();
+		}
 		return SUCCESS;
 	}
 
 	command error_t SplitControl.stop() {
 		TWI_Stop();
+		if(call DiagMsg.record()) {
+			call DiagMsg.str("Dr.stop");
+			call DiagMsg.uint8(state);
+			call DiagMsg.send();
+		}
 		return SUCCESS;
 	}
 
 //----------I2CWrite------------
 	command error_t I2CWrite.write(uint8_t data) {
 		TWI_Write(data);
+		if(call DiagMsg.record()) {
+			call DiagMsg.str("Dr.write");
+			call DiagMsg.uint8(state);
+			call DiagMsg.send();
+		}
 		return SUCCESS;
 	}
 
 //----------I2CRead-------------
 	command error_t ReadAck.read() {
 		TWI_Read(TRUE);
+		if(call DiagMsg.record()) {
+			call DiagMsg.str("Dr.readAck");
+			call DiagMsg.uint8(state);
+			call DiagMsg.send();
+		}
 		return SUCCESS;
 	}
 
 	command error_t ReadNack.read() {
 		TWI_Read(FALSE);
+		if(call DiagMsg.record()) {
+			call DiagMsg.str("Dr.raedNack");
+			call DiagMsg.uint8(state);
+			call DiagMsg.send();
+		}
 		return SUCCESS;
 	}
 
 //-----------ISR-----------------
 	task void signalingTask() {
+	if(call DiagMsg.record()) {
+			call DiagMsg.str("Dr.isr");
+			call DiagMsg.uint8(state);
+			call DiagMsg.send();
+		}
+		
 		switch(state) {
 			case STARTCOND:
 				atomic state = IDLE;
+				//call Leds.led0Toggle();
 				signal SplitControl.startDone(TWI_Status());
 				break;
 			case STOPCOND:
@@ -151,10 +204,12 @@ implementation {
 				signal SplitControl.stopDone(TWI_Status());
 				break;
 			case WRITEBYTE:
+				//call Leds.led1Toggle();
 				atomic state = IDLE;
 				signal I2CWrite.writeDone(TWI_Status());
 				break;
 			case R_ACK:
+				//call Leds.led0Toggle();
 				atomic state = IDLE;
 				signal ReadAck.readDone(TWI_Status(), TWDR);
 				break;
@@ -163,6 +218,7 @@ implementation {
 				signal ReadNack.readDone(TWI_Status(), TWDR); 
 				break;
 		}//switch
+		TWCR |= (1 << TWINT);
 	}
 
   AVR_ATOMIC_HANDLER(TWI_vect) {
