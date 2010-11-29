@@ -313,7 +313,7 @@ int main() {
 	 
 	 //Sht21
 	 
-	/* 
+	 /*
 	TWI_init(32, 0);
 	ret[0] = EE_write_byte(128, 0xf3);
 	//measurement delay
@@ -325,7 +325,7 @@ int main() {
 	 
 	 //bh1750fvi
 	 
-	 
+	 /*
 	 TWI_init(32, 0);
 	 ret[0] = EE_write_byte(70, 0x1);
 	 TWI_stop();
@@ -335,19 +335,19 @@ int main() {
 	 
 	 _delay_ms(200);
 	 //TWI_wait(70);
-	 //ret[0] = EE_write_byte(70, 0x1);
-	 //TWI_stop();
+	 ret[0] = EE_write_byte(70, 0x1);
+	 TWI_stop();
 	 
 	 ret[1] = EE_read_byte(71, 2, eredm);
 	 TWI_stop();
-	 
+	 */
 	 
 	 //ms5607
 	 /*TWI_init(32,0);
 	 ret[0] = EE_write_byte(238, 0x40);
 	 TWI_stop();
-	 _delay_ms(10);
-	 TWI_wait(238);
+	 _delay_ms(100);
+	 //TWI_wait(238);
 	 ret[1] = EE_read_byte(239, 3, eredm);
 	 TWI_stop();
 	 */
@@ -409,10 +409,23 @@ int main() {
 	 _delay_ms(2000);
 	 ledOff();
 	 
+	 while(1) {
+	 TWI_init(32, 0);
+	ret[0] = EE_write_byte(128, 0xf3);
+	//measurement delay
+	 _delay_ms(85);
+	ret[1] = EE_read_byte(129, 2, eredm);
+
+	TWI_stop();
+	 
 	 sendchar(eredm[0]);
 	 _delay_ms(50);
 	 sendchar(eredm[1]);
 	 _delay_ms(50);
 	 sendchar(eredm[2]);
 	 _delay_ms(50);
+	 
+	 sendchar(ret[0]);
+	 sendchar(ret[1]);
+	 }
 }
