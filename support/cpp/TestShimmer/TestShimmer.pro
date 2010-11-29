@@ -69,7 +69,8 @@ SOURCES += src/DataRecorder.cpp \
     src/SDCard/BlockIterator.cpp \
     src/SDCard/BlockDevice.cpp \
     src/SDCard/BlockChecker.cpp \
-    src/FlatFileModel.cpp
+    src/FlatFileModel.cpp \
+    src/SDataWidget.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -115,7 +116,8 @@ HEADERS += src/DataRecorder.h \
     src/SDCard/BlockIterator.hpp \
     src/SDCard/BlockDevice.hpp \
     src/SDCard/BlockChecker.hpp \
-    src/FlatFileModel.h
+    src/FlatFileModel.h \
+    src/SDataWidget.h
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \
@@ -123,6 +125,7 @@ FORMS += src/MainWindow.ui \
     src/DataWidget.ui \
     src/Widget3D.ui \
     src/GraphWidget.ui \
-    src/SDownloadWidget.ui
+    src/SDownloadWidget.ui \
+    src/SDataWidget.ui
 RESOURCES += src/Resources.qrc \
     src/textures.qrc

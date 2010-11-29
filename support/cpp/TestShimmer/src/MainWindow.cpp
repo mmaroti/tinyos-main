@@ -44,6 +44,7 @@
 #include "Widget3D.h"
 #include "window.h"
 #include "SDownloadWidget.h"
+#include "SDataWidget.h"
 
 // FIXME Eliminate this hideous workaround
 extern DataRecorder* dr;
@@ -67,6 +68,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
         SDownloadWidget* sdownloadWidget = new SDownloadWidget(ui->sdownloadTab, app);
         ui->sdownloadTab->layout()->addWidget(sdownloadWidget);
+
+        SDataWidget* sddataWidget = new SDataWidget(ui->sdataTab, app);
+        ui->sdataTab->layout()->addWidget(sddataWidget);
 
 	DataWidget* dataWidget = new DataWidget(ui->plotTab, app);
 	ui->plotTab->layout()->addWidget(dataWidget);

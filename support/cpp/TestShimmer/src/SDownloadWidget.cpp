@@ -1,9 +1,11 @@
 #include <QFileDialog>
 #include <QDebug>
 #include <QTreeWidget>
+#include <QTableWidget>
 #include "SDownloadWidget.h"
 #include "Application.h"
 #include "ui_SDownloadWidget.h"
+#include <QMessageBox>
 
 SDownloadWidget::SDownloadWidget(QWidget *parent, Application &app) :
         QWidget(parent),
@@ -14,14 +16,14 @@ SDownloadWidget::SDownloadWidget(QWidget *parent, Application &app) :
     ui->sdDataView->setAlternatingRowColors(true);
     ui->sdDataView->setSortingEnabled(true);
 
-    QTreeWidgetItem *item = new QTreeWidgetItem(ui->sdDataView->invisibleRootItem());
-    item->setText(0,"1");
-
-    QTreeWidgetItem *it = new QTreeWidgetItem(item);
-    it->setText(1,"1");
-    it->setText(2,"3675");
-    it->setText(3,"2010-10-30 12:00 00:00");
-    it->setText(4,"2010-11-01 11:34 00:00");
+    int row = 10;
+    int column = 2;
+    ui->sdDataView->setRowCount(row);
+    ui->sdDataView->setColumnCount(column);
+    QTableWidgetItem *newItem = new QTableWidgetItem("1");
+            ui->sdDataView->setItem(0, 0, newItem);
+    QTableWidgetItem *item2 = new QTableWidgetItem("2009.11.21 16:43 23:00");
+            ui->sdDataView->setItem(0,1,item2);
 
 }
 
@@ -36,28 +38,29 @@ void SDownloadWidget::on_clearButton_clicked()
 
 void SDownloadWidget::on_downloadButton_clicked()
 {
+    QMessageBox msgBox;
     #ifdef _WIN32
-    QString file = QFileDialog::getOpenFileName(this, "Select one or more files to open", "c:/", "Any File (*.*)");
-    if ( !file.isEmpty() ) {
+    //QString file = QFileDialog::getOpenFileName(this, "Select one or more files to open", "c:/", "Any File (*.*)");
+    //if ( !file.isEmpty() ) {
 
 
-    }
-        /*QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
-                                                     "/home",
+   // }
+        QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
+                                                        "c:/",
                                                      QFileDialog::ShowDirsOnly
                                                      | QFileDialog::DontResolveSymlinks);
         if (!dir.isEmpty()){
+            msgBox.setText(dir);
             //something something DAARK SIDE
-        }*/
+        }
     #else
-    // TODO On Linux we do not have C:/
-    // TODO Do not use filter, *.* assumes that we have extension
-        QString file = QFileDialog::getOpenFileName(this, "Select one or more files to open", "c:/", "Any File (*.*)");
+        QString file = QFileDialog::getOpenFileName(this, "Select one or more files to open");
         if ( !file.isEmpty() ) {
-
+            msgBox.setText(file);
             //something something DEESTROOY
         }
     #endif
+        msgBox.exec();
 }
 
 void SDownloadWidget::setFlatFileModel(const QString &filename)

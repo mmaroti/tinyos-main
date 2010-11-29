@@ -56,6 +56,12 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_8"/>
       </widget>
+      <widget class="QWidget" name="sdataTab">
+       <attribute name="title">
+        <string>SData</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_9"/>
+      </widget>
       <widget class="QWidget" name="plotTab">
        <attribute name="title">
         <string>Plot</string>
