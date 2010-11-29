@@ -28,8 +28,6 @@ win32:LIBS += -lsetupapi
 # LIBS += ../qwtplot3d/lib/libqwtplot3d.a
 DEFINES += QT_DLL
 
-QT += xml
-
 # QWT3D_DLL
 # QT += opengl
 # isEmpty( ISQT4 ):CONFIG += opengl
@@ -71,7 +69,6 @@ SOURCES += src/DataRecorder.cpp \
     src/SDCard/BlockDevice.cpp \
     src/SDCard/BlockChecker.cpp \
     src/FlatFileModel.cpp \
-    src/XmlStreamReader.cpp \
     src/SDataWidget.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
@@ -118,7 +115,6 @@ HEADERS += src/DataRecorder.h \
     src/SDCard/BlockDevice.hpp \
     src/SDCard/BlockChecker.hpp \
     src/FlatFileModel.h \
-    src/XmlStreamReader.h \
     src/SDataWidget.h
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
