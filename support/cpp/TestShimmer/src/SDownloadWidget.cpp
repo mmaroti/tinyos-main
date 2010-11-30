@@ -16,6 +16,7 @@ SDownloadWidget::SDownloadWidget(QWidget *parent, Application &app) :
     ui->sdDataView->setAlternatingRowColors(true);
     ui->sdDataView->setSortingEnabled(true);
 
+    // TODO Move it to a separate function, with a QString list input argument
     int row = 10;
     int column = 2;
     ui->sdDataView->setRowCount(row);

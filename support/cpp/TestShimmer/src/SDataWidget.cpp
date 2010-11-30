@@ -3,7 +3,6 @@
 #include "ui_SDataWidget.h"
 #include <QTreeWidget>
 #include <QMessageBox>
-#include <cstdlib>
 
 SDataWidget::SDataWidget(QWidget *parent, Application &app) :
         QWidget(parent),
@@ -14,6 +13,7 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
     ui->setupUi(this);
     connect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(on_itemSelectionChanged()));
 
+    // TODO Move it to a separate function
     for(int i=1; i<10; i++){
         for(int j=1; j<4; j++){
             SData record;
@@ -36,6 +36,7 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
             item = new QTreeWidgetItem(ui->sdataLeft->invisibleRootItem());
             item->setText(0,QString::number(records[i].moteID));
         }
+              // TODO Remove duplication
             QTreeWidgetItem *it = new QTreeWidgetItem(item);
             it->setText(1,QString::number(records[i].num));
             it->setText(2,QString::number(records[i].length));
@@ -66,6 +67,7 @@ void SDataWidget::on_itemSelectionChanged()
     }
 }
 
+// FIXME It actually ADDS the records
 void SDataWidget::getLinkingRecords(int moteId, int num)
 {
     for(int i=0; i<records.size(); i++){
@@ -74,6 +76,7 @@ void SDataWidget::getLinkingRecords(int moteId, int num)
                 QTreeWidgetItem *item = new QTreeWidgetItem(ui->sdataRight->invisibleRootItem());
                 item->setText(0,QString::number(records[i].moteID));
 
+              // TODO Remove duplication
                 QTreeWidgetItem *it = new QTreeWidgetItem(item);
                 it->setText(1,QString::number(records[i].num));
                 it->setText(2,QString::number(records[i].length));
