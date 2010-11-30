@@ -13,7 +13,7 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
     ui->setupUi(this);
     connect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(on_itemSelectionChanged()));
 
-    // TODO Move it to a separate function
+    // TODO Move it to a separate function just like in SDownloadWidget
     for(int i=1; i<10; i++){
         for(int j=1; j<4; j++){
             SData record;
