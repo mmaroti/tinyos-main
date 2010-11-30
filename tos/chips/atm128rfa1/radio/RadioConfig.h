@@ -89,7 +89,7 @@ typedef uint16_t tradio_size;
 /**
  * The base two logarithm of the number of radio alarm ticks per one millisecond
  */
-#define RADIO_ALARM_MILLI_EXP	MCU_TIMER_MHZ_LOG2
+#define RADIO_ALARM_MILLI_EXP	(10 + MCU_TIMER_MHZ_LOG2)
 
 /**
  * Make PACKET_LINK automaticaly enabled for Ieee154MessageC

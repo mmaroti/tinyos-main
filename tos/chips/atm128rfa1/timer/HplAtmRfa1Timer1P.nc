@@ -240,7 +240,7 @@ implementation
 	async command mcu_power_t McuPowerOverride.lowestState()
 	{
 		// if we need to wake up by this clock
-		if( TIMSK1 & (1 << TOIE1 | 1 << OCIE1A | 1 << OCIE1B | 1 << OCIE1C | 1 << ICIE1) )
+		if( TIMSK1 & (1 << OCIE1A | 1 << OCIE1B | 1 << OCIE1C | 1 << ICIE1) )
 			return ATM128_POWER_SAVE;
 		else
 			return ATM128_POWER_DOWN;
