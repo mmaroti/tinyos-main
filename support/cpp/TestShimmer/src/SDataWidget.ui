@@ -108,9 +108,23 @@
        </spacer>
       </item>
       <item>
+       <widget class="QPushButton" name="downloadButton">
+        <property name="text">
+         <string>Download</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="clearButton">
+        <property name="text">
+         <string>Clear</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="toPlotButton">
         <property name="text">
-         <string>To Plot</string>
+         <string>Show in Plot</string>
         </property>
        </widget>
       </item>

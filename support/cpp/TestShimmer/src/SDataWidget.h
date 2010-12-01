@@ -5,7 +5,6 @@
 #include <QVarLengthArray>
 #include <QTreeWidgetItem>
 #include <QTreeWidget>
-#include "SDownloadWidget.h"
 
 class Application;
 
@@ -13,16 +12,28 @@ namespace Ui {
     class SDataWidget;
 }
 
+struct SData
+{
+    SData();
+    int moteID;
+    int num;
+    int length;
+    QString tor;
+    QString tod;
+};
+
 class SDataWidget : public QWidget {
     Q_OBJECT
 public:
-    SDataWidget(QWidget *parent, Application &app, SDownloadWidget &sdata);
+    SDataWidget(QWidget *parent, Application &app);
     ~SDataWidget();
+
+    const SData getSDataAt(int i) const { return records[i]; }
+    int size() const { return records.size(); }
 
 private:
     Ui::SDataWidget *ui;
     Application &application;
-    SDownloadWidget &sdownload;
 
     void initLeft();
     void initRight(QVarLengthArray<int> list);
@@ -31,9 +42,15 @@ private:
     QTreeWidgetItem* createParentItem(int i, QTreeWidget* root);
     void createChildItem(int i, QTreeWidgetItem* parent);
 
+    void fillSData();
+    void init();
+    QVarLengthArray<SData> records;
+
 private slots:
     void on_itemSelectionChanged();
     void on_toPlotButton_clicked();
+    void on_downloadButton_clicked();
+    void on_clearButton_clicked();
 };
 
 #endif // SDATAWIDGET_H

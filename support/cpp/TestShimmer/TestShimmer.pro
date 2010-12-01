@@ -51,7 +51,6 @@ SOURCES += src/DataRecorder.cpp \
     src/Widget3D.cpp \
     src/GraphWidget.cpp \
     src/Graph.cpp \
-    src/SDownloadWidget.cpp \
     src/Solver/Solver.cpp \
     src/Solver/Results.cpp \
     src/Solver/EulerAngles.cpp \
@@ -90,7 +89,6 @@ HEADERS += src/DataRecorder.h \
     src/Graph.h \
     src/constants.h \
     src/Widget3D.h \
-    src/SDownloadWidget.h \
     src/Solver/Solver.hpp \
     src/Solver/Results.hpp \
     src/Solver/MatrixVector.hpp \
@@ -123,7 +121,6 @@ FORMS += src/MainWindow.ui \
     src/DataWidget.ui \
     src/Widget3D.ui \
     src/GraphWidget.ui \
-    src/SDownloadWidget.ui \
     src/SDataWidget.ui
 RESOURCES += src/Resources.qrc \
     src/textures.qrc

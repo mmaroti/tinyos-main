@@ -50,12 +50,6 @@
         </property>
        </layout>
       </widget>
-      <widget class="QWidget" name="sdownloadTab">
-       <attribute name="title">
-        <string>SDownloader</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_8"/>
-      </widget>
       <widget class="QWidget" name="sdataTab">
        <attribute name="title">
         <string>SData</string>

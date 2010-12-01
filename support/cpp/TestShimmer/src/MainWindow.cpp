@@ -43,7 +43,6 @@
 #include "GraphWidget.h"
 #include "Widget3D.h"
 #include "window.h"
-#include "SDownloadWidget.h"
 #include "SDataWidget.h"
 
 // FIXME Eliminate this hideous workaround
@@ -66,10 +65,7 @@ MainWindow::MainWindow(QWidget *parent) :
 //	ui->openglTab->layout()->addWidget(widget3d);
         ui->tabWidget->removeTab(5);    //temporarly hidden
 
-        SDownloadWidget* sdownloadWidget = new SDownloadWidget(ui->sdownloadTab, app);
-        ui->sdownloadTab->layout()->addWidget(sdownloadWidget);
-
-        SDataWidget* sddataWidget = new SDataWidget(ui->sdataTab, app, *sdownloadWidget);
+        SDataWidget* sddataWidget = new SDataWidget(ui->sdataTab, app);
         ui->sdataTab->layout()->addWidget(sddataWidget);
 
 	DataWidget* dataWidget = new DataWidget(ui->plotTab, app);
