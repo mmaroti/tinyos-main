@@ -43,7 +43,7 @@
 #include "Serial.h"
 configuration SerialActiveMessageC {
   provides {
-    #ifndef AUTO_SERIAL
+    #ifndef SERIAL_AUTO
     interface SplitControl;
     #endif
     interface AMSend[am_id_t id];
@@ -61,13 +61,19 @@ implementation {
   MainC.SoftwareInit -> SerialDispatcherC;
   Leds = SerialDispatcherC;
   
-  #ifndef AUTO_SERIAL
+  #ifndef SERIAL_AUTO
   SplitControl = SerialDispatcherC;
   #else
   components SerialAutoControlC, Cp2102C;
   SerialAutoControlC.UsbState->Cp2102C;
   SerialAutoControlC.SplitControl->SerialDispatcherC;
   MainC.SoftwareInit -> SerialAutoControlC;
+  #endif
+  #ifndef DISABLE_SERIAL_RESET
+  components SerialResetP;
+  SerialResetP.Send -> SerialDispatcherC.Send[0x72];
+  SerialResetP.Receive -> SerialDispatcherC.Receive[0x72];
+  SerialDispatcherC.SerialPacketInfo[0x72] -> SerialResetP;
   #endif
   
   AMSend = AM;

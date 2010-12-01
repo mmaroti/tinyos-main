@@ -2,6 +2,8 @@ module SerialAutoControlC{
   uses interface SplitControl;
   uses interface UsbState;
   provides interface Init as SoftwareInit;
+  
+  uses interface Leds;
 }
 implementation{
   //TODO this component should work based on usb power (vdd) or usb active/suspend
