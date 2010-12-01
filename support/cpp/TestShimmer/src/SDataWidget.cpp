@@ -15,7 +15,6 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app, SDownloadWidget &sda
     ui->setupUi(this);
     connect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(on_itemSelectionChanged()));
 
-    // TODO Move it to a separate function just like in SDownloadWidget
     initLeft();
 }
 
@@ -61,7 +60,6 @@ void SDataWidget::on_itemSelectionChanged()
     }
 }
 
-// FIXME It actually ADDS the records
 QVarLengthArray<int> SDataWidget::getLinkingRecords(int moteId, int num)
 {
     QVarLengthArray<int> list;

@@ -16,10 +16,8 @@ SDownloadWidget::SDownloadWidget(QWidget *parent, Application &app) :
     ui->sdDataView->setAlternatingRowColors(true);
     ui->sdDataView->setSortingEnabled(true);
 
-    // TODO Move it to a separate init() function, init() should call another funtion for the data
     fillSData();
     init();
-
 }
 
 SDownloadWidget::~SDownloadWidget()
@@ -48,7 +46,7 @@ void SDownloadWidget::on_downloadButton_clicked()
             msgBox.setText(dir);
         }
     #else
-        QString file = QFileDialog::getOpenFileName(this, "Select one or more files to open");
+        QString file = QFileDialog::getOpenFileName(this, "Select the device");
         if ( !file.isEmpty() ) {
             msgBox.setText(file);
         }
