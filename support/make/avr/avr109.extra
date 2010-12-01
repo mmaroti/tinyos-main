@@ -6,6 +6,7 @@ endif
 
 PROGRAM = avr109
 BAUDRATE = 57600
+
 ifeq ($(PROGRAMMER),avrdude)
     ifeq ($(shell [ -f /bin/cygwin1.dll ] && echo cygwin),cygwin)
       AVR109 := '\\.\$(AVR109)'
@@ -21,6 +22,7 @@ ifeq ($(PROGRAMMER),avrdude)
 endif
 
 program: FORCE
+	java org.szte.wsn.zigbit.Programmer -port $(AVR109) -baudrate $(BAUDRATE) -reset
 	@echo "    installing $(PLATFORM) binary using avr109"
 	$(PROGRAMMER) $(PROGRAMMER_FLAGS) $(PROGRAMMER_INSTALL_SREC_FLAGS)
 
