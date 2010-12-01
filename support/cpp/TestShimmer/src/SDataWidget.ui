@@ -13,66 +13,121 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_2">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QTreeWidget" name="sdataLeft">
-     <property name="editTriggers">
-      <set>QAbstractItemView::NoEditTriggers</set>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string/>
      </property>
-     <column>
-      <property name="text">
-       <string notr="true">moteID</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>#</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Length</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>TOR</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>TOD</string>
-      </property>
-     </column>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QTreeWidget" name="sdataLeft">
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <column>
+           <property name="text">
+            <string notr="true">moteID</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>#</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Length</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>TOR</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>TOD</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTreeWidget" name="sdataRight">
+          <column>
+           <property name="text">
+            <string notr="true">moteID</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>#</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Length</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>TOR</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>TOD</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
-    <widget class="QTreeWidget" name="sdataRight">
-     <column>
-      <property name="text">
-       <string notr="true">moteID</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>#</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Length</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>TOR</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>TOD</string>
-      </property>
-     </column>
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string/>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="toPlotButton">
+        <property name="text">
+         <string>To Plot</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>

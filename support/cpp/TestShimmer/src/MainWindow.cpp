@@ -69,7 +69,7 @@ MainWindow::MainWindow(QWidget *parent) :
         SDownloadWidget* sdownloadWidget = new SDownloadWidget(ui->sdownloadTab, app);
         ui->sdownloadTab->layout()->addWidget(sdownloadWidget);
 
-        SDataWidget* sddataWidget = new SDataWidget(ui->sdataTab, app);
+        SDataWidget* sddataWidget = new SDataWidget(ui->sdataTab, app, *sdownloadWidget);
         ui->sdataTab->layout()->addWidget(sddataWidget);
 
 	DataWidget* dataWidget = new DataWidget(ui->plotTab, app);

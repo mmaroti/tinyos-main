@@ -17,14 +17,8 @@ SDownloadWidget::SDownloadWidget(QWidget *parent, Application &app) :
     ui->sdDataView->setSortingEnabled(true);
 
     // TODO Move it to a separate init() function, init() should call another funtion for the data
-    int row = 10;
-    int column = 2;
-    ui->sdDataView->setRowCount(row);
-    ui->sdDataView->setColumnCount(column);
-    QTableWidgetItem *newItem = new QTableWidgetItem("1");
-            ui->sdDataView->setItem(0, 0, newItem);
-    QTableWidgetItem *item2 = new QTableWidgetItem("2009.11.21 16:43 23:00");
-            ui->sdDataView->setItem(0,1,item2);
+    fillSData();
+    init();
 
 }
 
@@ -65,5 +59,45 @@ void SDownloadWidget::on_downloadButton_clicked()
 void SDownloadWidget::setFlatFileModel(const QString &)
 {
     //ui->sdDataView->setModel(new FlatFileModel(filename));
+}
+
+void SDownloadWidget::init()
+{
+    int row = size();
+    int column = 2;
+    ui->sdDataView->setRowCount(row);
+    ui->sdDataView->setColumnCount(column);
+    for(int i=0; i<row; i++){
+        QTableWidgetItem *item1 = new QTableWidgetItem(QString::number(getSDataAt(i).moteID));
+                ui->sdDataView->setItem(i, 0, item1);
+        QTableWidgetItem *item2 = new QTableWidgetItem(getSDataAt(i).tod);
+                ui->sdDataView->setItem(i, 1, item2);
+    }
+}
+
+SData::SData()
+{
+    moteID = 0;
+    num = 0;
+    length = 0;
+    tor = "";
+    tod = "";
+}
+
+void SDownloadWidget::fillSData()
+{
+    for(int i=1; i<10; i++){
+        for(int j=1; j<4; j++){
+            SData record;
+
+            record.moteID = i;
+            record.num = j;
+            record.length = rand()*1000;
+            record.tod = "2010-10-30 12:00 00:00";
+            record.tor = "2010-11-01 11:34 00:00";
+
+            records.append(record);
+        }
+    }
 }
 
