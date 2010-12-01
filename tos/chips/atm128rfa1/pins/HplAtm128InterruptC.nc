@@ -59,8 +59,6 @@ configuration HplAtm128InterruptC
     interface GpioPCInterrupt as PCInt6;
     interface GpioPCInterrupt as PCInt7;
     interface GpioPCInterrupt as PCInt8;
-    interface GpioPCInterrupt as UnknownPCInt07;
-    interface GpioPCInterrupt as UnknownPCInt8;
   }
 }
 implementation
@@ -103,8 +101,6 @@ implementation
   PCInt6 = PCIntVect0.GpioPCInterrupt6;
   PCInt7 = PCIntVect0.GpioPCInterrupt7;
   PCInt8 = PCIntVect1.GpioPCInterrupt0;
-  UnknownPCInt07 = PCIntVect0.UnknownPCInt;
-  UnknownPCInt8 = PCIntVect1.UnknownPCInt;
 
   IntPin0.IrqSignal -> IrqVector.IntSig0;
   IntPin1.IrqSignal -> IrqVector.IntSig1;

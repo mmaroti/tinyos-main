@@ -21,14 +21,12 @@ generic module HplAtm1281PCInterruptP(uint8_t ctrl_bit,  uint8_t mask_addr)
   provides interface GpioPCInterrupt as GpioPCInterrupt5;
   provides interface GpioPCInterrupt as GpioPCInterrupt6;
   provides interface GpioPCInterrupt as GpioPCInterrupt7;
-  provides interface GpioPCInterrupt as UnknownPCInt;
 }
 implementation
 {
   #define mask  (*TCAST(volatile uint8_t * ONE, mask_addr))
   #define flag  (*TCAST(volatile uint8_t * ONE, flag_addr))
-  uint8_t state;
-  bool UnknownEnabled=FALSE;//TODO non-atomic read in line 64
+  uint8_t state;//TODO non-atomic read in line 62
   
   inline bool pinget(uint8_t pin);
   
@@ -70,47 +68,7 @@ implementation
 	}
   }
   
-  async command error_t UnknownPCInt.enable(){
-	if(UnknownEnabled)
-	  return EALREADY;
-	else{
-	  UnknownEnabled=TRUE;
-	  return SUCCESS;
-	}
-  }
-  
-  async command error_t UnknownPCInt.disable(){
-	if(!UnknownEnabled)
-	  return EALREADY;
-	else{
-	  UnknownEnabled=FALSE;
-	  return SUCCESS;
-	}
-  } 
-  
-  async command bool UnknownPCInt.get(){
-	return FALSE;
-  }
-  
   inline void signalfired(uint8_t pin, bool toHigh);
-  
-  inline void signalIrqs(uint8_t irqstate){
-	uint8_t i;
-	if(state==irqstate)
-	  signal UnknownPCInt.fired(FALSE);
-	else {
-	  for(i=0;i<8;i++){
-		if( (state & (1<<i) ) != (irqstate & (1<<i) ) ){
-		  if(state & (1<<i) ){
-			signalfired(i,FALSE);
-		  } else {
-			signalfired(i,TRUE);
-		  }
-		}
-	  }
-	  state=irqstate;
-	}
-  }
   
   async event void IrqSignal.fired(){
 	uint8_t i;
@@ -119,9 +77,16 @@ implementation
 	  if(mask&(1<<i)){ //enabled
 		if(pinget(i))
 		  irqstate|=1<<i;
-	  }
+		if( (state & (1<<i) ) != (irqstate & (1<<i) ) ){
+		  if(state & (1<<i) ){
+			signalfired(i,FALSE);
+		  } else {
+			signalfired(i,TRUE);
+		  }
+		}
+	    }
 	}
-	signalIrqs(irqstate);
+	state=irqstate;
   }
   
 
@@ -298,5 +263,4 @@ implementation
   default async event void GpioPCInterrupt5.fired(bool toHigh){}
   default async event void GpioPCInterrupt6.fired(bool toHigh){}
   default async event void GpioPCInterrupt7.fired(bool toHigh){}
-  default async event void UnknownPCInt.fired(bool toHigh){}
 }
