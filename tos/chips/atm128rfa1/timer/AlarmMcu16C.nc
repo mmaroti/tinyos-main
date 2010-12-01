@@ -44,8 +44,8 @@ implementation
 	components new AtmegaCompareP(TMcu, uint16_t, 0, MCU_ALARM_MINDT);
 	Alarm = AtmegaCompareP;
 
-	components RealMainP;
-	RealMainP.PlatformInit -> AtmegaCompareP.Init;
+	components PlatformC;
+	PlatformC.TimerInit -> AtmegaCompareP;
 
 #if MCU_TIMER_NO == 1
 	components HplAtmRfa1Timer1C as HplAtmRfa1TimerC;

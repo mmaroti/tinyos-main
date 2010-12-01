@@ -44,8 +44,8 @@ implementation
 	components new AtmegaRtcCompareP(TRtc, 0, RTC_ALARM_MINDT);
 	Alarm = AtmegaRtcCompareP;
 
-	components RealMainP;
-	RealMainP.PlatformInit -> AtmegaRtcCompareP.Init;
+	components PlatformC;
+	PlatformC.TimerInit -> AtmegaRtcCompareP;
 
 	components HplAtmRfa1Timer2C, CounterRtc16C;
 

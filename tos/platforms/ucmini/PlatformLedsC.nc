@@ -30,31 +30,30 @@
 *  @author Richard Huber <rihuber@ee.ethz.ch>
 *  @author Thomas Fahrni <tfahrni@ee.ethz.ch>
 *  @author Gabor Salamon <gabor.salamon@unicomp.hu>
-* 
-* 
 */
-
-#include "hardware.h"
 
 configuration PlatformLedsC
 {
-  provides interface GeneralIO as Led0;
-  provides interface GeneralIO as Led1;
-  provides interface GeneralIO as Led2;
-  provides interface GeneralIO as Led3;
-  
+  provides
+  {
+    interface GeneralIO as Led0;
+    interface GeneralIO as Led1;
+    interface GeneralIO as Led2;
+    interface GeneralIO as Led3;
+  }
+
   uses interface Init;
 }
+
 implementation
 {
   components HplAtm128GeneralIOC as IO;
-  components PlatformP;
 
-  Init = PlatformP.MoteInit;
+  components PlatformC;
+  Init = PlatformC.LedsInit;
 
   Led0 = IO.PortE5;  
   Led1 = IO.PortE6; 
   Led2 = IO.PortE7;  
   Led3 = IO.PortE3;
-  
 }

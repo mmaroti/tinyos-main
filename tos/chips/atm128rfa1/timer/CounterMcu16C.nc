@@ -44,8 +44,8 @@ implementation
 	components new AtmegaCounterP(TMcu, uint16_t, MCU_TIMER_MODE);
 	Counter = AtmegaCounterP;
 
-	components RealMainP;
-	RealMainP.PlatformInit -> AtmegaCounterP.Init;
+	components PlatformC;
+	PlatformC.LedsInit -> AtmegaCounterP.Init;
 
 #if MCU_TIMER_NO == 1
 	components HplAtmRfa1Timer1C as HplAtmRfa1TimerC;

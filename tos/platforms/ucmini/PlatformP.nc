@@ -1,5 +1,3 @@
-/// $Id: PlatformP.nc,v 1.4 2010-11-12 19:37:01 szabomeister Exp $
-
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
@@ -29,22 +27,23 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-/**
- * Internal platform boot code.
  *
  * @author Martin Turon <mturon@xbow.com>
+ * @author Miklos Maroti
  */
 
 #include "hardware.h"
 
 module PlatformP @safe()
 {
-  provides interface Init;
-  uses interface Init as MoteInit;
-  uses interface Init as MeasureClock;
+	provides interface Init;
 
+	uses
+	{
+		interface Init as MeasureClock;
+		interface Init as TimerInit;
+		interface Init as LedsInit;
+	}
 }
 implementation
 {
@@ -62,6 +61,10 @@ implementation
        // DDRD |= _BV(PD0);
        // DDRD |= _BV(PD1);
        // PORTD |= _BV(PD0) | _BV(PD1);
+
+	// Pull C I/O port pins low
+	// PORTC = 0;
+	// DDRC = 0xff;
       }
   }
 
@@ -74,13 +77,15 @@ implementation
       // enable changing the prescaler
       CLKPR = 0x80;
 
-#if MHZ == 8
+#if PLATFORM_MHZ == 16
+      CLKPR = 0x0F;	
+#elif PLATFORM_MHZ == 8
       CLKPR = 0x00;
-#elif MHZ == 4
+#elif PLATFORM_MHZ == 4
       CLKPR = 0x01;
-#elif MHZ == 2
+#elif PLATFORM_MHZ == 2
       CLKPR = 0x02;
-#elif MHZ == 1
+#elif PLATFORM_MHZ == 1
       CLKPR = 0x03;
 #else
 	#error "Unsupported MHZ"
@@ -89,7 +94,14 @@ implementation
 
     /* First thing is to measure the clock frequency */
     ok = call MeasureClock.init();
-    ok = ecombine(ok, call MoteInit.init());
+
+    // initialize all timer registers, and start the MCU timer
+    if( ok == SUCCESS )
+	    ok = call TimerInit.init();
+
+    // initialize the LED ports
+    if( ok == SUCCESS )
+	    ok = call LedsInit.init();
 
     if (ok != SUCCESS)
       return ok;

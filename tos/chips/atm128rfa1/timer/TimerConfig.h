@@ -36,14 +36,17 @@
 #define __TIMERCONFIG_H__
 
 #include "HplAtmRfa1Timer.h"
+#include "hardware.h"
 
 // ------ MCU timer parameters ------
 
-#ifndef PLATFORM_MHZ
-#define PLATFORM_MHZ	16
-#endif
+typedef struct T16mhz { } T16mhz;
+typedef struct T8mhz { } T8mhz;
+typedef struct T4mhz { } T4mhz;
+typedef struct T2mhz { } T2mhz;
 
-// typedef struct T2mhz { } T2mhz;
+#define PLATFORM_MHZ	16
+
 typedef T2mhz TMcu;
 
 #define MCU_TIMER_MODE		ATMRFA1_CLK16_DIVIDE_8

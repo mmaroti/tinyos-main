@@ -15,7 +15,6 @@
   %T/chips/atm128rfa1/radio
   %T/chips/atm128rfa1/i2c  
   %T/chips/atm128rfa1/spi
-  %T/platforms/mica
   %T/chips/atm1281
   %T/chips/atm1281/adc
   %T/chips/atm128

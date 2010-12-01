@@ -34,27 +34,22 @@
  *  @author Alan Broad <abroad@xbow.com>
  *  @author Matt Miller <mmiller@xbow.com>
  *  @author Martin Turon <mturon@xbow.com>
- *
- *  $Id: hardware.h,v 1.2 2010-09-20 14:11:57 szabomeister Exp $
  */
 
 #ifndef HARDWARE_H
 #define HARDWARE_H
 
-#ifndef MHZ
-/* Clock rate is ~8MHz except if specified by user 
-   (this value must be a power of 2, see MicaTimer.h and MeasureClockC.nc) */
-#define MHZ 8
-#endif
-
 #include <atm128hardware.h>
 #include <Atm128Adc.h>
-#include <MicaTimer.h>
+
+#ifndef PLATFORM_MHZ
+#define PLATFORM_MHZ 16
+#endif
 
 // enum so components can override power saving, 
 // as per TEP 112. 
 enum { 
- TOS_SLEEP_NONE = ATM128_POWER_IDLE, 
+	TOS_SLEEP_NONE = ATM128_POWER_IDLE, 
 }; 
  
 #ifndef PLATFORM_BAUDRATE 
@@ -63,6 +58,5 @@ enum {
 
 // we have no external pullups
 #define ATM128_I2C_EXTERNAL_PULLDOWN TRUE
-
 
 #endif //HARDWARE_H

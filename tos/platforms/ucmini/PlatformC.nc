@@ -32,25 +32,33 @@
  * Author: Miklos Maroti
  */
 
-#include "TimerConfig.h"
-
-configuration CounterRtc16C
+configuration PlatformC
 {
-	provides interface Counter<TRtc, uint16_t>;
+	provides
+	{
+		interface Init;
+		interface Atm128Calibrate;
+	}
 
-	// for the alarm
-	provides command uint8_t getCounterHigh();
+	uses
+	{
+		interface Init as TimerInit;
+		interface Init as LedsInit;
+	}
+
 }
-
 implementation
 {
-	components new AtmegaRtcCounterP(TRtc, RTC_TIMER_MODE);
-	Counter = AtmegaRtcCounterP;
-	getCounterHigh = AtmegaRtcCounterP;
+	components PlatformP, MeasureClockC;
+  
+	Init = PlatformP;
+	Atm128Calibrate = MeasureClockC;
 
-	components PlatformC;
-	PlatformC.TimerInit -> AtmegaRtcCounterP.Init;
+	PlatformP.MeasureClock -> MeasureClockC;
+	TimerInit = PlatformP.TimerInit;
+	LedsInit = PlatformP.LedsInit;
 
-	components HplAtmRfa1Timer2C;
-	AtmegaRtcCounterP.AtmegaCounter -> HplAtmRfa1Timer2C;
+#ifdef SERIAL_AUTO
+	components SerialActiveMessageC;
+#endif
 }
