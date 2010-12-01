@@ -42,8 +42,8 @@ void SDataWidget::fillSData()
             record.moteID = i;
             record.num = j;
             record.length = rand()*1000;
-            record.tod = "2010-10-30 12:00 00:00";
-            record.tor = "2010-11-01 11:34 00:00";
+            record.tod = "2010-10-30 12:00";
+            record.tor = "2010-11-01 11:34";
 
             records.append(record);
         }
@@ -86,7 +86,7 @@ void SDataWidget::on_itemSelectionChanged()
     QString msg;
     if(!(ui->sdataLeft->currentItem()->parent()<ui->sdataLeft->invisibleRootItem())){
         msg.append(ui->sdataLeft->currentItem()->parent()->text(0));
-        msg.append("\n"+ui->sdataLeft->currentItem()->text(2));
+        msg.append("\n"+ui->sdataLeft->currentItem()->text(1));
         msgBox.setText(msg);
         msgBox.exec();
 
@@ -132,10 +132,10 @@ void SDataWidget::on_toPlotButton_clicked()
         if(!(ui->sdataRight->currentItem()->parent()<ui->sdataRight->invisibleRootItem())){
             msg.append(ui->sdataRight->currentItem()->parent()->text(0));
             msg.append("\n");
-            msg.append(ui->sdataRight->currentItem()->text(2));
+            msg.append(ui->sdataRight->currentItem()->text(1));
 
             msg.append("\n"+ui->sdataLeft->currentItem()->parent()->text(0)+"\n");
-            msg.append(ui->sdataLeft->currentItem()->text(2));
+            msg.append(ui->sdataLeft->currentItem()->text(1));
 
             msgBox.setText(msg);
             msgBox.exec();
