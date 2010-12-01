@@ -423,7 +423,7 @@ implementation
 	{
 		atomic
 		{
-			SCCR0 = (SCCR0 & ~(0x1 << SCTSE))
+			SCCR0 = (SCCR0 & ~(1 << SCTSE))
 				| (mode & 0x1) << SCTSE;
 		}
 	}
@@ -480,7 +480,7 @@ implementation
 	{
 		atomic
 		{
-			SCCR0 = (SCCR0 & ~(0x1 << SCTSE))
+			SCCR0 = (SCCR0 & ~(1 << SCTSE))
 				| (mode & 0x1) << SCTSE;
 		}
 	}
@@ -494,7 +494,11 @@ implementation
 
 	async command mcu_power_t McuPowerOverride.lowestState()
 	{
-		// TODO: go down to ATM128_POWER_DOWN and think about DEEP SLEEP
-		return ATM128_POWER_SAVE;
+		// TODO: check out why ATM128_POWER_DOWN does not work
+
+		if( SCCR0 & (1 << SCEN) )
+			return ATM128_POWER_SAVE;
+		else
+			return ATM128_POWER_DOWN;
 	}
 }
