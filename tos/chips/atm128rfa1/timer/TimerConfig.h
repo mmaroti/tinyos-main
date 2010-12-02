@@ -37,6 +37,7 @@
 
 #include "HplAtmRfa1Timer.h"
 #include "hardware.h"
+#include "Timer.h"
 
 // ------ MCU timer parameters ------
 
@@ -49,7 +50,7 @@ typedef struct T2mhz { } T2mhz;
 
 typedef T2mhz TMcu;
 
-#define MCU_TIMER_MODE		ATMRFA1_CLK16_DIVIDE_8
+#define MCU_TIMER_MODE		(ATMRFA1_CLK16_DIVIDE_8 | ATMRFA1_WGM16_NORMAL)
 #define MCU_TIMER_MHZ		2
 #define MCU_TIMER_MHZ_LOG2	1
 
@@ -57,7 +58,7 @@ typedef T2mhz TMcu;
 #define MCU_TIMER_NO		1
 
 #define MCU_ALARM_MINDT		100
-#define UQ_MCU_ALARM	"UQ_MCU_ALARM"
+#define UQ_MCU_ALARM		"UQ_MCU_ALARM"
 
 // ------ RTC timer parameters ------
 
@@ -66,6 +67,6 @@ typedef T32khz TRtc;
 #define RTC_TIMER_MODE		(ATMRFA1_CLK8_NORMAL | ATMRFA1_WGM8_NORMAL | ATMRFA1_ASYNC_ON)
 
 #define RTC_ALARM_MINDT		4
-#define UQ_RTC_ALARM	"UQ_RTC_ALARM"
+#define UQ_RTC_ALARM		"UQ_RTC_ALARM"
 
 #endif//__TIMERCONFIG_H__

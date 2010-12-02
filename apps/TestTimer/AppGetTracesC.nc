@@ -44,6 +44,14 @@ implementation
 	AppGetTracesP.SplitControl -> SerialActiveMessageC;
 	AppGetTracesP.DiagMsg -> DiagMsgC;
 
-	components HplAtmRfa1TimerMacC;
-	AppGetTracesP.Counter -> HplAtmRfa1TimerMacC;
+	components HplAtmRfa1TimerAsyncC;
+	components new AtmegaAsyncTimerP(TRUE), BusyWaitMicroC;
+	AtmegaAsyncTimerP.SubCounter -> HplAtmRfa1TimerAsyncC;
+	AtmegaAsyncTimerP.BusyWait -> BusyWaitMicroC;
+	AppGetTracesP.Counter -> AtmegaAsyncTimerP;
+
+/*
+	components HplAtmRfa1Timer1C;
+	AppGetTracesP.Counter -> HplAtmRfa1Timer1C;
+*/
 }

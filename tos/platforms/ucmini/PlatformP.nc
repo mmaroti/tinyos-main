@@ -110,4 +110,9 @@ implementation
 
     return SUCCESS;
   }
+
+	default command error_t TimerInit.init()
+	{
+		return SUCCESS;
+	}
 }

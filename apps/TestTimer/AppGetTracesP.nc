@@ -32,6 +32,7 @@
 */
 
 #include "HplAtmRfa1Timer.h"
+#include "TimerConfig.h"
 
 module AppGetTracesP
 {
@@ -39,7 +40,7 @@ module AppGetTracesP
 	{
 		interface Boot;
 		interface Leds;
-		interface AtmegaCounter<uint32_t> as Counter;
+		interface AtmegaCounter<uint8_t> as Counter;
 		interface DiagMsg;
 		interface SplitControl;
 	}
@@ -155,7 +156,8 @@ implementation
 		call Leds.led0On();
 		post randomizer();
 
-		call Counter.setMode(ATMRFA1_CLKSC_RTC);
+		call Counter.setMode(ATMRFA1_CLK8_DIVIDE_8 | ATMRFA1_WGM8_NORMAL | ATMRFA1_ASYNC_ON);
+//		call Counter.setMode(ATMRFA1_CLK16_NORMAL | ATMRFA1_WGM16_NORMAL);
 		call Counter.start();
 
 		post testTimer();

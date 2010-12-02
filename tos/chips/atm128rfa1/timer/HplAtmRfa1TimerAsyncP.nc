@@ -34,7 +34,7 @@
 
 #include "HplAtmRfa1Timer.h"
 
-module HplAtmRfa1Timer2P @safe()
+module HplAtmRfa1TimerAsyncP @safe()
 {
 	provides
 	{
@@ -89,7 +89,8 @@ implementation
 
 	AVR_ATOMIC_HANDLER(TIMER2_OVF_vect)
 	{
-//		TCCR2A = TCCR2A;
+		// to keep the MCU from going to sleep too early
+		TCCR2A = TCCR2A;
 		call McuPowerState.update();
 
 		signal Timer.overflow();
@@ -178,8 +179,9 @@ implementation
 
 	AVR_ATOMIC_HANDLER(TIMER2_COMPA_vect)
 	{ 
-//		TCCR2A = TCCR2A;
-//		call McuPowerState.update();
+		// to keep the MCU from going to sleep too early
+		TCCR2A = TCCR2A;
+		call McuPowerState.update();
 
 		signal CompareA.fired();
 	}
@@ -250,7 +252,7 @@ implementation
 
 		// if we need to wake up by this clock
 		if( TIMSK2 & (1 << TOIE2 | 1 << OCIE2A | 1 << OCIE2B) )
-			return ATM128_POWER_STANDBY;
+			return ATM128_POWER_SAVE;
 		else
 			return ATM128_POWER_DOWN;
 	}
