@@ -163,31 +163,26 @@ void SDataWidget::on_clearButton_clicked()
 void SDataWidget::on_downloadButton_clicked()
 {
     QMessageBox msgBox;
-    #ifdef _WIN32
-    //QString file = QFileDialog::getOpenFileName(this, "Select one or more files to open", "c:/", "Any File (*.*)");
-    //if ( !file.isEmpty() ) {
+#ifdef _WIN32
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
+                                                    "c:/",
+                                                    QFileDialog::ShowDirsOnly
 
+                                                    | QFileDialog::DontResolveSymlinks);
+#else
+    QString dir = QFileDialog::getOpenFileName(this, "Select the device");
 
-   // }
-        QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
-                                                        "c:/",
-                                                     QFileDialog::ShowDirsOnly
-                                                     | QFileDialog::DontResolveSymlinks);
-        if (!dir.isEmpty()){
-            msgBox.setText(dir);
-            ui->sdataLeft->clear();
-            ui->sdataRight->clear();
-            fillSData();
-            initLeft();
-            ui->sdataLeft->update();
-        }
-    #else
-        QString file = QFileDialog::getOpenFileName(this, "Select the device");
-        if ( !file.isEmpty() ) {
-            msgBox.setText(file);
-        }
-    #endif
-        msgBox.exec();
+#endif
+    if (!dir.isEmpty()){
+        msgBox.setText(dir);
+        ui->sdataLeft->clear();
+        ui->sdataRight->clear();
+        fillSData();
+        initLeft();
+        ui->sdataLeft->update();
+    }
+
+    msgBox.exec();
 }
 
 
