@@ -5,6 +5,8 @@
 #include <QMessageBox>
 #include <QFile>
 #include <QFileDialog>
+#include <QDate>
+#include <QTime>
 
 SData::SData()
 {
@@ -35,8 +37,9 @@ SDataWidget::~SDataWidget()
 
 void SDataWidget::fillSData()
 {
-    for(int i=1; i<10; i++){
-        for(int j=1; j<4; j++){
+    for(int i=1; i<=rand() % 10 + 1; i++){
+        int numOfRecs = rand() % 3 + 1;
+        for(int j=1; j<=numOfRecs; j++){
             SData record;
 
             record.moteID = i;
@@ -54,7 +57,7 @@ void SDataWidget::initLeft()
 {
     int id=getSDataAt(0).moteID;
     QTreeWidgetItem *item = createParentItem(0, ui->sdataLeft);
-    for(int i=0; i<size(); i++){
+    for(int i=0; i<getRecordsSize(); i++){
         if(!(getSDataAt(i).moteID == id)){
             item = createParentItem(i, ui->sdataLeft);
         }
@@ -65,18 +68,24 @@ void SDataWidget::initLeft()
 }
 
 void SDataWidget::initRight(QVarLengthArray<int> list)
-{    
-    int id=getSDataAt(list[0]).moteID;
-    QTreeWidgetItem *item = createParentItem(list[0], ui->sdataRight);
-    for(int i=0; i<list.size(); i++){
-        if(!(getSDataAt(list[i]).moteID == id)){
-            item = createParentItem(list[i], ui->sdataLeft);
-        }
-        createChildItem(list[i], item);
+{   
+    if(list.size() != 0){
+        int id=getSDataAt(list[0]).moteID;
+        QTreeWidgetItem *item = createParentItem(list[0], ui->sdataRight);
 
-        id = getSDataAt(list[i]).moteID;
+        for(int i=0; i<list.size(); i++){
+            if(!(getSDataAt(list[i]).moteID == id)){
+                item = createParentItem(list[i], ui->sdataLeft);
+            }
+            createChildItem(list[i], item);
+
+            id = getSDataAt(list[i]).moteID;
+        }
+        ui->sdataRight->expandAll();
+        if(ui->sdataRight->topLevelItem(0)->childCount()==1){
+            ui->sdataRight->setCurrentItem(ui->sdataRight->topLevelItem(0)->child(0));
+        }
     }
-    ui->sdataRight->expandAll();
 }
 
 void SDataWidget::on_itemSelectionChanged()
@@ -84,7 +93,7 @@ void SDataWidget::on_itemSelectionChanged()
     ui->sdataRight->clear();
     QMessageBox msgBox;
     QString msg;
-    if(!(ui->sdataLeft->currentItem()->parent()<ui->sdataLeft->invisibleRootItem())){
+    if(ui->sdataLeft->currentItem()->parent()){
         msg.append(ui->sdataLeft->currentItem()->parent()->text(0));
         msg.append("\n"+ui->sdataLeft->currentItem()->text(1));
         msgBox.setText(msg);
@@ -97,10 +106,10 @@ void SDataWidget::on_itemSelectionChanged()
 QVarLengthArray<int> SDataWidget::getLinkingRecords(int moteId, int num)
 {
     QVarLengthArray<int> list;
-    for(int i=0; i<size(); i++){
+    for(int i=0; i< getRecordsSize(); i++){
         if(getSDataAt(i).moteID == moteId-1){
             if(getSDataAt(i).num >= num){
-                list.append(i);                
+                list.append(i);
             }
         }
     }
@@ -111,6 +120,7 @@ QTreeWidgetItem* SDataWidget::createParentItem(int i, QTreeWidget *root)
 {
     QTreeWidgetItem *item = new QTreeWidgetItem(root->invisibleRootItem());
     item->setText(0,QString::number(getSDataAt(i).moteID));
+    item->setText(4, QDate::currentDate().toString() + "  -  " + QTime::currentTime().toString());
 
     return item;
 }
@@ -129,7 +139,7 @@ void SDataWidget::on_toPlotButton_clicked()
     QMessageBox msgBox;
     QString msg;
     if(ui->sdataRight->selectedItems().size() > 0){
-        if(!(ui->sdataRight->currentItem()->parent()<ui->sdataRight->invisibleRootItem())){
+        if(ui->sdataRight->currentItem()->parent()){
             msg.append(ui->sdataRight->currentItem()->parent()->text(0));
             msg.append("\n");
             msg.append(ui->sdataRight->currentItem()->text(1));
@@ -145,9 +155,9 @@ void SDataWidget::on_toPlotButton_clicked()
 
 void SDataWidget::on_clearButton_clicked()
 {
-    records.clear();
     ui->sdataLeft->clear();
     ui->sdataRight->clear();
+    records.clear();
 }
 
 void SDataWidget::on_downloadButton_clicked()
@@ -165,6 +175,11 @@ void SDataWidget::on_downloadButton_clicked()
                                                      | QFileDialog::DontResolveSymlinks);
         if (!dir.isEmpty()){
             msgBox.setText(dir);
+            ui->sdataLeft->clear();
+            ui->sdataRight->clear();
+            fillSData();
+            initLeft();
+            ui->sdataLeft->update();
         }
     #else
         QString file = QFileDialog::getOpenFileName(this, "Select the device");

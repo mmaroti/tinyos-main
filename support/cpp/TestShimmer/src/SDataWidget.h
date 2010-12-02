@@ -28,8 +28,8 @@ public:
     SDataWidget(QWidget *parent, Application &app);
     ~SDataWidget();
 
-    const SData getSDataAt(int i) const { return records[i]; }
-    int size() const { return records.size(); }
+    const SData& getSDataAt(int i) const { return records[i]; }
+    int getRecordsSize() const { return records.size(); }
 
 private:
     Ui::SDataWidget *ui;
