@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,39 +28,45 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Ali Baharev
+*      Author: Ali Baharev
 */
 
-#ifndef BLOCKITERATOR_HPP_
-#define BLOCKITERATOR_HPP_
+#ifndef TIMESYNCREADER_HPP_
+#define TIMESYNCREADER_HPP_
 
-#include "TypeDefs.hpp"
+#include <iosfwd>
+#include <list>
+#include <memory>
 
 namespace sdc {
 
-class BlockIterator {
+class TimeSyncInfo;
+
+class TimeSyncReader {
 
 public:
 
-	explicit BlockIterator(const char* block);
+	TimeSyncReader(int mote_id, int reboot_id, int first_block);
 
-	uint16 next_uint16();
+	 const std::list<TimeSyncInfo>& messages_as_list() const;
 
-	uint32 next_uint32();
+	~TimeSyncReader();
 
 private:
 
-	BlockIterator(const BlockIterator& );
+	TimeSyncReader(const TimeSyncReader& );
+	TimeSyncReader& operator=(const TimeSyncReader& );
 
-	BlockIterator& operator=(const BlockIterator& );
+	void open();
+	void read_all();
 
-	void check_range();
-
-	const char* const end;
-
-	const char* itr;
+	const int mote;
+	const int reboot;
+	const int block;
+	const std::auto_ptr<std::ifstream> in;
+	std::list<TimeSyncInfo> messages;
 };
 
 }
 
-#endif
+#endif /* TIMESYNCREADER_HPP_ */

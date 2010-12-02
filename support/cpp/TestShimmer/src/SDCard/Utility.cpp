@@ -32,6 +32,7 @@
  */
 
 #include <ctime>
+#include <cmath>
 #include <iomanip>
 #include <sstream>
 #include "Constants.hpp"
@@ -74,6 +75,19 @@ const string current_time() {
 	return string(ctime(&t));
 }
 
+const string get_filename(int mote_id, int reboot_id, int first_block) {
+
+	ostringstream os;
+
+	os << 'm' << setfill('0') << setw(3) << mote_id << '_';
+	os << 'r' << setfill('0') << setw(3) << reboot_id << '_';
+	os << 'b' << first_block;
+
+	os.flush(); // TODO Is it needed?
+
+	return os.str();
+}
+
 const string time_to_filename() {
 
 	string time_stamp(current_time().substr(4, 20));
@@ -88,15 +102,55 @@ const string time_to_filename() {
 	return time_stamp;
 }
 
-const string recorded_length(int first_block, int last_block) {
+unsigned int length_in_ticks(int first_block, int last_block) {
 
 	int n_blocks = last_block-first_block+1;
 
 	int n_samples = n_blocks*MAX_SAMPLES-1;
 
-	unsigned int length_in_ticks = n_samples*SAMPLING_RATE;
+	return n_samples*SAMPLING_RATE;
+}
 
-	return ticks2time(length_in_ticks);
+const string recorded_length(int first_block, int last_block) {
+
+	unsigned int length = length_in_ticks(first_block, last_block);
+
+	return ticks2time(length);
+}
+
+int recorded_length_in_ms(int first_block, int last_block) {
+
+	double length = length_in_ticks(first_block, last_block);
+
+	return floor(length/(TICKS_PER_SEC/1024.0) + 0.5);
+}
+
+const string failed_to_read_block(int i) {
+
+	ostringstream os;
+
+	os << "Failed to read block " << i << flush;
+
+	return os.str();
+}
+
+
+const std::string rdb_file_name(int mote_id) {
+
+	ostringstream os;
+
+	os << 'm' << setfill('0') << setw(3) << mote_id << ".rdb" << flush;
+
+	return os.str();
+}
+
+const std::string int2str(int i) {
+
+	ostringstream os;
+
+	os << i << flush;
+
+	return os.str();
 }
 
 }

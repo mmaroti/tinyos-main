@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,39 +28,14 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Ali Baharev
+*      Author: Ali Baharev
 */
 
-#ifndef BLOCKITERATOR_HPP_
-#define BLOCKITERATOR_HPP_
+#ifndef TIMESYNCWRITER_HPP_
+#define TIMESYNCWRITER_HPP_
 
-#include "TypeDefs.hpp"
-
-namespace sdc {
-
-class BlockIterator {
-
-public:
-
-	explicit BlockIterator(const char* block);
-
-	uint16 next_uint16();
-
-	uint32 next_uint32();
-
-private:
-
-	BlockIterator(const BlockIterator& );
-
-	BlockIterator& operator=(const BlockIterator& );
-
-	void check_range();
-
-	const char* const end;
-
-	const char* itr;
-};
+namespace asol {
 
 }
 
-#endif
+#endif /* TIMESYNCWRITER_HPP_ */

@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,39 +28,45 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Ali Baharev
+*      Author: Ali Baharev
 */
 
-#ifndef BLOCKITERATOR_HPP_
-#define BLOCKITERATOR_HPP_
+#ifndef VIRTUALMOTEID_HPP_
+#define VIRTUALMOTEID_HPP_
 
-#include "TypeDefs.hpp"
+#include <iosfwd>
 
 namespace sdc {
 
-class BlockIterator {
+class TimeSyncInfo;
+
+class VirtualMoteID {
 
 public:
 
-	explicit BlockIterator(const char* block);
+	VirtualMoteID();
 
-	uint16 next_uint16();
+	VirtualMoteID(int mote_id, int first_block);
 
-	uint32 next_uint32();
+	VirtualMoteID(const TimeSyncInfo& msg);
+
+	int mote_id() const;
+
+	int first_block() const;
+
+	friend std::ostream& operator<<(std::ostream& , const VirtualMoteID& );
+
+	friend bool operator==(const VirtualMoteID& lhs, const VirtualMoteID& rhs);
 
 private:
 
-	BlockIterator(const BlockIterator& );
+	int mote_ID;
 
-	BlockIterator& operator=(const BlockIterator& );
-
-	void check_range();
-
-	const char* const end;
-
-	const char* itr;
+	int start_at_block;
 };
+
+bool operator!=(const VirtualMoteID& lhs, const VirtualMoteID& rhs);
 
 }
 
-#endif
+#endif /* VIRTUALMOTEID_HPP_ */

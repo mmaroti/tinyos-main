@@ -55,21 +55,17 @@ public:
 
 	bool datalength() const;
 
-	void set_current(const Sample& s);
-
 	bool reboot() const;
 
-	void counter() const;
+	unsigned int length_in_ticks() const;
 
-	void timestamp() const;
+	void set_current(const Sample& s);
 
-	// FIXME These last three should be either in another class or reboot should
-	// be moved here completely from SDCardImpl
-	int processed() const;
+	void shift_timestamp(Sample& s) const;
 
-	unsigned int get_current_timestamp() const;
+	bool time_sync_info_is_new() const;
 
-	unsigned int get_previous_timestamp() const;
+	const Header& get_timesync() const;
 
 private:
 
@@ -77,17 +73,32 @@ private:
 
 	BlockChecker& operator=(const BlockChecker& );
 
-	Header header;
-
-	int block_offset;
-
-	Sample previous;
-
-	Sample current;
-
-	int samples_processed;
+	void reset(int first_block);
+	void check_for_new_reboot();
+	void check_for_new_timesync();
+	void check_first_block() const;
+	void check_counter_equals_one() const;
+	void check_counter() const;
+	void check_timestamp() const;
+	void assert_positive_time_start() const;
 
 	const int mote_ID;
+
+	int local_start;
+	unsigned int time_start;
+	bool set_time_start;
+	bool new_record;
+	bool new_time_sync_info;
+
+	int block_offset;
+	int samples_processed;
+
+	Header timesync;
+	Header header;
+
+	Sample previous;
+	Sample current;
+
 };
 
 }

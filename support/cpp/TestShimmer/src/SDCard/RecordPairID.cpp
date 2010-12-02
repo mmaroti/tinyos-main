@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,60 +28,48 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Ali Baharev
+*      Author: Ali Baharev
 */
 
 #include <ostream>
-#include "Header.hpp"
-#include "BlockIterator.hpp"
+#include <string>
+#include <stdexcept>
+#include "RecordPairID.hpp"
 
 using namespace std;
 
 namespace sdc {
 
-Header::Header(BlockIterator& itr) {
+RecordPairID::RecordPairID(const RecordID& rid1, const RecordID& rid2) {
 
-	format_id = itr.next_uint16();
-	mote_id   = itr.next_uint16();
-	length    = itr.next_uint16();
-	remote_id = itr.next_uint16();
-	local_time   = itr.next_uint32();
-	remote_time  = itr.next_uint32();
-	local_start  = itr.next_uint32();
-	remote_start = itr.next_uint32();
+	if (rid1 == rid2) {
+
+		string msg("record cannot be in pair with itself, ");
+
+		msg.append(rid1.str());
+
+		throw logic_error(msg);
+	}
+
+	if (rid1 < rid2) {
+
+		id1 = rid1, id2 = rid2;
+	}
+	else {
+
+		id1 = rid2, id2 = rid1;
+	}
 }
 
-void Header::set_timesync_zero() {
+bool operator<(const RecordPairID& lhs, const RecordPairID& rhs) {
 
-	remote_id = remote_start = local_time = remote_time = 0;
+	return lhs.id1!=rhs.id1 ? lhs.id1 < rhs.id1 : lhs.id2 < rhs.id2;
 }
 
-bool Header::timesync_differs_from(const Header& h) const {
+ostream& operator<<(ostream& out, const RecordPairID& id) {
 
-	const bool differs = (remote_time  != h.remote_time ) ||
-						 (remote_start != h.remote_start) ||
-						 (local_time   != h.local_time  ) ||
-						 (remote_id    != h.remote_id   ) ;
-	// TODO Assert: if all remote fields equal then local_time should too
-	return differs;
-}
+	out << "record pair: " << id.id1 << " and " << id.id2;
 
-void Header::write_timesync_info(std::ostream& out) const {
-
-	out << local_time << '\t' << remote_time  << '\t' ;
-	out <<  remote_id << '\t' << remote_start << '\n' << flush;
-}
-
-ostream& operator<<(ostream& out, const Header& h) {
-
-	out << "format id:    " << h.format_id << endl;
-	out << "mote id:      " << h.mote_id   << endl;
-	out << "length:       " << h.length    << endl;
-	out << "remote id:    " << h.remote_id << endl;
-	out << "local time:   " << h.local_time << endl;
-	out << "remote time:  " << h.remote_time << endl;
-	out << "local start:  " << h.local_start << endl;
-	out << "remote start: " << h.remote_start << endl;
 	return out;
 }
 

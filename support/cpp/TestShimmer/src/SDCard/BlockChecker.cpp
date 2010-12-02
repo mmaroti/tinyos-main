@@ -32,14 +32,16 @@
 */
 
 #include <iostream>
+#include <stdexcept>
 #include <cstdlib>
 #include "BlockChecker.hpp"
 #include "BlockIterator.hpp"
 #include "Constants.hpp"
 #include "BlockRelatedConsts.hpp"
 
-using std::clog;
+using std::cout;
 using std::endl;
+using std::runtime_error;
 using std::abs;
 
 namespace sdc {
@@ -52,25 +54,99 @@ void fix_counter_overflow(int& i) {
 
 BlockChecker::BlockChecker(int mote_id) : mote_ID(mote_id) {
 
-	// on the first call reboot() needs nonzero for previous.counter()
-	// current will become previous by then
-	current.force_counter(1);
+	reset(-1);
+	time_start = -1;
+	block_offset = -1;
+}
 
-	samples_processed = -1;
+void BlockChecker::reset(int first_block) {
+
+	local_start = first_block;
+	set_time_start = false;
+	new_record = false;
+	new_time_sync_info = false;
+	timesync.set_timesync_zero();
+	samples_processed = 0;
+}
+
+bool BlockChecker::reboot() const {
+
+	return new_record;
 }
 
 void BlockChecker::set_current_header(BlockIterator& i, int offset) {
 
 	header = Header(i);
+
 	block_offset = offset;
+
+	if (!finished()) {
+
+		check_for_new_reboot();
+
+		check_for_new_timesync();
+	}
+}
+
+bool BlockChecker::time_sync_info_is_new() const {
+
+	return new_time_sync_info;
+}
+
+const Header& BlockChecker::get_timesync() const {
+
+	return timesync;
+}
+
+void BlockChecker::check_for_new_reboot() {
+
+	const int header_first_block = static_cast<int> (header.first_block());
+
+	if (local_start != header_first_block) {
+
+		reset(header_first_block);
+
+		new_record = true;
+
+		set_time_start = true;
+
+		check_first_block();
+	}
+	else {
+
+		new_record = false;
+	}
+}
+
+void BlockChecker::check_first_block() const {
+
+	if (local_start != block_offset) {
+
+		cout << "Warning: found a new record at block " << block_offset;
+		cout << " but the block field in the header is " << local_start << endl;
+	}
+}
+
+void BlockChecker::check_for_new_timesync() {
+
+	if ( header.timesync_differs_from(timesync) ) {
+
+		timesync = header;
+
+		new_time_sync_info = true;
+	}
+	else {
+
+		new_time_sync_info = false;
+	}
 }
 
 void BlockChecker::mote_id() const {
 
 	if (header.mote() != mote_ID) {
 
-		clog << "Warning: mote id " << header.mote() << " in block ";
-		clog << block_offset << " differs from " << mote_ID << endl;
+		cout << "Warning: mote id " << header.mote() << " in block ";
+		cout << block_offset << " differs from " << mote_ID << endl;
 	}
 }
 
@@ -85,8 +161,9 @@ bool BlockChecker::datalength() const {
 
 	if (MAX_SAMPLES != header.data_length()/SAMPLE_LENGTH) {
 
-		clog << "Warning: invalid length " << header.data_length();
-		clog << " in block " << block_offset << endl;
+		cout << "Warning: invalid length " << header.data_length();
+		cout << " in block " << block_offset << endl;
+
 		is_ok = false;
 	}
 
@@ -96,17 +173,39 @@ bool BlockChecker::datalength() const {
 void BlockChecker::set_current(const Sample& s) {
 
 	previous = current;
+
 	current = s;
+
+	if (set_time_start) {
+
+		set_time_start = false;
+
+		time_start = s.timestamp();
+
+		check_counter_equals_one();
+	}
+	else {
+
+		check_counter();
+
+		check_timestamp();
+	}
 
 	++samples_processed;
 }
 
-bool BlockChecker::reboot() const {
-	// FIXME Bug: reboot may be unnoticed
-	return current.counter()==1 && previous.counter()!=0;
+void BlockChecker::check_counter_equals_one() const {
+
+	const unsigned short counter = current.counter();
+
+	if (counter!=1) {
+
+		cout << "Warning: counter should be 1 but it is " << counter << " in ";
+		cout << "block " << block_offset << endl;
+	}
 }
 
-void BlockChecker::counter() const {
+void BlockChecker::check_counter() const {
 
 	int diff = current.counter()-previous.counter();
 
@@ -116,13 +215,13 @@ void BlockChecker::counter() const {
 
 	if (missed) {
 
-		clog << "Warning: at sample " << samples_processed;
-		clog << " missing at least ";
-		clog << missed << " samples" << endl;
+		cout << "Warning: at sample " << samples_processed;
+		cout << " missing at least ";
+		cout << missed << " samples" << endl;
 	}
 }
 
-void BlockChecker::timestamp() const {
+void BlockChecker::check_timestamp() const {
 
 	uint32 expected = previous.timestamp() + SAMPLING_RATE;
 
@@ -130,24 +229,31 @@ void BlockChecker::timestamp() const {
 
 	if (abs(error_in_ticks)>TOLERANCE) {
 
-		clog << "Warning: at sample " << samples_processed << " ";
-		clog << error_in_ticks << " ticks error" << endl;
+		cout << "Warning: at sample " << samples_processed << " ";
+		cout << error_in_ticks << " ticks error" << endl;
 	}
 }
 
-int BlockChecker::processed() const {
+void BlockChecker::assert_positive_time_start() const {
 
-	return samples_processed;
+	if (time_start <= 0) {
+
+		throw runtime_error("most likely a bug");
+	}
 }
 
-unsigned int BlockChecker::get_current_timestamp() const {
+void BlockChecker::shift_timestamp(Sample& s) const {
 
-	return current.timestamp();
+	assert_positive_time_start();
+
+	s.shift_timestamp(time_start);
 }
 
-unsigned int BlockChecker::get_previous_timestamp() const {
+unsigned int BlockChecker::length_in_ticks() const {
 
-	return previous.timestamp();
+	assert_positive_time_start();
+
+	return current.timestamp()-time_start;
 }
 
 }

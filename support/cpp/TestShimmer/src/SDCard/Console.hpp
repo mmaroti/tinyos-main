@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,39 +28,32 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Ali Baharev
+*      Author: Ali Baharev
 */
 
-#ifndef BLOCKITERATOR_HPP_
-#define BLOCKITERATOR_HPP_
+#ifndef CONSOLE_HPP_
+#define CONSOLE_HPP_
 
 #include "TypeDefs.hpp"
 
 namespace sdc {
 
-class BlockIterator {
+class Console {
 
 public:
 
-	explicit BlockIterator(const char* block);
+	void start(double card_size, int mote_id, int first_block, int reboot) const;
 
-	uint16 next_uint16();
+	void finished(double card_size, int last_block) const;
 
-	uint32 next_uint32();
+	void record_start(int reboot_id, int first_offset) const;
 
-private:
+	void record_end(int last_block, uint32 length_in_ticks) const;
 
-	BlockIterator(const BlockIterator& );
+	void error_impossible_state() const;
 
-	BlockIterator& operator=(const BlockIterator& );
-
-	void check_range();
-
-	const char* const end;
-
-	const char* itr;
 };
 
 }
 
-#endif
+#endif /* CONSOLE_HPP_ */

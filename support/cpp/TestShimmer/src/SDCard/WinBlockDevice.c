@@ -39,16 +39,7 @@
 #include <windows.h>
 #include <winioctl.h>
 
-#define BLOCK_SIZE 512
-
-static HANDLE hDevice = 0;
-static char ReadBuffer[BLOCK_SIZE] = {0};
-
-int block_size() {
-	return BLOCK_SIZE;
-}
-
-const char* read_device_block(int i) {
+const char* read_device_block(PHANDLE pHandle, int i, char* buffer, const unsigned int BLOCK_SIZE) {
 
 	DWORD  dwBytesRead = 0;
 	const char* ret_val = NULL;
@@ -60,13 +51,13 @@ const char* read_device_block(int i) {
 	ol.Offset = (DWORD) BLOCK_SIZE*i;
 	ol.OffsetHigh = 0;
 
-	if( FALSE == ReadFile(hDevice, ReadBuffer, BLOCK_SIZE, &dwBytesRead, (LPOVERLAPPED) &ol) )
+	if( FALSE == ReadFile(*pHandle, buffer, BLOCK_SIZE, &dwBytesRead, (LPOVERLAPPED) &ol) )
 	{
 		ret_val = NULL;
 	}
 	else if (dwBytesRead == BLOCK_SIZE)
 	{
-		ret_val = ReadBuffer;
+		ret_val = buffer;
 	}
 	else
 	{
@@ -76,22 +67,19 @@ const char* read_device_block(int i) {
 	return ret_val;
 }
 
-void close_device() {
+void close_device(PHANDLE pHandle) {
 
-	CloseHandle(hDevice);
-
-	hDevice = 0;
+	CloseHandle(*pHandle);
 }
 
-/* If returns zero than device must be closed */
-double card_size_in_GB(const wchar_t* drive)
+double card_size_in_GB(const wchar_t* drive, PHANDLE pHandle)
 {
 	DISK_GEOMETRY pdg;
 	BOOL bResult;
 	DWORD junk;
 	double ret_val = 0;
 
-	hDevice = CreateFile(drive,  // drive to open
+	*pHandle = CreateFile(drive,  // drive to open
 		GENERIC_READ,                // access to the drive
 		FILE_SHARE_READ | // share mode
 		FILE_SHARE_WRITE,
@@ -100,12 +88,12 @@ double card_size_in_GB(const wchar_t* drive)
 		FILE_FLAG_NO_BUFFERING,                // file attributes
 		NULL);            // do not copy file attributes
 
-	if (hDevice == INVALID_HANDLE_VALUE) // cannot open the drive
+	if (*pHandle == INVALID_HANDLE_VALUE) // cannot open the drive
 	{
 		return 0;
 	}
 
-	bResult = DeviceIoControl(hDevice,  // device to be queried
+	bResult = DeviceIoControl(*pHandle,  // device to be queried
 		IOCTL_DISK_GET_DRIVE_GEOMETRY,  // operation to perform
 		NULL, 0, // no input buffer
 		&pdg, sizeof(pdg),     // output buffer
@@ -113,7 +101,7 @@ double card_size_in_GB(const wchar_t* drive)
 		(LPOVERLAPPED) NULL);  // synchronous I/O
 
 	if (FALSE == bResult) {
-		close_device();
+		close_device(pHandle);
 		return 0;
 	}
 

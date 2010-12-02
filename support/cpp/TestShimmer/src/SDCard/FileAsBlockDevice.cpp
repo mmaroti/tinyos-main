@@ -31,25 +31,15 @@
 * Author: Ali Baharev
 */
 
-#include <sstream>
 #include <fstream>
-#include <string>
 #include <stdexcept>
-#include "BlockDevice.hpp"
 #include "BlockRelatedConsts.hpp"
+#include "FileAsBlockDevice.hpp"
+#include "Utility.hpp"
 
 using namespace std;
 
 namespace sdc {
-
-const string failed_to_read_block(int i) {
-
-	ostringstream os;
-	
-	os << "Failed to read block " << i << flush;
-	
-	return os.str();
-}
 
 FileAsBlockDevice::FileAsBlockDevice(const char* source)
 	: in(new ifstream()), buffer(new char[BLOCK_SIZE])
@@ -122,93 +112,6 @@ FileAsBlockDevice::~FileAsBlockDevice() {
 	// Do NOT remove this empty dtor: required to generate the dtor of auto_ptr
 }
 
-#ifdef _WIN32
-
-#include "Win32BlockDevice.h"
-
-Win32BlockDevice::Win32BlockDevice(const char* source) {
-
-	if (BLOCK_SIZE != block_size()) {
-		throw logic_error("Implementation is not updated properly: BLOCK_SIZE");
-	}
-
-	const char drive_letter = string(source).at(0);
-	wstring path(L"\\\\.\\");
-	path += drive_letter;
-	path += ':';
-
-	card_size = card_size_in_GB(path.c_str());
-
-	if (card_size==0) {
-		string msg("Failed to open block device: ");
-		msg += source;
-		throw runtime_error(msg);
-	}
-
-	if (card_size >= 2.0) {
-		close_device();
-		throw runtime_error("Card size is larger than 2GB");
-	}
 }
 
-const char* Win32BlockDevice::read_block(int i) {
-
-	if (i<0 || i>=MAX_BLOCK_INDEX) {
-		throw out_of_range("block index");
-	}
-
-	const char* const block = read_device_block(i);
-
-	if (block==0) {
-
-		throw runtime_error(failed_to_read_block(i));
-	}
-
-	return block;
-}
-
-double Win32BlockDevice::size_GB() const {
-
-	return card_size;
-}
-
-unsigned long Win32BlockDevice::error_code() const {
-
-	return error_code();
-}
-
-Win32BlockDevice::~Win32BlockDevice() {
-
-	close_device();
-}
-
-#else
-
-Win32BlockDevice::Win32BlockDevice(const char* ) {
-
-	throw logic_error("Win32 block device is not compiled!");
-}
-
-const char* Win32BlockDevice::read_block(int ) {
-
-	return 0;
-}
-
-double Win32BlockDevice::size_GB() const {
-
-	return 0;
-}
-
-unsigned long Win32BlockDevice::error_code() const {
-
-	return 0;
-}
-
-Win32BlockDevice::~Win32BlockDevice() {
-
-}
-
-#endif
-
-}
 

@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,39 +28,61 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Ali Baharev
+*      Author: Ali Baharev
 */
 
-#ifndef BLOCKITERATOR_HPP_
-#define BLOCKITERATOR_HPP_
+#ifndef TIMESYNCMERGER_HPP_
+#define TIMESYNCMERGER_HPP_
 
-#include "TypeDefs.hpp"
+#include <map>
+#include <memory>
+#include <vector>
+#include "RecordPairID.hpp"
 
 namespace sdc {
 
-class BlockIterator {
+class FlatFileDB;
+class Merger;
+
+typedef std::pair<unsigned int, unsigned int> Pair;
+typedef std::map<RecordPairID, std::vector<Pair> > Map;
+
+class TimeSyncMerger {
 
 public:
 
-	explicit BlockIterator(const char* block);
+	TimeSyncMerger(int mote, int reboot);
 
-	uint16 next_uint16();
+	const Map& pairs() const;
 
-	uint32 next_uint32();
+	~TimeSyncMerger();
 
 private:
 
-	BlockIterator(const BlockIterator& );
+	TimeSyncMerger(const TimeSyncMerger& );
+	TimeSyncMerger& operator=(const TimeSyncMerger& );
 
-	BlockIterator& operator=(const BlockIterator& );
+	void insert(const RecordPairID& id, const std::vector<Pair>& sync_points);
+	void process_pairs();
+	void reset_db_if_needed();
 
-	void check_range();
+	 // TODO Move these to their own class, this a sort of duplication
+	const std::auto_ptr<const FlatFileDB> db1;
+	const int mote1;
+	const int reboot1;
+	const int block1;
+	const RecordID rec1;
 
-	const char* const end;
+	std::auto_ptr<FlatFileDB> db2;
+	int mote2;
+	int reboot2;
+	int block2;
 
-	const char* itr;
+	std::auto_ptr<Merger> merger;
+
+	Map result;
 };
 
 }
 
-#endif
+#endif /* TIMESYNCMERGER_HPP_ */

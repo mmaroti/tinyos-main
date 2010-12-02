@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,61 +28,70 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Ali Baharev
+*      Author: Ali Baharev
 */
 
-#include <ostream>
+#include <fstream>
+#include <stdexcept>
+#include "Writer.hpp"
 #include "Header.hpp"
-#include "BlockIterator.hpp"
+#include "Sample.hpp"
+#include "Utility.hpp"
 
 using namespace std;
 
 namespace sdc {
 
-Header::Header(BlockIterator& itr) {
+Writer::Writer() : samples(new ofstream), timesync(new ofstream) {
 
-	format_id = itr.next_uint16();
-	mote_id   = itr.next_uint16();
-	length    = itr.next_uint16();
-	remote_id = itr.next_uint16();
-	local_time   = itr.next_uint32();
-	remote_time  = itr.next_uint32();
-	local_start  = itr.next_uint32();
-	remote_start = itr.next_uint32();
+	samples->exceptions( ofstream::failbit | ofstream::badbit);
+	timesync->exceptions(ofstream::failbit | ofstream::badbit);
 }
 
-void Header::set_timesync_zero() {
+void Writer::start_new_record(int mote_id, int reboot_id, int first_block) {
 
-	remote_id = remote_start = local_time = remote_time = 0;
+	string fsamples(get_filename(mote_id, reboot_id, first_block));
+	string ftimesync(fsamples);
+
+	samples->open(  fsamples.append(".csv").c_str());
+	timesync->open(ftimesync.append(".tsm").c_str());
 }
 
-bool Header::timesync_differs_from(const Header& h) const {
+bool Writer::is_open() const {
 
-	const bool differs = (remote_time  != h.remote_time ) ||
-						 (remote_start != h.remote_start) ||
-						 (local_time   != h.local_time  ) ||
-						 (remote_id    != h.remote_id   ) ;
-	// TODO Assert: if all remote fields equal then local_time should too
-	return differs;
+	const bool open = samples->is_open();
+
+	if (open!=timesync->is_open()) {
+		throw logic_error("illegal state of output files");
+	}
+
+	return open;
 }
 
-void Header::write_timesync_info(std::ostream& out) const {
+void Writer::write_time_sync_info(const Header& h) {
 
-	out << local_time << '\t' << remote_time  << '\t' ;
-	out <<  remote_id << '\t' << remote_start << '\n' << flush;
+	h.write_timesync_info(*timesync);
 }
 
-ostream& operator<<(ostream& out, const Header& h) {
+void Writer::write(const Sample& s) {
 
-	out << "format id:    " << h.format_id << endl;
-	out << "mote id:      " << h.mote_id   << endl;
-	out << "length:       " << h.length    << endl;
-	out << "remote id:    " << h.remote_id << endl;
-	out << "local time:   " << h.local_time << endl;
-	out << "remote time:  " << h.remote_time << endl;
-	out << "local start:  " << h.local_start << endl;
-	out << "remote start: " << h.remote_start << endl;
-	return out;
+	*samples << s;
+}
+
+void Writer::flush() {
+
+	samples->flush();
+	timesync->flush();
+}
+
+void Writer::close() {
+
+	samples->close();
+	timesync->close();
+}
+
+Writer::~Writer() {
+	// Do NOT remove this empty dtor: required to generate the dtor of auto_ptr
 }
 
 }

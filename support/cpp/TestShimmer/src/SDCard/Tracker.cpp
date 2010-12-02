@@ -45,11 +45,7 @@ namespace sdc {
 
 void Tracker::set_filename(int mote_ID) {
 
-	ostringstream os;
-
-	os << 'm' << setfill('0') << setw(3) << mote_ID << ".rdb" << flush;
-
-	filename = os.str();
+	filename = rdb_file_name(mote_ID);
 }
 
 void Tracker::process_last_line(const string& line) {

@@ -53,6 +53,14 @@ public:
 
 	uint16 mote() const { return mote_id; }
 
+	uint32 first_block() const { return local_start; }
+
+	void set_timesync_zero();
+
+	bool timesync_differs_from(const Header& other) const;
+
+	void write_timesync_info(std::ostream& ) const;
+
 	friend std::ostream& operator<<(std::ostream& , const Header& );
 
 private:
@@ -60,6 +68,11 @@ private:
 	uint16 format_id;
 	uint16 mote_id;
 	uint16 length;
+	uint16 remote_id;
+	uint32 local_time;
+	uint32 remote_time;
+	uint32 local_start;
+	uint32 remote_start;
 };
 
 }

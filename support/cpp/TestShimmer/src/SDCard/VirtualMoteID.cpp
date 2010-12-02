@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,61 +28,67 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Ali Baharev
+*      Author: Ali Baharev
 */
 
 #include <ostream>
-#include "Header.hpp"
-#include "BlockIterator.hpp"
+#include <stdexcept>
+#include "VirtualMoteID.hpp"
+#include "TimeSyncInfo.hpp"
 
 using namespace std;
 
 namespace sdc {
 
-Header::Header(BlockIterator& itr) {
+VirtualMoteID::VirtualMoteID() {
 
-	format_id = itr.next_uint16();
-	mote_id   = itr.next_uint16();
-	length    = itr.next_uint16();
-	remote_id = itr.next_uint16();
-	local_time   = itr.next_uint32();
-	remote_time  = itr.next_uint32();
-	local_start  = itr.next_uint32();
-	remote_start = itr.next_uint32();
+	mote_ID = start_at_block = 0;
 }
 
-void Header::set_timesync_zero() {
+VirtualMoteID::VirtualMoteID(int mote_id, int first_block) {
 
-	remote_id = remote_start = local_time = remote_time = 0;
+	mote_ID = mote_id;
+
+	start_at_block = first_block;
 }
 
-bool Header::timesync_differs_from(const Header& h) const {
+VirtualMoteID::VirtualMoteID(const TimeSyncInfo& msg) {
 
-	const bool differs = (remote_time  != h.remote_time ) ||
-						 (remote_start != h.remote_start) ||
-						 (local_time   != h.local_time  ) ||
-						 (remote_id    != h.remote_id   ) ;
-	// TODO Assert: if all remote fields equal then local_time should too
-	return differs;
+	if (msg.remote_id==0) {
+
+		throw logic_error("inconsistent messages should have been removed");
+	}
+
+	mote_ID        = msg.remote_id;
+
+	start_at_block = msg.remote_start;
 }
 
-void Header::write_timesync_info(std::ostream& out) const {
+int VirtualMoteID::mote_id() const {
 
-	out << local_time << '\t' << remote_time  << '\t' ;
-	out <<  remote_id << '\t' << remote_start << '\n' << flush;
+	return mote_ID;
 }
 
-ostream& operator<<(ostream& out, const Header& h) {
+int VirtualMoteID::first_block() const {
 
-	out << "format id:    " << h.format_id << endl;
-	out << "mote id:      " << h.mote_id   << endl;
-	out << "length:       " << h.length    << endl;
-	out << "remote id:    " << h.remote_id << endl;
-	out << "local time:   " << h.local_time << endl;
-	out << "remote time:  " << h.remote_time << endl;
-	out << "local start:  " << h.local_start << endl;
-	out << "remote start: " << h.remote_start << endl;
+	return start_at_block;
+}
+
+ostream& operator<<(ostream& out, const VirtualMoteID& id) {
+
+	out << "mote id " << id.mote_ID << ", first block " << id.start_at_block << flush;
+
 	return out;
+}
+
+bool operator==(const VirtualMoteID& lhs, const VirtualMoteID& rhs) {
+
+	return lhs.mote_ID==rhs.mote_ID && lhs.start_at_block==rhs.start_at_block;
+}
+
+bool operator!=(const VirtualMoteID& lhs, const VirtualMoteID& rhs) {
+
+	return !(lhs==rhs);
 }
 
 }

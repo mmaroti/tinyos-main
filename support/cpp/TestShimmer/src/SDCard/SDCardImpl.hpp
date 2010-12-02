@@ -34,8 +34,8 @@
 #ifndef SDCARDIMPL_HPP_
 #define SDCARDIMPL_HPP_
 
-#include <iosfwd>
 #include <memory>
+#include "Console.hpp"
 #include "TypeDefs.hpp"
 
 namespace sdc {
@@ -43,6 +43,7 @@ namespace sdc {
 class BlockDevice;
 class BlockChecker;
 class BlockIterator;
+class Writer;
 class Tracker;
 
 class SDCardImpl {
@@ -62,21 +63,18 @@ private:
 	SDCardImpl(const SDCardImpl& );
 	SDCardImpl& operator=(const SDCardImpl& );
 
-	void print_start_banner() const;
-	void print_finished_banner() const;
 	void close_out_if_open();
-	void create_new_file();
-	bool reboot(const int sample_in_block);
-	void check_sample(const int sample_in_block);
+	void check_for_reboot();
 	void write_samples(BlockIterator& itr);
+	void write_time_sync_info();
 	bool process_block(const char* block);
 	void init_tracker();
 
 	const std::auto_ptr<BlockDevice> device;
-	const std::auto_ptr<std::ofstream> out;
+	const std::auto_ptr<Writer> out;
 	std::auto_ptr<Tracker> tracker;
 	std::auto_ptr<BlockChecker> check;
-	uint32 time_start;
+	const Console console;
 	int block_offset;
 	int reboot_seq_num;
 };

@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,39 +28,42 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Ali Baharev
+*      Author: Ali Baharev
 */
 
-#ifndef BLOCKITERATOR_HPP_
-#define BLOCKITERATOR_HPP_
+#ifndef RECORDID_HPP_
+#define RECORDID_HPP_
 
-#include "TypeDefs.hpp"
+#include <iosfwd>
+#include <string>
 
 namespace sdc {
 
-class BlockIterator {
+class RecordID {
 
 public:
 
-	explicit BlockIterator(const char* block);
+	RecordID();
 
-	uint16 next_uint16();
+	RecordID(int mote_id, int reboot);
 
-	uint32 next_uint32();
+	const std::string str() const;
+
+	friend bool operator<(const RecordID& lhs, const RecordID& rhs);
+
+	friend bool operator==(const RecordID& lhs, const RecordID& rhs);
+
+	friend std::ostream& operator<<(std::ostream& , const RecordID& );
 
 private:
 
-	BlockIterator(const BlockIterator& );
+	int mote_ID;
 
-	BlockIterator& operator=(const BlockIterator& );
-
-	void check_range();
-
-	const char* const end;
-
-	const char* itr;
+	int reboot_ID;
 };
+
+bool operator!=(const RecordID& lhs, const RecordID& rhs);
 
 }
 
-#endif
+#endif /* RECORDID_HPP_ */

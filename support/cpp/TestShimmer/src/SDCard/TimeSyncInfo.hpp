@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,39 +28,49 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Ali Baharev
+*      Author: Ali Baharev
 */
 
-#ifndef BLOCKITERATOR_HPP_
-#define BLOCKITERATOR_HPP_
+#ifndef TIMESYNCINFO_HPP_
+#define TIMESYNCINFO_HPP_
 
+#include <iosfwd>
+#include <utility>
+#include <string>
 #include "TypeDefs.hpp"
 
 namespace sdc {
 
-class BlockIterator {
+typedef std::pair<uint32, uint32> Pair;
+
+class TimeSyncInfo {
 
 public:
 
-	explicit BlockIterator(const char* block);
+	TimeSyncInfo();
 
-	uint16 next_uint16();
+	bool consistent() const;
 
-	uint32 next_uint32();
+	TimeSyncInfo(const std::string& line_from_tsm_file);
+
+	int lost_messages_since(const TimeSyncInfo& other) const;
+
+	const Pair time_pair() const;
+
+	const Pair reversed_time_pair() const;
+
+	friend class VirtualMoteID;
+
+	friend std::ostream& operator<<(std::ostream& , const TimeSyncInfo& );
 
 private:
 
-	BlockIterator(const BlockIterator& );
-
-	BlockIterator& operator=(const BlockIterator& );
-
-	void check_range();
-
-	const char* const end;
-
-	const char* itr;
+	uint32 local_time;
+	uint32 remote_time;
+	int remote_id;
+	int remote_start;
 };
 
 }
 
-#endif
+#endif /* TIMESYNCINFO_HPP_ */

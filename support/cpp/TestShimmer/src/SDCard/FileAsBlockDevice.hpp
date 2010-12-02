@@ -31,58 +31,41 @@
 * Author: Ali Baharev
 */
 
-#include <ostream>
-#include "Header.hpp"
-#include "BlockIterator.hpp"
+#ifndef FILEASBLOCKDEVICE_HPP_
+#define FILEASBLOCKDEVICE_HPP_
 
-using namespace std;
+#include <iosfwd>
+#include <memory>
+#include "BlockDevice.hpp"
 
 namespace sdc {
 
-Header::Header(BlockIterator& itr) {
+class FileAsBlockDevice : public BlockDevice {
 
-	format_id = itr.next_uint16();
-	mote_id   = itr.next_uint16();
-	length    = itr.next_uint16();
-	remote_id = itr.next_uint16();
-	local_time   = itr.next_uint32();
-	remote_time  = itr.next_uint32();
-	local_start  = itr.next_uint32();
-	remote_start = itr.next_uint32();
-}
+public:
 
-void Header::set_timesync_zero() {
+	explicit FileAsBlockDevice(const char* source);
 
-	remote_id = remote_start = local_time = remote_time = 0;
-}
+private:
 
-bool Header::timesync_differs_from(const Header& h) const {
+	virtual const char* read_block(int i);
 
-	const bool differs = (remote_time  != h.remote_time ) ||
-						 (remote_start != h.remote_start) ||
-						 (local_time   != h.local_time  ) ||
-						 (remote_id    != h.remote_id   ) ;
-	// TODO Assert: if all remote fields equal then local_time should too
-	return differs;
-}
+	virtual double size_GB() const;
 
-void Header::write_timesync_info(std::ostream& out) const {
+	virtual unsigned long error_code() const;
 
-	out << local_time << '\t' << remote_time  << '\t' ;
-	out <<  remote_id << '\t' << remote_start << '\n' << flush;
-}
+	virtual ~FileAsBlockDevice();
 
-ostream& operator<<(ostream& out, const Header& h) {
+	const std::auto_ptr<std::ifstream> in;
 
-	out << "format id:    " << h.format_id << endl;
-	out << "mote id:      " << h.mote_id   << endl;
-	out << "length:       " << h.length    << endl;
-	out << "remote id:    " << h.remote_id << endl;
-	out << "local time:   " << h.local_time << endl;
-	out << "remote time:  " << h.remote_time << endl;
-	out << "local start:  " << h.local_start << endl;
-	out << "remote start: " << h.remote_start << endl;
-	return out;
-}
+	const std::auto_ptr<char> buffer;
+
+	int BLOCK_OFFSET_MAX;
+
+	double card_size;
+
+};
 
 }
+
+#endif

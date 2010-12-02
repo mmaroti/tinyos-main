@@ -31,33 +31,22 @@
 * Author: Ali Baharev
 */
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <iomanip>
 #include <stdexcept>
 #include "SDCardImpl.hpp"
 #include "BlockDevice.hpp"
 #include "BlockIterator.hpp"
 #include "BlockRelatedConsts.hpp"
 #include "BlockChecker.hpp"
-#include "Constants.hpp"
+#include "Writer.hpp"
 #include "Tracker.hpp"
-#include "Utility.hpp"
 
 using namespace std;
 
 namespace sdc {
 
-// FIXME Understand why crashes if offset is incorrect
-
 SDCardImpl::SDCardImpl(BlockDevice* source)
-	: device(source), out(new ofstream()), tracker(0), check(0)
+	: device(source), out(new Writer), tracker(0), check(0), console(Console())
 {
-	out->exceptions(ofstream::failbit | ofstream::badbit);
-
-	time_start = 0;
-
 	block_offset = 0;
 
 	reboot_seq_num = 0;
@@ -81,117 +70,59 @@ double SDCardImpl::size_GB() const {
 	return device->size_GB();
 }
 
-void SDCardImpl::print_start_banner() const {
-
-	cout << "Card size is ";
-	cout << setprecision(2) << fixed << device->size_GB() << " GB" << endl;
-	cout << "Starting at block " << block_offset << ", ";
-	cout << "previous reboot sequence number is " << reboot_seq_num << endl;
-}
-
-void SDCardImpl::print_finished_banner() const {
-
-	const unsigned int GB = 1 << 30;
-
-	const double used_bytes = block_offset*BLOCK_SIZE ;
-
-	const double used_GB = used_bytes/GB;
-
-	const double remaining = device->size_GB()-used_GB;
-
-	const double remaining_blocks = (remaining/BLOCK_SIZE*GB);
-
-	const double remaining_samples = remaining_blocks*MAX_SAMPLES;
-
-	const double remaining_sec = (remaining_samples*SAMPLING_RATE)/TICKS_PER_SEC;
-
-	cout << "Remaining " << remaining << " GB, approximately ";
-	cout << setprecision(2) << fixed << remaining_sec/3600 << " hours" << endl;
-	cout << "Finished!" << endl;
-}
-
 void SDCardImpl::process_new_measurements() {
-
-	bool finished = false;
 
 	block_offset = tracker->start_from_here();
 
 	reboot_seq_num = tracker->reboot();
 
-	print_start_banner();
+	console.start(device->size_GB(), tracker->mote_id(), block_offset, reboot_seq_num);
 
-	while (!finished ) {
+	for (bool finished = false; !finished; ++block_offset) {
 
 		const char* const block = device->read_block(block_offset);
 
 		finished = process_block(block);
-
-		++block_offset;
 	}
 
-	close_out_if_open();
-
-	print_finished_banner();
+	console.finished(device->size_GB(), block_offset);
 }
 
 void SDCardImpl::close_out_if_open() {
 
 	if (out->is_open()) {
 
-		uint32 length_in_ticks = check->get_previous_timestamp()-time_start;
+		uint32 length_in_ticks = check->length_in_ticks();
 
 		tracker->append_to_db(block_offset-1, length_in_ticks);
+
+		console.record_end(block_offset-1, length_in_ticks);
 
 		out->close();
 	}
 }
 
-void SDCardImpl::create_new_file() {
+void SDCardImpl::check_for_reboot() {
 
-	ostringstream os;
+	const bool reboot = check->reboot();
+	const bool open   = out->is_open();
 
-	os << 'm' << setfill('0') << setw(3) << tracker->mote_id() << '_';
-	os << 'r' << setfill('0') << setw(3) << reboot_seq_num << '_';
-	os << time_to_filename() << '_';
-	os << 's' << block_offset << ".csv" << flush;
+	if (!reboot && !open) {
 
-	out->open(os.str().c_str());
+		console.error_impossible_state();
+	}
 
-	tracker->mark_beginning(block_offset, reboot_seq_num);
-}
-
-bool SDCardImpl::reboot(const int sample_in_block) {
-
-	bool reboot = check->reboot();
-
-	if (reboot && sample_in_block==0) {
+	if (reboot || !open) {
 
 		close_out_if_open();
 
 		++reboot_seq_num;
 
-		cout << "Reboot " << reboot_seq_num << " at processed sample ";
-		cout << check->processed() << endl;
+		console.record_start(reboot_seq_num, block_offset);
 
-		time_start = check->get_current_timestamp();
+		out->start_new_record(tracker->mote_id(), reboot_seq_num, block_offset);
 
-		create_new_file();
-
-		return true;
-	}
-	// FIXME Should not we log if sample_in_block != 0 ?
-
-	return false;
-}
-
-void SDCardImpl::check_sample(const int sample_in_block) {
-
-	// TODO May this should be pushed into BlockChecker
-	if (!reboot(sample_in_block)) {
-
-		check->counter();
-
-		check->timestamp();
+		tracker->mark_beginning(block_offset, reboot_seq_num);
 	}
 }
 
@@ -203,15 +134,20 @@ void SDCardImpl::write_samples(BlockIterator& itr) {
 
 		check->set_current(s);
 
-		check_sample(i);
+		check->shift_timestamp(s);
 
-		s.shift_timestamp(time_start);
-
-		*out << s;
-
+		out->write(s);
 	}
 
-	*out << flush;
+	out->flush();
+}
+
+void SDCardImpl::write_time_sync_info() {
+
+	if (check->time_sync_info_is_new()) {
+
+		out->write_time_sync_info(check->get_timesync());
+	}
 }
 
 bool SDCardImpl::process_block(const char* block) {
@@ -225,10 +161,16 @@ bool SDCardImpl::process_block(const char* block) {
 	if (check->finished()) {
 
 		finished = true;
+
+		close_out_if_open();
 	}
 	else if (check->datalength()) {
 
 		check->mote_id();
+
+		check_for_reboot();
+
+		write_time_sync_info();
 
 		write_samples(itr);
 	}

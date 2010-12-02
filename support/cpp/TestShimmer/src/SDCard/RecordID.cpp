@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,61 +28,79 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Ali Baharev
+*      Author: Ali Baharev
 */
 
 #include <ostream>
-#include "Header.hpp"
-#include "BlockIterator.hpp"
+#include <sstream>
+#include <stdexcept>
+#include "RecordID.hpp"
+#include "Utility.hpp"
 
 using namespace std;
 
 namespace sdc {
 
-Header::Header(BlockIterator& itr) {
+RecordID::RecordID() {
 
-	format_id = itr.next_uint16();
-	mote_id   = itr.next_uint16();
-	length    = itr.next_uint16();
-	remote_id = itr.next_uint16();
-	local_time   = itr.next_uint32();
-	remote_time  = itr.next_uint32();
-	local_start  = itr.next_uint32();
-	remote_start = itr.next_uint32();
+	mote_ID = reboot_ID = -1;
 }
 
-void Header::set_timesync_zero() {
+RecordID::RecordID(int mote_id, int reboot) {
 
-	remote_id = remote_start = local_time = remote_time = 0;
+	if (mote_id <=0 || reboot < 0) {
+
+		string msg("incorrect record ID: mote id ");
+		msg.append(int2str(mote_id));
+		msg.append(" reboot ");
+		msg.append(int2str(reboot));
+
+		throw logic_error(msg);
+	}
+
+	mote_ID = mote_id, reboot_ID = reboot;
 }
 
-bool Header::timesync_differs_from(const Header& h) const {
+const string RecordID::str() const {
 
-	const bool differs = (remote_time  != h.remote_time ) ||
-						 (remote_start != h.remote_start) ||
-						 (local_time   != h.local_time  ) ||
-						 (remote_id    != h.remote_id   ) ;
-	// TODO Assert: if all remote fields equal then local_time should too
-	return differs;
+	ostringstream os;
+
+	os << *this << flush;
+
+	return os.str();
 }
 
-void Header::write_timesync_info(std::ostream& out) const {
+bool operator<(const RecordID& lhs, const RecordID& rhs) {
 
-	out << local_time << '\t' << remote_time  << '\t' ;
-	out <<  remote_id << '\t' << remote_start << '\n' << flush;
+	bool ret_val;
+
+	if (lhs.mote_ID!=rhs.mote_ID) {
+
+		ret_val = lhs.mote_ID < rhs.mote_ID;
+	}
+	else {
+
+		ret_val = lhs.reboot_ID < rhs.reboot_ID;
+	}
+
+	return ret_val;
 }
 
-ostream& operator<<(ostream& out, const Header& h) {
+ostream& operator<<(ostream& out, const RecordID& id) {
 
-	out << "format id:    " << h.format_id << endl;
-	out << "mote id:      " << h.mote_id   << endl;
-	out << "length:       " << h.length    << endl;
-	out << "remote id:    " << h.remote_id << endl;
-	out << "local time:   " << h.local_time << endl;
-	out << "remote time:  " << h.remote_time << endl;
-	out << "local start:  " << h.local_start << endl;
-	out << "remote start: " << h.remote_start << endl;
+	out << "mote id " << id.mote_ID << ", reboot " << id.reboot_ID;
+
 	return out;
+}
+
+bool operator==(const RecordID& lhs, const RecordID& rhs) {
+
+	return lhs.mote_ID == rhs.mote_ID && lhs.reboot_ID == rhs.reboot_ID;
+}
+
+bool operator!=(const RecordID& lhs, const RecordID& rhs) {
+
+	return !(lhs==rhs);
 }
 
 }

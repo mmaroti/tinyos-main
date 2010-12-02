@@ -31,9 +31,25 @@
 * Author: Ali Baharev
 */
 
+#include <stdexcept>
 #include "BlockIterator.hpp"
+#include "BlockRelatedConsts.hpp"
 
 namespace sdc {
+
+BlockIterator::BlockIterator(const char* block)
+	: end(block+BLOCK_SIZE), itr(block)
+{
+
+}
+
+// TODO Runtime check for header and sample length?
+void BlockIterator::check_range() {
+	// TODO Also out of range if itr==end-1
+	if (itr >= end) {
+		throw std::out_of_range("block iterator");
+	}
+}
 
 uint16 BlockIterator::next_uint16() {
 	uint16 x = *reinterpret_cast<const uint16*> (itr);

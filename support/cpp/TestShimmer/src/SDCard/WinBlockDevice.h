@@ -31,58 +31,29 @@
 * Author: Ali Baharev
 */
 
-#include <ostream>
-#include "Header.hpp"
-#include "BlockIterator.hpp"
+#ifdef _WIN32
 
-using namespace std;
+#include <windows.h>
 
-namespace sdc {
+#ifndef WINBLOCKDEVICE_H_
+#define WINBLOCKDEVICE_H_
 
-Header::Header(BlockIterator& itr) {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-	format_id = itr.next_uint16();
-	mote_id   = itr.next_uint16();
-	length    = itr.next_uint16();
-	remote_id = itr.next_uint16();
-	local_time   = itr.next_uint32();
-	remote_time  = itr.next_uint32();
-	local_start  = itr.next_uint32();
-	remote_start = itr.next_uint32();
+const char* read_device_block(PHANDLE pHandle, int i, char* buffer, const unsigned int BLOCK_SIZE);
+
+double card_size_in_GB(const wchar_t* drive, PHANDLE pHandle);
+
+void close_device(PHANDLE pHandle);
+
+unsigned long error_code();
+
+#ifdef __cplusplus
 }
+#endif
 
-void Header::set_timesync_zero() {
+#endif
 
-	remote_id = remote_start = local_time = remote_time = 0;
-}
-
-bool Header::timesync_differs_from(const Header& h) const {
-
-	const bool differs = (remote_time  != h.remote_time ) ||
-						 (remote_start != h.remote_start) ||
-						 (local_time   != h.local_time  ) ||
-						 (remote_id    != h.remote_id   ) ;
-	// TODO Assert: if all remote fields equal then local_time should too
-	return differs;
-}
-
-void Header::write_timesync_info(std::ostream& out) const {
-
-	out << local_time << '\t' << remote_time  << '\t' ;
-	out <<  remote_id << '\t' << remote_start << '\n' << flush;
-}
-
-ostream& operator<<(ostream& out, const Header& h) {
-
-	out << "format id:    " << h.format_id << endl;
-	out << "mote id:      " << h.mote_id   << endl;
-	out << "length:       " << h.length    << endl;
-	out << "remote id:    " << h.remote_id << endl;
-	out << "local time:   " << h.local_time << endl;
-	out << "remote time:  " << h.remote_time << endl;
-	out << "local start:  " << h.local_start << endl;
-	out << "remote start: " << h.remote_start << endl;
-	return out;
-}
-
-}
+#endif

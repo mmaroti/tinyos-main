@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,28 +28,33 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Ali Baharev
+*      Author: Ali Baharev
 */
 
-#ifndef WIN32BLOCKDEVICE_H_
-#define WIN32BLOCKDEVICE_H_
+#ifndef RECORDPAIRID_HPP_
+#define RECORDPAIRID_HPP_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <iosfwd>
+#include "RecordID.hpp"
 
-const char* read_device_block(int i);
+namespace sdc {
 
-double card_size_in_GB(const wchar_t* drive);
+class RecordPairID {
 
-int block_size();
+public:
 
-void close_device();
+	RecordPairID(const RecordID& rid1, const RecordID& rid2);
 
-unsigned long error_code();
+	friend bool operator<(const RecordPairID& lhs, const RecordPairID& rhs);
 
-#ifdef __cplusplus
+	friend std::ostream& operator<<(std::ostream& , const RecordPairID& );
+
+private:
+
+	RecordID id1;
+	RecordID id2;
+};
+
 }
-#endif
 
-#endif
+#endif /* RECORDPAIRID_HPP_ */

@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,60 +28,81 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Ali Baharev
+*      Author: Ali Baharev
 */
 
 #include <ostream>
-#include "Header.hpp"
-#include "BlockIterator.hpp"
+#include <sstream>
+#include <cmath>
+#include <stdexcept>
+#include "TimeSyncInfo.hpp"
+#include "TimeSyncConsts.hpp"
 
 using namespace std;
 
+typedef istringstream iss;
+
 namespace sdc {
 
-Header::Header(BlockIterator& itr) {
+TimeSyncInfo::TimeSyncInfo() {
 
-	format_id = itr.next_uint16();
-	mote_id   = itr.next_uint16();
-	length    = itr.next_uint16();
-	remote_id = itr.next_uint16();
-	local_time   = itr.next_uint32();
-	remote_time  = itr.next_uint32();
-	local_start  = itr.next_uint32();
-	remote_start = itr.next_uint32();
+	local_time = remote_time = remote_id = remote_start = 0;
 }
 
-void Header::set_timesync_zero() {
+TimeSyncInfo::TimeSyncInfo(const string& line_from_file) {
 
-	remote_id = remote_start = local_time = remote_time = 0;
+	iss in(line_from_file);
+
+	in.exceptions(iss::failbit | iss::badbit);
+
+	in >> local_time;
+	in >> remote_time;
+	in >> remote_id;
+	in >> remote_start;
 }
 
-bool Header::timesync_differs_from(const Header& h) const {
+bool TimeSyncInfo::consistent() const {
 
-	const bool differs = (remote_time  != h.remote_time ) ||
-						 (remote_start != h.remote_start) ||
-						 (local_time   != h.local_time  ) ||
-						 (remote_id    != h.remote_id   ) ;
-	// TODO Assert: if all remote fields equal then local_time should too
-	return differs;
+	return (local_time  > 0 &&
+			remote_time > 0 &&
+			remote_id   > 0 &&
+			remote_start >= 0 );
 }
 
-void Header::write_timesync_info(std::ostream& out) const {
+int TimeSyncInfo::lost_messages_since(const TimeSyncInfo& other) const {
 
-	out << local_time << '\t' << remote_time  << '\t' ;
-	out <<  remote_id << '\t' << remote_start << '\n' << flush;
+	if (remote_id != other.remote_id || remote_start != other.remote_start) {
+
+		throw logic_error("trying to compare messages from different records");
+	}
+
+	double diff = static_cast<double> (remote_time) - other.remote_time;
+
+	if (diff <= 0) {
+
+		throw runtime_error("cannot handle this type of error (remote_time)");
+	}
+
+	return floor(diff/TIMESYNC_MSG_RATE + 0.5) - 1;
 }
 
-ostream& operator<<(ostream& out, const Header& h) {
+const Pair TimeSyncInfo::time_pair() const {
 
-	out << "format id:    " << h.format_id << endl;
-	out << "mote id:      " << h.mote_id   << endl;
-	out << "length:       " << h.length    << endl;
-	out << "remote id:    " << h.remote_id << endl;
-	out << "local time:   " << h.local_time << endl;
-	out << "remote time:  " << h.remote_time << endl;
-	out << "local start:  " << h.local_start << endl;
-	out << "remote start: " << h.remote_start << endl;
+	return Pair(local_time, remote_time);
+}
+
+const Pair TimeSyncInfo::reversed_time_pair() const {
+
+	return Pair(remote_time, local_time);
+}
+
+ostream& operator<<(ostream& out, const TimeSyncInfo& msg) {
+
+	out << "local_time:   " << msg.local_time   << endl;
+	out << "remote_time:  " << msg.remote_time  << endl;
+	out << "remote_id:    " << msg.remote_id    << endl;
+	out << "remote_start: " << msg.remote_start << flush;
+
 	return out;
 }
 

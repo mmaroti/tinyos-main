@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,39 +28,50 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Ali Baharev
+*   Author: Ali Baharev
 */
 
-#ifndef BLOCKITERATOR_HPP_
-#define BLOCKITERATOR_HPP_
+#ifndef WRITER_HPP_
+#define WRITER_HPP_
 
-#include "TypeDefs.hpp"
+#include <memory>
+#include <iosfwd>
 
 namespace sdc {
 
-class BlockIterator {
+class Header;
+class Sample;
+
+class Writer {
 
 public:
 
-	explicit BlockIterator(const char* block);
+	Writer();
 
-	uint16 next_uint16();
+	void start_new_record(int mote_id, int reboot_id, int first_block);
 
-	uint32 next_uint32();
+	bool is_open() const;
+
+	void write_time_sync_info(const Header& h);
+
+	void write(const Sample& s);
+
+	void flush();
+
+	void close();
+
+	~Writer();
 
 private:
 
-	BlockIterator(const BlockIterator& );
+	Writer(const Writer& );
+	Writer& operator=(const Writer& );
 
-	BlockIterator& operator=(const BlockIterator& );
+	const std::auto_ptr<std::ofstream> samples;
+	const std::auto_ptr<std::ofstream> timesync;
 
-	void check_range();
-
-	const char* const end;
-
-	const char* itr;
 };
 
 }
 
-#endif
+#endif /* WRITER_HPP_ */

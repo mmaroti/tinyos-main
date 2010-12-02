@@ -31,58 +31,100 @@
 * Author: Ali Baharev
 */
 
-#include <ostream>
-#include "Header.hpp"
-#include "BlockIterator.hpp"
+#include <stdexcept>
+#include "Win32BlockDevice.hpp"
+#ifdef _WIN32
+#include "BlockRelatedConsts.hpp"
+#include "Utility.hpp"
+#include "WinBlockDevice.h"
+#endif
 
 using namespace std;
 
 namespace sdc {
 
-Header::Header(BlockIterator& itr) {
+#ifdef _WIN32
 
-	format_id = itr.next_uint16();
-	mote_id   = itr.next_uint16();
-	length    = itr.next_uint16();
-	remote_id = itr.next_uint16();
-	local_time   = itr.next_uint32();
-	remote_time  = itr.next_uint32();
-	local_start  = itr.next_uint32();
-	remote_start = itr.next_uint32();
+Win32BlockDevice::Win32BlockDevice(const char* source) : buffer(new char[BLOCK_SIZE]) {
+
+	const char drive_letter = string(source).at(0);
+	wstring path(L"\\\\.\\");
+	path += drive_letter;
+	path += ':';
+
+	card_size = card_size_in_GB(path.c_str(), &hDevice);
+
+	if (card_size==0) {
+		string msg("Failed to open block device: ");
+		msg += source;
+		throw runtime_error(msg);
+	}
+
+	if (card_size >= 2.0) {
+		close_device(&hDevice);
+		throw runtime_error("Card size is larger than 2GB");
+	}
 }
 
-void Header::set_timesync_zero() {
+const char* Win32BlockDevice::read_block(int i) {
 
-	remote_id = remote_start = local_time = remote_time = 0;
+	if (i<0 || i>=MAX_BLOCK_INDEX) {
+		throw out_of_range("block index");
+	}
+
+	unsigned int size = static_cast<unsigned int> (BLOCK_SIZE);
+
+	const char* const block = read_device_block(&hDevice, i, buffer.get(), size);
+
+	if (block==0) {
+
+		throw runtime_error(failed_to_read_block(i));
+	}
+
+	return block;
 }
 
-bool Header::timesync_differs_from(const Header& h) const {
+double Win32BlockDevice::size_GB() const {
 
-	const bool differs = (remote_time  != h.remote_time ) ||
-						 (remote_start != h.remote_start) ||
-						 (local_time   != h.local_time  ) ||
-						 (remote_id    != h.remote_id   ) ;
-	// TODO Assert: if all remote fields equal then local_time should too
-	return differs;
+	return card_size;
 }
 
-void Header::write_timesync_info(std::ostream& out) const {
+unsigned long Win32BlockDevice::error_code() const {
 
-	out << local_time << '\t' << remote_time  << '\t' ;
-	out <<  remote_id << '\t' << remote_start << '\n' << flush;
+	return error_code();
 }
 
-ostream& operator<<(ostream& out, const Header& h) {
+Win32BlockDevice::~Win32BlockDevice() {
 
-	out << "format id:    " << h.format_id << endl;
-	out << "mote id:      " << h.mote_id   << endl;
-	out << "length:       " << h.length    << endl;
-	out << "remote id:    " << h.remote_id << endl;
-	out << "local time:   " << h.local_time << endl;
-	out << "remote time:  " << h.remote_time << endl;
-	out << "local start:  " << h.local_start << endl;
-	out << "remote start: " << h.remote_start << endl;
-	return out;
+	close_device(&hDevice);
 }
+
+#else
+
+Win32BlockDevice::Win32BlockDevice(const char* ) {
+
+	throw logic_error("Win32 block device is not compiled!");
+}
+
+const char* Win32BlockDevice::read_block(int ) {
+
+	return 0;
+}
+
+double Win32BlockDevice::size_GB() const {
+
+	return 0;
+}
+
+unsigned long Win32BlockDevice::error_code() const {
+
+	return 0;
+}
+
+Win32BlockDevice::~Win32BlockDevice() {
+
+}
+
+#endif
 
 }

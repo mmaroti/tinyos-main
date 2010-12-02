@@ -55,8 +55,6 @@ public:
 
 	uint16 counter() const { return seq_num; }
 
-	void force_counter(uint16 i) { seq_num = i; }
-
 	friend std::ostream& operator<<(std::ostream& , const Sample& );
 
 private:

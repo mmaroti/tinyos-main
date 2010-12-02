@@ -57,18 +57,30 @@ SOURCES += src/DataRecorder.cpp \
     src/Solver/DataWriter.cpp \
     src/Solver/DataReader.cpp \
     src/Solver/Data.cpp \
-    src/SDCard/Win32BlockDevice.c \
+    src/FlatFileModel.cpp \
+    src/SDataWidget.cpp \
+    src/SDCard/Header.cpp \
+    src/SDCard/FlatFileDB.cpp \
+    src/SDCard/FileAsBlockDevice.cpp \
+    src/SDCard/Console.cpp \
+    src/SDCard/BlockIterator.cpp \
+    src/SDCard/BlockChecker.cpp \
+    src/SDCard/VirtualMoteID.cpp \
     src/SDCard/Utility.cpp \
     src/SDCard/Tracker.cpp \
+    src/SDCard/TimeSyncWriter.cpp \
+    src/SDCard/TimeSyncReader.cpp \
+    src/SDCard/TimeSyncMerger.cpp \
+    src/SDCard/TimeSyncInfo.cpp \
     src/SDCard/SDCardImpl.cpp \
     src/SDCard/SDCard.cpp \
     src/SDCard/Sample.cpp \
-    src/SDCard/Header.cpp \
-    src/SDCard/BlockIterator.cpp \
-    src/SDCard/BlockDevice.cpp \
-    src/SDCard/BlockChecker.cpp \
-    src/FlatFileModel.cpp \
-    src/SDataWidget.cpp
+    src/SDCard/RecordPairID.cpp \
+    src/SDCard/RecordID.cpp \
+    src/SDCard/Merger.cpp \
+    src/SDCard/WinBlockDevice.c \
+    src/SDCard/Win32BlockDevice.cpp \
+    src/SDCard/Writer.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -93,27 +105,39 @@ HEADERS += src/DataRecorder.h \
     src/Solver/Results.hpp \
     src/Solver/MatrixVector.hpp \
     src/Solver/EulerAngles.hpp \
-    src/Solver/DataWriter.hpp \
     src/Solver/DataWriteException.hpp \
     src/Solver/DataReadException.hpp \
     src/Solver/DataReader.hpp \
     src/Solver/Data.hpp \
     src/Solver/CompileTimeConstants.hpp \
-    src/SDCard/Utility.hpp \
-    src/SDCard/Win32BlockDevice.h \
-    src/SDCard/TypeDefs.hpp \
-    src/SDCard/Tracker.hpp \
-    src/SDCard/SDCardImpl.hpp \
-    src/SDCard/SDCard.hpp \
-    src/SDCard/Sample.hpp \
-    src/SDCard/Header.hpp \
-    src/SDCard/Constants.hpp \
+    src/FlatFileModel.h \
+    src/SDataWidget.h \
+    src/SDCard/FileAsBlockDevice.hpp \
     src/SDCard/BlockRelatedConsts.hpp \
+    src/SDCard/Constants.hpp \
+    src/SDCard/Console.hpp \
     src/SDCard/BlockIterator.hpp \
     src/SDCard/BlockDevice.hpp \
     src/SDCard/BlockChecker.hpp \
-    src/FlatFileModel.h \
-    src/SDataWidget.h
+    src/SDCard/Utility.hpp \
+    src/SDCard/TypeDefs.hpp \
+    src/SDCard/Tracker.hpp \
+    src/SDCard/TimeSyncWriter.hpp \
+    src/SDCard/TimeSyncReader.hpp \
+    src/SDCard/TimeSyncMerger.hpp \
+    src/SDCard/TimeSyncInfo.hpp \
+    src/SDCard/TimeSyncConsts.hpp \
+    src/SDCard/SDCardImpl.hpp \
+    src/SDCard/SDCard.hpp \
+    src/SDCard/Sample.hpp \
+    src/SDCard/RecordPairID.hpp \
+    src/SDCard/RecordID.hpp \
+    src/SDCard/Merger.hpp \
+    src/SDCard/Header.hpp \
+    src/SDCard/FlatFileDB.hpp \
+    src/SDCard/WinBlockDevice.h \
+    src/SDCard/Win32BlockDevice.hpp \
+    src/SDCard/VirtualMoteID.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

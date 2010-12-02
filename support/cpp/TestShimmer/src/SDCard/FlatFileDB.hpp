@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,39 +28,47 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Ali Baharev
+*      Author: Ali Baharev
 */
 
-#ifndef BLOCKITERATOR_HPP_
-#define BLOCKITERATOR_HPP_
+#ifndef FLATFILEDB_HPP_
+#define FLATFILEDB_HPP_
 
-#include "TypeDefs.hpp"
+#include <string>
+#include <vector>
 
 namespace sdc {
 
-class BlockIterator {
+class Line;
+
+class FlatFileDB {
 
 public:
 
-	explicit BlockIterator(const char* block);
+	FlatFileDB(int mote_id);
 
-	uint16 next_uint16();
+	int reboot(int first_block) const;
 
-	uint32 next_uint32();
+	int first_block(int reboot) const;
+
+	int length_in_ms(int reboot) const;
+
+	int number_of_records() const;
 
 private:
 
-	BlockIterator(const BlockIterator& );
+	FlatFileDB(const FlatFileDB& );
+	FlatFileDB& operator=(const FlatFileDB& );
 
-	BlockIterator& operator=(const BlockIterator& );
+	int read_file(std::ifstream& in);
+	void push_back(const std::string& line, Line& previous);
+	void throw_not_downloaded_error() const;
 
-	void check_range();
-
-	const char* const end;
-
-	const char* itr;
+	const int mote_id;
+	std::vector<int> record;
+	int size;
 };
 
 }
 
-#endif
+#endif /* FLATFILEDB_HPP_ */

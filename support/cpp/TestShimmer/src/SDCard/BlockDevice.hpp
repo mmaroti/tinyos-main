@@ -34,9 +34,6 @@
 #ifndef BLOCKDEVICE_HPP_
 #define BLOCKDEVICE_HPP_
 
-#include <iosfwd>
-#include <memory>
-
 namespace sdc {
 
 class BlockDevice {
@@ -59,50 +56,6 @@ private:
 
 	BlockDevice& operator=(const BlockDevice& );
 
-};
-
-class FileAsBlockDevice : public BlockDevice {
-
-public:
-
-	explicit FileAsBlockDevice(const char* source);
-
-private:
-
-	virtual const char* read_block(int i);
-
-	virtual double size_GB() const;
-
-	virtual unsigned long error_code() const;
-
-	virtual ~FileAsBlockDevice();
-
-	const std::auto_ptr<std::ifstream> in;
-
-	const std::auto_ptr<char> buffer;
-
-	int BLOCK_OFFSET_MAX;
-
-	double card_size;
-};
-
-class Win32BlockDevice : public BlockDevice {
-
-public:
-
-	explicit Win32BlockDevice(const char* source);
-
-private:
-
-	virtual const char* read_block(int i);
-
-	virtual double size_GB() const;
-
-	virtual unsigned long error_code() const;
-
-	virtual ~Win32BlockDevice();
-
-	double card_size;
 };
 
 }
