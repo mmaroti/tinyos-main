@@ -1,6 +1,7 @@
 Using Transfer from console:
 ----------------------------------------------------------------------------------------
-The following options can be used with Transfer.java
+The following options can be used with Transfer.java.
+The location of argparser.jar must be provided in the classpath.
 
 -s, -structfile
     must be followed by the location of the structrures's definition file
@@ -94,15 +95,26 @@ Making new struct:
 If you want to use a unique structure, you have to add it to the structs.ini (or the file you store the structures).
 -To declare a new structure, you have to use "struct" keyword, the word after it will be the name of the structure. 
 -Don't use special characters in the name of structures and variables!
--The content of a strucure must be between '{' and '}' and must end with ';'
+-The content of a structure must be between '{' and '}' and must end with ';'
 
 -To declare a variable you have to write it's type and name followed by ';'
+-eg.: nx_le_uint8_t id;
 -Integers start with endiannes indicator, "nx_le" means little endian, othwerwise the variable will be big endian.
 -The next one is sign indicator, "uint" means unsigned integer, "int" means signed integer.
 -The next is the size of the variable in bits, only 8, 16, 32, 64 is supported
--const
--complex  TODO
--array
+
+-Constants can be made by  providing the value of a variable after it's name.
+-eg.: int8_t id=0x11;
+In that case only those structs will be recognized, which have that exact value at the constant place
+
+-It is possible to declare complex types. It means that the structure contains other structure.
+-Multiple levels are allowed, but the inner structure must be defined first. See in the last example.
+
+-To create an array of a variable, you have to put the size of the desired array in brackets 
+-eg.: uint16_t value[1024];
+
+-omit keyword should be added before the variable which doesn't have to be parsed.
+-eg.:omit uint8_t id;  will result that the id won't be displayed in the output 
 
 -The parser is case sensitive!
 -The structure file mustn't contain other text like comments, license, author etc.
