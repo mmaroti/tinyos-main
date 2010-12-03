@@ -7,7 +7,6 @@
 #include <QFileDialog>
 #include <QDate>
 #include <QTime>
-#include <QList>
 
 SData::SData()
 {
