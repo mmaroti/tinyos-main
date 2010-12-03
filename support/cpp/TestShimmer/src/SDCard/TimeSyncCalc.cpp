@@ -81,9 +81,10 @@ void TimeSyncCalc::add_equation(LinearEquations& lin_eq, const Pair& pair) const
 
     Equation* eq = lin_eq.createEquation();
 
-    eq->setConstant(0.0); // TODO Finish implementation
-    eq->setCoefficient("skew",   1.0);
-    eq->setCoefficient("offset", 2.0);
+    // t1 = skew*t2 + offset
+    eq->setConstant(pair.first);
+    eq->setCoefficient("skew",   pair.second);
+    eq->setCoefficient("offset", 1.0);
 
     lin_eq.addEquation(eq);
 }
