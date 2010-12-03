@@ -60,7 +60,7 @@ void TimeSyncCalc::compute_skew_offset(const vector<Pair>& sync_points) const {
 
     LinearEquations lin_eq;
 
-    lin_eq.getVariable("skew");
+    lin_eq.getVariable("skew_1");
     lin_eq.getVariable("offset");
 
     const int n = static_cast<int>(sync_points.size());
@@ -81,9 +81,10 @@ void TimeSyncCalc::add_equation(LinearEquations& lin_eq, const Pair& pair) const
 
     Equation* eq = lin_eq.createEquation();
 
-    // t1 = skew*t2 + offset
-    eq->setConstant(pair.first);
-    eq->setCoefficient("skew",   pair.second);
+    // t1    = skew  *t2 + offset
+    // t1-t2 = skew_1*t2 + offset
+    eq->setConstant(pair.first-pair.second);
+    eq->setCoefficient("skew_1",   pair.second);
     eq->setCoefficient("offset", 1.0);
 
     lin_eq.addEquation(eq);
