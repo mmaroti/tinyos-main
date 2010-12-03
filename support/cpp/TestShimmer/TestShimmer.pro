@@ -80,7 +80,8 @@ SOURCES += src/DataRecorder.cpp \
     src/SDCard/Merger.cpp \
     src/SDCard/WinBlockDevice.c \
     src/SDCard/Win32BlockDevice.cpp \
-    src/SDCard/Writer.cpp
+    src/SDCard/Writer.cpp \
+    src/SDCard/TimeSyncCalc.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -137,7 +138,8 @@ HEADERS += src/DataRecorder.h \
     src/SDCard/FlatFileDB.hpp \
     src/SDCard/WinBlockDevice.h \
     src/SDCard/Win32BlockDevice.hpp \
-    src/SDCard/VirtualMoteID.hpp
+    src/SDCard/VirtualMoteID.hpp \
+    src/SDCard/TimeSyncCalc.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \
