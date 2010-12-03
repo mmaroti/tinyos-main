@@ -7,6 +7,7 @@
 #include <QFileDialog>
 #include <QDate>
 #include <QTime>
+#include <QList>
 
 SData::SData()
 {
@@ -55,15 +56,15 @@ void SDataWidget::fillSData()
 
 void SDataWidget::initLeft()
 {
-    int id=getSDataAt(0).moteID;
     QTreeWidgetItem *item = createParentItem(0, ui->sdataLeft);
     for(int i=0; i<getRecordsSize(); i++){
-        if(!(getSDataAt(i).moteID == id)){
+        if(ui->sdataLeft->findItems(QString::number(getSDataAt(i).moteID),0,0).size() == 0){
             item = createParentItem(i, ui->sdataLeft);
+        } else {
+            item = ui->sdataLeft->findItems(QString::number(getSDataAt(i).moteID),0,0)[0];
         }
-        createChildItem(i, item);
 
-        id = getSDataAt(i).moteID;
+        createChildItem(i, item);
     }
 }
 
@@ -128,7 +129,8 @@ QTreeWidgetItem* SDataWidget::createParentItem(int i, QTreeWidget *root)
 void SDataWidget::createChildItem(int i, QTreeWidgetItem* parent)
 {
     QTreeWidgetItem *it = new QTreeWidgetItem(parent);
-    it->setText(1,QString::number(getSDataAt(i).num));
+    int num = parent->childCount();
+    it->setText(1,QString::number(num));
     it->setText(2,QString::number(getSDataAt(i).length));
     it->setText(3,getSDataAt(i).tor);
     it->setText(4,getSDataAt(i).tod);
