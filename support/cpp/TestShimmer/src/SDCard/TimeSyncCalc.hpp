@@ -35,10 +35,15 @@
 #define TIMESYNCCALC_HPP_
 
 #include <memory>
+#include <vector>
+
+class LinearEquations;
 
 namespace sdc {
 
 class TimeSyncMerger;
+
+typedef std::pair<unsigned int, unsigned int> Pair;
 
 class TimeSyncCalc {
 
@@ -49,6 +54,10 @@ public:
     ~TimeSyncCalc();
 
 private:
+
+    void compute_skew_offset(const std::vector<Pair>& sync_points) const;
+
+    void add_equation(LinearEquations& lin_eq, const Pair& pair) const;
 
     const std::auto_ptr<const TimeSyncMerger> time_sync;
 };

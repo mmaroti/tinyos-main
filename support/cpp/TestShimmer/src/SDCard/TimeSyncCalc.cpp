@@ -31,15 +31,61 @@
 *      Author: Ali Baharev
 */
 
+#include <iostream>
 #include "TimeSyncCalc.hpp"
 #include "TimeSyncMerger.hpp"
+#include "LinearEquations.h"
+
+using namespace std;
 
 namespace sdc {
 
 TimeSyncCalc::TimeSyncCalc(int mote, int reboot)
     : time_sync(new TimeSyncMerger(mote, reboot))
 {
+    const Map& pairs = time_sync->pairs();
 
+    Map::const_iterator i = pairs.begin();
+
+    while (i != pairs.end()) {
+
+        cout << "Processing " << i->first << endl;
+
+        compute_skew_offset(i->second);
+
+        ++i;
+    }
+}
+void TimeSyncCalc::compute_skew_offset(const vector<Pair>& sync_points) const {
+
+    LinearEquations lin_eq;
+
+    lin_eq.getVariable("skew");
+    lin_eq.getVariable("offset");
+
+    const int n = static_cast<int>(sync_points.size());
+
+    for (int i=0; i<n; ++i) {
+
+        add_equation(lin_eq, sync_points.at(i));
+    }
+
+    lin_eq.printStatistics();
+
+    Solution* solution = lin_eq.solveWithSVD(0.0);
+
+    solution->print();
+}
+
+void TimeSyncCalc::add_equation(LinearEquations& lin_eq, const Pair& pair) const {
+
+    Equation* eq = lin_eq.createEquation();
+
+    eq->setConstant(0.0); // TODO Finish implementation
+    eq->setCoefficient("skew",   1.0);
+    eq->setCoefficient("offset", 2.0);
+
+    lin_eq.addEquation(eq);
 }
 
 TimeSyncCalc::~TimeSyncCalc() {
