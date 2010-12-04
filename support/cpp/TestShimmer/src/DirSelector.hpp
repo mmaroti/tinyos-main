@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,53 +28,32 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#ifndef APPLICATION_H
-#define APPLICATION_H
-
-#define C_HZ 204.8
-#define C_TICKS 2       //constant hz and ticks values to use later
+#ifndef DIRSELECTOR_HPP
+#define DIRSELECTOR_HPP
 
 #include <QObject>
-#include <QSettings>
-#include "Solver.hpp"
-#include "DirSelector.hpp"
-#include "SerialListener.h"
-#include "DataRecorder.h"
-//#include "StationaryCalibrationModule.h"
-#include "ConsoleWidget.h"
 
-class Application : public QObject
-{
+class QTabWidget;
 
-Q_OBJECT
+class DirSelector : public QObject {
+
+    Q_OBJECT
 
 public:
-	Application();
 
-signals:
-	void showMessageSignal(const QString & msg);
-        void showConsoleSignal(const QString & msg);
+    void setTabWidget(const QTabWidget* widget);
 
-public:
-	void showMessage(const QString & msg) {
-		emit showMessageSignal(msg);
-	}
+public slots:
 
-        void showConsoleMessage(const QString & msg) {
-                emit showConsoleSignal(msg);
-        }
+    void tabChanged(int tab) const;
 
-public:
-	SerialListener serialListener;
-        DataRecorder dataRecorder;
+private:
 
-	QSettings settings;
-        ipo::Solver solver;
-        DirSelector directorySelector;
+    const QTabWidget* tabWidget;
+
 };
 
-#endif // APPLICATION_H
+#endif // DIRSELECTOR_HPP
