@@ -7,6 +7,13 @@
 #include <QFileDialog>
 #include <QDate>
 #include <QTime>
+#include <QThread>
+#include <QDialog>
+
+#include <QWaitCondition>
+#include <QMutex>
+
+
 
 SData::SData()
 {
@@ -25,6 +32,8 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
 
     ui->setupUi(this);
     connect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(on_itemSelectionChanged()));
+    connect(this, SIGNAL(downloadStarted()), this, SLOT(on_downloadStarted()));
+    connect(this, SIGNAL(downloadFinished()), this, SLOT(on_downloadFinished()));
 
     fillSData();
     initLeft();
@@ -163,7 +172,8 @@ void SDataWidget::on_clearButton_clicked()
 
 void SDataWidget::on_downloadButton_clicked()
 {
-    QMessageBox msgBox;
+    QMessageBox msgBox(QMessageBox::Warning, "Download", "Download in progress...", QMessageBox::NoButton, this, 0);
+
 #ifdef _WIN32
     QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
                                                     "c:/",
@@ -174,16 +184,38 @@ void SDataWidget::on_downloadButton_clicked()
     QString dir = QFileDialog::getOpenFileName(this, "Select the device");
 
 #endif
-    if (!dir.isEmpty()){
-        msgBox.setText(dir);
-        ui->sdataLeft->clear();
-        ui->sdataRight->clear();
-        fillSData();
-        initLeft();
-        ui->sdataLeft->update();
-    }
 
-    msgBox.exec();
+    msgBox.setModal(true);    
+    msgBox.show();
+
+    emit downloadStarted();
 }
+
+void SDataWidget::on_downloadStarted()
+{
+    msleep(3000);
+    fillSData();
+
+    emit downloadFinished();
+}
+
+void SDataWidget::on_downloadFinished()
+{
+    ui->sdataLeft->clear();
+    ui->sdataRight->clear();
+    initLeft();
+    ui->sdataLeft->update();
+}
+
+void SDataWidget::msleep(unsigned long msecs)
+    {
+        QMutex mutex;
+        mutex.lock();
+
+        QWaitCondition waitCondition;
+        waitCondition.wait(&mutex, msecs);
+
+        mutex.unlock();
+    }
 
 

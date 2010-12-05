@@ -31,6 +31,8 @@ public:
     const SData& getSDataAt(int i) const { return records[i]; }
     int getRecordsSize() const { return records.size(); }
 
+    void msleep(unsigned long msecs);
+
 private:
     Ui::SDataWidget *ui;
     Application &application;
@@ -46,10 +48,16 @@ private:
     void init();
     QVarLengthArray<SData> records;
 
+signals:
+    void downloadStarted();
+    void downloadFinished();
+
 private slots:
     void on_itemSelectionChanged();
     void on_toPlotButton_clicked();
     void on_downloadButton_clicked();
+    void on_downloadStarted();
+    void on_downloadFinished();
     void on_clearButton_clicked();
 };
 
