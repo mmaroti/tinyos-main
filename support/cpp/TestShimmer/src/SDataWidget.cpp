@@ -10,10 +10,8 @@
 #include <QThread>
 #include <QDialog>
 
-#include <QWaitCondition>
-#include <QMutex>
-
-
+#include <QDebug>
+#include "Dummy.hpp"
 
 SData::SData()
 {
@@ -32,8 +30,6 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
 
     ui->setupUi(this);
     connect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(on_itemSelectionChanged()));
-    connect(this, SIGNAL(downloadStarted()), this, SLOT(on_downloadStarted()));
-    connect(this, SIGNAL(downloadFinished()), this, SLOT(on_downloadFinished()));
 
     fillSData();
     initLeft();
@@ -172,6 +168,9 @@ void SDataWidget::on_clearButton_clicked()
 
 void SDataWidget::on_downloadButton_clicked()
 {
+    Dummy* dummy = new Dummy();
+    dummy->registerConnection(this);
+
     QMessageBox msgBox(QMessageBox::Warning, "Download", "Download in progress...", QMessageBox::NoButton, this, 0);
 
 #ifdef _WIN32
@@ -188,34 +187,16 @@ void SDataWidget::on_downloadButton_clicked()
     msgBox.setModal(true);    
     msgBox.show();
 
-    emit downloadStarted();
+    dummy->startDownloading();
 }
 
-void SDataWidget::on_downloadStarted()
+void SDataWidget::onDownloadFinished()
 {
-    msleep(3000);
-    fillSData();
 
-    emit downloadFinished();
-}
+    qDebug() << "Download finished";
 
-void SDataWidget::on_downloadFinished()
-{
     ui->sdataLeft->clear();
     ui->sdataRight->clear();
     initLeft();
     ui->sdataLeft->update();
 }
-
-void SDataWidget::msleep(unsigned long msecs)
-    {
-        QMutex mutex;
-        mutex.lock();
-
-        QWaitCondition waitCondition;
-        waitCondition.wait(&mutex, msecs);
-
-        mutex.unlock();
-    }
-
-
