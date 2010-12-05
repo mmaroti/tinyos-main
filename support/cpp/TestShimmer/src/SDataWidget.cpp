@@ -30,13 +30,14 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
 
     ui->setupUi(this);
     connect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(on_itemSelectionChanged()));
-
+    blockingBox = new QMessageBox(QMessageBox::Warning, "Download", "Download in progress...", QMessageBox::NoButton, this, 0);
     fillSData();
     initLeft();
 }
 
 SDataWidget::~SDataWidget()
 {
+    delete blockingBox;
     delete ui;
 }
 
@@ -171,8 +172,6 @@ void SDataWidget::on_downloadButton_clicked()
     Dummy* dummy = new Dummy();
     dummy->registerConnection(this);
 
-    QMessageBox msgBox(QMessageBox::Warning, "Download", "Download in progress...", QMessageBox::NoButton, this, 0);
-
 #ifdef _WIN32
     QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
                                                     "c:/",
@@ -184,8 +183,8 @@ void SDataWidget::on_downloadButton_clicked()
 
 #endif
 
-    msgBox.setModal(true);    
-    msgBox.show();
+    blockingBox->setModal(true);
+    blockingBox->show();
 
     dummy->startDownloading();
 }
@@ -199,4 +198,5 @@ void SDataWidget::onDownloadFinished()
     ui->sdataRight->clear();
     initLeft();
     ui->sdataLeft->update();
+
 }

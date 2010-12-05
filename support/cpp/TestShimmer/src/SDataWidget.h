@@ -2,6 +2,7 @@
 #define SDATAWIDGET_H
 
 #include <QWidget>
+#include <QMessageBox>
 #include <QVarLengthArray>
 #include <QTreeWidgetItem>
 #include <QTreeWidget>
@@ -34,6 +35,8 @@ public:
 private:
     Ui::SDataWidget *ui;
     Application &application;
+
+    QMessageBox* blockingBox;
 
     void initLeft();
     void initRight(QVarLengthArray<int> list);

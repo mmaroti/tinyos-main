@@ -23,5 +23,5 @@ void Dummy::run() {
 
     emit downloadFinished();
 
-    qDebug() << "Exiting from thread";
+    qDebug() << "Resources deleted";
 }
