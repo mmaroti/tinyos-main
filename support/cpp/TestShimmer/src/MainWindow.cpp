@@ -104,9 +104,7 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(dataWidget, SIGNAL(SolverStarted()), this, SLOT(onSolverRunning()));
         connect(dataWidget, SIGNAL(SolverFinished()), this, SLOT(onSolverRunning()));
 
-        // TODO Set working directory in main.cpp
-        app.directorySelector.setTabWidget(ui->tabWidget);
-        //QObject::connect(ui->tabWidget,SIGNAL(currentChanged(int)), &app.directorySelector, SLOT(tabChanged(int)));
+        app.directorySelector.registerTabWidget(ui->tabWidget);
 
 }
 

@@ -43,7 +43,7 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
 {
 
     ui->setupUi(this);
-    connect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(on_itemSelectionChanged()));
+    connect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
     blockingBox = new QMessageBox(QMessageBox::Information,
                                   "Downloading",
                                   "Please wait, downloading...",
@@ -96,7 +96,7 @@ void SDataWidget::initRight(QVarLengthArray<int> list)
     }
 }
 
-void SDataWidget::on_itemSelectionChanged()
+void SDataWidget::onItemSelectionChanged()
 {
     ui->sdataRight->clear();
     QMessageBox msgBox;

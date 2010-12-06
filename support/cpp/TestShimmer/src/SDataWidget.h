@@ -62,7 +62,7 @@ signals:
 
 private slots:
 
-    void on_itemSelectionChanged();
+    void onItemSelectionChanged();
     void on_toPlotButton_clicked();
     void on_downloadButton_clicked();
     void onDownloadFinished(bool error, const QString& error_msg, const QVarLengthArray<SData>& data);

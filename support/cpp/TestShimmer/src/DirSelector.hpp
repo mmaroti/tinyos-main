@@ -44,13 +44,19 @@ class DirSelector : public QObject {
 
 public:
 
-    void setTabWidget(const QTabWidget* widget);
+    DirSelector();
+
+    void registerTabWidget(const QTabWidget* widget);
 
 public slots:
 
     void tabChanged(int tab) const;
 
 private:
+
+    void select(int tab) const;
+
+    void exitFailure(const QString& dir) const;
 
     const QTabWidget* tabWidget;
 

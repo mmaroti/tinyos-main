@@ -37,12 +37,30 @@
 #include <QDebug>
 #include "DirSelector.hpp"
 
-void DirSelector::setTabWidget(const QTabWidget* widget) {
+DirSelector::DirSelector() : tabWidget(0) {
+
+}
+
+void DirSelector::registerTabWidget(const QTabWidget* widget) {
+
+    Q_ASSERT(tabWidget==0);
 
     tabWidget = widget;
+
+    select(tabWidget->currentIndex());
+
+    QObject::connect(tabWidget, SIGNAL(currentChanged(int)),
+                     this,      SLOT(tabChanged(int)));
 }
 
 void DirSelector::tabChanged(int tab) const {
+
+    select(tab);
+}
+
+void DirSelector::select(int tab) const {
+
+    Q_ASSERT(tab!=-1);
 
     const QString label = tabWidget->tabText(tab);
 
@@ -56,15 +74,25 @@ void DirSelector::tabChanged(int tab) const {
     bool success = QDir::setCurrent(dir);
 
     if (!success) {
-        QString msg("Error: failed to set directory ");
-        msg.append(dir);
-        msg.append("\nRunning from:\n");
-        msg.append(QDir::currentPath());
-        QMessageBox mbox;
-        mbox.setText(msg);
-        mbox.exec();
-        exit(EXIT_FAILURE);
+
+        exitFailure(dir);
     }
 
     qDebug() << "Working directory is " << QDir::currentPath();
+}
+
+void DirSelector::exitFailure(const QString& dir) const {
+
+    QString msg("Error: failed to set directory ");
+
+    msg.append(dir);
+    msg.append("\nRunning from:\n");
+    msg.append(QDir::currentPath());
+
+    QMessageBox mbox;
+
+    mbox.setText(msg);
+    mbox.exec();
+
+    exit(EXIT_FAILURE);
 }
