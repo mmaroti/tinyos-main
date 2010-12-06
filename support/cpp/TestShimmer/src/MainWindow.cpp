@@ -87,8 +87,8 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(&app, SIGNAL(showMessageSignal(const QString &)), statusBar(), SLOT(showMessage(QString)) );
         connect(&app, SIGNAL(showConsoleSignal(const QString &)), consoleWidget , SLOT(onRecieveConsoleSignal(QString)) );
         connect(calibrationWidget, SIGNAL(calibrationDone()), dataWidget, SLOT(newCalibrationOccured()) );
-        connect(&(app.dataRecorder), SIGNAL(fileLoaded()), calibrationWidget, SLOT(on_fileLoaded()));
-        connect(&(app.dataRecorder), SIGNAL(calibrationDataLoaded()), calibrationWidget, SLOT(on_fileLoaded()));
+        connect(&(app.dataRecorder), SIGNAL(fileLoaded()), calibrationWidget, SLOT(OnFileLoaded()));
+        connect(&(app.dataRecorder), SIGNAL(calibrationDataLoaded()), calibrationWidget, SLOT(OnFileLoaded()));
         //connect(dataWidget->plot, SIGNAL(angleChanged(double)), window, SLOT(onAngleChanged(double)));
         connect(ui->actionQuit, SIGNAL(triggered()), this, SLOT(close()));
         connect(ui->actionLoad, SIGNAL(triggered()), dataWidget, SLOT(on_loadBtn_clicked()));

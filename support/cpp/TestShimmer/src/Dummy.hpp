@@ -12,7 +12,10 @@ class Dummy : public QThread {
 
 public:
 
-    void registerConnection(SDataWidget* widget);
+    Dummy(SDataWidget& sdata);
+    ~Dummy();
+
+    void registerConnection();
 
     void startDownloading();
 
@@ -21,7 +24,7 @@ signals:
     void downloadFinished();
 
 private:
-
+    SDataWidget& sdataWidget;
     virtual void run();
 };
 

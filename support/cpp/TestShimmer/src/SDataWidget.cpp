@@ -30,7 +30,8 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
 
     ui->setupUi(this);
     connect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(on_itemSelectionChanged()));
-    blockingBox = new QMessageBox(QMessageBox::Warning, "Download", "Download in progress...", QMessageBox::NoButton, this, 0);
+    blockingBox = new QMessageBox(QMessageBox::NoIcon, "Download", "Download in progress...", QMessageBox::NoButton, this, 0);
+
     fillSData();
     initLeft();
 }
@@ -169,21 +170,22 @@ void SDataWidget::on_clearButton_clicked()
 
 void SDataWidget::on_downloadButton_clicked()
 {
-    Dummy* dummy = new Dummy();
-    dummy->registerConnection(this);
+    Dummy* dummy = new Dummy(*this);
+    dummy->registerConnection();
 
 #ifdef _WIN32
-    QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Select a Drive"),
                                                     "c:/",
-                                                    QFileDialog::ShowDirsOnly
-
-                                                    | QFileDialog::DontResolveSymlinks);
+                                                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    dir.chop(1);
 #else
     QString dir = QFileDialog::getOpenFileName(this, "Select the device");
 
 #endif
 
     blockingBox->setModal(true);
+    blockingBox->setStandardButtons(QMessageBox::NoButton);
+    //blockingBox->setText(dir);
     blockingBox->show();
 
     dummy->startDownloading();
@@ -197,6 +199,16 @@ void SDataWidget::onDownloadFinished()
     ui->sdataLeft->clear();
     ui->sdataRight->clear();
     initLeft();
+    printRecords();
     ui->sdataLeft->update();
 
+    //blockingBox->hide();  IN DIFFERENT THREAD
+
+}
+
+void SDataWidget::printRecords()
+{
+    for(int i=0; i<records.size(); i++){
+        qDebug() << records[i].moteID << ", " << records[i].num << ", " << records[i].length << "\n";
+    }
 }

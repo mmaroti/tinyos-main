@@ -173,7 +173,7 @@ void CalibrationWidget::on_useButton_clicked()
     emit calibrationDone();
 }
 
-void CalibrationWidget::on_fileLoaded()
+void CalibrationWidget::OnFileLoaded()
 {
     loadCalibrationResults();
 }

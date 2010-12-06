@@ -32,6 +32,8 @@ public:
     const SData& getSDataAt(int i) const { return records[i]; }
     int getRecordsSize() const { return records.size(); }
 
+    void fillSData();
+
 private:
     Ui::SDataWidget *ui;
     Application &application;
@@ -45,9 +47,11 @@ private:
     QTreeWidgetItem* createParentItem(int i, QTreeWidget* root);
     void createChildItem(int i, QTreeWidgetItem* parent);
 
-    void fillSData();
+
     void init();
     QVarLengthArray<SData> records;
+
+    void printRecords();
 
 signals:
     void downloadStarted();

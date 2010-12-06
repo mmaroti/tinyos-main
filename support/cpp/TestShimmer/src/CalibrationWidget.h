@@ -71,7 +71,7 @@ private slots:
     void on_importButton_clicked();
     void on_clearButton_clicked();
     void on_useButton_clicked();
-    void on_fileLoaded();
+    void OnFileLoaded();
 
 signals:
     void calibrationDone();
