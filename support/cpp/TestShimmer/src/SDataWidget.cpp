@@ -179,8 +179,9 @@ void SDataWidget::on_downloadButton_clicked()
     driveDialog.setFilter(QDir::Drives);
     driveDialog.setDirectory("My Computer");
     driveDialog.exec();
-    QStringList dir = driveDialog.selectedFiles();
-    qDebug() << dir[0];
+    QStringList dirList = driveDialog.selectedFiles(); // FIXME Why a list?
+    QString dir = dirList.at(0);
+    qDebug() << dir;
 #else
     QString dir = QFileDialog::getOpenFileName(this, "Select the device", "/dev");
 
