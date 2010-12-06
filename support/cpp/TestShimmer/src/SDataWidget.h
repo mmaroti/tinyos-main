@@ -23,6 +23,8 @@ struct SData
     QString tod;
 };
 
+void fillSData(QVarLengthArray<SData>& records);
+
 class SDataWidget : public QWidget {
     Q_OBJECT
 public:
@@ -31,8 +33,6 @@ public:
 
     const SData& getSDataAt(int i) const { return records[i]; }
     int getRecordsSize() const { return records.size(); }
-
-    void fillSData();
 
 private:
     Ui::SDataWidget *ui;
@@ -60,7 +60,7 @@ private slots:
     void on_itemSelectionChanged();
     void on_toPlotButton_clicked();
     void on_downloadButton_clicked();
-    void onDownloadFinished();
+    void onDownloadFinished(const QVarLengthArray<SData>& data);
     void on_clearButton_clicked();
 };
 

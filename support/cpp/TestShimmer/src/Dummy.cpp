@@ -1,20 +1,11 @@
 #include "Dummy.hpp"
-#include "SDataWidget.h"
 
-Dummy::Dummy(SDataWidget& sdata) : sdataWidget(sdata)
-{
-
-}
-
-Dummy::~Dummy()
-{}
-
-void Dummy::registerConnection()
-{
+void Dummy::registerConnection(SDataWidget* widget) {
 
     qDebug() << "Connecting download slots";
 
-    QObject::connect(this, SIGNAL(downloadFinished()), &sdataWidget, SLOT(onDownloadFinished()), Qt::DirectConnection);
+    QObject::connect(this, SIGNAL(downloadFinished(const QVarLengthArray<SData>& )),
+                     widget, SLOT(onDownloadFinished(const QVarLengthArray<SData>& )), Qt::DirectConnection);
 }
 
 void Dummy::startDownloading() {
@@ -28,10 +19,11 @@ void Dummy::run() {
 
     qDebug() << "It will take 3 seconds";
 
-    sdataWidget.fillSData();
     msleep(3000);
 
-    emit downloadFinished();
+    fillSData(data);
+
+    emit downloadFinished(data);
 
     qDebug() << "Resources deleted";
 }

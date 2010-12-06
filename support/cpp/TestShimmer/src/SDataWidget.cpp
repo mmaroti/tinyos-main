@@ -22,27 +22,7 @@ SData::SData()
     tod = "";
 }
 
-SDataWidget::SDataWidget(QWidget *parent, Application &app) :
-        QWidget(parent),
-        ui(new Ui::SDataWidget),
-        application(app)
-{
-
-    ui->setupUi(this);
-    connect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(on_itemSelectionChanged()));
-    blockingBox = new QMessageBox(QMessageBox::NoIcon, "Download", "Download in progress...", QMessageBox::NoButton, this, 0);
-
-    fillSData();
-    initLeft();
-}
-
-SDataWidget::~SDataWidget()
-{
-    delete blockingBox;
-    delete ui;
-}
-
-void SDataWidget::fillSData()
+void fillSData(QVarLengthArray<SData>& records)
 {
     for(int i=1; i<=rand() % 10 + 1; i++){
         int numOfRecs = rand() % 3 + 1;
@@ -58,6 +38,26 @@ void SDataWidget::fillSData()
             records.append(record);
         }
     }
+}
+
+SDataWidget::SDataWidget(QWidget *parent, Application &app) :
+        QWidget(parent),
+        ui(new Ui::SDataWidget),
+        application(app)
+{
+
+    ui->setupUi(this);
+    connect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(on_itemSelectionChanged()));
+    blockingBox = new QMessageBox(QMessageBox::Warning, "Download", "Download in progress...", QMessageBox::Ok, this, 0);
+
+    fillSData(records);
+    initLeft();
+}
+
+SDataWidget::~SDataWidget()
+{
+    delete blockingBox;
+    delete ui;
 }
 
 void SDataWidget::initLeft()
@@ -170,8 +170,8 @@ void SDataWidget::on_clearButton_clicked()
 
 void SDataWidget::on_downloadButton_clicked()
 {
-    Dummy* dummy = new Dummy(*this);
-    dummy->registerConnection();
+    Dummy* dummy = new Dummy();
+    dummy->registerConnection(this);
 
 #ifdef _WIN32
     QString dir = QFileDialog::getExistingDirectory(this, tr("Select a Drive"),
@@ -184,22 +184,23 @@ void SDataWidget::on_downloadButton_clicked()
 #endif
 
     blockingBox->setModal(true);
-    blockingBox->setStandardButtons(QMessageBox::NoButton);
     //blockingBox->setText(dir);
     blockingBox->show();
 
     dummy->startDownloading();
 }
 
-void SDataWidget::onDownloadFinished()
+void SDataWidget::onDownloadFinished(const QVarLengthArray<SData>& data)
 {
 
     qDebug() << "Download finished";
 
+    records = QVarLengthArray<SData>(data);
+
     ui->sdataLeft->clear();
     ui->sdataRight->clear();
     initLeft();
-    printRecords();
+    //printRecords();
     ui->sdataLeft->update();
 
     //blockingBox->hide();  IN DIFFERENT THREAD

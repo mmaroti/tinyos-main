@@ -2,9 +2,9 @@
 #define DUMMY_HPP
 
 #include <QThread>
+#include <QVarLengthArray>
 #include <QDebug>
-
-class SDataWidget;
+#include "SDataWidget.h"
 
 class Dummy : public QThread {
 
@@ -12,20 +12,19 @@ class Dummy : public QThread {
 
 public:
 
-    Dummy(SDataWidget& sdata);
-    ~Dummy();
-
-    void registerConnection();
+    void registerConnection(SDataWidget* widget);
 
     void startDownloading();
 
 signals:
 
-    void downloadFinished();
+    void downloadFinished(const QVarLengthArray<SData>& data);
 
 private:
-    SDataWidget& sdataWidget;
+
     virtual void run();
+
+    QVarLengthArray<SData> data;
 };
 
 #endif // DUMMY_HPP
