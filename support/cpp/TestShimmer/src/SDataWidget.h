@@ -6,6 +6,7 @@
 #include <QVarLengthArray>
 #include <QTreeWidgetItem>
 #include <QTreeWidget>
+#include "DownloadManager.hpp"
 
 class Application;
 
@@ -39,6 +40,10 @@ private:
     Application &application;
 
     QMessageBox* blockingBox;
+    sdc::DownloadManager manager;
+    QVarLengthArray<SData> records;
+    volatile bool downloadFailed;
+    QString errorMsg;
 
     void initLeft();
     void initRight(QVarLengthArray<int> list);
@@ -47,22 +52,21 @@ private:
     QTreeWidgetItem* createParentItem(int i, QTreeWidget* root);
     void createChildItem(int i, QTreeWidgetItem* parent);
 
-
     void init();
-    QVarLengthArray<SData> records;
 
     void printRecords();
 
 signals:
-    void downloadStarted();
-    void releaseGuiBlock();
+
+    void updateGUI();
 
 private slots:
-    void onBlockRelease();
+
     void on_itemSelectionChanged();
     void on_toPlotButton_clicked();
     void on_downloadButton_clicked();
-    void onDownloadFinished(const QVarLengthArray<SData>& data);
+    void onDownloadFinished(bool error, const QString& error_msg, const QVarLengthArray<SData>& data);
+    void onUpdateGUI();
     void on_clearButton_clicked();
 };
 

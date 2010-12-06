@@ -3,18 +3,11 @@
 #include "ui_SDataWidget.h"
 #include <QTreeWidget>
 #include <QMessageBox>
-#include <QFile>
 #include <QFileDialog>
 #include <QDate>
 #include <QTime>
-#include <QThread>
 #include <QDialog>
-#include <QDir>
-#include <QFileInfo>
-#include <QFileInfoList>
-
 #include <QDebug>
-#include "Dummy.hpp"
 
 SData::SData()
 {
@@ -51,7 +44,12 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
 
     ui->setupUi(this);
     connect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(on_itemSelectionChanged()));
-    connect(this, SIGNAL(releaseGuiBlock()), this, SLOT(onBlockRelease()), Qt::QueuedConnection);
+    blockingBox = new QMessageBox(QMessageBox::Information,
+                                  "Downloading",
+                                  "Please wait, downloading...",
+                                  QMessageBox::NoButton, this, 0);
+
+    connect(this, SIGNAL(updateGUI()), this, SLOT(onUpdateGUI()), Qt::QueuedConnection);
 
     fillSData(records);
     initLeft();
@@ -173,18 +171,8 @@ void SDataWidget::on_clearButton_clicked()
 
 void SDataWidget::on_downloadButton_clicked()
 {
-    blockingBox = new QMessageBox(QMessageBox::Warning, "Download", "Download in progress...", QMessageBox::NoButton, this, 0);
-    Dummy* dummy = new Dummy();
-    dummy->registerConnection(this);
-    QFileInfoList drives = QDir::drives();
-    qDebug() << drives.at(0).absolutePath();
 
 #ifdef _WIN32
-    /*QString dir = QFileDialog::getExistingDirectory(this, tr("Select a Drive"),
-                                                    "c:/",
-                                                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);*/
-    //QString dir = QFileDialog::getOpenFileName(this, tr("Select a Drive!"),tr("c:/"),tr("Images (*.png *.xpm *.jpg)"), QDir::Drives);
-    //QString dir = QFileDialog::getOpenFileName(this, tr("Drives"),tr("c:/"), QDir::Drives, tr("Images (*.png *.xpm *.jpg)"));
     QFileDialog driveDialog(this);
     driveDialog.setFileMode(QFileDialog::DirectoryOnly);
     driveDialog.setViewMode(QFileDialog::List);
@@ -193,36 +181,54 @@ void SDataWidget::on_downloadButton_clicked()
     driveDialog.exec();
     QStringList dir = driveDialog.selectedFiles();
     qDebug() << dir[0];
-    //QString dir = driveDialog->getOpenFileName(this, "Select");
-    //dir.chop(1);
 #else
-    QString dir = QFileDialog::getOpenFileName(this, "Select the device");
+    QString dir = QFileDialog::getOpenFileName(this, "Select the device", "/dev");
 
 #endif
 
     blockingBox->setModal(true);
     blockingBox->setStandardButtons(QMessageBox::NoButton);
-    //blockingBox->setText(dir);
     blockingBox->show();
 
-
-    dummy->startDownloading();
+    manager.startDownloading(dir, this);
 }
 
-void SDataWidget::onDownloadFinished(const QVarLengthArray<SData>& data)
+void SDataWidget::onDownloadFinished(bool error, const QString& error_msg, const QVarLengthArray<SData>& data)
 {
+    downloadFailed = error;
 
-    qDebug() << "Download finished";
+    if (error) {
 
-    records = QVarLengthArray<SData>(data);
+        errorMsg = QString(error_msg);
+    }
+    else {
 
-    ui->sdataLeft->clear();
-    ui->sdataRight->clear();
-    initLeft();
-    //printRecords();
-    ui->sdataLeft->update();
+        records = QVarLengthArray<SData>(data);
+    }
 
-    emit releaseGuiBlock();
+    qDebug() << "Results of download copied";
+
+    emit updateGUI();
+}
+
+void SDataWidget::onUpdateGUI() {
+
+    if (downloadFailed) {
+        QMessageBox mbox(QMessageBox::Warning, "Download failed", errorMsg);
+        mbox.setText(errorMsg);
+        blockingBox->hide();
+        mbox.exec();
+    }
+    else {
+        // FIXME Still buggy, it shows a msg box but it should not
+        ui->sdataLeft->clear();
+        ui->sdataRight->clear();
+        initLeft();
+        ui->sdataLeft->update();
+        blockingBox->hide();
+    }
+
+    qDebug() << "GUI updated";
 }
 
 void SDataWidget::printRecords()
@@ -230,9 +236,4 @@ void SDataWidget::printRecords()
     for(int i=0; i<records.size(); i++){
         qDebug() << records[i].moteID << ", " << records[i].num << ", " << records[i].length << "\n";
     }
-}
-
-void SDataWidget::onBlockRelease()
-{
-    blockingBox->hide();
 }
