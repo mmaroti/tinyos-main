@@ -55,8 +55,10 @@ private:
 
 signals:
     void downloadStarted();
+    void releaseGuiBlock();
 
 private slots:
+    void onBlockRelease();
     void on_itemSelectionChanged();
     void on_toPlotButton_clicked();
     void on_downloadButton_clicked();

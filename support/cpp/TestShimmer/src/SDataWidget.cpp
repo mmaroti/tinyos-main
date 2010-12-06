@@ -51,7 +51,7 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
 
     ui->setupUi(this);
     connect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(on_itemSelectionChanged()));
-
+    connect(this, SIGNAL(releaseGuiBlock()), this, SLOT(onBlockRelease()), Qt::QueuedConnection);
 
     fillSData(records);
     initLeft();
@@ -173,7 +173,7 @@ void SDataWidget::on_clearButton_clicked()
 
 void SDataWidget::on_downloadButton_clicked()
 {
-    blockingBox = new QMessageBox(QMessageBox::Warning, "Download", "Download in progress...", QMessageBox::Ok, this, 0);
+    blockingBox = new QMessageBox(QMessageBox::Warning, "Download", "Download in progress...", QMessageBox::NoButton, this, 0);
     Dummy* dummy = new Dummy();
     dummy->registerConnection(this);
     QFileInfoList drives = QDir::drives();
@@ -201,8 +201,10 @@ void SDataWidget::on_downloadButton_clicked()
 #endif
 
     blockingBox->setModal(true);
+    blockingBox->setStandardButtons(QMessageBox::NoButton);
     //blockingBox->setText(dir);
     blockingBox->show();
+
 
     dummy->startDownloading();
 }
@@ -220,8 +222,7 @@ void SDataWidget::onDownloadFinished(const QVarLengthArray<SData>& data)
     //printRecords();
     ui->sdataLeft->update();
 
-    //blockingBox->hide();  //IN DIFFERENT THREAD
-
+    emit releaseGuiBlock();
 }
 
 void SDataWidget::printRecords()
@@ -229,4 +230,9 @@ void SDataWidget::printRecords()
     for(int i=0; i<records.size(); i++){
         qDebug() << records[i].moteID << ", " << records[i].num << ", " << records[i].length << "\n";
     }
+}
+
+void SDataWidget::onBlockRelease()
+{
+    blockingBox->hide();
 }
