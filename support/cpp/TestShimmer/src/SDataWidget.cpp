@@ -9,6 +9,9 @@
 #include <QTime>
 #include <QThread>
 #include <QDialog>
+#include <QDir>
+#include <QFileInfo>
+#include <QFileInfoList>
 
 #include <QDebug>
 #include "Dummy.hpp"
@@ -48,7 +51,7 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
 
     ui->setupUi(this);
     connect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(on_itemSelectionChanged()));
-    blockingBox = new QMessageBox(QMessageBox::Warning, "Download", "Download in progress...", QMessageBox::Ok, this, 0);
+
 
     fillSData(records);
     initLeft();
@@ -170,14 +173,28 @@ void SDataWidget::on_clearButton_clicked()
 
 void SDataWidget::on_downloadButton_clicked()
 {
+    blockingBox = new QMessageBox(QMessageBox::Warning, "Download", "Download in progress...", QMessageBox::Ok, this, 0);
     Dummy* dummy = new Dummy();
     dummy->registerConnection(this);
+    QFileInfoList drives = QDir::drives();
+    qDebug() << drives.at(0).absolutePath();
 
 #ifdef _WIN32
-    QString dir = QFileDialog::getExistingDirectory(this, tr("Select a Drive"),
+    /*QString dir = QFileDialog::getExistingDirectory(this, tr("Select a Drive"),
                                                     "c:/",
-                                                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-    dir.chop(1);
+                                                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);*/
+    //QString dir = QFileDialog::getOpenFileName(this, tr("Select a Drive!"),tr("c:/"),tr("Images (*.png *.xpm *.jpg)"), QDir::Drives);
+    //QString dir = QFileDialog::getOpenFileName(this, tr("Drives"),tr("c:/"), QDir::Drives, tr("Images (*.png *.xpm *.jpg)"));
+    QFileDialog driveDialog(this);
+    driveDialog.setFileMode(QFileDialog::DirectoryOnly);
+    driveDialog.setViewMode(QFileDialog::List);
+    driveDialog.setFilter(QDir::Drives);
+    driveDialog.setDirectory("My Computer");
+    driveDialog.exec();
+    QStringList dir = driveDialog.selectedFiles();
+    qDebug() << dir[0];
+    //QString dir = driveDialog->getOpenFileName(this, "Select");
+    //dir.chop(1);
 #else
     QString dir = QFileDialog::getOpenFileName(this, "Select the device");
 
@@ -203,7 +220,7 @@ void SDataWidget::onDownloadFinished(const QVarLengthArray<SData>& data)
     //printRecords();
     ui->sdataLeft->update();
 
-    //blockingBox->hide();  IN DIFFERENT THREAD
+    //blockingBox->hide();  //IN DIFFERENT THREAD
 
 }
 
