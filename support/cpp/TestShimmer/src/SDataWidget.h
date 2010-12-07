@@ -54,6 +54,10 @@ private:
 
     void init();
 
+    void processBinaryFile(const QString& caption, const QString& startFromHere);
+    void downloadFromDevice();
+    void blockGUI();
+
     const QString selectWin32Device();
     const QString selectBinaryFile(const QString& caption, const QString& startFromHere);
 

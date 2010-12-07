@@ -169,6 +169,33 @@ void SDataWidget::on_clearButton_clicked()
     records.clear();
 }
 
+void SDataWidget::processBinaryFile(const QString& caption, const QString& startFromHere) {
+
+    QString file = selectBinaryFile(caption, startFromHere);
+
+    blockGUI();
+
+    manager.startProcessingFile(file, this);
+}
+
+void SDataWidget::downloadFromDevice() {
+
+    QString device = selectWin32Device();
+
+    blockGUI();
+
+    manager.startDownloading(device, this);
+}
+
+void SDataWidget::blockGUI() {
+
+    blockingBox->setModal(true);
+
+    blockingBox->setStandardButtons(QMessageBox::NoButton);
+
+    blockingBox->show();
+}
+
 const QString SDataWidget::selectWin32Device() {
 
     QFileDialog driveDialog(this);
@@ -196,30 +223,17 @@ const QString SDataWidget::selectBinaryFile(const QString& caption,
 void SDataWidget::on_downloadButton_clicked()
 {
 
-    QString device =
 #ifdef _WIN32            
-    selectWin32Device();
+    downloadFromDevice();
 #else
-    selectBinaryFile("Select the device", QDir::rootPath());
-#endif
-
-    blockingBox->setModal(true);
-    blockingBox->setStandardButtons(QMessageBox::NoButton);
-    blockingBox->show();
-
-#ifdef _WIN32
-    manager.startDownloading(device, this);
-#else
-    manager.startProcessingFile(device, this);
+    processBinaryFile("Select the device", QDir::rootPath());
 #endif
 
 }
 
 void SDataWidget::on_fileButton_clicked()
 {
-    QString file = selectBinaryFile("Select the binary file", QDir::homePath());
-
-    manager.startProcessingFile(file, this);
+    processBinaryFile("Select the binary file", QDir::homePath());
 }
 
 void SDataWidget::onDownloadFinished(bool error, const QString& error_msg, const QVarLengthArray<SData>& data)
