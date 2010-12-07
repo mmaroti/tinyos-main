@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>480</width>
+    <width>487</width>
     <height>345</height>
    </rect>
   </property>
@@ -108,16 +108,16 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="fileButton">
+       <widget class="QPushButton" name="downloadButton">
         <property name="text">
-         <string>From binary file</string>
+         <string>Download</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="downloadButton">
+       <widget class="QPushButton" name="fileButton">
         <property name="text">
-         <string>Download</string>
+         <string>From binary file</string>
         </property>
        </widget>
       </item>
