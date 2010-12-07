@@ -40,11 +40,19 @@ class SDataWidget;
 
 namespace sdc {
 
+class SDCardCreator;
+
 class DownloadManager {
 
 public:
 
     void startDownloading(const QString& path, const SDataWidget* call_me_back) const;
+
+    void startProcessingFile(const QString& path, const SDataWidget* call_me_back) const;
+
+private:
+
+    void start(SDCardCreator* source, const SDataWidget* widget) const;
 
 };
 

@@ -169,34 +169,57 @@ void SDataWidget::on_clearButton_clicked()
     records.clear();
 }
 
-void SDataWidget::on_downloadButton_clicked()
-{
+const QString SDataWidget::selectWin32Device() {
 
-#ifdef _WIN32
     QFileDialog driveDialog(this);
+
     driveDialog.setFileMode(QFileDialog::DirectoryOnly);
     driveDialog.setViewMode(QFileDialog::List);
     driveDialog.setFilter(QDir::Drives);
     driveDialog.setDirectory("My Computer");
     driveDialog.exec();
-    QStringList dirList = driveDialog.selectedFiles(); // FIXME Why a list?
-    QString dir = dirList.at(0);
-    qDebug() << dir;
-#else
-    QString dir = QFileDialog::getOpenFileName(this, "Select the device", "/dev");
 
+    QStringList dirList = driveDialog.selectedFiles();
+    QString device = dirList.at(0);
+
+    qDebug() << device;
+
+    return device;
+}
+
+const QString SDataWidget::selectBinaryFile(const QString& caption,
+                                            const QString& startFromHere)
+{
+    return QFileDialog::getOpenFileName(this, caption, startFromHere);
+}
+
+void SDataWidget::on_downloadButton_clicked()
+{
+
+    QString device =
+#ifdef _WIN32            
+    selectWin32Device();
+#else
+    selectBinaryFile("Select the device", QDir::rootPath());
 #endif
 
     blockingBox->setModal(true);
     blockingBox->setStandardButtons(QMessageBox::NoButton);
     blockingBox->show();
 
-    manager.startDownloading(dir, this);
+#ifdef _WIN32
+    manager.startDownloading(device, this);
+#else
+    manager.startProcessingFile(device, this);
+#endif
+
 }
 
 void SDataWidget::on_fileButton_clicked()
 {
-    QString file = QFileDialog::getOpenFileName(this, "Select a binary file", "c:/");
+    QString file = selectBinaryFile("Select the binary file", QDir::homePath());
+
+    manager.startProcessingFile(file, this);
 }
 
 void SDataWidget::onDownloadFinished(bool error, const QString& error_msg, const QVarLengthArray<SData>& data)

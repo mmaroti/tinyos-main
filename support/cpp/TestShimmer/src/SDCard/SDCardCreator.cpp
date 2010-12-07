@@ -42,14 +42,14 @@ namespace sdc {
 
 SDCard* FileAsSDCard::create() const {
 
-	cout << "Calling SDCard::from_file(" << source << ")" << endl;
+	cout << "Calling SDCard::from_file(\"" << source << "\")" << endl;
 
 	return 0;
 }
 
 SDCard* RealSDCard::create() const {
 
-	cout << "Calling SDCard::from_win32_drive(" << source << ")" << endl;
+	cout << "Calling SDCard::from_win32_drive(\"" << source << "\")" << endl;
 
 	return 0;
 }

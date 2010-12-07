@@ -37,21 +37,30 @@
 #include <QVarLengthArray>
 #include "DownloadManager.hpp"
 #include "DownloadTask.hpp"
+#include "SDCardCreator.hpp"
 #include "SDataWidget.h"
 
 namespace sdc {
 
 void DownloadManager::startDownloading(const QString& path, const SDataWidget* widget) const {
 
-    DownloadTask* task = new DownloadTask(path);
+    start(new RealSDCard(path.toStdString()), widget);
+}
+
+void DownloadManager::startProcessingFile(const QString& path, const SDataWidget* widget) const {
+
+    start(new FileAsSDCard(path.toStdString()), widget);
+}
+
+void DownloadManager::start(SDCardCreator* source, const SDataWidget* widget) const {
+
+    DownloadTask* task = new DownloadTask(source);
 
     qDebug() << "Connecting download slots";
 
     QObject::connect(task, SIGNAL(downloadFinished(  bool , const QString& , const QVarLengthArray<SData>& )),
                      widget, SLOT(onDownloadFinished(bool , const QString& , const QVarLengthArray<SData>& )),
                      Qt::DirectConnection);
-
-    qDebug() << "Starting download from " << path;
 
     QThreadPool::globalInstance()->start(task);
 }

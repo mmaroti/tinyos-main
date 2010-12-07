@@ -32,7 +32,9 @@
 */
 
 #include <QDebug>
+#include <QString>
 #include "DownloadTask.hpp"
+#include "SDCardCreator.hpp"
 
 //-----------------------------------------------------------------------------
 // FIXME Remove these when the implementation is ready
@@ -59,13 +61,19 @@ public:
 
 namespace sdc {
 
-DownloadTask::DownloadTask(const QString& path) : source(path) {
+DownloadTask::DownloadTask(const SDCardCreator* src) : source(src) {
 
+}
+
+DownloadTask::~DownloadTask() {
+    // Do NOT remove this empty dtor: required to generate the dtor of auto_ptr
 }
 
 void DownloadTask::run() {
 
     qDebug() << "It will take at least 3 seconds";
+
+    source->create();
 
     Sleep::msleep(3000);
 

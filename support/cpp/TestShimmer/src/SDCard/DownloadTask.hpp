@@ -34,13 +34,17 @@
 #ifndef DOWNLOADTASK_HPP
 #define DOWNLOADTASK_HPP
 
+#include <memory>
 #include <QRunnable>
-#include <QString>
 #include <QVarLengthArray>
 // FIXME We actually need SData; forward decalaration of the widget would suffice
 #include "SDataWidget.h"
 
+class QString;
+
 namespace sdc {
+
+class SDCardCreator;
 
 class DownloadTask : public QObject, public QRunnable {
 
@@ -48,7 +52,9 @@ class DownloadTask : public QObject, public QRunnable {
 
 public:
 
-    DownloadTask(const QString& path);
+    DownloadTask(const SDCardCreator* source);
+
+    ~DownloadTask();
 
 signals:
 
@@ -58,7 +64,7 @@ private:
 
     virtual void run();
 
-    const QString source;
+    const std::auto_ptr<const SDCardCreator> source;
 
     QVarLengthArray<SData> data;
 };

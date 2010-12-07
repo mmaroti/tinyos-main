@@ -54,6 +54,9 @@ private:
 
     void init();
 
+    const QString selectWin32Device();
+    const QString selectBinaryFile(const QString& caption, const QString& startFromHere);
+
     void printRecords();
 
 signals:
