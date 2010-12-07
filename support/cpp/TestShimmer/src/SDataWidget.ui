@@ -108,6 +108,13 @@
        </spacer>
       </item>
       <item>
+       <widget class="QPushButton" name="fileButton">
+        <property name="text">
+         <string>From binary file</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="downloadButton">
         <property name="text">
          <string>Download</string>

@@ -194,6 +194,11 @@ void SDataWidget::on_downloadButton_clicked()
     manager.startDownloading(dir, this);
 }
 
+void SDataWidget::on_fileButton_clicked()
+{
+    QString file = QFileDialog::getOpenFileName(this, "Select a binary file", "c:/");
+}
+
 void SDataWidget::onDownloadFinished(bool error, const QString& error_msg, const QVarLengthArray<SData>& data)
 {
     downloadFailed = error;
