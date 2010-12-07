@@ -29,27 +29,27 @@
           </property>
           <column>
            <property name="text">
-            <string notr="true">moteID</string>
+            <string notr="true">mote ID</string>
            </property>
           </column>
           <column>
            <property name="text">
-            <string>#</string>
+            <string>record ID</string>
            </property>
           </column>
           <column>
            <property name="text">
-            <string>Length</string>
+            <string>length</string>
            </property>
           </column>
           <column>
            <property name="text">
-            <string>TOR</string>
+            <string>recorded on</string>
            </property>
           </column>
           <column>
            <property name="text">
-            <string>TOD</string>
+            <string> downloaded on</string>
            </property>
           </column>
          </widget>
@@ -58,27 +58,27 @@
          <widget class="QTreeWidget" name="sdataRight">
           <column>
            <property name="text">
-            <string notr="true">moteID</string>
+            <string notr="true">mote ID</string>
            </property>
           </column>
           <column>
            <property name="text">
-            <string>#</string>
+            <string>record ID</string>
            </property>
           </column>
           <column>
            <property name="text">
-            <string>Length</string>
+            <string>length</string>
            </property>
           </column>
           <column>
            <property name="text">
-            <string>TOR</string>
+            <string>recorded on</string>
            </property>
           </column>
           <column>
            <property name="text">
-            <string>TOD</string>
+            <string>downloaded on</string>
            </property>
           </column>
          </widget>
