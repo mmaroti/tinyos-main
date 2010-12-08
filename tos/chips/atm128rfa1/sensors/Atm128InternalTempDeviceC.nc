@@ -11,10 +11,10 @@ implementation {
   components InternalTempP;
   components new InternalTempControlP();
   components new AdcReadClientC() as Adc,
-  new RoundRobinArbiterC("InternalTemp.resource") as TempArbiter;
+  new RoundRobinArbiterC("InternalTemp.resourceArb") as TempArbiter;
   
   ResourceTemp = TempArbiter;
-  InternalTempControlP.TempResource -> TempArbiter.Resource[unique("InternalTemp.resource")];
+  InternalTempControlP.TempResource -> TempArbiter.Resource[unique("InternalTemp.resourceArb")];
 
   ReadTemp = InternalTempControlP;
   InternalTempControlP.ActualRead -> Adc;
