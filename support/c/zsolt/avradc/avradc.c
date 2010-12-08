@@ -15,9 +15,9 @@ void Konfig10bitADC()        // ADC konfiguralas (beallitas)
 {
 	ADMUX |= 0x9;
 	ADCSRB |= (1 << MUX5);
-	ADMUX |= (1<<REFS0) | (1<<REFS1);    // Vcc mint referencia
+	ADMUX |= (1<<REFS0) | (1<<REFS1);    // 1.6V mint referencia
 	ADCSRC = 0;
-	ADCSRA = (1<<ADEN) | (1<<ADPS1) | (1<<ADPS2); // ADC engedelyezese, ADC eloosztas = 8 (125 KHz)
+	ADCSRA = (1<<ADEN) | (1<<ADPS1) | (1<<ADPS2); // ADC engedelyezese, ADC eloosztas = 64
 }
  
 unsigned int Beolvas10bitADC()
