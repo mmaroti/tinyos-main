@@ -1,6 +1,6 @@
 module SerialAutoControlC{
   uses interface SplitControl;
-  uses interface UsbState;
+  uses interface GpioPCInterrupt as Vdd;
   provides interface Init as SoftwareInit;
   
   uses interface Leds;
@@ -9,7 +9,7 @@ implementation{
   //TODO this component should work based on usb power (vdd) or usb active/suspend
   
   inline bool isUsbOn(){
-    return call UsbState.isPowered();
+    return call Vdd.get();
   }
   
   task void turnOn(){
@@ -41,18 +41,11 @@ implementation{
       call SplitControl.stop();
   }
   
-  event void UsbState.powerOn(){
-    post turnOn();
+  async event void Vdd.fired(bool toHigh){
+      if(toHigh)
+	post turnOn();
+      else
+	post turnOff();
   }
-  
-  event void UsbState.powerOff(){
-    post turnOff();
-  }
-  
-  event void UsbState.activated(){
-    
-  }
-  
-  event void UsbState.suspended(){
-  }
+
 }

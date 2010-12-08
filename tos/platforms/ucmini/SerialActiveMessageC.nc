@@ -64,8 +64,8 @@ implementation {
   #ifndef SERIAL_AUTO
   SplitControl = SerialDispatcherC;
   #else
-  components SerialAutoControlC, Cp2102C;
-  SerialAutoControlC.UsbState->Cp2102C;
+  components SerialAutoControlC, HplCp2102C;
+  SerialAutoControlC.Vdd->HplCp2102C;
   SerialAutoControlC.SplitControl->SerialDispatcherC;
   MainC.SoftwareInit -> SerialAutoControlC;
   #endif
