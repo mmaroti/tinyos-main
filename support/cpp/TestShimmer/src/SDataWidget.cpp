@@ -198,7 +198,7 @@ void SDataWidget::blockGUI() {
 
 const QString SDataWidget::selectWin32Device() {
 
-    QFileDialog driveDialog(this);
+    QFileDialog driveDialog(this, "Select drive");
 
     driveDialog.setFileMode(QFileDialog::DirectoryOnly);
     driveDialog.setViewMode(QFileDialog::List);
