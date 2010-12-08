@@ -38,6 +38,7 @@
 
 #include <windows.h>
 #include <winioctl.h>
+#include "WinBlockDevice.h"
 
 const char* read_device_block(PHANDLE pHandle, int i, char* buffer, const unsigned int BLOCK_SIZE) {
 
@@ -72,12 +73,12 @@ void close_device(PHANDLE pHandle) {
 	CloseHandle(*pHandle);
 }
 
-double card_size_in_GB(const wchar_t* drive, PHANDLE pHandle)
+int64_t card_size_in_bytes(const wchar_t* drive, PHANDLE pHandle)
 {
 	DISK_GEOMETRY pdg;
 	BOOL bResult;
 	DWORD junk;
-	double ret_val = 0;
+        int64_t ret_val = 0;
 
 	*pHandle = CreateFile(drive,  // drive to open
 		GENERIC_READ,                // access to the drive
@@ -105,10 +106,8 @@ double card_size_in_GB(const wchar_t* drive, PHANDLE pHandle)
 		return 0;
 	}
 
-	ret_val = ((double) pdg.Cylinders.QuadPart) * (ULONG)pdg.TracksPerCylinder *
-		(ULONG)pdg.SectorsPerTrack * (ULONG)pdg.BytesPerSector;
-
-	ret_val /= (1024 * 1024 * 1024);
+        ret_val = ((int64_t) pdg.Cylinders.QuadPart) * (int64_t)pdg.TracksPerCylinder *
+                (int64_t)pdg.SectorsPerTrack * (int64_t)pdg.BytesPerSector;
 
 	return ret_val;
 }

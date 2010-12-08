@@ -32,11 +32,11 @@
 */
 
 #ifdef _WIN32
-
-#include <windows.h>
-
 #ifndef WINBLOCKDEVICE_H_
 #define WINBLOCKDEVICE_H_
+
+#include <stdint.h>
+#include <windows.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,7 +44,7 @@ extern "C" {
 
 const char* read_device_block(PHANDLE pHandle, int i, char* buffer, const unsigned int BLOCK_SIZE);
 
-double card_size_in_GB(const wchar_t* drive, PHANDLE pHandle);
+int64_t card_size_in_bytes(const wchar_t* drive, PHANDLE pHandle);
 
 void close_device(PHANDLE pHandle);
 

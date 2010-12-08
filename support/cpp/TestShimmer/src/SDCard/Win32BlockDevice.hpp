@@ -66,7 +66,9 @@ private:
 
 	HANDLE hDevice;
 
-	double card_size;
+        double card_size;
+
+        int BLOCK_OFFSET_MAX;
 
 #endif
 };
