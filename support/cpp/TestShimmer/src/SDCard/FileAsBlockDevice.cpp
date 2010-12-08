@@ -33,6 +33,8 @@
 
 #include <fstream>
 #include <stdexcept>
+#include <limits>
+#include <stdint.h>
 #include "BlockRelatedConsts.hpp"
 #include "FileAsBlockDevice.hpp"
 #include "Utility.hpp"
@@ -65,13 +67,27 @@ FileAsBlockDevice::FileAsBlockDevice(const char* source)
 
 	card_size /= GB;
 
-	if (card_size >= 2.0) {
+	setBlockOffsetMax();
+}
+
+void FileAsBlockDevice::setBlockOffsetMax() {
+
+	// FIXME Is it safe?
+	int64_t size_in_bytes = static_cast<int64_t> (in->tellg());
+
+	if (size_in_bytes >= numeric_limits<int>::max() || size_in_bytes < 0) {
+
 		throw runtime_error("Card size is larger than 2GB");
 	}
-	// FIXME Is it safe?
-	int size_in_bytes = static_cast<int> (in->tellg());
 
-	BLOCK_OFFSET_MAX = size_in_bytes/BLOCK_SIZE;
+	int size = static_cast<int> (size_in_bytes);
+
+	BLOCK_OFFSET_MAX = size/BLOCK_SIZE;
+}
+
+int FileAsBlockDevice::end() const {
+
+	return BLOCK_OFFSET_MAX;
 }
 
 const char* FileAsBlockDevice::read_block(int i) {

@@ -66,6 +66,12 @@ Win32BlockDevice::Win32BlockDevice(const char* source) : buffer(new char[BLOCK_S
 	}
 }
 
+int Win32BlockDevice::end() const {
+
+	throw logic_error("Implement Win32BlockDevice::end()");
+	return 0;
+}
+
 const char* Win32BlockDevice::read_block(int i) {
 
 	if (i<0 || i>=MAX_BLOCK_INDEX) {
@@ -103,10 +109,15 @@ Win32BlockDevice::~Win32BlockDevice() {
 
 Win32BlockDevice::Win32BlockDevice(const char* ) {
 
-	throw logic_error("Win32 block device is not compiled!");
+	throw logic_error("Win32 block device is not implemented!");
 }
 
 const char* Win32BlockDevice::read_block(int ) {
+
+	return 0;
+}
+
+int Win32BlockDevice::end() const {
 
 	return 0;
 }

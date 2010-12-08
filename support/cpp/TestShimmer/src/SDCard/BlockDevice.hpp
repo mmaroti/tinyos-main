@@ -44,6 +44,8 @@ public:
 
 	virtual const char* read_block(int i) = 0;
 
+	virtual int end() const = 0;
+
 	virtual double size_GB() const = 0;
 
 	virtual unsigned long error_code() const = 0;

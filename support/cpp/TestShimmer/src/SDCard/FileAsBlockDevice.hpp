@@ -50,11 +50,15 @@ private:
 
 	virtual const char* read_block(int i);
 
+	virtual int end() const;
+
 	virtual double size_GB() const;
 
 	virtual unsigned long error_code() const;
 
 	virtual ~FileAsBlockDevice();
+
+	void setBlockOffsetMax();
 
 	const std::auto_ptr<std::ifstream> in;
 

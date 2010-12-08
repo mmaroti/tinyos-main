@@ -64,6 +64,8 @@ private:
 
     virtual void run();
 
+    void processMeasurements();
+
     const std::auto_ptr<const SDCardCreator> source;
 
     QVarLengthArray<SData> data;

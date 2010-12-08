@@ -78,7 +78,9 @@ void SDCardImpl::process_new_measurements() {
 
 	console.start(device->size_GB(), tracker->mote_id(), block_offset, reboot_seq_num);
 
-	for (bool finished = false; !finished; ++block_offset) {
+	const int end = device->end();
+
+	for (bool finished=false; !finished && (block_offset<end); ++block_offset) {
 
 		const char* const block = device->read_block(block_offset);
 

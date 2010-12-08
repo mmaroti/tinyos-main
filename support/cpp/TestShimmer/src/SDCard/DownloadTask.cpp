@@ -31,10 +31,13 @@
 * Author: Ali Baharev
 */
 
+#include <exception>
+#include <typeinfo>
 #include <QDebug>
 #include <QString>
 #include "DownloadTask.hpp"
 #include "SDCardCreator.hpp"
+#include "SDCard.hpp"
 
 //-----------------------------------------------------------------------------
 // FIXME Remove these when the implementation is ready
@@ -69,17 +72,41 @@ DownloadTask::~DownloadTask() {
     // Do NOT remove this empty dtor: required to generate the dtor of auto_ptr
 }
 
+void DownloadTask::processMeasurements() {
+
+    //----------------------------------
+    // TODO Remove when ready
+    Sleep::msleep(3000);
+
+    fillSData(data);
+    //----------------------------------
+
+    std::auto_ptr<SDCard> sdcard(source->create());
+
+    sdcard->process_new_measurements();
+}
+
 void DownloadTask::run() {
 
     qDebug() << "It will take at least 3 seconds";
 
-    source->create();
+    bool failed = false;
 
-    Sleep::msleep(3000);
+    QString msg;
 
-    fillSData(data);
+    try {
 
-    emit downloadFinished(false, "Error: fatal internal error!", data);
+        processMeasurements();
+    }
+    catch (std::exception& e) {
+
+        QTextStream ts(&msg, QIODevice::WriteOnly);
+        ts << "Error: " << e.what() << " (" << typeid(e).name() << ")";
+
+        failed = true;
+    }
+
+    emit downloadFinished(failed, msg, data);
 
     qDebug() << "Resources deleted";
 }

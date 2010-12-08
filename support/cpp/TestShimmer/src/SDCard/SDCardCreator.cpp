@@ -44,14 +44,14 @@ SDCard* FileAsSDCard::create() const {
 
 	cout << "Calling SDCard::from_file(\"" << source << "\")" << endl;
 
-	return 0;
+	return SDCard::from_file(source.c_str());
 }
 
 SDCard* RealSDCard::create() const {
 
 	cout << "Calling SDCard::from_win32_drive(\"" << source << "\")" << endl;
 
-	return 0;
+	return SDCard::from_win32_drive(source.c_str());
 }
 
 }
