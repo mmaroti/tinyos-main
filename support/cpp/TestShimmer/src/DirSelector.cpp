@@ -66,7 +66,7 @@ void DirSelector::select(int tab) const {
 
     QString dir("../tmp");
 
-    if (label=="SData") {
+    if (label=="SD Card") {
 
         dir = "../rec";
     }
