@@ -1,5 +1,5 @@
 
-#define F_CPU 16000000UL // rendszer orajel: 7.3728 MHz
+#define F_CPU 16000000UL // rendszer orajel: 16 MHz
 #define USART_BAUDRATE 9600  // soros kommunikacio sebessege: 9600 bps
 #define UBRR_ERTEK ((F_CPU / (USART_BAUDRATE * 16UL)) - 1) // UBRR
        
@@ -13,76 +13,66 @@ volatile int X = 0;
  
 void Konfig10bitADC()        // ADC konfiguralas (beallitas)
 {
-			ADMUX |= 0x9;
-			ADCSRB |= (1 << MUX5);
-           ADMUX |= (1<<REFS0) | (1<<REFS1);    // Vcc mint referencia
-		   ADCSRC = 0;
-           ADCSRA = (1<<ADEN) | (1<<ADPS1) | (1<<ADPS2); // ADC engedelyezese, ADC eloosztas = 8 (125 KHz)
+	ADMUX |= 0x9;
+	ADCSRB |= (1 << MUX5);
+	ADMUX |= (1<<REFS0) | (1<<REFS1);    // Vcc mint referencia
+	ADCSRC = 0;
+	ADCSRA = (1<<ADEN) | (1<<ADPS1) | (1<<ADPS2); // ADC engedelyezese, ADC eloosztas = 8 (125 KHz)
 }
  
 unsigned int Beolvas10bitADC()
 {
-           //ADMUX = (ADMUX & 0b11110000) | csatorna;
-           ADCSRA |= (1<<ADSC);    // elso ADC konverzio elinditasa
-           while (ADCSRA & (1<<ADSC));        // varas az atalakitasra
-           //ADCSRA |= (1<<ADSC);          // masodik ADC konverzió elindítás
-           //while (ADCSRA & (1<<ADSC));        // varas az atalakitasra
-           return (ADCL | (ADCH<<8));        // ADC ertek kiolvasasa
+	ADCSRA |= (1<<ADSC);    // elso ADC konverzio elinditasa
+	while (ADCSRA & (1<<ADSC));        // varas az atalakitasra
+	return (ADCL | (ADCH<<8));        // ADC ertek kiolvasasa
 }
  
 void KonfigUART() // UART beallitasa
 {
-          // 9600 bps soros kommunikacio sebesseg beallitasa
-          UBRR1L = UBRR_ERTEK;    // UBRR_ERTEK also 8 bitjenek betoltese az UBRRL regiszterbe
-          UBRR1H = (UBRR_ERTEK>>8);   // UBRR_ERTEK felso 8 bitjenek betoltese az UBRRH regiszterbe
-          // Aszinkron mod, 8 Adat Bit, Nincs Paritas Bit, 1 Stop Bit
-          UCSR1C |=  (1 << UCSZ10) | (1 << UCSZ11);
-          //Ado es Vevo aramkorok bekapcsolasa + az RX interrupt engedelyezese
-          UCSR1B |= (1 << RXEN1) | (1 << TXEN1);   //
+	// 9600 bps soros kommunikacio sebesseg beallitasa
+	UBRR1L = UBRR_ERTEK;    // UBRR_ERTEK also 8 bitjenek betoltese az UBRRL regiszterbe
+	UBRR1H = (UBRR_ERTEK>>8);   // UBRR_ERTEK felso 8 bitjenek betoltese az UBRRH regiszterbe
+	// Aszinkron mod, 8 Adat Bit, Nincs Paritas Bit, 1 Stop Bit
+	UCSR1C |=  (1 << UCSZ10) | (1 << UCSZ11);
+	//Ado es Vevo aramkorok bekapcsolasa + az RX interrupt engedelyezese
+	UCSR1B |= (1 << RXEN1) | (1 << TXEN1);   //
 }
  
 char UARTAdatFogad() // Ez a fuggveny a beerkezo adatokat kiolvassa az UDR regiszter bejovo pufferebol
 {
-          while(!(UCSR1A & (1<<RXC1)))  // Varakozas amig nincs uj bejovo adat
-          {
-             //Varakozas
-          }
-          //Most mar van beerkezett adat, amit kiolvasunk a pufferbol
-          return UDR1;
+	while(!(UCSR1A & (1<<RXC1)))  // Varakozas amig nincs uj bejovo adat
+	{
+	//Varakozas
+	}
+	//Most mar van beerkezett adat, amit kiolvasunk a pufferbol
+	return UDR1;
 }
  
  
 void UARTAdatKuld(char data) // Ez a fuggveny a kuldendo adatot beirja az UDR regiszter kimeno pufferjebe
- 
 {
-          while(!(UCSR1A & (1<<UDRE1)))  // Varakozas amig az Ado kesz nem lesz az adatkuldesre
-          {
-             //Varakozas
-          }
-          // Az Ado mar kesz az adatkuldesre, a kuldendo adatot a kimeno pufferjebe irjuk
-          UDR1=data;
+	while(!(UCSR1A & (1<<UDRE1)))  // Varakozas amig az Ado kesz nem lesz az adatkuldesre
+	{
+	//Varakozas
+	}
+	// Az Ado mar kesz az adatkuldesre, a kuldendo adatot a kimeno pufferjebe irjuk
+	UDR1=data;
 }
  
 int main(void)  // Foprogram
 {
-           char data;   
+	char data;   
+	KonfigUART();   // UART Konfiguralasa
+	Konfig10bitADC();    // ADC beallitas lefuttatasa
  
-           KonfigUART();   // UART Konfiguralasa
- 
-           Konfig10bitADC();    // ADC beallitas lefuttatasa
- 
-          while(1)
-          {
-		  X = Beolvas10bitADC();
-
-//		  UARTAdatKuld(X >> 8);
-//		  UARTAdatKuld(X);
+	while(1) {
+		X = Beolvas10bitADC();
 
 		UARTAdatKuld('0'+(X/100) % 10);  // Szazasok
-         UARTAdatKuld('0'+(X/10) % 10);   // Tizesek
-          UARTAdatKuld('0'+X % 10);
-		  UARTAdatKuld('\n');
+		UARTAdatKuld('0'+(X/10) % 10);   // Tizesek
+		UARTAdatKuld('0'+X % 10);
+		UARTAdatKuld('\n');
 		  
-          _delay_ms(1000);
-           }
+		_delay_ms(1000);
+	}
 }
