@@ -5,7 +5,7 @@
        
 #include <avr/io.h>
 #include <inttypes.h>
-#include <util/delay.h> //Idõzítõ, késleltetõ rutinokat tartalmazó fájl
+#include <util/delay.h>
  
 volatile int Z = 0;
 volatile int Y = 0;
