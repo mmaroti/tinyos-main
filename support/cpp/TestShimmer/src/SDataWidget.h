@@ -54,9 +54,9 @@ private:
 
     void init();
 
-    void processBinaryFile(const QString& caption, const QString& startFromHere);
+    void processBinaryFile(const QString& dialogCaption, const QString& startFromHere, const QString& blockTitle);
     void downloadFromDevice();
-    void blockGUI();
+    void showBlockingBox(const QString& title, const QString& text);
 
     const QString selectWin32Device();
     const QString selectBinaryFile(const QString& caption, const QString& startFromHere);
