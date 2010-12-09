@@ -33,10 +33,10 @@
 
 #include <ostream>
 #include <sstream>
-#include <cmath>
 #include <stdexcept>
 #include "TimeSyncInfo.hpp"
 #include "TimeSyncConsts.hpp"
+#include "Utility.hpp"
 
 using namespace std;
 
@@ -83,7 +83,7 @@ int TimeSyncInfo::lost_messages_since(const TimeSyncInfo& other) const {
 		throw runtime_error("cannot handle this type of error (remote_time)");
 	}
 
-	return floor(diff/TIMESYNC_MSG_RATE + 0.5) - 1;
+	return round(diff/TIMESYNC_MSG_RATE) - 1;
 }
 
 const Pair TimeSyncInfo::time_pair() const {

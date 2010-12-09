@@ -53,7 +53,8 @@ Header::Header(BlockIterator& itr) {
 
 void Header::set_timesync_zero() {
 
-	remote_id = remote_start = local_time = remote_time = 0;
+	remote_start = local_time = remote_time = 0;
+	remote_id = 0;
 }
 
 bool Header::timesync_differs_from(const Header& h) const {

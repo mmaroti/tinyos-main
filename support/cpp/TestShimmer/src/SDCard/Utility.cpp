@@ -118,11 +118,16 @@ const string recorded_length(int first_block, int last_block) {
 	return ticks2time(length);
 }
 
+int round(double x) {
+
+	return static_cast<int> (floor(x+0.5));
+}
+
 int recorded_length_in_ms(int first_block, int last_block) {
 
 	double length = length_in_ticks(first_block, last_block);
 
-	return floor(length/(TICKS_PER_SEC/1024.0) + 0.5);
+	return round(length/(TICKS_PER_SEC/1024.0));
 }
 
 const string failed_to_read_block(int i) {

@@ -78,7 +78,7 @@ int64_t card_size_in_bytes(const wchar_t* drive, PHANDLE pHandle)
 	DISK_GEOMETRY pdg;
 	BOOL bResult;
 	DWORD junk;
-        int64_t ret_val = 0;
+	int64_t ret_val = 0;
 
 	*pHandle = CreateFile(drive,  // drive to open
 		GENERIC_READ,                // access to the drive
@@ -106,8 +106,8 @@ int64_t card_size_in_bytes(const wchar_t* drive, PHANDLE pHandle)
 		return 0;
 	}
 
-        ret_val = ((int64_t) pdg.Cylinders.QuadPart) * (int64_t)pdg.TracksPerCylinder *
-                (int64_t)pdg.SectorsPerTrack * (int64_t)pdg.BytesPerSector;
+	ret_val = ((int64_t) pdg.Cylinders.QuadPart) * (int64_t)pdg.TracksPerCylinder *
+		(int64_t)pdg.SectorsPerTrack * (int64_t)pdg.BytesPerSector;
 
 	return ret_val;
 }

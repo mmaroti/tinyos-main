@@ -54,6 +54,10 @@ protected:
 
 	const std::string source;
 
+private:
+
+	SDCardCreator& operator=(const SDCardCreator& );
+
 };
 
 class FileAsSDCard : public SDCardCreator {

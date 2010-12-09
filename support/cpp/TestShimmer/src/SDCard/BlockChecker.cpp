@@ -41,7 +41,7 @@
 
 using std::cout;
 using std::endl;
-using std::runtime_error;
+using std::logic_error;
 using std::abs;
 
 namespace sdc {
@@ -55,7 +55,7 @@ void fix_counter_overflow(int& i) {
 BlockChecker::BlockChecker(int mote_id) : mote_ID(mote_id) {
 
 	reset(-1);
-	time_start = -1;
+	time_start = 0;
 	block_offset = -1;
 }
 
@@ -236,9 +236,9 @@ void BlockChecker::check_timestamp() const {
 
 void BlockChecker::assert_positive_time_start() const {
 
-	if (time_start <= 0) {
+	if (time_start == 0) {
 
-		throw runtime_error("most likely a bug");
+		throw logic_error("time start not set");
 	}
 }
 

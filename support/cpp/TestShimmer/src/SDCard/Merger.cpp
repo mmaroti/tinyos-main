@@ -33,12 +33,12 @@
 
 #include <iostream>
 #include <algorithm>
-#include <cmath>
 #include <cstdlib>
 #include <stdexcept>
 #include "Merger.hpp"
 #include "TimeSyncInfo.hpp"
 #include "TimeSyncConsts.hpp"
+#include "Utility.hpp"
 
 using namespace std;
 
@@ -357,7 +357,7 @@ void Merger::log_size_before_merge() const {
 
 	double length = min(length1, length2);
 
-	int estimated_msg = floor(length/TIMESYNC_MSG_RATE+0.5);
+	int estimated_msg = round(length/TIMESYNC_MSG_RATE);
 
 	cout << "Estimated: " << estimated_msg << " / mote" << endl;
 

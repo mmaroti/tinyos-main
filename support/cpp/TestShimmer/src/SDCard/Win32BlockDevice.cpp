@@ -53,37 +53,39 @@ Win32BlockDevice::Win32BlockDevice(const char* source) : buffer(new char[BLOCK_S
 	path += drive_letter;
 	path += ':';
 
-        int64_t size = card_size_in_bytes(path.c_str(), &hDevice);
+	int64_t size = card_size_in_bytes(path.c_str(), &hDevice);
 
-        if (size==0) {
+	if (size==0) {
 		string msg("Failed to open block device: ");
 		msg += source;
 		throw runtime_error(msg);
 	}
 
-        if (size >= numeric_limits<int>::max() || size < 0) {
+	int intmax = (numeric_limits<int>::max)(); // Otherwise error C2589
+
+	if (size >= intmax || size < 0) {
 		close_device(&hDevice);
 		throw runtime_error("Card size is larger than 2GB");
 	}
 
-        int size_in_bytes = static_cast<int> (size);
+	int size_in_bytes = static_cast<int> (size);
 
-        BLOCK_OFFSET_MAX = size_in_bytes/BLOCK_SIZE;
+	BLOCK_OFFSET_MAX = size_in_bytes/BLOCK_SIZE;
 
-        const unsigned int one = 1;
-        const unsigned int GB = one << 30;
+	const unsigned int one = 1;
+	const unsigned int GB = one << 30;
 
-        card_size = static_cast<double>(size_in_bytes)/GB;
+	card_size = static_cast<double>(size_in_bytes)/GB;
 }
 
 int Win32BlockDevice::end() const {
 
-        return BLOCK_OFFSET_MAX;
+	return BLOCK_OFFSET_MAX;
 }
 
 const char* Win32BlockDevice::read_block(int i) {
 
-        if (i<0 || i>=BLOCK_OFFSET_MAX) {
+	if (i<0 || i>=BLOCK_OFFSET_MAX) {
 		throw out_of_range("block index");
 	}
 
