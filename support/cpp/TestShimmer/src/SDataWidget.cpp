@@ -44,6 +44,7 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
 
     ui->setupUi(this);
     connect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
+    connect(ui->sdataLeft, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(on_itemDoubleClicked(QTreeWidgetItem*,int)));
     blockingBox = new QMessageBox(QMessageBox::Information,
                                   "Downloading",
                                   "Please wait, downloading...",
@@ -281,4 +282,14 @@ void SDataWidget::printRecords()
     for(int i=0; i<records.size(); i++){
         qDebug() << records[i].moteID << ", " << records[i].num << ", " << records[i].length << "\n";
     }
+}
+
+void SDataWidget::on_itemDoubleClicked(QTreeWidgetItem* item,int t)
+{
+    if(t == 5){
+        item->setFlags( item->flags() | Qt::ItemIsEditable);
+        ui->sdataLeft->editItem(item, t);
+        item->setFlags( Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+    }
+
 }

@@ -49,7 +49,12 @@
           </column>
           <column>
            <property name="text">
-            <string> downloaded on</string>
+            <string>downloaded on</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>comment</string>
            </property>
           </column>
          </widget>

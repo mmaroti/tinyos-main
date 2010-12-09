@@ -72,6 +72,7 @@ private slots:
     void onItemSelectionChanged();
     void on_toPlotButton_clicked();
     void on_downloadButton_clicked();
+    void on_itemDoubleClicked(QTreeWidgetItem*,int);
     void on_fileButton_clicked();
     void onDownloadFinished(bool error, const QString& error_msg, const QVarLengthArray<SData>& data);
     void onUpdateGUI();
