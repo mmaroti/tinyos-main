@@ -37,6 +37,7 @@
 #include "BlockIterator.hpp"
 #include "BlockRelatedConsts.hpp"
 #include "BlockChecker.hpp"
+#include "Console.hpp"
 #include "Writer.hpp"
 #include "Tracker.hpp"
 
@@ -45,7 +46,7 @@ using namespace std;
 namespace sdc {
 
 SDCardImpl::SDCardImpl(BlockDevice* source)
-	: device(source), out(new Writer), tracker(0), check(0), console(Console())
+	: device(source), out(new Writer), tracker(0), check(0)
 {
 	block_offset = 0;
 
@@ -76,7 +77,7 @@ void SDCardImpl::process_new_measurements() {
 
 	reboot_seq_num = tracker->reboot();
 
-	console.start(device->size_GB(), tracker->mote_id(), block_offset, reboot_seq_num);
+	Console::start(device->size_GB(), tracker->mote_id(), block_offset, reboot_seq_num);
 
 	const int end = device->end();
 
@@ -87,7 +88,7 @@ void SDCardImpl::process_new_measurements() {
 		finished = process_block(block);
 	}
 
-	console.finished(device->size_GB(), block_offset);
+	Console::finished(device->size_GB(), block_offset);
 }
 
 void SDCardImpl::close_out_if_open() {
@@ -98,7 +99,7 @@ void SDCardImpl::close_out_if_open() {
 
 		tracker->append_to_db(block_offset-1, length_in_ticks);
 
-		console.record_end(block_offset-1, length_in_ticks);
+		Console::record_end(block_offset-1, length_in_ticks);
 
 		out->close();
 	}
@@ -111,7 +112,7 @@ void SDCardImpl::check_for_reboot() {
 
 	if (!reboot && !open) {
 
-		console.error_impossible_state();
+		Console::error_impossible_state();
 	}
 
 	if (reboot || !open) {
@@ -120,7 +121,7 @@ void SDCardImpl::check_for_reboot() {
 
 		++reboot_seq_num;
 
-		console.record_start(reboot_seq_num, block_offset);
+		Console::record_start(reboot_seq_num, block_offset);
 
 		out->start_new_record(tracker->mote_id(), reboot_seq_num, block_offset);
 

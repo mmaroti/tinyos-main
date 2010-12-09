@@ -35,7 +35,6 @@
 #define SDCARDIMPL_HPP_
 
 #include <memory>
-#include "Console.hpp"
 #include "TypeDefs.hpp"
 
 namespace sdc {
@@ -74,7 +73,6 @@ private:
 	const std::auto_ptr<Writer> out;
 	std::auto_ptr<Tracker> tracker;
 	std::auto_ptr<BlockChecker> check;
-	const Console console;
 	int block_offset;
 	int reboot_seq_num;
 };

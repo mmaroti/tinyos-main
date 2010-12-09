@@ -31,37 +31,38 @@
 *      Author: Ali Baharev
 */
 
-#ifndef CONSOLE_HPP_
-#define CONSOLE_HPP_
+#ifndef MOTEREGISTRAR_HPP_
+#define MOTEREGISTRAR_HPP_
 
-#include "TypeDefs.hpp"
+#include <iosfwd>
+#include <memory>
+#include <vector>
 
 namespace sdc {
 
-class Console {
+class MoteRegistrar {
 
 public:
 
-	static void start(double card_size, int mote_id, int first_block, int reboot);
+	explicit MoteRegistrar(int mote_id);
 
-	static void finished(double card_size, int last_block);
+	~MoteRegistrar();
 
-	static void record_start(int reboot_id, int first_offset);
+private:
 
-	static void record_end(int last_block, uint32 length_in_ticks);
+	bool read_all_existing_ids();
 
-	static void error_impossible_state();
+	bool read_file_content();
 
-	static void creating_moteid_database();
+	void register_id();
 
-	static void reading_moteid_database();
+	const int mote_ID;
 
-	static void moteid_already_in_db(int mote_id);
+	const std::auto_ptr<std::fstream> db;
 
-	static void registering_moteid_in_db(int mote_id);
-
+	std::vector<int> ids;
 };
 
 }
 
-#endif /* CONSOLE_HPP_ */
+#endif /* MOTEREGISTRAR_HPP_ */

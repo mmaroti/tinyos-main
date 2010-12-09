@@ -42,7 +42,7 @@ using namespace std;
 
 namespace sdc {
 
-void Console::start(double card_size, int mote_id, int first_block, int reboot) const {
+void Console::start(double card_size, int mote_id, int first_block, int reboot) {
 
 	cout << "Card size is ";
 	cout << setprecision(2) << fixed << card_size << " GB" << endl;
@@ -52,7 +52,7 @@ void Console::start(double card_size, int mote_id, int first_block, int reboot) 
 	cout << "---------------------------------------------------------" << endl;
 }
 
-void Console::finished(double card_size, int last_block) const {
+void Console::finished(double card_size, int last_block) {
 
 	const unsigned int GB = 1 << 30;
 
@@ -73,12 +73,12 @@ void Console::finished(double card_size, int last_block) const {
 	cout << "Finished!" << endl;
 }
 
-void Console::record_start(int reboot_id, int first_block) const {
+void Console::record_start(int reboot_id, int first_block) {
 
 	cout << "Reboot " << reboot_id << " at block " << first_block << endl;
 }
 
-void Console::record_end(int last_block, uint32 length) const {
+void Console::record_end(int last_block, uint32 length) {
 
 	cout << "Record length " << ticks2time(length) << ", last block ";
 	cout << last_block << endl;
@@ -86,10 +86,30 @@ void Console::record_end(int last_block, uint32 length) const {
 }
 
 
-void Console::error_impossible_state() const {
+void Console::error_impossible_state() {
 
 	cout << "Error: impossible state detected, either the database is ";
 	cout << "corrupted or it is bug, trying to recover..." << endl;
+}
+
+void Console::creating_moteid_database() {
+
+	cout << "Creating mote ID database" << endl;
+}
+
+void Console::reading_moteid_database() {
+
+	cout << "Reading mote ID database" << endl;
+}
+
+void Console::moteid_already_in_db(int mote_id) {
+
+	cout << "Mote ID " << mote_id << " is already in the database"<< endl;
+}
+
+void Console::registering_moteid_in_db(int mote_id) {
+
+	cout << "Registering mote ID " << mote_id << " in the database"<< endl;
 }
 
 }
