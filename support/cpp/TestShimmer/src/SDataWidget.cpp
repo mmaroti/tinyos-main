@@ -44,7 +44,7 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
 
     ui->setupUi(this);
     connect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
-    connect(ui->sdataLeft, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(on_itemDoubleClicked(QTreeWidgetItem*,int)));
+    connect(ui->sdataLeft, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(onItemDoubleClicked(QTreeWidgetItem*,int)));
     blockingBox = new QMessageBox(QMessageBox::Information,
                                   "Downloading",
                                   "Please wait, downloading...",
@@ -100,13 +100,13 @@ void SDataWidget::initRight(QVarLengthArray<int> list)
 void SDataWidget::onItemSelectionChanged()
 {
     ui->sdataRight->clear();
-    QMessageBox msgBox;
-    QString msg;
+
     if(ui->sdataLeft->currentItem()->parent()){
-        msg.append(ui->sdataLeft->currentItem()->parent()->text(0));
-        msg.append("\n"+ui->sdataLeft->currentItem()->text(1));
-        msgBox.setText(msg);
-        msgBox.exec();
+
+        const QString mote_id(ui->sdataLeft->currentItem()->parent()->text(0));
+        const QString rec_id(ui->sdataLeft->currentItem()->text(1));
+
+        qDebug() << "mote id: " << mote_id << ", record id: " << rec_id;
 
         initRight(getLinkingRecords(ui->sdataLeft->currentItem()->parent()->text(0).toInt(), ui->sdataLeft->currentItem()->text(1).toInt()));
     }
@@ -146,16 +146,19 @@ void SDataWidget::createChildItem(int i, QTreeWidgetItem* parent)
 
 void SDataWidget::on_toPlotButton_clicked()
 {
-    QMessageBox msgBox;
-    QString msg;
+
     if(ui->sdataRight->selectedItems().size() > 0){
         if(ui->sdataRight->currentItem()->parent()){
-            msg.append(ui->sdataRight->currentItem()->parent()->text(0));
-            msg.append("\n");
+
+            QString msg;
+
+            msg.append(ui->sdataLeft->currentItem()->parent()->text(0)+": ");
+            msg.append(ui->sdataLeft->currentItem()->text(1));
+
+            msg.append('\n'+ui->sdataRight->currentItem()->parent()->text(0)+": ");
             msg.append(ui->sdataRight->currentItem()->text(1));
 
-            msg.append("\n"+ui->sdataLeft->currentItem()->parent()->text(0)+"\n");
-            msg.append(ui->sdataLeft->currentItem()->text(1));
+            QMessageBox msgBox;
 
             msgBox.setText(msg);
             msgBox.exec();
@@ -174,6 +177,11 @@ void SDataWidget::processBinaryFile(const QString& dialogCaption, const QString&
 
     QString file = selectBinaryFile(dialogCaption, startFromHere);
 
+    if (file.size()==0) {
+
+        return;
+    }
+
     QString text = blockTitle + ", please wait...";
 
     showBlockingBox(blockTitle, text);
@@ -184,6 +192,11 @@ void SDataWidget::processBinaryFile(const QString& dialogCaption, const QString&
 void SDataWidget::downloadFromDevice() {
 
     QString device = selectWin32Device();
+
+    if (device.size()==0) {
+
+        return;
+    }
 
     showBlockingBox("Downloading", "Downloading, please wait...");
 
@@ -284,7 +297,7 @@ void SDataWidget::printRecords()
     }
 }
 
-void SDataWidget::on_itemDoubleClicked(QTreeWidgetItem* item,int t)
+void SDataWidget::onItemDoubleClicked(QTreeWidgetItem* item,int t)
 {
     if(t == 5){
         item->setFlags( item->flags() | Qt::ItemIsEditable);
