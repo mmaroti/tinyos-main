@@ -169,9 +169,11 @@ void SDataWidget::on_toPlotButton_clicked()
 
 void SDataWidget::on_clearButton_clicked()
 {
+    disconnect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
     ui->sdataLeft->clear();
     ui->sdataRight->clear();
     records.clear();
+    connect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
 }
 
 void SDataWidget::processBinaryFile(const QString& dialogCaption, const QString& startFromHere, const QString& blockTitle) {
