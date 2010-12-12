@@ -54,6 +54,7 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
 
     fillSData(records);
     initLeft();
+
 }
 
 SDataWidget::~SDataWidget()
