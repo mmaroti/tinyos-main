@@ -21,8 +21,8 @@ SData::SData()
 
 void fillSData(QVarLengthArray<SData>& records)
 {
-    for(int i=1; i<=rand() % 10 + 1; i++){
-        int numOfRecs = rand() % 3 + 1;
+    for(int i=1; i<=rand() % 10 + 3; i++){
+        int numOfRecs = rand() % 6 + 10;
         for(int j=1; j<=numOfRecs; j++){
             SData record;
 
@@ -31,7 +31,7 @@ void fillSData(QVarLengthArray<SData>& records)
 
             record.moteID = i;
             record.num = j;
-            record.length = rand()*1000;
+            record.length = rand() % 1000 + 1;
             record.tod = "2010-11-01 11:34";
             record.tor = "2010-"+QString::number(month)+"-"+QString::number(day)+" 12:00";
 
@@ -325,26 +325,48 @@ void SDataWidget::filterRecords()
         }
     }
 
-    if(ui->showLastTencBox->isChecked()){
-        bool swapped;
-        do{
-            swapped = false;
-            for(int i=1; i<filteredRecords.size(); i++){
-                QDateTime temp1 = QDateTime::fromString(filteredRecords[i-1].tor,"yyyy-MM-dd hh:mm");
-                QDateTime temp2 = QDateTime::fromString(filteredRecords[i].tor,"yyyy-MM-dd hh:mm");
-                if(temp2 > temp1){
-                    SData temp = filteredRecords[i];
-                    filteredRecords[i] = filteredRecords[i-1];
-                    filteredRecords[i-1] = temp;
-                    swapped = true;
-                }
+    bool swapped;
+    do{
+        swapped = false;
+        for(int i=1; i<filteredRecords.size(); i++){
+            QDateTime temp1 = QDateTime::fromString(filteredRecords[i-1].tor,"yyyy-MM-dd hh:mm");
+            QDateTime temp2 = QDateTime::fromString(filteredRecords[i].tor,"yyyy-MM-dd hh:mm");
+            if(temp2 > temp1){
+                SData temp = filteredRecords[i];
+                filteredRecords[i] = filteredRecords[i-1];
+                filteredRecords[i-1] = temp;
+                swapped = true;
             }
-        }while(swapped);
-
-        int size = filteredRecords.size();
-        if(size>10) size=10;
-        for(int i=0; i<size; i++){
-            qDebug() << filteredRecords[i].tor;
         }
+    }while(swapped);
+
+    int size = 10;
+    if(filteredRecords.size()<10) size = filteredRecords.size();
+    QVarLengthArray<SData> temp2;
+    for(int i=0; i<size; i++){
+        temp2.append(filteredRecords[i]);
+    }
+    filteredRecords.clear();
+    filteredRecords = temp2;
+}
+
+void SDataWidget::on_showLastTencBox_clicked()
+{
+    QVarLengthArray<SData> temp;
+    if(ui->showLastTencBox->isChecked()){        
+        filterRecords();
+        ui->sdataLeft->clear();
+        temp = records;
+        records.clear();
+        records = filteredRecords;
+        filteredRecords.clear();
+        filteredRecords = temp;
+        initLeft();
+    } else {
+        records.clear();
+        records = filteredRecords;
+        filteredRecords.clear();
+        ui->sdataLeft->clear();
+        initLeft();
     }
 }

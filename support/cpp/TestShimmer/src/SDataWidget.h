@@ -79,6 +79,7 @@ private slots:
     void onDownloadFinished(bool error, const QString& error_msg, const QVarLengthArray<SData>& data);
     void onUpdateGUI();
     void on_clearButton_clicked();
+    void on_showLastTencBox_clicked();
 };
 
 #endif // SDATAWIDGET_H
