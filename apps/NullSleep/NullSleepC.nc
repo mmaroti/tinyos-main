@@ -37,7 +37,8 @@ module NullSleepC @safe()
 {
   uses interface Boot;
 	uses interface Leds;
-	uses interface SpiByte;
+  uses interface Stm25pSpi;
+	//uses interface SpiByte;
 	uses interface Resource as SpiRes;
 	uses interface GeneralIO as VoltMeter;
 	uses interface AtmegaCompare<uint32_t>;
@@ -49,8 +50,9 @@ volatile uint16_t timer = 0;
 
   event void Boot.booted() {
 		call VoltMeter.set();
-		call SpiRes.request();
+		//call SpiRes.request();
 		call Leds.led0On(); 
+    //call Stm25pSpi.powerDown();
 		//call SpiByte.write(0xB9);
 		call AtmegaCompare.set(0x00ff);
 		SCCR0 = (1 << SCEN);
@@ -70,9 +72,16 @@ volatile uint16_t timer = 0;
 
 	event void SpiRes.granted() {
 		call Leds.led2On();
+		call Stm25pSpi.powerDown();
 		//call SpiByte.write(0xb9);
 	}
 	
+	async event void Stm25pSpi.bulkEraseDone( error_t error ) {}
+	async event void Stm25pSpi.sectorEraseDone( uint8_t sector, error_t error ) {}
+	async event void Stm25pSpi.pageProgramDone( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len, error_t error ) {}
+	async event void Stm25pSpi.computeCrcDone( uint16_t crc, stm25p_addr_t addr, stm25p_len_t len, error_t error ) {}
+	async event void Stm25pSpi.readDone( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len, error_t error ) {}
+
 	async event void AtmegaCompare.fired() {
 		++timer;
 		call AtmegaCompare.set((uint32_t)timer << 16);
