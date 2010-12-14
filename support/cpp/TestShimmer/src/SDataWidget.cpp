@@ -26,11 +26,14 @@ void fillSData(QVarLengthArray<SData>& records)
         for(int j=1; j<=numOfRecs; j++){
             SData record;
 
+            int month = rand() % 12 +1;
+            int day = rand() % 30 +1;
+
             record.moteID = i;
             record.num = j;
             record.length = rand()*1000;
-            record.tod = "2010-10-30 12:00";
-            record.tor = "2010-11-01 11:34";
+            record.tod = "2010-11-01 11:34";
+            record.tor = "2010-"+QString::number(month)+"-"+QString::number(day)+" 12:00";
 
             records.append(record);
         }
@@ -55,6 +58,8 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
 
     fillSData(records);
     initLeft();
+
+    filterRecords();
 
 }
 
@@ -313,9 +318,33 @@ void SDataWidget::onItemDoubleClicked(QTreeWidgetItem* item,int t)
 
 void SDataWidget::filterRecords()
 {
+    QVarLengthArray<SData> temp;
     for(int i=0; i<records.size(); i++){
         if(records[i].length > SHORTREC){
             filteredRecords.append(records[i]);
+        }
+    }
+
+    if(ui->showLastTencBox->isChecked()){
+        bool swapped;
+        do{
+            swapped = false;
+            for(int i=1; i<filteredRecords.size(); i++){
+                QDateTime temp1 = QDateTime::fromString(filteredRecords[i-1].tor,"yyyy-MM-dd hh:mm");
+                QDateTime temp2 = QDateTime::fromString(filteredRecords[i].tor,"yyyy-MM-dd hh:mm");
+                if(temp2 > temp1){
+                    SData temp = filteredRecords[i];
+                    filteredRecords[i] = filteredRecords[i-1];
+                    filteredRecords[i-1] = temp;
+                    swapped = true;
+                }
+            }
+        }while(swapped);
+
+        int size = filteredRecords.size();
+        if(size>10) size=10;
+        for(int i=0; i<size; i++){
+            qDebug() << filteredRecords[i].tor;
         }
     }
 }
