@@ -8,6 +8,7 @@
 #include <QTime>
 #include <QDialog>
 #include <QDebug>
+#include "constants.h"
 
 SData::SData()
 {
@@ -308,4 +309,13 @@ void SDataWidget::onItemDoubleClicked(QTreeWidgetItem* item,int t)
         item->setFlags( Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     }
 
+}
+
+void SDataWidget::filterRecords()
+{
+    for(int i=0; i<records.size(); i++){
+        if(records[i].length > SHORTREC){
+            filteredRecords.append(records[i]);
+        }
+    }
 }

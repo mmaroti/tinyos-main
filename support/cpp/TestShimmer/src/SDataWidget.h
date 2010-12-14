@@ -42,6 +42,7 @@ private:
     QMessageBox* blockingBox;
     sdc::DownloadManager manager;
     QVarLengthArray<SData> records;
+    QVarLengthArray<SData> filteredRecords;
     volatile bool downloadFailed;
     QString errorMsg;
 
@@ -62,6 +63,7 @@ private:
     const QString selectBinaryFile(const QString& caption, const QString& startFromHere);
 
     void printRecords();
+    void filterRecords();
 
 signals:
 

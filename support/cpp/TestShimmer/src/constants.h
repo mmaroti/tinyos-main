@@ -56,4 +56,7 @@ enum HighSensitivity{
 #define zI_U    0.3*zMinGyroAvg+0.7*zMaxGyroAvg
 #define zCLW    0.15*zMinGyroAvg+0.85*zMaxGyroAvg
 
+// ---===SD card downloader ===---
+#define SHORTREC 100
+
 #endif // CONSTANTS_H
