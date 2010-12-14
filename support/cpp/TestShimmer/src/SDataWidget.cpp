@@ -362,6 +362,7 @@ void SDataWidget::on_showLastTencBox_clicked()
         filteredRecords.clear();
         filteredRecords = temp;
         initLeft();
+        ui->sdataLeft->expandAll();
     } else {
         records.clear();
         records = filteredRecords;
