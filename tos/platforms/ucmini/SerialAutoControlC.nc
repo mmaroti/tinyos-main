@@ -58,19 +58,16 @@ implementation{
   }
   
   command error_t DummyControl.start(){
-    if(isUsbOn()){
-      post dummyStart();
-      return SUCCESS;
-    }else
-      return FAIL;
+    post dummyStart();
+    return SUCCESS;
   }
   
   command error_t DummyControl.stop(){
-    if(!isUsbOn()){
-      post dummyStop();
-      return SUCCESS;
-    }else
-      return FAIL;
+    post dummyStop();
+    return SUCCESS;
   }
+
+  default event void DummyControl.startDone(error_t err){}
+  default event void DummyControl.stopDone(error_t err){}
 
 }
