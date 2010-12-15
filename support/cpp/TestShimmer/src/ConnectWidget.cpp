@@ -28,8 +28,8 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Miklï¿½s Marï¿½ti
+* Author: Pï¿½ter Ruzicska
 */
 
 #include "ConnectWidget.h"
@@ -81,7 +81,11 @@ void ConnectWidget::rescanPorts()
                 qDebug() << "===================================";
 */
                 QRadioButton *radio = new QRadioButton(ports.at(i).friendName);
+#ifdef Q_OS_WIN32
                 portButtons.insert(ports.at(i).portName, radio);
+#else
+                portButtons.insert(ports.at(i).physName, radio);
+#endif
                 layout->addWidget(radio);
 
                 if( application.settings.value("port", "") == ports.at(i).portName )
