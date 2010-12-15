@@ -45,7 +45,7 @@ implementation
 	Counter = AtmegaCounterP;
 
 	components PlatformC;
-	PlatformC.LedsInit -> AtmegaCounterP.Init;
+	PlatformC.TimerInit -> AtmegaCounterP.Init;
 
 #if MCU_TIMER_NO == 1
 	components HplAtmRfa1Timer1C as HplAtmRfa1TimerC;

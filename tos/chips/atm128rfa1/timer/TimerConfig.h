@@ -51,8 +51,9 @@ typedef struct T2mhz { } T2mhz;
 typedef T2mhz TMcu;
 
 #define MCU_TIMER_MODE		(ATMRFA1_CLK16_DIVIDE_8 | ATMRFA1_WGM16_NORMAL)
-#define MCU_TIMER_MHZ		2
 #define MCU_TIMER_MHZ_LOG2	1
+#define MCU_TIMER_MHZ		(1 << MCU_TIMER_MHZ_LOG2)
+#define MCU_TIMER_HZ		(16000000ul / 16 * (1 << MCU_TIMER_MHZ_LOG2))
 
 // selects which 16-bit TimerCounter should be used (1 or 3)
 #define MCU_TIMER_NO		1
@@ -62,10 +63,25 @@ typedef T2mhz TMcu;
 
 // ------ RTC timer parameters ------
 
+typedef struct T4khz { } T4khz;
+
 typedef T32khz TRtc;
+//typedef T4khz TRtc;
 
+#define RTC_TIMER_KHZ_LOG2	2
+
+#if RTC_TIMER_KHZ_LOG2 == 5
 #define RTC_TIMER_MODE		(ATMRFA1_CLK8_NORMAL | ATMRFA1_WGM8_NORMAL | ATMRFA1_ASYNC_ON)
+#elif RTC_TIMER_KHZ_LOG2 == 2
+#define RTC_TIMER_MODE		(ATMRFA1_CLK8_DIVIDE_8 | ATMRFA1_WGM8_NORMAL | ATMRFA1_ASYNC_ON)
+#elif RTC_TIMER_KHZ_LOG2 == 0
+#define RTC_TIMER_MODE		(ATMRFA1_CLK8_DIVIDE_32 | ATMRFA1_WGM8_NORMAL | ATMRFA1_ASYNC_ON)
+#else
+#error "The RTC must be run at 32 KHz, 4 KHz or 1 KHz."
+#endif
 
+#define RTC_TIMER_KHZ		(1 << RTC_TIMER_KHZ_LOG2)
+#define RTC_TIMER_HZ		(32768ul / 32 * (1 << RTC_TIMER_KHZ_LOG2))
 #define RTC_ALARM_MINDT		4
 #define UQ_RTC_ALARM		"UQ_RTC_ALARM"
 

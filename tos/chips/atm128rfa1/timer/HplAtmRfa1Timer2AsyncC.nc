@@ -32,7 +32,7 @@
  * Author: Miklos Maroti
  */
 
-configuration HplAtmRfa1TimerAsyncC
+configuration HplAtmRfa1Timer2AsyncC
 {
 	provides
 	{
@@ -43,14 +43,14 @@ configuration HplAtmRfa1TimerAsyncC
 
 implementation
 {
-	components HplAtmRfa1TimerAsyncP;
+	components HplAtmRfa1Timer2AsyncP;
 
-	Counter = HplAtmRfa1TimerAsyncP;
-	Compare[0] = HplAtmRfa1TimerAsyncP.CompareA;
-//	Compare[1] = HplAtmRfa1TimerAsyncP.CompareB;
-//	Compare[2] = HplAtmRfa1TimerAsyncP.CompareC;
+	Counter = HplAtmRfa1Timer2AsyncP;
+	Compare[0] = HplAtmRfa1Timer2AsyncP.CompareA;
+//	Compare[1] = HplAtmRfa1Timer2AsyncP.CompareB;
+//	Compare[2] = HplAtmRfa1Timer2AsyncP.CompareC;
 
 	components McuSleepC;
-	HplAtmRfa1TimerAsyncP.McuPowerState -> McuSleepC;
-	HplAtmRfa1TimerAsyncP.McuPowerOverride <- McuSleepC;
+	HplAtmRfa1Timer2AsyncP.McuPowerState -> McuSleepC;
+	HplAtmRfa1Timer2AsyncP.McuPowerOverride <- McuSleepC;
 }
