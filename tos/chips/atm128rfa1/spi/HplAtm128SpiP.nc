@@ -94,6 +94,8 @@ implementation {
   }
   
   async command void SPI.initMaster() {
+    call SS.makeOutput();
+    call SS.clr();
     call MOSI.makeOutput();
     call MISO.makeInput();
     call SCK.makeOutput();
