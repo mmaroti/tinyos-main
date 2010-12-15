@@ -86,7 +86,8 @@ SOURCES += src/DataRecorder.cpp \
     src/SDCard/DownloadTask.cpp \
     src/SDCard/DownloadManager.cpp \
     src/SDCard/SDCardCreator.cpp \
-    src/SDCard/MoteRegistrar.cpp
+    src/SDCard/MoteRegistrar.cpp \
+    src/TimeSyncMsgReceiver.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -149,7 +150,8 @@ HEADERS += src/DataRecorder.h \
     src/SDCard/DownloadTask.hpp \
     src/SDCard/DownloadManager.hpp \
     src/SDCard/SDCardCreator.hpp \
-    src/SDCard/MoteRegistrar.hpp
+    src/SDCard/MoteRegistrar.hpp \
+    src/TimeSyncMsgReceiver.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

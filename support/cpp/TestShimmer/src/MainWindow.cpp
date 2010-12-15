@@ -104,6 +104,8 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(dataWidget, SIGNAL(SolverStarted()), this, SLOT(onSolverRunning()));
         connect(dataWidget, SIGNAL(SolverFinished()), this, SLOT(onSolverRunning()));
 
+        connect(&app.serialListener,      SIGNAL(receiveMessage(ActiveMessage)),
+                &app.timeSyncMsgReceiver, SLOT(onReceiveMessage(ActiveMessage)), Qt::DirectConnection);
         app.directorySelector.registerTabWidget(ui->tabWidget);
 
 }

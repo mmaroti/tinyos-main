@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,55 +28,28 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#ifndef APPLICATION_H
-#define APPLICATION_H
-
-#define C_HZ 204.8
-#define C_TICKS 2       //constant hz and ticks values to use later
+#ifndef TIMESYNCMSGRECEIVER_HPP
+#define TIMESYNCMSGRECEIVER_HPP
 
 #include <QObject>
-#include <QSettings>
-#include "Solver.hpp"
-#include "DirSelector.hpp"
-#include "TimeSyncMsgReceiver.hpp"
-#include "SerialListener.h"
-#include "DataRecorder.h"
-//#include "StationaryCalibrationModule.h"
-#include "ConsoleWidget.h"
 
-class Application : public QObject
-{
+class ActiveMessage;
 
-Q_OBJECT
+class TimeSyncMsgReceiver : public QObject {
+
+    Q_OBJECT
 
 public:
-	Application();
 
-signals:
-	void showMessageSignal(const QString & msg);
-        void showConsoleSignal(const QString & msg);
+public slots:
 
-public:
-	void showMessage(const QString & msg) {
-		emit showMessageSignal(msg);
-	}
+    void onReceiveMessage(const ActiveMessage& msg);
 
-        void showConsoleMessage(const QString & msg) {
-                emit showConsoleSignal(msg);
-        }
+private:
 
-public:
-	SerialListener serialListener;
-        DataRecorder dataRecorder;
-
-	QSettings settings;
-        ipo::Solver solver;
-        DirSelector directorySelector;
-        TimeSyncMsgReceiver timeSyncMsgReceiver;
 };
 
-#endif // APPLICATION_H
+#endif // TIMESYNCMSGRECEIVER_HPP
