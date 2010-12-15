@@ -2,8 +2,7 @@ module SerialAutoControlC{
   uses interface SplitControl;
   uses interface GpioPCInterrupt as Vdd;
   provides interface Init as SoftwareInit;
-  
-  uses interface Leds;
+  provides interface SplitControl as DummyControl;
 }
 implementation{
   //TODO this component should work based on usb power (vdd) or usb active/suspend
@@ -46,6 +45,32 @@ implementation{
 	post turnOn();
       else
 	post turnOff();
+  }
+  
+  //TODO maybe we should enable real manual control here, but now it's just a dummy interface providing for backward compatibility
+  
+  task void dummyStart(){
+    signal DummyControl.startDone(SUCCESS);
+  }
+  
+  task void dummyStop(){
+    signal DummyControl.stopDone(SUCCESS);
+  }
+  
+  command error_t DummyControl.start(){
+    if(isUsbOn()){
+      post dummyStart();
+      return SUCCESS;
+    }else
+      return FAIL;
+  }
+  
+  command error_t DummyControl.stop(){
+    if(!isUsbOn()){
+      post dummyStop();
+      return SUCCESS;
+    }else
+      return FAIL;
   }
 
 }

@@ -43,9 +43,7 @@
 #include "Serial.h"
 configuration SerialActiveMessageC {
   provides {
-    #ifndef SERIAL_AUTO
     interface SplitControl;
-    #endif
     interface AMSend[am_id_t id];
     interface Receive[am_id_t id];
     interface Packet;
@@ -68,6 +66,7 @@ implementation {
   SerialAutoControlC.Vdd->HplCp2102C;
   SerialAutoControlC.SplitControl->SerialDispatcherC;
   MainC.SoftwareInit -> SerialAutoControlC;
+  SplitControl = SerialAutoControlC.DummyControl;
   #endif
   #ifndef DISABLE_SERIAL_RESET
   components SerialResetP;
