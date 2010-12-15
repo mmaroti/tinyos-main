@@ -91,4 +91,20 @@ bool operator!=(const VirtualMoteID& lhs, const VirtualMoteID& rhs) {
 	return !(lhs==rhs);
 }
 
+bool operator<(const VirtualMoteID& lhs, const VirtualMoteID& rhs) {
+
+	bool ret_val;
+
+	if ( lhs.mote_id()!=rhs.mote_id() ) {
+
+		ret_val = lhs.mote_id() < rhs.mote_id();
+	}
+	else {
+
+		ret_val = lhs.first_block() < rhs.first_block();
+	}
+
+	return ret_val;
+}
+
 }

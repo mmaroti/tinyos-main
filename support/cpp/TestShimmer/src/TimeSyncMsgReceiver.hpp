@@ -34,7 +34,11 @@
 #ifndef TIMESYNCMSGRECEIVER_HPP
 #define TIMESYNCMSGRECEIVER_HPP
 
+#include <map>
+#include <string>
+#include <QMutex>
 #include <QObject>
+#include "VirtualMoteID.hpp"
 
 class ActiveMessage;
 
@@ -44,12 +48,20 @@ class TimeSyncMsgReceiver : public QObject {
 
 public:
 
+    TimeSyncMsgReceiver() { }
+
 public slots:
 
     void onReceiveMessage(const ActiveMessage& msg);
 
 private:
 
+    TimeSyncMsgReceiver(const TimeSyncMsgReceiver& );
+    TimeSyncMsgReceiver& operator=(const TimeSyncMsgReceiver& );
+
+    QMutex mapLock;
+
+    std::map<sdc::VirtualMoteID, std::string> motes;
 };
 
 #endif // TIMESYNCMSGRECEIVER_HPP

@@ -31,9 +31,60 @@
 *      Author: Ali Baharev
 */
 
-#include <QDebug>
+// FIXME Remove iostream when ready
+#include <iostream>
+//#include <QDebug>
+#include <QRunnable>
+#include <QThreadPool>
+#include <QMutexLocker>
 #include "TimeSyncMsgReceiver.hpp"
 #include "SerialListener.h"
+#include "Utility.hpp"
+
+using namespace std;
+using namespace sdc;
+
+typedef map<VirtualMoteID, string> Map;
+typedef pair<Map::iterator, bool > Pair;
+
+class InsertTask : public QRunnable {
+
+public:
+
+    InsertTask(QMutex* mutex, Map& motemap, const VirtualMoteID& id);
+
+    virtual void run();
+
+private:
+
+    QMutex* mapLock;
+
+    Map& motes;
+
+    const VirtualMoteID vmote_id;
+};
+
+InsertTask::InsertTask(QMutex* mutex, Map& motemap, const VirtualMoteID& id)
+    : mapLock(mutex), motes(motemap), vmote_id(id)
+{
+
+}
+
+void InsertTask::run() {
+
+    QMutexLocker lock(mapLock);
+
+    string date = current_time();
+
+    Pair result = motes.insert(make_pair(vmote_id, date));
+
+    if (result.second==true) {
+
+        cout << "New vmote id " << vmote_id.mote_id() << "  " << vmote_id.first_block() << "  " << date << flush;
+        // TODO Dump to file
+        // TODO $TestShimmerRoot/rec
+    }
+}
 
 const int TIME_SYNC_MSG = 0x3D;
 
@@ -44,7 +95,15 @@ void TimeSyncMsgReceiver::onReceiveMessage(const ActiveMessage& msg) {
         return;
     }
 
+    cout << "mote " << msg.source << ", block " << msg.getInt(0) << ", time " << msg.getInt(4) << endl;
+
+    VirtualMoteID vmote_id(msg.source, msg.getInt(0));
+
+    QRunnable* insertTask = new InsertTask(&mapLock, motes, vmote_id);
+
+    QThreadPool::globalInstance()->start(insertTask);
+
     //qDebug() << "---------------------------------------------------------------";
     //qDebug() << msg.toString();
-    qDebug() << "mote " << msg.source << ", block " << msg.getInt(0) << ", time " << msg.getInt(4);
+
 }

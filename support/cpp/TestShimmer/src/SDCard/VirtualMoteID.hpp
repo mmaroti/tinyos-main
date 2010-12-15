@@ -67,6 +67,8 @@ private:
 
 bool operator!=(const VirtualMoteID& lhs, const VirtualMoteID& rhs);
 
+bool operator<(const VirtualMoteID& lhs, const VirtualMoteID& rhs);
+
 }
 
 #endif /* VIRTUALMOTEID_HPP_ */
