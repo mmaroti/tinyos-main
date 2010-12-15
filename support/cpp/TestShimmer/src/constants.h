@@ -58,5 +58,6 @@ enum HighSensitivity{
 
 // ---===SD card downloader ===---
 #define SHORTREC 100
+#define NUMOFRECS 10
 
 #endif // CONSTANTS_H

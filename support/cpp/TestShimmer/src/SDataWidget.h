@@ -18,7 +18,7 @@ struct SData
 {
     SData();
     int moteID;
-    int num;
+    int recordID;
     int length;
     QString tor;
     QString tod;
@@ -46,7 +46,7 @@ private:
     volatile bool downloadFailed;
     QString errorMsg;
 
-    void initLeft();
+    void initLeft(bool filter);
     void initRight(QVarLengthArray<int> list);
     QVarLengthArray<int> getLinkingRecords(int moteId, int num);
 

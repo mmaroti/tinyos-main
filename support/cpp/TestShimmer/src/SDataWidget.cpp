@@ -13,7 +13,7 @@
 SData::SData()
 {
     moteID = 0;
-    num = 0;
+    recordID = 0;
     length = 0;
     tor = "";
     tod = "";
@@ -21,22 +21,24 @@ SData::SData()
 
 void fillSData(QVarLengthArray<SData>& records)
 {
-    for(int i=1; i<=rand() % 10 + 3; i++){
+    static int lastRec[8] = {1};
+    for(int i=1; i<=rand() % 5 + 4; i++){
         int numOfRecs = rand() % 6 + 10;
-        for(int j=1; j<=numOfRecs; j++){
+        for(int j=lastRec[i]; j<=numOfRecs+lastRec[i]; j++){
             SData record;
 
             int month = rand() % 12 +1;
             int day = rand() % 30 +1;
 
             record.moteID = i;
-            record.num = j;
+            record.recordID = j;
             record.length = rand() % 1000 + 1;
             record.tod = "2010-11-01 11:34";
             record.tor = "2010-"+QString::number(month)+"-"+QString::number(day)+" 12:00";
 
             records.append(record);
         }
+        lastRec[i] = numOfRecs;
     }
 }
 
@@ -57,10 +59,7 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
     connect(this, SIGNAL(updateGUI()), this, SLOT(onUpdateGUI()), Qt::QueuedConnection);
 
     fillSData(records);
-    initLeft();
-
-    filterRecords();
-
+    initLeft(false);
 }
 
 SDataWidget::~SDataWidget()
@@ -69,7 +68,7 @@ SDataWidget::~SDataWidget()
     delete ui;
 }
 
-void SDataWidget::initLeft()
+void SDataWidget::initLeft(bool filter)
 {
     QTreeWidgetItem *item = createParentItem(0, ui->sdataLeft);
     for(int i=0; i<getRecordsSize(); i++){
@@ -79,7 +78,9 @@ void SDataWidget::initLeft()
             item = ui->sdataLeft->findItems(QString::number(getSDataAt(i).moteID),0,0)[0];
         }
 
-        createChildItem(i, item);
+        if(filter){
+            if(item->childCount()<NUMOFRECS) createChildItem(i, item);
+        }
     }
 }
 
@@ -124,7 +125,7 @@ QVarLengthArray<int> SDataWidget::getLinkingRecords(int moteId, int num)
     QVarLengthArray<int> list;
     for(int i=0; i< getRecordsSize(); i++){
         if(getSDataAt(i).moteID == moteId-1){
-            if(getSDataAt(i).num >= num){
+            if(getSDataAt(i).recordID >= num){
                 list.append(i);
             }
         }
@@ -144,8 +145,8 @@ QTreeWidgetItem* SDataWidget::createParentItem(int i, QTreeWidget *root)
 void SDataWidget::createChildItem(int i, QTreeWidgetItem* parent)
 {
     QTreeWidgetItem *it = new QTreeWidgetItem(parent);
-    int num = parent->childCount();
-    it->setText(1,QString::number(num));
+    //int num = parent->childCount();
+    it->setText(1,QString::number(getSDataAt(i).recordID));
     it->setText(2,QString::number(getSDataAt(i).length));
     it->setText(3,getSDataAt(i).tor);
     it->setText(4,getSDataAt(i).tod);
@@ -250,6 +251,7 @@ void SDataWidget::on_downloadButton_clicked()
 
 #ifdef _WIN32            
     downloadFromDevice();
+    fillSData(records);
 #else
     processBinaryFile("Select the device", QDir::rootPath(), "Downloading");
 #endif
@@ -291,7 +293,7 @@ void SDataWidget::onUpdateGUI() {
         // FIXME Still buggy, it shows a msg box but it should not
         ui->sdataLeft->clear();
         ui->sdataRight->clear();
-        initLeft();
+        initLeft(false);
         ui->sdataLeft->update();
         blockingBox->hide();
     }
@@ -302,7 +304,7 @@ void SDataWidget::onUpdateGUI() {
 void SDataWidget::printRecords()
 {
     for(int i=0; i<records.size(); i++){
-        qDebug() << records[i].moteID << ", " << records[i].num << ", " << records[i].length << "\n";
+        qDebug() << records[i].moteID << ", " << records[i].recordID << ", " << records[i].length << "\n";
     }
 }
 
@@ -325,29 +327,34 @@ void SDataWidget::filterRecords()
         }
     }
 
-    bool swapped;
-    do{
-        swapped = false;
-        for(int i=1; i<filteredRecords.size(); i++){
-            QDateTime temp1 = QDateTime::fromString(filteredRecords[i-1].tor,"yyyy-MM-dd hh:mm");
-            QDateTime temp2 = QDateTime::fromString(filteredRecords[i].tor,"yyyy-MM-dd hh:mm");
-            if(temp2 > temp1){
-                SData temp = filteredRecords[i];
-                filteredRecords[i] = filteredRecords[i-1];
-                filteredRecords[i-1] = temp;
-                swapped = true;
+    int i = 1;
+    int j = 0;
+    int mote = filteredRecords[0].moteID;
+    while( j < filteredRecords.size()-2 ){           
+        bool swapped;
+        do{
+            swapped = false;
+            //for(int l = j; l<(i+j); l++){
+            //   qDebug() << QString::number(filteredRecords[l].moteID) << " - " << filteredRecords[l].tor;
+            //}
+            //qDebug() << "=========";
+            i = 1;
+            while( (mote == filteredRecords[j+i].moteID) && ( (j+i) < filteredRecords.size()-1)){
+                QDateTime temp1 = QDateTime::fromString(filteredRecords[j+i-1].tor,"yyyy-M-d hh:mm");
+                QDateTime temp2 = QDateTime::fromString(filteredRecords[j+i].tor,"yyyy-M-d hh:mm");
+                if(temp2 > temp1){
+                    SData temp = filteredRecords[j+i];
+                    filteredRecords[j+i] = filteredRecords[j+i-1];
+                    filteredRecords[j+i-1] = temp;
+                    swapped = true;
+                }
+                i++;
             }
-        }
-    }while(swapped);
+        }while(swapped);
 
-    int size = 10;
-    if(filteredRecords.size()<10) size = filteredRecords.size();
-    QVarLengthArray<SData> temp2;
-    for(int i=0; i<size; i++){
-        temp2.append(filteredRecords[i]);
+        if( (j+i) < filteredRecords.size()) j += i;
+        mote = filteredRecords[j].moteID;
     }
-    filteredRecords.clear();
-    filteredRecords = temp2;
 }
 
 void SDataWidget::on_showLastTencBox_clicked()
@@ -361,13 +368,13 @@ void SDataWidget::on_showLastTencBox_clicked()
         records = filteredRecords;
         filteredRecords.clear();
         filteredRecords = temp;
-        initLeft();
+        initLeft(true);
         ui->sdataLeft->expandAll();
     } else {
         records.clear();
         records = filteredRecords;
         filteredRecords.clear();
         ui->sdataLeft->clear();
-        initLeft();
+        initLeft(false);
     }
 }
