@@ -43,7 +43,9 @@ module NullSleepC @safe()
 	//uses interface SpiByte;
 	uses interface Resource as SpiRes;
 	uses interface GeneralIO as VoltMeter;
-	uses interface AtmegaCompare<uint32_t>;
+//	uses interface AtmegaCompare<uint32_t>;
+
+	uses interface Alarm<T62khz, uint32_t>;
 }
 implementation
 {
@@ -55,16 +57,19 @@ volatile uint16_t timer = 0;
 		//call SpiRes.request();
     //call Stm25pSpi.powerDown();
 		//call SpiByte.write(0xB9);
-		call AtmegaCompare.set(0x00ff);
+//		call AtmegaCompare.set(0x00ff);
 		SCCR0 = (1 << SCEN);
 		//power_all_disable();
 
-		call AtmegaCompare.start();
+//		call AtmegaCompare.start();
+call Alarm.start(0x0100);
 
 		for(;;) {
 			if(!ison) {
+				//call Leds.led3On();
 			}
 			else{
+				//call Leds.led3Off();
 			}
 		}//for
   }//booted
@@ -81,10 +86,16 @@ volatile uint16_t timer = 0;
 	async event void Stm25pSpi.computeCrcDone( uint16_t crc, stm25p_addr_t addr, stm25p_len_t len, error_t error ) {}
 	async event void Stm25pSpi.readDone( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len, error_t error ) {}
 
-	async event void AtmegaCompare.fired() {
+	/*async event void AtmegaCompare.fired() {
 		++timer;
 		call AtmegaCompare.set((uint32_t)timer << 16);
 		ison = ~ison;
+	}*/
+	async event void Alarm.fired() {
+		call Alarm.stop();
+		//call Leds.led2On();
+		ison = ~ison;
+		call Alarm.start(0xFF00);
 	}
 }
 
