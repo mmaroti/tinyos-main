@@ -87,7 +87,8 @@ SOURCES += src/DataRecorder.cpp \
     src/SDCard/DownloadManager.cpp \
     src/SDCard/SDCardCreator.cpp \
     src/SDCard/MoteRegistrar.cpp \
-    src/TimeSyncMsgReceiver.cpp
+    src/TimeSyncMsgReceiver.cpp \
+    src/RootDirPath.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \

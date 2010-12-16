@@ -32,11 +32,12 @@
 */
 
 // FIXME Remove iostream when ready
-#include <iostream>
-//#include <QDebug>
+#include <QDebug>
 #include <QRunnable>
 #include <QThreadPool>
 #include <QMutexLocker>
+#include <QFile>
+#include <QTextStream>
 #include "TimeSyncMsgReceiver.hpp"
 #include "SerialListener.h"
 #include "Utility.hpp"
@@ -56,6 +57,8 @@ public:
     virtual void run();
 
 private:
+
+    void dumpToFile(const string& date);
 
     QMutex* mapLock;
 
@@ -80,10 +83,34 @@ void InsertTask::run() {
 
     if (result.second==true) {
 
-        cout << "New vmote id " << vmote_id.mote_id() << "  " << vmote_id.first_block() << "  " << date << flush;
-        // TODO Dump to file
-        // TODO $TestShimmerRoot/rec
+        dumpToFile(date);
     }
+}
+
+void InsertTask::dumpToFile(const string& date) {
+
+    extern const QString* rootDirPath;
+
+    QString name(*rootDirPath);
+
+    name.append("rec/motes.ddb"); // FIXME Move to constants?
+
+    QFile file(name);
+
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) {
+        //qDebug() << "Failed to open file: " << name;
+        return;
+    }
+
+    QTextStream out(&file);
+
+    out << vmote_id.mote_id() << '\t' << vmote_id.first_block() << '\t' << date.c_str();
+
+    out.flush();
+
+    file.close();
+
+    //qDebug() << "Data written to " << name;
 }
 
 const int TIME_SYNC_MSG = 0x3D;
@@ -95,15 +122,11 @@ void TimeSyncMsgReceiver::onReceiveMessage(const ActiveMessage& msg) {
         return;
     }
 
-    cout << "mote " << msg.source << ", block " << msg.getInt(0) << ", time " << msg.getInt(4) << endl;
+    //cout << "mote " << msg.source << ", block " << msg.getInt(0) << ", time " << msg.getInt(4) << endl;
 
     VirtualMoteID vmote_id(msg.source, msg.getInt(0));
 
     QRunnable* insertTask = new InsertTask(&mapLock, motes, vmote_id);
 
     QThreadPool::globalInstance()->start(insertTask);
-
-    //qDebug() << "---------------------------------------------------------------";
-    //qDebug() << msg.toString();
-
 }

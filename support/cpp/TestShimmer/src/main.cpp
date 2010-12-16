@@ -33,34 +33,33 @@
 */
 
 #include <QtGui/QApplication>
-#include <QDir>
-#include <QMessageBox>
-#include <iostream>
-#include <cstdlib>
 #include "MainWindow.h"
 //#include "window.h"
 #include <QDesktopWidget>
+#include <QDir>
+#include <QDebug>
 
-void cwd() {
-    bool success = QDir::setCurrent("data");
-    if (!success) {
-        QString msg("Error: create a directory \"data\" in:\n");
-        msg.append(QDir::currentPath());
-        QMessageBox mbox;
-        mbox.setText(msg);
-        mbox.exec();
-        exit(EXIT_FAILURE);
-    }
+void initRootDirPath() {
 
-    std::cout << "PWD is now ./data!" << std::endl;
+    QString path = QDir::currentPath();
+
+    int lastSlash = path.lastIndexOf('/');
+
+    path.chop(path.size()-lastSlash-1);
+
+    extern const QString* rootDirPath; // FIXME Hideous workaround :(
+
+    rootDirPath = new QString(path);
 }
 
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
-        //cwd();
         MainWindow w;
 	w.show();
+
+        initRootDirPath();
+
         //Plot plot;
         //plot.show();
         /*Window window;
