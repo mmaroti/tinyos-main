@@ -80,6 +80,8 @@ void SDataWidget::initLeft(bool filter)
 
         if(filter){
             if(item->childCount()<NUMOFRECS) createChildItem(i, item);
+        } else {
+            createChildItem(i, item);
         }
     }
 }
