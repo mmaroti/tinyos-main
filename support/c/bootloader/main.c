@@ -34,6 +34,7 @@
 #include "serial.h"
 #include "flash.h"
 #include "util/delay.h"
+#include <avr/wdt.h>
 
 
 /* Uncomment the following to save code space */
@@ -98,22 +99,25 @@ int main(void)
     
     unsigned int temp_int=0;
     unsigned char val;
-	#ifdef _ATMEGA1281
-	DDRA |= _BV(2);
-	DDRA |= _BV(1);
-	DDRA |= _BV(0);
-	PORTA = 7;
-	#else
-	DDRE |= _BV(3);
-	DDRE |= _BV(5);
-	DDRE |= _BV(6);
-	DDRE |= _BV(7);
-	DDRE &= ~(_BV(PE4));    //make this pin input
-	DDRB &= ~(_BV(PB7));    //make this pin input too
-	#endif
-
+    
     /* Initialization */   
+    
+    wdt_disable();
+    #ifdef _ATMEGA1281
+    DDRA |= _BV(2);
+    DDRA |= _BV(1);
+    DDRA |= _BV(0);
+    PORTA = 7;
+    #else
+    DDRE |= _BV(3);
+    DDRE |= _BV(5);
+    DDRE |= _BV(6);
+    DDRE |= _BV(7);
+    DDRE &= ~(_BV(PE4));    //make this pin input
+    DDRB &= ~(_BV(PB7));    //make this pin input too
+    #endif
 
+    
     initbootuart(); // Initialize UART.
     blinker = 0;
 
