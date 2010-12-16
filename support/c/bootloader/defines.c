@@ -16,7 +16,7 @@ void init() {
 	TCCR2B = 1 << CS20;
 
 	// one wrap is 256/32768 = 1/128 sec
-	for(wraps = 255; wraps != 0; --wraps)
+	for(wraps = 11; wraps != 0; --wraps)
 	{
 		while( TCNT2 != 0 )
 			;

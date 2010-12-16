@@ -101,7 +101,7 @@ int main(void)
     unsigned char val;
     
     /* Initialization */   
-    
+    MCUSR = 0;
     wdt_disable();
     #ifdef _ATMEGA1281
     DDRA |= _BV(2);
@@ -117,7 +117,6 @@ int main(void)
     DDRB &= ~(_BV(PB7));    //make this pin input too
     #endif
 
-    
     initbootuart(); // Initialize UART.
     blinker = 0;
 
