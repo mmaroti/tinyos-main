@@ -36,36 +36,36 @@
 
 module PlatformP @safe()
 {
-	provides interface Init;
+  provides interface Init;
 
-	uses
-	{
-		interface Init as MeasureClock;
-		interface Init as TimerInit;
-		interface Init as LedsInit;
-	}
+  uses
+  {
+    interface Init as MeasureClock;
+    interface Init as TimerInit;
+    interface Init as LedsInit;
+  }
 }
 implementation
 {
   void power_init() {
-      atomic {
-	MCUCR = _BV(SE);      // Internal RAM, IDLE, rupt vector at 0x0002,
-			      // enable sleep instruction!
-	DDRB &= ~(_BV(PB7));    // set it as input
-	//PORTB |= _BV(7);  // enable usb-rs232 chip
-        DDRE &= ~(_BV(PE4)); // set it as input
-       
-        //DDRF |= _BV(PF2);
-        //PORTF |= _BV(PF2); //empowering i2c sensors for testing purposes
-	
-       // DDRD |= _BV(PD0);
-       // DDRD |= _BV(PD1);
-       // PORTD |= _BV(PD0) | _BV(PD1);
+    atomic {
+      MCUCR = _BV(SE);      // Internal RAM, IDLE, rupt vector at 0x0002,
+			    // enable sleep instruction!
+      DDRB &= ~(_BV(PB7));    // set it as input
+      //PORTB |= _BV(7);  // enable usb-rs232 chip
+      DDRE &= ~(_BV(PE4)); // set it as input
+      
+      //DDRF |= _BV(PF2);
+      //PORTF |= _BV(PF2); //empowering i2c sensors for testing purposes
+      
+      // DDRD |= _BV(PD0);
+      // DDRD |= _BV(PD1);
+      // PORTD |= _BV(PD0) | _BV(PD1);
 
-	// Pull C I/O port pins low
-	// PORTC = 0;
-	// DDRC = 0xff;
-      }
+      // Pull C I/O port pins low
+      // PORTC = 0;
+      // DDRC = 0xff;
+    }
   }
 
   command error_t Init.init()
@@ -76,7 +76,6 @@ implementation
     atomic {
       // enable changing the prescaler
       CLKPR = 0x80;
-
 #if PLATFORM_MHZ == 16
       CLKPR = 0x0F;	
 #elif PLATFORM_MHZ == 8
@@ -111,8 +110,13 @@ implementation
     return SUCCESS;
   }
 
-	default command error_t TimerInit.init()
-	{
-		return SUCCESS;
-	}
+  default command error_t TimerInit.init()
+  {
+    return SUCCESS;
+  }
+
+  default command error_t LedsInit.init()
+  {
+    return SUCCESS;
+  }
 }
