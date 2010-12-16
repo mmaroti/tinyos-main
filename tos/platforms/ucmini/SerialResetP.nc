@@ -81,6 +81,8 @@ implementation
 			atomic
 			{
 				bootloader();
+				//wdt_enable(1);
+				//while(1);
 			}
 		}
 	}
