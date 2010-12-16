@@ -52,16 +52,15 @@
 
 configuration NullSleepAppC{}
 implementation {
-  components MainC, NullSleepC, LedsC, HplAtmRfa1TimerMacC as Mac, RFA1ActiveMessageC;
+  components MainC, NullSleepC, LedsC, HplAtmRfa1TimerMacC as Mac;//, ActiveMessageC;
 	//components Atm128SpiC;
-  components Stm25pSpiC;
+	components Stm25pSpiC;
 	components HplAtm128GeneralIOC;
-	components RealMainP;
 
-  MainC.Boot <- NullSleepC;
+	MainC.Boot <- NullSleepC;
 	NullSleepC.Leds -> LedsC;
-  NullSleepC.Stm25pSpi -> Stm25pSpiC;
-	RealMainP.SoftwareInit -> Stm25pSpiC.Init;
+	NullSleepC.Stm25pSpi -> Stm25pSpiC;
+	MainC.SoftwareInit -> Stm25pSpiC.Init;
 	//NullSleepC.SpiByte -> Atm128SpiC;
 	//NullSleepC.SpiRes -> Atm128SpiC.Resource[unique("Atm128Spi.Resource")];
 	NullSleepC.SpiRes -> Stm25pSpiC;

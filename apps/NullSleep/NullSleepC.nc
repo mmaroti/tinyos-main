@@ -33,6 +33,8 @@
 *
 * Author: Zsolt Szabo
 */
+
+#include "Stm25p.h"
 module NullSleepC @safe()
 {
   uses interface Boot;
@@ -51,7 +53,6 @@ volatile uint16_t timer = 0;
   event void Boot.booted() {
 		call VoltMeter.set();
 		//call SpiRes.request();
-		call Leds.led0On(); 
     //call Stm25pSpi.powerDown();
 		//call SpiByte.write(0xB9);
 		call AtmegaCompare.set(0x00ff);
@@ -62,16 +63,14 @@ volatile uint16_t timer = 0;
 
 		for(;;) {
 			if(!ison) {
-				call Leds.led3On();
 			}
 			else{
-				call Leds.led3Off();
 			}
 		}//for
   }//booted
 
 	event void SpiRes.granted() {
-		call Leds.led2On();
+		call Leds.led3On();
 		call Stm25pSpi.powerDown();
 		//call SpiByte.write(0xb9);
 	}
