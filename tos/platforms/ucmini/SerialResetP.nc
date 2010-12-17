@@ -30,7 +30,7 @@
 *
 * Author: Miklos Maroti
 */
-#define BOOTLOADER_ADDRESS 0x1E000
+//#define BOOTLOADER_ADDRESS 0x1E000
 
 module SerialResetP
 {
@@ -77,12 +77,12 @@ implementation
 			post sendAck();
 		else
 		{
-			void (*bootloader)( void ) = (void*) BOOTLOADER_ADDRESS;
+			//void (*bootloader)( void ) = (void*) BOOTLOADER_ADDRESS;
 			atomic
 			{
-				bootloader();
-				//wdt_enable(1);
-				//while(1);
+				//bootloader();
+				wdt_enable(1);
+				while(1);
 			}
 		}
 	}
