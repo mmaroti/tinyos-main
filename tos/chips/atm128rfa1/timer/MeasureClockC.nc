@@ -64,16 +64,15 @@ module MeasureClockC {
 implementation 
 {
   enum {
-    /* This is expected number of cycles per jiffy at the platform's
+    /* This is expected number of cycles per 64 jiffy at the platform's
        specified MHz. Assumes PLATFORM_MHZ == 1, 2, 4, 8 or 16. */
-    //MAGIC = 488 / (16 / PLATFORM_MHZ)
     MAGIC = 31250 / (16 / PLATFORM_MHZ)
   };
 
   uint16_t cycles;
 
   command error_t Init.init() {
-    /* Measure clock cycles per Jiffy (1/32768s) */
+    /* Measure clock cycles per 64 Jiffy (64/32768s=1/512s) */
     /* This code doesn't use the HPL to avoid timing issues when compiling
        with debugging on */
     atomic
@@ -140,7 +139,7 @@ implementation
   }
 
   async command uint8_t Atm128Calibrate.adcPrescaler() {
-    /* This is also log2(cycles/3.05). But that's a pain to compute */
+    /* This is also log2(cycles/64*3.05). But that's a pain to compute */
 	if (cycles >= 24960)
       return ATM128_ADC_PRESCALE_128;
     if (cycles >= 12480)
