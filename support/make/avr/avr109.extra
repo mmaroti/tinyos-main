@@ -5,7 +5,8 @@ $(error AVR109 must be defined, try "make $(TARGETS) help")
 endif
 
 PROGRAM = avr109
-BAUDRATE = 57600
+#BAUDRATE = 57600
+BAUDRATE = 115200
 
 ifeq ($(PROGRAMMER),avrdude)
     ifeq ($(shell [ -f /bin/cygwin1.dll ] && echo cygwin),cygwin)
@@ -22,7 +23,8 @@ ifeq ($(PROGRAMMER),avrdude)
 endif
 
 program: FORCE
-	java org.szte.wsn.zigbit.Programmer -port $(AVR109) -baudrate $(BAUDRATE) -reset
+#	java org.szte.wsn.zigbit.Programmer -port $(AVR109) -baudrate $(BAUDRATE) -reset
+	java org.szte.wsn.zigbit.Programmer -port $(AVR109) -baudrate 57600 -reset
 	@echo "    installing $(PLATFORM) binary using avr109"
 	$(PROGRAMMER) $(PROGRAMMER_FLAGS) $(PROGRAMMER_INSTALL_SREC_FLAGS)
 
