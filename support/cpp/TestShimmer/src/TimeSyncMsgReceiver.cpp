@@ -31,7 +31,6 @@
 *      Author: Ali Baharev
 */
 
-// FIXME Remove iostream when ready
 #include <QDebug>
 #include <QRunnable>
 #include <QThreadPool>
