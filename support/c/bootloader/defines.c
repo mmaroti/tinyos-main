@@ -43,7 +43,7 @@ void init() {
 		  prev_cycles_min=0xffff;
 		  prev_cycles_max=0;
 		}
-		//wraps++;
+		wraps++;
 
 	}
 
