@@ -106,7 +106,7 @@ implementation
 		if(prev_cycles_max>cycles)
 		  prev_cycles_max=cycles;
 		
-		if(prev_cycles_max-prev_cycles_min<=10){
+		if(prev_cycles_max-prev_cycles_min<=5){
 		  wraps_ok++;
 		} else{
 		  wraps_ok=0;

@@ -1,7 +1,7 @@
 //#include "util/delay.h"
 #include "defines.h"
 #define MATCHES 10
-#define MAXERROR 10
+#define MAXERROR 5
 // number of CPU cycles per 1/512 sec
 uint16_t cycles;
 
@@ -43,7 +43,7 @@ void init() {
 		  prev_cycles_min=0xffff;
 		  prev_cycles_max=0;
 		}
-		wraps++;
+		//wraps++;
 
 	}
 
