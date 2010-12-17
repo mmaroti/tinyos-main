@@ -24,11 +24,12 @@
 *                 defines.h file and linker-file code-segment definition for
 *                 the device you are compiling for.
 ****************************************************************************/
-#ifdef _ATMEGA1281
-  #define F_CPU 8000000
-#else
-  #define F_CPU 16000000
-#endif
+#define F_CPU 8000000
+// #ifdef _ATMEGA1281
+//   #define F_CPU 8000000
+// #else
+//   #define F_CPU 16000000
+// #endif
 
 #include "defines.h"
 #include "serial.h"
@@ -89,8 +90,10 @@ void exitbl(void){
 	  _delay_ms(100);
 	  PORTE&=~((1<<3)|(1<<5)|(1<<6)|(1<<7));
 	  #endif
-     }
-     funcptr();
+	}
+	CLKPR=1<<CLKPCE;
+	CLKPR=0xF;
+	funcptr();
 }
 
 int main(void)
@@ -103,6 +106,8 @@ int main(void)
     /* Initialization */   
     MCUSR = 0;
     wdt_disable();
+	CLKPR=1<<CLKPCE;
+	CLKPR=0;
     #ifdef _ATMEGA1281
     DDRA |= _BV(2);
     DDRA |= _BV(1);
@@ -116,7 +121,11 @@ int main(void)
     DDRE &= ~(_BV(PE4));    //make this pin input
     DDRB &= ~(_BV(PB7));    //make this pin input too
     #endif
-
+	#ifdef _ATMEGA1281
+	  PORTA|=(1<<0)|(1<<2);
+	  #else
+	  PORTE|=(1<<3)|(1<<7);
+	#endif
     initbootuart(); // Initialize UART.
     blinker = 0;
 
