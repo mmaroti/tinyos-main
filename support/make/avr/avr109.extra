@@ -23,8 +23,8 @@ ifeq ($(PROGRAMMER),avrdude)
 endif
 
 program: FORCE
-#	java org.szte.wsn.zigbit.Programmer -port $(AVR109) -baudrate $(BAUDRATE) -reset
-	java org.szte.wsn.zigbit.Programmer -port $(AVR109) -baudrate 57600 -reset
+	java org.szte.wsn.zigbit.Programmer -port $(AVR109) -baudrate $(BAUDRATE) -reset
+#	java org.szte.wsn.zigbit.Programmer -port $(AVR109) -baudrate 57600 -reset
 	@echo "    installing $(PLATFORM) binary using avr109"
 	$(PROGRAMMER) $(PROGRAMMER_FLAGS) $(PROGRAMMER_INSTALL_SREC_FLAGS)
 
