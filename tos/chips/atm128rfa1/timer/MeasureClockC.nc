@@ -110,6 +110,8 @@ implementation
 		  wraps_ok++;
 		} else{
 		  wraps_ok=0;
+		  prev_cycles_min=0xffff;
+		  prev_cycles_max=0;
 		}
 		wraps++;
 
