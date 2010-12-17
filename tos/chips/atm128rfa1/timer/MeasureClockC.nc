@@ -66,7 +66,8 @@ implementation
   enum {
     /* This is expected number of cycles per jiffy at the platform's
        specified MHz. Assumes PLATFORM_MHZ == 1, 2, 4, 8 or 16. */
-    MAGIC = 488 / (16 / PLATFORM_MHZ)
+    //MAGIC = 488 / (16 / PLATFORM_MHZ)
+    MAGIC = 31250 / (16 / PLATFORM_MHZ)
   };
 
   uint16_t cycles;
@@ -77,38 +78,43 @@ implementation
        with debugging on */
     atomic
       {
-	uint8_t now, wraps;
-	uint16_t start;
-
-	/* Setup timer2 to count 32 jiffies, and timer1 cpu cycles */
+	uint8_t wraps_ok=0;
+	uint8_t wraps=0;
+	uint16_t now;
+	uint16_t prev_cycles_min=0xffff;
+	uint16_t prev_cycles_max=0;
+	/* Setup timer2 to at 32768 Hz, and timer1 cpu cycles */
+	
 	TCCR1B = 1 << CS10;
 	ASSR = 1 << AS2;
-	TCCR2B = 1 << CS21 | 1 << CS20;
+	TCCR2B = 1 << CS20;
 
-	/* Wait for 1s for counter to stablilize after power-up (yes, it
-	   really does take that long). That's 122 wrap arounds of timer 1
-	   at 8MHz. */
-	start = TCNT1;
-	for (wraps = MAGIC / 2; wraps; )
-	  {
-	    uint16_t next = TCNT1;
+	// one wrap is 256/32768 = 1/128 sec
+	while( wraps_ok<10 && wraps<255)
+	{
+		while( TCNT2 != 0 )
+			;
+		now = TCNT1;
 
-	    if (next < start)
-	      wraps--;
-	    start = next;
-	  }
+		while( TCNT2 != 64 )	// wait 64/32768 = 1/512 sec
+			;
 
-	/* Wait for a TCNT0 change */
-	now = TCNT2;
-	while (TCNT2 == now) ;
+		cycles = TCNT1 - now;
+		
+		
+		if(prev_cycles_min<cycles)
+		  prev_cycles_min=cycles;
+		if(prev_cycles_max>cycles)
+		  prev_cycles_max=cycles;
+		
+		if(prev_cycles_max-prev_cycles_min<=10){
+		  wraps_ok++;
+		} else{
+		  wraps_ok=0;
+		}
+		wraps++;
 
-	/* Read cpu cycles and wait for next TCNT2 change */
-	start = TCNT1;
-	now = TCNT2;
-	while (TCNT2 == now) ;
-	cycles = TCNT1;
-
-	cycles = (cycles - start + 16) >> 5;
+	}
 
 	/* Reset to boot state */
 	ASSR = TCCR1B = TCCR2B = 0;
@@ -122,36 +128,36 @@ implementation
   }
 
   async command uint16_t Atm128Calibrate.cyclesPerJiffy() {
-    return cycles;
+    return cycles<<6;
   }
 
   async command uint32_t Atm128Calibrate.calibrateMicro(uint32_t n) {
-    return scale32(n + MAGIC / 2, cycles, MAGIC);
+    return scale32(n , cycles, MAGIC);
   }
 
   async command uint32_t Atm128Calibrate.actualMicro(uint32_t n) {
-    return scale32(n + (cycles >> 1), MAGIC, cycles);
+    return scale32(n, MAGIC, cycles);
   }
 
   async command uint8_t Atm128Calibrate.adcPrescaler() {
     /* This is also log2(cycles/3.05). But that's a pain to compute */
-    if (cycles >= 390)
+	if (cycles >= 24960)
       return ATM128_ADC_PRESCALE_128;
-    if (cycles >= 195)
+    if (cycles >= 12480)
       return ATM128_ADC_PRESCALE_64;
-    if (cycles >= 97)
+    if (cycles >= 6208)
       return ATM128_ADC_PRESCALE_32;
-    if (cycles >= 48)
+    if (cycles >= 3072)
       return ATM128_ADC_PRESCALE_16;
-    if (cycles >= 24)
+    if (cycles >= 1536)
       return ATM128_ADC_PRESCALE_8;
-    if (cycles >= 12)
+    if (cycles >= 768)
       return ATM128_ADC_PRESCALE_4;
     return ATM128_ADC_PRESCALE_2;
   }
 
   async command uint16_t Atm128Calibrate.baudrateRegister(uint32_t baudrate) {
-    // value is (cycles*32768) / (8*baudrate) - 1
-    return ((uint32_t)cycles << 12) / baudrate - 1;
+    // value is (cycles*512) / (8*baudrate) - 1
+    return ((uint32_t)cycles << 6) / baudrate - 1;
   }
 }
