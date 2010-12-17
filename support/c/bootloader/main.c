@@ -24,12 +24,7 @@
 *                 defines.h file and linker-file code-segment definition for
 *                 the device you are compiling for.
 ****************************************************************************/
-#define F_CPU 8000000
-// #ifdef _ATMEGA1281
-//   #define F_CPU 8000000
-// #else
-//   #define F_CPU 16000000
-// #endif
+
 
 #include "defines.h"
 #include "serial.h"
@@ -68,7 +63,7 @@ void status(int);
 #define BLOCKSIZE PAGESIZE
 
 #endif /* REMOVE_BLOCK_SUPPORT */
-#define TIMEOUT 30
+
 int timeout=TIMEOUT;
 
 void exitbl(void){
@@ -91,8 +86,6 @@ void exitbl(void){
 	  PORTE&=~((1<<3)|(1<<5)|(1<<6)|(1<<7));
 	  #endif
 	}
-	CLKPR=1<<CLKPCE;
-	CLKPR=0xF;
 	funcptr();
 }
 
@@ -107,7 +100,7 @@ int main(void)
     MCUSR = 0;
     wdt_disable();
 	CLKPR=1<<CLKPCE;
-	CLKPR=0;
+	CLKPR=0xf;
     #ifdef _ATMEGA1281
     DDRA |= _BV(2);
     DDRA |= _BV(1);

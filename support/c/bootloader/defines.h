@@ -5,6 +5,14 @@
 #define	_B4096	// boot size select: _Bxxxx (words), powers of two only
 #include	<avr/io.h>
 
+#define TIMEOUT 24
+#define SERIAL_TRY 80000
+
+#ifdef _ATMEGA1281
+  #define F_CPU 8000000
+#else
+  #define F_CPU 16000000
+#endif
 
 /* definitions for UART control */
 #ifdef _ATMEGA1281
