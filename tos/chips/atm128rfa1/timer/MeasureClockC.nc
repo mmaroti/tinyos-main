@@ -69,10 +69,13 @@ implementation
     MAGIC = 31250 / (16 / PLATFORM_MHZ)
   };
 
+  /**
+   * The number of MCU cycles per 64/32768 = 1/512 seconds. This value
+   * fits into 16-bits up to 33.5 MHz.
+   */
   uint16_t cycles;
 
   command error_t Init.init() {
-    /* Measure clock cycles per 64 Jiffy (64/32768s=1/512s) */
     /* This code doesn't use the HPL to avoid timing issues when compiling
        with debugging on */
     atomic
@@ -82,8 +85,8 @@ implementation
 	uint16_t now;
 	uint16_t prev_cycles_min=0xffff;
 	uint16_t prev_cycles_max=0;
+
 	/* Setup timer2 to at 32768 Hz, and timer1 cpu cycles */
-	
 	TCCR1B = 1 << CS10;
 	ASSR = 1 << AS2;
 	TCCR2B = 1 << CS20;
@@ -100,7 +103,6 @@ implementation
 
 		cycles = TCNT1 - now;
 		
-		
 		if(prev_cycles_min<cycles)
 		  prev_cycles_min=cycles;
 		if(prev_cycles_max>cycles)
@@ -113,8 +115,8 @@ implementation
 		  prev_cycles_min=0xffff;
 		  prev_cycles_max=0;
 		}
-		wraps++;
 
+		wraps++;
 	}
 
 	/* Reset to boot state */
@@ -129,7 +131,7 @@ implementation
   }
 
   async command uint16_t Atm128Calibrate.cyclesPerJiffy() {
-    return cycles<<6;
+    return cycles >> 6;
   }
 
   async command uint32_t Atm128Calibrate.calibrateMicro(uint32_t n) {
@@ -140,9 +142,11 @@ implementation
     return scale32(n, MAGIC, cycles);
   }
 
+  /**
+   * This is also log2(cycles/64*3.05). But that's a pain to compute
+   */
   async command uint8_t Atm128Calibrate.adcPrescaler() {
-    /* This is also log2(cycles/64*3.05). But that's a pain to compute */
-	if (cycles >= 24960)
+    if (cycles >= 24960)
       return ATM128_ADC_PRESCALE_128;
     if (cycles >= 12480)
       return ATM128_ADC_PRESCALE_64;
@@ -157,8 +161,13 @@ implementation
     return ATM128_ADC_PRESCALE_2;
   }
 
+  /**
+   * The baudrate must be a multiple of 64 (this holds for all commonly
+   * used baud rates starting from 4800). The actual formula is
+   *
+   *   reg = (cycles * 512) / (8 * baudrate) - 1
+   */
   async command uint16_t Atm128Calibrate.baudrateRegister(uint32_t baudrate) {
-    // value is (cycles*512) / (8*baudrate) - 1
-    return ((uint32_t)cycles << 6) / baudrate - 1;
+    return cycles / (baudrate >> 6) - 1;
   }
 }
