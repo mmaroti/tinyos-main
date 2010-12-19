@@ -54,6 +54,7 @@ protected:
 
 private slots:
         void onSolverRunning();
+        void onShowLogDialog();
 
 private:
 	Ui::MainWindow *ui;

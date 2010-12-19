@@ -35,7 +35,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>7</number>
       </property>
       <widget class="QWidget" name="connectTab">
        <attribute name="title">
@@ -94,6 +94,12 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_6"/>
       </widget>
+      <widget class="QWidget" name="logTab">
+       <attribute name="title">
+        <string>Log</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_8"/>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -104,7 +110,7 @@
      <x>0</x>
      <y>0</y>
      <width>568</width>
-     <height>24</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -134,9 +140,17 @@
     <addaction name="actionExport"/>
     <addaction name="actionClear"/>
    </widget>
+   <widget class="QMenu" name="menuLog">
+    <property name="title">
+     <string>Log</string>
+    </property>
+    <addaction name="actionAdd_entry"/>
+    <addaction name="actionView_log"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuCalibration"/>
+   <addaction name="menuLog"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionLoad">
@@ -192,6 +206,16 @@
   <action name="actionDo_regression">
    <property name="text">
     <string>Do Regression</string>
+   </property>
+  </action>
+  <action name="actionAdd_entry">
+   <property name="text">
+    <string>Add entry</string>
+   </property>
+  </action>
+  <action name="actionView_log">
+   <property name="text">
+    <string>View log</string>
    </property>
   </action>
  </widget>

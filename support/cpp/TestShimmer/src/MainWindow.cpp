@@ -44,6 +44,8 @@
 #include "Widget3D.h"
 #include "window.h"
 #include "SDataWidget.h"
+#include "LogDialog.h"
+#include "LogWidget.h"
 
 // FIXME Eliminate this hideous workaround
 extern DataRecorder* dr;
@@ -65,6 +67,9 @@ MainWindow::MainWindow(QWidget *parent) :
 //	ui->openglTab->layout()->addWidget(widget3d);
         ui->tabWidget->removeTab(5);    //temporarly hidden
 
+        LogWidget* logWidget = new LogWidget(ui->logTab, app);
+        ui->logTab->layout()->addWidget(logWidget);
+
         SDataWidget* sddataWidget = new SDataWidget(ui->sdataTab, app);
         ui->sdataTab->layout()->addWidget(sddataWidget);
 
@@ -80,6 +85,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	ConsoleWidget* consoleWidget = new ConsoleWidget(ui->consoleTab, app);
 	ui->consoleTab->layout()->addWidget(consoleWidget);
+
+        connect(ui->actionAdd_entry, SIGNAL(triggered()), this, SLOT(onShowLogDialog()) );
 
 	statusBar()->showMessage("Started.");
 
@@ -145,3 +152,8 @@ void MainWindow::onSolverRunning()
 
 }
 
+void MainWindow::onShowLogDialog()
+{
+    LogDialog dial;
+    dial.exec();
+}

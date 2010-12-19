@@ -380,3 +380,5 @@ void SDataWidget::on_showLastTencBox_clicked()
         initLeft(false);
     }
 }
+
+

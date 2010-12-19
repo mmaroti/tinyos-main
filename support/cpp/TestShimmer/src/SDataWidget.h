@@ -8,6 +8,16 @@
 #include <QTreeWidget>
 #include "DownloadManager.hpp"
 
+class TreeWidgetItem : public QTreeWidgetItem {
+public:
+   TreeWidgetItem(QTreeWidget* parent):QTreeWidgetItem(parent){}
+private:
+   bool operator<(const QTreeWidgetItem &other)const {
+       int column = treeWidget()->sortColumn();
+       return text(column).toLower() < other.text(column).toLower();
+    }
+};
+
 class Application;
 
 namespace Ui {
