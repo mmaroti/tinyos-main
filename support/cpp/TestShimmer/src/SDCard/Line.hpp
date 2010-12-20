@@ -31,14 +31,44 @@
 *      Author: Ali Baharev
 */
 
-#ifndef TIMESYNCCONSTS_HPP_
-#define TIMESYNCCONSTS_HPP_
+#ifndef LINE_HPP_
+#define LINE_HPP_
+
+#include <iosfwd>
+#include <string>
 
 namespace sdc {
 
-const int TIMESYNC_MSG_RATE = 10240;
-const int OFFSET_TOLERANCE = 9;
+class Line {
+
+public:
+
+	explicit Line(const std::string& line);
+
+	Line(int first, int last, int reboot_id, unsigned int time_len);
+
+	void consistent_with(const Line& previous) const;
+
+	int start_at_block() const;
+
+	int finished_at_block() const;
+
+	int reboot_id() const;
+
+	const std::string& download_date() const;
+
+	friend std::ostream& operator<<(std::ostream& , const Line& );
+
+private:
+
+	int first_block;
+	int last_block;
+	int reboot;
+	std::string time_length;
+	std::string date;
+
+};
 
 }
 
-#endif /* TIMESYNCCONSTS_HPP_ */
+#endif /* LINE_HPP_ */

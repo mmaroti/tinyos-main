@@ -49,6 +49,8 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& , const RecordPairID& );
 
+	const std::string toFilenameString() const;
+
 private:
 
 	RecordID id1;

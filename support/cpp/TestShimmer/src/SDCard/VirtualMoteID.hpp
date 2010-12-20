@@ -56,6 +56,8 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& , const VirtualMoteID& );
 
+	friend std::istream& operator>>(std::istream& , VirtualMoteID& );
+
 	friend bool operator==(const VirtualMoteID& lhs, const VirtualMoteID& rhs);
 
 private:

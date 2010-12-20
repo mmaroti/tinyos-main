@@ -38,6 +38,7 @@
 #include "BlockRelatedConsts.hpp"
 #include "BlockChecker.hpp"
 #include "Console.hpp"
+#include "MoteRegistrar.hpp"
 #include "Writer.hpp"
 #include "Tracker.hpp"
 
@@ -53,6 +54,8 @@ SDCardImpl::SDCardImpl(BlockDevice* source)
 	reboot_seq_num = 0;
 
 	init_tracker();
+
+	MoteRegistrar(tracker->mote_id(), device->end());
 
 	check.reset(new BlockChecker(tracker->mote_id()));
 }

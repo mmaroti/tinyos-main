@@ -40,27 +40,65 @@
 
 namespace sdc {
 
+class MoteID_Size {
+
+public:
+
+	MoteID_Size();
+
+	MoteID_Size(int mote_id, int size_in_blocks);
+
+	int mote_id() const;
+
+	int size_in_blocks() const;
+
+	friend std::istream& operator>>(std::istream& , MoteID_Size& );
+
+private:
+
+	int id;
+
+	int end;
+};
+
+std::ostream& operator<<(std::ostream& , const MoteID_Size& );
+
 class MoteRegistrar {
 
 public:
 
-	explicit MoteRegistrar(int mote_id);
+	MoteRegistrar(int mote_id, int size_in_blocks);
 
 	~MoteRegistrar();
 
+	static const std::vector<MoteID_Size> existing_ids();
+
 private:
 
-	bool read_all_existing_ids();
+	MoteRegistrar(const MoteRegistrar& );
+	MoteRegistrar& operator=(const MoteRegistrar& );
 
-	bool read_file_content();
+	void push_back();
+
+	void read_all_existing_ids();
+
+	void read_file_content();
+
+	void check_size(const MoteID_Size& current) const;
+
+	void process(MoteID_Size& previous, const MoteID_Size& current);
 
 	void register_id();
 
 	const int mote_ID;
 
+	const int size_in_blocks;
+
 	const std::auto_ptr<std::fstream> db;
 
-	std::vector<int> ids;
+	std::vector<MoteID_Size> motes;
+
+	bool new_id;
 };
 
 }

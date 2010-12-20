@@ -31,14 +31,90 @@
 *      Author: Ali Baharev
 */
 
-#ifndef TIMESYNCCONSTS_HPP_
-#define TIMESYNCCONSTS_HPP_
+#include <iomanip>
+#include <ostream>
+#include <sstream>
+#include <stdexcept>
+#include "Line.hpp"
+#include "Utility.hpp"
+
+using namespace std;
 
 namespace sdc {
 
-const int TIMESYNC_MSG_RATE = 10240;
-const int OFFSET_TOLERANCE = 9;
+typedef istringstream iss;
 
+Line::Line(const string& line) {
+
+	iss in(line);
+
+	in.exceptions(iss::failbit | iss::badbit);
+
+	in >> first_block;
+	in >> last_block;
+	in >> reboot;
+
+	if (first_block < 0 || first_block > last_block || reboot < 1) {
+		throw runtime_error("corrupted line");
+	}
+
+	in >> time_length;
+
+	string computed_length_skipped;
+	in >>  computed_length_skipped;
+	in.get();
+
+	getline(in, date);
 }
 
-#endif /* TIMESYNCCONSTS_HPP_ */
+Line::Line(int first, int last, int reboot_id, unsigned int time_len)
+	: date(current_time())
+{
+	first_block = first;
+	last_block  = last;
+	reboot      = reboot_id;
+	time_length = ticks2time(time_len);
+}
+
+void Line::consistent_with(const Line& previous) const {
+
+	if ((first_block != previous.last_block+1) ||
+		(reboot      != previous.reboot   +1) )
+	{
+		throw runtime_error("corrupted database");
+	}
+}
+
+int Line::start_at_block() const {
+
+	return first_block;
+}
+
+int Line::finished_at_block() const {
+
+	return last_block;
+}
+
+int Line::reboot_id() const {
+
+	return reboot;
+}
+
+const string& Line::download_date() const {
+
+	return date;
+}
+
+ostream& operator<<(ostream& out, const Line& line) {
+
+	out << setw(7) << right << line.first_block << '\t';
+	out << setw(7) << right << line.last_block  << '\t';
+	out << setw(3) << right << line.reboot      << '\t';
+	out <<                     line.time_length << '\t';
+	out << recorded_length(line.first_block, line.last_block) << '\t';
+	out << line.date;
+
+	return out;
+}
+
+}

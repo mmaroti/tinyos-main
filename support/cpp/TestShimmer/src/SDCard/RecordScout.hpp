@@ -31,14 +31,53 @@
 *      Author: Ali Baharev
 */
 
-#ifndef TIMESYNCCONSTS_HPP_
-#define TIMESYNCCONSTS_HPP_
+#ifndef RECORDSCOUT_HPP_
+#define RECORDSCOUT_HPP_
+
+#include <string>
+#include <utility>
+#include <vector>
+#include "Line.hpp"
+#include "MoteInfo.hpp"
+#include "TimeSyncDB.hpp"
 
 namespace sdc {
 
-const int TIMESYNC_MSG_RATE = 10240;
-const int OFFSET_TOLERANCE = 9;
+class RecordScout {
+
+public:
+
+	void read_all_existing();
+
+	void dump_all() const;
+
+private:
+
+	void clear();
+
+	void read_mote_rdb();
+
+	void push_line(const std::string& buffer);
+
+	void push_back();
+
+	void dump_header(const MoteInfo& moteinfo) const;
+
+	void dump_mote(int, const std::vector<Line>& ) const;
+
+	std::vector<Line> records;
+
+	int mote_id;
+
+	int card_size_in_blocks;
+
+	std::vector<std::pair<int, std::vector<Line> > > db;
+
+	std::vector<MoteInfo> header;
+
+	TimeSyncDB mote_date_online;
+};
 
 }
 
-#endif /* TIMESYNCCONSTS_HPP_ */
+#endif /* RECORDSCOUT_HPP_ */

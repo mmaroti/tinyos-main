@@ -31,6 +31,7 @@
 *      Author: Ali Baharev
 */
 
+#include <iomanip>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
@@ -66,6 +67,16 @@ const string RecordID::str() const {
 	ostringstream os;
 
 	os << *this << flush;
+
+	return os.str();
+}
+
+const string RecordID::toFilenameString() const {
+
+	ostringstream os;
+
+	os << 'm' << setw(2) << setfill('0') << mote_ID;
+	os << 'r' << setw(3) << setfill('0') << reboot_ID << flush;
 
 	return os.str();
 }

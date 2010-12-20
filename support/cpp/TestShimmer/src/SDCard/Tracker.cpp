@@ -32,11 +32,10 @@
 */
 
 #include <fstream>
-#include <iomanip>
-#include <sstream>
 #include "Tracker.hpp"
 #include "BlockIterator.hpp"
 #include "Header.hpp"
+#include "Line.hpp"
 #include "Utility.hpp"
 
 using namespace std;
@@ -50,21 +49,11 @@ void Tracker::set_filename(int mote_ID) {
 
 void Tracker::process_last_line(const string& line) {
 
-	istringstream is(line);
+	Line last_record(line);
 
-	is.exceptions(istringstream::failbit | istringstream::badbit);
+	first_block = last_record.finished_at_block()+1;
 
-	int begin, end, reboot;
-
-	is >> begin;
-
-	is >> end;
-
-	is >> reboot;
-
-	first_block = end+1;
-
-	reboot_id = reboot;
+	reboot_id = last_record.reboot_id();
 }
 
 void Tracker::find_last_line(ifstream& in) {
@@ -137,12 +126,7 @@ void Tracker::mark_beginning(int block_beg, int reboot) {
 
 void Tracker::append_to_db(int last_block, unsigned int time_len) {
 	
-	*db << setw(7) << right << first_block << '\t';
-	*db << setw(7) << right << last_block  << '\t';
-	*db << setw(3) << right << reboot_id   << '\t';
-	*db << ticks2time(time_len) << '\t';
-	*db << recorded_length(first_block, last_block) << '\t';
-	*db << current_time() << flush;
+	*db << Line(first_block, last_block, reboot_id, time_len) << flush;
 }
 
 Tracker::~Tracker() {

@@ -31,14 +31,52 @@
 *      Author: Ali Baharev
 */
 
-#ifndef TIMESYNCCONSTS_HPP_
-#define TIMESYNCCONSTS_HPP_
+#include <ostream>
+#include "MoteInfo.hpp"
+#include "BlockRelatedConsts.hpp"
+#include "Utility.hpp"
+
+using namespace std;
 
 namespace sdc {
 
-const int TIMESYNC_MSG_RATE = 10240;
-const int OFFSET_TOLERANCE = 9;
+MoteInfo::MoteInfo() {
 
+	mote_ID = -1;
 }
 
-#endif /* TIMESYNCCONSTS_HPP_ */
+MoteInfo::MoteInfo(int mote, double size, int last_block, const string& date) {
+
+	mote_ID = mote;
+
+	double card_size_GB = (size*BLOCK_SIZE)/GB();
+
+	hours_remaining = sdc::remaining_hours(card_size_GB, last_block);
+
+	last_seen = date;
+}
+
+int MoteInfo::mote_id() const {
+
+	return mote_ID;
+}
+
+const string MoteInfo::last_download() const {
+
+	return last_seen;
+}
+
+const string MoteInfo::remaining_hours() const {
+
+	return hours_remaining;
+}
+
+std::ostream& operator<<(std::ostream& out, const MoteInfo& m) {
+
+	out << m.mote_id() << '\t' << m.remaining_hours() << " hours remaining\t";
+	out << "last download on " << m.last_download();
+
+	return out;
+}
+
+}

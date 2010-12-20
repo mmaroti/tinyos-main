@@ -31,14 +31,54 @@
 *      Author: Ali Baharev
 */
 
-#ifndef TIMESYNCCONSTS_HPP_
-#define TIMESYNCCONSTS_HPP_
+#ifndef TIMESYNCDB_HPP_
+#define TIMESYNCDB_HPP_
+
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <string>
+#include "VirtualMoteID.hpp"
 
 namespace sdc {
 
-const int TIMESYNC_MSG_RATE = 10240;
-const int OFFSET_TOLERANCE = 9;
+class TimeSyncDB {
+
+typedef std::map<VirtualMoteID, std::string> Map;
+typedef std::pair<Map::iterator, bool> Pair;
+
+public:
+
+	TimeSyncDB() { }
+
+	void read_all();
+
+	const std::string date(const VirtualMoteID& vmote_id) const;
+
+	void dump() const;
+
+	~TimeSyncDB();
+
+private:
+
+	TimeSyncDB(const TimeSyncDB& );
+	TimeSyncDB& operator=(const TimeSyncDB& );
+
+	void grab_line();
+
+	void parse_line();
+
+	void parse();
+
+	void push();
+
+	std::auto_ptr<std::ifstream> in;
+	Map motes;
+	VirtualMoteID vmote_id;
+	std::string date_seen;
+	std::string line;
+};
 
 }
 
-#endif /* TIMESYNCCONSTS_HPP_ */
+#endif /* TIMESYNCDB_HPP_ */

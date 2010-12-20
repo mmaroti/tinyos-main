@@ -32,10 +32,7 @@
 */
 
 #include <iostream>
-#include <iomanip>
 #include "Console.hpp"
-#include "BlockRelatedConsts.hpp"
-#include "Constants.hpp"
 #include "Utility.hpp"
 
 using namespace std;
@@ -44,8 +41,7 @@ namespace sdc {
 
 void Console::start(double card_size, int mote_id, int first_block, int reboot) {
 
-	cout << "Card size is ";
-	cout << setprecision(2) << fixed << card_size << " GB" << endl;
+	cout << "Card size is " << double2str_2decimals(card_size) << " GB" << endl;
 	cout << "Mote ID: " << mote_id << endl;
 	cout << "Starting at block " << first_block << ", ";
 	cout << "previous reboot sequence number is " << reboot << endl;
@@ -54,22 +50,9 @@ void Console::start(double card_size, int mote_id, int first_block, int reboot) 
 
 void Console::finished(double card_size, int last_block) {
 
-	const unsigned int GB = 1 << 30;
-
-	const double used_bytes = last_block*BLOCK_SIZE ;
-
-	const double used_GB = used_bytes/GB;
-
-	const double remaining = card_size-used_GB;
-
-	const double remaining_blocks = (remaining/BLOCK_SIZE*GB);
-
-	const double remaining_samples = remaining_blocks*MAX_SAMPLES;
-
-	const double remaining_sec = (remaining_samples*SAMPLING_RATE)/TICKS_PER_SEC;
-
-	cout << "Remaining " << remaining << " GB, approximately ";
-	cout << setprecision(2) << fixed << remaining_sec/3600 << " hours" << endl;
+	cout << "Remaining "     << remaining_GB(card_size, last_block) << " GB, ";
+	cout << "approximately " << remaining_hours(card_size, last_block);
+	cout << " hours" << endl;
 	cout << "Finished!" << endl;
 }
 

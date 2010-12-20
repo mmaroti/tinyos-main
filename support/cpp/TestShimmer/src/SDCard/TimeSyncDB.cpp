@@ -31,55 +31,120 @@
 *      Author: Ali Baharev
 */
 
-#include <ostream>
-#include <string>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 #include <stdexcept>
-#include "RecordPairID.hpp"
+#include "TimeSyncDB.hpp"
+#include "Constants.hpp"
 
 using namespace std;
 
+typedef istringstream iss;
+typedef ostringstream oss;
+
 namespace sdc {
 
-RecordPairID::RecordPairID(const RecordID& rid1, const RecordID& rid2) {
+void TimeSyncDB::read_all() {
 
-	if (rid1 == rid2) {
+	motes.clear();
 
-		string msg("record cannot be in pair with itself, ");
+	in.reset(new ifstream(MOTE_DATE_DB));
 
-		msg.append(rid1.str());
+	if (in->good()) {
 
-		throw logic_error(msg);
+		grab_line();
 	}
 
-	if (rid1 < rid2) {
+	in.reset();
+}
 
-		id1 = rid1, id2 = rid2;
-	}
-	else {
+void TimeSyncDB::grab_line() {
 
-		id1 = rid2, id2 = rid1;
+	while (in->good()) {
+
+		line.clear();
+
+		getline(*in, line);
+
+		if (line.size()==0) {
+
+			break;
+		}
+
+		parse_line();
+
+		push();
 	}
 }
 
-bool operator<(const RecordPairID& lhs, const RecordPairID& rhs) {
+void TimeSyncDB::parse_line() {
 
-	return lhs.id1!=rhs.id1 ? lhs.id1 < rhs.id1 : lhs.id2 < rhs.id2;
+	try {
+
+		parse();
+	}
+	catch(ios_base::failure& ) {
+
+		oss os;
+
+		os << "failed to parse \"" << line << "\" in " << MOTE_DATE_DB << flush;
+
+		throw runtime_error(os.str());
+	}
 }
 
-ostream& operator<<(ostream& out, const RecordPairID& id) {
+void TimeSyncDB::parse() {
 
-	out << "record pair: " << id.id1 << " and " << id.id2;
+	iss ss(line);
 
-	return out;
+	ss.exceptions(iss::failbit | iss::badbit);
+
+	ss >> vmote_id;
+
+	unsigned int dummy_mote_time;
+
+	ss >> dummy_mote_time;
+
+	ss.get();
+
+	getline(ss, date_seen);
 }
 
-const string RecordPairID::toFilenameString() const {
+void TimeSyncDB::push() {
 
-	string s(id1.toFilenameString());
-	s.append(1, '_');
-	s.append(id2.toFilenameString());
+	Pair result = motes.insert(make_pair(vmote_id, date_seen));
 
-	return s;
+	if (result.second == false) {
+
+		const string& date = result.first->second;
+
+		cout << "Warning: duplicate " << vmote_id << ", only ";
+		cout << date << " is kept" << endl;
+	}
+}
+
+const string TimeSyncDB::date(const VirtualMoteID& vmote) const {
+
+	Map::const_iterator i = motes.find(vmote);
+
+	return (i!=motes.end()) ? i->second : string();
+}
+
+void TimeSyncDB::dump() const {
+
+	Map::const_iterator i = motes.begin();
+
+	cout << "---------------------------------------------------------" << endl;
+
+	while (i!=motes.end()) {
+
+		cout << i->first << '\t' << i->second << endl;
+	}
+}
+
+TimeSyncDB::~TimeSyncDB() {
+	// Do NOT remove this empty dtor: required to generate the dtor of auto_ptr
 }
 
 }

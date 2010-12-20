@@ -31,7 +31,7 @@
 *      Author: Ali Baharev
 */
 
-#include <ostream>
+#include <iostream>
 #include <stdexcept>
 #include "VirtualMoteID.hpp"
 #include "TimeSyncInfo.hpp"
@@ -79,6 +79,14 @@ ostream& operator<<(ostream& out, const VirtualMoteID& id) {
 	out << "mote id " << id.mote_ID << ", first block " << id.start_at_block << flush;
 
 	return out;
+}
+
+istream& operator>>(istream& in, VirtualMoteID& vmote) {
+
+	in >> vmote.mote_ID;
+	in >> vmote.start_at_block;
+
+	return in;
 }
 
 bool operator==(const VirtualMoteID& lhs, const VirtualMoteID& rhs) {

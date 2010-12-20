@@ -31,14 +31,42 @@
 *      Author: Ali Baharev
 */
 
-#ifndef TIMESYNCCONSTS_HPP_
-#define TIMESYNCCONSTS_HPP_
+#ifndef MOTEINFO_HPP_
+#define MOTEINFO_HPP_
+
+#include <iosfwd>
+#include <string>
 
 namespace sdc {
 
-const int TIMESYNC_MSG_RATE = 10240;
-const int OFFSET_TOLERANCE = 9;
+class MoteInfo {
+
+public:
+
+	MoteInfo();
+
+	MoteInfo(int    mote,
+			 double card_size_in_blocks,
+			 int    last_block,
+			 const  std::string& last_download);
+
+	int mote_id() const;
+
+	const std::string last_download() const;
+
+	const std::string remaining_hours() const;
+
+private:
+
+	int mote_ID;
+
+	std::string hours_remaining;
+
+	std::string last_seen;
+};
+
+std::ostream& operator<<(std::ostream& , const MoteInfo& );
 
 }
 
-#endif /* TIMESYNCCONSTS_HPP_ */
+#endif /* MOTEINFO_HPP_ */

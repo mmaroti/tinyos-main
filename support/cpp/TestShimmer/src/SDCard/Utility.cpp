@@ -41,11 +41,13 @@
 
 using namespace std;
 
+typedef ostringstream oss;
+
 namespace sdc {
 
 const string ticks2time(unsigned int t) {
 
-	ostringstream os;
+	oss os;
 
 	unsigned int hour, min, sec, milli;
 
@@ -77,7 +79,7 @@ const string current_time() {
 
 const string get_filename(int mote_id, int reboot_id, int first_block) {
 
-	ostringstream os;
+	oss os;
 
 	os << 'm' << setfill('0') << setw(3) << mote_id << '_';
 	os << 'r' << setfill('0') << setw(3) << reboot_id << '_';
@@ -118,6 +120,47 @@ const string recorded_length(int first_block, int last_block) {
 	return ticks2time(length);
 }
 
+double remaining_GB_(double card_size, int last_block) {
+
+	double used_bytes = last_block*BLOCK_SIZE ;
+
+	double used_GB = used_bytes/GB();
+
+	return card_size-used_GB;
+}
+
+double remaining_hours_(double card_size, int last_block) {
+
+	double remaining = remaining_GB_(card_size, last_block);
+
+	double remaining_blocks = (remaining/BLOCK_SIZE*GB());
+
+	double remaining_samples = remaining_blocks*MAX_SAMPLES;
+
+	double remaining_sec = (remaining_samples*SAMPLING_RATE)/TICKS_PER_SEC;
+
+	return remaining_sec/3600;
+}
+
+const string double2str_2decimals(double x) {
+
+	oss os;
+
+	os << setprecision(2) << fixed << x << flush;
+
+	return os.str();
+}
+
+const string remaining_GB(double card_size, int last_block) {
+
+	return double2str_2decimals( remaining_GB_(card_size, last_block) );
+}
+
+const string remaining_hours(double card_size, int last_block) {
+
+	return double2str_2decimals( remaining_hours_(card_size, last_block) );
+}
+
 int round(double x) {
 
 	return static_cast<int> (floor(x+0.5));
@@ -132,7 +175,7 @@ int recorded_length_in_ms(int first_block, int last_block) {
 
 const string failed_to_read_block(int i) {
 
-	ostringstream os;
+	oss os;
 
 	os << "Failed to read block " << i << flush;
 
@@ -142,7 +185,7 @@ const string failed_to_read_block(int i) {
 
 const std::string rdb_file_name(int mote_id) {
 
-	ostringstream os;
+	oss os;
 
 	os << 'm' << setfill('0') << setw(3) << mote_id << ".rdb" << flush;
 
@@ -151,11 +194,18 @@ const std::string rdb_file_name(int mote_id) {
 
 const std::string int2str(int i) {
 
-	ostringstream os;
+	oss os;
 
 	os << i << flush;
 
 	return os.str();
+}
+
+unsigned int GB() {
+
+	unsigned int one = 1;
+
+	return (one << 30);
 }
 
 }

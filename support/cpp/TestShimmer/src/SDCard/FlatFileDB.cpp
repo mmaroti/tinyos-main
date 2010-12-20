@@ -34,61 +34,14 @@
 #include <iostream>
 #include <algorithm>
 #include <fstream>
-#include <sstream>
 #include <stdexcept>
 #include "FlatFileDB.hpp"
+#include "Line.hpp"
 #include "Utility.hpp"
 
 using namespace std;
 
 namespace sdc {
-
-typedef istringstream iss;
-
-class Line {
-
-public:
-
-	explicit Line(const string& line);
-	Line(int first, int last, int reboot_id)
-		: first_block(first), last_block(last), reboot(reboot_id) { }
-
-	void consistent_with(const Line& previous) const;
-
-	int start_at_block() const { return first_block; }
-
-	int finished_at_block() const { return last_block; }
-
-private:
-
-	int first_block;
-	int last_block;
-	int reboot;
-};
-
-Line::Line(const string& line) {
-
-	iss in(line);
-
-	in.exceptions(iss::failbit | iss::badbit | iss::eofbit);
-
-	in >> first_block;
-	in >> last_block;
-	in >> reboot;
-
-	if (first_block < 0 || first_block > last_block || reboot < 1) {
-		throw runtime_error("corrupted line");
-	}
-}
-
-void Line::consistent_with(const Line& previous) const {
-
-	if ((first_block != previous.last_block+1) ||
-		(reboot      != previous.reboot   +1) )
-	{
-		throw runtime_error("corrupted database");
-	}
-}
 
 FlatFileDB::FlatFileDB(int mote_ID) : mote_id(mote_ID) {
 
@@ -133,7 +86,7 @@ void FlatFileDB::throw_not_downloaded_error() const {
 
 int FlatFileDB::read_file(std::ifstream& in) {
 
-	Line previous(0, -1, 0);
+	Line previous(0, -1, 0, 0);
 
 	while (in.good()) {
 

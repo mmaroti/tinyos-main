@@ -49,6 +49,8 @@ public:
 
 	const std::string str() const;
 
+	const std::string toFilenameString() const;
+
 	friend bool operator<(const RecordID& lhs, const RecordID& rhs);
 
 	friend bool operator==(const RecordID& lhs, const RecordID& rhs);

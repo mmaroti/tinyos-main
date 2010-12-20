@@ -48,6 +48,10 @@ const std::string time_to_filename(); // TODO Do we need this function?
 
 const std::string recorded_length(int first_block, int last_block);
 
+const std::string remaining_GB(double card_size_GB, int last_block);
+
+const std::string remaining_hours(double card_size_GB, int last_block);
+
 int round(double x);
 
 int recorded_length_in_ms(int first_block, int last_block);
@@ -57,6 +61,10 @@ const std::string failed_to_read_block(int i);
 const std::string rdb_file_name(int mote_id);
 
 const std::string int2str(int i);
+
+const std::string double2str_2decimals(double x);
+
+unsigned int GB();
 
 }
 

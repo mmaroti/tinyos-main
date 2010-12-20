@@ -72,10 +72,7 @@ Win32BlockDevice::Win32BlockDevice(const char* source) : buffer(new char[BLOCK_S
 
 	BLOCK_OFFSET_MAX = size_in_bytes/BLOCK_SIZE;
 
-	const unsigned int one = 1;
-	const unsigned int GB = one << 30;
-
-	card_size = static_cast<double>(size_in_bytes)/GB;
+	card_size = static_cast<double>(size_in_bytes)/GB();
 }
 
 int Win32BlockDevice::end() const {

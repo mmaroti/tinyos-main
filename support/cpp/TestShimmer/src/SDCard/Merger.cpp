@@ -127,7 +127,7 @@ void Merger::init_for_mote2() {
 
 	vmote2 = vmote;
 
-	cout << "-----------------------------------------------------" << endl;
+	cout << "---------------------------------------------------------" << endl;
 	cout << "Found: " << vmote2 << endl;
 }
 
@@ -359,7 +359,8 @@ void Merger::log_size_before_merge() const {
 
 	int estimated_msg = round(length/TIMESYNC_MSG_RATE);
 
-	cout << "Estimated: " << estimated_msg << " / mote" << endl;
+	cout << "Estimated / mote:  " << estimated_msg << " (symmetry, ";
+	cout << "no msg loss)" << endl;
 
 	unsigned int max_expected = estimated_msg + 1;
 
