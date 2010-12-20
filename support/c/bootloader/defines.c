@@ -57,6 +57,6 @@ int baudrateRegister(uint32_t baudrate) {
 	init();
 
 	// we use the fast setting: (cycles * 512) / (8 * baudrate) - 1
-	return (((uint32_t)cycles) << 6) / ((uint32_t)baudrate) - 1;
+	return cycles / (baudrate >> 6) - 1;
 }
 
