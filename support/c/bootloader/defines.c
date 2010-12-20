@@ -1,14 +1,14 @@
 //#include "util/delay.h"
 #include "defines.h"
 #define MATCHES 10
-#define MAXERROR 5
+#define MAXERROR 2
 // number of CPU cycles per 1/512 sec
 uint16_t cycles;
 
 /* Measure clock cycles per Jiffy (1/32768s) */
 void init() {
 	uint8_t wraps_ok=0;
-	uint8_t wraps=0;
+	uint8_t wraps=255;
 	uint16_t now;
 	uint16_t prev_cycles_min=0xffff;
 	uint16_t prev_cycles_max=0;
@@ -19,7 +19,7 @@ void init() {
 	TCCR2B = 1 << CS20;
 
 	// one wrap is 256/32768 = 1/128 sec
-	while( wraps_ok<MATCHES && wraps<255)
+	while( wraps_ok<MATCHES && --wraps != 255)
 	{
 		while( TCNT2 != 0 )
 			;
@@ -43,7 +43,6 @@ void init() {
 		  prev_cycles_min=0xffff;
 		  prev_cycles_max=0;
 		}
-		wraps++;
 
 	}
 
