@@ -34,8 +34,7 @@
 #ifndef TIMESYNCMSGRECEIVER_HPP
 #define TIMESYNCMSGRECEIVER_HPP
 
-#include <map>
-#include <string>
+#include <set>
 #include <QMutex>
 #include <QObject>
 #include "VirtualMoteID.hpp"
@@ -59,9 +58,9 @@ private:
     TimeSyncMsgReceiver(const TimeSyncMsgReceiver& );
     TimeSyncMsgReceiver& operator=(const TimeSyncMsgReceiver& );
 
-    QMutex mapLock;
+    QMutex setLock;
 
-    std::map<sdc::VirtualMoteID, std::string> motes;
+    std::set<sdc::VirtualMoteID> motes;
 };
 
 #endif // TIMESYNCMSGRECEIVER_HPP

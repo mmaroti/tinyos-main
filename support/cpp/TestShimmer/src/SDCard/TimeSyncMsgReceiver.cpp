@@ -44,14 +44,15 @@
 using namespace std;
 using namespace sdc;
 
-typedef map<VirtualMoteID, string> Map;
-typedef pair<Map::iterator, bool > Pair;
+typedef set<VirtualMoteID> Set;
+typedef pair<Set::iterator, bool > Pair;
+typedef unsigned int uint;
 
 class InsertTask : public QRunnable {
 
 public:
 
-    InsertTask(QMutex* mutex, Map& motemap, const VirtualMoteID& id);
+    InsertTask(QMutex* mutex, Set& moteids, const VirtualMoteID& id, uint time);
 
     virtual void run();
 
@@ -59,30 +60,30 @@ private:
 
     void dumpToFile(const string& date);
 
-    QMutex* mapLock;
+    QMutex* setLock;
 
-    Map& motes;
+    Set& motes;
 
     const VirtualMoteID vmote_id;
+
+    const uint mote_time;
 };
 
-InsertTask::InsertTask(QMutex* mutex, Map& motemap, const VirtualMoteID& id)
-    : mapLock(mutex), motes(motemap), vmote_id(id)
+InsertTask::InsertTask(QMutex* mutex, Set& moteids, const VirtualMoteID& id, uint time)
+    : setLock(mutex), motes(moteids), vmote_id(id), mote_time(time)
 {
 
 }
 
 void InsertTask::run() {
 
-    QMutexLocker lock(mapLock);
+    QMutexLocker lock(setLock);
 
-    string date = current_time();
-
-    Pair result = motes.insert(make_pair(vmote_id, date));
+    Pair result = motes.insert(vmote_id);
 
     if (result.second==true) {
 
-        dumpToFile(date);
+        dumpToFile(current_time());
     }
 }
 
@@ -90,11 +91,11 @@ void InsertTask::dumpToFile(const string& date) {
 
     extern const QString* rootDirPath;
 
-    QString name(*rootDirPath);
+    QString db_filename(*rootDirPath);
 
-    name.append("rec/motes.ddb"); // FIXME Move to constants?
+    db_filename.append("rec/motes.ddb"); // FIXME Move to constants?
 
-    QFile file(name);
+    QFile file(db_filename);
 
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) {
         //qDebug() << "Failed to open file: " << name;
@@ -103,7 +104,8 @@ void InsertTask::dumpToFile(const string& date) {
 
     QTextStream out(&file);
 
-    out << vmote_id.mote_id() << '\t' << vmote_id.first_block() << '\t' << date.c_str();
+    out << vmote_id.mote_id() << '\t' << vmote_id.first_block() << '\t';
+    out << mote_time << '\t' << date.c_str();
 
     out.flush();
 
@@ -125,7 +127,9 @@ void TimeSyncMsgReceiver::onReceiveMessage(const ActiveMessage& msg) {
 
     VirtualMoteID vmote_id(msg.source, msg.getInt(0));
 
-    QRunnable* insertTask = new InsertTask(&mapLock, motes, vmote_id);
+    uint time = msg.getInt(4);
+
+    QRunnable* insertTask = new InsertTask(&setLock, motes, vmote_id, time);
 
     QThreadPool::globalInstance()->start(insertTask);
 }
