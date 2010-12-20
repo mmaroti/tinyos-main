@@ -57,7 +57,6 @@ SOURCES += src/DataRecorder.cpp \
     src/Solver/DataWriter.cpp \
     src/Solver/DataReader.cpp \
     src/Solver/Data.cpp \
-    src/FlatFileModel.cpp \
     src/SDataWidget.cpp \
     src/SDCard/Header.cpp \
     src/SDCard/FlatFileDB.cpp \
@@ -120,7 +119,6 @@ HEADERS += src/DataRecorder.h \
     src/Solver/DataReader.hpp \
     src/Solver/Data.hpp \
     src/Solver/CompileTimeConstants.hpp \
-    src/FlatFileModel.h \
     src/SDataWidget.h \
     src/SDCard/FileAsBlockDevice.hpp \
     src/SDCard/BlockRelatedConsts.hpp \

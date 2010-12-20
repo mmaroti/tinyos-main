@@ -19,6 +19,48 @@ SData::SData()
     tod = "";
 }
 
+bool TreeWidgetItem::intCompare(int column, const QTreeWidgetItem& other) const {
+
+    int a =       data(column, Qt::DisplayRole).toInt();
+    int b = other.data(column, Qt::DisplayRole).toInt();
+
+    return  a < b;
+}
+
+bool TreeWidgetItem::dateCompare(int column, const QTreeWidgetItem& other) const {
+
+    QDateTime a = QDateTime::fromString(      text(column), "yyyy-M-d hh:mm");
+    QDateTime b = QDateTime::fromString(other.text(column), "yyyy-M-d hh:mm");
+
+    return  a < b;
+}
+
+bool TreeWidgetItem::operator<(const QTreeWidgetItem& other) const {
+
+    bool return_value;
+
+    const int column = treeWidget()->sortColumn();
+
+    if      (column==RECORD_ID) {
+
+        return_value = intCompare(RECORD_ID, other);
+    }
+    else if (column==LENGTH) {
+
+        return_value = intCompare(LENGTH, other);
+    }
+    else if (column==DATE) {
+
+        return_value = dateCompare(DATE, other);
+    }
+    else {
+
+        return_value = text(column).toLower() < other.text(column).toLower();
+    }
+
+    return return_value;
+}
+
 void fillSData(QVarLengthArray<SData>& records)
 {
     static int lastRec[8] = {1};
@@ -137,7 +179,7 @@ QVarLengthArray<int> SDataWidget::getLinkingRecords(int moteId, int num)
 
 QTreeWidgetItem* SDataWidget::createParentItem(int i, QTreeWidget *root)
 {
-    QTreeWidgetItem *item = new QTreeWidgetItem(root->invisibleRootItem());
+    QTreeWidgetItem *item = new TreeWidgetItem(root->invisibleRootItem());
     item->setText(0,QString::number(getSDataAt(i).moteID));
     item->setText(4, QDate::currentDate().toString() + "  -  " + QTime::currentTime().toString());
 
@@ -146,7 +188,7 @@ QTreeWidgetItem* SDataWidget::createParentItem(int i, QTreeWidget *root)
 
 void SDataWidget::createChildItem(int i, QTreeWidgetItem* parent)
 {
-    QTreeWidgetItem *it = new QTreeWidgetItem(parent);
+    QTreeWidgetItem *it = new TreeWidgetItem(parent);
     //int num = parent->childCount();
     it->setText(1,QString::number(getSDataAt(i).recordID));
     it->setText(2,QString::number(getSDataAt(i).length));

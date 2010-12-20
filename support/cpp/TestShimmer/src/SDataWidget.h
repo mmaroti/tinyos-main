@@ -9,13 +9,23 @@
 #include "DownloadManager.hpp"
 
 class TreeWidgetItem : public QTreeWidgetItem {
+
 public:
-   TreeWidgetItem(QTreeWidget* parent):QTreeWidgetItem(parent){}
+
+    TreeWidgetItem(QTreeWidgetItem* item) : QTreeWidgetItem(item) { }
+
 private:
-   bool operator<(const QTreeWidgetItem &other)const {
-       int column = treeWidget()->sortColumn();
-       return text(column).toLower() < other.text(column).toLower();
-    }
+
+   enum {
+       RECORD_ID = 1,
+       LENGTH    = 2,
+       DATE      = 3
+   };
+
+   bool operator<(const QTreeWidgetItem& other) const;
+
+   bool  intCompare(int column, const QTreeWidgetItem& other) const;
+   bool dateCompare(int column, const QTreeWidgetItem& other) const;
 };
 
 class Application;
