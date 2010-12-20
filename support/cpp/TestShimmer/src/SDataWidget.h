@@ -8,26 +8,6 @@
 #include <QTreeWidget>
 #include "DownloadManager.hpp"
 
-class TreeWidgetItem : public QTreeWidgetItem {
-
-public:
-
-    TreeWidgetItem(QTreeWidgetItem* item) : QTreeWidgetItem(item) { }
-
-private:
-
-   enum {
-       RECORD_ID = 1,
-       LENGTH    = 2,
-       DATE      = 3
-   };
-
-   bool operator<(const QTreeWidgetItem& other) const;
-
-   bool  intCompare(int column, const QTreeWidgetItem& other) const;
-   bool dateCompare(int column, const QTreeWidgetItem& other) const;
-};
-
 class Application;
 
 namespace Ui {
@@ -66,8 +46,17 @@ private:
     volatile bool downloadFailed;
     QString errorMsg;
 
+    enum ColumnIndex {
+        MOTE_ID       = 0,
+        RECORD_ID     = 1,
+        LENGTH        = 2,
+        DATE_OF_REC   = 3,
+        DATE_DOWNLOAD = 4,
+        COMMENT       = 5
+    };
+
     void initLeft(bool filter);
-    void initRight(QVarLengthArray<int> list);
+    void initRight(const QVarLengthArray<int>& list);
     QVarLengthArray<int> getLinkingRecords(int moteId, int num);
 
     QTreeWidgetItem* createParentItem(int i, QTreeWidget* root);

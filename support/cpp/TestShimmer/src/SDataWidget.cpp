@@ -19,48 +19,6 @@ SData::SData()
     tod = "";
 }
 
-bool TreeWidgetItem::intCompare(int column, const QTreeWidgetItem& other) const {
-
-    int a =       data(column, Qt::DisplayRole).toInt();
-    int b = other.data(column, Qt::DisplayRole).toInt();
-
-    return  a < b;
-}
-
-bool TreeWidgetItem::dateCompare(int column, const QTreeWidgetItem& other) const {
-
-    QDateTime a = QDateTime::fromString(      text(column), "yyyy-M-d hh:mm");
-    QDateTime b = QDateTime::fromString(other.text(column), "yyyy-M-d hh:mm");
-
-    return  a < b;
-}
-
-bool TreeWidgetItem::operator<(const QTreeWidgetItem& other) const {
-
-    bool return_value;
-
-    const int column = treeWidget()->sortColumn();
-
-    if      (column==RECORD_ID) {
-
-        return_value = intCompare(RECORD_ID, other);
-    }
-    else if (column==LENGTH) {
-
-        return_value = intCompare(LENGTH, other);
-    }
-    else if (column==DATE) {
-
-        return_value = dateCompare(DATE, other);
-    }
-    else {
-
-        return_value = text(column).toLower() < other.text(column).toLower();
-    }
-
-    return return_value;
-}
-
 void fillSData(QVarLengthArray<SData>& records)
 {
     static int lastRec[8] = {1};
@@ -128,7 +86,7 @@ void SDataWidget::initLeft(bool filter)
     }
 }
 
-void SDataWidget::initRight(QVarLengthArray<int> list)
+void SDataWidget::initRight(const QVarLengthArray<int>& list)
 {   
     if(list.size() != 0){
         int id=getSDataAt(list[0]).moteID;
@@ -179,21 +137,22 @@ QVarLengthArray<int> SDataWidget::getLinkingRecords(int moteId, int num)
 
 QTreeWidgetItem* SDataWidget::createParentItem(int i, QTreeWidget *root)
 {
-    QTreeWidgetItem *item = new TreeWidgetItem(root->invisibleRootItem());
-    item->setText(0,QString::number(getSDataAt(i).moteID));
-    item->setText(4, QDate::currentDate().toString() + "  -  " + QTime::currentTime().toString());
+    QTreeWidgetItem *item = new QTreeWidgetItem(root->invisibleRootItem());
+
+    item->setData(MOTE_ID,       Qt::DisplayRole, getSDataAt(i).moteID);
+    item->setData(DATE_DOWNLOAD, Qt::DisplayRole, QDateTime::currentDateTime());
 
     return item;
 }
 
 void SDataWidget::createChildItem(int i, QTreeWidgetItem* parent)
 {
-    QTreeWidgetItem *it = new TreeWidgetItem(parent);
+    QTreeWidgetItem *it = new QTreeWidgetItem(parent);
     //int num = parent->childCount();
-    it->setText(1,QString::number(getSDataAt(i).recordID));
-    it->setText(2,QString::number(getSDataAt(i).length));
-    it->setText(3,getSDataAt(i).tor);
-    it->setText(4,getSDataAt(i).tod);
+    it->setData(RECORD_ID,     Qt::DisplayRole, getSDataAt(i).recordID);
+    it->setData(LENGTH,        Qt::DisplayRole, getSDataAt(i).length);
+    it->setData(DATE_OF_REC,   Qt::DisplayRole, QDateTime::fromString(getSDataAt(i).tor, "yyyy-M-d hh:mm"));
+    it->setData(DATE_DOWNLOAD, Qt::DisplayRole, QDateTime::fromString(getSDataAt(i).tod, "yyyy-M-d hh:mm"));
 }
 
 void SDataWidget::on_toPlotButton_clicked()
@@ -204,11 +163,11 @@ void SDataWidget::on_toPlotButton_clicked()
 
             QString msg;
 
-            msg.append(ui->sdataLeft->currentItem()->parent()->text(0)+": ");
-            msg.append(ui->sdataLeft->currentItem()->text(1));
+            msg.append(ui->sdataLeft->currentItem()->parent()->text(MOTE_ID)+": ");
+            msg.append(ui->sdataLeft->currentItem()->text(RECORD_ID));
 
-            msg.append('\n'+ui->sdataRight->currentItem()->parent()->text(0)+": ");
-            msg.append(ui->sdataRight->currentItem()->text(1));
+            msg.append('\n'+ui->sdataRight->currentItem()->parent()->text(MOTE_ID)+": ");
+            msg.append(ui->sdataRight->currentItem()->text(RECORD_ID));
 
             QMessageBox msgBox;
 
@@ -334,7 +293,6 @@ void SDataWidget::onUpdateGUI() {
         mbox.exec();
     }
     else {
-        // FIXME Still buggy, it shows a msg box but it should not
         ui->sdataLeft->clear();
         ui->sdataRight->clear();
         initLeft(false);
@@ -352,11 +310,11 @@ void SDataWidget::printRecords()
     }
 }
 
-void SDataWidget::onItemDoubleClicked(QTreeWidgetItem* item,int t)
+void SDataWidget::onItemDoubleClicked(QTreeWidgetItem* item,int column)
 {
-    if(t == 5){
+    if(column == COMMENT){
         item->setFlags( item->flags() | Qt::ItemIsEditable);
-        ui->sdataLeft->editItem(item, t);
+        ui->sdataLeft->editItem(item, column);
         item->setFlags( Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     }
 
