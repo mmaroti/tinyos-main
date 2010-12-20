@@ -103,7 +103,7 @@ implementation
         if(prev_cycles_max>cycles)
           prev_cycles_max=cycles;
 		
-        if(prev_cycles_max-prev_cycles_min<=5){
+        if(prev_cycles_max-prev_cycles_min<=2){
           wraps_ok++;
         } else{
           wraps_ok=0;
