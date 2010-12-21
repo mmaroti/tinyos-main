@@ -35,10 +35,10 @@
 #define RECORDSCOUT_HPP_
 
 #include <string>
-#include <utility>
 #include <vector>
 #include "Line.hpp"
 #include "MoteInfo.hpp"
+#include "RecordInfo.hpp"
 #include "TimeSyncDB.hpp"
 
 namespace sdc {
@@ -48,6 +48,10 @@ class RecordScout {
 public:
 
 	void read_all_existing();
+
+	const std::vector<MoteInfo>& headers() const;
+
+	const std::vector<RecordInfo>& record_info() const;
 
 	void dump_all() const;
 
@@ -61,9 +65,11 @@ private:
 
 	void push_back();
 
+	void push_back_record_info();
+
 	void dump_header(const MoteInfo& moteinfo) const;
 
-	void dump_mote(int, const std::vector<Line>& ) const;
+	void dump_mote(const int pos, const int n) const;
 
 	std::vector<Line> records;
 
@@ -71,11 +77,11 @@ private:
 
 	int card_size_in_blocks;
 
-	std::vector<std::pair<int, std::vector<Line> > > db;
+	std::vector<RecordInfo> db;
 
 	std::vector<MoteInfo> header;
 
-	TimeSyncDB mote_date_online;
+	TimeSyncDB motes_online;
 };
 
 }

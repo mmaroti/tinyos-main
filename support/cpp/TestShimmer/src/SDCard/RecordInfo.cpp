@@ -31,93 +31,51 @@
 *      Author: Ali Baharev
 */
 
-#include <iomanip>
 #include <ostream>
-#include <sstream>
-#include <stdexcept>
+#include "RecordInfo.hpp"
 #include "Line.hpp"
-#include "Utility.hpp"
 
 using namespace std;
 
 namespace sdc {
 
-typedef istringstream iss;
 
-Line::Line(const string& line) {
+RecordInfo::RecordInfo(int mote_id, const Line& line, const string& date_rec) {
 
-	iss in(line);
-
-	in.exceptions(iss::failbit | iss::badbit);
-
-	in >> first_block;
-	in >> last_block;
-	in >> reboot;
-
-	if (first_block < 0 || first_block > last_block || reboot < 1) {
-		throw runtime_error("corrupted line");
-	}
-
-	in >> time_length;
-	in >> computed_length;
-
-	in.get();
-
-	getline(in, date);
+	mote   = mote_id;
+	record = line.reboot_id();
+	len    = line.record_length();
+	date_of_download = line.download_date();
+	date_of_record   = date_rec;
 }
 
-Line::Line(int first, int last, int reboot_id, unsigned int time_len)
-	: date(current_time())
-{
-	first_block = first;
-	last_block  = last;
-	reboot      = reboot_id;
-	time_length = ticks2time(time_len);
-	computed_length = recorded_length(first_block, last_block);
+int RecordInfo::mote_id() const {
+
+	return mote;
 }
 
-void Line::consistent_with(const Line& previous) const {
+int RecordInfo::record_id() const {
 
-	if ((first_block != previous.last_block+1) ||
-		(reboot      != previous.reboot   +1) )
-	{
-		throw runtime_error("corrupted database");
-	}
+	return record;
 }
 
-int Line::start_at_block() const {
+const string& RecordInfo::length() const {
 
-	return first_block;
+	return len;
+}
+const string& RecordInfo::date_downloaded() const {
+
+	return date_of_download;
+}
+const string& RecordInfo::date_recorded() const {
+
+	return date_of_record;
 }
 
-int Line::finished_at_block() const {
+std::ostream& operator<<(std::ostream& out, const RecordInfo& r) {
 
-	return last_block;
-}
-
-int Line::reboot_id() const {
-
-	return reboot;
-}
-
-const string& Line::record_length() const {
-
-	return computed_length;
-}
-
-const string& Line::download_date() const {
-
-	return date;
-}
-
-ostream& operator<<(ostream& out, const Line& line) {
-
-	out << setw(7) << right << line.first_block << '\t';
-	out << setw(7) << right << line.last_block  << '\t';
-	out << setw(3) << right << line.reboot      << '\t';
-	out << line.time_length     << '\t';
-	out << line.computed_length << '\t';
-	out << line.date;
+	out << r.mote_id() << '\t' << r.record_id() << '\t' << r.length() << '\t';
+	out << r.date_downloaded() << '\t' << r.date_recorded();
 
 	return out;
 }

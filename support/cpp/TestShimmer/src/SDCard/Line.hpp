@@ -55,6 +55,8 @@ public:
 
 	int reboot_id() const;
 
+	const std::string& record_length() const;
+
 	const std::string& download_date() const;
 
 	friend std::ostream& operator<<(std::ostream& , const Line& );
@@ -65,6 +67,7 @@ private:
 	int last_block;
 	int reboot;
 	std::string time_length;
+	std::string computed_length;
 	std::string date;
 
 };

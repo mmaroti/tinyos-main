@@ -93,7 +93,8 @@ SOURCES += src/DataRecorder.cpp \
     src/SDCard/MoteInfo.cpp \
     src/SDCard/TimeSyncDB.cpp \
     src/SDCard/RecordScout.cpp \
-    src/SDCard/Line.cpp
+    src/SDCard/Line.cpp \
+    src/SDCard/RecordInfo.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -163,7 +164,8 @@ HEADERS += src/DataRecorder.h \
     src/SDCard/TimeSyncDB.hpp \
     src/SDCard/RecordScout.hpp \
     src/SDCard/MoteInfo.hpp \
-    src/SDCard/Line.hpp
+    src/SDCard/Line.hpp \
+    src/SDCard/RecordInfo.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

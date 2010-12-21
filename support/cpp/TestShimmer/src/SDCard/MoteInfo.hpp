@@ -48,13 +48,16 @@ public:
 	MoteInfo(int    mote,
 			 double card_size_in_blocks,
 			 int    last_block,
-			 const  std::string& last_download);
+			 const  std::string& last_download,
+			 int    number_of_records);
 
 	int mote_id() const;
 
-	const std::string last_download() const;
+	const std::string& last_download() const;
 
-	const std::string remaining_hours() const;
+	const std::string& remaining_hours() const;
+
+	int number_of_records() const;
 
 private:
 
@@ -63,6 +66,8 @@ private:
 	std::string hours_remaining;
 
 	std::string last_seen;
+
+	int num_of_records;
 };
 
 std::ostream& operator<<(std::ostream& , const MoteInfo& );

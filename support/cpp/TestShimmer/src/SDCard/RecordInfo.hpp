@@ -31,64 +31,40 @@
 *      Author: Ali Baharev
 */
 
-#include <ostream>
-#include "MoteInfo.hpp"
-#include "BlockRelatedConsts.hpp"
-#include "Utility.hpp"
+#ifndef RECORDINFO_HPP_
+#define RECORDINFO_HPP_
 
-using namespace std;
+#include <iosfwd>
+#include <string>
 
 namespace sdc {
 
-MoteInfo::MoteInfo() {
+class Line;
 
-	mote_ID = -1;
-}
+class RecordInfo {
 
-MoteInfo::MoteInfo( int mote,
-					double size,
-					int last_block,
-					const string& date,
-					int number_of_records)
-{
-	mote_ID = mote;
+public:
 
-	double card_size_GB = (size*BLOCK_SIZE)/GB();
+	RecordInfo(int mote, const Line& line, const std::string& date_of_record);
 
-	hours_remaining = sdc::remaining_hours(card_size_GB, last_block);
+	int mote_id() const;
+	int record_id() const;
+	const std::string& length() const;
+	const std::string& date_downloaded() const;
+	const std::string& date_recorded() const;
 
-	last_seen = date;
+private:
 
-	num_of_records = number_of_records;
-}
+	int mote;
+	int record;
+	std::string len;
+	std::string date_of_download;
+	std::string date_of_record;
 
-int MoteInfo::mote_id() const {
+};
 
-	return mote_ID;
-}
-
-const string& MoteInfo::last_download() const {
-
-	return last_seen;
-}
-
-const string& MoteInfo::remaining_hours() const {
-
-	return hours_remaining;
-}
-
-int MoteInfo::number_of_records() const {
-
-	return num_of_records;
-}
-
-std::ostream& operator<<(std::ostream& out, const MoteInfo& m) {
-
-	out << "Mote id " << m.mote_id() << ", " << m.remaining_hours();
-	out << " hours remaining, last download on " << m.last_download() << ", ";
-	out << m.number_of_records() << " records in the database";
-
-	return out;
-}
+std::ostream& operator<<(std::ostream& , const RecordInfo& );
 
 }
+
+#endif /* RECORDINFO_HPP_ */

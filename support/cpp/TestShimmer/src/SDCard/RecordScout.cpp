@@ -58,7 +58,7 @@ void RecordScout::read_all_existing() {
 
 	clear();
 
-	mote_date_online.read_all();
+	motes_online.read_all();
 
 	const vector<MoteID_Size> ids = MoteRegistrar::existing_ids();
 
@@ -104,11 +104,27 @@ void RecordScout::push_line(const string& buffer) {
 	}
 }
 
+void RecordScout::push_back_record_info() {
+
+	const int n = static_cast<int> (records.size());
+
+	for (int i=0; i<n; ++i) {
+
+		const Line& line = records.at(i);
+
+		int first_block = line.start_at_block();
+
+		string date = motes_online.date(VirtualMoteID(mote_id, first_block));
+
+		db.push_back(RecordInfo(mote_id, line, date));
+	}
+}
+
 void RecordScout::push_back() {
 
 	if (records.size() > 0) {
 
-		db.push_back(pair<int, vector<Line> > (mote_id, records));
+		push_back_record_info();
 
 		typedef vector<Line>::const_reverse_iterator itr;
 
@@ -118,21 +134,39 @@ void RecordScout::push_back() {
 
 		int end = last_record->finished_at_block();
 
-		header.push_back(MoteInfo(mote_id, card_size_in_blocks, end, date));
+		const int n = static_cast<int> (records.size());
+
+		header.push_back(MoteInfo(mote_id, card_size_in_blocks, end, date, n));
 	}
+}
+
+const vector<MoteInfo>& RecordScout::headers() const {
+
+	return header;
+}
+
+const std::vector<RecordInfo>& RecordScout::record_info() const {
+
+	return db;
 }
 
 void RecordScout::dump_all() const {
 
-	const int n = static_cast<int> (db.size());
+	const int n = static_cast<int> (header.size());
+
+	int position = 0;
 
 	for (int i=0; i<n; ++i) {
 
-		dump_header(header.at(i));
+		const MoteInfo& moteinfo = header.at(i);
 
-		const pair<int, vector<Line> >& p = db.at(i);
+		dump_header(moteinfo);
 
-		dump_mote(p.first, p.second);
+		const int number_of_records = moteinfo.number_of_records();
+
+		dump_mote(position, number_of_records);
+
+		position += number_of_records;
 	}
 }
 
@@ -143,17 +177,11 @@ void RecordScout::dump_header(const MoteInfo& moteinfo) const {
 	cout << moteinfo << endl;
 }
 
-void RecordScout::dump_mote(int mote, const vector<Line>& record) const {
-
-	const int n = static_cast<int> (record.size());
+void RecordScout::dump_mote(const int pos, const int n) const {
 
 	for (int i=0; i<n; ++i) {
 
-		const Line& line = record.at(i);
-		int first_block = line.start_at_block();
-
-		cout << mote << '\t' << line << '\t';
-		cout << mote_date_online.date(VirtualMoteID(mote, first_block)) << endl;
+		cout << db.at(pos+i) << endl;
 	}
 }
 
