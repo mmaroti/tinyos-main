@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2010, University of Szeged
+ * Copyright (c) 2010, ETH Zurich
+ * 
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,21 +30,21 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Author: Miklos Maroti
+ * Author: Philipp Sommer
  */
 
-#include "HplAtmRfa1Timer.h"
+#include "Timer.h"
 
-configuration CounterMilli32C
+configuration LocalTimeMilliC
 {
-	provides interface Counter<TMilli, uint32_t>;
+	provides interface LocalTime<TMilli>;
 }
 
 implementation
 {
-	components new TransformCounterC(TMilli, uint32_t, T62khz, uint32_t, 6, uint8_t);
-	Counter = TransformCounterC;
+	components CounterMilli32C;
+	components new CounterToLocalTimeC(TMilli);
 
-	components Counter62khz32C;
-	TransformCounterC.CounterFrom -> Counter62khz32C;
+	CounterToLocalTimeC.Counter -> CounterMilli32C;
+	LocalTime = CounterToLocalTimeC;
 }

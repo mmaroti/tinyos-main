@@ -38,21 +38,12 @@ configuration HilTimerMilliC
 {
 	provides
 	{
-		interface Init;
 		interface Timer<TMilli> as TimerMilli[uint8_t id];
-		interface LocalTime<TMilli>;
 	}
 }
 
 implementation
 {
-	components CounterMilli32C;
-	Init = CounterMilli32C;
-
-	components new CounterToLocalTimeC(TMilli);
-	LocalTime = CounterToLocalTimeC;
-	CounterToLocalTimeC.Counter -> CounterMilli32C;
-
 	components new AlarmMilli32C();
 
 	components new AlarmToTimerC(TMilli);
