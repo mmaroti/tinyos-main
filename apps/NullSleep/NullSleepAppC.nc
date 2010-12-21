@@ -63,5 +63,7 @@ implementation {
 
 	components new Alarm62khz32C() as MacAlarm;
 	NullSleepC.Alarm -> MacAlarm;
+
+	components new TimerMilliC();
 }
 
