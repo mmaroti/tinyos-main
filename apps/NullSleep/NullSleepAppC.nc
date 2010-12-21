@@ -58,9 +58,7 @@ implementation {
 
 	MainC.Boot <- NullSleepC;
 	NullSleepC.Leds -> LedsC;
-	NullSleepC.Stm25pSpi -> Stm25pSpiC;
 	MainC.SoftwareInit -> Stm25pSpiC.Init;
-	NullSleepC.SpiRes -> Stm25pSpiC;
 	NullSleepC.VoltMeter -> HplAtm128GeneralIOC.PortF0;
 
 	components new Alarm62khz32C() as MacAlarm;

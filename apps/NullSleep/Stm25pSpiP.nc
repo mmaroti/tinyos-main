@@ -279,4 +279,13 @@ implementation {
       break;
     }
   }
+  
+  	
+  default async event void Spi.bulkEraseDone( error_t error ) {}
+  default async event void Spi.sectorEraseDone( uint8_t sector, error_t error ) {}
+  default async event void Spi.pageProgramDone( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len, error_t error ) {}
+  default async event void Spi.computeCrcDone( uint16_t crc, stm25p_addr_t addr, stm25p_len_t len, error_t error ) {}
+  default async event void Spi.readDone( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len, error_t error ) {}
+  default event void ClientResource.granted(){}
+
 }
