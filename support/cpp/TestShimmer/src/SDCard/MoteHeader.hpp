@@ -28,57 +28,41 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Ali Baharev
+*      Author: Ali Baharev
 */
 
-#ifndef RECORDLIST_HPP
-#define RECORDLIST_HPP
+#ifndef MOTEHEADER_HPP
+#define MOTEHEADER_HPP
 
-#include <QVector>
+#include <QDateTime>
+#include <QString>
 
-namespace sdc {
-    class RecordScout;
-}
-
-class QMutex;
-class QString;
-class MoteHeader;
-class RecordLine;
-
-class RecordList {
+class MoteHeader {
 
 public:
 
-    RecordList();
+    MoteHeader();
 
-    void read_all_existing();
+    MoteHeader(int mote_id,
+               const QDateTime& last_download,
+               const char* remaining_hours,
+               int number_of_records);
 
-    const QVector<MoteHeader>& headers() const;
+    int mote_id() const;
 
-    const QVector<RecordLine>& record_info() const;
+    const QDateTime& last_download() const;
 
-    // TODO Perform the search for the right panel of the GUI
-    // Input: vmote_id, uses: merger, output: matching headers and lines, if any
+    const QString& remaining_hours() const;
 
-    ~RecordList();
+    int number_of_records() const;
 
 private:
 
-    Q_DISABLE_COPY(RecordList)
-
-    void read_all();
-    void copy_headers();
-    void copy_lines();
-    void show_read_error(const char* what, const char* name) const;
-    void show_lock_error() const;
-    void show_error(const QString& msg) const;
-    void check_lock() const;
-
-    QMutex* const mutex;
-    QVector<MoteHeader>* const header;
-    QVector<RecordLine>* const records;
-    sdc::RecordScout* const scout;
+    int mote;
+    QDateTime date_of_last_download;
+    QString hours_remaining;
+    int num_of_records;
 
 };
 
-#endif // RECORDLIST_HPP
+#endif // MOTEHEADER_HPP

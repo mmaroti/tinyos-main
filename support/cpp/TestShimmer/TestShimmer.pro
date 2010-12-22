@@ -95,7 +95,9 @@ SOURCES += src/DataRecorder.cpp \
     src/SDCard/RecordScout.cpp \
     src/SDCard/Line.cpp \
     src/SDCard/RecordInfo.cpp \
-    src/SDCard/RecordList.cpp
+    src/SDCard/RecordList.cpp \
+    src/SDCard/MoteHeader.cpp \
+    src/SDCard/RecordLine.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -167,7 +169,9 @@ HEADERS += src/DataRecorder.h \
     src/SDCard/MoteInfo.hpp \
     src/SDCard/Line.hpp \
     src/SDCard/RecordInfo.hpp \
-    src/SDCard/RecordList.hpp
+    src/SDCard/RecordList.hpp \
+    src/SDCard/MoteHeader.hpp \
+    src/SDCard/RecordLine.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

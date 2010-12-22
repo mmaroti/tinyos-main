@@ -28,57 +28,52 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Ali Baharev
+*      Author: Ali Baharev
 */
 
-#ifndef RECORDLIST_HPP
-#define RECORDLIST_HPP
+#include "RecordLine.hpp"
 
-#include <QVector>
+RecordLine::RecordLine() {
 
-namespace sdc {
-    class RecordScout;
+    mote = record = -1;
 }
 
-class QMutex;
-class QString;
-class MoteHeader;
-class RecordLine;
+RecordLine::RecordLine(int mote_id,
+                       int rec_id,
+                       const char* length,
+                       const QDateTime& downloaded,
+                       const QDateTime& recorded)
 
-class RecordList {
+: mote(mote_id),
+  record(rec_id),
+  computed_length(length),
+  download(downloaded),
+  date_recorded(recorded)
+{
 
-public:
+}
 
-    RecordList();
+int RecordLine::mote_id() const {
 
-    void read_all_existing();
+    return mote;
+}
 
-    const QVector<MoteHeader>& headers() const;
+int RecordLine::record_id() const {
 
-    const QVector<RecordLine>& record_info() const;
+    return record;
+}
 
-    // TODO Perform the search for the right panel of the GUI
-    // Input: vmote_id, uses: merger, output: matching headers and lines, if any
+const QString& RecordLine::length() const {
 
-    ~RecordList();
+    return computed_length;
+}
 
-private:
+const QDateTime& RecordLine::downloaded() const {
 
-    Q_DISABLE_COPY(RecordList)
+    return download;
+}
 
-    void read_all();
-    void copy_headers();
-    void copy_lines();
-    void show_read_error(const char* what, const char* name) const;
-    void show_lock_error() const;
-    void show_error(const QString& msg) const;
-    void check_lock() const;
+const QDateTime& RecordLine::recorded() const {
 
-    QMutex* const mutex;
-    QVector<MoteHeader>* const header;
-    QVector<RecordLine>* const records;
-    sdc::RecordScout* const scout;
-
-};
-
-#endif // RECORDLIST_HPP
+    return date_recorded;
+}

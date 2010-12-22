@@ -33,20 +33,15 @@
 
 #include <stdexcept>
 #include <typeinfo>
+#include <vector>
 #include <QDebug>
 #include <QMessageBox>
 #include <QMutexLocker>
 #include <QVector>
 #include "RecordList.hpp"
+#include "MoteHeader.hpp"
+#include "RecordLine.hpp"
 #include "RecordScout.hpp"
-
-class MoteHeader {
-
-};
-
-class RecordLine {
-
-};
 
 RecordList::RecordList() :
         mutex(new QMutex),
@@ -90,6 +85,68 @@ void RecordList::read_all_existing() {
     qDebug() << "Finished RecordList::read_all_existing()";
 }
 
+const QDateTime stdDate2QDate(const char* c_std_date) {
+
+    const QDateTime date = QDateTime::fromString(c_std_date, "ddd MMM dd HH:mm:ss yyyy");
+
+    //qDebug() << date.addDays(10).toString();
+
+    return date;
+}
+
+const MoteHeader MoteInfo2MoteHeader(const sdc::MoteInfo& m) {
+
+    QDateTime last_download = stdDate2QDate(m.last_download().c_str());
+
+    return MoteHeader(m.mote_id(), last_download, m.remaining_hours().c_str(), m.number_of_records());
+}
+
+// TODO Make it a template to eliminate duplication
+void RecordList::copy_headers() {
+
+    std::vector<sdc::MoteInfo> moteinfo = scout->headers();
+
+    const int n = static_cast<int> (moteinfo.size());
+
+    header->reserve(n);
+
+    for (int i=0; i<n; ++i) {
+
+        header->append(MoteInfo2MoteHeader(moteinfo.at(i)));
+    }
+}
+
+const RecordLine RecordInfo2RecordLine(const sdc::RecordInfo& r) {
+
+    QDateTime download = stdDate2QDate(r.date_downloaded().c_str());
+
+    QDateTime recorded; // TODO Is null date good for the GUI?
+
+    std::string date_recorded = r.date_recorded();
+
+    if (date_recorded.size()>0) {
+
+        recorded = stdDate2QDate(date_recorded.c_str());
+    }
+
+    return RecordLine(r.mote_id(), r.record_id(), r.length().c_str(), download, recorded);
+}
+
+// TODO Make it a template to eliminate duplication
+void RecordList::copy_lines() {
+
+    std::vector<sdc::RecordInfo> recordinfo = scout->record_info();
+
+    const int n = static_cast<int> (recordinfo.size());
+
+    records->reserve(n);
+
+    for (int i=0; i<n; ++i) {
+
+        records->append(RecordInfo2RecordLine(recordinfo.at(i)));
+    }
+}
+
 void RecordList::read_all() {
 
     header->clear();
@@ -98,7 +155,9 @@ void RecordList::read_all() {
     scout->read_all_existing();
 
     qDebug() << "Number of records: " << scout->record_info().size();
-    // TODO Copy header and record info
+
+    copy_headers();
+    copy_lines();
 }
 
 void RecordList::show_read_error(const char* what, const char* name) const {
