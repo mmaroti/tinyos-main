@@ -34,7 +34,7 @@
 
 #include "HplAtmRfa1Timer.h"
 
-configuration HilTimerMilliC
+configuration TimerMilliP
 {
 	provides
 	{
