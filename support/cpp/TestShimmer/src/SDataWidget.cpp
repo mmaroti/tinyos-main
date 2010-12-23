@@ -105,6 +105,9 @@ SDataWidget::~SDataWidget()
 
 void SDataWidget::initLeft(bool filter)
 {
+
+    recordList.read_all_existing();
+
     QTreeWidgetItem *item = createParentItem(0, ui->sdataLeft);
     for(int i=0; i<getRecordsSize(); i++){
         if(ui->sdataLeft->findItems(QString::number(getSDataAt(i).moteID),0,0).size() == 0){

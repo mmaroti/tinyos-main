@@ -154,6 +154,8 @@ void RecordList::read_all() {
 
     scout->read_all_existing();
 
+    //scout->dump_all();
+
     qDebug() << "Number of records: " << scout->record_info().size();
 
     copy_headers();
