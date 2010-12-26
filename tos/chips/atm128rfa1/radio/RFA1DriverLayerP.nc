@@ -174,16 +174,16 @@ implementation
       CLR_BIT(RX_SYN,RX_PDT_DIS);
       //end of workaround
 
-      ASSERT( state == STATE_RX_ON );
+      RADIO_ASSERT( state == STATE_RX_ON );
 
       cmd = CMD_NONE;
 
-      ASSERT( (TRX_STATUS & RFA1_TRX_STATUS_MASK) == RX_ON );
+      RADIO_ASSERT( (TRX_STATUS & RFA1_TRX_STATUS_MASK) == RX_ON );
 
       signal RadioCCA.done( (TRX_STATUS & CCA_DONE) ? ((TRX_STATUS & CCA_STATUS) ? SUCCESS : EBUSY) : FAIL );
     }
     else
-      ASSERT(FALSE);
+      RADIO_ASSERT(FALSE);
 
     // make sure the rest of the command processing is called
     call Tasklet.schedule();
@@ -194,7 +194,7 @@ implementation
   command error_t PlatformInit.init()
   {
     
-    ASSERT(FALSE);
+    RADIO_ASSERT(FALSE);
     rxMsg = &rxMsgBuffer;
 
     // these are just good approximates
@@ -246,8 +246,8 @@ implementation
 
   inline void changeChannel()
   {
-    ASSERT( cmd == CMD_CHANNEL );
-    ASSERT( state == STATE_SLEEP || state == STATE_TRX_OFF || state == STATE_RX_ON );
+    RADIO_ASSERT( cmd == CMD_CHANNEL );
+    RADIO_ASSERT( state == STATE_SLEEP || state == STATE_TRX_OFF || state == STATE_RX_ON );
 
 
     PHY_CC_CCA=RFA1_CCA_MODE_VALUE|channel;
@@ -274,7 +274,7 @@ implementation
     else if( cmd == CMD_TURNON && state == STATE_TRX_OFF )
     {
       uint8_t irq;
-      ASSERT( ! radioIrq );
+      RADIO_ASSERT( ! radioIrq );
 
       irq=IRQ_STATUS; // clear the interrupt register
       IRQ_MASK=(1<<PLL_LOCK_EN | 1<<TX_END_EN | 1<<RX_END_EN | 1<< RX_START_EN);
@@ -382,7 +382,7 @@ implementation
     // we have missed an incoming message in this short amount of time
     if( (TRX_STATUS & RFA1_TRX_STATUS_MASK) != PLL_ON )
     {
-      ASSERT( (TRX_STATUS & RFA1_TRX_STATUS_MASK) == BUSY_RX );
+      RADIO_ASSERT( (TRX_STATUS & RFA1_TRX_STATUS_MASK) == BUSY_RX );
 
       state = STATE_PLL_ON_2_RX_ON;
       return EBUSY;
@@ -393,7 +393,7 @@ implementation
         time = call RadioAlarm.getNow();
     }
 
-    ASSERT( ! radioIrq );
+    RADIO_ASSERT( ! radioIrq );
 
     data = getPayload(msg);
     length = getHeader(msg)->length;
@@ -605,17 +605,17 @@ implementation
 	  {
 	    if( cmd == CMD_TURNON || cmd == CMD_CHANNEL )
 	    {
-	      ASSERT( state == STATE_TRX_OFF_2_RX_ON );
+	      RADIO_ASSERT( state == STATE_TRX_OFF_2_RX_ON );
 	
 	      state = STATE_RX_ON;
 	      cmd = CMD_SIGNAL_DONE;
 	    }
 	    else if( cmd == CMD_TRANSMIT )
 	    {
-	      ASSERT( state == STATE_BUSY_TX_2_RX_ON );
+	      RADIO_ASSERT( state == STATE_BUSY_TX_2_RX_ON );
 	    }
 	    else
-	      ASSERT(FALSE);
+	      RADIO_ASSERT(FALSE);
 	  }
 	
 	  if( irq & IRQ_RX_START )
@@ -628,7 +628,7 @@ implementation
 	
 	    if( cmd == CMD_NONE )
 	    {
-	      ASSERT( state == STATE_RX_ON || state == STATE_PLL_ON_2_RX_ON );
+	      RADIO_ASSERT( state == STATE_RX_ON || state == STATE_PLL_ON_2_RX_ON );
 	
 	      // the most likely place for busy channel, with no TRX_END interrupt
 	      if( irq == IRQ_RX_START )
@@ -664,27 +664,27 @@ implementation
 	      cmd = CMD_RECEIVE;
 	    }
 	    else
-	      ASSERT( cmd == CMD_TURNOFF );
+	      RADIO_ASSERT( cmd == CMD_TURNOFF );
 	  }
 	
 	  if( irq & IRQ_TX_END )
 	  {
-		  ASSERT( state == STATE_BUSY_TX_2_RX_ON );
+		  RADIO_ASSERT( state == STATE_BUSY_TX_2_RX_ON );
 		
 		  state = STATE_RX_ON;
 		  cmd = CMD_NONE;
 		  signal RadioSend.sendDone(SUCCESS);
 		
 		  // TODO: we could have missed a received message
-		  ASSERT( ! (irq & IRQ_RX_START) );
+		  RADIO_ASSERT( ! (irq & IRQ_RX_START) );
 	  }
 	  if( irq & IRQ_RX_END )
 	  {
-		  ASSERT( state == STATE_RX_ON || state == STATE_PLL_ON_2_RX_ON );
+		  RADIO_ASSERT( state == STATE_RX_ON || state == STATE_PLL_ON_2_RX_ON );
 		
 		  if( state == STATE_PLL_ON_2_RX_ON )
 		  {
-		    ASSERT( (TRX_STATUS & RFA1_TRX_STATUS_MASK) == PLL_ON );
+		    RADIO_ASSERT( (TRX_STATUS & RFA1_TRX_STATUS_MASK) == PLL_ON );
 		
 		    TRX_STATE = CMD_RX_ON;
 		    state = STATE_RX_ON;
@@ -708,7 +708,7 @@ implementation
    * Indicates the completion of a frame transmission
    */
   AVR_ATOMIC_HANDLER(TRX24_TX_END_vect){
-    ASSERT( ! radioIrq );
+    RADIO_ASSERT( ! radioIrq );
     atomic
     {
       capturedTime = call LocalTime.get();
@@ -731,7 +731,7 @@ implementation
    * Indicates the completion of a frame reception
    */
   AVR_ATOMIC_HANDLER(TRX24_RX_END_vect){
-    ASSERT( ! radioIrq );
+    RADIO_ASSERT( ! radioIrq );
     atomic
     {
       capturedTime = call LocalTime.get();
@@ -745,7 +745,7 @@ implementation
    * to BUSY_RX, the PHR is ready to be read from Frame Buffer
    */
   AVR_ATOMIC_HANDLER(TRX24_RX_START_vect){
-    ASSERT( ! radioIrq );
+    RADIO_ASSERT( ! radioIrq );
     atomic
     {
       capturedTime = call LocalTime.get();
@@ -764,7 +764,7 @@ implementation
    * Indicates PLL lock
    */
   AVR_ATOMIC_HANDLER(TRX24_PLL_LOCK_vect){
-    ASSERT( ! radioIrq );
+    RADIO_ASSERT( ! radioIrq );
     atomic
     {
       capturedTime = call LocalTime.get();
@@ -817,15 +817,15 @@ implementation
 
   async command void RadioPacket.setPayloadLength(message_t* msg, uint8_t length)
   {
-    ASSERT( 1 <= length && length <= 125 );
-    ASSERT( call RadioPacket.headerLength(msg) + length + call RadioPacket.metadataLength(msg) <= sizeof(message_t) );
+    RADIO_ASSERT( 1 <= length && length <= 125 );
+    RADIO_ASSERT( call RadioPacket.headerLength(msg) + length + call RadioPacket.metadataLength(msg) <= sizeof(message_t) );
     // we add the length of the CRC, which is automatically generated
     getHeader(msg)->length = length + 2;
   }
 
   async command uint8_t RadioPacket.maxPayloadLength()
   {
-    ASSERT( call Config.maxPayloadLength() - sizeof(rfa1_header_t) <= 125 );
+    RADIO_ASSERT( call Config.maxPayloadLength() - sizeof(rfa1_header_t) <= 125 );
 
     return call Config.maxPayloadLength() - sizeof(rfa1_header_t);
   }
@@ -909,7 +909,7 @@ implementation
   async command void PacketTimeSyncOffset.set(message_t* msg, uint8_t value)
   {
     // we do not store the value, the time sync field is always the last 4 bytes
-    ASSERT( call PacketTimeSyncOffset.get(msg) == value );
+    RADIO_ASSERT( call PacketTimeSyncOffset.get(msg) == value );
 
     call TimeSyncFlag.set(msg);
   }
