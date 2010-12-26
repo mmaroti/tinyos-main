@@ -6,16 +6,18 @@
   %T/platforms/iris
   %T/platforms/micaz
   %T/platforms/mica
-  %T/chips/rf2xx/rf212
-  %T/chips/rf2xx/layers
-  %T/chips/rf2xx/util
+  %T/chips/rf212
+  %T/lib/rfxlink/layers
+  %T/lib/rfxlink/util
   %T/chips/atm1281
+  %T/chips/atm1281/timer
   %T/chips/atm1281/adc
   %T/chips/atm128
   %T/chips/atm128/adc
   %T/chips/atm128/pins
   %T/chips/atm128/spi
   %T/chips/atm128/i2c
+  %T/chips/atm128/timer
   %T/lib/timer
   %T/lib/serial
   %T/lib/power

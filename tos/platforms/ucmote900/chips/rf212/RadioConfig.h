@@ -76,7 +76,7 @@ inline uint16_t RF212_CRCBYTE_COMMAND(uint16_t crc, uint8_t data)
 /**
  * This is the timer type of the radio alarm interface
  */
-typedef TMcu TRadio;
+typedef TOne TRadio;
 
 /**
  * The number of radio alarm ticks per one microsecond
