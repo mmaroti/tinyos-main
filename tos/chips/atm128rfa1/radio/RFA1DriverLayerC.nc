@@ -52,6 +52,7 @@ configuration RFA1DriverLayerC
 		interface PacketField<uint8_t> as PacketLinkQuality;
 
 		interface LocalTime<TRadio> as LocalTimeRadio;
+		interface Alarm<TRadio, tradio_size>;
 	}
 
 	uses
@@ -62,12 +63,13 @@ configuration RFA1DriverLayerC
 		interface PacketFlag as TransmitPowerFlag;
 		interface PacketFlag as RSSIFlag;
 		interface PacketFlag as TimeSyncFlag;
+		interface RadioAlarm;
 	}
 }
 
 implementation
 {
-	components RFA1DriverLayerP, LocalTimeMcuC, BusyWaitMicroC, TaskletC, MainC, RadioAlarmC, new AlarmMcu16C() as AlarmC;
+	components RFA1DriverLayerP, LocalTimeMcuC, BusyWaitMicroC, TaskletC, MainC, new AlarmMcu16C() as AlarmC;
 
 	RadioState = RFA1DriverLayerP;
 	RadioSend = RFA1DriverLayerP;
@@ -93,9 +95,8 @@ implementation
 
 	RFA1DriverLayerP.LocalTime -> LocalTimeMcuC;
 
-	RFA1DriverLayerP.RadioAlarm -> RadioAlarmC.RadioAlarm[unique("RadioAlarm")];
-	RadioAlarmC.Alarm -> AlarmC;
-
+	Alarm = AlarmC;
+	RadioAlarm = RFA1DriverLayerP.RadioAlarm;
 	
 	RFA1DriverLayerP.Tasklet -> TaskletC;
 	RFA1DriverLayerP.BusyWait -> BusyWaitMicroC;
