@@ -40,7 +40,9 @@ module AppGetTracesP
 	{
 		interface Boot;
 		interface Leds;
-		interface AtmegaCounter<uint8_t> as Counter;
+//		interface AtmegaCounter<uint8_t> as Counter;
+//		interface AtmegaCompare<uint8_t> as Compare;
+		interface Counter<TRtc, uint16_t> as Counter;
 		interface DiagMsg;
 		interface SplitControl;
 	}
@@ -51,10 +53,10 @@ implementation
 	enum
 	{
 		TRACE_COUNT = 10,
-		TRACE_SIZE = 6,
+		TRACE_SIZE = 9,
 	};
 
-	uint8_t traces[TRACE_COUNT][TRACE_SIZE];
+	uint16_t traces[TRACE_COUNT][TRACE_SIZE];
 	uint8_t traceCount = 0;
 
 	task void reportTask()
@@ -76,13 +78,13 @@ implementation
 			{
 				call DiagMsg.chr('t');
 				call DiagMsg.uint8(i);
-				call DiagMsg.uint8s(traces[i], TRACE_SIZE);
+				call DiagMsg.uint16s(traces[i], TRACE_SIZE);
 				call DiagMsg.send();
 			}
 		}
 	}
 
-	uint8_t trace[TRACE_SIZE];
+	uint16_t trace[TRACE_SIZE];
 
 	void insertTrace()
 	{
@@ -130,17 +132,46 @@ implementation
 
 	task void testTimer()
 	{
+/*
 		atomic
 		{
 			trace[0] = call Counter.get();
-			trace[1] = call Counter.test();
+			trace[1] = call Compare.test();
 			trace[2] = call Counter.get();
-			trace[3] = call Counter.test();
+			trace[3] = call Compare.test();
 			trace[4] = call Counter.get();
-			trace[5] = call Counter.test();
+			trace[5] = call Compare.test();
+			trace[6] = call Counter.get();
+			trace[7] = call Compare.test();
+			trace[8] = call Counter.get();
 		}
+*/
 
-		if( trace[2] == 0 )
+		atomic
+		{
+		trace[0] = call Counter.get();
+		trace[1] = call Counter.isOverflowPending();
+		trace[2] = call Counter.get();
+		trace[3] = call Counter.isOverflowPending();
+		trace[4] = call Counter.get();
+		trace[5] = call Counter.isOverflowPending();
+		trace[6] = call Counter.get();
+		trace[7] = call Counter.isOverflowPending();
+		trace[8] = call Counter.get();
+		}
+/*
+		trace[0] &= 0x1FF;
+		trace[1] &= 0x1FF;
+		trace[2] &= 0x1FF;
+		trace[3] &= 0x1FF;
+		trace[4] &= 0x1FF;
+		trace[5] &= 0x1FF;
+		trace[6] &= 0x1FF;
+		trace[7] &= 0x1FF;
+		trace[8] &= 0x1FF;
+*/
+		if( trace[1] == 0 && trace[7] != 0 )
+//		if( trace[4] == 0xFF )
 			insertTrace();
 
 		post testTimer();
@@ -156,11 +187,17 @@ implementation
 		call Leds.led0On();
 		post randomizer();
 
-		call Counter.setMode(ATMRFA1_CLK8_DIVIDE_8 | ATMRFA1_WGM8_NORMAL | ATMRFA1_ASYNC_ON);
-//		call Counter.setMode(ATMRFA1_CLK16_NORMAL | ATMRFA1_WGM16_NORMAL);
+/*
+		call Counter.setMode(RTC_TIMER_MODE);
 		call Counter.start();
 
+		call Compare.setMode(0);
+		call Compare.set(0);
+		call Compare.start();
+*/
+
 		post testTimer();
+		post reportTask();
 	}
 
 	event void SplitControl.stopDone(error_t result) { }
@@ -168,4 +205,9 @@ implementation
 	async event void Counter.overflow()
 	{
 	}
+/*
+	async event void Compare.fired()
+	{
+	}
+*/
 }

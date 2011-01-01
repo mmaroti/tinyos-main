@@ -43,13 +43,22 @@ implementation
 	AppGetTracesP.Leds -> LedsC;
 	AppGetTracesP.SplitControl -> SerialActiveMessageC;
 	AppGetTracesP.DiagMsg -> DiagMsgC;
-
-	components HplAtmRfa1TimerAsyncC;
+/*
+	components HplAtmRfa1Timer2AsyncC;
 	components new AtmegaAsyncTimerP(TRUE), BusyWaitMicroC;
-	AtmegaAsyncTimerP.SubCounter -> HplAtmRfa1TimerAsyncC;
+	AtmegaAsyncTimerP.SubCounter -> HplAtmRfa1Timer2AsyncC;
 	AtmegaAsyncTimerP.BusyWait -> BusyWaitMicroC;
 	AppGetTracesP.Counter -> AtmegaAsyncTimerP;
+*/
 
+	components AtmegaAsyncTimerC;
+	AppGetTracesP.Counter -> AtmegaAsyncTimerC;
+
+/*
+	components HplAtmRfa1Timer2AsyncC;
+	AppGetTracesP.Counter -> HplAtmRfa1Timer2AsyncC;
+	AppGetTracesP.Compare -> HplAtmRfa1Timer2AsyncC.Compare[0];
+*/
 /*
 	components HplAtmRfa1Timer1C;
 	AppGetTracesP.Counter -> HplAtmRfa1Timer1C;
