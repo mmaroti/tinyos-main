@@ -28,7 +28,7 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: PÃ©ter Ruzicska
+* Author: Péter Ruzicska
 *
 */
 
@@ -44,6 +44,8 @@
 #include <QDebug>
 #include "constants.h"
 #include "RecordList.hpp"
+#include "MoteHeader.hpp"
+#include "RecordLine.hpp"
 
 SData::SData()
 {
@@ -93,8 +95,8 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
 
     connect(this, SIGNAL(updateGUI()), this, SLOT(onUpdateGUI()), Qt::QueuedConnection);
 
-    fillSData(records);
-    initLeft(false);
+    //fillSData(records);
+    //initLeft(false);
 }
 
 SDataWidget::~SDataWidget()
@@ -105,10 +107,22 @@ SDataWidget::~SDataWidget()
 
 void SDataWidget::initLeft(bool filter)
 {
+    recordList.read_all_existing();    
 
-    recordList.read_all_existing();
+    for(int i=0; i<recordList.headers().size(); i++){
+        QTreeWidgetItem *item = createParentItem(i, ui->sdataLeft);
+        int records = recordList.headers().at(i).number_of_records();
+        for(int j=0; j<records; j++){
+            if(filter){
+                if(item->childCount()<NUMOFRECS) createChildItem(j, item);
+            } else {
+                createChildItem(j, item);
+            }
+        }
+    }
 
-    QTreeWidgetItem *item = createParentItem(0, ui->sdataLeft);
+
+    /*QTreeWidgetItem *item = createParentItem(0, ui->sdataLeft);
     for(int i=0; i<getRecordsSize(); i++){
         if(ui->sdataLeft->findItems(QString::number(getSDataAt(i).moteID),0,0).size() == 0){
             item = createParentItem(i, ui->sdataLeft);
@@ -121,7 +135,7 @@ void SDataWidget::initLeft(bool filter)
         } else {
             createChildItem(i, item);
         }
-    }
+    }*/
 }
 
 void SDataWidget::initRight(const QVarLengthArray<int>& list)
@@ -177,8 +191,9 @@ QTreeWidgetItem* SDataWidget::createParentItem(int i, QTreeWidget *root)
 {
     QTreeWidgetItem *item = new QTreeWidgetItem(root->invisibleRootItem());
 
-    item->setData(MOTE_ID,       Qt::DisplayRole, getSDataAt(i).moteID);
-    item->setData(DATE_DOWNLOAD, Qt::DisplayRole, QDateTime::currentDateTime());
+    item->setData(MOTE_ID,       Qt::DisplayRole, recordList.headers().at(i).mote_id());
+    item->setData(DATE_DOWNLOAD, Qt::DisplayRole, recordList.headers().at(i).last_download().toString("ddd MMM dd hh:mm:ss YYYY"));
+    item->setData(COMMENT,       Qt::DisplayRole, recordList.headers().at(i).remaining_hours());
 
     return item;
 }
@@ -187,10 +202,10 @@ void SDataWidget::createChildItem(int i, QTreeWidgetItem* parent)
 {
     QTreeWidgetItem *it = new QTreeWidgetItem(parent);
     //int num = parent->childCount();
-    it->setData(RECORD_ID,     Qt::DisplayRole, getSDataAt(i).recordID);
-    it->setData(LENGTH,        Qt::DisplayRole, getSDataAt(i).length);
-    it->setData(DATE_OF_REC,   Qt::DisplayRole, QDateTime::fromString(getSDataAt(i).tor, "yyyy-M-d hh:mm"));
-    it->setData(DATE_DOWNLOAD, Qt::DisplayRole, QDateTime::fromString(getSDataAt(i).tod, "yyyy-M-d hh:mm"));
+    it->setData(RECORD_ID,     Qt::DisplayRole, recordList.record_info().at(i).record_id());
+    it->setData(LENGTH,        Qt::DisplayRole, recordList.record_info().at(i).length());
+    it->setData(DATE_OF_REC,   Qt::DisplayRole, recordList.record_info().at(i).recorded().toString("ddd MMM dd hh:mm:ss YYYY"));
+    it->setData(DATE_DOWNLOAD, Qt::DisplayRole, recordList.record_info().at(i).downloaded().toString("ddd MMM dd hh:mm:ss YYYY"));
 }
 
 void SDataWidget::on_toPlotButton_clicked()
@@ -292,7 +307,8 @@ void SDataWidget::on_downloadButton_clicked()
 
 #ifdef _WIN32            
     downloadFromDevice();
-    fillSData(records);
+    //fillSData(records);
+    initLeft(false);
 #else
     processBinaryFile("Select the device", QDir::rootPath(), "Downloading");
 #endif
@@ -401,19 +417,19 @@ void SDataWidget::on_showLastTencBox_clicked()
 {
     QVarLengthArray<SData> temp;
     if(ui->showLastTencBox->isChecked()){        
-        filterRecords();
+        //filterRecords();
         ui->sdataLeft->clear();
-        temp = records;
-        records.clear();
-        records = filteredRecords;
-        filteredRecords.clear();
-        filteredRecords = temp;
+        //temp = records;
+        //records.clear();
+        //records = filteredRecords;
+        //filteredRecords.clear();
+        //filteredRecords = temp;
         initLeft(true);
         ui->sdataLeft->expandAll();
     } else {
-        records.clear();
-        records = filteredRecords;
-        filteredRecords.clear();
+        //records.clear();
+        //records = filteredRecords;
+        //filteredRecords.clear();
         ui->sdataLeft->clear();
         initLeft(false);
     }

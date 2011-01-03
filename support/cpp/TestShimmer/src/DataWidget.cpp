@@ -49,11 +49,12 @@ DataWidget::DataWidget(QWidget *parent, Application &app) :
 
         textBox = new QTextEdit(this);
         textBox->setReadOnly(true);
-        ui->menuLayout->insertWidget(3,textBox);
+        ui->menuLayout->insertWidget(3,textBox, 0);
         textBox->hide();
 
         widget3d = new Widget3D(this, app);
         ui->menuLayout->insertWidget(4, widget3d);
+        widget3d->hide();
 }
 
 DataWidget::~DataWidget()
@@ -492,6 +493,7 @@ void DataWidget::finished(bool error, const char* msg, const ipo::Results* res) 
     ui->regressionButton->setEnabled(true);
     ui->recordBtn->setEnabled(true);
     ui->clearBtn->setEnabled(true);
+    widget3d->show();
 
     emit SolverFinished();
 }
