@@ -28,7 +28,7 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Péter Ruzicska
+* Author: PÃ©ter Ruzicska
 *
 */
 
@@ -193,7 +193,7 @@ QTreeWidgetItem* SDataWidget::createParentItem(int i, QTreeWidget *root)
     QTreeWidgetItem *item = new QTreeWidgetItem(root->invisibleRootItem());
 
     item->setData(MOTE_ID,       Qt::DisplayRole, recordList.headers().at(i).mote_id());
-    item->setData(DATE_DOWNLOAD, Qt::DisplayRole, recordList.headers().at(i).last_download().toString("ddd MMM dd hh:mm:ss YYYY"));
+    item->setData(DATE_DOWNLOAD, Qt::DisplayRole, recordList.headers().at(i).last_download());
     item->setData(COMMENT,       Qt::DisplayRole, recordList.headers().at(i).remaining_hours());
 
     return item;
@@ -205,11 +205,8 @@ void SDataWidget::createChildItem(int i, QTreeWidgetItem* parent)
     //int num = parent->childCount();
     it->setData(RECORD_ID,     Qt::DisplayRole, recordList.record_info().at(i).record_id());
     it->setData(LENGTH,        Qt::DisplayRole, recordList.record_info().at(i).length());
-    it->setData(DATE_OF_REC,   Qt::DisplayRole, recordList.record_info().at(i).recorded().toString("ddd MMM dd hh:mm:ss YYYY"));
-    it->setData(DATE_DOWNLOAD, Qt::DisplayRole, recordList.record_info().at(i).downloaded().toString("ddd MMM dd hh:mm:ss YYYY"));
-
-    QString terst = recordList.record_info().at(i).downloaded().toString("ddd MMM dd hh:mm:ss YYYY");
-    qDebug() << terst;
+    it->setData(DATE_OF_REC,   Qt::DisplayRole, recordList.record_info().at(i).recorded());
+    it->setData(DATE_DOWNLOAD, Qt::DisplayRole, recordList.record_info().at(i).downloaded());
 }
 
 void SDataWidget::on_toPlotButton_clicked()
