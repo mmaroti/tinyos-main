@@ -31,50 +31,50 @@
 * Author: Miklós Maróti
 * Author: Péter Ruzicska
 */
-//
-//#include "Widget3D.h"
-//#include "ui_Widget3D.h"
-//
-//Widget3D::Widget3D(QWidget *parent, Application &app) :
-//    QWidget(parent),
-//    ui(new Ui::Widget3D),
-//    application(app)
-//{
-//        ui->setupUi(this);
-//
-//        window = new Window(app);
-//        ui->verticalLayout->addWidget(window);
-//}
-//
-//Widget3D::~Widget3D()
-//{
-//        delete ui;
-//}
-//
-//void Widget3D::changeEvent(QEvent *e)
-//{
-//        QWidget::changeEvent(e);
-//        switch (e->type())
-//        {
-//        case QEvent::LanguageChange:
-//                ui->retranslateUi(this);
-//                break;
-//        default:
-//                break;
-//        }
-//}
-//
-//void Widget3D::on_playButton_clicked()
-//{
-//    window->setTimer(20);
-//}
-//
-//void Widget3D::on_pauseButton_clicked()
-//{
-//    window->setTimer(20);
-//}
-//
-//void Widget3D::on_stopButton_clicked()
-//{
-//    window->stopTimer();
-//}
+
+#include "Widget3D.h"
+#include "ui_Widget3D.h"
+
+Widget3D::Widget3D(QWidget *parent, Application &app) :
+    QWidget(parent),
+    ui(new Ui::Widget3D),
+    application(app)
+{
+        ui->setupUi(this);
+
+        window = new Window(app);
+        ui->verticalLayout->addWidget(window);
+}
+
+Widget3D::~Widget3D()
+{
+        delete ui;
+}
+
+void Widget3D::changeEvent(QEvent *e)
+{
+        QWidget::changeEvent(e);
+        switch (e->type())
+        {
+        case QEvent::LanguageChange:
+                ui->retranslateUi(this);
+                break;
+        default:
+                break;
+        }
+}
+
+void Widget3D::on_playButton_clicked()
+{
+    window->setTimer(20);
+}
+
+void Widget3D::on_pauseButton_clicked()
+{
+    window->setTimer(20);
+}
+
+void Widget3D::on_stopButton_clicked()
+{
+    window->stopTimer();
+}

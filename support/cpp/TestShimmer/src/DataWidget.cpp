@@ -51,6 +51,9 @@ DataWidget::DataWidget(QWidget *parent, Application &app) :
         textBox->setReadOnly(true);
         ui->menuLayout->insertWidget(3,textBox);
         textBox->hide();
+
+        widget3d = new Widget3D(this, app);
+        ui->menuLayout->insertWidget(4, widget3d);
 }
 
 DataWidget::~DataWidget()

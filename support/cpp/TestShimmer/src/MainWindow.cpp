@@ -60,12 +60,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
         dr = &(app.dataRecorder);
 
-	//Window *window = new Window(app);
-	//ui->openglTab->layout()->addWidget(window);
+        //Window *window = new Window(app);
+        //ui->openglTab->layout()->addWidget(window);
 
-//	Widget3D* widget3d = new Widget3D(ui->openglTab, app);
-//	ui->openglTab->layout()->addWidget(widget3d);
-        ui->tabWidget->removeTab(5);    //temporarly hidden
+        //Widget3D* widget3d = new Widget3D(ui->openglTab, app);
+        //ui->openglTab->layout()->addWidget(widget3d);
+        ui->tabWidget->removeTab(8);    //temporarly hidden
+        ui->tabWidget->removeTab(6);
+        ui->tabWidget->removeTab(7);
+        ui->tabWidget->removeTab(3);
 
         LogWidget* logWidget = new LogWidget(ui->logTab, app);
         ui->logTab->layout()->addWidget(logWidget);

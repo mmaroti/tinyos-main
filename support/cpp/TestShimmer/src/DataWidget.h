@@ -40,6 +40,7 @@
 #include "DataPlot.h"
 #include <QMainWindow>
 #include <QTextEdit>
+#include "Widget3D.h"
 
 class Application;
 class DataRecorder;
@@ -71,6 +72,7 @@ private:
         Application &application;
 
         QTextEdit *textBox;
+        Widget3D *widget3d;
 
 signals:
         void SolverStarted();

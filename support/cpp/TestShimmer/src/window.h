@@ -31,48 +31,48 @@
 * Author: Miklós Maróti
 * Author: Péter Ruzicska
 */
-//
-//#ifndef WINDOW_H
-//#define WINDOW_H
-//
-//#include <QWidget>
-//
-//class Application;
-//class GLWidget;
-//class QSlider;
-//class QTimer;
-//
-//class Window : public QWidget
-//{
-//    Q_OBJECT
-//
-//public:
-//    Window(Application &app);
-//
-//    void setTimer(int time);
-//    void stopTimer();
-//
-//private slots:
-//    void setCurrentGlWidget();
-//    void onRecord();
-//    void rotateOneStep();
-//
-//private:
-//    Application &application;
-//    enum { NumRows = 1, NumColumns = 1 };
-//
-//    GLWidget *glWidgets[NumRows][NumColumns];
-//    GLWidget *currentGlWidget;
-//
-//    int timerCounter;
-//
-//    QSlider *createSlider();
-//    QSlider *xSlider;
-//
-//protected:
-//    QTimer *timer;
-//
-//};
-//
-//#endif
-//
+
+#ifndef WINDOW_H
+#define WINDOW_H
+
+#include <QWidget>
+
+class Application;
+class GLWidget;
+class QSlider;
+class QTimer;
+
+class Window : public QWidget
+{
+    Q_OBJECT
+
+public:
+    Window(Application &app);
+
+    void setTimer(int time);
+    void stopTimer();
+
+private slots:
+    void setCurrentGlWidget();
+    void onRecord();
+    void rotateOneStep();
+
+private:
+    Application &application;
+    enum { NumRows = 1, NumColumns = 1 };
+
+    GLWidget *glWidgets[NumRows][NumColumns];
+    GLWidget *currentGlWidget;
+
+    int timerCounter;
+
+    QSlider *createSlider();
+    QSlider *xSlider;
+
+protected:
+    QTimer *timer;
+
+};
+
+#endif
+

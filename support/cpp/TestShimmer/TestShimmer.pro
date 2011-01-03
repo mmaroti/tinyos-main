@@ -29,8 +29,8 @@ win32:LIBS += -lsetupapi
 DEFINES += QT_DLL
 
 # QWT3D_DLL
-# QT += opengl
-# isEmpty( ISQT4 ):CONFIG += opengl
+QT += opengl
+isEmpty( ISQT4 ):CONFIG += opengl
 SOURCES += src/DataRecorder.cpp \
     src/MainWindow.cpp \
     src/main.cpp \
