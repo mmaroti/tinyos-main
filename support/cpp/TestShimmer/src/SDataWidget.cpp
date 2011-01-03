@@ -84,8 +84,9 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
         ui(new Ui::SDataWidget),
         application(app)
 {
-
     ui->setupUi(this);
+    //this->setMouseTracking(true);
+    ui->sdataLeft->installEventFilter(this);
     connect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
     connect(ui->sdataLeft, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(onItemDoubleClicked(QTreeWidgetItem*,int)));
     blockingBox = new QMessageBox(QMessageBox::Information,
@@ -206,6 +207,9 @@ void SDataWidget::createChildItem(int i, QTreeWidgetItem* parent)
     it->setData(LENGTH,        Qt::DisplayRole, recordList.record_info().at(i).length());
     it->setData(DATE_OF_REC,   Qt::DisplayRole, recordList.record_info().at(i).recorded().toString("ddd MMM dd hh:mm:ss YYYY"));
     it->setData(DATE_DOWNLOAD, Qt::DisplayRole, recordList.record_info().at(i).downloaded().toString("ddd MMM dd hh:mm:ss YYYY"));
+
+    QString terst = recordList.record_info().at(i).downloaded().toString("ddd MMM dd hh:mm:ss YYYY");
+    qDebug() << terst;
 }
 
 void SDataWidget::on_toPlotButton_clicked()
@@ -435,4 +439,21 @@ void SDataWidget::on_showLastTencBox_clicked()
     }
 }
 
+void SDataWidget::onSdataLeftHasfocus()
+{
+    initLeft(false);
+}
+
+bool SDataWidget::eventFilter(QObject *object, QEvent *event)
+{
+    if (event->type() == QEvent::FocusIn)
+    {
+        if (object == ui->sdataLeft)
+        {
+            ui->sdataLeft->clear();
+            initLeft(ui->showLastTencBox->isChecked());
+        }
+    }
+    return false;
+}
 

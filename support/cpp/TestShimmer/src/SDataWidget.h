@@ -112,6 +112,8 @@ private:
     void printRecords();
     void filterRecords();
 
+    bool eventFilter(QObject *, QEvent *);
+
 signals:
 
     void updateGUI();
@@ -127,6 +129,7 @@ private slots:
     void onUpdateGUI();
     void on_clearButton_clicked();
     void on_showLastTencBox_clicked();
+    void onSdataLeftHasfocus();
 };
 
 #endif // SDATAWIDGET_H
