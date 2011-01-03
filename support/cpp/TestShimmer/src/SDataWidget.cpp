@@ -312,7 +312,7 @@ void SDataWidget::on_downloadButton_clicked()
 #ifdef _WIN32            
     downloadFromDevice();
     //fillSData(records);
-    initLeft(false);
+    //initLeft(false);
 #else
     processBinaryFile("Select the device", QDir::rootPath(), "Downloading");
 #endif
