@@ -139,6 +139,16 @@
           </item>
           <item>
            <property name="text">
+            <string>Könyök flexió</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Váll berotáció</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
             <string>All</string>
            </property>
           </item>
@@ -150,11 +160,6 @@
           <item>
            <property name="text">
             <string>Record</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Preset 2</string>
            </property>
           </item>
           <item>
@@ -180,8 +185,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>255</width>
-          <height>154</height>
+          <width>239</width>
+          <height>151</height>
          </rect>
         </property>
         <attribute name="label">
@@ -487,6 +492,14 @@
         </layout>
        </widget>
        <widget class="QWidget" name="gyroToolBox">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>255</width>
+          <height>154</height>
+         </rect>
+        </property>
         <attribute name="label">
          <string>Gyroscope</string>
         </attribute>
@@ -801,7 +814,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>238</width>
+          <width>239</width>
           <height>292</height>
          </rect>
         </property>

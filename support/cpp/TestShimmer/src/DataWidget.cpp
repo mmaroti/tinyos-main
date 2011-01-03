@@ -47,6 +47,10 @@ DataWidget::DataWidget(QWidget *parent, Application &app) :
         ui->scrollArea->setWidget(plot);
         //connect(&plot, SIGNAL(angleChanged(double)), Window::currentGlWidget , SLOT(onAngleChanged(double)) );
 
+        textBox = new QTextEdit(this);
+        textBox->setReadOnly(true);
+        ui->menuLayout->insertWidget(3,textBox);
+        textBox->hide();
 }
 
 DataWidget::~DataWidget()
@@ -544,35 +548,38 @@ void DataWidget::on_presetsComboBox_currentIndexChanged()
         on_corrX_clicked();
         on_corrY_clicked();
         on_corrZ_clicked();
+        textBox->hide();
     } else if(ui->presetsComboBox->currentIndex() == 1){
-        plot->setGraphs(DataPlot::XRAWACC, true);
-        plot->setGraphs(DataPlot::YRAWACC, true);
-        plot->setGraphs(DataPlot::ZRAWACC, true);
-        plot->setGraphs(DataPlot::XACC, true);
-        plot->setGraphs(DataPlot::YACC, true);
-        plot->setGraphs(DataPlot::ZACC, true);
-        plot->setGraphs(DataPlot::ABSACC, true);
-        plot->setGraphs(DataPlot::XGYRO, true);
-        plot->setGraphs(DataPlot::YGYRO, true);
-        plot->setGraphs(DataPlot::ZGYRO, true);
-        plot->setGraphs(DataPlot::XRAWGYRO, true);
-        plot->setGraphs(DataPlot::YRAWGYRO, true);
-        plot->setGraphs(DataPlot::ZRAWGYRO, true);
-        plot->setGraphs(DataPlot::XYANG, true);
-        plot->setGraphs(DataPlot::YZANG, true);
-        plot->setGraphs(DataPlot::ZXANG, true);
-        plot->setGraphs(DataPlot::XANG, true);
-        plot->setGraphs(DataPlot::YANG, true);
-        plot->setGraphs(DataPlot::ZANG, true);
-        plot->setGraphs(DataPlot::XEUL, true);
-        plot->setGraphs(DataPlot::YEUL, true);
-        plot->setGraphs(DataPlot::ZEUL, true);
-        plot->setGraphs(DataPlot::XINT, true);
-        plot->setGraphs(DataPlot::YINT, true);
-        plot->setGraphs(DataPlot::ZINT, true);
+        plot->setGraphs(DataPlot::XRAWACC, false);
+        plot->setGraphs(DataPlot::YRAWACC, false);
+        plot->setGraphs(DataPlot::ZRAWACC, false);
+        plot->setGraphs(DataPlot::XACC, false);
+        plot->setGraphs(DataPlot::YACC, false);
+        plot->setGraphs(DataPlot::ZACC, false);
+        plot->setGraphs(DataPlot::ABSACC, false);
+        plot->setGraphs(DataPlot::XGYRO, false);
+        plot->setGraphs(DataPlot::YGYRO, false);
+        plot->setGraphs(DataPlot::ZGYRO, false);
+        plot->setGraphs(DataPlot::XRAWGYRO, false);
+        plot->setGraphs(DataPlot::YRAWGYRO, false);
+        plot->setGraphs(DataPlot::ZRAWGYRO, false);
+        plot->setGraphs(DataPlot::XYANG, false);
+        plot->setGraphs(DataPlot::YZANG, false);
+        plot->setGraphs(DataPlot::ZXANG, false);
+        plot->setGraphs(DataPlot::XANG, false);
+        plot->setGraphs(DataPlot::YANG, false);
+        plot->setGraphs(DataPlot::ZANG, false);
+        plot->setGraphs(DataPlot::XEUL, false);
+        plot->setGraphs(DataPlot::YEUL, false);
+        plot->setGraphs(DataPlot::ZEUL, false);
+        plot->setGraphs(DataPlot::XINT, false);
+        plot->setGraphs(DataPlot::YINT, false);
+        plot->setGraphs(DataPlot::ZINT, false);
         plot->setGraphs(DataPlot::XCORRANG, true);
-        plot->setGraphs(DataPlot::YCORRANG, true);
+        plot->setGraphs(DataPlot::YCORRANG, false);
         plot->setGraphs(DataPlot::ZCORRANG, true);
+        textBox->setText("Piros: alkari szupináció\nKék: könyök flexió");
+        textBox->show();
     } else if(ui->presetsComboBox->currentIndex() == 2){
         plot->setGraphs(DataPlot::XRAWACC, false);
         plot->setGraphs(DataPlot::YRAWACC, false);
@@ -595,13 +602,15 @@ void DataWidget::on_presetsComboBox_currentIndexChanged()
         plot->setGraphs(DataPlot::ZANG, false);
         plot->setGraphs(DataPlot::XEUL, false);
         plot->setGraphs(DataPlot::YEUL, false);
-        plot->setGraphs(DataPlot::ZEUL, false);        
+        plot->setGraphs(DataPlot::ZEUL, false);
         plot->setGraphs(DataPlot::XINT, false);
         plot->setGraphs(DataPlot::YINT, false);
         plot->setGraphs(DataPlot::ZINT, false);
         plot->setGraphs(DataPlot::XCORRANG, false);
-        plot->setGraphs(DataPlot::YCORRANG, false);
+        plot->setGraphs(DataPlot::YCORRANG, true);
         plot->setGraphs(DataPlot::ZCORRANG, false);
+        textBox->setText("Zöld: rotáció");
+        textBox->show();
     } else if(ui->presetsComboBox->currentIndex() == 3){
         plot->setGraphs(DataPlot::XRAWACC, false);
         plot->setGraphs(DataPlot::YRAWACC, false);
@@ -631,5 +640,6 @@ void DataWidget::on_presetsComboBox_currentIndexChanged()
         plot->setGraphs(DataPlot::XCORRANG, false);
         plot->setGraphs(DataPlot::YCORRANG, false);
         plot->setGraphs(DataPlot::ZCORRANG, false);
+        textBox->hide();
     }
 }

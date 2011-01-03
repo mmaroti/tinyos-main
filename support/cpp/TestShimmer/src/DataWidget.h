@@ -39,6 +39,7 @@
 #include "Data.hpp"
 #include "DataPlot.h"
 #include <QMainWindow>
+#include <QTextEdit>
 
 class Application;
 class DataRecorder;
@@ -68,6 +69,8 @@ private:
         DataPlot *plot;
         Ui::DataWidget *ui;
         Application &application;
+
+        QTextEdit *textBox;
 
 signals:
         void SolverStarted();
