@@ -40,6 +40,7 @@ module NullSleepC @safe()
   uses interface Boot;
 	uses interface Leds;
 	uses interface GeneralIO as VoltMeter;
+	uses interface GeneralIO as SSN;
 //	uses interface AtmegaCompare<uint32_t>;
 
 	uses interface Alarm<T62khz, uint32_t>;
@@ -49,8 +50,15 @@ implementation
 volatile uint8_t ison=0;
 volatile uint16_t timer = 0;
 
-  event void Boot.booted() {
+	void init(void) {
 		call VoltMeter.set();
+		call SSN.makeOutput();
+		call SSN.clr();
+	}
+
+  event void Boot.booted() {
+		init();
+		
 		//call SpiRes.request();
     //call Stm25pSpi.powerDown();
 		//call SpiByte.write(0xB9);
@@ -61,26 +69,12 @@ volatile uint16_t timer = 0;
 //		call AtmegaCompare.start();
 call Alarm.start(0x0100);
 
-		for(;;) {
-			if(!ison) {
-				//call Leds.led3On();
-			}
-			else{
-				//call Leds.led3Off();
-			}
-		}//for
   }//booted
 
-
-	/*async event void AtmegaCompare.fired() {
-		++timer;
-		call AtmegaCompare.set((uint32_t)timer << 16);
-		ison = ~ison;
-	}*/
 	async event void Alarm.fired() {
 		call Alarm.stop();
-		//call Leds.led2On();
 		ison = ~ison;
+		//ison?(call Leds.led3On()):(call Leds.led3Off());
 		call Alarm.start(0xFF00);
 	}
 }
