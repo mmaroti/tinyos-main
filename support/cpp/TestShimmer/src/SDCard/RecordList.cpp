@@ -87,11 +87,11 @@ void RecordList::read_all_existing() {
 
 const QDateTime stdDate2QDate(const char* c_std_date) {
 
-    qDebug() << c_std_date;
+    //qDebug() << c_std_date;
 
     const QDateTime date = QDateTime::fromString(c_std_date);
 
-    qDebug() << date.addDays(10).toString();
+    //qDebug() << date.addDays(10).toString();
 
     return date;
 }
