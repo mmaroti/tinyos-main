@@ -109,16 +109,17 @@ SDataWidget::~SDataWidget()
 void SDataWidget::initLeft(bool filter)
 {
     recordList.read_all_existing();    
-
+    int k = 0;
     for(int i=0; i<recordList.headers().size(); i++){
         QTreeWidgetItem *item = createParentItem(i, ui->sdataLeft);
-        int records = recordList.headers().at(i).number_of_records();
-        for(int j=0; j<records; j++){
+        int records = recordList.headers().at(i).number_of_records() + k;
+        while(k<records){
             if(filter){
-                if(item->childCount()<NUMOFRECS) createChildItem(j, item);
+                if(item->childCount()<NUMOFRECS) createChildItem(k, item);
             } else {
-                createChildItem(j, item);
+                createChildItem(k, item);
             }
+            k++;
         }
     }
 

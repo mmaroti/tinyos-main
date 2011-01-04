@@ -119,7 +119,7 @@ MainWindow::MainWindow(QWidget *parent) :
                 &app.timeSyncMsgReceiver, SLOT(onReceiveMessage(ActiveMessage)), Qt::DirectConnection);
         app.directorySelector.registerTabWidget(ui->tabWidget);
 
-        //ui->tabWidget->setFocusPolicy(Qt::StrongFocus);
+
         ui->sdataTab->setFocusPolicy(Qt::StrongFocus);
         ui->sdataTab->installEventFilter(this);
 
