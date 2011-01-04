@@ -120,7 +120,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="menuLayout" stretch="0,0,0,0">
+    <layout class="QVBoxLayout" name="menuLayout" stretch="0,1,1,0">
      <property name="margin">
       <number>9</number>
      </property>
@@ -178,15 +178,15 @@
         <bool>false</bool>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="accToolBox">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>139</width>
-          <height>151</height>
+          <width>255</width>
+          <height>154</height>
          </rect>
         </property>
         <attribute name="label">
@@ -496,8 +496,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>255</width>
-          <height>154</height>
+          <width>239</width>
+          <height>124</height>
          </rect>
         </property>
         <attribute name="label">
@@ -814,7 +814,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>155</width>
+          <width>239</width>
           <height>292</height>
          </rect>
         </property>

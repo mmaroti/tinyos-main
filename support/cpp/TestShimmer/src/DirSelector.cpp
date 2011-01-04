@@ -55,6 +55,9 @@ void DirSelector::registerTabWidget(const QTabWidget* widget) {
 
 void DirSelector::tabChanged(int tab) const {
 
+//    if(tab == 1){
+//        //emit sdataFocusIn();
+//    }
     select(tab);
 }
 

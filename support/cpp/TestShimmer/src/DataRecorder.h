@@ -140,6 +140,8 @@ public:
         Angle_pair integrated_angle(int sample, Coordinate k) const;
         Angle_pair corrected_angle(int i, Coordinate k) const;
 
+        double calculateAverageOnRange(int start, int end, QString value);
+
 signals:
 
 	void sampleAdded();
@@ -148,8 +150,7 @@ signals:
         void calibrationDataLoaded();
 
 public slots:
-	void onReceiveMessage(const ActiveMessage & msg); 
-
+        void onReceiveMessage(const ActiveMessage & msg);
 
 private:
         void csvToSample(const QString& line); // FIXME

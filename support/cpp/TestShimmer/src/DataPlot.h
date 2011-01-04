@@ -122,6 +122,7 @@ public slots:
 signals:
         void angleChanged(double angle);
         void clicked();
+        void calculateRange(int from, int to);
 
 private:
         Application &application;

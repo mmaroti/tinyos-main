@@ -54,7 +54,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow)
 {
-	ui->setupUi(this);
+        ui->setupUi(this);
 
 	ui->connectTab->layout()->addWidget(new ConnectWidget(ui->connectTab, app));
 
@@ -113,10 +113,15 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(ui->actionDo_regression, SIGNAL(triggered()), dataWidget, SLOT(on_regressionButton_clicked()));
         connect(dataWidget, SIGNAL(SolverStarted()), this, SLOT(onSolverRunning()));
         connect(dataWidget, SIGNAL(SolverFinished()), this, SLOT(onSolverRunning()));
+        connect(this, SIGNAL(focusIn()), sddataWidget, SLOT(onSdataLeftFocusIn()));
 
         connect(&app.serialListener,      SIGNAL(receiveMessage(ActiveMessage)),
                 &app.timeSyncMsgReceiver, SLOT(onReceiveMessage(ActiveMessage)), Qt::DirectConnection);
         app.directorySelector.registerTabWidget(ui->tabWidget);
+
+        //ui->tabWidget->setFocusPolicy(Qt::StrongFocus);
+        ui->sdataTab->setFocusPolicy(Qt::StrongFocus);
+        ui->sdataTab->installEventFilter(this);
 
 }
 
@@ -159,4 +164,16 @@ void MainWindow::onShowLogDialog()
 {
     LogDialog dial;
     dial.exec();
+}
+
+bool MainWindow::eventFilter(QObject *object, QEvent *event)
+{
+    if (event->type() == QEvent::FocusIn)
+    {
+        if (object == ui->sdataTab)
+        {
+            emit focusIn();
+        }
+    }
+    return false;
 }

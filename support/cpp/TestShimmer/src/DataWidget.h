@@ -139,6 +139,8 @@ private slots:
         void onCut();
 
         void finished(bool error, const char* msg, const ipo::Results* res);
+
+        void onCalculateRange(int from, int to);
 };
 
 #endif // DATAWIDGET_H

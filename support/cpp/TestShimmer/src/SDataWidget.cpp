@@ -194,7 +194,7 @@ QTreeWidgetItem* SDataWidget::createParentItem(int i, QTreeWidget *root)
 
     item->setData(MOTE_ID,       Qt::DisplayRole, recordList.headers().at(i).mote_id());
     item->setData(DATE_DOWNLOAD, Qt::DisplayRole, recordList.headers().at(i).last_download());
-    item->setData(COMMENT,       Qt::DisplayRole, recordList.headers().at(i).remaining_hours());
+    item->setData(COMMENT,       Qt::DisplayRole, recordList.headers().at(i).remaining_hours() + " hours remaining");
 
     return item;
 }
@@ -436,21 +436,8 @@ void SDataWidget::on_showLastTencBox_clicked()
     }
 }
 
-void SDataWidget::onSdataLeftHasfocus()
+void SDataWidget::onSdataLeftFocusIn()
 {
-    initLeft(false);
+    ui->sdataLeft->clear();
+    initLeft(ui->showLastTencBox->isChecked());
 }
-
-bool SDataWidget::eventFilter(QObject *object, QEvent *event)
-{
-    if (event->type() == QEvent::FocusIn)
-    {
-        if (object == ui->sdataLeft)
-        {
-            ui->sdataLeft->clear();
-            initLeft(ui->showLastTencBox->isChecked());
-        }
-    }
-    return false;
-}
-

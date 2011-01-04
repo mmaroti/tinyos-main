@@ -46,10 +46,12 @@ DataWidget::DataWidget(QWidget *parent, Application &app) :
         plot = new DataPlot(ui->scrollArea, app);
         ui->scrollArea->setWidget(plot);
         //connect(&plot, SIGNAL(angleChanged(double)), Window::currentGlWidget , SLOT(onAngleChanged(double)) );
+        connect(plot, SIGNAL(calculateRange(int,int)), this, SLOT(onCalculateRange(int,int)));
 
         textBox = new QTextEdit(this);
         textBox->setReadOnly(true);
-        ui->menuLayout->insertWidget(3,textBox, 0);
+        ui->menuLayout->insertWidget(1,textBox, 0);
+        textBox->setMaximumHeight(100);
         textBox->hide();
 
         widget3d = new Widget3D(this, app);
@@ -583,7 +585,7 @@ void DataWidget::on_presetsComboBox_currentIndexChanged()
         plot->setGraphs(DataPlot::XCORRANG, true);
         plot->setGraphs(DataPlot::YCORRANG, false);
         plot->setGraphs(DataPlot::ZCORRANG, true);
-        textBox->setText("Piros: alkari szupináció\nKék: könyök flexió");
+        textBox->setText("Piros: alkari szupináció\nKék: könyök flexió\n1 osztás 45° -nak felel meg.");
         textBox->show();
     } else if(ui->presetsComboBox->currentIndex() == 2){
         plot->setGraphs(DataPlot::XRAWACC, false);
@@ -614,7 +616,7 @@ void DataWidget::on_presetsComboBox_currentIndexChanged()
         plot->setGraphs(DataPlot::XCORRANG, false);
         plot->setGraphs(DataPlot::YCORRANG, true);
         plot->setGraphs(DataPlot::ZCORRANG, false);
-        textBox->setText("Zöld: rotáció");
+        textBox->setText("Zöld: rotáció\n1 osztás 45° -nak felel meg.");
         textBox->show();
     } else if(ui->presetsComboBox->currentIndex() == 3){
         plot->setGraphs(DataPlot::XRAWACC, false);
@@ -647,4 +649,22 @@ void DataWidget::on_presetsComboBox_currentIndexChanged()
         plot->setGraphs(DataPlot::ZCORRANG, false);
         textBox->hide();
     }
+}
+
+void DataWidget::onCalculateRange(int from, int to)
+{
+    QVector<double> avgs;
+    if(ui->corrX->isChecked()) avgs.append(application.dataRecorder.calculateAverageOnRange(from, to, "XCORRANG"));
+    if(ui->corrY->isChecked()) avgs.append(application.dataRecorder.calculateAverageOnRange(from, to, "YCORRANG"));
+    if(ui->corrZ->isChecked()) avgs.append(application.dataRecorder.calculateAverageOnRange(from, to, "ZCORRANG"));
+    if(ui->eulerX->isChecked()) avgs.append(application.dataRecorder.calculateAverageOnRange(from, to, "XEUL"));
+    if(ui->eulerY->isChecked()) avgs.append(application.dataRecorder.calculateAverageOnRange(from, to, "YEUL"));
+    if(ui->eulerZ->isChecked()) avgs.append(application.dataRecorder.calculateAverageOnRange(from, to, "ZEUL"));
+
+    for(int i=0; i<avgs.size(); i++){
+        if(ui->presetsComboBox->currentIndex() == 1 || ui->presetsComboBox->currentIndex() == 2 ){
+            textBox->append(QString::number(avgs[i]));
+        }
+    }
+
 }

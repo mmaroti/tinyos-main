@@ -56,9 +56,14 @@ private slots:
         void onSolverRunning();
         void onShowLogDialog();
 
+signals:
+        void focusIn();
+
 private:
 	Ui::MainWindow *ui;
 	Application app;
+
+        bool eventFilter(QObject *, QEvent *);
 };
 
 #endif // MAINWINDOW_H

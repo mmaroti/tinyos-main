@@ -28,8 +28,8 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklï¿½s Marï¿½ti
-* Author: Pï¿½ter Ruzicska
+* Author: Miklós Maróti
+* Author: Péter Ruzicska
 */
 
 #include <stdexcept>
@@ -964,4 +964,24 @@ void DataRecorder::edit(const QString& option)
         emit sampleAdded();
         copySamples.clear();
     }
+}
+
+double DataRecorder::calculateAverageOnRange(int start, int end, QString value)
+{
+    Coordinate c;
+    double avg = 0;
+    double sum = 0;
+
+    if(value == "XCORRANG") c = X;
+    if(value == "YCORRANG") c = Y;
+    if(value == "ZCORRANG") c = Z;
+
+
+    for(int i = start; i<end; i++){
+        Angle_pair a = corrected_angle(i, c);
+        sum += a.angle1;
+    }
+    avg = sum / (end-start);
+
+    return avg;
 }
