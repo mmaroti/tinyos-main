@@ -36,6 +36,7 @@
 
 #include <map>
 #include <memory>
+#include <set>
 #include <vector>
 #include "RecordPairID.hpp"
 
@@ -46,6 +47,7 @@ class Merger;
 
 typedef std::pair<unsigned int, unsigned int> Pair;
 typedef std::map<RecordPairID, std::vector<Pair> > Map;
+typedef std::set<RecordID> Set;
 
 class TimeSyncMerger {
 
@@ -55,6 +57,8 @@ public:
 
 	const Map& pairs() const;
 
+	const Set& recordID_of_pairs() const;
+
 	~TimeSyncMerger();
 
 private:
@@ -62,7 +66,10 @@ private:
 	TimeSyncMerger(const TimeSyncMerger& );
 	TimeSyncMerger& operator=(const TimeSyncMerger& );
 
+	void merge();
 	void insert(const RecordPairID& id, const std::vector<Pair>& sync_points);
+	void insert(const RecordID& other);
+	void check_size() const;
 	void process_pairs();
 	void reset_db_if_needed();
 
@@ -81,6 +88,7 @@ private:
 	std::auto_ptr<Merger> merger;
 
 	Map result;
+	Set otherRecords;
 };
 
 }

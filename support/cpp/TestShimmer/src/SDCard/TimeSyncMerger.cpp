@@ -65,6 +65,17 @@ TimeSyncMerger::TimeSyncMerger(int mote, int reboot)
 	merger.reset( new Merger(vmote1, reader1.messages_as_list(), length1) );
 
 	process_pairs();
+
+	check_size();
+
+}
+
+void TimeSyncMerger::check_size() const {
+
+	if (result.size()!=otherRecords.size()) {
+
+		throw logic_error("internal error in TimeSyncMerger");
+	}
 }
 
 void TimeSyncMerger::reset_db_if_needed() {
@@ -93,22 +104,43 @@ void TimeSyncMerger::process_pairs() {
 
 		merger->set_mote2_messages(reader2.messages_as_list(), length2);
 
-		merger->merge();
-
-		RecordPairID id(rec1, RecordID(mote2, reboot2));
-
-		insert(id, merger->results_in_mote_id_order());
+		merge();
 	}
 
 	merger.reset();
 }
 
-void TimeSyncMerger::insert(const RecordPairID& id, const vector<Pair>& sync_points) {
+void TimeSyncMerger::merge() {
 
-	if (sync_points.empty()) {
+	const int size = merger->merge();
+
+	if (size<3) {
 
 		return;
 	}
+
+	const RecordID rec2(mote2, reboot2);
+
+	insert(rec2);
+
+	RecordPairID id(rec1, rec2);
+
+	insert(id, merger->results_in_mote_id_order());
+
+	check_size();
+}
+
+void TimeSyncMerger::insert(const RecordID& other) {
+
+	pair<Set::iterator, bool> pos = otherRecords.insert(other);
+
+	if (!pos.second) {
+
+		throw logic_error("this record has already been added");
+	}
+}
+
+void TimeSyncMerger::insert(const RecordPairID& id, const vector<Pair>& sync_points) {
 
 	if (sync_points.size()<3) {
 
@@ -130,6 +162,11 @@ void TimeSyncMerger::insert(const RecordPairID& id, const vector<Pair>& sync_poi
 const Map& TimeSyncMerger::pairs() const {
 
 	return result;
+}
+
+const Set& TimeSyncMerger::recordID_of_pairs() const {
+
+	return otherRecords;
 }
 
 TimeSyncMerger::~TimeSyncMerger() {
