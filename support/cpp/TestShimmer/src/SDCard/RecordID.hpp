@@ -57,6 +57,10 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& , const RecordID& );
 
+	friend class MoteInfo; // These could have been avoided by using SQLite
+
+	friend class RecordInfo;
+
 private:
 
 	int mote_ID;

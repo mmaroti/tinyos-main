@@ -39,6 +39,8 @@
 
 namespace sdc {
 
+class RecordID;
+
 class MoteInfo {
 
 public:
@@ -46,10 +48,12 @@ public:
 	MoteInfo();
 
 	MoteInfo(int    mote,
-			 double card_size_in_blocks,
-			 int    last_block,
-			 const  std::string& last_download,
-			 int    number_of_records);
+			double card_size_in_blocks,
+			int    last_block,
+			const  std::string& last_download,
+			int    number_of_records);
+
+	explicit MoteInfo(const RecordID& rid);
 
 	int mote_id() const;
 
@@ -71,6 +75,10 @@ private:
 };
 
 std::ostream& operator<<(std::ostream& , const MoteInfo& );
+
+bool operator<(const MoteInfo& lhs, const MoteInfo& rhs);
+
+bool id_equals(const MoteInfo& info1, const MoteInfo& info2);
 
 }
 

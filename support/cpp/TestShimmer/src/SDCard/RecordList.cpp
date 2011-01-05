@@ -253,6 +253,29 @@ void RecordList::search_for_matching_records(int mote, int reboot) {
     qDebug() << "Finished RecordList::search_for_matching_records()";
 }
 
+void RecordList::copy_matching_header(const sdc::RecordID& rid) {
+
+    const sdc::MoteInfo& m = scout->find_moteinfo(rid);
+
+    const MoteHeader moteheader = MoteInfo2MoteHeader(m);
+
+    if (matching_header->empty()||matching_header->last().mote_id()<moteheader.mote_id()) {
+
+        matching_header->push_back(moteheader);
+    }
+    else if (matching_header->last().mote_id()!=moteheader.mote_id()) {
+
+        throw std::logic_error("mote ID already inserted");
+    }
+}
+
+void RecordList::copy_matching_line(const sdc::RecordID& rid) {
+
+    const sdc::RecordInfo& r = scout->find_recordinfo(rid);
+
+    matching_records->push_back(RecordInfo2RecordLine(r));
+}
+
 void RecordList::search_for_matching(int mote, int reboot) {
 
     matching_header->clear();
@@ -260,13 +283,39 @@ void RecordList::search_for_matching(int mote, int reboot) {
 
     sdc::TimeSyncMerger merger(mote, reboot);
 
-    const std::set<sdc::RecordID>& matching = merger.recordID_of_pairs();
+    typedef std::set<sdc::RecordID> Set;
 
-    matching.size();
+    const Set& matching = merger.recordID_of_pairs();
 
-    // binary search for mote_ID in headers, mote and record ID in records
-    // copy headers
-    // copy lines
+    for (Set::const_iterator i=matching.begin(); i!=matching.end(); ++i) {
+
+        copy_matching_header(*i);
+        copy_matching_line(*i);
+    }
+
+    qDebug() << "Set size:     " << matching.size();
+    dump_matching_data();
+}
+
+void RecordList::dump_matching_data() const {
+
+    qDebug() << "Headers";
+
+    for (int i=0; i<matching_header->size(); ++i) {
+
+        const MoteHeader& m = matching_header->at(i);
+
+        qDebug() << m.mote_id();
+    }
+
+    qDebug() << "Records";
+
+    for (int i=0; i<matching_records->size(); ++i) {
+
+        const RecordLine& r = matching_records->at(i);
+
+        qDebug() << r.mote_id() << "  " << r.record_id();
+    }
 }
 
 const QVector<MoteHeader>& RecordList::matching_headers() const {

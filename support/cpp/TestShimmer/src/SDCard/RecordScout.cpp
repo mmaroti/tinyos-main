@@ -31,10 +31,13 @@
 *      Author: Ali Baharev
 */
 
+#include <algorithm>
 #include <fstream>
 // FIXME Remove when finished
 #include <iostream>
+#include <stdexcept>
 #include "RecordScout.hpp"
+#include "RecordID.hpp"
 #include "MoteInfo.hpp"
 #include "MoteRegistrar.hpp"
 #include "Utility.hpp"
@@ -42,6 +45,23 @@
 using namespace std;
 
 namespace sdc {
+
+template <typename T>
+const T& find(const RecordID& rid, const vector<T>& vec) {
+
+	const T rid_to_find = T(rid);
+
+	typename vector<T>::const_iterator pos = lower_bound(vec.begin(), vec.end(), rid_to_find);
+
+	if (pos==vec.end() || !id_equals(*pos, rid_to_find)) {
+
+		string msg("record ID not found ");
+		msg.append(rid.str());
+		throw logic_error(msg);
+	}
+
+	return *pos;
+}
 
 void RecordScout::clear() {
 
@@ -183,6 +203,16 @@ void RecordScout::dump_mote(const int pos, const int n) const {
 
 		cout << db.at(pos+i) << endl;
 	}
+}
+
+const MoteInfo& RecordScout::find_moteinfo(const RecordID& rid) const {
+
+	return find(rid, header);
+}
+
+const RecordInfo& RecordScout::find_recordinfo(const RecordID& rid) const {
+
+	return find(rid, db);
 }
 
 }

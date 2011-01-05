@@ -40,12 +40,15 @@
 namespace sdc {
 
 class Line;
+class RecordID;
 
 class RecordInfo {
 
 public:
 
 	RecordInfo(int mote, const Line& line, const std::string& date_of_record);
+
+	explicit RecordInfo(const RecordID& rid);
 
 	int mote_id() const;
 	int record_id() const;
@@ -64,6 +67,10 @@ private:
 };
 
 std::ostream& operator<<(std::ostream& , const RecordInfo& );
+
+bool operator<(const RecordInfo& info1, const RecordInfo& info2);
+
+bool id_equals(const RecordInfo& info1, const RecordInfo& info2);
 
 }
 

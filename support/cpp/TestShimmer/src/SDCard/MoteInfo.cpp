@@ -33,6 +33,7 @@
 
 #include <ostream>
 #include "MoteInfo.hpp"
+#include "RecordID.hpp"
 #include "BlockRelatedConsts.hpp"
 #include "Utility.hpp"
 
@@ -46,10 +47,10 @@ MoteInfo::MoteInfo() {
 }
 
 MoteInfo::MoteInfo( int mote,
-					double size,
-					int last_block,
-					const string& date,
-					int number_of_records)
+		double size,
+		int last_block,
+		const string& date,
+		int number_of_records)
 {
 	mote_ID = mote;
 
@@ -60,6 +61,11 @@ MoteInfo::MoteInfo( int mote,
 	last_seen = date;
 
 	num_of_records = number_of_records;
+}
+
+MoteInfo::MoteInfo(const RecordID& rid) {
+
+	mote_ID = rid.mote_ID;
 }
 
 int MoteInfo::mote_id() const {
@@ -89,6 +95,16 @@ std::ostream& operator<<(std::ostream& out, const MoteInfo& m) {
 	out << m.number_of_records() << " records in the database";
 
 	return out;
+}
+
+bool operator<(const MoteInfo& lhs, const MoteInfo& rhs) {
+
+	return lhs.mote_id()<rhs.mote_id();
+}
+
+bool id_equals(const MoteInfo& info1, const MoteInfo& info2) {
+
+	return info1.mote_id()==info2.mote_id();
 }
 
 }

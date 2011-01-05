@@ -171,6 +171,7 @@ void SDataWidget::onItemSelectionChanged()
         const QString rec_id(ui->sdataLeft->currentItem()->text(1));
 
         qDebug() << "mote id: " << mote_id << ", record id: " << rec_id;
+        recordList.search_for_matching_records(mote_id.toInt(), rec_id.toInt());
 
         initRight(getLinkingRecords(ui->sdataLeft->currentItem()->parent()->text(0).toInt(), ui->sdataLeft->currentItem()->text(1).toInt()));
     }

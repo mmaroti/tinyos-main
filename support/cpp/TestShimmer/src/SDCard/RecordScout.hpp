@@ -53,6 +53,10 @@ public:
 
 	const std::vector<RecordInfo>& record_info() const;
 
+	const MoteInfo&   find_moteinfo(  const RecordID& rid) const;
+
+	const RecordInfo& find_recordinfo(const RecordID& rid) const;
+
 	void dump_all() const;
 
 private:

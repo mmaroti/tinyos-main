@@ -33,6 +33,7 @@
 
 #include <ostream>
 #include "RecordInfo.hpp"
+#include "RecordID.hpp"
 #include "Line.hpp"
 
 using namespace std;
@@ -47,6 +48,12 @@ RecordInfo::RecordInfo(int mote_id, const Line& line, const string& date_rec) {
 	len    = line.record_length();
 	date_of_download = line.download_date();
 	date_of_record   = date_rec;
+}
+
+RecordInfo::RecordInfo(const RecordID &rid) {
+
+	mote = rid.mote_ID;
+	record = rid.reboot_ID;
 }
 
 int RecordInfo::mote_id() const {
@@ -78,6 +85,18 @@ std::ostream& operator<<(std::ostream& out, const RecordInfo& r) {
 	out << r.date_downloaded() << '\t' << r.date_recorded();
 
 	return out;
+}
+
+bool operator<(const RecordInfo& info1, const RecordInfo& info2) {
+
+	return (info1.mote_id()!=info2.mote_id()) ?
+			info1.mote_id()<info2.mote_id() :
+			info1.record_id()<info2.record_id();
+}
+
+bool id_equals(const RecordInfo& info1, const RecordInfo& info2) {
+
+	return info1.mote_id()==info2.mote_id() && info1.record_id()==info2.record_id();
 }
 
 }

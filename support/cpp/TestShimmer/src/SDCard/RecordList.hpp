@@ -37,6 +37,7 @@
 #include <QVector>
 
 namespace sdc {
+    class RecordID;
     class RecordScout;
 }
 
@@ -63,9 +64,6 @@ public:
 
     const QVector<RecordLine>& matching_record_info() const;
 
-    // TODO Perform the search for the right panel of the GUI
-    // Input: vmote_id, uses: merger, output: matching headers and lines, if any
-
     ~RecordList();
 
 private:
@@ -77,6 +75,10 @@ private:
 
     void copy_headers();
     void copy_lines();
+
+    void copy_matching_header(const sdc::RecordID& rid);
+    void copy_matching_line(const sdc::RecordID& rid);
+    void dump_matching_data() const;
 
     void show_read_error(const char* what, const char* name) const;
     void show_lock_error() const;
