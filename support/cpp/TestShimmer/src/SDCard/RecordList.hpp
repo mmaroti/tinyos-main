@@ -57,6 +57,12 @@ public:
 
     const QVector<RecordLine>& record_info() const;
 
+    void search_for_matching_records(int mote, int reboot);
+
+    const QVector<MoteHeader>& matching_headers() const;
+
+    const QVector<RecordLine>& matching_record_info() const;
+
     // TODO Perform the search for the right panel of the GUI
     // Input: vmote_id, uses: merger, output: matching headers and lines, if any
 
@@ -67,16 +73,22 @@ private:
     Q_DISABLE_COPY(RecordList)
 
     void read_all();
+    void search_for_matching(int mote, int reboot);
+
     void copy_headers();
     void copy_lines();
+
     void show_read_error(const char* what, const char* name) const;
     void show_lock_error() const;
     void show_error(const QString& msg) const;
+
     void check_lock() const;
 
     QMutex* const mutex;
     QVector<MoteHeader>* const header;
     QVector<RecordLine>* const records;
+    QVector<MoteHeader>* const matching_header;
+    QVector<RecordLine>* const matching_records;
     sdc::RecordScout* const scout;
 
 };

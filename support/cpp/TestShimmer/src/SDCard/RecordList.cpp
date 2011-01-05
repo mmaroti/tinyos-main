@@ -42,11 +42,14 @@
 #include "MoteHeader.hpp"
 #include "RecordLine.hpp"
 #include "RecordScout.hpp"
+#include "TimeSyncMerger.hpp"
 
 RecordList::RecordList() :
         mutex(new QMutex),
         header(new QVector<MoteHeader>),
         records(new QVector<RecordLine>),
+        matching_header(new QVector<MoteHeader>),
+        matching_records(new QVector<RecordLine>),
         scout(new sdc::RecordScout)
 {
 
@@ -57,6 +60,8 @@ RecordList::~RecordList() {
     delete mutex;
     delete header;
     delete records;
+    delete matching_header;
+    delete matching_records;
     delete scout;
 }
 
@@ -103,10 +108,12 @@ const MoteHeader MoteInfo2MoteHeader(const sdc::MoteInfo& m) {
     return MoteHeader(m.mote_id(), last_download, m.remaining_hours().c_str(), m.number_of_records());
 }
 
-// TODO Make it a template to eliminate duplication
+// TODO Try to eliminate duplication
 void RecordList::copy_headers() {
 
-    std::vector<sdc::MoteInfo> moteinfo = scout->headers();
+    const std::vector<sdc::MoteInfo>& moteinfo = scout->headers();
+
+    header->clear();
 
     const int n = static_cast<int> (moteinfo.size());
 
@@ -134,10 +141,12 @@ const RecordLine RecordInfo2RecordLine(const sdc::RecordInfo& r) {
     return RecordLine(r.mote_id(), r.record_id(), r.length().c_str(), download, recorded);
 }
 
-// TODO Make it a template to eliminate duplication
+// TODO Try to eliminate duplication
 void RecordList::copy_lines() {
 
-    std::vector<sdc::RecordInfo> recordinfo = scout->record_info();
+    const std::vector<sdc::RecordInfo>& recordinfo = scout->record_info();
+
+    records->clear();
 
     const int n = static_cast<int> (recordinfo.size());
 
@@ -151,8 +160,8 @@ void RecordList::copy_lines() {
 
 void RecordList::read_all() {
 
-    header->clear();
-    records->clear();
+    matching_header->clear(); // TODO Check what is good for the GUI
+    matching_records->clear();
 
     scout->read_all_existing();
 
@@ -216,4 +225,60 @@ const QVector<RecordLine>& RecordList::record_info() const {
     check_lock();
 
     return *records;
+}
+
+// FIXME How can this duplication be eliminated?
+void RecordList::search_for_matching_records(int mote, int reboot) {
+
+    qDebug() << "Entered RecordList::search_for_matching_records(" << mote << ", " << reboot << ")";
+
+    if (!mutex->tryLock()) {
+
+        show_lock_error();
+
+        return;
+    }
+
+    try {
+
+        search_for_matching(mote, reboot);
+    }
+    catch (std::exception& e) {
+
+        show_read_error(e.what(), typeid(e).name());
+    }
+
+    mutex->unlock();
+
+    qDebug() << "Finished RecordList::search_for_matching_records()";
+}
+
+void RecordList::search_for_matching(int mote, int reboot) {
+
+    matching_header->clear();
+    matching_records->clear();
+
+    sdc::TimeSyncMerger merger(mote, reboot);
+
+    const std::set<sdc::RecordID>& matching = merger.recordID_of_pairs();
+
+    matching.size();
+
+    // binary search for mote_ID in headers, mote and record ID in records
+    // copy headers
+    // copy lines
+}
+
+const QVector<MoteHeader>& RecordList::matching_headers() const {
+
+    check_lock();
+
+    return *matching_header;
+}
+
+const QVector<RecordLine>& RecordList::matching_record_info() const {
+
+    check_lock();
+
+    return *matching_records;
 }
