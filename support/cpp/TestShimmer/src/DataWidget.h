@@ -74,6 +74,8 @@ private:
         QTextEdit *textBox;
         Widget3D *widget3d;
 
+        void clearCheckBoxes();
+
 signals:
         void SolverStarted();
         void SolverFinished();

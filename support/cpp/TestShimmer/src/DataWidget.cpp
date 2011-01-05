@@ -527,6 +527,77 @@ void DataWidget::on_regressionButton_clicked()
     }
 }
 
+void DataWidget::clearCheckBoxes()
+{
+    ui->rawAccBox->setChecked(false);
+    ui->rawGyroBox->setChecked(false);
+    ui->accelBox->setChecked(false);
+    ui->gyroBox->setChecked(false);
+    ui->anglesBox->setChecked(false);
+    ui->eulerBox->setChecked(false);
+    ui->corrBox->setChecked(false);
+    ui->intBox->setChecked(false);
+    ui->tiltAnglesBox->setChecked(false);
+
+    ui->rawAccX->setChecked(false);
+    ui->rawAccY->setChecked(false);
+    ui->rawAccZ->setChecked(false);
+    ui->rawGyroX->setChecked(false);
+    ui->rawGyroY->setChecked(false);
+    ui->rawGyroZ->setChecked(false);
+    ui->accX->setChecked(false);
+    ui->accY->setChecked(false);
+    ui->accZ->setChecked(false);
+    ui->gyroX->setChecked(false);
+    ui->gyroY->setChecked(false);
+    ui->gyroZ->setChecked(false);
+    ui->angX->setChecked(false);
+    ui->angY->setChecked(false);
+    ui->angZ->setChecked(false);
+    ui->angXY->setChecked(false);
+    ui->angYZ->setChecked(false);
+    ui->angZX->setChecked(false);
+    ui->eulerX->setChecked(false);
+    ui->eulerY->setChecked(false);
+    ui->eulerZ->setChecked(false);
+    ui->corrX->setChecked(false);
+    ui->corrY->setChecked(false);
+    ui->corrZ->setChecked(false);
+    ui->absAcc->setChecked(false);
+    ui->intX->setChecked(false);
+    ui->intY->setChecked(false);
+    ui->intZ->setChecked(false);
+
+    on_rawAccX_clicked();
+    on_rawAccY_clicked();
+    on_rawAccZ_clicked();
+    on_accX_clicked();
+    on_accY_clicked();
+    on_accZ_clicked();
+    on_absAcc_clicked();
+    on_gyroX_clicked();
+    on_gyroY_clicked();
+    on_gyroZ_clicked();
+    on_rawGyroX_clicked();
+    on_rawGyroY_clicked();
+    on_rawGyroZ_clicked();
+    on_angXY_clicked();
+    on_angYZ_clicked();
+    on_angZX_clicked();
+    on_angX_clicked();
+    on_angY_clicked();
+    on_angZ_clicked();
+    on_eulerX_clicked();
+    on_eulerY_clicked();
+    on_eulerZ_clicked();
+    on_corrX_clicked();
+    on_corrY_clicked();
+    on_corrZ_clicked();
+    on_intX_clicked();
+    on_intY_clicked();
+    on_intZ_clicked();
+}
+
 void DataWidget::on_presetsComboBox_currentIndexChanged()
 {
     if(ui->presetsComboBox->currentIndex() == 0){
@@ -557,96 +628,23 @@ void DataWidget::on_presetsComboBox_currentIndexChanged()
         on_corrZ_clicked();
         textBox->hide();
     } else if(ui->presetsComboBox->currentIndex() == 1){
-        plot->setGraphs(DataPlot::XRAWACC, false);
-        plot->setGraphs(DataPlot::YRAWACC, false);
-        plot->setGraphs(DataPlot::ZRAWACC, false);
-        plot->setGraphs(DataPlot::XACC, false);
-        plot->setGraphs(DataPlot::YACC, false);
-        plot->setGraphs(DataPlot::ZACC, false);
-        plot->setGraphs(DataPlot::ABSACC, false);
-        plot->setGraphs(DataPlot::XGYRO, false);
-        plot->setGraphs(DataPlot::YGYRO, false);
-        plot->setGraphs(DataPlot::ZGYRO, false);
-        plot->setGraphs(DataPlot::XRAWGYRO, false);
-        plot->setGraphs(DataPlot::YRAWGYRO, false);
-        plot->setGraphs(DataPlot::ZRAWGYRO, false);
-        plot->setGraphs(DataPlot::XYANG, false);
-        plot->setGraphs(DataPlot::YZANG, false);
-        plot->setGraphs(DataPlot::ZXANG, false);
-        plot->setGraphs(DataPlot::XANG, false);
-        plot->setGraphs(DataPlot::YANG, false);
-        plot->setGraphs(DataPlot::ZANG, false);
-        plot->setGraphs(DataPlot::XEUL, false);
-        plot->setGraphs(DataPlot::YEUL, false);
-        plot->setGraphs(DataPlot::ZEUL, false);
-        plot->setGraphs(DataPlot::XINT, false);
-        plot->setGraphs(DataPlot::YINT, false);
-        plot->setGraphs(DataPlot::ZINT, false);
-        plot->setGraphs(DataPlot::XCORRANG, true);
-        plot->setGraphs(DataPlot::YCORRANG, false);
-        plot->setGraphs(DataPlot::ZCORRANG, true);
+        clearCheckBoxes();
+        ui->corrBox->setChecked(true);
+        ui->corrX->setChecked(true);
+        ui->corrZ->setChecked(true);
+        on_corrX_clicked();
+        on_corrZ_clicked();
         textBox->setText("Piros: alkari szupináció\nKék: könyök flexió\n1 osztás 45° -nak felel meg.");
         textBox->show();
     } else if(ui->presetsComboBox->currentIndex() == 2){
-        plot->setGraphs(DataPlot::XRAWACC, false);
-        plot->setGraphs(DataPlot::YRAWACC, false);
-        plot->setGraphs(DataPlot::ZRAWACC, false);
-        plot->setGraphs(DataPlot::XACC, false);
-        plot->setGraphs(DataPlot::YACC, false);
-        plot->setGraphs(DataPlot::ZACC, false);
-        plot->setGraphs(DataPlot::ABSACC, false);
-        plot->setGraphs(DataPlot::XGYRO, false);
-        plot->setGraphs(DataPlot::YGYRO, false);
-        plot->setGraphs(DataPlot::ZGYRO, false);
-        plot->setGraphs(DataPlot::XRAWGYRO, false);
-        plot->setGraphs(DataPlot::YRAWGYRO, false);
-        plot->setGraphs(DataPlot::ZRAWGYRO, false);
-        plot->setGraphs(DataPlot::XYANG, false);
-        plot->setGraphs(DataPlot::YZANG, false);
-        plot->setGraphs(DataPlot::ZXANG, false);
-        plot->setGraphs(DataPlot::XANG, false);
-        plot->setGraphs(DataPlot::YANG, false);
-        plot->setGraphs(DataPlot::ZANG, false);
-        plot->setGraphs(DataPlot::XEUL, false);
-        plot->setGraphs(DataPlot::YEUL, false);
-        plot->setGraphs(DataPlot::ZEUL, false);
-        plot->setGraphs(DataPlot::XINT, false);
-        plot->setGraphs(DataPlot::YINT, false);
-        plot->setGraphs(DataPlot::ZINT, false);
-        plot->setGraphs(DataPlot::XCORRANG, false);
-        plot->setGraphs(DataPlot::YCORRANG, true);
-        plot->setGraphs(DataPlot::ZCORRANG, false);
+        clearCheckBoxes();
+        ui->corrBox->setChecked(true);
+        ui->corrY->setChecked(true);
+        on_corrY_clicked();
         textBox->setText("Zöld: rotáció\n1 osztás 45° -nak felel meg.");
         textBox->show();
-    } else if(ui->presetsComboBox->currentIndex() == 3){
-        plot->setGraphs(DataPlot::XRAWACC, false);
-        plot->setGraphs(DataPlot::YRAWACC, false);
-        plot->setGraphs(DataPlot::ZRAWACC, false);
-        plot->setGraphs(DataPlot::XACC, true);
-        plot->setGraphs(DataPlot::YACC, true);
-        plot->setGraphs(DataPlot::ZACC, true);
-        plot->setGraphs(DataPlot::ABSACC, false);
-        plot->setGraphs(DataPlot::XGYRO, false);
-        plot->setGraphs(DataPlot::YGYRO, false);
-        plot->setGraphs(DataPlot::ZGYRO, false);
-        plot->setGraphs(DataPlot::XRAWGYRO, false);
-        plot->setGraphs(DataPlot::YRAWGYRO, false);
-        plot->setGraphs(DataPlot::ZRAWGYRO, false);
-        plot->setGraphs(DataPlot::XYANG, false);
-        plot->setGraphs(DataPlot::YZANG, false);
-        plot->setGraphs(DataPlot::ZXANG, false);
-        plot->setGraphs(DataPlot::XANG, false);
-        plot->setGraphs(DataPlot::YANG, false);
-        plot->setGraphs(DataPlot::ZANG, false);
-        plot->setGraphs(DataPlot::XEUL, false);
-        plot->setGraphs(DataPlot::YEUL, false);
-        plot->setGraphs(DataPlot::ZEUL, false);
-        plot->setGraphs(DataPlot::XINT, false);
-        plot->setGraphs(DataPlot::YINT, false);
-        plot->setGraphs(DataPlot::ZINT, false);
-        plot->setGraphs(DataPlot::XCORRANG, false);
-        plot->setGraphs(DataPlot::YCORRANG, false);
-        plot->setGraphs(DataPlot::ZCORRANG, false);
+    } else if(ui->presetsComboBox->currentIndex() == 4){
+        clearCheckBoxes();
         textBox->hide();
     }
 }
