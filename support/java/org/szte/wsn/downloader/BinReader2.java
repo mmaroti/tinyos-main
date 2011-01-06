@@ -193,6 +193,10 @@ public class BinReader2 implements ParsingReady {
 	@Override
 	public void Ready(ArrayList<File> outputfiles) {
 		//the binary->csv parsing and global time calculation is ready 		
+		if(outputfiles.size()==0){
+			System.err.println("Dataprocess hasn't parsed any files. Exiting.");
+			System.exit(1);
+		}
 		long mintime=getMinTime(outputfiles);
 		boolean isdata=false;
 		try {
