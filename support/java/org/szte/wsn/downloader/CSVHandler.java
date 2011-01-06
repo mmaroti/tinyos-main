@@ -9,16 +9,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class CSVHandler {
-	File csvfile;
-	String separator;
-	ArrayList<String> header;
-	ArrayList<String[]> data;
-	int columns;
+	private File csvfile;
+	private String separator;
+	private ArrayList<String> header;
+	private ArrayList<String[]> data;
+	
+	public static String switchExtension(String fullname, String newEx){
+		return fullname.substring(0, fullname.lastIndexOf('.'))+newEx;
+	}
 	
 	private void initEmptyFile(){
 		header=null;
 		data=new ArrayList<String[]>();
-		columns=0;
 	}
 	
 	private void openFile(boolean hasheader) throws IOException{
@@ -34,12 +36,14 @@ public class CSVHandler {
 			return;
 		}
 		if(hasheader){
+			header=new ArrayList<String>();
 			for(String column:line.split(separator)){
 				header.add(column);
 			}
 			line=input.readLine();
 		} else
 			header=null;
+		data=new ArrayList<String[]>();
 		while(line!=null){
 			data.add(line.split(separator));
 			line=input.readLine();
@@ -73,9 +77,9 @@ public class CSVHandler {
 		header=null;
 	}
 	
-	public void flush() throws IOException{
-		csvfile.delete();
-		BufferedWriter output=new BufferedWriter(new FileWriter(csvfile));
+	public boolean flush() throws IOException{
+		File tempfile=new File(switchExtension(csvfile.getName(), ".tmp"));
+		BufferedWriter output=new BufferedWriter(new FileWriter(tempfile));
 		if(header!=null){
 			for(int i=0;i<header.size()-1;i++)
 				output.append(header.get(i)+separator);
@@ -89,14 +93,47 @@ public class CSVHandler {
 			output.newLine();
 		}
 		output.close();
+		if(!csvfile.delete())
+			return false;
+		if(!tempfile.renameTo(csvfile))
+			return false;
+		return true;
+	}
+	
+	public String getLine(int line){
+		line--;
+		String ret="";
+		for(int i=0;i<data.get(line).length-1;i++)
+			ret+=data.get(line)[i]+separator;
+		ret+=data.get(line)[data.get(line).length-1];
+		return ret;
 	}
 	
 	public String getCell(int column, int line){
+		column--;line--;
+		if(line>=data.size())
+			return null;
+		if(column>=data.get(line).length)
+			return "";
 		return data.get(line)[column];
 	}
 	
-	public void setCell(int column, int line, Object value){
+	public boolean setCell(int column, int line, Object value){
+		column--;line--;
+		if(line>=data.size())
+			return false;
+		if(column>=data.get(line).length){
+			String[] newstr=new String[column];
+			for(int i=0;i<newstr.length;i++){
+				if(i<data.get(line).length)
+					newstr[i]=data.get(line)[i];
+				else
+					newstr[i]="";
+			}
+			data.set(line,newstr);
+		}
 		data.get(line)[column]=value.toString();
+		return true;
 	}
 	
 	public void addColumn(String name, int column){
@@ -114,7 +151,7 @@ public class CSVHandler {
 				if(j<column&&j<oldstr.length)
 					newstr[j]=oldstr[j];
 				else if(j>column&&j<oldstr.length+1)
-					newstr[j]=oldstr[j+1];
+					newstr[j]=oldstr[j-1];
 				else
 					newstr[j]="";
 			}
@@ -142,11 +179,30 @@ public class CSVHandler {
 	}
 	
 	public void addLine(int line, String[] values){
+		line--;
 		data.add(line, values);
 	}
 	
 	public void removeLine(int line){
+		line--;
 		data.remove(line);
+	}
+	
+	public int getLineNumber(){
+		return data.size();
+	}
+	
+	public File getFile(){
+		return csvfile;
+	}
+	
+	public String getName(){
+		return csvfile.getName();
+	}
+	
+	public void onDestroy() throws IOException{
+		if(!flush())
+			System.err.println("Can't overwrite file: "+csvfile.getName());
 	}
 	
 	
