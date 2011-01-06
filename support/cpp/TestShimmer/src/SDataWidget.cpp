@@ -64,9 +64,6 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
                                   QMessageBox::NoButton, this, 0);
 
     connect(this, SIGNAL(updateGUI()), this, SLOT(onUpdateGUI()), Qt::QueuedConnection);
-
-    //fillSData(records);
-    //initLeft(false);
 }
 
 SDataWidget::~SDataWidget()
@@ -80,38 +77,38 @@ void SDataWidget::initLeft(bool filter)
     recordList.read_all_existing();    
     int k = 0;
     for(int i=0; i<recordList.headers().size(); i++){
-        QTreeWidgetItem *item = createParentItem(i, ui->sdataLeft);
+        QTreeWidgetItem *item = createParentItem(i, ui->sdataLeft, Left);
         int records = recordList.headers().at(i).number_of_records() + k;
         while(k<records){
             if(filter){
-                if(item->childCount()<NUMOFRECS) createChildItem(k, item);
+                if(item->childCount()<NUMOFRECS) createChildItem(k, item, Left);
             } else {
-                createChildItem(k, item);
+                createChildItem(k, item, Left);
             }
             k++;
         }
     }
 }
 
-void SDataWidget::initRight(const QVarLengthArray<int>& list)
+void SDataWidget::initRight()
 {   
-//    if(list.size() != 0){
-//        int id=getSDataAt(list[0]).moteID;
-//        QTreeWidgetItem *item = createParentItem(list[0], ui->sdataRight);
-//
-//        for(int i=0; i<list.size(); i++){
-//            if(!(getSDataAt(list[i]).moteID == id)){
-//                item = createParentItem(list[i], ui->sdataLeft);
-//            }
-//            createChildItem(list[i], item);
-//
-//            id = getSDataAt(list[i]).moteID;
-//        }
-//        ui->sdataRight->expandAll();
-//        if(ui->sdataRight->topLevelItem(0)->childCount()==1){
-//            ui->sdataRight->setCurrentItem(ui->sdataRight->topLevelItem(0)->child(0));
-//        }
-//    }
+    int j = 0;
+
+    for(int i=0; i<recordList.matching_headers().size(); i++){
+        QTreeWidgetItem *item = createParentItem(i, ui->sdataRight, Right);
+        int parentMote = recordList.matching_headers().at(i).mote_id();
+        bool hasNext = true;
+        while( hasNext ){
+            int currentMote = recordList.matching_record_info().at(j).mote_id();
+            if(currentMote == parentMote){
+                createChildItem(j, item, Right);
+                j++;
+                if( j == recordList.matching_record_info().size() ) hasNext = false;
+            } else {
+                hasNext = false;
+            }
+        }
+    }
 }
 
 void SDataWidget::onItemSelectionChanged()
@@ -126,36 +123,41 @@ void SDataWidget::onItemSelectionChanged()
         qDebug() << "mote id: " << mote_id << ", record id: " << rec_id;
         recordList.search_for_matching_records(mote_id.toInt(), rec_id.toInt());
 
-        initRight(getLinkingRecords(ui->sdataLeft->currentItem()->parent()->text(0).toInt(), ui->sdataLeft->currentItem()->text(1).toInt()));
+        initRight();
     }
 }
 
-QVarLengthArray<int> SDataWidget::getLinkingRecords(int moteId, int num)
-{
-    QVarLengthArray<int> list;
-
-    return list;
-}
-
-QTreeWidgetItem* SDataWidget::createParentItem(int i, QTreeWidget *root)
+QTreeWidgetItem* SDataWidget::createParentItem(int i, QTreeWidget *root, Side side)
 {
     QTreeWidgetItem *item = new QTreeWidgetItem(root->invisibleRootItem());
 
-    item->setData(MOTE_ID,       Qt::DisplayRole, recordList.headers().at(i).mote_id());
-    item->setData(DATE_DOWNLOAD, Qt::DisplayRole, recordList.headers().at(i).last_download());
-    item->setData(COMMENT,       Qt::DisplayRole, recordList.headers().at(i).remaining_hours() + " hours remaining");
+    const QVector<MoteHeader> *headers;
+    if(side == Left){
+        headers = &(recordList.headers());
+    } else {
+        headers = &(recordList.matching_headers());
+    }
+    item->setData(MOTE_ID,       Qt::DisplayRole, headers->at(i).mote_id());
+    item->setData(DATE_DOWNLOAD, Qt::DisplayRole, headers->at(i).last_download());
+    item->setData(COMMENT,       Qt::DisplayRole, headers->at(i).remaining_hours() + " hours remaining");
 
     return item;
 }
 
-void SDataWidget::createChildItem(int i, QTreeWidgetItem* parent)
+void SDataWidget::createChildItem(int i, QTreeWidgetItem* parent, Side side)
 {
     QTreeWidgetItem *it = new QTreeWidgetItem(parent);
-    //int num = parent->childCount();
-    it->setData(RECORD_ID,     Qt::DisplayRole, recordList.record_info().at(i).record_id());
-    it->setData(LENGTH,        Qt::DisplayRole, recordList.record_info().at(i).length());
-    it->setData(DATE_OF_REC,   Qt::DisplayRole, recordList.record_info().at(i).recorded());
-    it->setData(DATE_DOWNLOAD, Qt::DisplayRole, recordList.record_info().at(i).downloaded());
+
+    const QVector<RecordLine> *records;
+    if(side == Left){
+        records = &(recordList.record_info());
+    } else {
+        records = &(recordList.matching_record_info());
+    }
+    it->setData(RECORD_ID,     Qt::DisplayRole, records->at(i).record_id());
+    it->setData(LENGTH,        Qt::DisplayRole, records->at(i).length());
+    it->setData(DATE_OF_REC,   Qt::DisplayRole, records->at(i).recorded());
+    it->setData(DATE_DOWNLOAD, Qt::DisplayRole, records->at(i).downloaded());
 }
 
 void SDataWidget::on_toPlotButton_clicked()

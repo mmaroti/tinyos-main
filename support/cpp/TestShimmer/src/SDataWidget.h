@@ -49,6 +49,8 @@ namespace Ui {
     class SDataWidget;
 }
 
+enum Side { Left, Right };
+
 class SDataWidget : public QWidget {
     Q_OBJECT
 public:
@@ -76,10 +78,10 @@ private:
     };
 
     void initLeft(bool filter);
-    void initRight(const QVarLengthArray<int>& list);
+    void initRight();
 
-    QTreeWidgetItem* createParentItem(int i, QTreeWidget* root);
-    void createChildItem(int i, QTreeWidgetItem* parent);
+    QTreeWidgetItem* createParentItem(int i, QTreeWidget* root, Side side);
+    void createChildItem(int i, QTreeWidgetItem* parent, Side side);
 
     void init();
 
