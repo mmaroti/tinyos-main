@@ -1,11 +1,9 @@
 package org.szte.wsn.downloader;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -13,6 +11,7 @@ import java.util.Date;
 
 import org.szte.wsn.TimeSyncPoint.LinearFunction;
 import org.szte.wsn.TimeSyncPoint.Regression;
+
 import argparser.ArgParser;
 import argparser.BooleanHolder;
 import argparser.IntHolder;
@@ -21,12 +20,7 @@ import argparser.StringHolder;
 
 public class GlobalTime {
 	
-	private String separator;
 	private String timeformat;
-	
-	private static String switchExtension(String fullname, String newEx){
-		return fullname.substring(0, fullname.lastIndexOf('.'))+newEx;
-	}
 	
 	private ArrayList<LinearFunction> ParseTimeSyncFile(String inputfile,long maxerror){
 		ArrayList<LinearFunction> functions=new ArrayList<LinearFunction>();
@@ -76,171 +70,82 @@ public class GlobalTime {
 		}
 	}
 	
-	private ArrayList<Long> GetBreaks(File csvfile, int local){
-		if(csvfile.exists()&&csvfile.isFile()&&csvfile.canRead()){
-			BufferedReader input;
-			try {
-				input = new BufferedReader(new FileReader(csvfile));
-			} catch (FileNotFoundException e1) {
-				System.err.println("Error: Can't read csv file: "+csvfile.getName());
-				return null;
+	private ArrayList<Integer> GetBreaks(CSVHandler handler, int local){
+
+		ArrayList<Integer> ret=new ArrayList<Integer>();
+		int currentline=1;
+		Long lasttime=null;
+		Long currenttime=null;
+		while(currentline<=handler.getLineNumber()){		
+			try{
+				currenttime=Long.parseLong(handler.getCell(local, currentline));
+			} catch(NumberFormatException e){
+				System.err.println("Warning: Unparsable line in file: "+handler.getFile().getName());
+				System.err.println(handler.getLine(currentline));
+				continue;
 			}
-			ArrayList<Long> ret=new ArrayList<Long>();
-			try {
-				String line;
-				long currentline=0;
-				Long lasttime=null;
-				while (( line = input.readLine()) != null){
-					currentline++;
-					String[] columns = line.split(separator);
-					if(columns.length<local){
-						System.err.println("Warning: Too short line in file: "+csvfile.getName());
-						System.err.println(line);
-						continue;
-					}
-					if(currentline!=1){
-						Long currenttime=null;
-						try{
-							currenttime=Long.parseLong(columns[local-1]);
-						} catch(NumberFormatException e){
-							System.err.println("Warning: Unparsable line in file: "+csvfile.getName());
-							System.err.println(line);
-							continue;
-						}
-						if(lasttime==null||lasttime<currenttime){
-							ret.add(currentline);
-						}
-					}
-					return ret;
-				}	
-			} catch (IOException e) {
-				System.err.println("Error: Can't read csv file: "+csvfile.getName());
-				return null;
+			if(lasttime==null||lasttime>currenttime){
+				ret.add(currentline);
 			}
+			lasttime=currenttime;
+			currentline++;
 		}
-		return null;
+		return ret;
 		
 	}
 	
-	private void WriteOutputFile(File csvfile, File tempfile, int local, int global, boolean insert, ArrayList<LinearFunction> functions, ArrayList<Long> breaks) {
-		if(!tempfile.exists()){
-			try {
-				tempfile.createNewFile();
-			} catch (IOException e2) {
-				System.err.println("Error: Can't create temp file: "+tempfile.getName());
-				return;
+	private void WriteOutputFile(CSVHandler csvfile, int local, int global, boolean insert, ArrayList<LinearFunction> functions, ArrayList<Integer> breaks) {
+		int currentrun=0;
+		if(insert)
+			csvfile.addColumn("globaltime", global);	
+		for(int currentline=1;currentline<=csvfile.getLineNumber();currentline++){
+			if(breaks.contains(currentline))
+				currentrun++;
+			Long currenttime=null;
+			try{
+				currenttime=Long.parseLong(csvfile.getCell(local, currentline));
+			} catch(NumberFormatException e){
+				System.err.println("Warning: Unparsable line in file: "+csvfile.getFile().getName());
+				System.err.println(csvfile.getLine(currentline));
+				continue;
 			}
-		}
-		BufferedReader input;
-		try {
-			input = new BufferedReader(new FileReader(csvfile));
-		} catch (FileNotFoundException e1) {
-			System.err.println("Error: Can't read csv file: "+csvfile.getName());
-			return;
-		}
-		BufferedWriter output;
-		try {
-			output = new BufferedWriter(new FileWriter(tempfile));
-		} catch (IOException e){
-			System.err.println("Error: Can't write temp file: "+tempfile.getName());
-			return;
+			int currentfunction=breaks.size()-currentrun;
+			String currenttstring;
+			if(currentfunction>=0){
+				currenttime=(long) (functions.get(currentfunction).getOffset()+functions.get(currentfunction).getSlope()*currenttime);
+				if(timeformat==null)
+					currenttstring=currenttime.toString();
+				else
+					currenttstring=new SimpleDateFormat(timeformat).format(new Date(currenttime));
+			} else 
+				currenttstring="";
+			csvfile.setCell(global, currentline, currenttstring);
 		}
 		try {
-			String line;
-			Long currentline=0L;
-			int currentrun=0;
-			while (( line = input.readLine()) != null){
-				currentline++;
-				if(breaks.contains(currentline))
-					currentrun++;
-				String[] columns = line.split(separator);
-				if(columns.length<local){
-					System.err.println("Warning: Too short line in file: "+csvfile.getName());
-					System.err.println(line);
-					output.write(line);
-					output.newLine();
-					continue;
-				}
-				if(currentline==1){//header
-					if(global-1<columns.length){
-						for(int i=0;i<columns.length;i++){
-							if(i==global){
-								if(!insert)
-									columns[i]="globaltime";
-								else {
-									output.write("globaltime,");
-								}
-							}
-							output.write(columns[i]);
-							if(i<columns.length-1)
-								output.write(separator);
-						}
-					} else {
-						output.write(line);
-						for(int i=columns.length;i<global;i++)
-							output.write(separator);
-						output.write("globaltime");
-					}
-					output.newLine();						
-				} else{
-					Long currenttime=null;
-					try{
-						currenttime=Long.parseLong(columns[local-1]);
-					} catch(NumberFormatException e){
-						System.err.println("Warning: Unparsable line in file: "+csvfile.getName());
-						System.err.println(line);
-						output.write(line);
-						output.newLine();
-						continue;
-					}
-					int currentfunction=breaks.size()-currentrun;
-					String currenttstring;
-					if(currentfunction>=0){
-						currenttime=(long) (functions.get(currentfunction).getOffset()+functions.get(currentfunction).getSlope()*currenttime);
-						if(timeformat==null)
-							currenttstring=currenttime.toString();
-						else
-							currenttstring=new SimpleDateFormat(timeformat).format(new Date(currenttime));
-					} else 
-						currenttstring="";
-					if(global-1<columns.length){
-						for(int i=0;i<columns.length;i++){
-							if(i==global-1){
-								if(!insert)
-									columns[i]=currenttstring;
-								else
-									output.write(currenttstring+separator);
-							}
-							output.write(columns[i]);
-							if(i<columns.length-1)
-								output.write(separator);
-						}
-					} else {
-						output.write(line);
-						for(int i=columns.length;i<global;i++)
-							output.write(separator);
-						output.write(currenttstring);
-					}
-					output.newLine();
-				}
-			}
-			input.close();
-			output.close();
+			if(!csvfile.flush())
+				System.err.println("Error: Can't overwrite file: "+csvfile.getName());
 		} catch (IOException e) {
-			System.err.println("Error: Can't read csv file: "+csvfile.getName());
+			System.err.println("Error: Can't write tempfile");
 			return;
 		}
-		csvfile.delete();
-		tempfile.renameTo(csvfile);
 	}
 	
 	public GlobalTime(String inputfile, int local, int global, boolean insert, long maxerror, String csvex, String separator, String timeformat){
-		this.separator=separator;
 		this.timeformat=timeformat;
-		ArrayList<LinearFunction> functions=ParseTimeSyncFile(switchExtension(inputfile,".ts"), maxerror);
-		File csvFile=new File(switchExtension(inputfile, csvex));
-		ArrayList<Long> breaks=GetBreaks(csvFile, local);
-		WriteOutputFile(csvFile,new File(switchExtension(inputfile, ".tmp")),local,global,insert,functions,breaks);
+		ArrayList<LinearFunction> functions=ParseTimeSyncFile(CSVHandler.switchExtension(inputfile,".ts"), maxerror);
+		File csvFile=new File(CSVHandler.switchExtension(inputfile, csvex));
+		if(csvFile.exists()&&csvFile.isFile()){
+			CSVHandler handler;
+			try {
+				handler = new CSVHandler(csvFile, true, separator);
+				ArrayList<Integer> breaks=GetBreaks(handler, local);
+				WriteOutputFile(handler,local,global,insert,functions,breaks);
+			} catch (IOException e) {
+				System.err.println("Error: Can't read csvfile: "+csvFile.getName());
+			}
+		} else 
+			System.err.println("Error: Csv file doesn't exist: "+csvFile.getName());
+
 	}
 
 	public static void main(String[] args) {
