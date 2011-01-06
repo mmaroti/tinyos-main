@@ -38,7 +38,7 @@ public class Converter {
 			pp=new PacketParserFactory("raw.conf").getParsers();
 		String outputfile=switchExtension(file, csvext);
 		Transfer fp=new Transfer(pp,
-				BinaryInterfaceFactory.getBinaryInterface("file", file),
+				BinaryInterfaceFactory.getBinaryInterface("binfile", file),
 				new StringInterfaceFile(separator,outputfile , pp, false,Transfer.REWRITE, false, false),
 				true);
 		fp.start();
