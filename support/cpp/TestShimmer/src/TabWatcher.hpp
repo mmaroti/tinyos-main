@@ -31,33 +31,38 @@
 *      Author: Ali Baharev
 */
 
-#ifndef DIRSELECTOR_HPP
-#define DIRSELECTOR_HPP
+#ifndef TABWATCHER_HPP
+#define TABWATCHER_HPP
 
 #include <QObject>
 
 class QTabWidget;
 
-class DirSelector : public QObject {
+class TabWatcher : public QObject {
 
     Q_OBJECT
 
 public:
 
-    DirSelector();
+    TabWatcher();
 
     void registerTabWidget(const QTabWidget* widget);
 
 signals:
-    void sdataTabSelected();
+
+    void SDCardTabGainedFocus();
 
 public slots:
 
-    void tabChanged(int tab) const;
+    void tabChanged(int tab);
 
 private:
 
-    void select(int tab) const;
+    void selected(int tab);
+
+    const QString selectDir(const QString& label) const;
+
+    void emit_signal(const QString& label);
 
     void exitFailure(const QString& dir) const;
 
@@ -65,4 +70,4 @@ private:
 
 };
 
-#endif // DIRSELECTOR_HPP
+#endif // TABWATCHER_HPP

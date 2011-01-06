@@ -81,7 +81,6 @@ SOURCES += src/DataRecorder.cpp \
     src/SDCard/Win32BlockDevice.cpp \
     src/SDCard/Writer.cpp \
     src/SDCard/TimeSyncCalc.cpp \
-    src/DirSelector.cpp \
     src/SDCard/DownloadTask.cpp \
     src/SDCard/DownloadManager.cpp \
     src/SDCard/SDCardCreator.cpp \
@@ -97,7 +96,8 @@ SOURCES += src/DataRecorder.cpp \
     src/SDCard/RecordInfo.cpp \
     src/SDCard/RecordList.cpp \
     src/SDCard/MoteHeader.cpp \
-    src/SDCard/RecordLine.cpp
+    src/SDCard/RecordLine.cpp \
+    src/TabWatcher.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -155,7 +155,6 @@ HEADERS += src/DataRecorder.h \
     src/SDCard/Win32BlockDevice.hpp \
     src/SDCard/VirtualMoteID.hpp \
     src/SDCard/TimeSyncCalc.hpp \
-    src/DirSelector.hpp \
     src/SDCard/DownloadTask.hpp \
     src/SDCard/DownloadManager.hpp \
     src/SDCard/SDCardCreator.hpp \
@@ -171,7 +170,8 @@ HEADERS += src/DataRecorder.h \
     src/SDCard/RecordInfo.hpp \
     src/SDCard/RecordList.hpp \
     src/SDCard/MoteHeader.hpp \
-    src/SDCard/RecordLine.hpp
+    src/SDCard/RecordLine.hpp \
+    src/TabWatcher.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

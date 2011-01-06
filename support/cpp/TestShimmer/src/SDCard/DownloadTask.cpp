@@ -39,29 +39,6 @@
 #include "SDCardCreator.hpp"
 #include "SDCard.hpp"
 
-//-----------------------------------------------------------------------------
-// FIXME Remove these when the implementation is ready
-#include "SDataWidget.h"
-#include <QWaitCondition>
-#include <QMutex>
-
-class Sleep
-{
-
-public:
-
-    static void msleep(unsigned long msecs) {
-        QMutex mutex;
-        mutex.lock();
-
-        QWaitCondition waitCondition;
-        waitCondition.wait(&mutex, msecs);
-
-        mutex.unlock();
-    }
-};
-//-----------------------------------------------------------------------------
-
 namespace sdc {
 
 DownloadTask::DownloadTask(const SDCardCreator* src) : source(src) {
@@ -74,13 +51,6 @@ DownloadTask::~DownloadTask() {
 
 void DownloadTask::processMeasurements() {
 
-    //----------------------------------
-    // TODO Remove when ready
-    Sleep::msleep(3000);
-
-
-    //----------------------------------
-
     std::auto_ptr<SDCard> sdcard(source->create());
 
     sdcard->process_new_measurements();
@@ -88,7 +58,7 @@ void DownloadTask::processMeasurements() {
 
 void DownloadTask::run() {
 
-    qDebug() << "It will take at least 3 seconds";
+    qDebug() << "DownloadTask started";
 
     bool failed = false;
 

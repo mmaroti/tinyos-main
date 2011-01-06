@@ -35,10 +35,8 @@
 #define DOWNLOADTASK_HPP
 
 #include <memory>
+#include <QObject>
 #include <QRunnable>
-#include <QVarLengthArray>
-// FIXME We actually need SData; forward decalaration of the widget would suffice
-#include "SDataWidget.h"
 
 class QString;
 

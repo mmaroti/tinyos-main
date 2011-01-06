@@ -41,7 +41,7 @@
 #include <QObject>
 #include <QSettings>
 #include "Solver.hpp"
-#include "DirSelector.hpp"
+#include "TabWatcher.hpp"
 #include "TimeSyncMsgReceiver.hpp"
 #include "SerialListener.h"
 #include "DataRecorder.h"
@@ -75,7 +75,7 @@ public:
 
 	QSettings settings;
         ipo::Solver solver;
-        DirSelector directorySelector;
+        TabWatcher tabWatcher;
         TimeSyncMsgReceiver timeSyncMsgReceiver;
 };
 

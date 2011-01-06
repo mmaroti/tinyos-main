@@ -113,11 +113,11 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(ui->actionDo_regression, SIGNAL(triggered()), dataWidget, SLOT(on_regressionButton_clicked()));
         connect(dataWidget, SIGNAL(SolverStarted()), this, SLOT(onSolverRunning()));
         connect(dataWidget, SIGNAL(SolverFinished()), this, SLOT(onSolverRunning()));
-        connect(&(app.directorySelector), SIGNAL(sdataTabSelected()), sddataWidget, SLOT(onSdataLeftFocusIn()));
+        connect(&(app.tabWatcher), SIGNAL(SDCardTabGainedFocus()), sddataWidget, SLOT(onSdataLeftFocusIn()));
 
         connect(&app.serialListener,      SIGNAL(receiveMessage(ActiveMessage)),
                 &app.timeSyncMsgReceiver, SLOT(onReceiveMessage(ActiveMessage)), Qt::DirectConnection);
-        app.directorySelector.registerTabWidget(ui->tabWidget);
+        app.tabWatcher.registerTabWidget(ui->tabWidget);
 
 
         ui->sdataTab->setFocusPolicy(Qt::StrongFocus);

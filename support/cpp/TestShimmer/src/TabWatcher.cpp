@@ -35,46 +35,36 @@
 #include <QDir>
 #include <QMessageBox>
 #include <QDebug>
-#include "DirSelector.hpp"
+#include "TabWatcher.hpp"
 
-DirSelector::DirSelector() : tabWidget(0) {
+TabWatcher::TabWatcher() : tabWidget(0) {
 
 }
 
-void DirSelector::registerTabWidget(const QTabWidget* widget) {
+void TabWatcher::registerTabWidget(const QTabWidget* widget) {
 
     Q_ASSERT(tabWidget==0);
 
     tabWidget = widget;
 
-    select(tabWidget->currentIndex());
+    selected(tabWidget->currentIndex());
 
     QObject::connect(tabWidget, SIGNAL(currentChanged(int)),
                      this,      SLOT(tabChanged(int)));
 }
 
-void DirSelector::tabChanged(int tab) const {
+void TabWatcher::tabChanged(int tab) {
 
-    DirSelector *that = (DirSelector*)this; //Peti mókolás (rájöttem hogy const ból nem lehet signal-t küldeni) javíts ki, ha hülyeség
-
-    select(tab);
-
-    if(tabWidget->tabText(tab) == "SD Card") emit that->sdataTabSelected();
+    selected(tab);
 }
 
-void DirSelector::select(int tab) const {
+void TabWatcher::selected(int tab) {
 
     Q_ASSERT(tab!=-1);
 
-    const QString label = tabWidget->tabText(tab);
+    QString label = tabWidget->tabText(tab);
 
-    QString dir("../tmp");
-
-    if (label=="SD Card") {
-
-        dir = "../rec";
-
-    }
+    QString dir = selectDir(label);
 
     bool success = QDir::setCurrent(dir);
 
@@ -83,10 +73,32 @@ void DirSelector::select(int tab) const {
         exitFailure(dir);
     }
 
+    emit_signal(label);
+
     qDebug() << "Working directory is " << QDir::currentPath();
 }
 
-void DirSelector::exitFailure(const QString& dir) const {
+const QString TabWatcher::selectDir(const QString& label) const {
+
+    QString dir("../tmp");
+
+    if (label=="SD Card") {
+
+        dir = "../rec";
+    }
+
+    return dir;
+}
+
+void TabWatcher::emit_signal(const QString& label) {
+
+    if (label=="SD Card") {
+
+        emit SDCardTabGainedFocus();
+    }
+}
+
+void TabWatcher::exitFailure(const QString& dir) const {
 
     QString msg("Error: failed to set directory ");
 
