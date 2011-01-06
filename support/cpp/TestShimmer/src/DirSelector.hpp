@@ -48,9 +48,6 @@ public:
 
     void registerTabWidget(const QTabWidget* widget);
 
-//signals:
-//    void sdataFocusIn();
-
 public slots:
 
     void tabChanged(int tab) const;
@@ -62,6 +59,7 @@ private:
     void exitFailure(const QString& dir) const;
 
     const QTabWidget* tabWidget;
+
 };
 
 #endif // DIRSELECTOR_HPP
