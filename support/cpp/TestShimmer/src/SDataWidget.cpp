@@ -42,6 +42,7 @@
 #include <QTime>
 #include <QDialog>
 #include <QDebug>
+#include <QShortcut>
 #include "constants.h"
 #include "RecordList.hpp"
 #include "MoteHeader.hpp"
@@ -63,7 +64,12 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
                                   "Please wait, downloading...",
                                   QMessageBox::NoButton, this, 0);
 
+    expandShortCut = new QShortcut(QKeySequence(tr("Ctrl++", "Expand All")), ui->sdataLeft);
+
+    ui->sdataLeft->sortByColumn(RECORD_ID);
+    ui->sdataRight->sortByColumn(RECORD_ID);
     connect(this, SIGNAL(updateGUI()), this, SLOT(onUpdateGUI()), Qt::QueuedConnection);
+    connect(expandShortCut, SIGNAL(activated()), this, SLOT(onExpandAll()));
 }
 
 SDataWidget::~SDataWidget()
@@ -88,6 +94,9 @@ void SDataWidget::initLeft(bool filter)
             k++;
         }
     }
+
+    ui->sdataLeft->expandAll();
+
 }
 
 void SDataWidget::initRight()
@@ -109,6 +118,9 @@ void SDataWidget::initRight()
             }
         }
     }
+
+    ui->sdataRight->expandAll();
+
 }
 
 void SDataWidget::onItemSelectionChanged()
@@ -332,4 +344,14 @@ void SDataWidget::onSdataLeftFocusIn()
 {
     ui->sdataLeft->clear();
     initLeft(false);
+}
+
+void SDataWidget::onExpandAll()
+{
+    if(ui->sdataLeft->itemAt(0,0)->isExpanded() ){
+        ui->sdataLeft->collapseAll();
+    } else {
+        ui->sdataLeft->expandAll();
+    }
+
 }

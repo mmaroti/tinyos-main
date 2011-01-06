@@ -42,6 +42,7 @@
 #include <QTreeWidget>
 #include "DownloadManager.hpp"
 #include "RecordList.hpp"
+#include <QShortCut>
 
 class Application;
 
@@ -94,6 +95,7 @@ private:
 
     QVarLengthArray<int> getLinkingRecords(int moteId, int num);
 
+    QShortcut *expandShortCut;
 signals:
 
     void updateGUI();
@@ -110,6 +112,7 @@ private slots:
     void on_clearButton_clicked();
     void on_showLastTencBox_clicked();
     void onSdataLeftFocusIn();
+    void onExpandAll();
 };
 
 #endif // SDATAWIDGET_H

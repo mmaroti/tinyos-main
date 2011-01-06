@@ -30,6 +30,12 @@
           <property name="sortingEnabled">
            <bool>true</bool>
           </property>
+          <attribute name="headerShowSortIndicator" stdset="0">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="headerShowSortIndicator" stdset="0">
+           <bool>true</bool>
+          </attribute>
           <column>
            <property name="text">
             <string notr="true">mote ID</string>
@@ -64,6 +70,15 @@
         </item>
         <item>
          <widget class="QTreeWidget" name="sdataRight">
+          <property name="sortingEnabled">
+           <bool>true</bool>
+          </property>
+          <attribute name="headerShowSortIndicator" stdset="0">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="headerShowSortIndicator" stdset="0">
+           <bool>true</bool>
+          </attribute>
           <column>
            <property name="text">
             <string notr="true">mote ID</string>
