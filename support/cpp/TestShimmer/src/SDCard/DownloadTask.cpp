@@ -78,7 +78,7 @@ void DownloadTask::processMeasurements() {
     // TODO Remove when ready
     Sleep::msleep(3000);
 
-    fillSData(data);
+
     //----------------------------------
 
     std::auto_ptr<SDCard> sdcard(source->create());
@@ -106,7 +106,7 @@ void DownloadTask::run() {
         failed = true;
     }
 
-    emit downloadFinished(failed, msg, data);
+    emit downloadFinished(failed, msg);
 
     qDebug() << "Resources deleted";
 }

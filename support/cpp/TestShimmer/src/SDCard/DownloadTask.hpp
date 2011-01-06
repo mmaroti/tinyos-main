@@ -58,7 +58,7 @@ public:
 
 signals:
 
-    void downloadFinished(bool error, const QString& error_msg, const QVarLengthArray<SData>& data);
+    void downloadFinished(bool error, const QString& error_msg);
 
 private:
 
@@ -67,8 +67,6 @@ private:
     void processMeasurements();
 
     const std::auto_ptr<const SDCardCreator> source;
-
-    QVarLengthArray<SData> data;
 };
 
 }

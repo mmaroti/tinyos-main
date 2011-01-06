@@ -48,6 +48,9 @@ public:
 
     void registerTabWidget(const QTabWidget* widget);
 
+signals:
+    void sdataTabSelected();
+
 public slots:
 
     void tabChanged(int tab) const;

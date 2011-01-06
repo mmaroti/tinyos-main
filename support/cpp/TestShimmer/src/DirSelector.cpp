@@ -55,7 +55,11 @@ void DirSelector::registerTabWidget(const QTabWidget* widget) {
 
 void DirSelector::tabChanged(int tab) const {
 
+    DirSelector *that = (DirSelector*)this; //Peti mókolás (rájöttem hogy const ból nem lehet signal-t küldeni) javíts ki, ha hülyeség
+
     select(tab);
+
+    if(tabWidget->tabText(tab) == "SD Card") emit that->sdataTabSelected();
 }
 
 void DirSelector::select(int tab) const {
@@ -69,6 +73,7 @@ void DirSelector::select(int tab) const {
     if (label=="SD Card") {
 
         dir = "../rec";
+
     }
 
     bool success = QDir::setCurrent(dir);

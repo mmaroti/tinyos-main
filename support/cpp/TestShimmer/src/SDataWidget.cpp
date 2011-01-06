@@ -28,7 +28,7 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: PÃ©ter Ruzicska
+* Author: Péter Ruzicska
 *
 */
 
@@ -47,37 +47,6 @@
 #include "MoteHeader.hpp"
 #include "RecordLine.hpp"
 
-SData::SData()
-{
-    moteID = 0;
-    recordID = 0;
-    length = 0;
-    tor = "";
-    tod = "";
-}
-
-void fillSData(QVarLengthArray<SData>& records)
-{
-    static int lastRec[8] = {1};
-    for(int i=1; i<=rand() % 5 + 4; i++){
-        int numOfRecs = rand() % 6 + 10;
-        for(int j=lastRec[i]; j<=numOfRecs+lastRec[i]; j++){
-            SData record;
-
-            int month = rand() % 12 +1;
-            int day = rand() % 30 +1;
-
-            record.moteID = i;
-            record.recordID = j;
-            record.length = rand() % 1000 + 1;
-            record.tod = "2010-11-01 11:34";
-            record.tor = "2010-"+QString::number(month)+"-"+QString::number(day)+" 12:00";
-
-            records.append(record);
-        }
-        lastRec[i] = numOfRecs;
-    }
-}
 
 SDataWidget::SDataWidget(QWidget *parent, Application &app) :
         QWidget(parent),
@@ -86,7 +55,7 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
 {
     ui->setupUi(this);
     //this->setMouseTracking(true);
-    ui->sdataLeft->installEventFilter(this);
+    //ui->sdataLeft->installEventFilter(this);
     connect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
     connect(ui->sdataLeft, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(onItemDoubleClicked(QTreeWidgetItem*,int)));
     blockingBox = new QMessageBox(QMessageBox::Information,
@@ -122,43 +91,27 @@ void SDataWidget::initLeft(bool filter)
             k++;
         }
     }
-
-
-    /*QTreeWidgetItem *item = createParentItem(0, ui->sdataLeft);
-    for(int i=0; i<getRecordsSize(); i++){
-        if(ui->sdataLeft->findItems(QString::number(getSDataAt(i).moteID),0,0).size() == 0){
-            item = createParentItem(i, ui->sdataLeft);
-        } else {
-            item = ui->sdataLeft->findItems(QString::number(getSDataAt(i).moteID),0,0)[0];
-        }
-
-        if(filter){
-            if(item->childCount()<NUMOFRECS) createChildItem(i, item);
-        } else {
-            createChildItem(i, item);
-        }
-    }*/
 }
 
 void SDataWidget::initRight(const QVarLengthArray<int>& list)
 {   
-    if(list.size() != 0){
-        int id=getSDataAt(list[0]).moteID;
-        QTreeWidgetItem *item = createParentItem(list[0], ui->sdataRight);
-
-        for(int i=0; i<list.size(); i++){
-            if(!(getSDataAt(list[i]).moteID == id)){
-                item = createParentItem(list[i], ui->sdataLeft);
-            }
-            createChildItem(list[i], item);
-
-            id = getSDataAt(list[i]).moteID;
-        }
-        ui->sdataRight->expandAll();
-        if(ui->sdataRight->topLevelItem(0)->childCount()==1){
-            ui->sdataRight->setCurrentItem(ui->sdataRight->topLevelItem(0)->child(0));
-        }
-    }
+//    if(list.size() != 0){
+//        int id=getSDataAt(list[0]).moteID;
+//        QTreeWidgetItem *item = createParentItem(list[0], ui->sdataRight);
+//
+//        for(int i=0; i<list.size(); i++){
+//            if(!(getSDataAt(list[i]).moteID == id)){
+//                item = createParentItem(list[i], ui->sdataLeft);
+//            }
+//            createChildItem(list[i], item);
+//
+//            id = getSDataAt(list[i]).moteID;
+//        }
+//        ui->sdataRight->expandAll();
+//        if(ui->sdataRight->topLevelItem(0)->childCount()==1){
+//            ui->sdataRight->setCurrentItem(ui->sdataRight->topLevelItem(0)->child(0));
+//        }
+//    }
 }
 
 void SDataWidget::onItemSelectionChanged()
@@ -180,13 +133,7 @@ void SDataWidget::onItemSelectionChanged()
 QVarLengthArray<int> SDataWidget::getLinkingRecords(int moteId, int num)
 {
     QVarLengthArray<int> list;
-    for(int i=0; i< getRecordsSize(); i++){
-        if(getSDataAt(i).moteID == moteId-1){
-            if(getSDataAt(i).recordID >= num){
-                list.append(i);
-            }
-        }
-    }
+
     return list;
 }
 
@@ -238,7 +185,7 @@ void SDataWidget::on_clearButton_clicked()
     disconnect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
     ui->sdataLeft->clear();
     ui->sdataRight->clear();
-    records.clear();
+
     connect(ui->sdataLeft, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
 }
 
@@ -310,8 +257,6 @@ void SDataWidget::on_downloadButton_clicked()
 
 #ifdef _WIN32            
     downloadFromDevice();
-    //fillSData(records);
-    //initLeft(false);
 #else
     processBinaryFile("Select the device", QDir::rootPath(), "Downloading");
 #endif
@@ -323,7 +268,7 @@ void SDataWidget::on_fileButton_clicked()
     processBinaryFile("Select the binary file", QDir::homePath(), "Processing file");
 }
 
-void SDataWidget::onDownloadFinished(bool error, const QString& error_msg, const QVarLengthArray<SData>& data)
+void SDataWidget::onDownloadFinished(bool error, const QString& error_msg)
 {
     downloadFailed = error;
 
@@ -332,8 +277,7 @@ void SDataWidget::onDownloadFinished(bool error, const QString& error_msg, const
         errorMsg = QString(error_msg);
     }
     else {
-
-        records = QVarLengthArray<SData>(data);
+        //TODO
     }
 
     qDebug() << "Results of download copied";
@@ -360,13 +304,6 @@ void SDataWidget::onUpdateGUI() {
     qDebug() << "GUI updated";
 }
 
-void SDataWidget::printRecords()
-{
-    for(int i=0; i<records.size(); i++){
-        qDebug() << records[i].moteID << ", " << records[i].recordID << ", " << records[i].length << "\n";
-    }
-}
-
 void SDataWidget::onItemDoubleClicked(QTreeWidgetItem* item,int column)
 {
     if(column == COMMENT){
@@ -377,62 +314,13 @@ void SDataWidget::onItemDoubleClicked(QTreeWidgetItem* item,int column)
 
 }
 
-void SDataWidget::filterRecords()
-{
-    QVarLengthArray<SData> temp;
-    for(int i=0; i<records.size(); i++){
-        if(records[i].length > SHORTREC){
-            filteredRecords.append(records[i]);
-        }
-    }
-
-    int i = 1;
-    int j = 0;
-    int mote = filteredRecords[0].moteID;
-    while( j < filteredRecords.size()-2 ){           
-        bool swapped;
-        do{
-            swapped = false;
-            //for(int l = j; l<(i+j); l++){
-            //   qDebug() << QString::number(filteredRecords[l].moteID) << " - " << filteredRecords[l].tor;
-            //}
-            //qDebug() << "=========";
-            i = 1;
-            while( (mote == filteredRecords[j+i].moteID) && ( (j+i) < filteredRecords.size()-1)){
-                QDateTime temp1 = QDateTime::fromString(filteredRecords[j+i-1].tor,"yyyy-M-d hh:mm");
-                QDateTime temp2 = QDateTime::fromString(filteredRecords[j+i].tor,"yyyy-M-d hh:mm");
-                if(temp2 > temp1){
-                    SData temp = filteredRecords[j+i];
-                    filteredRecords[j+i] = filteredRecords[j+i-1];
-                    filteredRecords[j+i-1] = temp;
-                    swapped = true;
-                }
-                i++;
-            }
-        }while(swapped);
-
-        if( (j+i) < filteredRecords.size()) j += i;
-        mote = filteredRecords[j].moteID;
-    }
-}
-
 void SDataWidget::on_showLastTencBox_clicked()
 {
-    QVarLengthArray<SData> temp;
-    if(ui->showLastTencBox->isChecked()){        
-        //filterRecords();
+    if(ui->showLastTencBox->isChecked()){
         ui->sdataLeft->clear();
-        //temp = records;
-        //records.clear();
-        //records = filteredRecords;
-        //filteredRecords.clear();
-        //filteredRecords = temp;
         initLeft(true);
         ui->sdataLeft->expandAll();
     } else {
-        //records.clear();
-        //records = filteredRecords;
-        //filteredRecords.clear();
         ui->sdataLeft->clear();
         initLeft(false);
     }
@@ -441,5 +329,5 @@ void SDataWidget::on_showLastTencBox_clicked()
 void SDataWidget::onSdataLeftFocusIn()
 {
     ui->sdataLeft->clear();
-    initLeft(ui->showLastTencBox->isChecked());
+    initLeft(false);
 }

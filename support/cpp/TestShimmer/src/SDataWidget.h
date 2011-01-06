@@ -49,26 +49,11 @@ namespace Ui {
     class SDataWidget;
 }
 
-struct SData
-{
-    SData();
-    int moteID;
-    int recordID;
-    int length;
-    QString tor;
-    QString tod;
-};
-
-void fillSData(QVarLengthArray<SData>& records);
-
 class SDataWidget : public QWidget {
     Q_OBJECT
 public:
     SDataWidget(QWidget *parent, Application &app);
     ~SDataWidget();
-
-    const SData& getSDataAt(int i) const { return records[i]; }
-    int getRecordsSize() const { return records.size(); }
 
 private:
     Ui::SDataWidget *ui;
@@ -77,9 +62,6 @@ private:
     QMessageBox* blockingBox;
     sdc::DownloadManager manager;
     RecordList recordList;
-
-    QVarLengthArray<SData> records;
-    QVarLengthArray<SData> filteredRecords;
 
     volatile bool downloadFailed;
     QString errorMsg;
@@ -95,7 +77,6 @@ private:
 
     void initLeft(bool filter);
     void initRight(const QVarLengthArray<int>& list);
-    QVarLengthArray<int> getLinkingRecords(int moteId, int num);
 
     QTreeWidgetItem* createParentItem(int i, QTreeWidget* root);
     void createChildItem(int i, QTreeWidgetItem* parent);
@@ -109,10 +90,7 @@ private:
     const QString selectWin32Device();
     const QString selectBinaryFile(const QString& caption, const QString& startFromHere);
 
-    void printRecords();
-    void filterRecords();
-
-
+    QVarLengthArray<int> getLinkingRecords(int moteId, int num);
 
 signals:
 
@@ -125,7 +103,7 @@ private slots:
     void on_downloadButton_clicked();
     void onItemDoubleClicked(QTreeWidgetItem*,int);
     void on_fileButton_clicked();
-    void onDownloadFinished(bool error, const QString& error_msg, const QVarLengthArray<SData>& data);
+    void onDownloadFinished(bool error, const QString& error_msg);
     void onUpdateGUI();
     void on_clearButton_clicked();
     void on_showLastTencBox_clicked();
