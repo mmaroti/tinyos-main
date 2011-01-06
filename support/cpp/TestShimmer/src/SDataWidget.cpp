@@ -42,7 +42,6 @@
 #include <QTime>
 #include <QDialog>
 #include <QDebug>
-#include <QShortcut>
 #include "constants.h"
 #include "RecordList.hpp"
 #include "MoteHeader.hpp"
@@ -69,13 +68,14 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
     ui->sdataLeft->sortByColumn(RECORD_ID);
     ui->sdataRight->sortByColumn(RECORD_ID);
     connect(this, SIGNAL(updateGUI()), this, SLOT(onUpdateGUI()), Qt::QueuedConnection);
-    connect(expandShortCut, SIGNAL(activated()), this, SLOT(onExpandAll()));
+    connect(expandShortCut, SIGNAL(activated()), this, SLOT(onReverseExpandState()));
 }
 
 SDataWidget::~SDataWidget()
 {
     delete blockingBox;
     delete ui;
+    delete expandShortCut;
 }
 
 void SDataWidget::initLeft(bool filter)
@@ -346,7 +346,7 @@ void SDataWidget::onSdataLeftFocusIn()
     initLeft(false);
 }
 
-void SDataWidget::onExpandAll()
+void SDataWidget::onReverseExpandState()
 {
     if(ui->sdataLeft->itemAt(0,0)->isExpanded() ){
         ui->sdataLeft->collapseAll();

@@ -40,9 +40,9 @@
 #include <QVarLengthArray>
 #include <QTreeWidgetItem>
 #include <QTreeWidget>
+#include <QShortcut>
 #include "DownloadManager.hpp"
 #include "RecordList.hpp"
-#include <QShortCut>
 
 class Application;
 
@@ -50,15 +50,17 @@ namespace Ui {
     class SDataWidget;
 }
 
-enum Side { Left, Right };
-
 class SDataWidget : public QWidget {
+
     Q_OBJECT
+
 public:
+
     SDataWidget(QWidget *parent, Application &app);
     ~SDataWidget();
 
 private:
+
     Ui::SDataWidget *ui;
     Application &application;
 
@@ -68,6 +70,7 @@ private:
 
     volatile bool downloadFailed;
     QString errorMsg;
+    QShortcut *expandShortCut;
 
     enum ColumnIndex {
         MOTE_ID       = 0,
@@ -77,6 +80,8 @@ private:
         DATE_DOWNLOAD = 4,
         COMMENT       = 5
     };
+
+    enum Side { Left, Right };
 
     void initLeft(bool filter);
     void initRight();
@@ -93,9 +98,6 @@ private:
     const QString selectWin32Device();
     const QString selectBinaryFile(const QString& caption, const QString& startFromHere);
 
-    QVarLengthArray<int> getLinkingRecords(int moteId, int num);
-
-    QShortcut *expandShortCut;
 signals:
 
     void updateGUI();
@@ -112,7 +114,8 @@ private slots:
     void on_clearButton_clicked();
     void on_showLastTencBox_clicked();
     void onSdataLeftFocusIn();
-    void onExpandAll();
+    void onReverseExpandState();
+
 };
 
 #endif // SDATAWIDGET_H
