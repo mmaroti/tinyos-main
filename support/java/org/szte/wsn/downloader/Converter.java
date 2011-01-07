@@ -68,7 +68,7 @@ public class Converter {
 			}
 			
 			if(!running){
-				this.cancel();
+				timer.cancel();
 				//The binary->csv parsing is ready
 				calculateGlobal(outputs);
 				//golobaltime calculation is ready
