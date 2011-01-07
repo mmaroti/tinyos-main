@@ -63,14 +63,30 @@ public class CSVHandler {
 	
 	public ArrayList<String> getHeader(){
 		return header;
-		
 	}
 	
-	public void setHeader(String h){
+	public String getHeaderId(int id){
+		return header.get(id-1);
+	}
+	
+	public void setHeader(ArrayList<String> h){
+		header=h;
+	}
+	
+	public String getHeaderLine(){
+		String ret="";
+		for(int i=0;i<header.size()-1;i++)
+			ret+=header.get(i)+separator;
+		ret+=header.get(header.size()-1);
+		return ret;
+	}
+	
+	public void setHeaderLine(String h){
 		for(String column:h.split(separator)){
 			header.add(column);
 		}
 	}
+
 
 
 	public void clearHeader(){
@@ -98,6 +114,13 @@ public class CSVHandler {
 		if(!tempfile.renameTo(csvfile))
 			return false;
 		return true;
+	}
+	
+	public int getColumnNum(String name){
+		for(String column:header)
+			if(column.equals(name))
+				return header.indexOf(column)+1;
+		return -1;
 	}
 	
 	public String getLine(int line){
@@ -181,6 +204,16 @@ public class CSVHandler {
 	public void addLine(int line, String[] values){
 		line--;
 		data.add(line, values);
+	}
+	
+	public void addLine(String[] values){
+		data.add(values);
+	}
+	public void addLine(ArrayList<String> values){
+		String[] arrayvalues=new String[values.size()];
+		for(int i=0;i<values.size();i++)
+			arrayvalues[i]=values.get(i);
+		data.add(arrayvalues);
 	}
 	
 	public void removeLine(int line){
