@@ -1,7 +1,6 @@
 package org.szte.wsn.downloader;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -11,25 +10,20 @@ import org.szte.wsn.dataprocess.PacketParserFactory;
 import org.szte.wsn.dataprocess.Transfer;
 import org.szte.wsn.dataprocess.file.StringInterfaceFile;
 
-public class Converter {
+public class Converter implements ParsingReady{
 	
-	private static Timer timer=new Timer();
+	private Timer timer=new Timer();
+	private Transfer parser;
+	private File csvFile;
+	private String separator;
 	
-	private static ArrayList<Transfer> parsers=new ArrayList<Transfer>();
-	
-	private static ArrayList<File> outputs=new ArrayList<File>();
-	
-	private static String csvext,tsext,separator,timeformat;
 	
 	private static String switchExtension(String fullname, String newEx){
 		return fullname.substring(0, fullname.lastIndexOf('.'))+newEx;
 	}
 	
-	public Converter(String file,boolean convertToSI, String csvext, String tsext, String separator, String timeformat){
-		Converter.csvext=csvext;
-		Converter.tsext=tsext;
-		Converter.separator=separator;
-		Converter.timeformat=timeformat;
+	public Converter(String file, boolean convertToSI, String csvext, String separator, ParsingReady parent){
+		this.separator=separator;
 		
 		PacketParser[] pp;
 		if(convertToSI)
@@ -42,66 +36,71 @@ public class Converter {
 				new StringInterfaceFile(separator,outputfile , pp, false,Transfer.REWRITE, false, false),
 				true);
 		fp.start();
-		parsers.add(fp);
-		outputs.add(new File(outputfile));
+		parser=fp;
+		csvFile=new File(outputfile);
+		if(parent==null) parent=this;
+		waitForParsing(parent);
 	}
 	
-	private static void calculateGlobal(ArrayList<File> outputs2) {
-		for(File current:outputs2){
-			String tsfile=switchExtension(current.getAbsolutePath(),tsext);
-			if(new File(tsfile).exists())
-				new GlobalTime(current.getAbsolutePath(), 4, 5, true, 120, csvext,separator,timeformat);
-		}		
+	public CSVHandler calculateGlobal(String tsext, int localColumn, int globalColumn, boolean insertGlobal, int maxerror, String timeformat) {
+			File tsfile=new File(CSVHandler.switchExtension(csvFile.getAbsolutePath(),tsext));
+			if(tsfile.exists()){
+				GlobalTime gt=new GlobalTime(tsfile,csvFile, localColumn, globalColumn, insertGlobal, maxerror,separator,timeformat);
+				return gt.getCSVHandler();
+			}
+			return null;
 	}
 	
-	public static class ParsersRunning extends TimerTask{
+	public File getFile(){
+		return csvFile;
+	}
+	
+	public class ParsersRunning extends TimerTask{
 
 		private ParsingReady report;
+		private Converter parent;
+		
 		@Override
 		public void run() {
-			boolean running=false;
-			for(Transfer parser:parsers){
-				if(parser.isAlive()){
-					running=true;
-					break;
-				}
-			}
-			
-			if(!running){
+			if(!parser.isAlive()){
 				timer.cancel();
-				//The binary->csv parsing is ready
-				calculateGlobal(outputs);
-				//golobaltime calculation is ready
-				report.Ready(outputs);
+				report.Ready(parent);
 			}
 		}
 		
-		public ParsersRunning(ParsingReady report){
+		public ParsersRunning(ParsingReady report, Converter parent){
 			this.report=report;
+			this.parent=parent;
 		}
 		
 	}
 	
-	public static void waitForParsing(ParsingReady report) {
-		timer.scheduleAtFixedRate(new ParsersRunning(report),100,100);	
+	public void waitForParsing(ParsingReady report) {
+		timer.scheduleAtFixedRate(new ParsersRunning(report, this),100,100);	
 	}
+	
 	
 	
 	public static void main(String[] args){
 		String[] fileNames=new File(".").list();
-		boolean convertToSI=true;
 		for(String file:fileNames){
 			if(file.endsWith(".bin")){
-				new Converter(file,convertToSI, ".csv", ".ts", ",", null);
+				new Converter(file,true, ".csv", ",", null);
 			}
-		}
-		try{
-			Converter.waitForParsing(null);
-		}catch(NullPointerException e){
-			
 		}
 		
 	}
+
+	@Override
+	public void Ready(Converter output) {
+		// nobody want to know		
+	}
+
+	public CSVHandler getCSVHandler() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 
 }
