@@ -20,12 +20,18 @@
       <bool>true</bool>
      </attribute>
      <attribute name="horizontalHeaderDefaultSectionSize">
-      <number>50</number>
+      <number>70</number>
+     </attribute>
+     <attribute name="horizontalHeaderMinimumSectionSize">
+      <number>40</number>
      </attribute>
      <attribute name="horizontalHeaderStretchLastSection">
       <bool>true</bool>
      </attribute>
      <attribute name="verticalHeaderVisible">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="verticalHeaderStretchLastSection">
       <bool>false</bool>
      </attribute>
      <attribute name="verticalHeaderVisible">
@@ -37,8 +43,14 @@
      <attribute name="horizontalHeaderCascadingSectionResizes">
       <bool>true</bool>
      </attribute>
+     <attribute name="horizontalHeaderMinimumSectionSize">
+      <number>40</number>
+     </attribute>
+     <attribute name="verticalHeaderStretchLastSection">
+      <bool>false</bool>
+     </attribute>
      <attribute name="horizontalHeaderDefaultSectionSize">
-      <number>50</number>
+      <number>70</number>
      </attribute>
      <column>
       <property name="text">
@@ -56,6 +68,9 @@
       </property>
      </column>
     </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="entryLine"/>
    </item>
   </layout>
  </widget>

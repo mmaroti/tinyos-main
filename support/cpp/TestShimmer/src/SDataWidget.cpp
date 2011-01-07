@@ -63,19 +63,19 @@ SDataWidget::SDataWidget(QWidget *parent, Application &app) :
                                   "Please wait, downloading...",
                                   QMessageBox::NoButton, this, 0);
 
-    expandShortCut = new QShortcut(QKeySequence(tr("Ctrl++", "Expand All")), ui->sdataLeft);
+    //expandShortCut = new QShortcut(QKeySequence(tr("Ctrl++", "Expand All")), ui->sdataLeft);
 
     ui->sdataLeft->sortByColumn(RECORD_ID);
     ui->sdataRight->sortByColumn(RECORD_ID);
     connect(this, SIGNAL(updateGUI()), this, SLOT(onUpdateGUI()), Qt::QueuedConnection);
-    connect(expandShortCut, SIGNAL(activated()), this, SLOT(onReverseExpandState()));
+    //connect(expandShortCut, SIGNAL(activated()), this, SLOT(onReverseExpandState()));
 }
 
 SDataWidget::~SDataWidget()
 {
     delete blockingBox;
     delete ui;
-    delete expandShortCut;
+    //delete expandShortCut;
 }
 
 void SDataWidget::initLeft(bool filter)
@@ -346,12 +346,29 @@ void SDataWidget::onSdataLeftFocusIn()
     initLeft(false);
 }
 
-void SDataWidget::onReverseExpandState()
-{
-    if(ui->sdataLeft->itemAt(0,0)->isExpanded() ){
-        ui->sdataLeft->collapseAll();
-    } else {
-        ui->sdataLeft->expandAll();
-    }
+//void SDataWidget::onReverseExpandState()
+//{
+//    if(ui->sdataLeft->itemAt(0,0)->isExpanded() ){
+//        ui->sdataLeft->collapseAll();
+//    } else {
+//        ui->sdataLeft->expandAll();
+//    }
+//}
 
+void SDataWidget::on_expandLeft_cBox_clicked()
+{
+    if(ui->expandLeft_cBox->isChecked()){
+        ui->sdataLeft->expandAll();
+    } else {
+        ui->sdataLeft->collapseAll();
+    }
+}
+
+void SDataWidget::on_expandRight_cBox_clicked()
+{
+    if(ui->expandRight_cBox->isChecked()){
+        ui->sdataRight->expandAll();
+    } else {
+        ui->sdataRight->collapseAll();
+    }
 }

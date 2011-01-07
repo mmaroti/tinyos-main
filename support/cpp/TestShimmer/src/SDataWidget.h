@@ -70,7 +70,7 @@ private:
 
     volatile bool downloadFailed;
     QString errorMsg;
-    QShortcut *expandShortCut;
+    //QShortcut *expandShortCut;
 
     enum ColumnIndex {
         MOTE_ID       = 0,
@@ -114,7 +114,9 @@ private slots:
     void on_clearButton_clicked();
     void on_showLastTencBox_clicked();
     void onSdataLeftFocusIn();
-    void onReverseExpandState();
+    //void onReverseExpandState();
+    void on_expandLeft_cBox_clicked();
+    void on_expandRight_cBox_clicked();
 
 };
 

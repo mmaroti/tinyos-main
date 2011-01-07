@@ -4,6 +4,7 @@
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QPushButton>
+#include <QDateTime>
 
 LogWidget::LogWidget(QWidget *parent, Application &app) :
         QWidget(parent),
@@ -12,17 +13,35 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
 {
     ui->setupUi(this);
 
-    ui->log->setRowCount(10);
-
-    QTableWidgetItem* item = new QTableWidgetItem("valami",1);
-    QPushButton* but = new QPushButton("goto",this);
-    ui->log->setCellWidget(0,0,but);
-    ui->log->setItem(0,2,item);
-    QTableWidgetItem* item2 = new QTableWidgetItem("2010-12-10 11:14",1);
-    ui->log->setItem(0,1,item2);
+    ui->log->setRowCount(1);
+    ui->entryLine->setFocus();
 }
 
 LogWidget::~LogWidget()
 {
 
+}
+
+
+void LogWidget::on_entryLine_editingFinished()
+{
+    if(!ui->entryLine->text().isNull()){
+        createItem(ui->entryLine->text());
+    }
+}
+
+void LogWidget::createItem(QString text)
+{
+    int row = ui->log->rowCount();
+    ui->log->setRowCount(row+1);
+
+    QPushButton* but = new QPushButton("goto",this);
+    ui->log->setCellWidget(row-1,0,but);
+    QTableWidgetItem* item2 = new QTableWidgetItem(QDateTime::currentDateTime().toString(),1);
+    ui->log->setItem(row-1,1,item2);
+    QTableWidgetItem* item = new QTableWidgetItem(text,1);
+    ui->log->setItem(row-1,2,item);
+
+    ui->entryLine->clear();
+    ui->entryLine->setFocus();
 }

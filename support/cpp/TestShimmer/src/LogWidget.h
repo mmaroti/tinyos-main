@@ -19,6 +19,10 @@ private:
     Ui::LogWidget *ui;
     Application &application;
 
+    void createItem(QString text);
+
+private slots:
+    void on_entryLine_editingFinished();
 };
 
 #endif // LOGWIDGET_H
