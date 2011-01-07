@@ -21,16 +21,16 @@ import argparser.StringHolder;
 public class GlobalTime {
 	
 	private String timeformat;
+	private CSVHandler handler;
 	
-	private ArrayList<LinearFunction> ParseTimeSyncFile(String inputfile,long maxerror){
+	private ArrayList<LinearFunction> ParseTimeSyncFile(File tsfile,long maxerror){
 		ArrayList<LinearFunction> functions=new ArrayList<LinearFunction>();
-		File tsfile=new File(inputfile);
 		if(tsfile.exists()&&tsfile.isFile()&&tsfile.canRead()){
 			BufferedReader input;
 			try {
 				input = new BufferedReader(new FileReader(tsfile));
 			} catch (FileNotFoundException e1) {
-				System.err.println("Error: Can't read timestamp file: "+inputfile);
+				System.err.println("Error: Can't read timestamp file: "+tsfile.getName());
 				return null;
 			}
 			String line;
@@ -39,7 +39,7 @@ public class GlobalTime {
 				while (( line = input.readLine()) != null){
 					String[] dates = line.split(":");
 					if(dates.length<2){
-						System.err.println("Warning: Too short line in file: "+inputfile);
+						System.err.println("Warning: Too short line in file: "+tsfile.getName());
 						System.err.println(line);
 						continue;
 					}
@@ -48,24 +48,24 @@ public class GlobalTime {
 						pctime=Long.parseLong(dates[0]);
 						motetime=Long.parseLong(dates[1]);
 					} catch(NumberFormatException e){
-						System.err.println("Warning: Unparsable line in file: "+inputfile);
+						System.err.println("Warning: Unparsable line in file: "+tsfile.getName());
 						System.err.println(line);
 						continue;
 					}
 					if(!regr.addPoint(motetime, pctime)){//end of running: save the function, then read the next running
 						functions.add(regr.getFunction());
-						System.out.println("pc="+regr.getFunction().getOffset()+"+"+regr.getFunction().getSlope()+"*mote ("+inputfile+"); points:"+regr.getNumPoints());
+						System.out.println("pc="+regr.getFunction().getOffset()+"+"+regr.getFunction().getSlope()+"*mote ("+tsfile.getName()+"); points:"+regr.getNumPoints());
 					}
 				}
 			} catch (IOException e) {
-				System.err.println("Error: Can't read timestamp file: "+inputfile);
+				System.err.println("Error: Can't read timestamp file: "+tsfile.getName());
 				return null;
 			}
 			functions.add(regr.getFunction());
-			System.out.println("pc="+regr.getFunction().getOffset()+"+"+regr.getFunction().getSlope()+"*mote ("+inputfile+"); points:"+regr.getNumPoints());
+			System.out.println("pc="+regr.getFunction().getOffset()+"+"+regr.getFunction().getSlope()+"*mote ("+tsfile.getName()+"); points:"+regr.getNumPoints());
 			return functions;
 		} else {
-			System.err.println("Error: Can't read timestamp file: "+inputfile);
+			System.err.println("Error: Can't read timestamp file: "+tsfile.getName());
 			return null;
 		}
 	}
@@ -130,12 +130,10 @@ public class GlobalTime {
 		}
 	}
 	
-	public GlobalTime(String inputfile, int local, int global, boolean insert, long maxerror, String csvex, String separator, String timeformat){
+	public GlobalTime(File timeFile, File csvFile, int local, int global, boolean insert, long maxerror, String separator, String timeformat){
 		this.timeformat=timeformat;
-		ArrayList<LinearFunction> functions=ParseTimeSyncFile(CSVHandler.switchExtension(inputfile,".ts"), maxerror);
-		File csvFile=new File(CSVHandler.switchExtension(inputfile, csvex));
+		ArrayList<LinearFunction> functions=ParseTimeSyncFile(timeFile, maxerror);
 		if(csvFile.exists()&&csvFile.isFile()){
-			CSVHandler handler;
 			try {
 				handler = new CSVHandler(csvFile, true, separator);
 				ArrayList<Integer> breaks=GetBreaks(handler, local);
@@ -146,6 +144,10 @@ public class GlobalTime {
 		} else 
 			System.err.println("Error: Csv file doesn't exist: "+csvFile.getName());
 
+	}
+	
+	public CSVHandler getCSVHandler(){
+		return handler;
 	}
 
 	public static void main(String[] args) {
@@ -184,15 +186,18 @@ public class GlobalTime {
 			System.out.println(parser.getHelpMessage());
 			System.exit(1);
 		}
-		if(input.value!=null)
-			new GlobalTime(input.value,localcolumn.value,globalcolumn.value,noinsertcolumn.value,errorlimit.value,csvex.value,separator.value,format.value);
-		else{
+		if(input.value!=null){
+			File tsfile=new File(CSVHandler.switchExtension(input.value, timesyncex.value));
+			File csvfile=new File(CSVHandler.switchExtension(input.value, csvex.value));
+			new GlobalTime(tsfile,csvfile,localcolumn.value,globalcolumn.value,noinsertcolumn.value,errorlimit.value,separator.value,format.value);
+		}else{
 			String[] fileNames=new File(".").list();
 			for(String fileName:fileNames){
 				if(fileName.endsWith(timesyncex.value)){
 					File current=new File(fileName);
-					if(current.isFile()&&current.exists()&&current.canRead()&&current.canWrite()){
-						new GlobalTime(fileName,localcolumn.value,globalcolumn.value,noinsertcolumn.value,errorlimit.value,csvex.value,separator.value,format.value);
+					File currentCsv=new File(CSVHandler.switchExtension(fileName,csvex.value));
+					if(current.isFile()&&current.canRead()&&currentCsv.isFile()&&currentCsv.canWrite()){
+						new GlobalTime(current, currentCsv,localcolumn.value,globalcolumn.value,noinsertcolumn.value,errorlimit.value,separator.value,format.value);
 					}
 				}
 			}
