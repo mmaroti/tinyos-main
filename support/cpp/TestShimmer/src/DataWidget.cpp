@@ -56,7 +56,7 @@ DataWidget::DataWidget(QWidget *parent, Application &app) :
         textBox->hide();
 
         widget3d = new Widget3D(this, app);
-        ui->menuLayout->insertWidget(4, widget3d);
+        ui->menuLayout->insertWidget(3, widget3d);
         widget3d->hide();
 
         connect(ui->scrollArea, SIGNAL(rotate3D(int)), widget3d, SLOT(onScroll(int)) );

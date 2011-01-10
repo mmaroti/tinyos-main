@@ -206,7 +206,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="menuLayout" stretch="0,1,0,0">
+    <layout class="QVBoxLayout" name="menuLayout" stretch="0,1,0">
      <property name="margin">
       <number>9</number>
      </property>
@@ -269,7 +269,7 @@
           <x>0</x>
           <y>0</y>
           <width>255</width>
-          <height>268</height>
+          <height>394</height>
          </rect>
         </property>
         <attribute name="label">
@@ -579,8 +579,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>255</width>
-          <height>268</height>
+          <width>137</width>
+          <height>124</height>
          </rect>
         </property>
         <attribute name="label">
@@ -897,7 +897,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>238</width>
+          <width>155</width>
           <height>292</height>
          </rect>
         </property>
@@ -1205,19 +1205,6 @@
         </layout>
        </widget>
       </widget>
-     </item>
-     <item>
-      <spacer name="verticalSpacer">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>120</height>
-        </size>
-       </property>
-      </spacer>
      </item>
      <item>
       <widget class="QWidget" name="buttonsLayout" native="true">
