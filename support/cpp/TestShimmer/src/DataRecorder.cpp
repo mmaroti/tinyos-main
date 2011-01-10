@@ -777,10 +777,16 @@ bool DataRecorder::euler_angle(int i, Coordinate k, double& angle_rad) const {
 const gyro::vector3 DataRecorder::euler_angle_deg(int i) const {
 
     using namespace gyro;
+    // FIXME You should not be calling this function in the first place when
+    // no samples are loaded...
+    if (samples.isEmpty()) {
+
+        return vector3(0.0, 0.0, 0.0);
+    }
 
     double euler[3];
 
-    if(i>0) rotmat_to_angles_deg(samples[i].rotmat, euler);
+    rotmat_to_angles_deg(samples[i].rotmat, euler);
 
     return vector3(euler);
 }
