@@ -53,10 +53,10 @@ class Window : public QWidget
 
 public:
     Window(Application &app);
+    void rotateToNext(int);
 
 private slots:
-    void setCurrentGlWidget();
-    void rotateToNext();
+    void setCurrentGlWidget();    
 
 private:
     Application &application;

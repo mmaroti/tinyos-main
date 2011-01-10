@@ -28,8 +28,8 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: MiklÃ³s MarÃ³ti
+* Author: PÃ©ter Ruzicska
 */
 
 #include "PlotScrollArea.h"
@@ -62,6 +62,7 @@ void PlotScrollArea::setWidgetRect(QRect rect)
 void PlotScrollArea::updateWidgetPosition()
 {
 	plotWidget->move(-horizontalScrollBar()->value(), -verticalScrollBar()->value());
+        emit rotate3D(horizontalScrollBar()->value());
 }
 
 void PlotScrollArea::updateScrollBars()

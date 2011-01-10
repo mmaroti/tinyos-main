@@ -64,6 +64,12 @@ void Widget3D::changeEvent(QEvent *e)
         }
 }
 
+
+void Widget3D::onScroll(int sample_index)
+{
+    window->rotateToNext(sample_index);
+}
+
 //void Widget3D::on_playButton_clicked()
 //{
 //    window->setTimer(20);

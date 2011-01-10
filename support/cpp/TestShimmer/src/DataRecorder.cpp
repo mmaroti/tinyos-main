@@ -780,7 +780,7 @@ const gyro::vector3 DataRecorder::euler_angle_deg(int i) const {
 
     double euler[3];
 
-    rotmat_to_angles_deg(samples[i].rotmat, euler);
+    if(i>0) rotmat_to_angles_deg(samples[i].rotmat, euler);
 
     return vector3(euler);
 }

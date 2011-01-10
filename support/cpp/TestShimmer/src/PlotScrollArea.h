@@ -28,8 +28,8 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: MiklÃ³s MarÃ³ti
+* Author: PÃ©ter Ruzicska
 */
 
 #ifndef PLOTSCROLLAREA_H
@@ -68,6 +68,9 @@ protected:
 	QWidget *plotWidget;
 	QRect plotRect;
         QCursor cursor;
+
+signals:
+        void rotate3D(int);
 };
 
 #endif // PLOTSCROLLAREA_H

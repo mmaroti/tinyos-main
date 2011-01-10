@@ -34,6 +34,7 @@
 #include "DataWidget.h"
 #include "ui_DataWidget.h"
 #include <qfiledialog.h>
+#include <QScrollBar>
 #include "QtDebug"
 #include "window.h"
 
@@ -58,6 +59,7 @@ DataWidget::DataWidget(QWidget *parent, Application &app) :
         ui->menuLayout->insertWidget(4, widget3d);
         widget3d->hide();
 
+        connect(ui->scrollArea, SIGNAL(rotate3D(int)), widget3d, SLOT(onScroll(int)) );
         showErrorGraphs = false;
 }
 

@@ -81,17 +81,15 @@ void Window::setCurrentGlWidget()
     currentGlWidget = qobject_cast<GLWidget *>(sender());
 }
 
-void Window::rotateToNext()
+void Window::rotateToNext(int sample_index)
 {
 
     using namespace gyro;
 
-    enum { X, Y, Z };
-    int sample_index;
-
+    //enum { X, Y, Z };
     vector3 euler = application.dataRecorder.euler_angle_deg(sample_index);
 
-    //currentGlWidget->rotate(euler[X], euler[Y], euler[Z]);
+    currentGlWidget->rotate(euler[gyro::X], euler[gyro::Y], euler[gyro::Z]);
 
 //    //  Rotation around the Z-axis
 //    static const int euler[][3] = {
@@ -133,3 +131,4 @@ void Window::rotateToNext()
 //    if (currentGlWidget)
 //        currentGlWidget->rotate(euler[counter][X], euler[counter][Y], euler[counter][Z]);
 }
+
