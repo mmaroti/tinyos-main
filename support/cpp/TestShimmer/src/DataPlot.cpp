@@ -645,6 +645,9 @@ void DataPlot::mousePressEvent(QMouseEvent * event)
     } else if (event->buttons() & Qt::RightButton) {
         //painter->backgroundMode(Qt::TransparentMode);
         lastPos = event->pos();
+        if( !startPos.isNull() ){
+            emit calculateRange(startPos.x(),lastPos.x());
+        }
     }
 
     if(lastPos.x()<startPos.x()){

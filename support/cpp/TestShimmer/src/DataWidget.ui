@@ -42,6 +42,9 @@
          <property name="smallDecimalPoint">
           <bool>true</bool>
          </property>
+         <property name="segmentStyle">
+          <enum>QLCDNumber::Flat</enum>
+         </property>
         </widget>
        </item>
        <item>
@@ -62,6 +65,9 @@
          <property name="smallDecimalPoint">
           <bool>true</bool>
          </property>
+         <property name="segmentStyle">
+          <enum>QLCDNumber::Flat</enum>
+         </property>
         </widget>
        </item>
        <item>
@@ -81,6 +87,9 @@
         <widget class="QLCDNumber" name="avgLcd">
          <property name="smallDecimalPoint">
           <bool>true</bool>
+         </property>
+         <property name="segmentStyle">
+          <enum>QLCDNumber::Flat</enum>
          </property>
         </widget>
        </item>
@@ -570,8 +579,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>137</width>
-          <height>124</height>
+          <width>255</width>
+          <height>268</height>
          </rect>
         </property>
         <attribute name="label">
@@ -888,7 +897,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>155</width>
+          <width>238</width>
           <height>292</height>
          </rect>
         </property>

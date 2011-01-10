@@ -684,9 +684,9 @@ void DataWidget::onCalculateRange(int from, int to)
 
     for(int i=0; i<minMaxAvgs.size(); i++){
         if(ui->presetsComboBox->currentIndex() == 1 || ui->presetsComboBox->currentIndex() == 2 ){
-            ui->minLcd->display(QString::number(minMaxAvgs[i].min, 'f', 1));
-            ui->maxLcd->display(QString::number(minMaxAvgs[i].max, 'f', 1));
-            ui->avgLcd->display(QString::number(minMaxAvgs[i].avg, 'f', 1));
+            ui->minLcd->display(QString::number(minMaxAvgs[i].min*57.296, 'f', 1));
+            ui->maxLcd->display(QString::number(minMaxAvgs[i].max*57.296, 'f', 1));
+            ui->avgLcd->display(QString::number(minMaxAvgs[i].avg*57.296, 'f', 1));
         }
     }
 
