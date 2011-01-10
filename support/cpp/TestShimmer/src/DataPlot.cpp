@@ -113,7 +113,7 @@ void DataPlot::paintEvent(QPaintEvent *event)
                 for(int i = x0 + 1; i < x1; ++i){
                     painter.drawLine(getPoint(startPos.x(), 0), getPoint(startPos.x(), 4096));
                     painter.drawLine(getPoint(lastPos.x(), 0), getPoint(lastPos.x(), 4096));
-                    painter.drawLine(getPoint(startPos.x(), 0), getPoint(lastPos.x(), 4096));
+                    //painter.drawLine(getPoint(startPos.x(), 0), getPoint(lastPos.x(), 4096));
                 }
             }
 
