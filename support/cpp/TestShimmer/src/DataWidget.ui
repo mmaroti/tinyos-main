@@ -18,10 +18,87 @@
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,0">
    <item>
-    <layout class="QVBoxLayout" name="plotLayout" stretch="1,0">
+    <layout class="QVBoxLayout" name="plotLayout" stretch="0,1,0">
      <property name="margin">
       <number>9</number>
      </property>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item>
+        <spacer name="horizontalSpacer_6">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLCDNumber" name="minLcd">
+         <property name="smallDecimalPoint">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_7">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLCDNumber" name="maxLcd">
+         <property name="smallDecimalPoint">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_8">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLCDNumber" name="avgLcd">
+         <property name="smallDecimalPoint">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
      <item>
       <widget class="PlotScrollArea" name="scrollArea" native="true">
        <property name="cursor">
@@ -127,9 +204,9 @@
      <item>
       <widget class="QGroupBox" name="presetsBox">
        <property name="title">
-        <string>Presets</string>
+        <string>Presets - W/wo. Error Graphs</string>
        </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_6">
+       <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="1,0">
         <item>
          <widget class="QComboBox" name="presetsComboBox">
           <item>
@@ -157,16 +234,13 @@
             <string>None</string>
            </property>
           </item>
-          <item>
-           <property name="text">
-            <string>Record</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Preset 3</string>
-           </property>
-          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="showErrorGraphs_chB">
+          <property name="text">
+           <string/>
+          </property>
          </widget>
         </item>
        </layout>
@@ -496,8 +570,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>255</width>
-          <height>394</height>
+          <width>137</width>
+          <height>124</height>
          </rect>
         </property>
         <attribute name="label">
@@ -814,8 +888,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>255</width>
-          <height>394</height>
+          <width>155</width>
+          <height>292</height>
          </rect>
         </property>
         <attribute name="label">

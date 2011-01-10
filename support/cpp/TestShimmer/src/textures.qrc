@@ -6,11 +6,5 @@
         <file>images/side4.jpg</file>
         <file>images/side5.jpg</file>
         <file>images/side6.jpg</file>
-        <file>images/alpine_down.jpg</file>
-        <file>images/alpine_east.jpg</file>
-        <file>images/alpine_north.jpg</file>
-        <file>images/alpine_south.jpg</file>
-        <file>images/alpine_up.jpg</file>
-        <file>images/alpine_west.jpg</file>
     </qresource>
 </RCC>

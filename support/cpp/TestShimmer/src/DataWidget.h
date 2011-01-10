@@ -28,8 +28,8 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: MiklÃ³s MarÃ³ti
+* Author: PÃ©ter Ruzicska
 */
 
 #ifndef DATAWIDGET_H
@@ -74,7 +74,8 @@ private:
         QTextEdit *textBox;
         Widget3D *widget3d;
 
-        void clearCheckBoxes();
+        void setCheckBoxes(bool);
+        bool showErrorGraphs;
 
 signals:
         void SolverStarted();
@@ -134,6 +135,7 @@ private slots:
         void on_regressionButton_clicked();
 
         void on_presetsComboBox_currentIndexChanged();
+        void on_showErrorGraphs_chB_clicked();
 
         void newCalibrationOccured();
         void onTrim();

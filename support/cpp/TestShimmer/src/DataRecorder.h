@@ -49,6 +49,12 @@ namespace ipo {
 
 enum Coordinate { X, Y, Z };
 
+struct MinMaxAvg{
+    double min;
+    double max;
+    double avg;
+};
+
 struct Sample
 {
         Sample(); // FIXME
@@ -141,7 +147,7 @@ public:
         Angle_pair integrated_angle(int sample, Coordinate k) const;
         Angle_pair corrected_angle(int i, Coordinate k) const;
 
-        double calculateAverageOnRange(int start, int end, QString value);
+        MinMaxAvg minMaxAvgOnRange(int start, int end, QString value);
 
 signals:
 

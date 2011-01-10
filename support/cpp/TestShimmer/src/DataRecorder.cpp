@@ -46,6 +46,7 @@
 #include "Results.hpp"
 #include "EulerAngles.hpp"
 
+
 DataRecorder::DataRecorder(Application &app) :
         A(gyro::matrix3::identity()),
         b(gyro::vector3(0,0,0)),
@@ -977,11 +978,13 @@ void DataRecorder::edit(const QString& option)
     }
 }
 
-double DataRecorder::calculateAverageOnRange(int start, int end, QString value)
+MinMaxAvg DataRecorder::minMaxAvgOnRange(int start, int end, QString value)
 {
+    MinMaxAvg minMaxAvg;
     Coordinate c;
-    double avg = 0;
     double sum = 0;
+    double min = 99999.9;
+    double max = 0.0;
 
     if(value == "XCORRANG") c = X;
     if(value == "YCORRANG") c = Y;
@@ -991,8 +994,12 @@ double DataRecorder::calculateAverageOnRange(int start, int end, QString value)
     for(int i = start; i<end; i++){
         Angle_pair a = corrected_angle(i, c);
         sum += a.angle1;
+        if(a.angle1<min) min = a.angle1;
+        if(a.angle1>max) max = a.angle1;
     }
-    avg = sum / (end-start);
+    minMaxAvg.min = min;
+    minMaxAvg.max = max;
+    minMaxAvg.avg = sum / (end-start);
 
-    return avg;
+    return minMaxAvg;
 }

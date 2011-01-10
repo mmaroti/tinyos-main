@@ -28,8 +28,8 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklï¿½s Marï¿½ti
-* Author: Pï¿½ter Ruzicska
+* Author: MiklÃ³s MarÃ³ti
+* Author: PÃ©ter Ruzicska
 */
 #include "DataWidget.h"
 #include "ui_DataWidget.h"
@@ -57,6 +57,8 @@ DataWidget::DataWidget(QWidget *parent, Application &app) :
         widget3d = new Widget3D(this, app);
         ui->menuLayout->insertWidget(4, widget3d);
         widget3d->hide();
+
+        showErrorGraphs = false;
 }
 
 DataWidget::~DataWidget()
@@ -527,46 +529,46 @@ void DataWidget::on_regressionButton_clicked()
     }
 }
 
-void DataWidget::clearCheckBoxes()
+void DataWidget::setCheckBoxes(bool on)
 {
-    ui->rawAccBox->setChecked(false);
-    ui->rawGyroBox->setChecked(false);
-    ui->accelBox->setChecked(false);
-    ui->gyroBox->setChecked(false);
-    ui->anglesBox->setChecked(false);
-    ui->eulerBox->setChecked(false);
-    ui->corrBox->setChecked(false);
-    ui->intBox->setChecked(false);
-    ui->tiltAnglesBox->setChecked(false);
+    ui->rawAccBox->setChecked(on);
+    ui->rawGyroBox->setChecked(on);
+    ui->accelBox->setChecked(on);
+    ui->gyroBox->setChecked(on);
+    ui->anglesBox->setChecked(on);
+    ui->eulerBox->setChecked(on);
+    ui->corrBox->setChecked(on);
+    ui->intBox->setChecked(on);
+    ui->tiltAnglesBox->setChecked(on);
 
-    ui->rawAccX->setChecked(false);
-    ui->rawAccY->setChecked(false);
-    ui->rawAccZ->setChecked(false);
-    ui->rawGyroX->setChecked(false);
-    ui->rawGyroY->setChecked(false);
-    ui->rawGyroZ->setChecked(false);
-    ui->accX->setChecked(false);
-    ui->accY->setChecked(false);
-    ui->accZ->setChecked(false);
-    ui->gyroX->setChecked(false);
-    ui->gyroY->setChecked(false);
-    ui->gyroZ->setChecked(false);
-    ui->angX->setChecked(false);
-    ui->angY->setChecked(false);
-    ui->angZ->setChecked(false);
-    ui->angXY->setChecked(false);
-    ui->angYZ->setChecked(false);
-    ui->angZX->setChecked(false);
-    ui->eulerX->setChecked(false);
-    ui->eulerY->setChecked(false);
-    ui->eulerZ->setChecked(false);
-    ui->corrX->setChecked(false);
-    ui->corrY->setChecked(false);
-    ui->corrZ->setChecked(false);
-    ui->absAcc->setChecked(false);
-    ui->intX->setChecked(false);
-    ui->intY->setChecked(false);
-    ui->intZ->setChecked(false);
+    ui->rawAccX->setChecked(on);
+    ui->rawAccY->setChecked(on);
+    ui->rawAccZ->setChecked(on);
+    ui->rawGyroX->setChecked(on);
+    ui->rawGyroY->setChecked(on);
+    ui->rawGyroZ->setChecked(on);
+    ui->accX->setChecked(on);
+    ui->accY->setChecked(on);
+    ui->accZ->setChecked(on);
+    ui->gyroX->setChecked(on);
+    ui->gyroY->setChecked(on);
+    ui->gyroZ->setChecked(on);
+    ui->angX->setChecked(on);
+    ui->angY->setChecked(on);
+    ui->angZ->setChecked(on);
+    ui->angXY->setChecked(on);
+    ui->angYZ->setChecked(on);
+    ui->angZX->setChecked(on);
+    ui->eulerX->setChecked(on);
+    ui->eulerY->setChecked(on);
+    ui->eulerZ->setChecked(on);
+    ui->corrX->setChecked(on);
+    ui->corrY->setChecked(on);
+    ui->corrZ->setChecked(on);
+    ui->absAcc->setChecked(on);
+    ui->intX->setChecked(on);
+    ui->intY->setChecked(on);
+    ui->intZ->setChecked(on);
 
     on_rawAccX_clicked();
     on_rawAccY_clicked();
@@ -628,41 +630,76 @@ void DataWidget::on_presetsComboBox_currentIndexChanged()
         on_corrZ_clicked();
         textBox->hide();
     } else if(ui->presetsComboBox->currentIndex() == 1){
-        clearCheckBoxes();
+        QString msg;
+        setCheckBoxes(false);
         ui->corrBox->setChecked(true);
         ui->corrX->setChecked(true);
         ui->corrZ->setChecked(true);
         on_corrX_clicked();
         on_corrZ_clicked();
-        textBox->setText("Piros: alkari szupináció\nKék: könyök flexió\n1 osztás 45° -nak felel meg.");
+        msg = "Piros: alkari szupinÃ¡ciÃ³\nKÃ©k: kÃ¶nyÃ¶k flexiÃ³\n1 osztÃ¡s 45Â° -nak felel meg.";
+
+        if(showErrorGraphs){
+            ui->corrY->setChecked(true);
+            on_corrY_clicked();
+            msg.append("--------------------\nHiba: ZÃ¶ld.");
+        }
+
+        textBox->setText(msg);
         textBox->show();
     } else if(ui->presetsComboBox->currentIndex() == 2){
-        clearCheckBoxes();
+        QString msg;
+        setCheckBoxes(false);
         ui->corrBox->setChecked(true);
         ui->corrY->setChecked(true);
         on_corrY_clicked();
-        textBox->setText("Zöld: rotáció\n1 osztás 45° -nak felel meg.");
+        msg = "ZÃ¶ld: rotÃ¡ciÃ³\n1 osztÃ¡s 45Â° -nak felel meg.";
+
+        if(showErrorGraphs){
+            ui->corrX->setChecked(true);
+            ui->corrZ->setChecked(true);
+            on_corrX_clicked();
+            on_corrZ_clicked();
+            msg.append("--------------------\nHiba: Piros, KÃ©k");
+        }
+
+        textBox->setText(msg);
         textBox->show();
+    } else if(ui->presetsComboBox->currentIndex() == 3){
+        setCheckBoxes(true);
+        textBox->hide();
     } else if(ui->presetsComboBox->currentIndex() == 4){
-        clearCheckBoxes();
+        setCheckBoxes(false);
         textBox->hide();
     }
 }
 
 void DataWidget::onCalculateRange(int from, int to)
 {
-    QVector<double> avgs;
-    if(ui->corrX->isChecked()) avgs.append(application.dataRecorder.calculateAverageOnRange(from, to, "XCORRANG"));
-    if(ui->corrY->isChecked()) avgs.append(application.dataRecorder.calculateAverageOnRange(from, to, "YCORRANG"));
-    if(ui->corrZ->isChecked()) avgs.append(application.dataRecorder.calculateAverageOnRange(from, to, "ZCORRANG"));
-    if(ui->eulerX->isChecked()) avgs.append(application.dataRecorder.calculateAverageOnRange(from, to, "XEUL"));
-    if(ui->eulerY->isChecked()) avgs.append(application.dataRecorder.calculateAverageOnRange(from, to, "YEUL"));
-    if(ui->eulerZ->isChecked()) avgs.append(application.dataRecorder.calculateAverageOnRange(from, to, "ZEUL"));
+    QVector<MinMaxAvg> minMaxAvgs;
 
-    for(int i=0; i<avgs.size(); i++){
+    if(ui->corrX->isChecked()) minMaxAvgs.append(application.dataRecorder.minMaxAvgOnRange(from, to, "XCORRANG"));
+    if(ui->corrY->isChecked()) minMaxAvgs.append(application.dataRecorder.minMaxAvgOnRange(from, to, "YCORRANG"));
+    if(ui->corrZ->isChecked()) minMaxAvgs.append(application.dataRecorder.minMaxAvgOnRange(from, to, "ZCORRANG"));
+
+    for(int i=0; i<minMaxAvgs.size(); i++){
         if(ui->presetsComboBox->currentIndex() == 1 || ui->presetsComboBox->currentIndex() == 2 ){
-            textBox->append(QString::number(avgs[i]));
+            ui->minLcd->display(QString::number(minMaxAvgs[i].min, 'f', 1));
+            ui->maxLcd->display(QString::number(minMaxAvgs[i].max, 'f', 1));
+            ui->avgLcd->display(QString::number(minMaxAvgs[i].avg, 'f', 1));
         }
     }
 
+}
+
+void DataWidget::on_showErrorGraphs_chB_clicked()
+{
+    if(ui->showErrorGraphs_chB->isChecked())
+    {
+        showErrorGraphs = true;
+        on_presetsComboBox_currentIndexChanged();
+    } else {
+        showErrorGraphs = false;
+        on_presetsComboBox_currentIndexChanged();
+    }
 }

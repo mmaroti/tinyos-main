@@ -28,8 +28,8 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: MiklÃ³s MarÃ³ti
+* Author: PÃ©ter Ruzicska
 */
 
 #include "Widget3D.h"
@@ -42,7 +42,7 @@ Widget3D::Widget3D(QWidget *parent, Application &app) :
 {
         ui->setupUi(this);
 
-        window = new Window(app);
+        window = new Window(application);
         ui->verticalLayout->addWidget(window);
 }
 
@@ -64,17 +64,17 @@ void Widget3D::changeEvent(QEvent *e)
         }
 }
 
-void Widget3D::on_playButton_clicked()
-{
-    window->setTimer(20);
-}
-
-void Widget3D::on_pauseButton_clicked()
-{
-    window->setTimer(20);
-}
-
-void Widget3D::on_stopButton_clicked()
-{
-    window->stopTimer();
-}
+//void Widget3D::on_playButton_clicked()
+//{
+//    window->setTimer(20);
+//}
+//
+//void Widget3D::on_pauseButton_clicked()
+//{
+//    window->setTimer(20);
+//}
+//
+//void Widget3D::on_stopButton_clicked()
+//{
+//    window->stopTimer();
+//}

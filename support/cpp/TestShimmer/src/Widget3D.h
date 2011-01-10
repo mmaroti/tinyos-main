@@ -28,8 +28,8 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: MiklÃ³s MarÃ³ti
+* Author: PÃ©ter Ruzicska
 */
 
 #ifndef WIDGET3D_H
@@ -60,9 +60,9 @@ private:
     Window *window;
 
 private slots:
-    void on_playButton_clicked();
-    void on_pauseButton_clicked();
-    void on_stopButton_clicked();
+    //void on_playButton_clicked();
+    //void on_pauseButton_clicked();
+    //void on_stopButton_clicked();
 
 };
 #endif // WIDGET3D_H

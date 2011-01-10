@@ -1,55 +1,56 @@
-/** Copyright (c) 2010, University of Szeged
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions
-* are met:
-*
-* - Redistributions of source code must retain the above copyright
-* notice, this list of conditions and the following disclaimer.
-* - Redistributions in binary form must reproduce the above
-* copyright notice, this list of conditions and the following
-* disclaimer in the documentation and/or other materials provided
-* with the distribution.
-* - Neither the name of University of Szeged nor the names of its
-* contributors may be used to endorse or promote products derived
-* from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-* COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-* OF THE POSSIBILITY OF SUCH DAMAGE.
-*
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
-*/
+/****************************************************************************
+**
+** Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies).
+** All rights reserved.
+** Contact: Nokia Corporation (qt-info@nokia.com)
+**
+** This file is part of the examples of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** Commercial Usage
+** Licensees holding valid Qt Commercial licenses may use this file in
+** accordance with the Qt Commercial License Agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Nokia.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Nokia gives you certain additional
+** rights.  These rights are described in the Nokia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 3.0 as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU General Public License version 3.0 requirements will be
+** met: http://www.gnu.org/copyleft/gpl.html.
+**
+** If you have questions regarding the use of this file, please contact
+** Nokia at qt-info@nokia.com.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
 
 #include <QtGui>
 #include <QtOpenGL>
 
-#include "GLWidget.h"
-#include "Application.h"
+#include "glwidget.h"
 
-GLWidget::GLWidget(QWidget *parent, QGLWidget *shareWidget, Application &app)
-    : QGLWidget(parent, shareWidget),
-    application(app)
+GLWidget::GLWidget(QWidget *parent, QGLWidget *shareWidget)
+    : QGLWidget(parent, shareWidget)
 {
     clearColor = Qt::black;
-    scale = 1.0f;
     xRot = 0;
     yRot = 0;
     zRot = 0;
-#ifdef QT_OPENGL_ES_2
-    program = 0;
-#endif
 }
 
 GLWidget::~GLWidget()
@@ -66,34 +67,12 @@ QSize GLWidget::sizeHint() const
     return QSize(200, 200);
 }
 
-void GLWidget::rotateBy(double xAngle, double yAngle, double zAngle)
+void GLWidget::rotate(double EulerX, double EulerY, double EulerZ)
 {
-    xRot += xAngle;
-    yRot += yAngle;
-    zRot += zAngle;
+    xRot = EulerX;
+    yRot = EulerY;
+    zRot = EulerZ;
     updateGL();
-}
-
-void GLWidget::setAngle(double xAngle, double yAngle, double zAngle)
-{
-    xRot = xAngle *16;
-    yRot = yAngle *16;
-    zRot = zAngle *16;
-    updateGL();
-}
-
-void GLWidget::onSetTime(int time)
-{
-    double xAngle, yAngle, zAngle;
-    xAngle = application.dataRecorder.at(time-10).XYangle;
-    yAngle = application.dataRecorder.at(time-10).YZangle;
-    zAngle = application.dataRecorder.at(time-10).ZXangle;
-
-    if(xAngle == 10) xAngle = 0;
-    if(yAngle == 10) yAngle = 0;
-    if(zAngle == 10) zAngle = 0;
-
-    setAngle(xAngle*57, yAngle*57, zAngle*57);
 }
 
 void GLWidget::setClearColor(const QColor &color)
@@ -104,58 +83,14 @@ void GLWidget::setClearColor(const QColor &color)
 
 void GLWidget::initializeGL()
 {
-    glDepthMask(0);
-    //RenderSkybox();
-    //makeSkyBox();
     makeObject();
-    glDepthMask(1);
 
-    //glEnable(GL_DEPTH_TEST);    //DISABLED FOR PERSPECTIVE MODE VIEW -- Peti
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+    glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 #ifndef QT_OPENGL_ES_2
     glEnable(GL_TEXTURE_2D);
 #endif
 
-#ifdef QT_OPENGL_ES_2
-
-#define PROGRAM_VERTEX_ATTRIBUTE 0
-#define PROGRAM_TEXCOORD_ATTRIBUTE 1
-
-    QGLShader *vshader = new QGLShader(QGLShader::Vertex, this);
-    const char *vsrc =
-        "attribute highp vec4 vertex;\n"
-        "attribute mediump vec4 texCoord;\n"
-        "varying mediump vec4 texc;\n"
-        "uniform mediump mat4 matrix;\n"
-        "void main(void)\n"
-        "{\n"
-        "    gl_Position = matrix * vertex;\n"
-        "    texc = texCoord;\n"
-        "}\n";
-    vshader->compileSourceCode(vsrc);
-
-    QGLShader *fshader = new QGLShader(QGLShader::Fragment, this);
-    const char *fsrc =
-        "uniform sampler2D texture;\n"
-        "varying mediump vec4 texc;\n"
-        "void main(void)\n"
-        "{\n"
-        "    gl_FragColor = texture2D(texture, texc.st);\n"
-        "}\n";
-    fshader->compileSourceCode(fsrc);
-
-    program = new QGLShaderProgram(this);
-    program->addShader(vshader);
-    program->addShader(fshader);
-    program->bindAttributeLocation("vertex", PROGRAM_VERTEX_ATTRIBUTE);
-    program->bindAttributeLocation("texCoord", PROGRAM_TEXCOORD_ATTRIBUTE);
-    program->link();
-
-    program->bind();
-    program->setUniformValue("texture", 0);
-
-#endif
 }
 
 void GLWidget::paintGL()
@@ -163,40 +98,18 @@ void GLWidget::paintGL()
     qglClearColor(clearColor);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-#if !defined(QT_OPENGL_ES_2)
-
     glLoadIdentity();
-    //glTranslatef(0,0,-300);
-    glTranslatef(0.0f, 0.0f, -2.0f);
-    glRotatef(xRot / 16.0f, 1.0f, 0.0f, 0.0f);
-    glRotatef(yRot / 16.0f, 0.0f, 1.0f, 0.0f);
-    glRotatef(zRot / 16.0f, 0.0f, 0.0f, 1.0f);
+    glTranslatef(0.0f, 0.0f, -10.0f);
 
-    glScalef(scale, scale, scale);
+    // Rotation using the Euler angles (XYZ)
+    glRotated(xRot, 1.0, 0.0, 0.0);
+    glRotated(yRot, 0.0, 1.0, 0.0);
+    glRotated(zRot, 0.0, 0.0, 1.0);
 
     glVertexPointer(3, GL_FLOAT, 0, vertices.constData());
     glTexCoordPointer(2, GL_FLOAT, 0, texCoords.constData());
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-#else
-
-    QMatrix4x4 m;
-    m.ortho(-0.5f, +0.5f, +0.5f, -0.5f, 4.0f, 15.0f);
-    m.translate(0.0f, 0.0f, -10.0f);
-    m.rotate(xRot / 16.0f, 1.0f, 0.0f, 0.0f);
-    m.rotate(yRot / 16.0f, 0.0f, 1.0f, 0.0f);
-    m.rotate(zRot / 16.0f, 0.0f, 0.0f, 1.0f);
-
-    program->setUniformValue("matrix", m);
-    program->enableAttributeArray(PROGRAM_VERTEX_ATTRIBUTE);
-    program->enableAttributeArray(PROGRAM_TEXCOORD_ATTRIBUTE);
-    program->setAttributeArray
-        (PROGRAM_VERTEX_ATTRIBUTE, vertices.constData());
-    program->setAttributeArray
-        (PROGRAM_TEXCOORD_ATTRIBUTE, texCoords.constData());
-
-#endif
 
     for (int i = 0; i < 6; ++i) {
         glBindTexture(GL_TEXTURE_2D, textures[i]);
@@ -209,20 +122,8 @@ void GLWidget::resizeGL(int width, int height)
     int side = qMin(width, height);
     glViewport((width - side) / 2, (height - side) / 2, side, side);
 
-    //glViewport(0,0, width, height);
-
-    glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-    glLoadIdentity();							// Reset The Projection Matrix
-
-    // Calculate The Aspect Ratio Of The Window
-    gluPerspective(45.0f*scale,(GLfloat)width/(GLfloat)height,0.1f,10.0f);
-    //glFrustum(1, -1, -1, 1, 1.0f, -10.0f);
-
-
-    glMatrixMode(GL_MODELVIEW);						// Select The Modelview Matrix
-    glLoadIdentity();
-
-/*#if !defined(QT_OPENGL_ES_2)
+#if !defined(QT_OPENGL_ES_2)
+    glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 #ifndef QT_OPENGL_ES
     glOrtho(-0.5, +0.5, +0.5, -0.5, 4.0, 15.0);
@@ -230,7 +131,7 @@ void GLWidget::resizeGL(int width, int height)
     glOrthof(-0.5, +0.5, +0.5, -0.5, 4.0, 15.0);
 #endif
     glMatrixMode(GL_MODELVIEW);
-#endif*/
+#endif
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
@@ -238,29 +139,9 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     lastPos = event->pos();
 }
 
-void GLWidget::mouseMoveEvent(QMouseEvent *event)
-{
-    int dx = event->x() - lastPos.x();
-    int dy = event->y() - lastPos.y();
-
-    if (event->buttons() & Qt::LeftButton) {
-        rotateBy(8 * dy, 8 * dx, 0);
-    } else if (event->buttons() & Qt::RightButton) {
-        rotateBy(8 * dy, 0, 8 * dx);
-    }
-    lastPos = event->pos();
-}
-
 void GLWidget::mouseReleaseEvent(QMouseEvent * /* event */)
 {
     emit clicked();
-}
-
-void GLWidget::wheelEvent(QWheelEvent *e)
-{
-    e->delta() > 0 ? scale += scale*0.1f : scale -= scale*0.1f;
-
-    updateGL();
 }
 
 void GLWidget::makeObject()
@@ -273,14 +154,6 @@ void GLWidget::makeObject()
         { { +0.8, -1.5, +2.5 }, { -0.8, -1.5, +2.5 }, { -0.8, -1.5, -2.5 }, { +0.8, -1.5, -2.5 } },
         { { -0.8, -1.5, +2.5 }, { +0.8, -1.5, +2.5 }, { +0.8, +1.5, +2.5 }, { -0.8, +1.5, +2.5 } }
     };
-
-    /*for(int i=0; i < 6; i++){
-        for(int j=0; j < 4; j++){
-            for( int k=0; k<3; k++ ){
-                coords[i][j][k] *= scale;
-            }
-        }
-    }*/
 
     for (int j=0; j < 6; ++j) {
         textures[j] = bindTexture
@@ -297,123 +170,3 @@ void GLWidget::makeObject()
         }
     }
 }
-
-void GLWidget::makeSkyBox()
-{
-    static  float coords[6][4][3] = {
-        { { +100, -100, -100 }, { -100, -100, -100 }, { -100, +100, -100 }, { +100, +100, -100 } },
-        { { +100, +100, -100 }, { -100, +100, -100 }, { -100, +100, +100 }, { +100, +100, +100 } },
-        { { +100, -100, +100 }, { +100, -100, -100 }, { +100, +100, -100 }, { +100, +100, +100 } },
-        { { -100, -100, -100 }, { -100, -100, +100 }, { -100, +100, +100 }, { -100, +100, -100 } },
-        { { +100, -100, +100 }, { -100, -100, +100 }, { -100, -100, -100 }, { +100, -100, -100 } },
-        { { -100, -100, +100 }, { +100, -100, +100 }, { +100, +100, +100 }, { -100, +100, +100 } }
-    };
-
-    /*for(int i=0; i < 6; i++){
-        for(int j=0; j < 4; j++){
-            for( int k=0; k<3; k++ ){
-                coords[i][j][k] *= scale;
-            }
-        }
-    }*/
-
-    textures[0] = bindTexture(QPixmap(QString(":/images/alpine_south.jpg")), GL_TEXTURE_2D);
-    textures[5] = bindTexture(QPixmap(QString(":/images/alpine_north.jpg")), GL_TEXTURE_2D);
-    textures[1] = bindTexture(QPixmap(QString(":/images/alpine_down.jpg")), GL_TEXTURE_2D);
-    textures[4] = bindTexture(QPixmap(QString(":/images/alpine_up.jpg")), GL_TEXTURE_2D);
-    textures[2] = bindTexture(QPixmap(QString(":/images/alpine_west.jpg")), GL_TEXTURE_2D);
-    textures[3] = bindTexture(QPixmap(QString(":/images/alpine_east.jpg")), GL_TEXTURE_2D);
-
-    for (int i = 0; i < 6; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            texCoords.append
-                (QVector2D(j == 0 || j == 3, j == 0 || j == 1));
-            vertices.append
-                (QVector3D(0.2 * coords[i][j][0], 0.2 * coords[i][j][1],
-                           0.2 * coords[i][j][2]));
-        }
-    }
-}
-
-void GLWidget::RenderSkybox()
-{
-    SkyBox[0] = bindTexture(QPixmap(QString(":/images/alpine_north.jpg")), GL_TEXTURE_2D);
-    SkyBox[5] = bindTexture(QPixmap(QString(":/images/alpine_north.jpg")), GL_TEXTURE_2D);
-    SkyBox[1] = bindTexture(QPixmap(QString(":/images/alpine_north.jpg")), GL_TEXTURE_2D);
-    SkyBox[4] = bindTexture(QPixmap(QString(":/images/alpine_north.jpg")), GL_TEXTURE_2D);
-    SkyBox[2] = bindTexture(QPixmap(QString(":/images/alpine_down.jpg")), GL_TEXTURE_2D);
-    SkyBox[3] = bindTexture(QPixmap(QString(":/images/alpine_north.jpg")), GL_TEXTURE_2D);
-
-        // Begin DrawSkybox
-        glColor4f(1.0, 1.0, 1.0,1.0f);
-
-        // Save Current Matrix
-        glPushMatrix();
-
-        // Second Move the render space to the correct position (Translate)
-        glTranslatef(0.0f,0.0f,0.0f);
-
-        // First apply scale matrix
-        //glScalef(1.0f,1.0f,1.0f);
-
-        float cz = -0.0f,cx = 1.0f;
-        float r = 1.0f; // If you have border issues change this to 1.005f
-        // Common Axis Z - FRONT Side
-        glBindTexture(GL_TEXTURE_2D,SkyBox[4]);
-        glBegin(GL_QUADS);
-                glTexCoord2f(cx, cz); glVertex3f(-r ,1.0f,-r);
-                glTexCoord2f(cx,  cx); glVertex3f(-r,1.0f,r);
-                glTexCoord2f(cz,  cx); glVertex3f( r,1.0f,r);
-                glTexCoord2f(cz, cz); glVertex3f( r ,1.0f,-r);
-        glEnd();
-
-        // Common Axis Z - BACK side
-        glBindTexture(GL_TEXTURE_2D,SkyBox[5]);
-        glBegin(GL_QUADS);
-                glTexCoord2f(cx,cz);  glVertex3f(-r,-1.0f,-r);
-                glTexCoord2f(cx,cx);  glVertex3f(-r,-1.0f, r);
-                glTexCoord2f(cz,cx);  glVertex3f( r,-1.0f, r);
-                glTexCoord2f(cz,cz);  glVertex3f( r,-1.0f,-r);
-        glEnd();
-
-        // Common Axis X - Left side
-        glBindTexture(GL_TEXTURE_2D,SkyBox[3]);
-        glBegin(GL_QUADS);
-                glTexCoord2f(cx,cx); glVertex3f(-1.0f, -r, r);
-                glTexCoord2f(cz,cx); glVertex3f(-1.0f,  r, r);
-                glTexCoord2f(cz,cz); glVertex3f(-1.0f,  r,-r);
-                glTexCoord2f(cx,cz); glVertex3f(-1.0f, -r,-r);
-        glEnd();
-
-        // Common Axis X - Right side
-        glBindTexture(GL_TEXTURE_2D,SkyBox[2]);
-        glBegin(GL_QUADS);
-                glTexCoord2f( cx,cx); glVertex3f(1.0f, -r, r);
-                glTexCoord2f(cz, cx); glVertex3f(1.0f,  r, r);
-                glTexCoord2f(cz, cz); glVertex3f(1.0f,  r,-r);
-                glTexCoord2f(cx, cz); glVertex3f(1.0f, -r,-r);
-        glEnd();
-
-        // Common Axis Y - Draw Up side
-        glBindTexture(GL_TEXTURE_2D,SkyBox[0]);
-        glBegin(GL_QUADS);
-                glTexCoord2f(cz, cz); glVertex3f( r, -r,1.0f);
-                glTexCoord2f(cx, cz); glVertex3f( r,  r,1.0f);
-                glTexCoord2f(cx, cx); glVertex3f(-r,  r,1.0f);
-                glTexCoord2f(cz, cx); glVertex3f(-r, -r,1.0f);
-        glEnd();
-
-        // Common Axis Y - Down side
-        glBindTexture(GL_TEXTURE_2D,SkyBox[1]);
-        glBegin(GL_QUADS);
-                glTexCoord2f(cz,cz);  glVertex3f( r, -r,-1.0f);
-                glTexCoord2f( cx,cz); glVertex3f( r,  r,-1.0f);
-                glTexCoord2f( cx,cx); glVertex3f(-r,  r,-1.0f);
-                glTexCoord2f(cz, cx); glVertex3f(-r, -r,-1.0f);
-        glEnd();
-
-        // Load Saved Matrix
-        glPopMatrix();
-
-};
-
