@@ -991,15 +991,21 @@ MinMaxAvg DataRecorder::minMaxAvgOnRange(int start, int end, QString value)
     if(value == "ZCORRANG") c = Z;
 
 
-    for(int i = start; i<end; i++){
-        Angle_pair a = corrected_angle(i, c);
-        sum += a.angle1;
-        if(a.angle1<min) min = a.angle1;
-        if(a.angle1>max) max = a.angle1;
+    if(start == end){
+        minMaxAvg.avg = 0.0;
+        minMaxAvg.min = 0.0;
+        minMaxAvg.max = 0.0;
+    } else {
+        for(int i = start; i<end; i++){
+            Angle_pair a = corrected_angle(i, c);
+            sum += a.angle1;
+            if(a.angle1<min) min = a.angle1;
+            if(a.angle1>max) max = a.angle1;
+        }
+        minMaxAvg.min = min;
+        minMaxAvg.max = max;
+        minMaxAvg.avg = sum / (end-start);
     }
-    minMaxAvg.min = min;
-    minMaxAvg.max = max;
-    minMaxAvg.avg = sum / (end-start);
 
     return minMaxAvg;
 }
