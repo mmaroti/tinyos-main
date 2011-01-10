@@ -637,12 +637,12 @@ void DataWidget::on_presetsComboBox_currentIndexChanged()
         ui->corrZ->setChecked(true);
         on_corrX_clicked();
         on_corrZ_clicked();
-        msg = "Piros: alkari szupináció\nKék: könyök flexió\n1 osztás 45° -nak felel meg.";
+        msg = QString::fromUtf8("Piros: alkari szupináció\nKék: könyök flexió\n1 osztás 45° -nak felel meg.");
 
         if(showErrorGraphs){
             ui->corrY->setChecked(true);
             on_corrY_clicked();
-            msg.append("--------------------\nHiba: Zöld.");
+            msg.append(QString::fromUtf8("--------------------\nHiba: Zöld."));
         }
 
         textBox->setText(msg);
@@ -653,14 +653,14 @@ void DataWidget::on_presetsComboBox_currentIndexChanged()
         ui->corrBox->setChecked(true);
         ui->corrY->setChecked(true);
         on_corrY_clicked();
-        msg = "Zöld: rotáció\n1 osztás 45° -nak felel meg.";
+        msg = QString::fromUtf8("Zöld: rotáció\n1 osztás 45° -nak felel meg.");
 
         if(showErrorGraphs){
             ui->corrX->setChecked(true);
             ui->corrZ->setChecked(true);
             on_corrX_clicked();
             on_corrZ_clicked();
-            msg.append("--------------------\nHiba: Piros, Kék");
+            msg.append(QString::fromUtf8("--------------------\nHiba: Piros, Kék"));
         }
 
         textBox->setText(msg);

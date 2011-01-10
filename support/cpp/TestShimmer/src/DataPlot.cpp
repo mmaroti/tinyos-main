@@ -633,10 +633,10 @@ void DataPlot::mousePressEvent(QMouseEvent * event)
             message.append(" , Acceleration: " + QString::number((double)((sample.y()-2048)/(512/GRAV)), 'f', 2) + " m/s^2");
         }
         if( (graphs & XYANG) != 0 || (graphs & YZANG) != 0 || (graphs & ZXANG) != 0 || (graphs & XANG) != 0 || (graphs & YANG) != 0 || (graphs & ZANG) != 0 || (graphs & XEUL) != 0 || (graphs & YEUL) != 0 || (graphs & ZEUL) != 0 || (graphs & XINT) != 0 || (graphs & YINT) != 0 || (graphs & ZINT) != 0 || (graphs & XCORRANG) != 0 || (graphs & YCORRANG) != 0 || (graphs & ZCORRANG) != 0){
-            message.append(",  Angle: " + QString::number((sample.y()-2048)/(2048/M_PI), 'f', 1) + "rad; "  + QString::number( (sample.y()-2048)/(2048/M_PI)*57.296, 'f', 2 ) + "°.");
+            message.append(",  Angle: " + QString::number((sample.y()-2048)/(2048/M_PI), 'f', 1) + "rad; "  + QString::number( (sample.y()-2048)/(2048/M_PI)*57.296, 'f', 2 ) + QString::fromUtf8("°."));
         }
         if( (graphs & XGYRO) != 0 || (graphs & YGYRO) != 0 || (graphs & ZGYRO) != 0 ){
-            message.append(",  Gyroscope: " + QString::number((sample.y()-2048)/(2048/(4*M_PI)),'f',1) + "rad/sec; " + QString::number( ((sample.y()-2048)/(2048/(4*M_PI)))*RADIAN, 'f', 2 ) + "°/sec; " + QString::number( (((sample.y()-2048)/(2048/(4*M_PI)))*60)/(2*M_PI), 'f', 1 ) + "rpm." );
+            message.append(",  Gyroscope: " + QString::number((sample.y()-2048)/(2048/(4*M_PI)),'f',1) + "rad/sec; " + QString::number( ((sample.y()-2048)/(2048/(4*M_PI)))*RADIAN, 'f', 2 ) + QString::fromUtf8("°/sec; ") + QString::number( (((sample.y()-2048)/(2048/(4*M_PI)))*60)/(2*M_PI), 'f', 1 ) + "rpm." );
         }
         if( !lastPos.isNull() ){
             emit calculateRange(startPos.x(),lastPos.x());
