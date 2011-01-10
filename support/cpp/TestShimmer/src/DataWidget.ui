@@ -120,7 +120,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="menuLayout" stretch="0,1,1,0">
+    <layout class="QVBoxLayout" name="menuLayout" stretch="0,1,0,0">
      <property name="margin">
       <number>9</number>
      </property>
@@ -186,7 +186,7 @@
           <x>0</x>
           <y>0</y>
           <width>255</width>
-          <height>154</height>
+          <height>268</height>
          </rect>
         </property>
         <attribute name="label">
@@ -496,8 +496,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>239</width>
-          <height>124</height>
+          <width>255</width>
+          <height>394</height>
          </rect>
         </property>
         <attribute name="label">
@@ -814,8 +814,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>239</width>
-          <height>292</height>
+          <width>255</width>
+          <height>394</height>
          </rect>
         </property>
         <attribute name="label">

@@ -58,8 +58,8 @@ void DownloadManager::start(SDCardCreator* source, const SDataWidget* widget) co
 
     qDebug() << "Connecting download slots";
 
-    QObject::connect(task, SIGNAL(downloadFinished(  bool , const QString& , const QVarLengthArray<SData>& )),
-                     widget, SLOT(onDownloadFinished(bool , const QString& , const QVarLengthArray<SData>& )),
+    QObject::connect(task, SIGNAL(downloadFinished(  bool , const QString& )),
+                     widget, SLOT(onDownloadFinished(bool , const QString& )),
                      Qt::DirectConnection);
 
     QThreadPool::globalInstance()->start(task);
