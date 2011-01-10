@@ -41,7 +41,7 @@
 
 #include <QtGui>
 
-#include "glwidget.h"
+#include "GLWidget.h"
 #include "window.h"
 #include "MatrixVector.hpp"
 #include "Application.h"

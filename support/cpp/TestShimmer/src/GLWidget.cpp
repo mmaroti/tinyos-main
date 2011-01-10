@@ -42,7 +42,7 @@
 #include <QtGui>
 #include <QtOpenGL>
 
-#include "glwidget.h"
+#include "GLWidget.h"
 
 GLWidget::GLWidget(QWidget *parent, QGLWidget *shareWidget)
     : QGLWidget(parent, shareWidget)
