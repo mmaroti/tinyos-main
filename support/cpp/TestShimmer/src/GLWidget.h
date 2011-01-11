@@ -57,7 +57,7 @@ public:
 
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
-    void rotate(double EulerX, double EulerY, double EulerZ);
+    void rotate(const double rotation_matrix[9]);
     void setClearColor(const QColor &color);
 
 signals:
@@ -75,9 +75,7 @@ private:
 
     QColor clearColor;
     QPoint lastPos;
-    int xRot;
-    int yRot;
-    int zRot;
+    GLfloat rotmat[16];
     GLuint textures[6];
     QVector<QVector3D> vertices;
     QVector<QVector2D> texCoords;

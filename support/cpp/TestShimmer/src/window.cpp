@@ -43,7 +43,6 @@
 
 #include "GLWidget.h"
 #include "window.h"
-#include "MatrixVector.hpp"
 #include "Application.h"
 
 Window::Window(Application &app) : application(app)
@@ -57,7 +56,6 @@ Window::Window(Application &app) : application(app)
 
             glWidgets[i][j] = new GLWidget(0, 0);
             glWidgets[i][j]->setClearColor(clearColor);
-            glWidgets[i][j]->rotate(+42 * 16, +42 * 16, -21 * 16);
             mainLayout->addWidget(glWidgets[i][j], i, j);
 
             connect(glWidgets[i][j], SIGNAL(clicked()),
@@ -84,51 +82,15 @@ void Window::setCurrentGlWidget()
 void Window::rotateToNext(int sample_index)
 {
 
-    using namespace gyro;
+    const DataRecorder& dr = application.dataRecorder;
 
-    //enum { X, Y, Z };
-    vector3 euler = application.dataRecorder.euler_angle_deg(sample_index);
+    if (dr.empty()) {
 
-    currentGlWidget->rotate(euler[gyro::X], euler[gyro::Y], euler[gyro::Z]);
+        return;
+    }
 
-//    //  Rotation around the Z-axis
-//    static const int euler[][3] = {
-//        { 0, 0,  0 },
-//        { 0, 0,  5 },
-//        { 0, 0, 10 },
-//        { 0, 0, 15 },
-//        { 0, 0, 10 },
-//        { 0, 0,  5 },
-//        { 0, 0,  0 }
-//    };
-//
-//    //  Rotation around the Y-axis
-//    static const int euler[][3] = {
-//        { 0,  0, 0 },
-//        { 0,  5, 0 },
-//        { 0, 10, 0 },
-//        { 0, 15, 0 },
-//        { 0, 10, 0 },
-//        { 0,  5, 0 },
-//        { 0,  0, 0 }
-//    };
+    const double* const matrix = dr.at(sample_index).rotmat;
 
-    //  Rotation around the X-axis
-//    static const int euler[][3] = {
-//        {  0, 0, 0 },
-//        {  5, 0, 0 },
-//        { 10, 0, 0 },
-//        { 15, 0, 0 },
-//        { 10, 0, 0 },
-//        {  5, 0, 0 },
-//        {  0, 0, 0 }
-//    };
-
-//    const int n = sizeof(euler)/(3*sizeof(int));
-
-//    counter = (++counter)%n;
-
-//    if (currentGlWidget)
-//        currentGlWidget->rotate(euler[counter][X], euler[counter][Y], euler[counter][Z]);
+    currentGlWidget->rotate(matrix);
 }
 

@@ -102,6 +102,10 @@ public:
 		return samples[i];
 	}
 
+        bool empty() const {
+            return samples.isEmpty();
+        }
+
         int getFirstTime() const;
         int getLastTime() const;
 

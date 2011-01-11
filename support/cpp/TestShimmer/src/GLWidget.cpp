@@ -44,13 +44,33 @@
 
 #include "GLWidget.h"
 
+namespace {
+
+    enum {
+            R11, R12, R13,
+            R21, R22, R23,
+            R31, R32, R33
+    };
+
+    enum {
+            M11 = 0, M12 = 4, M13 =  8, M14 = 12,
+            M21 = 1, M22 = 5, M23 =  9, M24 = 13,
+            M31 = 2, M32 = 6, M33 = 10, M34 = 14,
+            M41 = 3, M42 = 7, M43 = 11, M44 = 15
+    };
+}
+
 GLWidget::GLWidget(QWidget *parent, QGLWidget *shareWidget)
     : QGLWidget(parent, shareWidget)
 {
     clearColor = Qt::black;
-    xRot = 0;
-    yRot = 0;
-    zRot = 0;
+
+    for (int i=0;i<16; ++i)
+        rotmat[i] = (GLfloat) 0.0;
+
+    rotmat[M11] = rotmat[M22] = rotmat[M33] = rotmat[M44] = (GLfloat) 1.0;
+
+    rotmat[M34] = (GLfloat) -10.0;
 }
 
 GLWidget::~GLWidget()
@@ -67,11 +87,20 @@ QSize GLWidget::sizeHint() const
     return QSize(200, 200);
 }
 
-void GLWidget::rotate(double EulerX, double EulerY, double EulerZ)
+void GLWidget::rotate(const double mat[9])
 {
-    xRot = EulerX;
-    yRot = EulerY;
-    zRot = EulerZ;
+    rotmat[M11] = (GLfloat) mat[R11];
+    rotmat[M21] = (GLfloat) mat[R21];
+    rotmat[M31] = (GLfloat) mat[R31];
+
+    rotmat[M12] = (GLfloat) mat[R12];
+    rotmat[M22] = (GLfloat) mat[R22];
+    rotmat[M32] = (GLfloat) mat[R32];
+
+    rotmat[M13] = (GLfloat) mat[R13];
+    rotmat[M23] = (GLfloat) mat[R23];
+    rotmat[M33] = (GLfloat) mat[R33];
+
     updateGL();
 }
 
@@ -98,13 +127,7 @@ void GLWidget::paintGL()
     qglClearColor(clearColor);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glLoadIdentity();
-    glTranslatef(0.0f, 0.0f, -10.0f);
-
-    // Rotation using the Euler angles (XYZ)
-    glRotated(xRot, 1.0, 0.0, 0.0);
-    glRotated(yRot, 0.0, 1.0, 0.0);
-    glRotated(zRot, 0.0, 0.0, 1.0);
+    glLoadMatrixf(rotmat);
 
     glVertexPointer(3, GL_FLOAT, 0, vertices.constData());
     glTexCoordPointer(2, GL_FLOAT, 0, texCoords.constData());
