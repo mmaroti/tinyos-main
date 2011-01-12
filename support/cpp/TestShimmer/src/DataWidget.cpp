@@ -58,8 +58,8 @@ DataWidget::DataWidget(QWidget *parent, Application &app) :
         widget3d = new Widget3D(this, app);
         ui->menuLayout->insertWidget(3, widget3d);
         widget3d->hide();
+        connect(this, SIGNAL(SolverFinished()), widget3d, SLOT(onLoad3D()));
 
-        connect(ui->scrollArea, SIGNAL(rotate3D(int)), widget3d, SLOT(onScroll(int)) );
         showErrorGraphs = false;
 }
 
@@ -110,6 +110,7 @@ void DataWidget::on_clearBtn_clicked()
 {
     plot->setGraphs(DataPlot::CALIB, false);
     application.dataRecorder.clearSamples();
+    //disconnect(ui->scrollArea, SIGNAL(rotate3D(int)), widget3d, SLOT(onScroll(int)) );
     application.dataRecorder.loadCalibrationData();
 }
 
@@ -499,6 +500,8 @@ void DataWidget::finished(bool error, const char* msg, const ipo::Results* res) 
     ui->regressionButton->setEnabled(true);
     ui->recordBtn->setEnabled(true);
     ui->clearBtn->setEnabled(true);
+
+    //connect(ui->scrollArea, SIGNAL(rotate3D(int)), widget3d, SLOT(onScroll(int)) );
     widget3d->show();
 
     emit SolverFinished();
@@ -686,9 +689,9 @@ void DataWidget::onCalculateRange(int from, int to)
 
     for(int i=0; i<minMaxAvgs.size(); i++){
         if(ui->presetsComboBox->currentIndex() == 1 || ui->presetsComboBox->currentIndex() == 2 ){
-            ui->minLcd->display(QString::number(minMaxAvgs[i].min*57.296, 'f', 1));
-            ui->maxLcd->display(QString::number(minMaxAvgs[i].max*57.296, 'f', 1));
-            ui->avgLcd->display(QString::number(minMaxAvgs[i].avg*57.296, 'f', 1));
+            textBox->append(QString::number(minMaxAvgs[i].min*57.296, 'f', 1));
+            textBox->append(QString::number(minMaxAvgs[i].max*57.296, 'f', 1));
+
         }
     }
 

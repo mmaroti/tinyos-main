@@ -70,7 +70,7 @@ protected:
         QCursor cursor;
 
 signals:
-        void rotate3D(int);
+        //void rotate3D(int);
 };
 
 #endif // PLOTSCROLLAREA_H

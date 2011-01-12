@@ -60,9 +60,10 @@ private:
     Window *window;
 
 private slots:
-    //void on_playButton_clicked();
-    //void on_pauseButton_clicked();
-    //void on_stopButton_clicked();
-    void onScroll(int sample_index);
+    void on_playButton_clicked();
+    void on_pauseButton_clicked();
+    void on_stopButton_clicked();
+    void onLoad3D();
+    //void onScroll(int sample_index);
 };
 #endif // WIDGET3D_H

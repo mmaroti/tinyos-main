@@ -62,7 +62,7 @@ void PlotScrollArea::setWidgetRect(QRect rect)
 void PlotScrollArea::updateWidgetPosition()
 {
 	plotWidget->move(-horizontalScrollBar()->value(), -verticalScrollBar()->value());
-        emit rotate3D(horizontalScrollBar()->value());
+        //emit rotate3D(horizontalScrollBar()->value());
 }
 
 void PlotScrollArea::updateScrollBars()

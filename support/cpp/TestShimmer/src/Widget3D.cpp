@@ -65,22 +65,27 @@ void Widget3D::changeEvent(QEvent *e)
 }
 
 
-void Widget3D::onScroll(int sample_index)
+//void Widget3D::onScroll(int sample_index)
+//{
+//    window->rotateToNext(sample_index);
+//}
+
+void Widget3D::onLoad3D()
 {
-    window->rotateToNext(sample_index);
+    window->load3D();
 }
 
-//void Widget3D::on_playButton_clicked()
-//{
-//    window->setTimer(20);
-//}
-//
-//void Widget3D::on_pauseButton_clicked()
-//{
-//    window->setTimer(20);
-//}
-//
-//void Widget3D::on_stopButton_clicked()
-//{
-//    window->stopTimer();
-//}
+void Widget3D::on_playButton_clicked()
+{
+    window->setTimer(20);
+}
+
+void Widget3D::on_pauseButton_clicked()
+{
+    window->setTimer(20);
+}
+
+void Widget3D::on_stopButton_clicked()
+{
+    window->stopTimer();
+}
