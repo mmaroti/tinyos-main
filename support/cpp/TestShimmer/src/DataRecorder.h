@@ -147,7 +147,6 @@ public:
 
         void loadResults(const ipo::Results* res);
         bool euler_angle(int sample, Coordinate k, double& angle_in_rad) const;
-        const gyro::vector3 euler_angle_deg(int sample) const;
         Angle_pair integrated_angle(int sample, Coordinate k) const;
         Angle_pair corrected_angle(int i, Coordinate k) const;
 

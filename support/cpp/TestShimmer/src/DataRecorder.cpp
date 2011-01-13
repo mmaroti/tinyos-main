@@ -774,22 +774,6 @@ bool DataRecorder::euler_angle(int i, Coordinate k, double& angle_rad) const {
     return degenerate;
 }
 
-const gyro::vector3 DataRecorder::euler_angle_deg(int i) const {
-
-    using namespace gyro;
-
-    if (samples.isEmpty()) {
-
-        return vector3(0.0, 0.0, 0.0);
-    }
-
-    double euler[3];
-
-    rotmat_to_angles_deg(samples[i].rotmat, euler);
-
-    return vector3(euler);
-}
-
 namespace {
 
     void fix_vertical_lines(double& a, double& b) {
