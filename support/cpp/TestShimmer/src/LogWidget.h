@@ -19,13 +19,11 @@ private:
     Ui::LogWidget *ui;
     Application &application;
 
-    bool isEditable;
-
     void createItem(QString text);
 
 private slots:
     void on_entryLine_returnPressed();
-    void setTableEditable();
+    void setTableEditable(bool);
 };
 
 #endif // LOGWIDGET_H

@@ -18,6 +18,7 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
     ui->log->horizontalHeader()->resizeSection(0, 40);
     ui->log->horizontalHeader()->resizeSection(1, 110);
     ui->log->horizontalHeader()->resizeSection(2, 70);
+    ui->log->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->entryLine->setFocus();
 }
 
@@ -47,27 +48,37 @@ void LogWidget::createItem(QString text)
      dateEdit->setMinimumDate(QDate::currentDate().addDays(-365));
      dateEdit->setMaximumDate(QDate::currentDate().addDays(365));
      dateEdit->setCalendarPopup(true);
-     dateEdit->setReadOnly(true);
+     //dateEdit->setReadOnly(true);
      dateEdit->setDisplayFormat("yyyy.MM.dd");
-   //QTableWidgetItem* item2 = new QTableWidgetItem(QDateTime::currentDateTime().toString(),1);
-   // ui->log->setItem(row-1,1,item2);
     ui->log->setCellWidget(row-1, 1, dateEdit);
+    ui->log->cellWidget(row-1, 1)->setEnabled(false);
+
     QDateTimeEdit *time = new QDateTimeEdit(ui->timeEdit->time());
-     time->setReadOnly(true);
+     //time->setReadOnly(true);
     ui->log->setCellWidget(row-1, 2, time);
+    ui->log->cellWidget(row-1, 2)->setEnabled(false);
+
     QTableWidgetItem* item = new QTableWidgetItem(text,1);
-    item->setFlags(Qt::NoItemFlags);
     ui->log->setItem(row-1,3,item);
 
     ui->entryLine->clear();
     ui->entryLine->setFocus();
 }
 
-void LogWidget::setTableEditable()
+void LogWidget::setTableEditable(bool isEditable)
 {
-    if(isEditable){
-        isEditable = true;
+    //ui->log->setEnabled(isEditable);
+    if(isEditable){        
+        ui->log->setEditTriggers(QAbstractItemView::DoubleClicked);
+        for(int i = 0; i<ui->log->rowCount()-1; i++){
+            ui->log->cellWidget(i,1)->setEnabled(true);
+            ui->log->cellWidget(i,2)->setEnabled(true);
+        }
     } else {
-        isEditable = false;
+        ui->log->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        for(int i = 0; i<ui->log->rowCount()-1; i++){
+            ui->log->cellWidget(i,1)->setEnabled(false);
+            ui->log->cellWidget(i,2)->setEnabled(false);
+        }
     }
 }
