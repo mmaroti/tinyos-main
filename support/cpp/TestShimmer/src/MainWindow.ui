@@ -146,6 +146,7 @@
     </property>
     <addaction name="actionAdd_entry"/>
     <addaction name="actionView_log"/>
+    <addaction name="actionLog_Editable"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -216,6 +217,14 @@
   <action name="actionView_log">
    <property name="text">
     <string>View log</string>
+   </property>
+  </action>
+  <action name="actionLog_Editable">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Log Editable</string>
    </property>
   </action>
  </widget>

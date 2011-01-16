@@ -59,6 +59,11 @@
      </column>
      <column>
       <property name="text">
+       <string>Date</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
        <string>Time</string>
       </property>
      </column>
@@ -70,7 +75,14 @@
     </widget>
    </item>
    <item>
-    <widget class="QLineEdit" name="entryLine"/>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QTimeEdit" name="timeEdit"/>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="entryLine"/>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

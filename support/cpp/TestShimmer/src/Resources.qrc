@@ -7,5 +7,6 @@
         <file>icons/Stop.png</file>
         <file>icons/Tools.png</file>
         <file>icons/Search.png</file>
+        <file>icons/back-arrow.png</file>
     </qresource>
 </RCC>
