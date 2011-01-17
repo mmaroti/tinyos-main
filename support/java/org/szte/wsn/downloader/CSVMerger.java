@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class CSVMerger {
-	
+	//TODO get time/local from CSVHandler
 	String separator;
 	int globalColumn;
 	ArrayList<CSVHandler> csvfiles;
@@ -42,8 +42,13 @@ public class CSVMerger {
 	}
 	
 	public CSVHandler createGlobalFile(File outfile, String nodeIdSepString, long startTime, long endTime) throws IOException {
-		CSVHandler globalFile=new CSVHandler(outfile, true, separator);
-		globalFile.setHeader(createHeader(csvfiles, dataColumns, nodeIdSepString));
+		ArrayList<String> newHeader=createHeader(csvfiles, dataColumns, nodeIdSepString);
+		ArrayList<Integer> newDC=new ArrayList<Integer>();
+		for(int i=1;i<newHeader.size();i++)
+			newDC.add(i+1);
+		CSVHandler globalFile=new CSVHandler(outfile, true, separator, 1, newDC);
+		globalFile.setHeader(newHeader);
+
 		long currenttime=startTime;
 		int[] currentline= new int[csvfiles.size()];
 		long[] currenttimes= new long[csvfiles.size()];
