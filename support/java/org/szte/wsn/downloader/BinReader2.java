@@ -24,6 +24,8 @@ public class BinReader2{
 	private ArrayList<Integer> dataColumns=new ArrayList<Integer>();
 	private long startTime=Long.MIN_VALUE;
 	private long endTime=Long.MAX_VALUE;
+	private long timewindow=900000;
+	private byte timetype=CSVHandler.TIMETYPE_START;
 	
 	public BinReader2(ArrayList<String> inputFiles, ArrayList<Integer> dataColumns){
 		this.dataColumns=dataColumns;
@@ -58,11 +60,23 @@ public class BinReader2{
 		}
 		if(globalFile==null)
 			System.exit(1);
-		
-		
-		
+		CSVHandler avgFile=null;
 		try {
 			globalFile.flush();
+		} catch (IOException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		globalFile.fillGaps();
+		try {
+			avgFile=globalFile.averageColumns(timewindow, new File("avgfile.csv"),timetype);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		try {
+			avgFile.flush();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -78,10 +92,13 @@ public class BinReader2{
 			CSVHandler ready=output.getCSVHandler();
 			if(ready==null){
 				try {
-					ready=new CSVHandler(output.getFile(), hasHeader, separator);
+					ready=new CSVHandler(output.getFile(), hasHeader, separator, globalColumn, dataColumns);
 				} catch (IOException e) {
 					System.err.println("E: Can't open converted file: "+output.getFile().getName());
 				}
+			} else {
+				ready.setDataColumns(dataColumns);
+				ready.setTimeColumn(globalColumn);
 			}
 			if(ready!=null)
 				filesPerNode.add(ready);
