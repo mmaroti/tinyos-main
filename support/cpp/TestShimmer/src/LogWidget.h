@@ -23,6 +23,8 @@ private:
 
 private slots:
     void on_entryLine_returnPressed();
+    void on_addButton_clicked();
+    void on_delButton_clicked();
     void setTableEditable(bool);
 };
 

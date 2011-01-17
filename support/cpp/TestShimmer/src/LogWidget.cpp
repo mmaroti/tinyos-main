@@ -53,7 +53,7 @@ void LogWidget::createItem(QString text)
     ui->log->setCellWidget(row-1, 1, dateEdit);
     ui->log->cellWidget(row-1, 1)->setEnabled(false);
 
-    QDateTimeEdit *time = new QDateTimeEdit(ui->timeEdit->time());
+    QDateTimeEdit *time = new QDateTimeEdit(QTime::currentTime());
      //time->setReadOnly(true);
     ui->log->setCellWidget(row-1, 2, time);
     ui->log->cellWidget(row-1, 2)->setEnabled(false);
@@ -81,4 +81,17 @@ void LogWidget::setTableEditable(bool isEditable)
             ui->log->cellWidget(i,2)->setEnabled(false);
         }
     }
+}
+
+void LogWidget::on_addButton_clicked()
+{
+    createItem(ui->presetTextsBox->currentText());
+}
+
+void LogWidget::on_delButton_clicked()
+{
+    for(int i=0; i<ui->log->selectedItems().size(); i++){
+        ui->log->removeRow(ui->log->selectedItems().at(i)->row());
+    }
+    //ui->log->removeRow();
 }
