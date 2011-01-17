@@ -19,7 +19,7 @@ import argparser.LongHolder;
 import argparser.StringHolder;
 
 public class GlobalTime {
-	
+	//TODO get time/local from CSVHandler, integrate this to CSVHandler
 	private String timeformat;
 	private CSVHandler handler;
 	
@@ -135,7 +135,7 @@ public class GlobalTime {
 		ArrayList<LinearFunction> functions=ParseTimeSyncFile(timeFile, maxerror);
 		if(csvFile.exists()&&csvFile.isFile()){
 			try {
-				handler = new CSVHandler(csvFile, true, separator);
+				handler = new CSVHandler(csvFile, true, separator, local, new ArrayList<Integer>());
 				ArrayList<Integer> breaks=GetBreaks(handler, local);
 				WriteOutputFile(handler,local,global,insert,functions,breaks);
 			} catch (IOException e) {
