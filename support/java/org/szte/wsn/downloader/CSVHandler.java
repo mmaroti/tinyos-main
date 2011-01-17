@@ -13,6 +13,8 @@ public class CSVHandler {
 	private String separator;
 	private ArrayList<String> header;
 	private ArrayList<String[]> data;
+	private int timeColumn;
+	private ArrayList<Integer> dataColumns;
 	
 	public static String switchExtension(String fullname, String newEx){
 		return fullname.substring(0, fullname.lastIndexOf('.'))+newEx;
@@ -51,9 +53,11 @@ public class CSVHandler {
 		input.close();
 	}
 	
-	public CSVHandler(File csvfile, boolean hasheader, String separator) throws IOException{
+	public CSVHandler(File csvfile, boolean hasheader, String separator, int timeColumn, ArrayList<Integer> dataColumns) throws IOException{
 		this.separator=separator;
 		this.csvfile=csvfile;
+		this.timeColumn=timeColumn;
+		this.dataColumns=dataColumns;
 		openFile(hasheader);
 	}
 	
@@ -109,7 +113,7 @@ public class CSVHandler {
 			output.newLine();
 		}
 		output.close();
-		if(!csvfile.delete())
+		if(csvfile.exists()&&!csvfile.delete())
 			return false;
 		if(!tempfile.renameTo(csvfile))
 			return false;
@@ -233,9 +237,208 @@ public class CSVHandler {
 		return csvfile.getName();
 	}
 	
+	public void setTimeColumn(int timeColumn) {
+		this.timeColumn = timeColumn;
+	}
+
+	public int getTimeColumn() {
+		return timeColumn;
+	}
+
+	public void setDataColumns(ArrayList<Integer> dataColumns) {
+		this.dataColumns = dataColumns;
+	}
+
+	public ArrayList<Integer> getDataColumns() {
+		return dataColumns;
+	}
+
 	public void onDestroy() throws IOException{
 		if(!flush())
 			System.err.println("Can't overwrite file: "+csvfile.getName());
+	}
+	
+	private Double getValueAt(long time, int column, int afterLine) throws NumberFormatException{
+		while(Long.parseLong(getCell(timeColumn, afterLine))<time){
+			afterLine++;
+		}
+		if(Long.parseLong(getCell(timeColumn, afterLine))==time&&getCell(column,afterLine)!="")
+				return Double.parseDouble(getCell(column,afterLine));
+		else {
+			afterLine++;
+			int beforeLine=afterLine-1;
+			try{
+				String cell=getCell(column,beforeLine);
+				while("".equals(cell)){
+					cell=getCell(column,--beforeLine);
+				}
+				cell=getCell(column,afterLine);
+				while("".equals(cell)){
+					cell=getCell(column,++afterLine);
+				}
+			} catch (ArrayIndexOutOfBoundsException e){
+				return null;
+			}
+			if(beforeLine<1||afterLine>data.size())
+				return null;
+			long beforeTime=Long.parseLong(getCell(timeColumn, beforeLine));
+			long timeDiff=Long.parseLong(getCell(timeColumn, afterLine))-beforeTime;
+
+			double beforeValue=Double.parseDouble(getCell(column,beforeLine));
+			double afterValue=Double.parseDouble(getCell(column,afterLine));
+			
+			double spine=(afterValue-beforeValue)/timeDiff;
+			
+			return beforeValue+spine*(time-beforeTime);
+		}
+	}
+	
+	public void fillGaps(){
+		for(int column:dataColumns){
+			for(int line=1;line<=data.size();line++){
+				if("".equals(getCell(column, line))){
+					long time=Long.parseLong(getCell(1, line));
+					Double value=getValueAt(time, column, line);
+					if(value!=null)
+						setCell(column, line, value);
+				}
+			}
+		}
+	}
+	
+	private class Integral{
+		private Double integral[]=new Double[dataColumns.size()];
+		private int lastLine;
+		
+		public Integral(Double integral2[],int lastLine2){
+			setLastLine(lastLine2);
+			setIntegral(integral2);
+		}
+
+		private void setLastLine(int lastLine2) {
+			lastLine=lastLine2;
+			
+		}
+
+		private void setIntegral(Double integral2[]) {
+			integral=integral2;
+		}
+
+		public int getLastLine() {
+			return lastLine;
+		}
+		
+		public String[] createLine(long time){
+			String ret[]=new String[header.size()];
+			int maxColumn=timeColumn>dataColumns.get(dataColumns.size()-1)?timeColumn:dataColumns.get(dataColumns.size()-1);
+			int dataIndex=-1;
+			for(int i=0;i<maxColumn;i++){
+				if(i+1==timeColumn)
+					ret[i]=String.valueOf(time);
+				else if(dataColumns.contains(i+1)){
+					dataIndex++;
+					if(integral[dataIndex]!=null)
+						ret[i]=String.valueOf(integral[dataIndex]);
+					else
+						ret[i]="";
+				}else
+					ret[i]="";
+			}
+			return ret;
+		}
+	}
+	
+	private Integral getIntegral(long from, long to, int afterLine) throws NumberFormatException{
+		while(Long.parseLong(getCell(timeColumn, afterLine))<from){
+			afterLine++;
+		}
+		Double ret[]=new Double[dataColumns.size()];
+		int line=afterLine;
+		for(int j=0;j<dataColumns.size();j++){
+			line=afterLine;
+			double prevValue,returnElement;
+			double currValue;
+			try{
+				currValue=Double.parseDouble(getCell(dataColumns.get(j),line));
+			} catch(NumberFormatException e){
+				ret[j]=null;
+				continue;
+			}
+			long prevTime=from,currTime=Long.parseLong(getCell(timeColumn, line));
+			if(Long.parseLong(getCell(timeColumn, line))!=from){
+				returnElement=((getValueAt(from, dataColumns.get(j), line)+currValue)/2)*(currTime-prevTime);
+			} else{
+				returnElement=0;
+			}
+			
+			prevValue=currValue;
+			prevTime=currTime;
+			currTime=Long.parseLong(getCell(timeColumn, ++line));
+			boolean outOfData=false;
+			while(currTime<to){
+				try{
+					currValue=Double.parseDouble(getCell(dataColumns.get(j),line));
+					returnElement+=((prevValue+currValue)/2)*(currTime-prevTime);
+					prevValue=currValue;
+					prevTime=currTime;
+					currTime=Long.parseLong(getCell(timeColumn, ++line));
+				} catch(NumberFormatException e){
+					outOfData=true;
+					break;
+				} catch(IndexOutOfBoundsException e){
+					outOfData=true;
+					break;
+				}
+			}
+			if(outOfData)
+				continue;
+			
+			if(currTime==to){
+				currValue=Double.parseDouble(getCell(dataColumns.get(j),line));
+			} else if(currTime<to){
+				currValue=getValueAt(to, dataColumns.get(j), line);
+			} 
+			returnElement+=((prevValue+currValue)/2)*(currTime-prevTime);
+			ret[j]=returnElement/(to-from);
+		}
+		return new Integral(ret,line);
+	}
+	
+	
+	public static final byte TIMETYPE_START=0;
+	public static final byte TIMETYPE_END=1;
+	public static final byte TIMETYPE_MIDDLE=2;
+	
+	public CSVHandler averageColumns(long timeWindow, File newFile, byte timeType) throws IOException{
+		CSVHandler ret=new CSVHandler(newFile, header==null?false:true , separator, getTimeColumn(), getDataColumns());
+		ret.setHeader(getHeader());
+		int currentLine=1;
+		long currentTime=-1;
+		while(currentTime<0){
+			try{
+				currentTime=Long.parseLong(getCell(timeColumn,currentLine));
+			}catch(NumberFormatException e){
+				currentLine++;	//don't care these lines, probably no globaltime
+			}
+		}
+		while(currentLine<data.size()){
+			try{
+				Integral avg=getIntegral(currentTime, currentTime+timeWindow, currentLine);
+				if(timeType==TIMETYPE_END)
+					ret.addLine(avg.createLine(currentTime+timeWindow));
+				else if(timeType==TIMETYPE_MIDDLE)
+					ret.addLine(avg.createLine(currentTime+timeWindow/2));
+				else
+					ret.addLine(avg.createLine(currentTime));
+				
+				currentLine=avg.getLastLine();
+				currentTime=currentTime+timeWindow;
+			}catch(NumberFormatException e){
+				currentTime=Long.parseLong(getCell(timeColumn,++currentLine)); //don't care these lines, probably no globaltime
+			}
+		}
+		
+		return ret;
 	}
 	
 	
