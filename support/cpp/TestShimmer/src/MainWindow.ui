@@ -144,8 +144,6 @@
     <property name="title">
      <string>Log</string>
     </property>
-    <addaction name="actionAdd_entry"/>
-    <addaction name="actionView_log"/>
     <addaction name="actionLog_Editable"/>
    </widget>
    <addaction name="menuFile"/>

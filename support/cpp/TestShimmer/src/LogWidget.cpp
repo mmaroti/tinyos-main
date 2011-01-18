@@ -14,12 +14,20 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
 {
     ui->setupUi(this);
 
+    signalMapper = new QSignalMapper(this);
+
     ui->log->setRowCount(1);
     ui->log->horizontalHeader()->resizeSection(0, 40);
     ui->log->horizontalHeader()->resizeSection(1, 110);
     ui->log->horizontalHeader()->resizeSection(2, 70);
+    ui->log->horizontalHeader()->setResizeMode(3, QHeaderView::Stretch);
+    ui->log->horizontalHeader()->resizeSection(4, 40);
+
     ui->log->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
     ui->entryLine->setFocus();
+
+    connect(signalMapper, SIGNAL(mapped(int)),this, SLOT(onDelRow(int)));
 }
 
 LogWidget::~LogWidget()
@@ -61,6 +69,13 @@ void LogWidget::createItem(QString text)
     QTableWidgetItem* item = new QTableWidgetItem(text,1);
     ui->log->setItem(row-1,3,item);
 
+    QPushButton* del = new QPushButton(QIcon(":/icons/Delete.png"),"",this);
+     del->setMaximumSize(20,20);
+    ui->log->setCellWidget(row-1,4,del);
+    signalMapper->setMapping(del, row-1);
+
+    connect(del, SIGNAL(clicked()), signalMapper, SLOT (map()));
+
     ui->entryLine->clear();
     ui->entryLine->setFocus();
 }
@@ -83,15 +98,27 @@ void LogWidget::setTableEditable(bool isEditable)
     }
 }
 
-void LogWidget::on_addButton_clicked()
+void LogWidget::on_felvKezdButton_clicked()
 {
-    createItem(ui->presetTextsBox->currentText());
+    createItem(QString::fromUtf8("Felvétel Kezdete"));
 }
 
-void LogWidget::on_delButton_clicked()
+void LogWidget::on_felvVegButton_clicked()
 {
-    for(int i=0; i<ui->log->selectedItems().size(); i++){
-        ui->log->removeRow(ui->log->selectedItems().at(i)->row());
-    }
-    //ui->log->removeRow();
+    createItem(QString::fromUtf8("Felvétel Vége"));
+}
+
+void LogWidget::on_mozgKezdButton_clicked()
+{
+    createItem(QString::fromUtf8("Mozgás Kezdete"));
+}
+
+void LogWidget::on_mozgVegButton_clicked()
+{
+    createItem(QString::fromUtf8("Mozgás Vége"));
+}
+
+void LogWidget::onDelRow(int row)
+{
+    ui->log->removeRow(row);
 }
