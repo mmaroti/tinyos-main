@@ -46,6 +46,7 @@ public class CSVMerger {
 		ArrayList<Integer> newDC=new ArrayList<Integer>();
 		for(int i=1;i<newHeader.size();i++)
 			newDC.add(i+1);
+		outfile.delete();
 		CSVHandler globalFile=new CSVHandler(outfile, true, separator, 1, newDC);
 		globalFile.setHeader(newHeader);
 
