@@ -46,6 +46,7 @@
 
 module HplAtm128AdcP @safe() {
   provides interface HplAtm128Adc;
+	provides interface McuPowerOverride;
   uses interface McuPowerState;
 }
 implementation {
@@ -121,6 +122,12 @@ implementation {
   }
 
   default async event void HplAtm128Adc.dataReady(uint16_t done) { }
+
+	async command mcu_power_t McuPowerOverride.lowestState() {
+		if(bit_is_set(ADCSRA,ADEN)) {
+			return ATM128_POWER_ADC_NR;
+		}
+	} 
 
   async command bool HplAtm128Adc.cancel() {
     /* This is tricky */

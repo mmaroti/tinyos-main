@@ -48,11 +48,13 @@
  */
 module HplAtm128I2CBusP {
   provides interface HplAtm128I2CBus as I2C;
+	provides interface McuPowerOverride;
 
   uses {
     interface GeneralIO as I2CClk;
     interface GeneralIO as I2CData;
     interface DiagMsg;
+		interface McuPowerSate;
   }
 }
 implementation {
@@ -182,6 +184,7 @@ implementation {
     else {
       atomic CLR_BIT(current, TWEN);
     }
+		call McuPowerState.update();
   }
 
   async command bool I2C.isEnabled() {
@@ -191,6 +194,12 @@ implementation {
   async command bool I2C.hasWriteCollided() {
     return READ_BIT(current, TWWC);
   }
+
+	async command mcu_power_t McuPowerOverride.lowestState() {
+		if(bit_is_set(TWCR,TWen)) {
+			return ATM128_POWER_IDLE;
+		}
+	}
 
   default async event void I2C.commandComplete() { }
   AVR_ATOMIC_HANDLER(TWI_vect) {

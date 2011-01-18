@@ -73,6 +73,7 @@
 module HplAtm128SpiP @safe() {
   provides interface Atm128Spi as SPI;
   provides interface AsyncStdControl;
+	provides interface McuPowerOverride;
   
   uses {
     interface GeneralIO as SS;   // Slave set line
@@ -237,4 +238,10 @@ implementation {
       CLR_BIT(SPSR, SPI2X);
     }
   }
+
+	async command mcu_power_t McuPowerOverride.lowestState() {
+		if(bit_is_set(SPCR,SPE)) {
+			return ATM128_POWER_IDLE;
+		}
+	}
 }
