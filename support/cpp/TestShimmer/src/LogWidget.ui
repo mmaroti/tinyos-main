@@ -512,30 +512,30 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
-      <widget class="QPushButton" name="felvKezdButton">
+      <widget class="QPushButton" name="recStartButton">
        <property name="text">
-        <string>Felv.Kezd</string>
+        <string>Rec start</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="felvVegButton">
+      <widget class="QPushButton" name="recEndButton">
        <property name="text">
-        <string>Felv.Vége</string>
+        <string>Rec end</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="mozgKezdButton">
+      <widget class="QPushButton" name="motionStartButton">
        <property name="text">
-        <string>Mozg.Kezd</string>
+        <string>Motion start</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="mozgVegButton">
+      <widget class="QPushButton" name="motionEndButton">
        <property name="text">
-        <string>Mozg.Vége</string>
+        <string>Motion end</string>
        </property>
       </widget>
      </item>
