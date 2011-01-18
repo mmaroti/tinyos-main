@@ -6,6 +6,7 @@
 #include <QPushButton>
 #include <QDateTime>
 #include <QDateTimeEdit>
+#include <QMessageBox>
 
 LogWidget::LogWidget(QWidget *parent, Application &app) :
         QWidget(parent),
@@ -120,5 +121,11 @@ void LogWidget::on_mozgVegButton_clicked()
 
 void LogWidget::onDelRow(int row)
 {
-    ui->log->removeRow(row);
+    QMessageBox msgBox;
+     msgBox.setText("DELETE");
+     msgBox.setInformativeText("Are you sure you want to delete this row?");
+     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+     msgBox.setDefaultButton(QMessageBox::Cancel);
+     int ret = msgBox.exec();
+    if(ret == QMessageBox::Ok) ui->log->removeRow(row);
 }
