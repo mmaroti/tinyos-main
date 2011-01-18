@@ -87,7 +87,6 @@ SOURCES += src/DataRecorder.cpp \
     src/SDCard/MoteRegistrar.cpp \
     src/SDCard/TimeSyncMsgReceiver.cpp \
     src/SDCard/RootDirPath.cpp \
-    src/LogDialog.cpp \
     src/LogWidget.cpp \
     src/SDCard/MoteInfo.cpp \
     src/SDCard/TimeSyncDB.cpp \
@@ -161,7 +160,6 @@ HEADERS += src/DataRecorder.h \
     src/SDCard/MoteRegistrar.hpp \
     src/SDCard/TimeSyncMsgReceiver.hpp \
     src/SDCard/MoteRegistrar.hpp \
-    src/LogDialog.h \
     src/LogWidget.h \
     src/SDCard/TimeSyncDB.hpp \
     src/SDCard/RecordScout.hpp \
