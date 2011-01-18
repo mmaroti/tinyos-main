@@ -37,7 +37,7 @@ The location of argparser.jar must be provided in the classpath.
 
 -ox, -outputext
     determines the extension of output files, if there are more files
-    default is "txt"
+    default is "csv"
 
 -om, -outputmode
     determines the way of output file handling
@@ -62,7 +62,7 @@ The location of argparser.jar must be provided in the classpath.
 
 -sr, -separator
     must be followed by the desired separator
-    default value is: ','
+    default value is: ';'
 
 -vb, -verbose
     determines the level of information printed out during processing

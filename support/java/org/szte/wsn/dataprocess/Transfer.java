@@ -173,9 +173,9 @@ public class Transfer extends Thread  {
 		StringHolder inputFileh=new StringHolder("");
 		StringHolder outputh=new StringHolder("console");
 		StringHolder outputFileh=new StringHolder("");
-		StringHolder outputExth=new StringHolder("txt");
+		StringHolder outputExth=new StringHolder("csv");
 		StringHolder outputModeh=new StringHolder("norewrite");
-		StringHolder separatorh=new StringHolder(",");
+		StringHolder separatorh=new StringHolder(";");
 		BooleanHolder noheaderh=new BooleanHolder(false);
 		BooleanHolder nostructNameh=new BooleanHolder(false);
 		IntHolder verboseh = new IntHolder(1);
@@ -189,12 +189,12 @@ public class Transfer extends Thread  {
 		parser.addOption("-if,-inputfile %s#"+INPUTFILEH,inputFileh);
 		parser.addOption("-o,-output %s{binfile,textfile,serial,console}#Determines the type of output, default is console",outputh);
 		parser.addOption("-of,-outputfile %s#"+OUTPUTFILE,outputFileh);
-		parser.addOption("-ox,-outputext %s#Determines the extension of output files, if there are more files, default is txt",outputExth);
+		parser.addOption("-ox,-outputext %s#Determines the extension of output files, if there are more files, default is .csv",outputExth);
 		parser.addOption("-ms, -monostruct %v# The outputfiles consist only one struct, the name of the struct showed in the filename", monoStructh);
 		parser.addOption("-om,-outputmode %s{rewrite,append,norewrite}#"+OUTPUTMODE+"",outputModeh);
 		parser.addOption("-nh,-noheader %v#the fields name won't be displayed in the output, by default the field's names are displayed at the beginning of every new struct",noheaderh);
 		parser.addOption("-ns,-nostruct %v#the name of the struct won't be displayed in every line of the output, by default every line of the output starts with the name of the actual struct",nostructNameh);
-		parser.addOption("-sr,-separator %s#must be followed by the desired separator, default value is: ','",separatorh);
+		parser.addOption("-sr,-separator %s#must be followed by the desired separator, default value is: ';'",separatorh);
 		parser.addOption ("-vb, -verbose %d {[0,2]}#"+VERBOSE, verboseh);
 		parser.addOption("-v,-version %v# writes the version",versionh);
 
