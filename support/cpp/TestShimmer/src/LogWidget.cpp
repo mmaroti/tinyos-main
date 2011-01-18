@@ -50,7 +50,7 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
 
     signalMapper = new QSignalMapper(this);
 
-    ui->log->setRowCount(1);
+    ui->log->setRowCount(0);
     ui->log->horizontalHeader()->resizeSection(0, 40);
     ui->log->horizontalHeader()->resizeSection(1, 110);
     ui->log->horizontalHeader()->resizeSection(2, 70);
@@ -80,11 +80,11 @@ void LogWidget::on_entryLine_returnPressed()
 void LogWidget::createItem(QString text)
 {
     int row = ui->log->rowCount();
-    ui->log->setRowCount(row+1);
+    ui->log->insertRow(row);
 
     QPushButton* but = new QPushButton(QIcon(":/icons/back-arrow.png"),"",this);
     //but->setMaximumSize(40,20);
-    ui->log->setCellWidget(row-1,0,but);
+    ui->log->setCellWidget(row,0,but);
 
     QDateTimeEdit *dateEdit = new QDateTimeEdit(QDate::currentDate());
     dateEdit->setMinimumDate(QDate::currentDate().addDays(-365));
@@ -92,21 +92,21 @@ void LogWidget::createItem(QString text)
     dateEdit->setCalendarPopup(true);
     //dateEdit->setReadOnly(true);
     dateEdit->setDisplayFormat("yyyy.MM.dd");
-    ui->log->setCellWidget(row-1, 1, dateEdit);
-    ui->log->cellWidget(row-1, 1)->setEnabled(false);
+    ui->log->setCellWidget(row, 1, dateEdit);
+    ui->log->cellWidget(row, 1)->setEnabled(false);
 
     QDateTimeEdit *time = new QDateTimeEdit(QTime::currentTime());
     //time->setReadOnly(true);
-    ui->log->setCellWidget(row-1, 2, time);
-    ui->log->cellWidget(row-1, 2)->setEnabled(false);
+    ui->log->setCellWidget(row, 2, time);
+    ui->log->cellWidget(row, 2)->setEnabled(false);
 
     QTableWidgetItem* item = new QTableWidgetItem(text,1);
-    ui->log->setItem(row-1,3,item);
+    ui->log->setItem(row,3,item);
 
     QPushButton* del = new QPushButton(QIcon(":/icons/Delete.png"),"",this);
     del->setMaximumSize(20,20);
-    ui->log->setCellWidget(row-1,4,del);
-    signalMapper->setMapping(del, row-1);
+    ui->log->setCellWidget(row,4,del);
+    signalMapper->setMapping(del, row);
 
     connect(del, SIGNAL(clicked()), signalMapper, SLOT (map()));
 
