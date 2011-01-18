@@ -1,4 +1,4 @@
-package org.szte.wsn.downloader;
+package org.szte.wsn.CSVProcess;
 
 import java.io.File;
 import java.io.IOException;

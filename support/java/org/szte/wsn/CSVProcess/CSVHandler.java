@@ -1,4 +1,4 @@
-package org.szte.wsn.downloader;
+package org.szte.wsn.CSVProcess;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
