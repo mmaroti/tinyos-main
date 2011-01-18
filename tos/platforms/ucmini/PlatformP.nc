@@ -36,87 +36,55 @@
 
 module PlatformP @safe()
 {
-  provides interface Init;
+	provides interface Init;
 
-  uses
-  {
-    interface Init as MeasureClock;
-    interface Init as TimerInit;
-    interface Init as LedsInit;
-  }
+	uses
+	{
+		interface Init as McuInit;
+		interface Init as LedsInit;
+	}
 }
+
 implementation
 {
-  void power_init() {
-    atomic {
-      MCUCR = _BV(SE);      // Internal RAM, IDLE, rupt vector at 0x0002,
-			    // enable sleep instruction!
-      DDRB &= ~(_BV(PB7));    // set it as input
-      //PORTB |= _BV(7);  // enable usb-rs232 chip
-      DDRE &= ~(_BV(PE4)); // set it as input
+	error_t powerInit()
+	{
+		atomic
+		{
+			MCUCR = _BV(SE);	// Internal RAM, IDLE, rupt vector at 0x0002,
+					// enable sleep instruction!
+			DDRB &= ~(_BV(PB7));	// set it as input
+			//PORTB |= _BV(7);	// enable usb-rs232 chip
+			DDRE &= ~(_BV(PE4));	// set it as input
       
-      //DDRF |= _BV(PF2);
-      //PORTF |= _BV(PF2); //empowering i2c sensors for testing purposes
-      
-      // DDRD |= _BV(PD0);
-      // DDRD |= _BV(PD1);
-      // PORTD |= _BV(PD0) | _BV(PD1);
+			//DDRF |= _BV(PF2);
+			//PORTF |= _BV(PF2); //empowering i2c sensors for testing purposes
 
-      // Pull C I/O port pins low
-      // PORTC = 0;
-      // DDRC = 0xff;
-    }
-  }
+			// DDRD |= _BV(PD0);
+			// DDRD |= _BV(PD1);
+			// PORTD |= _BV(PD0) | _BV(PD1);
 
-  command error_t Init.init()
-  {
-    error_t ok;
+			// Pull C I/O port pins low
+			// PORTC = 0;
+			// DDRC = 0xff;
+		}
 
-    // set the clock prescaler
-    atomic {
-      // enable changing the prescaler
-      CLKPR = 0x80;
-#if PLATFORM_MHZ == 16
-      CLKPR = 0x0F;	
-#elif PLATFORM_MHZ == 8
-      CLKPR = 0x00;
-#elif PLATFORM_MHZ == 4
-      CLKPR = 0x01;
-#elif PLATFORM_MHZ == 2
-      CLKPR = 0x02;
-#elif PLATFORM_MHZ == 1
-      CLKPR = 0x03;
-#else
-	#error "Unsupported MHZ"
-#endif
-    }
+		return SUCCESS;
+	}
 
-    /* First thing is to measure the clock frequency */
-    ok = call MeasureClock.init();
+	command error_t Init.init()
+	{
+		error_t ok;
 
-    // initialize all timer registers, and start the MCU timer
-    if( ok == SUCCESS )
-	    ok = call TimerInit.init();
+		ok = call McuInit.init();
+		ok = ecombine(ok, call LedsInit.init());
+		ok = ecombine(ok, powerInit());
 
-    // initialize the LED ports
-    if( ok == SUCCESS )
-	    ok = call LedsInit.init();
+		return ok;
+	}
 
-    if (ok != SUCCESS)
-      return ok;
-
-    power_init();
-
-    return SUCCESS;
-  }
-
-  default command error_t TimerInit.init()
-  {
-    return SUCCESS;
-  }
-
-  default command error_t LedsInit.init()
-  {
-    return SUCCESS;
-  }
+	default command error_t LedsInit.init()
+	{
+		return SUCCESS;
+	}
 }

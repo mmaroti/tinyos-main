@@ -24,8 +24,3 @@ The RFA1 has a symbol counter also driven by the external 32 KHz crystal, but
 it runs at 62.5 KHz. This is independent of the RTC clock, and in fact it is
 much more efficient than the 8-bit 32 KHz timer. You can select in TimerConfig.h
 to use this for the TRtc (and TMilli).
-
-Your PlatformC should provide a TimerInit interface that should be called in
-your platform initialization code. This is automatically wired to the timer
-components, so the timer registers will get initialized at boot time (and the
-TMcu clock starts running).

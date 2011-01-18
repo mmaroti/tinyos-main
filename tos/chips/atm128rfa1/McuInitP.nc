@@ -32,33 +32,58 @@
  * Author: Miklos Maroti
  */
 
-configuration PlatformC
+module McuInitP @safe()
 {
-	provides
-	{
-		interface Init;
-
-		// TODO: this should be moved to McuInit, but HplAtm128UartC wants it here
-		interface Atm128Calibrate;
-	}
+	provides interface Init;
 
 	uses
 	{
-		interface Init as LedsInit;
+		interface Init as MeasureClock;
+		interface Init as TimerInit;
 	}
-
 }
+
 implementation
 {
-	components PlatformP, McuInitC, MeasureClockC;
-  
-	Init = PlatformP;
-	Atm128Calibrate = MeasureClockC;
+	error_t systemClockInit()
+	{
+		// set the clock prescaler
+		atomic
+		{
+			// enable changing the prescaler
+			CLKPR = 0x80;
 
-	LedsInit = PlatformP.LedsInit;
-	PlatformP.McuInit -> McuInitC;
-
-#ifdef SERIAL_AUTO
-	components SerialActiveMessageC;
+#if PLATFORM_MHZ == 16
+			CLKPR = 0x0F;	
+#elif PLATFORM_MHZ == 8
+			CLKPR = 0x00;
+#elif PLATFORM_MHZ == 4
+			CLKPR = 0x01;
+#elif PLATFORM_MHZ == 2
+			CLKPR = 0x02;
+#elif PLATFORM_MHZ == 1
+			CLKPR = 0x03;
+#else
+	#error "Unsupported MHZ"
 #endif
+		}
+
+		return SUCCESS;
+	}
+
+	command error_t Init.init()
+	{
+		error_t ok;
+
+		ok = systemClockInit();
+		ok = ecombine(ok, call MeasureClock.init());
+		ok = ecombine(ok, call TimerInit.init());
+
+		return ok;
+	}
+
+	default command error_t TimerInit.init()
+	{
+		return SUCCESS;
+	}
 }

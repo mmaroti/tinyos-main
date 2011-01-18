@@ -32,33 +32,22 @@
  * Author: Miklos Maroti
  */
 
-configuration PlatformC
+configuration McuInitC @safe()
 {
-	provides
-	{
-		interface Init;
-
-		// TODO: this should be moved to McuInit, but HplAtm128UartC wants it here
-		interface Atm128Calibrate;
-	}
+	provides interface Init;
 
 	uses
 	{
-		interface Init as LedsInit;
+		interface Init as TimerInit;
 	}
-
 }
+
 implementation
 {
-	components PlatformP, McuInitC, MeasureClockC;
-  
-	Init = PlatformP;
-	Atm128Calibrate = MeasureClockC;
+	components McuInitP, MeasureClockC;
 
-	LedsInit = PlatformP.LedsInit;
-	PlatformP.McuInit -> McuInitC;
+	Init = McuInitP.Init;
+	TimerInit = McuInitP.TimerInit;
 
-#ifdef SERIAL_AUTO
-	components SerialActiveMessageC;
-#endif
+	McuInitP.MeasureClock -> MeasureClockC;
 }

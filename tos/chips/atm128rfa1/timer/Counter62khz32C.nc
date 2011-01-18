@@ -44,8 +44,8 @@ implementation
 	components new AtmegaCounterP(T62khz, uint32_t, ATMRFA1_CLKSC_RTC);
 	Counter = AtmegaCounterP;
 
-	components PlatformC;
-	PlatformC.TimerInit -> AtmegaCounterP.Init;
+	components McuInitC;
+	McuInitC.TimerInit -> AtmegaCounterP.Init;
 
 	components HplAtmRfa1TimerMacC;
 	AtmegaCounterP.AtmegaCounter -> HplAtmRfa1TimerMacC;

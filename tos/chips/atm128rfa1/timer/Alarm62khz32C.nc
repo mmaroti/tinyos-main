@@ -44,8 +44,8 @@ implementation
 	components new AtmegaCompareP(T62khz, uint32_t, 0, 2);
 	Alarm = AtmegaCompareP;
 
-	components PlatformC;
-	PlatformC.TimerInit -> AtmegaCompareP;
+	components McuInitC;
+	McuInitC.TimerInit -> AtmegaCompareP;
 
 	components HplAtmRfa1TimerMacC;
 	AtmegaCompareP.AtmegaCounter -> HplAtmRfa1TimerMacC;
