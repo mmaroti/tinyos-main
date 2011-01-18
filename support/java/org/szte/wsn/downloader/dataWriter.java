@@ -44,6 +44,9 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Date;
 
+import org.szte.wsn.dataprocess.file.Gap;
+import org.szte.wsn.dataprocess.file.GapConsumer;
+
 public class dataWriter {
 	private ArrayList<Gap> gaps = new ArrayList<Gap>();
 	private RandomAccessFile dataFile;
