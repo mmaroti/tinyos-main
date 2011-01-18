@@ -44,7 +44,6 @@
 #include "Widget3D.h"
 #include "window.h"
 #include "SDataWidget.h"
-#include "LogDialog.h"
 #include "LogWidget.h"
 
 // FIXME Eliminate this hideous workaround
@@ -159,12 +158,6 @@ void MainWindow::onSolverRunning()
         ui->menuBar->setEnabled(true);
     }
 
-}
-
-void MainWindow::onShowLogDialog()
-{
-    LogDialog dial;
-    dial.exec();
 }
 
 bool MainWindow::eventFilter(QObject *object, QEvent *event)

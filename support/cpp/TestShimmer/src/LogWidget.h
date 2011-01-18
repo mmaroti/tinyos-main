@@ -52,7 +52,7 @@ public:
 private:
     Ui::LogWidget *ui;
     Application &application;
-    QSignalMapper* signalMapper;
+    QSignalMapper* signalMapper;    
 
     void createItem(QString text);
 

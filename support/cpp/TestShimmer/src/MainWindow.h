@@ -54,7 +54,6 @@ protected:
 
 private slots:
         void onSolverRunning();
-        void onShowLogDialog();
 
 signals:
         void focusIn();

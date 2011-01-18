@@ -82,23 +82,34 @@ void LogWidget::createItem(QString text)
     int row = ui->log->rowCount();
     ui->log->insertRow(row);
 
+    if(row == 0){
+        QDateTimeEdit *dateEdit = new QDateTimeEdit(QDate::currentDate());
+        dateEdit->setMinimumDate(QDate::currentDate().addDays(-365));
+        dateEdit->setMaximumDate(QDate::currentDate().addDays(365));
+        dateEdit->setCalendarPopup(true);
+        //dateEdit->setReadOnly(true);
+        dateEdit->setDisplayFormat("yyyy.MM.dd");
+        ui->log->setCellWidget(row, 1, dateEdit);
+        ui->log->cellWidget(row, 1)->setEnabled(false);
+
+        QPalette pal = dateEdit->palette();
+        pal.setColor(QPalette::Disabled, QPalette::Text, pal.color(QPalette::Active, QPalette::Text));
+        pal.setColor(QPalette::Disabled, QPalette::Base, pal.color(QPalette::Active, QPalette::Base));
+        dateEdit->setPalette(pal);
+    }
     QPushButton* but = new QPushButton(QIcon(":/icons/back-arrow.png"),"",this);
     //but->setMaximumSize(40,20);
     ui->log->setCellWidget(row,0,but);
-
-    QDateTimeEdit *dateEdit = new QDateTimeEdit(QDate::currentDate());
-    dateEdit->setMinimumDate(QDate::currentDate().addDays(-365));
-    dateEdit->setMaximumDate(QDate::currentDate().addDays(365));
-    dateEdit->setCalendarPopup(true);
-    //dateEdit->setReadOnly(true);
-    dateEdit->setDisplayFormat("yyyy.MM.dd");
-    ui->log->setCellWidget(row, 1, dateEdit);
-    ui->log->cellWidget(row, 1)->setEnabled(false);
 
     QDateTimeEdit *time = new QDateTimeEdit(QTime::currentTime());
     //time->setReadOnly(true);
     ui->log->setCellWidget(row, 2, time);
     ui->log->cellWidget(row, 2)->setEnabled(false);
+
+    QPalette pal = time->palette();
+    pal.setColor(QPalette::Disabled, QPalette::Text, pal.color(QPalette::Active, QPalette::Text));
+    pal.setColor(QPalette::Disabled, QPalette::Base, pal.color(QPalette::Active, QPalette::Base));
+    time->setPalette(pal);
 
     QTableWidgetItem* item = new QTableWidgetItem(text,1);
     ui->log->setItem(row,3,item);
