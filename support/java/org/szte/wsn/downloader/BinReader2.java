@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 public class BinReader2{
 	private File outputfile=new File("global.csv");
-	private String separator=",";
+	private String separator=";";
 	private String nodeIdSeparator=":";
 	
 	private String tsext=".ts";
@@ -15,8 +15,8 @@ public class BinReader2{
 	private String globalName="globaltime";
 	private boolean insertGlobal=true;
 	private int maxerror=120;
-	private String timeformat=null;
-	private boolean convertToSI=true;
+	private String timeformat="yyyy.MM.dd. HH:mm:ss.SSS";
+	private String confFile="convert.conf";
 	private boolean hasHeader=true;
 	private String csvExt=".csv";
 	private int runningConversions;
@@ -37,7 +37,7 @@ public class BinReader2{
 		}
 		runningConversions=inputFiles.size();
 		for(String file:inputFiles)
-			new Converter(file, convertToSI, csvExt, separator, new PerConversion());
+			new Converter(file, confFile, csvExt, separator, new PerConversion());
 	}
 
 	public void mergeConversion() {
@@ -74,7 +74,8 @@ public class BinReader2{
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		
+		avgFile.formatTime(timeformat);
+		avgFile.formatDecimalSeparator(",");
 		try {
 			avgFile.flush();
 		} catch (IOException e) {
@@ -88,23 +89,19 @@ public class BinReader2{
 
 		@Override
 		public void Ready(Converter output) {
-			output.calculateGlobal(tsext, localColumn, globalColumn, insertGlobal, maxerror, timeformat);
-			CSVHandler ready=output.getCSVHandler();
-			if(ready==null){
-				try {
-					ready=new CSVHandler(output.getFile(), hasHeader, separator, globalColumn, dataColumns);
-				} catch (IOException e) {
-					System.err.println("E: Can't open converted file: "+output.getFile().getName());
-				}
-			} else {
-				ready.setDataColumns(dataColumns);
-				ready.setTimeColumn(globalColumn);
-			}
-			if(ready!=null)
+			CSVHandler ready;
+			try {
+				ready = output.toCSVHandler(localColumn, dataColumns);
+				ready.calculateGlobal(tsext, globalColumn, insertGlobal, maxerror) ;
+				
 				filesPerNode.add(ready);
+			} catch (IOException e) {
+				System.out.println("Can't open parsed file: "+output.getFile().getName());
+			}
 			runningConversions--;
 			if(runningConversions==0)
 				mergeConversion();
+
 			
 		}
 		

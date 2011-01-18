@@ -1,6 +1,8 @@
 package org.szte.wsn.downloader;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -22,14 +24,10 @@ public class Converter implements ParsingReady{
 		return fullname.substring(0, fullname.lastIndexOf('.'))+newEx;
 	}
 	
-	public Converter(String file, boolean convertToSI, String csvext, String separator, ParsingReady parent){
+	public Converter(String file, String confFile, String csvext, String separator, ParsingReady parent){
 		this.separator=separator;
 		
-		PacketParser[] pp;
-		if(convertToSI)
-			pp=new PacketParserFactory("convert.conf").getParsers();
-		else
-			pp=new PacketParserFactory("raw.conf").getParsers();
+		PacketParser[] pp=new PacketParserFactory(confFile).getParsers();
 		String outputfile=switchExtension(file, csvext);
 		Transfer fp=new Transfer(pp,
 				BinaryInterfaceFactory.getBinaryInterface("binfile", file),
@@ -42,13 +40,8 @@ public class Converter implements ParsingReady{
 		waitForParsing(parent);
 	}
 	
-	public CSVHandler calculateGlobal(String tsext, int localColumn, int globalColumn, boolean insertGlobal, int maxerror, String timeformat) {
-			File tsfile=new File(CSVHandler.switchExtension(csvFile.getAbsolutePath(),tsext));
-			if(tsfile.exists()){
-				GlobalTime gt=new GlobalTime(tsfile,csvFile, localColumn, globalColumn, insertGlobal, maxerror,separator,timeformat);
-				return gt.getCSVHandler();
-			}
-			return null;
+	public CSVHandler toCSVHandler(int timeColumn, ArrayList<Integer> dataColumns) throws IOException{
+		return new CSVHandler(csvFile, true, separator, timeColumn, dataColumns);
 	}
 	
 	public File getFile(){
@@ -85,7 +78,7 @@ public class Converter implements ParsingReady{
 		String[] fileNames=new File(".").list();
 		for(String file:fileNames){
 			if(file.endsWith(".bin")){
-				new Converter(file,true, ".csv", ",", null);
+				new Converter(file,"convert.conf", ".csv", ",", null);
 			}
 		}
 		

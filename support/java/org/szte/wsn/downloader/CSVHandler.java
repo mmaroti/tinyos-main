@@ -3,10 +3,16 @@ package org.szte.wsn.downloader;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+
+import org.szte.wsn.TimeSyncPoint.LinearFunction;
+import org.szte.wsn.TimeSyncPoint.Regression;
 
 public class CSVHandler {
 	private File csvfile;
@@ -138,7 +144,7 @@ public class CSVHandler {
 	
 	public String getCell(int column, int line){
 		column--;line--;
-		if(line>=data.size())
+		if(line>=getLineNumber())
 			return null;
 		if(column>=data.get(line).length)
 			return "";
@@ -147,7 +153,7 @@ public class CSVHandler {
 	
 	public boolean setCell(int column, int line, Object value){
 		column--;line--;
-		if(line>=data.size())
+		if(line>=getLineNumber())
 			return false;
 		if(column>=data.get(line).length){
 			String[] newstr=new String[column];
@@ -167,7 +173,7 @@ public class CSVHandler {
 		column--;//start counting from 0 instead of 1
 		if(header!=null)
 			header.add(column, name);
-		for(int i=0;i<data.size();i++){
+		for(int i=0;i<getLineNumber();i++){
 			String[] oldstr = data.get(i);
 			String[] newstr;
 			if(oldstr.length>=column)
@@ -190,7 +196,7 @@ public class CSVHandler {
 		column--;//start counting from 0 instead of 1
 		if(header!=null)
 			header.remove(column);
-		for(int i=0;i<data.size();i++){
+		for(int i=0;i<getLineNumber();i++){
 			String[] oldstr = data.get(i);
 			if(oldstr.length<column+1)
 				continue;
@@ -248,6 +254,10 @@ public class CSVHandler {
 	public void setDataColumns(ArrayList<Integer> dataColumns) {
 		this.dataColumns = dataColumns;
 	}
+	
+	private void addDataColumn(int item) {
+		dataColumns.add(item);		
+	}
 
 	public ArrayList<Integer> getDataColumns() {
 		return dataColumns;
@@ -257,6 +267,141 @@ public class CSVHandler {
 		if(!flush())
 			System.err.println("Can't overwrite file: "+csvfile.getName());
 	}
+	
+	//global time calculation functions
+	
+	private ArrayList<LinearFunction> ParseTimeSyncFile(File tsfile,long maxerror){
+		ArrayList<LinearFunction> functions=new ArrayList<LinearFunction>();
+		if(tsfile.exists()&&tsfile.isFile()&&tsfile.canRead()){
+			BufferedReader input;
+			try {
+				input = new BufferedReader(new FileReader(tsfile));
+			} catch (FileNotFoundException e1) {
+				System.err.println("Error: Can't read timestamp file: "+tsfile.getName());
+				return null;
+			}
+			String line;
+			Regression regr=new Regression(maxerror,(double)1000/1024);
+			try {
+				while (( line = input.readLine()) != null){
+					String[] dates = line.split(":");
+					if(dates.length<2){
+						System.err.println("Warning: Too short line in file: "+tsfile.getName());
+						System.err.println(line);
+						continue;
+					}
+					Long pctime,motetime;
+					try{
+						pctime=Long.parseLong(dates[0]);
+						motetime=Long.parseLong(dates[1]);
+					} catch(NumberFormatException e){
+						System.err.println("Warning: Unparsable line in file: "+tsfile.getName());
+						System.err.println(line);
+						continue;
+					}
+					if(!regr.addPoint(motetime, pctime)){//end of running: save the function, then read the next running
+						functions.add(regr.getFunction());
+						System.out.println("pc="+regr.getFunction().getOffset()+"+"+regr.getFunction().getSlope()+"*mote ("+tsfile.getName()+"); points:"+regr.getNumPoints());
+					}
+				}
+			} catch (IOException e) {
+				System.err.println("Error: Can't read timestamp file: "+tsfile.getName());
+				return null;
+			}
+			functions.add(regr.getFunction());
+			System.out.println("pc="+regr.getFunction().getOffset()+"+"+regr.getFunction().getSlope()+"*mote ("+tsfile.getName()+"); points:"+regr.getNumPoints());
+			return functions;
+		} else {
+			System.err.println("Error: Can't read timestamp file: "+tsfile.getName());
+			return null;
+		}
+	}
+	
+	private ArrayList<Integer> GetBreaks(){
+
+		ArrayList<Integer> ret=new ArrayList<Integer>();
+		int currentline=1;
+		Long lasttime=null;
+		Long currenttime=null;
+		while(currentline<=getLineNumber()){		
+			try{
+				currenttime=Long.parseLong(getCell(timeColumn, currentline));
+			} catch(NumberFormatException e){
+				System.err.println("Warning: Unparsable line in file: "+getFile().getName());
+				System.err.println(getLine(currentline));
+				continue;
+			}
+			if(lasttime==null||lasttime>currenttime){
+				ret.add(currentline);
+			}
+			lasttime=currenttime;
+			currentline++;
+		}
+		return ret;
+		
+	}
+	
+	public void calculateGlobal(File timeFile, int global, boolean insert, long maxerror){
+		ArrayList<LinearFunction> functions=ParseTimeSyncFile(timeFile, maxerror);
+
+		ArrayList<Integer> breaks=GetBreaks();
+		
+		int currentrun=0;
+		if(insert)
+			addColumn("globaltime", global);	
+		for(int currentline=1;currentline<=getLineNumber();currentline++){
+			if(breaks.contains(currentline))
+				currentrun++;
+			Long currenttime=null;
+			try{
+				currenttime=Long.parseLong(getCell(timeColumn, currentline));
+			} catch(NumberFormatException e){
+				System.err.println("Warning: Unparsable line in file: "+getFile().getName());
+				System.err.println(getLine(currentline));
+				continue;
+			}
+			int currentfunction=breaks.size()-currentrun;
+			String currenttstring;
+			if(currentfunction>=0){
+				currenttime=(long) (functions.get(currentfunction).getOffset()+functions.get(currentfunction).getSlope()*currenttime);
+				currenttstring=currenttime.toString();
+			} else 
+				currenttstring="";
+			setCell(global, currentline, currenttstring);
+		}
+		addDataColumn(timeColumn);
+		setTimeColumn(global);
+	}
+	
+	public void calculateGlobal(String timeEx, int global, boolean insert, long maxerror){
+		calculateGlobal(new File(switchExtension(getName(), timeEx)), global, insert, maxerror);
+	}
+	
+	public void formatTime(String timeformat){
+		if(timeformat==null)
+			return;
+		SimpleDateFormat format=new SimpleDateFormat(timeformat);
+		for(int line=1;line<=getLineNumber();line++){
+			try{
+				long time=Long.parseLong(getCell(timeColumn, line));
+				setCell(timeColumn, line, format.format(new Date(time)));
+			}catch(NumberFormatException e){
+				System.err.println("W: Can't parse time");
+			}
+			
+		}
+	}
+	
+	public void formatDecimalSeparator(String decSep){
+		for(int line=1;line<=getLineNumber();line++){
+			for(int column:dataColumns){
+				setCell(column,line,getCell(column,line).replace(".", decSep));
+			}
+		}
+	}
+
+
+	//averageing functions
 	
 	private Double getValueAt(long time, int column, int afterLine) throws NumberFormatException{
 		while(Long.parseLong(getCell(timeColumn, afterLine))<time){
@@ -279,7 +424,7 @@ public class CSVHandler {
 			} catch (ArrayIndexOutOfBoundsException e){
 				return null;
 			}
-			if(beforeLine<1||afterLine>data.size())
+			if(beforeLine<1||afterLine>getLineNumber())
 				return null;
 			long beforeTime=Long.parseLong(getCell(timeColumn, beforeLine));
 			long timeDiff=Long.parseLong(getCell(timeColumn, afterLine))-beforeTime;
@@ -295,7 +440,7 @@ public class CSVHandler {
 	
 	public void fillGaps(){
 		for(int column:dataColumns){
-			for(int line=1;line<=data.size();line++){
+			for(int line=1;line<=getLineNumber();line++){
 				if("".equals(getCell(column, line))){
 					long time=Long.parseLong(getCell(1, line));
 					Double value=getValueAt(time, column, line);
@@ -410,6 +555,7 @@ public class CSVHandler {
 	public static final byte TIMETYPE_MIDDLE=2;
 	
 	public CSVHandler averageColumns(long timeWindow, File newFile, byte timeType) throws IOException{
+		newFile.delete();
 		CSVHandler ret=new CSVHandler(newFile, header==null?false:true , separator, getTimeColumn(), getDataColumns());
 		ret.setHeader(getHeader());
 		int currentLine=1;
@@ -421,7 +567,7 @@ public class CSVHandler {
 				currentLine++;	//don't care these lines, probably no globaltime
 			}
 		}
-		while(currentLine<data.size()){
+		while(currentLine<getLineNumber()){
 			try{
 				Integral avg=getIntegral(currentTime, currentTime+timeWindow, currentLine);
 				if(timeType==TIMETYPE_END)
