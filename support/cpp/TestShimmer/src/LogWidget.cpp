@@ -52,10 +52,9 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
 
     ui->log->setRowCount(0);
     ui->log->horizontalHeader()->resizeSection(0, 40);
-    ui->log->horizontalHeader()->resizeSection(1, 110);
-    ui->log->horizontalHeader()->resizeSection(2, 70);
-    ui->log->horizontalHeader()->setResizeMode(3, QHeaderView::Stretch);
-    ui->log->horizontalHeader()->resizeSection(4, 40);
+    ui->log->horizontalHeader()->resizeSection(1, 70);
+    ui->log->horizontalHeader()->setResizeMode(2, QHeaderView::Stretch);
+    ui->log->horizontalHeader()->resizeSection(3, 40);
 
     ui->log->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
@@ -79,68 +78,36 @@ void LogWidget::on_entryLine_returnPressed()
 
 void LogWidget::createItem(QString text)
 {
+    QString txt = "";
     int row = ui->log->rowCount();
     ui->log->insertRow(row);
 
     if(row == 0){
-        QDateTimeEdit *dateEdit = new QDateTimeEdit(QDate::currentDate());
-        dateEdit->setMinimumDate(QDate::currentDate().addDays(-365));
-        dateEdit->setMaximumDate(QDate::currentDate().addDays(365));
-        dateEdit->setCalendarPopup(true);
-        //dateEdit->setReadOnly(true);
-        dateEdit->setDisplayFormat("yyyy.MM.dd");
-        ui->log->setCellWidget(row, 1, dateEdit);
-        ui->log->cellWidget(row, 1)->setEnabled(false);
-
-        QPalette pal = dateEdit->palette();
-        pal.setColor(QPalette::Disabled, QPalette::Text, pal.color(QPalette::Active, QPalette::Text));
-        pal.setColor(QPalette::Disabled, QPalette::Base, pal.color(QPalette::Active, QPalette::Base));
-        dateEdit->setPalette(pal);
+        txt = QDate::currentDate().toString();
+        txt.append(" - "+text);
+    } else {
+        txt = text;
     }
+
     QPushButton* but = new QPushButton(QIcon(":/icons/back-arrow.png"),"",this);
     //but->setMaximumSize(40,20);
     ui->log->setCellWidget(row,0,but);
 
-    QDateTimeEdit *time = new QDateTimeEdit(QTime::currentTime());
-    //time->setReadOnly(true);
-    ui->log->setCellWidget(row, 2, time);
-    ui->log->cellWidget(row, 2)->setEnabled(false);
+    QTableWidgetItem* time = new QTableWidgetItem(QTime::currentTime().toString(),1);
+    ui->log->setItem(row,1,time);
 
-    QPalette pal = time->palette();
-    pal.setColor(QPalette::Disabled, QPalette::Text, pal.color(QPalette::Active, QPalette::Text));
-    pal.setColor(QPalette::Disabled, QPalette::Base, pal.color(QPalette::Active, QPalette::Base));
-    time->setPalette(pal);
-
-    QTableWidgetItem* item = new QTableWidgetItem(text,1);
-    ui->log->setItem(row,3,item);
+    QTableWidgetItem* item = new QTableWidgetItem(txt,1);
+    ui->log->setItem(row,2,item);
 
     QPushButton* del = new QPushButton(QIcon(":/icons/Delete.png"),"",this);
     del->setMaximumSize(20,20);
-    ui->log->setCellWidget(row,4,del);
+    ui->log->setCellWidget(row,3,del);
     signalMapper->setMapping(del, row);
 
     connect(del, SIGNAL(clicked()), signalMapper, SLOT (map()));
 
     ui->entryLine->clear();
     ui->entryLine->setFocus();
-}
-
-void LogWidget::setTableEditable(bool isEditable)
-{
-    //ui->log->setEnabled(isEditable);
-    if(isEditable){        
-        ui->log->setEditTriggers(QAbstractItemView::DoubleClicked);
-        for(int i = 0; i<ui->log->rowCount()-1; i++){
-            ui->log->cellWidget(i,1)->setEnabled(true);
-            ui->log->cellWidget(i,2)->setEnabled(true);
-        }
-    } else {
-        ui->log->setEditTriggers(QAbstractItemView::NoEditTriggers);
-        for(int i = 0; i<ui->log->rowCount()-1; i++){
-            ui->log->cellWidget(i,1)->setEnabled(false);
-            ui->log->cellWidget(i,2)->setEnabled(false);
-        }
-    }
 }
 
 void LogWidget::on_recStartButton_clicked()

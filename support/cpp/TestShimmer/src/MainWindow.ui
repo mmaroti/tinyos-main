@@ -35,7 +35,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>8</number>
       </property>
       <widget class="QWidget" name="connectTab">
        <attribute name="title">
@@ -99,6 +99,12 @@
         <string>Log</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_8"/>
+      </widget>
+      <widget class="QWidget" name="logEditTab">
+       <attribute name="title">
+        <string>Log (editable)</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_10"/>
       </widget>
      </widget>
     </item>
@@ -219,6 +225,9 @@
   </action>
   <action name="actionLog_Editable">
    <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
     <bool>true</bool>
    </property>
    <property name="text">

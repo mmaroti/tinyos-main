@@ -62,7 +62,6 @@ private slots:
     void on_recEndButton_clicked();
     void on_motionStartButton_clicked();
     void on_motionEndButton_clicked();
-    void setTableEditable(bool);
     void onDelRow(int);
 };
 

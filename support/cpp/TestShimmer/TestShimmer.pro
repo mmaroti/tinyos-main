@@ -88,6 +88,7 @@ SOURCES += src/DataRecorder.cpp \
     src/SDCard/TimeSyncMsgReceiver.cpp \
     src/SDCard/RootDirPath.cpp \
     src/LogWidget.cpp \
+    src/LogWidget_editable.cpp \
     src/SDCard/MoteInfo.cpp \
     src/SDCard/TimeSyncDB.cpp \
     src/SDCard/RecordScout.cpp \
@@ -161,6 +162,7 @@ HEADERS += src/DataRecorder.h \
     src/SDCard/TimeSyncMsgReceiver.hpp \
     src/SDCard/MoteRegistrar.hpp \
     src/LogWidget.h \
+    src/LogWidget_editable.h \
     src/SDCard/TimeSyncDB.hpp \
     src/SDCard/RecordScout.hpp \
     src/SDCard/MoteInfo.hpp \
@@ -178,7 +180,7 @@ FORMS += src/MainWindow.ui \
     src/Widget3D.ui \
     src/GraphWidget.ui \
     src/SDataWidget.ui \
-    src/LogDialog.ui \
-    src/LogWidget.ui
+    src/LogWidget.ui \
+    src/LogWidget_editable.ui
 RESOURCES += src/Resources.qrc \
     src/textures.qrc

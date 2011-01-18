@@ -45,6 +45,7 @@
 #include "window.h"
 #include "SDataWidget.h"
 #include "LogWidget.h"
+#include "LogWidget_editable.h"
 
 // FIXME Eliminate this hideous workaround
 extern DataRecorder* dr;
@@ -64,13 +65,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
         //Widget3D* widget3d = new Widget3D(ui->openglTab, app);
         //ui->openglTab->layout()->addWidget(widget3d);
-        ui->tabWidget->removeTab(8);    //temporarly hidden
+        //ui->tabWidget->removeTab(8);    //temporarly hidden
         ui->tabWidget->removeTab(6);
-        ui->tabWidget->removeTab(7);
+        //ui->tabWidget->removeTab(7);
         ui->tabWidget->removeTab(3);
 
         LogWidget* logWidget = new LogWidget(ui->logTab, app);
         ui->logTab->layout()->addWidget(logWidget);
+
+        LogWidget_editable* logWidgetE = new LogWidget_editable(ui->logEditTab, app);
+        ui->logEditTab->layout()->addWidget(logWidgetE);
 
         SDataWidget* sddataWidget = new SDataWidget(ui->sdataTab, app);
         ui->sdataTab->layout()->addWidget(sddataWidget);
@@ -80,15 +84,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
         GraphWidget* graphWidget = new GraphWidget(ui->graphTab, app);
         ui->graphTab->layout()->addWidget(graphWidget);
-        //ui->tabWidget->removeTab(3);    //temporarly hidden
 
         CalibrationWidget* calibrationWidget = new CalibrationWidget(ui->calibrationTab, app);
         ui->calibrationTab->layout()->addWidget(calibrationWidget);
 
 	ConsoleWidget* consoleWidget = new ConsoleWidget(ui->consoleTab, app);
 	ui->consoleTab->layout()->addWidget(consoleWidget);
-
-        connect(ui->actionAdd_entry, SIGNAL(triggered()), this, SLOT(onShowLogDialog()) );
 
 	statusBar()->showMessage("Started.");
 
@@ -113,7 +114,7 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(dataWidget, SIGNAL(SolverStarted()), this, SLOT(onSolverRunning()));
         connect(dataWidget, SIGNAL(SolverFinished()), this, SLOT(onSolverRunning()));
         connect(&(app.tabWatcher), SIGNAL(SDCardTabGainedFocus()), sddataWidget, SLOT(onSdataLeftFocusIn()));
-        connect(ui->actionLog_Editable, SIGNAL(toggled(bool)), logWidget, SLOT(setTableEditable(bool)));
+        connect(ui->actionLog_Editable, SIGNAL(toggled(bool)), logWidgetE, SLOT(setTableEditable(bool)));
 
         connect(&app.serialListener,      SIGNAL(receiveMessage(ActiveMessage)),
                 &app.timeSyncMsgReceiver, SLOT(onReceiveMessage(ActiveMessage)), Qt::DirectConnection);
