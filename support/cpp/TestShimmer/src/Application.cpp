@@ -28,8 +28,8 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: MiklÃ³s MarÃ³ti
-* Author: PÃ©ter Ruzicska
+* Author: Miklós Maróti
+* Author: Péter Ruzicska
 */
 
 #include "Application.h"
@@ -38,6 +38,7 @@ Application::Application()
         : dataRecorder(*this),
         settings("TAMOP422", "TestShimmer")
 {
+    int blabla;
     char* greetings = "Hello Peter!";
 }
 
