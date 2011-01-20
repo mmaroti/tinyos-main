@@ -40,6 +40,7 @@
 #include <QDateTime>
 #include <QDateTimeEdit>
 #include <QMessageBox>
+#include <QtDebug>
 
 LogWidget::LogWidget(QWidget *parent, Application &app) :
         QWidget(parent),
@@ -48,7 +49,10 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
 {
     ui->setupUi(this);
 
-    signalMapper = new QSignalMapper(this);
+    delSignalMapper = new QSignalMapper(this);
+    gotoSignalMapper = new QSignalMapper(this);
+
+    id = 0;
 
     ui->log->setRowCount(0);
     ui->log->horizontalHeader()->resizeSection(0, 40);
@@ -60,7 +64,12 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
 
     ui->entryLine->setFocus();
 
-    connect(signalMapper, SIGNAL(mapped(int)),this, SLOT(onDelRow(int)));
+    ui->recEndButton->setEnabled(false);
+    ui->motionStartButton->setEnabled(false);
+    ui->motionEndButton->setEnabled(false);
+
+    connect(delSignalMapper, SIGNAL(mapped(int)),this, SLOT(onDelRow(int)));
+    connect(gotoSignalMapper, SIGNAL(mapped(int)), this, SLOT(onGoto(int)));
 }
 
 LogWidget::~LogWidget()
@@ -72,11 +81,11 @@ LogWidget::~LogWidget()
 void LogWidget::on_entryLine_returnPressed()
 {
     if(!ui->entryLine->text().isNull()){
-        createItem(ui->entryLine->text());
+        createItem(ui->entryLine->text(), false);
     }
 }
 
-void LogWidget::createItem(QString text)
+void LogWidget::createItem(QString text, bool createArrow)
 {
     QString txt = "";
     int row = ui->log->rowCount();
@@ -89,9 +98,15 @@ void LogWidget::createItem(QString text)
         txt = text;
     }
 
-    QPushButton* but = new QPushButton(QIcon(":/icons/back-arrow.png"),"",this);
-    //but->setMaximumSize(40,20);
-    ui->log->setCellWidget(row,0,but);
+    if(createArrow){
+        QPushButton* gotoButton = new QPushButton(QIcon(":/icons/back-arrow.png"),"",this);
+        //but->setMaximumSize(40,20);
+        ui->log->setCellWidget(row,0,gotoButton);
+
+        gotoSignalMapper->setMapping(gotoButton, id);
+
+        connect(gotoButton, SIGNAL(clicked()), gotoSignalMapper, SLOT (map()));
+    }
 
     QTableWidgetItem* time = new QTableWidgetItem(QTime::currentTime().toString(),1);
     ui->log->setItem(row,1,time);
@@ -102,41 +117,101 @@ void LogWidget::createItem(QString text)
     QPushButton* del = new QPushButton(QIcon(":/icons/Delete.png"),"",this);
     del->setMaximumSize(20,20);
     ui->log->setCellWidget(row,3,del);
-    signalMapper->setMapping(del, row);
+    delSignalMapper->setMapping(del, id);
 
-    connect(del, SIGNAL(clicked()), signalMapper, SLOT (map()));
+    connect(del, SIGNAL(clicked()), delSignalMapper, SLOT (map()));
 
     ui->entryLine->clear();
     ui->entryLine->setFocus();
+
+    logMap.insert(id, row);
+    id++;
 }
 
 void LogWidget::on_recStartButton_clicked()
 {
-    createItem(QString::fromUtf8("Rec start"));
+    QString msg = QString::fromUtf8("Rec start");
+    if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
+    createItem(msg,false);
+    ui->recStartButton->setEnabled(false);
+    ui->recEndButton->setEnabled(true);
+    ui->motionStartButton->setEnabled(true);
 }
 
 void LogWidget::on_recEndButton_clicked()
 {
-    createItem(QString::fromUtf8("Rec end"));
+    QString msg = QString::fromUtf8("Rec End");
+    if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
+    createItem(msg,false);
+    ui->recStartButton->setEnabled(true);
+    ui->recEndButton->setEnabled(false);
+    ui->motionStartButton->setEnabled(false);
+
 }
 
 void LogWidget::on_motionStartButton_clicked()
 {
-    createItem(QString::fromUtf8("Motion start"));
+    QString msg = QString::fromUtf8("Motion start");
+    if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
+    createItem(msg,true);
+    ui->motionStartButton->setEnabled(false);
+    ui->motionEndButton->setEnabled(true);
 }
 
 void LogWidget::on_motionEndButton_clicked()
 {
-    createItem(QString::fromUtf8("Motion end"));
+    QString msg = QString::fromUtf8("Motion end");
+    if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
+    createItem(msg,false);
+    ui->motionEndButton->setEnabled(false);
+    ui->motionStartButton->setEnabled(true);
 }
 
-void LogWidget::onDelRow(int row)
+void LogWidget::onDelRow(int id)
 {
     QMessageBox msgBox;
     msgBox.setInformativeText("Are you sure you want to delete this row?");
     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Cancel);
     int ret = msgBox.exec();
-    if(ret == QMessageBox::Ok)
-        ui->log->removeRow(row);
+    if(ret == QMessageBox::Ok){
+        qDebug() << "Delete: " << ui->log->item(logMap.value(id),2)->text();
+        ui->log->removeRow(logMap.value(id));
+
+        qDebug() << QString::number(id);
+
+        QHash<int, int>::iterator i = logMap.find(id);
+        while( i != logMap.end() ){             
+             i.value() = i.value()-1;
+             qDebug() << i.key() << ": " << i.value();
+             ++i;
+         }
+        logMap.remove(id);
+        qDebug() << "";
+    }
+}
+
+void LogWidget::onGoto(int id)
+{
+    QMessageBox msgBox;
+    QString msg = "Start - End\n";
+    msg.append(ui->log->item(logMap.value(id),1)->text() + " - " + ui->log->item(logMap.value(findMotionEnd(id)),1)->text());
+
+    msgBox.setText(msg);
+    msgBox.exec();
+
+}
+
+int LogWidget::findMotionEnd(int startId)
+{
+    int endId;
+    QHash<int, int>::iterator i = logMap.find(startId);
+    while( i != logMap.end() ){
+        if(ui->log->item(i.value(),2)->text().contains("Motion end", Qt::CaseSensitive)){
+            endId = i.key();
+            break;
+        }
+         ++i;
+     }
+    return endId;
 }

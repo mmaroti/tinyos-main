@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_2">
+  <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,0">
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
@@ -514,13 +514,6 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="recEndButton">
-       <property name="text">
-        <string>Rec end</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QPushButton" name="motionStartButton">
        <property name="text">
         <string>Motion start</string>
@@ -531,6 +524,13 @@
       <widget class="QPushButton" name="motionEndButton">
        <property name="text">
         <string>Motion end</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="recEndButton">
+       <property name="text">
+        <string>Rec end</string>
        </property>
       </widget>
      </item>
@@ -546,6 +546,29 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QPushButton" name="pushButton">
+          <property name="text">
+           <string>Load</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_2">
+          <property name="text">
+           <string>Save</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </item>
     </layout>
    </item>

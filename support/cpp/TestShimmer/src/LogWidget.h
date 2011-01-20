@@ -36,6 +36,7 @@
 
 #include <QWidget>
 #include <QSignalMapper>
+#include <QHash>
 
 class Application;
 
@@ -52,9 +53,13 @@ public:
 private:
     Ui::LogWidget *ui;
     Application &application;
-    QSignalMapper* signalMapper;    
+    QSignalMapper* delSignalMapper;
+    QSignalMapper* gotoSignalMapper;
+    QHash<int,int> logMap;
+    int id;
 
-    void createItem(QString text);
+    void createItem(QString text, bool createArrow);
+    int findMotionEnd(int);
 
 private slots:
     void on_entryLine_returnPressed();
@@ -63,6 +68,7 @@ private slots:
     void on_motionStartButton_clicked();
     void on_motionEndButton_clicked();
     void onDelRow(int);
+    void onGoto(int);
 };
 
 #endif // LOGWIDGET_H
