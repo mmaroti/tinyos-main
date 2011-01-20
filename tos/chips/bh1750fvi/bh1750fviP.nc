@@ -82,12 +82,12 @@ implementation {
       //call I2CPacket.write(I2C_START | I2C_STOP, WRITE_ADDRESS, 1, POWER_ON);
      // signal SplitControl.startDone(SUCCESS);
     } else if(state == S_BUSY) {
-       unsigned int i;
+       uint16_t i;
        error_t err;
         call Leds.led0On();
         err=call I2CPacket.read(I2C_START | I2C_STOP, READ_ADDRESS, 2, res);
         
-          for(i=0; i<65535; i++)
+          for(i=0; i<65535U; i++)
             asm volatile ("nop"::);
         if(call DiagMsg.record()){
 	    call DiagMsg.str("P.firBUS");
@@ -165,7 +165,7 @@ implementation {
 	    call DiagMsg.send();
       }
     } else if(state == S_BUSY) {
- error_t err;
+      //error_t err;
       uint8_t cmd=0x01;
       call I2CPacket.write(I2C_START | I2C_STOP, WRITE_ADDRESS, 1, &cmd);
       //call I2CPacket.read(I2C_START | I2C_STOP, WRITE_ADDRESS, 2, res);
