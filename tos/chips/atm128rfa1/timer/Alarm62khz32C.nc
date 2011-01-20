@@ -50,4 +50,7 @@ implementation
 	components HplAtmRfa1TimerMacC;
 	AtmegaCompareP.AtmegaCounter -> HplAtmRfa1TimerMacC;
 	AtmegaCompareP.AtmegaCompare -> HplAtmRfa1TimerMacC.Compare[unique(UQ_T62KHZ_ALARM)];
+
+	// just to start the timer
+	components Counter62khz32C;
 }
