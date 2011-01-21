@@ -57,9 +57,14 @@ private:
     QSignalMapper* gotoSignalMapper;
     QHash<int,int> logMap;
     int id;
+    int motionStart;
+    bool motionStarted;
 
     void createItem(QString text, bool createArrow);
+    int findMotionStart(int);
     int findMotionEnd(int);
+    int motionDistance(int, int);
+    void init();
 
 private slots:
     void on_entryLine_returnPressed();
@@ -67,6 +72,8 @@ private slots:
     void on_recEndButton_clicked();
     void on_motionStartButton_clicked();
     void on_motionEndButton_clicked();
+    void on_loadButton_clicked();
+    void on_saveButton_clicked();
     void onDelRow(int);
     void onGoto(int);
 };
