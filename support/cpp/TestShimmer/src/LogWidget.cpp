@@ -241,7 +241,7 @@ void LogWidget::onDelRow(int id)
         for(int j=startId; j<=endId; j++ ){
             ui->log->removeRow(logMap.value(j));
 
-            QHash<int, int>::iterator i = logMap.find(j);
+            QMap<int, int>::iterator i = logMap.find(j);
             while( i != logMap.end() ){
                  i.value() = i.value()-1;
                  ++i;
@@ -264,7 +264,7 @@ void LogWidget::onGoto(int id)
 int LogWidget::findMotionStart(int endId)
 {
     int startId = -1;
-    QHash<int, int>::iterator i = logMap.find(endId);
+    QMap<int, int>::iterator i = logMap.find(endId);
     while( i != logMap.begin() ){
         if(ui->log->item(i.value(),2)->text().contains("Motion start", Qt::CaseSensitive)){
             startId = i.key();
@@ -278,7 +278,7 @@ int LogWidget::findMotionStart(int endId)
 int LogWidget::findMotionEnd(int startId)
 {
     int endId = -1;
-    QHash<int, int>::iterator i = logMap.find(startId);
+    QMap<int, int>::iterator i = logMap.find(startId);
     while( i != logMap.end() ){
         if(ui->log->item(i.value(),2)->text().contains("Motion end", Qt::CaseSensitive)){
             endId = i.key();
@@ -292,7 +292,7 @@ int LogWidget::findMotionEnd(int startId)
 int LogWidget::motionDistance(int startId, int endId)
 {
     int distance=0;
-    QHash<int, int>::iterator i = logMap.find(startId);
+    QMap<int, int>::iterator i = logMap.find(startId);
     while( i != logMap.end() ){
         distance++;
         if(i.value() == endId){

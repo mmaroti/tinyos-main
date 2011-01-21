@@ -36,7 +36,7 @@
 
 #include <QWidget>
 #include <QSignalMapper>
-#include <QHash>
+#include <QMap>
 
 class Application;
 
@@ -55,7 +55,7 @@ private:
     Application &application;
     QSignalMapper* delSignalMapper;
     QSignalMapper* gotoSignalMapper;
-    QHash<int,int> logMap;
+    QMap<int,int> logMap;
     int id;
     int motionStart;
     bool motionStarted;
