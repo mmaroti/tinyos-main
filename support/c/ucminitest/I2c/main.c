@@ -1,5 +1,8 @@
-#define F_CPU 8000000UL
-//#define F_CPU 16000000UL
+#define F_CPU 16000000UL
+//sensor 1 : sht21 2: bh1750fvi 3: ms5607
+#define SENSOR 1
+#define I2CBR 255
+#define I2CPRSC 3
 
 #include <inttypes.h>
 #include <avr/io.h>
@@ -34,7 +37,35 @@ int BRREG_VALUE;
 	void initbootuart(void);
 	
   
-  void led0On() {
+	void led0Toggle(){
+	  if( PORTE&_BV(PE5) ){
+	    led0Off();
+	  } else
+	    led0On();
+	}
+	
+	void led1Toggle(){
+	  if(PORTE&_BV(PE6)){
+	    led1Off();
+	  } else
+	    led1On();
+	}
+	
+	void led2Toggle(){
+	  if(PORTE&_BV(PE7)){
+	    led2Off();
+	  } else
+	    led2On();
+	}
+	
+	void led3Toggle(){
+	  if(PORTE&_BV(PE3)){
+	    led3Off();
+	  } else
+	    led3On();
+	}
+	
+	void led0On() {
 		PORTE |= _BV(PE5);
 	}
 	
@@ -311,121 +342,51 @@ int main() {
    Init();
 	 initbootuart();
 	 
-	 //Sht21
-	 
-	 /*
-	TWI_init(32, 0);
-	ret[0] = EE_write_byte(128, 0xf3);
-	//measurement delay
-	 _delay_ms(85);
-	ret[1] = EE_read_byte(129, 2, eredm);
 
-	TWI_stop();
-	*/
-	 
-	 //bh1750fvi
-	 
-	 /*
-	 TWI_init(32, 0);
-	 ret[0] = EE_write_byte(70, 0x1);
-	 TWI_stop();
-	 
-	 ret[0] = EE_write_byte(70, 0x20);
-	 TWI_stop();
-	 
-	 _delay_ms(200);
-	 //TWI_wait(70);
-	 ret[0] = EE_write_byte(70, 0x1);
-	 TWI_stop();
-	 
-	 ret[1] = EE_read_byte(71, 2, eredm);
-	 TWI_stop();
-	 */
-	 
-	 //ms5607
-	 /*TWI_init(32,0);
-	 ret[0] = EE_write_byte(238, 0x40);
-	 TWI_stop();
-	 _delay_ms(100);
-	 //TWI_wait(238);
-	 ret[1] = EE_read_byte(239, 3, eredm);
-	 TWI_stop();
-	 */
-	 
-	 /*
-	 
-	 I2CWrite(128, 0xf5, 0);
-	 _delay_ms(100);
-	 I2CRead(129, 2);*/
-	 //led0On();
-	 //ledSet(3);
-	 flash();flash();
-	 _delay_ms(1000);
-	 //ledSet(10);
-	 //led2On();
-	 ledSet(eredm[0]>>4);
-	 _delay_ms(2000);
-	 
-	 /*ledOff();
-	 _delay_ms(300);
-	 led0On();
-	 _delay_ms(300);*/
-	 flash();
-	 
-	 
-	 ledSet(eredm[0]);
-	 _delay_ms(2000);
-	 
-	 flash();
-	 
-	 ledSet(eredm[1]>>4);
-	 _delay_ms(2000);
-	 
-	 flash();
-	 
-	 ledSet(eredm[1]);
-	 _delay_ms(4000);
-	 
-	 
-	 flash();
-	 
-	 ledSet(eredm[2]>>4);
-	 _delay_ms(2000);
-	 
-	 flash();
-	 
-	 ledSet(eredm[2]);
-	 _delay_ms(5000);
-	 
-	 ledOff();
-	 flash();flash();flash();
-	 
-	 ledSet(ret[1]>>4);
-	 _delay_ms(2000);
-	 
-	 flash();
-	 
-	 ledSet(ret[1]);
-	 _delay_ms(2000);
-	 ledOff();
 	 
 	 while(1) {
-	 TWI_init(32, 0);
-	ret[0] = EE_write_byte(128, 0xf3);
-	//measurement delay
-	 _delay_ms(85);
-	ret[1] = EE_read_byte(129, 2, eredm);
+	    led0Toggle();
+	    TWI_init(I2CBR, I2CPRSC);
+	 
+	    if(SENSOR==1){
+	      ret[0] = EE_write_byte(128, 0xf3);
+	      //measurement delay
+	      _delay_ms(85);
+	      ret[1] = EE_read_byte(129, 2, eredm);
 
-	TWI_stop();
-	 
-	 sendchar(eredm[0]);
-	 _delay_ms(50);
-	 sendchar(eredm[1]);
-	 _delay_ms(50);
-	 sendchar(eredm[2]);
-	 _delay_ms(50);
-	 
-	 sendchar(ret[0]);
-	 sendchar(ret[1]);
+
+	    } else if(SENSOR==2){
+	      ret[0] = EE_write_byte(70, 0x1);
+	      TWI_stop();
+	      
+	      ret[0] = EE_write_byte(70, 0x20);
+	      TWI_stop();
+	      
+	      _delay_ms(200);
+	      //TWI_wait(70);
+	      ret[0] = EE_write_byte(70, 0x1);
+	      TWI_stop();
+	      
+	      ret[1] = EE_read_byte(71, 2, eredm);
+	    } else if(SENSOR==3){
+	      ret[0] = EE_write_byte(238, 0x40);
+	      TWI_stop();
+	      _delay_ms(100);
+	      //TWI_wait(238);
+	      ret[1] = EE_read_byte(239, 3, eredm);
+	    }
+	    
+	    TWI_stop();
+	    
+	    sendchar(eredm[0]);
+	    _delay_ms(50);
+	    sendchar(eredm[1]);
+	    _delay_ms(50);
+	    sendchar(eredm[2]);
+	    _delay_ms(50);
+	    
+	    sendchar(ret[0]);
+	    sendchar(ret[1]);
+	    led1Toggle();
 	 }
 }
