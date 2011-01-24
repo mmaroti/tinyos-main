@@ -50,6 +50,8 @@ public:
     LogWidget(QWidget *parent, Application &app);
     ~LogWidget();
 
+    enum Button { MotionStart, MotionEnd, RecordStart, RecordEnd, Text };
+
 private:
     Ui::LogWidget *ui;
     Application &application;
@@ -60,7 +62,7 @@ private:
     int motionStart;
     bool motionStarted;
 
-    void createItem(QString text, bool createArrow);
+    void createItem(QString text, Button button);
     int findMotionStart(int);
     int findMotionEnd(int);
     int motionDistance(int, int);
