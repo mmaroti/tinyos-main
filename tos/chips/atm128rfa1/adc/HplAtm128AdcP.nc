@@ -127,6 +127,8 @@ implementation {
 		if(bit_is_set(ADCSRA,ADEN)) {
 			return ATM128_POWER_ADC_NR;
 		}
+		else
+			return ATM128_POWER_DOWN;
 	} 
 
   async command bool HplAtm128Adc.cancel() {

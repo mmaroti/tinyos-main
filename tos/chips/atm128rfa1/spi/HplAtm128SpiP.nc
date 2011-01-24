@@ -243,5 +243,7 @@ implementation {
 		if(bit_is_set(SPCR,SPE)) {
 			return ATM128_POWER_IDLE;
 		}
+		else
+			return ATM128_POWER_DOWN;
 	}
 }
