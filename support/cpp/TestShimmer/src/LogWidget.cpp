@@ -41,7 +41,8 @@
 #include <QDateTimeEdit>
 #include <QMessageBox>
 #include <QtDebug>
-#include <QBrush>
+#include <QAction>
+#include <QMenu>
 
 LogWidget::LogWidget(QWidget *parent, Application &app) :
         QWidget(parent),
@@ -68,6 +69,9 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
     ui->recEndButton->setEnabled(false);
     ui->motionStartButton->setEnabled(false);
     ui->motionEndButton->setEnabled(false);
+    ui->log->setContextMenuPolicy(Qt::CustomContextMenu);
+
+    connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
 
     connect(delSignalMapper, SIGNAL(mapped(int)),this, SLOT(onDelRow(int)));
     connect(gotoSignalMapper, SIGNAL(mapped(int)), this, SLOT(onGoto(int)));
@@ -94,15 +98,21 @@ void LogWidget::init()
 void LogWidget::on_entryLine_returnPressed()
 {
     if(!ui->entryLine->text().isNull()){
-        createItem(ui->entryLine->text(), Text);
+        createItem(ui->entryLine->text(), Text, -1);
     }
 }
 
-void LogWidget::createItem(QString text, Button button)
+void LogWidget::createItem(QString text, Button button, int at)
 {
     QString txt = "";
-    int row = ui->log->rowCount();
-    ui->log->insertRow(row);
+    int row;
+    if(at == -1){
+        row = ui->log->rowCount();
+        ui->log->insertRow(row);
+    } else {
+        row = at;
+        ui->log->insertRow(row);
+    }
 
     if(button == RecordStart){
         txt = QDate::currentDate().toString();
@@ -140,8 +150,21 @@ void LogWidget::createItem(QString text, Button button)
     ui->entryLine->clear();
     ui->entryLine->setFocus();
 
+    if(button == Insert){
+        qDebug() << "---------";
+        qDebug() << " Insert At: " << at;
+        QMap<int, int>::iterator i = logMap.begin();
+        //i++;
+        while( i != logMap.end() ){
+            if( i.value() >= at) i.value() = i.value()+1;
+             ++i;
+         }
+    }
+
     logMap.insert(id, row);
     id++;
+
+    printLogMap();
 }
 
 void LogWidget::on_recStartButton_clicked()
@@ -150,7 +173,7 @@ void LogWidget::on_recStartButton_clicked()
 
     QString msg = QString::fromUtf8("Rec start");
     if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
-    createItem(msg,RecordStart);
+    createItem(msg,RecordStart,-1);
     ui->recStartButton->setEnabled(false);
     ui->motionStartButton->setEnabled(true);
 
@@ -161,10 +184,11 @@ void LogWidget::on_recEndButton_clicked()
 {
     QString msg = QString::fromUtf8("Rec End");
     if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
-    createItem(msg,RecordEnd);
+    createItem(msg,RecordEnd,-1);
     ui->recStartButton->setEnabled(false);
     ui->recEndButton->setEnabled(false);
     ui->motionStartButton->setEnabled(false);
+    ui->entryLine->setEnabled(false);
 
     ui->entryLine->setFocus();
 }
@@ -174,9 +198,10 @@ void LogWidget::on_motionStartButton_clicked()
     motionStarted = false;
     QString msg = QString::fromUtf8("Motion start");
     if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
-    createItem(msg,MotionStart);
+    createItem(msg,MotionStart,-1);
     ui->motionStartButton->setEnabled(false);
     ui->motionEndButton->setEnabled(true);
+    ui->recEndButton->setEnabled(false);
 
     ui->entryLine->setFocus();
 }
@@ -186,7 +211,7 @@ void LogWidget::on_motionEndButton_clicked()
     motionStarted = false;
     QString msg = QString::fromUtf8("Motion end");
     if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
-    createItem(msg,MotionEnd);
+    createItem(msg,MotionEnd,-1);
     ui->motionEndButton->setEnabled(false);
     ui->motionStartButton->setEnabled(true);
     ui->recEndButton->setEnabled(true);
@@ -209,11 +234,16 @@ void LogWidget::on_loadButton_clicked()
     ui->recEndButton->setEnabled(false);
     ui->motionStartButton->setEnabled(false);
     ui->motionEndButton->setEnabled(false);
+
+    ui->entryLine->setFocus();
 }
 
 void LogWidget::on_saveButton_clicked()
 {
     ui->recStartButton->setEnabled(true);
+    ui->entryLine->setEnabled(true);
+
+    ui->entryLine->setFocus();
 }
 
 void LogWidget::onDelRow(int id)
@@ -240,21 +270,32 @@ void LogWidget::onDelRow(int id)
         msgBox.setIcon(QMessageBox::Warning);
     }
 
-    if(logMap.value(id) != 0 && logMap.value(id) != ui->log->rowCount()-1){
-        int ret = msgBox.exec();
-        if(ret == QMessageBox::Ok){
-            for(int j=startId; j<=endId; j++ ){
-                ui->log->removeRow(logMap.value(j));
+    int ret = msgBox.exec();
+    if(ret == QMessageBox::Ok){
+        qDebug() << "--------- ";
+        qDebug() << "Delete From: " << startId << " - " << logMap.value(startId);
+        qDebug() << "To: " << endId << " - " << logMap.value(endId);
+        int count = 0;
+        for(int j=logMap.value(startId); j<=logMap.value(endId); j++ ){
+            ui->log->removeRow(logMap.value(startId));
 
-                QMap<int, int>::iterator i = logMap.find(j);
-                while( i != logMap.end() ){
-                     i.value() = i.value()-1;
-                     ++i;
-                 }
-                logMap.remove(j);
-            }
+            count++;
         }
+        //TODO - erre kéne rájönni
+//        QMap<int, int>::iterator i = logMap.begin();
+//        while( i != logMap.end() ){
+//            if( i.value() > logMap.value(endId)) i.value() = i.value()-count;
+//            ++i;
+//         }
+//        logMap.remove(logMap.key(j));
+
+        printLogMap();
     }
+
+
+
+
+    ui->entryLine->setFocus();
 }
 
 void LogWidget::onGoto(int id)
@@ -307,4 +348,34 @@ int LogWidget::motionDistance(int startId, int endId)
          ++i;
      }
     return distance;
+}
+
+void LogWidget::ShowContextMenu(const QPoint& pos)
+{
+    QPoint globalPos = ui->log->mapToGlobal(pos);
+
+    int row = ui->log->rowAt(pos.y());
+
+    QMenu myMenu;
+    myMenu.addAction("Insert Row After");
+
+    QAction* selectedItem = myMenu.exec(globalPos);
+    if (selectedItem)
+    {
+        createItem("inserted", Insert, row+1);
+    }
+    else
+    {
+        // nothing was chosen
+    }
+}
+
+void LogWidget::printLogMap()
+{
+    qDebug() << "=====================";
+    QMap<int, int>::iterator i = logMap.begin();
+    while( i != logMap.end() ){
+        qDebug() << QString::number(i.key()) << " - " << QString::number(i.value());
+         ++i;
+     }
 }

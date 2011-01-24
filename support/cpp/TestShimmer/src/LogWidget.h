@@ -50,7 +50,7 @@ public:
     LogWidget(QWidget *parent, Application &app);
     ~LogWidget();
 
-    enum Button { MotionStart, MotionEnd, RecordStart, RecordEnd, Text };
+    enum Button { MotionStart, MotionEnd, RecordStart, RecordEnd, Text, Insert };
 
 private:
     Ui::LogWidget *ui;
@@ -62,11 +62,12 @@ private:
     int motionStart;
     bool motionStarted;
 
-    void createItem(QString text, Button button);
+    void createItem(QString text, Button button, int at);
     int findMotionStart(int);
     int findMotionEnd(int);
-    int motionDistance(int, int);
+    int motionDistance(int, int);    
     void init();
+    void printLogMap();
 
 private slots:
     void on_entryLine_returnPressed();
@@ -78,6 +79,7 @@ private slots:
     void on_saveButton_clicked();
     void onDelRow(int);
     void onGoto(int);
+    void ShowContextMenu(const QPoint& pos);
 };
 
 #endif // LOGWIDGET_H
