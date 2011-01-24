@@ -120,6 +120,8 @@ module HplAtm128UartP {
   provides interface StdControl as Uart1TxControl;
   provides interface StdControl as Uart1RxControl;
   provides interface HplAtm128Uart as HplUart1;
+
+	provides interface McuPowerOverride;
   
   uses interface Atm128Calibrate;
   uses interface McuPowerState;
@@ -270,6 +272,8 @@ implementation {
     SET_BIT(UCSR1B, TXCIE1);
     return SUCCESS;
   }
+
+	
   
   async command error_t HplUart1.disableTxIntr(){
     CLR_BIT(UCSR1B, TXCIE1);
@@ -313,7 +317,14 @@ implementation {
   AVR_NONATOMIC_HANDLER(USART1_TX_vect) {
     signal HplUart1.txDone();
   }
-  
+ 
+	async command mcu_power_t McuPowerOverride.lowestState() {
+		if ((UCSR0B & (1 << TXCIE0 | 1 << RXCIE0 | 1 << UDRIE0)) || (UCSR1B & (1 << TXCIE1 | 1 << RXCIE1 | 1 << UDRIE1))) {
+			return ATM128_POWER_IDLE;
+		} else
+			return ATM128_POWER_DOWN;
+	}
+ 
   default async event void HplUart0.txDone() {} 
   default async event void HplUart0.rxDone(uint8_t data) {}
   default async event void HplUart1.txDone() {}
