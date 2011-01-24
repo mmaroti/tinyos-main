@@ -8,7 +8,7 @@ main.o: main.c
 	avr-gcc -g -Os -mmcu=atmega128rfa1 -c main.c	
 	
 prog: main.hex
-	avrdude -cavr109 -C/etc/avrdude/avrdude.conf -pm128rfa1 -P/dev/ttyUSB0 -Uflash:w:main.hex:i -b57600
+	avrdude -cavr109 -C/etc/avrdude/avrdude.conf -pm128rfa1 -P/dev/ttyUSB0 -Uflash:w:main.hex:i -b115200
 dump: main.elf
 	avr-objdump -h -S main.elf > main.lst
 	
