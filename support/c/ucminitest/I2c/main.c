@@ -1,6 +1,6 @@
 #define F_CPU 16000000UL
-//sensor 1 : sht21 2: bh1750fvi 3: ms5607
-#define SENSOR 1
+//sensor 1 : sht21 (homerseklet, para) 2: bh1750fvi (feny) 3: ms5607 (legnyomas)
+#define SENSOR 3
 #define I2CBR 255
 #define I2CPRSC 3
 
@@ -348,14 +348,14 @@ int main() {
 	    led0Toggle();
 	    TWI_init(I2CBR, I2CPRSC);
 	 
-	    if(SENSOR==1){
+	    if(SENSOR==1){//sht21 (homerseklet/para)
 	      ret[0] = EE_write_byte(128, 0xf3);
 	      //measurement delay
 	      _delay_ms(85);
 	      ret[1] = EE_read_byte(129, 2, eredm);
 
 
-	    } else if(SENSOR==2){
+	    } else if(SENSOR==2){//bh1750fvi (feny)
 	      ret[0] = EE_write_byte(70, 0x1);
 	      TWI_stop();
 	      
@@ -368,10 +368,11 @@ int main() {
 	      TWI_stop();
 	      
 	      ret[1] = EE_read_byte(71, 2, eredm);
-	    } else if(SENSOR==3){
+	    } else if(SENSOR==3){//ms5607 (legnyomas)
 	      ret[0] = EE_write_byte(238, 0x40);
 	      TWI_stop();
 	      _delay_ms(100);
+				ret[0] = EE_write_byte(238, 0x00);
 	      //TWI_wait(238);
 	      ret[1] = EE_read_byte(239, 3, eredm);
 	    }
