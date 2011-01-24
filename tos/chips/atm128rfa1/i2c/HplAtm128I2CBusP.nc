@@ -196,16 +196,9 @@ implementation {
   }
 
   async command mcu_power_t McuPowerOverride.lowestState() {
-    if(bit_is_set(TWCR,TWEN) || TIMSK0 & (1 << OCIE0A | 1 << OCIE0B ) ||
-				TIMSK1 & (1 << ICIE1  | 1 << OCIE1A | 1 << OCIE1B | 1 << OCIE1C) ||
-				TIMSK3 & (1 << ICIE3  | 1 << OCIE3A | 1 << OCIE3B | 1 << OCIE3C) ||
-				bit_is_set(SPCR, SPIE) || UCSR0B & (1 << TXCIE0 | 1 << RXCIE0 | 1 << UDRIE0) ||
-				UCSR1B & (1 << TXCIE1 | 1 << RXCIE1 | 1 << UDRIE1)) {
+    if(bit_is_set(TWCR,TWEN)) {
       return ATM128_POWER_IDLE;
     }
-		else if(bit_is_set(ADCSRA, ADEN)) {
-			return ATM128_POWER_ADC_NR;
-		}
 		else 
 			return ATM128_POWER_DOWN;
   }
