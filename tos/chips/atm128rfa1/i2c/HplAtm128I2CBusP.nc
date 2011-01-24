@@ -203,7 +203,7 @@ implementation {
 				UCSR1B & (1 << TXCIE1 | 1 << RXCIE1 | 1 << UDRIE1)) {
       return ATM128_POWER_IDLE;
     }
-		else if((bit_is_set(ADCSRA, ADEN)) {
+		else if(bit_is_set(ADCSRA, ADEN)) {
 			return ATM128_POWER_ADC_NR;
 		}
 		else 
