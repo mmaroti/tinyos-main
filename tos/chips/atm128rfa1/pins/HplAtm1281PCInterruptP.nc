@@ -35,10 +35,12 @@ implementation
 	if(mask_addr&(1<<pin))
 	  return EALREADY;
 	else{
-	  if(pinget(pin))
-		state|=1<<pin;
-	  mask|=1<<pin;
-	  PCICR|=1<<ctrl_bit;
+	  atomic {
+	    mask|=1<<pin;
+	    if(pinget(pin))
+		  state|=1<<pin;
+	    PCICR|=1<<ctrl_bit;
+	  }
 	  return SUCCESS;
 	}
   }
@@ -47,7 +49,6 @@ implementation
 	if(!(mask_addr&(1<<pin)))
 	  return EALREADY;
 	else{
-	  state&=~(1<<pin);
 	  atomic{
 		mask&=~(1<<pin);
 		if(mask==0)
@@ -59,10 +60,12 @@ implementation
   
   inline bool InterruptGet(uint8_t pin){
 	if(mask_addr&(1<<pin)){
-	  if(state&(1<<pin))
-		return TRUE;
-	  else
-		return FALSE;
+	  atomic{
+	    if(state&(1<<pin))
+		  return TRUE;
+	    else
+		  return FALSE;
+	  }
 	} else {
 	  return pinget(pin);
 	}
