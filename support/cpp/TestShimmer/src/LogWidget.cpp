@@ -64,12 +64,6 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
 
     ui->log->setEditTriggers(QAbstractItemView::AllEditTriggers);
 
-    ui->entryLine->setFocus();
-
-    ui->recEndButton->setEnabled(false);
-    ui->motionStartButton->setEnabled(false);
-    ui->motionEndButton->setEnabled(false);
-
     ui->log->setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
@@ -87,6 +81,11 @@ void LogWidget::init()
 {
     ui->log->clearContents();
     ui->log->setRowCount(0);
+
+    ui->recEndButton->setEnabled(false);
+    ui->motionStartButton->setEnabled(false);
+    ui->motionEndButton->setEnabled(false);
+    ui->saveButton->setEnabled(false);
 
     ui->entryLine->setFocus();
 }
@@ -166,19 +165,31 @@ void LogWidget::on_recStartButton_clicked()
     createItem(msg,RecordStart,-1);
     ui->recStartButton->setEnabled(false);
     ui->motionStartButton->setEnabled(true);
+    ui->saveButton->setEnabled(false);
+    ui->loadButton->setEnabled(false);
 
     ui->entryLine->setFocus();
 }
 
 void LogWidget::on_recEndButton_clicked()
 {
-    QString msg = QString::fromUtf8("Rec End");
-    if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
-    createItem(msg,RecordEnd,-1);
-    ui->recStartButton->setEnabled(false);
-    ui->recEndButton->setEnabled(false);
-    ui->motionStartButton->setEnabled(false);
-    ui->entryLine->setEnabled(false);
+    QMessageBox msgBox;
+    msgBox.setText("Are you sure you want to finish recording?");
+    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Cancel);
+    int ret = msgBox.exec();
+    if(ret == QMessageBox::Ok){
+        QString msg = QString::fromUtf8("Rec End");
+        if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
+        createItem(msg,RecordEnd,-1);
+        ui->recStartButton->setEnabled(false);
+        ui->recEndButton->setEnabled(false);
+        ui->motionStartButton->setEnabled(false);
+        ui->entryLine->setEnabled(false);
+        ui->saveButton->setEnabled(true);
+
+        disconnect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
+    }
 
     ui->entryLine->setFocus();
 }
@@ -210,10 +221,13 @@ void LogWidget::on_motionEndButton_clicked()
 
 void LogWidget::on_loadButton_clicked()
 {
+    init();
+
     ui->recStartButton->setEnabled(false);
     ui->recEndButton->setEnabled(false);
     ui->motionStartButton->setEnabled(false);
     ui->motionEndButton->setEnabled(false);
+    ui->saveButton->setEnabled(true);
 
     ui->entryLine->setFocus();
 }
@@ -221,7 +235,10 @@ void LogWidget::on_loadButton_clicked()
 void LogWidget::on_saveButton_clicked()
 {
     ui->recStartButton->setEnabled(true);
+    ui->loadButton->setEnabled(true);
     ui->entryLine->setEnabled(true);
+
+    connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
 
     ui->entryLine->setFocus();
 }
