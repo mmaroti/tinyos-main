@@ -21,11 +21,7 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
-       <widget class="QLabel" name="dateTimeLabel">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
+       <widget class="QTimeEdit" name="timeEdit"/>
       </item>
       <item>
        <widget class="QLineEdit" name="lineEdit"/>

@@ -97,7 +97,8 @@ SOURCES += src/DataRecorder.cpp \
     src/SDCard/RecordList.cpp \
     src/SDCard/MoteHeader.cpp \
     src/SDCard/RecordLine.cpp \
-    src/TabWatcher.cpp
+    src/TabWatcher.cpp \
+    src/LogDialog.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -171,7 +172,8 @@ HEADERS += src/DataRecorder.h \
     src/SDCard/RecordList.hpp \
     src/SDCard/MoteHeader.hpp \
     src/SDCard/RecordLine.hpp \
-    src/TabWatcher.hpp
+    src/TabWatcher.hpp \
+    src/LogDialog.h
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \
@@ -181,6 +183,7 @@ FORMS += src/MainWindow.ui \
     src/GraphWidget.ui \
     src/SDataWidget.ui \
     src/LogWidget.ui \
+    src/LogDialog.ui \
     src/LogWidget_editable.ui
 RESOURCES += src/Resources.qrc \
     src/textures.qrc

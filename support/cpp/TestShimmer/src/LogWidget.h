@@ -55,19 +55,15 @@ public:
 private:
     Ui::LogWidget *ui;
     Application &application;
-    QSignalMapper* delSignalMapper;
-    QSignalMapper* gotoSignalMapper;
-    QMap<int,int> logMap;
-    int id;
-    int motionStart;
-    bool motionStarted;
+
+    void onGoto(int);
+    void onDelRow(int);
 
     void createItem(QString text, Button button, int at);
     int findMotionStart(int);
     int findMotionEnd(int);
-    int motionDistance(int, int);    
+    int motionDistance(int, int);
     void init();
-    void printLogMap();
 
 private slots:
     void on_entryLine_returnPressed();
@@ -77,9 +73,10 @@ private slots:
     void on_motionEndButton_clicked();
     void on_loadButton_clicked();
     void on_saveButton_clicked();
-    void onDelRow(int);
-    void onGoto(int);
+
     void ShowContextMenu(const QPoint& pos);
+    void on_log_cellClicked(int,int
+                        );
 };
 
 #endif // LOGWIDGET_H
