@@ -58,7 +58,7 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
 
     ui->log->setRowCount(0);
     ui->log->horizontalHeader()->resizeSection(0, 40);
-    ui->log->horizontalHeader()->resizeSection(1, 70);
+    ui->log->horizontalHeader()->resizeSection(1, 100);
     ui->log->horizontalHeader()->setResizeMode(2, QHeaderView::Stretch);
     ui->log->horizontalHeader()->resizeSection(3, 40);
 
