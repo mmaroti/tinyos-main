@@ -69,6 +69,9 @@ private:
 
     bool inEditing;
 
+signals:
+    void recordStatusChanged(QString, int);
+
 private slots:
     void on_entryLine_returnPressed();
     void on_recStartButton_clicked();

@@ -64,7 +64,7 @@ void SerialListener::disconnectPort(const char * message)
 		timerId = startTimer(0);
 	}
 
-	emit showNotification(message);
+        emit showNotification(message, 0);
 }
 
 void SerialListener::onPortChanged(const QString & portName, int baudRate)
@@ -78,7 +78,7 @@ void SerialListener::onPortChanged(const QString & portName, int baudRate)
 	if( portName == "simulated" )
 	{
 		timerId = startTimer(20);
-		emit showNotification("Generating simulated messages.");
+                emit showNotification("Generating simulated messages.", 1);
 		return;
 	}
 
@@ -107,7 +107,7 @@ void SerialListener::onPortChanged(const QString & portName, int baudRate)
 		badPacketCount = -1;
 		partialPacket.clear();
 
-		emit showNotification("Connected.");
+                emit showNotification("Connected.", 1);
 		connect(port, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
 	}
 
@@ -207,7 +207,7 @@ void SerialListener::receiveTosPacket(const QByteArray & packet)
 
 		if( packet.size() != length + 8 )
 		{
-			emit showNotification("Bad packet length.");
+                        emit showNotification("Bad packet length.", 0);
 			return;
 		}
 

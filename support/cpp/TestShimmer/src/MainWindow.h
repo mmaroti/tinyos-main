@@ -36,6 +36,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QLabel>
 #include "Application.h"
 
 namespace Ui {
@@ -54,6 +55,7 @@ protected:
 
 private slots:
         void onSolverRunning();
+        void onConnectionStateChanged(const QString &, int);
 
 signals:
         void focusIn();
@@ -61,6 +63,8 @@ signals:
 private:
 	Ui::MainWindow *ui;
 	Application app;
+
+        QLabel *connectionIcon;
 
         bool eventFilter(QObject *, QEvent *);
 };

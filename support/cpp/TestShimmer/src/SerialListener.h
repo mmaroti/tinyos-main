@@ -70,7 +70,7 @@ public:
 
 signals:
 	void receiveMessage(const ActiveMessage & msg);
-	void showNotification(const QString & message, int timeout = 0);
+        void showNotification(const QString & message, int);
 
 public slots:
 	void onPortChanged(const QString & portName, int baudRate);

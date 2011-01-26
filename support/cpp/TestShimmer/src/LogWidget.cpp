@@ -176,6 +176,7 @@ void LogWidget::on_recStartButton_clicked()
     //ui->loadButton->setEnabled(false);
 
     ui->entryLine->setFocus();
+    emit recordStatusChanged("Receiving...", 2);
 }
 
 void LogWidget::on_recEndButton_clicked()
@@ -195,6 +196,7 @@ void LogWidget::on_recEndButton_clicked()
         ui->entryLine->setEnabled(false);
         ui->saveButton->setEnabled(true);
 
+        emit recordStatusChanged("Stopped receiving...", 1);
         //disconnect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
     }
 
@@ -386,11 +388,11 @@ void LogWidget::on_log_cellChanged(int row, int column)
             ui->log->openPersistentEditor( ui->log->item(row, column));
             return;
 
-            inEditing = true;
-
-            QTableWidgetItem *item = ui->log->item(row,column);
-            item->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-            ui->log->editItem(item);
+//            inEditing = true;
+//
+//            QTableWidgetItem *item = ui->log->item(row,column);
+//            item->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+//            ui->log->editItem(item);
 
         } else {
             inEditing = false;

@@ -46,6 +46,7 @@
 #include "SDataWidget.h"
 #include "LogWidget.h"
 #include "LogWidget_editable.h"
+#include <QLabel>
 
 // FIXME Eliminate this hideous workaround
 extern DataRecorder* dr;
@@ -91,9 +92,21 @@ MainWindow::MainWindow(QWidget *parent) :
 	ConsoleWidget* consoleWidget = new ConsoleWidget(ui->consoleTab, app);
 	ui->consoleTab->layout()->addWidget(consoleWidget);
 
-	statusBar()->showMessage("Started.");
+        statusBar()->showMessage("Started.");
+        connectionIcon = new QLabel;
+        connectionIcon->setPixmap(QPixmap(":/icons/NoConnection.png"));
 
-        connect(&app.serialListener, SIGNAL(showNotification(const QString &, int)), statusBar(), SLOT(showMessage(const QString &, int)) );
+        connectionIcon->setMaximumHeight(20);
+        connectionIcon->setMaximumWidth(20);
+        connectionIcon->setScaledContents(true);
+        //connectionIcon->setFrameShadow(QFrame::Plain);
+        //connectionIcon->setFrameShape(QFrame::NoFrame);
+        connectionIcon->setAlignment(Qt::AlignRight);
+
+        ui->statusBar->insertPermanentWidget(0, connectionIcon,0 );
+
+        connect(logWidget, SIGNAL(recordStatusChanged(QString,int)), this, SLOT(onConnectionStateChanged(QString,int)));
+        connect(&app.serialListener, SIGNAL(showNotification(const QString &, int)), this, SLOT(onConnectionStateChanged(QString,int)) );
         connect(&app, SIGNAL(showMessageSignal(const QString &)), statusBar(), SLOT(showMessage(QString)) );
         connect(&app, SIGNAL(showConsoleSignal(const QString &)), consoleWidget , SLOT(onRecieveConsoleSignal(QString)) );
         connect(calibrationWidget, SIGNAL(calibrationDone()), dataWidget, SLOT(newCalibrationOccured()) );
@@ -171,4 +184,22 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         }
     }
     return false;
+}
+
+void MainWindow::onConnectionStateChanged(const QString &text, int status)
+{
+    statusBar()->showMessage(text);
+
+    if(status == 0){
+        connectionIcon->setPixmap(QPixmap(":/icons/NoConnection.png"));
+        ui->statusBar->update();
+        ui->statusBar->show();
+    } else if( status == 1){
+        connectionIcon->setPixmap(QPixmap(":/icons/Standby.png"));
+    } else if (status == 2){
+        connectionIcon->setPixmap(QPixmap(":/icons/Connection.png"));
+    }
+
+    //ui->statusBar->update();
+    //ui->statusBar->show();
 }

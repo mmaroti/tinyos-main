@@ -9,5 +9,8 @@
         <file>icons/Search.png</file>
         <file>icons/back-arrow.png</file>
         <file>icons/Delete.png</file>
+        <file>icons/Connection.png</file>
+        <file>icons/Standby.png</file>
+        <file>icons/NoConnection.png</file>
     </qresource>
 </RCC>
