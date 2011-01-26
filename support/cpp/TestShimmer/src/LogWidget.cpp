@@ -128,19 +128,22 @@ void LogWidget::createItem(QString text, Button button, int at)
         gotoButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     }
 
+    QTableWidgetItem* item = new QTableWidgetItem(txt,1);
+    ui->log->setItem(row,2,item);
+    item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+
     if(button == Insert){
         QTableWidgetItem* time = new QTableWidgetItem(ui->log->item(row-1,1)->text(),1);        
         ui->log->setItem(row,1,time);
         time->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        item->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     } else {
         QTableWidgetItem* time = new QTableWidgetItem(QTime::currentTime().toString(),1);
         ui->log->setItem(row,1,time);
         time->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     }
 
-    QTableWidgetItem* item = new QTableWidgetItem(txt,1);
-    ui->log->setItem(row,2,item);
-    item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+
 
     if(button != RecordStart && button != RecordEnd){
         QTableWidgetItem* del = new QTableWidgetItem(QIcon(":/icons/Delete.png"),"", 0);
@@ -188,7 +191,7 @@ void LogWidget::on_recEndButton_clicked()
         ui->entryLine->setEnabled(false);
         ui->saveButton->setEnabled(true);
 
-        disconnect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
+        //disconnect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
     }
 
     ui->entryLine->setFocus();
@@ -238,7 +241,7 @@ void LogWidget::on_saveButton_clicked()
     ui->loadButton->setEnabled(true);
     ui->entryLine->setEnabled(true);
 
-    connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
+    //connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
 
     ui->entryLine->setFocus();
 }
@@ -332,16 +335,18 @@ void LogWidget::ShowContextMenu(const QPoint& pos)
     QMenu myMenu;
     myMenu.addAction("Insert Row After");
 
-    QAction* selectedItem = myMenu.exec(globalPos);
-    if (selectedItem)
-    {
-        createItem(ui->entryLine->text(), Insert, row+1);
+    if(row != -1 && !isRecordEnd(row)){
+        QAction* selectedItem = myMenu.exec(globalPos);
+        if (selectedItem)
+        {
+            createItem(ui->entryLine->text(), Insert, row+1);
 
-        ui->entryLine->setFocus();
-    }
-    else
-    {
-        // nothing was chosen
+            ui->entryLine->setFocus();
+        }
+        else
+        {
+            // nothing was chosen
+        }
     }
 }
 
@@ -352,4 +357,28 @@ void LogWidget::on_log_cellClicked(int row, int column)
     } else if(column == 3){
         onDelRow(row);
     }
+}
+
+void LogWidget::on_log_itemChanged(QTableWidgetItem* item)
+{
+    int row = item->row();
+    int column = item->column();
+    if(column == 1 && item->isSelected() && row < ui->log->rowCount()){
+        QTime before = QTime::fromString(ui->log->item(row-1,column)->text(), "hh:mm:ss");
+        QTime after = QTime::fromString(ui->log->item(row+1,column)->text(), "hh:mm:ss");
+        QTime now = QTime::fromString(ui->log->item(row,column)->text(), "hh:mm:ss");
+
+        if(before > now || after < now){
+            QMessageBox msgBox;
+            msgBox.setText("Time value invalid!\nPlease enter a time value between\n"+ui->log->item(row-1,column)->text()+" - "+ui->log->item(row+1,column)->text());
+            msgBox.exec();
+
+            item->setSelected(true);
+        }
+    }
+}
+
+bool LogWidget::isRecordEnd(int row)
+{
+    return ui->log->item(row,2)->text().contains("Rec End", Qt::CaseSensitive);
 }

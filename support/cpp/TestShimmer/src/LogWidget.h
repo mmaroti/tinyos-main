@@ -37,6 +37,7 @@
 #include <QWidget>
 #include <QSignalMapper>
 #include <QMap>
+#include <QTableWidgetItem>
 
 class Application;
 
@@ -63,6 +64,7 @@ private:
     int findMotionStart(int);
     int findMotionEnd(int);
     int motionDistance(int, int);
+    bool isRecordEnd(int);
     void init();
 
 private slots:
@@ -75,8 +77,8 @@ private slots:
     void on_saveButton_clicked();
 
     void ShowContextMenu(const QPoint& pos);
-    void on_log_cellClicked(int,int
-                        );
+    void on_log_cellClicked(int,int);
+    void on_log_itemChanged(QTableWidgetItem*);
 };
 
 #endif // LOGWIDGET_H
