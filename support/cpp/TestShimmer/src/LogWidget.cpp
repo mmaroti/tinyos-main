@@ -383,6 +383,7 @@ void LogWidget::on_log_cellChanged(int row, int column)
             msgBox.exec();
 
             ui->log->item(row,column)->setText( ui->log->item(row-1,column)->text() );
+            ui->log->openPersistentEditor( ui->log->item(row, column));
             return;
 
             inEditing = true;
