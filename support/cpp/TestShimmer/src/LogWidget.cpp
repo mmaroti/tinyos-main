@@ -335,7 +335,7 @@ void LogWidget::ShowContextMenu(const QPoint& pos)
     QMenu myMenu;
     myMenu.addAction("Insert Row After");
 
-    if(row != -1 && !isRecordEnd(row)){
+    if(row != -1 && row != ui->log->rowCount()-1){
         QAction* selectedItem = myMenu.exec(globalPos);
         if (selectedItem)
         {
@@ -373,7 +373,8 @@ void LogWidget::on_log_itemChanged(QTableWidgetItem* item)
             msgBox.setText("Time value invalid!\nPlease enter a time value between\n"+ui->log->item(row-1,column)->text()+" - "+ui->log->item(row+1,column)->text());
             msgBox.exec();
 
-            item->setSelected(true);
+            item->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+            ui->log->editItem(item);
         }
     }
 }
