@@ -382,6 +382,9 @@ void LogWidget::on_log_cellChanged(int row, int column)
             msgBox.setText("Time value invalid!\nPlease enter a time value between\n"+ui->log->item(row-1,column)->text()+" - "+ui->log->item(row+1,column)->text());
             msgBox.exec();
 
+            ui->log->item(row,column)->setText( ui->log->item(row-1,column)->text() );
+            return;
+
             inEditing = true;
 
             QTableWidgetItem *item = ui->log->item(row,column);
