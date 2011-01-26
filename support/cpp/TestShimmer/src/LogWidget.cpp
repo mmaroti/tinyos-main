@@ -125,41 +125,38 @@ void LogWidget::createItem(QString text, Button button, int at)
 
     if(button == MotionStart){
         QTableWidgetItem* gotoButton = new QTableWidgetItem(QIcon(":/icons/back-arrow.png"),"", 0);
-        ui->log->setItem(row, 0, gotoButton);
-        gotoButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        gotoButton->setFlags(gotoButton->flags() & ~Qt::ItemIsEditable);
+        ui->log->setItem(row, 0, gotoButton);        
     } else {
         QTableWidgetItem* gotoButton = new QTableWidgetItem("", 0);
-        ui->log->setItem(row, 0, gotoButton);
-        gotoButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        gotoButton->setFlags(gotoButton->flags() & ~Qt::ItemIsEditable);
+        ui->log->setItem(row, 0, gotoButton);        
     }
 
-    QTableWidgetItem* item = new QTableWidgetItem(txt,1);
-    ui->log->setItem(row,2,item);
-    item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    QTableWidgetItem* item = new QTableWidgetItem(txt,0);
+    item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+    ui->log->setItem(row,2,item);    
 
     if(button == Insert){
-        QTableWidgetItem* time = new QTableWidgetItem(ui->log->item(row-1,1)->text(),1);        
-        ui->log->setItem(row,1,time);
-        time->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        QTableWidgetItem* time = new QTableWidgetItem(ui->log->item(row-1,1)->text(),0);
+        //time->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         item->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 
-        ui->log->editItem(item);
-    } else {
-        QTableWidgetItem* time = new QTableWidgetItem(QTime::currentTime().toString(),1);
         ui->log->setItem(row,1,time);
-        time->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    } else {
+        QTableWidgetItem* time = new QTableWidgetItem(QTime::currentTime().toString(),0);
+        time->setFlags(time->flags() & ~Qt::ItemIsEditable);
+        ui->log->setItem(row,1,time);        
     }
-
-
 
     if(button != RecordStart && button != RecordEnd){
         QTableWidgetItem* del = new QTableWidgetItem(QIcon(":/icons/Delete.png"),"", 0);
-        ui->log->setItem(row, 3, del);
-        del->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        del->setFlags(del->flags() & ~Qt::ItemIsEditable);
+        ui->log->setItem(row, 3, del);        
     } else {
         QTableWidgetItem* del = new QTableWidgetItem("", 0);
-        ui->log->setItem(row, 3, del);
-        del->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        del->setFlags(del->flags() & ~Qt::ItemIsEditable);
+        ui->log->setItem(row, 3, del);        
     }
 
     ui->entryLine->clear();
@@ -387,7 +384,8 @@ void LogWidget::on_log_cellChanged(int row, int column)
 
             inEditing = true;
 
-            item->setFlags(item->flags() | Qt::ItemIsEditable);
+            QTableWidgetItem *item = ui->log->item(row,column);
+            item->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
             ui->log->editItem(item);
 
         } else {
