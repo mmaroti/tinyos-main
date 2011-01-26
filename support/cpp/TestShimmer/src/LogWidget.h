@@ -67,6 +67,8 @@ private:
     bool isRecordEnd(int);
     void init();
 
+    bool inEditing;
+
 private slots:
     void on_entryLine_returnPressed();
     void on_recStartButton_clicked();
@@ -78,7 +80,7 @@ private slots:
 
     void ShowContextMenu(const QPoint& pos);
     void on_log_cellClicked(int,int);
-    void on_log_itemChanged(QTableWidgetItem*);
+    void on_log_cellChanged(int,int);
 };
 
 #endif // LOGWIDGET_H

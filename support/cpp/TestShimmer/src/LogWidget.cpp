@@ -43,6 +43,9 @@
 #include <QtDebug>
 #include <QAction>
 #include <QMenu>
+#include <QValidator>
+#include <QRegExp>
+#include "LogDialog.h"
 
 LogWidget::LogWidget(QWidget *parent, Application &app) :
         QWidget(parent),
@@ -79,6 +82,8 @@ LogWidget::~LogWidget()
 
 void LogWidget::init()
 {
+    inEditing = false;
+
     ui->log->clearContents();
     ui->log->setRowCount(0);
 
@@ -137,6 +142,8 @@ void LogWidget::createItem(QString text, Button button, int at)
         ui->log->setItem(row,1,time);
         time->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         item->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+
+        ui->log->editItem(item);
     } else {
         QTableWidgetItem* time = new QTableWidgetItem(QTime::currentTime().toString(),1);
         ui->log->setItem(row,1,time);
@@ -169,7 +176,7 @@ void LogWidget::on_recStartButton_clicked()
     ui->recStartButton->setEnabled(false);
     ui->motionStartButton->setEnabled(true);
     ui->saveButton->setEnabled(false);
-    ui->loadButton->setEnabled(false);
+    //ui->loadButton->setEnabled(false);
 
     ui->entryLine->setFocus();
 }
@@ -224,15 +231,19 @@ void LogWidget::on_motionEndButton_clicked()
 
 void LogWidget::on_loadButton_clicked()
 {
-    init();
 
-    ui->recStartButton->setEnabled(false);
-    ui->recEndButton->setEnabled(false);
-    ui->motionStartButton->setEnabled(false);
-    ui->motionEndButton->setEnabled(false);
-    ui->saveButton->setEnabled(true);
-
-    ui->entryLine->setFocus();
+    QTableWidgetItem *item = ui->log->item(0,0);
+    item->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    ui->log->editItem(item);
+//    init();
+//
+//    ui->recStartButton->setEnabled(false);
+//    ui->recEndButton->setEnabled(false);
+//    ui->motionStartButton->setEnabled(false);
+//    ui->motionEndButton->setEnabled(false);
+//    ui->saveButton->setEnabled(true);
+//
+//    ui->entryLine->setFocus();
 }
 
 void LogWidget::on_saveButton_clicked()
@@ -359,24 +370,31 @@ void LogWidget::on_log_cellClicked(int row, int column)
     }
 }
 
-void LogWidget::on_log_itemChanged(QTableWidgetItem* item)
+void LogWidget::on_log_cellChanged(int row, int column)
 {
-    int row = item->row();
-    int column = item->column();
+//    int row = item->row();
+//    int column = item->column();
+    QTableWidgetItem* item = ui->log->item(row, column);
     if(column == 1 && item->isSelected() && row < ui->log->rowCount()){
         QTime before = QTime::fromString(ui->log->item(row-1,column)->text(), "hh:mm:ss");
         QTime after = QTime::fromString(ui->log->item(row+1,column)->text(), "hh:mm:ss");
         QTime now = QTime::fromString(ui->log->item(row,column)->text(), "hh:mm:ss");
 
-        if(before > now || after < now){
+        if( (!now.isValid() || before > now || after < now) && !inEditing ){
             QMessageBox msgBox;
             msgBox.setText("Time value invalid!\nPlease enter a time value between\n"+ui->log->item(row-1,column)->text()+" - "+ui->log->item(row+1,column)->text());
             msgBox.exec();
 
-            item->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+            inEditing = true;
+
+            item->setFlags(item->flags() | Qt::ItemIsEditable);
             ui->log->editItem(item);
+
+        } else {
+            inEditing = false;
         }
     }
+    if(column == 0 && row==0) qDebug() << "itemchanged";
 }
 
 bool LogWidget::isRecordEnd(int row)
