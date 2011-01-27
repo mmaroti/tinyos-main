@@ -46,6 +46,8 @@
 #include <QValidator>
 #include <QRegExp>
 #include "LogDialog.h"
+#include <QFile>
+#include <QFileDialog>
 
 LogWidget::LogWidget(QWidget *parent, Application &app) :
         QWidget(parent),
@@ -99,11 +101,11 @@ void LogWidget::init()
 void LogWidget::on_entryLine_returnPressed()
 {
     if(!ui->entryLine->text().isNull()){
-        createItem(ui->entryLine->text(), Text, -1);
+        createItem(ui->entryLine->text(),"", Text, -1);
     }
 }
 
-void LogWidget::createItem(QString text, Button button, int at)
+void LogWidget::createItem(QString text, QString time, Button button, int at)
 {
     QString txt = "";
     int row;
@@ -138,15 +140,19 @@ void LogWidget::createItem(QString text, Button button, int at)
     ui->log->setItem(row,2,item);    
 
     if(button == Insert){
-        QTableWidgetItem* time = new QTableWidgetItem(ui->log->item(row-1,1)->text(),0);
-        //time->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        QTableWidgetItem* timeItem = new QTableWidgetItem(ui->log->item(row-1,1)->text(),0);
+        //timeItem->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         item->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 
-        ui->log->setItem(row,1,time);
+        ui->log->setItem(row,1,timeItem);
+    } else if( time != "" ) {
+        QTableWidgetItem* timeItem = new QTableWidgetItem(time,0);
+        timeItem->setFlags(timeItem->flags() & ~Qt::ItemIsEditable);
+        ui->log->setItem(row,1,timeItem);
     } else {
-        QTableWidgetItem* time = new QTableWidgetItem(QTime::currentTime().toString(),0);
-        time->setFlags(time->flags() & ~Qt::ItemIsEditable);
-        ui->log->setItem(row,1,time);        
+        QTableWidgetItem* timeItem = new QTableWidgetItem(QTime::currentTime().toString(),0);
+        timeItem->setFlags(timeItem->flags() & ~Qt::ItemIsEditable);
+        ui->log->setItem(row,1,timeItem);
     }
 
     if(button != RecordStart && button != RecordEnd){
@@ -169,7 +175,7 @@ void LogWidget::on_recStartButton_clicked()
 
     QString msg = QString::fromUtf8("Rec start");
     if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
-    createItem(msg,RecordStart,-1);
+    createItem(msg, "", RecordStart, -1);
     ui->recStartButton->setEnabled(false);
     ui->motionStartButton->setEnabled(true);
     ui->saveButton->setEnabled(false);
@@ -189,7 +195,7 @@ void LogWidget::on_recEndButton_clicked()
     if(ret == QMessageBox::Ok){
         QString msg = QString::fromUtf8("Rec End");
         if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
-        createItem(msg,RecordEnd,-1);
+        createItem(msg, "", RecordEnd, -1);
         ui->recStartButton->setEnabled(false);
         ui->recEndButton->setEnabled(false);
         ui->motionStartButton->setEnabled(false);
@@ -207,7 +213,7 @@ void LogWidget::on_motionStartButton_clicked()
 {
     QString msg = QString::fromUtf8("Motion start");
     if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
-    createItem(msg,MotionStart,-1);
+    createItem(msg, "", MotionStart, -1);
     ui->motionStartButton->setEnabled(false);
     ui->motionEndButton->setEnabled(true);
     ui->recEndButton->setEnabled(false);
@@ -219,7 +225,7 @@ void LogWidget::on_motionEndButton_clicked()
 {
     QString msg = QString::fromUtf8("Motion end");
     if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
-    createItem(msg,MotionEnd,-1);
+    createItem(msg, "", MotionEnd, -1);
     ui->motionEndButton->setEnabled(false);
     ui->motionStartButton->setEnabled(true);
     ui->recEndButton->setEnabled(true);
@@ -230,19 +236,20 @@ void LogWidget::on_motionEndButton_clicked()
 
 void LogWidget::on_loadButton_clicked()
 {
+    init();
 
-    QTableWidgetItem *item = ui->log->item(0,0);
-    item->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    ui->log->editItem(item);
-//    init();
-//
-//    ui->recStartButton->setEnabled(false);
-//    ui->recEndButton->setEnabled(false);
-//    ui->motionStartButton->setEnabled(false);
-//    ui->motionEndButton->setEnabled(false);
-//    ui->saveButton->setEnabled(true);
-//
-//    ui->entryLine->setFocus();
+    ui->recStartButton->setEnabled(false);
+    ui->recEndButton->setEnabled(false);
+    ui->motionStartButton->setEnabled(false);
+    ui->motionEndButton->setEnabled(false);
+    ui->saveButton->setEnabled(true);
+
+    QString file = QFileDialog::getOpenFileName(this, "Select a file to open", "c:/", "CSV (*.csv);;Any File (*.*)");
+    if ( !file.isEmpty() ) {
+        loadLog(file);
+    }
+
+    ui->entryLine->setFocus();
 }
 
 void LogWidget::on_saveButton_clicked()
@@ -252,6 +259,10 @@ void LogWidget::on_saveButton_clicked()
     ui->entryLine->setEnabled(true);
 
     //connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
+    QString fn = QFileDialog::getSaveFileName(  this, "Choose a filename to save under", "c:/", "CSV (*.csv)");
+    if ( !fn.isEmpty() ) {
+        saveLog( fn );
+    }
 
     ui->entryLine->setFocus();
 }
@@ -331,6 +342,11 @@ int LogWidget::findMotionEnd(int startRow)
     return endRow;
 }
 
+bool LogWidget::isMotionStart(int row)
+{
+    return ui->log->item(row,2)->text().contains("Motion start", Qt::CaseSensitive);
+}
+
 int LogWidget::motionDistance(int startRow, int endRow)
 {
     return endRow-startRow;
@@ -349,7 +365,7 @@ void LogWidget::ShowContextMenu(const QPoint& pos)
         QAction* selectedItem = myMenu.exec(globalPos);
         if (selectedItem)
         {
-            createItem(ui->entryLine->text(), Insert, row+1);
+            createItem(ui->entryLine->text(), "", Insert, row+1);
 
             ui->entryLine->setFocus();
         }
@@ -404,4 +420,79 @@ void LogWidget::on_log_cellChanged(int row, int column)
 bool LogWidget::isRecordEnd(int row)
 {
     return ui->log->item(row,2)->text().contains("Rec End", Qt::CaseSensitive);
+}
+
+void LogWidget::saveLog(const QString &filename)
+{
+    application.dataRecorder.saveSamples(filename);
+
+    QFile f( filename );
+
+    if( !f.open( QIODevice::Append ) )
+      {
+          return;
+      }
+
+    QTextStream ts( &f );
+
+    ts << "#LOG metadata" << endl;
+
+    ts << "#Time,Entry" << endl;
+    for (int i=0; i<ui->log->rowCount(); i++){
+      ts << ui->log->item(i,1)->text() << "," << ui->log->item(i,2)->text() << endl;
+    }
+
+    ts.flush();
+    f.close();
+}
+
+void LogWidget::loadLog(const QString &filename)
+{
+    application.dataRecorder.loadSamples(filename);
+    application.dataRecorder.loadCalibFromFile(filename);
+
+    QFile f( filename );
+    QString line;
+
+    if( f.open( QIODevice::ReadOnly | QIODevice::Text ) ) //file opened successfully
+    {
+        QTextStream ts( &f );
+        line = ts.readLine(); //skip first line of csv
+
+        if(line[0] != QChar('#')){
+            QMessageBox msgBox;
+            msgBox.setText("Wrong file format!");
+            msgBox.exec();
+        } else {
+            line = ts.readLine();
+            while ( !line.isEmpty() && line != "#Time,Entry" ){
+                line = ts.readLine();         // line of text excluding '\n'
+            }
+            line = ts.readLine();
+            while( !line.isEmpty() ){
+                csvToLog(line);            //convert line string to sample
+                line = ts.readLine();
+            }
+            f.close();
+        }
+    }
+
+}
+
+void LogWidget::csvToLog(const QString &line)
+{
+    QStringList list = line.split(",");
+    QStringListIterator csvIterator(list);
+
+    if(csvIterator.hasNext()){
+        QString time = csvIterator.next();
+        QString text = csvIterator.next();
+
+        if(text.contains("Motion start", Qt::CaseSensitive)){
+            createItem(text, time, MotionStart , -1);
+        } else {
+            createItem(text, time, Load , -1);
+        }
+
+    }
 }

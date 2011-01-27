@@ -51,7 +51,7 @@ public:
     LogWidget(QWidget *parent, Application &app);
     ~LogWidget();
 
-    enum Button { MotionStart, MotionEnd, RecordStart, RecordEnd, Text, Insert };
+    enum Button { MotionStart, MotionEnd, RecordStart, RecordEnd, Text, Insert, Load };
 
 private:
     Ui::LogWidget *ui;
@@ -60,12 +60,16 @@ private:
     void onGoto(int);
     void onDelRow(int);
 
-    void createItem(QString text, Button button, int at);
+    void createItem(QString text, QString time, Button button, int at);
     int findMotionStart(int);
     int findMotionEnd(int);
     int motionDistance(int, int);
     bool isRecordEnd(int);
+    bool isMotionStart(int);
     void init();
+    void saveLog(const QString&);
+    void loadLog(const QString&);
+    void csvToLog(const QString&);
 
     bool inEditing;
 
