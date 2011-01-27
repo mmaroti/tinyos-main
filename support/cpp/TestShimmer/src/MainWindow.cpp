@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/** Copyright (c) 2010, 2011, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -48,8 +48,7 @@
 #include "LogWidget_editable.h"
 #include <QLabel>
 
-// FIXME Eliminate this hideous workaround
-extern DataRecorder* dr;
+extern DataRecorder* dr; // FIXME Eliminate this hideous workaround
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),

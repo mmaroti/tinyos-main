@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/** Copyright (c) 2010, 2011, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,9 @@ enum {
     SIZE
 };
 
+void set_markers(int begin, int end);
+void mark_all();
+void clear_markers();
 int n_samples();
 void at(int i, double data[SIZE]);
 

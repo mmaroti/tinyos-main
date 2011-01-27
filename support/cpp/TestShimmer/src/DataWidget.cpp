@@ -55,10 +55,10 @@ DataWidget::DataWidget(QWidget *parent, Application &app) :
         textBox->setMaximumHeight(100);
         textBox->hide();
 
-        widget3d = new Widget3D(this, app);
-        ui->menuLayout->insertWidget(3, widget3d);
-        widget3d->hide();
-        connect(this, SIGNAL(SolverFinished()), widget3d, SLOT(onLoad3D()));
+        widget3d = 0;
+        //ui->menuLayout->insertWidget(3, widget3d);
+        //widget3d->hide();
+        //connect(this, SIGNAL(SolverFinished()), widget3d, SLOT(onLoad3D()));
 
         showErrorGraphs = false;
 }
@@ -501,14 +501,18 @@ void DataWidget::finished(bool error, const char* msg, const ipo::Results* res) 
     ui->recordBtn->setEnabled(true);
     ui->clearBtn->setEnabled(true);
 
-    //connect(ui->scrollArea, SIGNAL(rotate3D(int)), widget3d, SLOT(onScroll(int)) );
-    widget3d->show();
-
     emit SolverFinished();
 }
 
 void DataWidget::on_regressionButton_clicked()
 {
+    if (application.dataRecorder.size()<1) {
+        QMessageBox mbox;
+        mbox.setText("Please load the samples first!");
+        mbox.exec();
+        return;
+    }
+
     static bool registered(false);
 
     if(!registered) {

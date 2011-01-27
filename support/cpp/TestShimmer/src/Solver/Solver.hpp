@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/** Copyright (c) 2010, 2011, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -75,6 +75,7 @@ private:
     Solver(const Solver& );
     Solver& operator=(const Solver& );
 
+    bool get_lock();
     void init();
     void cleanup_solver();
     void cleanup_data();

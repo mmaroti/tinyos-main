@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/** Copyright (c) 2010, 2011, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@
 #include "QMutex"
 #include "QSettings"
 #include "Solver.hpp"
+#include "Data.hpp"
 #include "DataReader.hpp"
 #include "DataReadException.hpp"
 #include "DataWriter.hpp"
@@ -137,36 +138,44 @@ bool Solver::write_samples() {
     return result;
 }
 
+void displayErrorMsg(const QString& what) {
+
+    QString mboxText("Error: ");
+    mboxText.append(what);
+
+    QMessageBox mbox;
+    mbox.setText(mboxText);
+    mbox.exec();
+}
+
+// Released by:
+// - emit_signal()
+// - if writing samples fails
+// FIXME Wrap up tryLock and unlock and add set/clear_markers there
+bool Solver::get_lock() {
+
+    if (!mutex->tryLock()) {
+        displayErrorMsg("the solver is already running!");
+        return FAILED;
+    }
+
+    mark_all();
+
+    if (write_samples()==FAILED){
+        clear_markers();
+        mutex->unlock();
+        displayErrorMsg("failed to pass input data to the solver!");
+        return FAILED;
+    }
+
+    return SUCCESS;
+}
+
 // Entry point
 bool Solver::start() {
 
-    bool result = SUCCESS;
+    if (get_lock() == FAILED) {
 
-    string mboxText("Error: ");
-
-    // Released by:
-    // - emit_signal()
-    // - if no samples are loaded
-    // - if writing samples fails
-    if (!mutex->tryLock()) {
-        result = FAILED;
-        mboxText += "the solver is already running!";
-    }
-    else if (n_samples() < 1) {
-        mutex->unlock();
-        result = FAILED;
-        mboxText += "perhaps no samples are loaded?";
-    }
-    else if (write_samples()==FAILED){
-        mutex->unlock();
-        result = FAILED;
-        mboxText += "failed to pass input data to the solver!";
-    }
-
-    if (result==FAILED) {
-        QMessageBox mbox;
-        mbox.setText(mboxText.c_str());
-        mbox.exec();
         return FAILED;
     }
 
@@ -180,7 +189,7 @@ bool Solver::start() {
 
     cout << endl << "External gyro.exe called" << endl;
 
-    return result;
+    return SUCCESS;
 }
 
 void Solver::emit_signal(bool error) {
@@ -194,6 +203,8 @@ void Solver::emit_signal(bool error) {
     cout << "Releasing resources NOW!" << endl;
 
     cleanup_data();
+
+    clear_markers();
 
     mutex->unlock();
 }
