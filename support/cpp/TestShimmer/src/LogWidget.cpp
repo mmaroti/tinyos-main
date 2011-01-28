@@ -135,19 +135,24 @@ void LogWidget::createItem(QString text, QString time, Button button, int at)
         ui->log->setItem(row, 0, gotoButton);        
     }
 
-    QTableWidgetItem* item = new QTableWidgetItem(txt,0);
-    item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-    ui->log->setItem(row,2,item);    
+    if( button == Load || button == Insert){
+        QTableWidgetItem* item = new QTableWidgetItem(txt,0);
+        item->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        ui->log->setItem(row,2,item);    
+    } else {
+        QTableWidgetItem* item = new QTableWidgetItem(txt,0);
+        item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+        ui->log->setItem(row,2,item);    
+    }
+    
 
     if(button == Insert){
         QTableWidgetItem* timeItem = new QTableWidgetItem(ui->log->item(row-1,1)->text(),0);
-        //timeItem->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-        item->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-
+        timeItem->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         ui->log->setItem(row,1,timeItem);
     } else if( time != "" ) {
         QTableWidgetItem* timeItem = new QTableWidgetItem(time,0);
-        timeItem->setFlags(timeItem->flags() & ~Qt::ItemIsEditable);
+        timeItem->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         ui->log->setItem(row,1,timeItem);
     } else {
         QTableWidgetItem* timeItem = new QTableWidgetItem(QTime::currentTime().toString(),0);
