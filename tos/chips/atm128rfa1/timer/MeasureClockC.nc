@@ -86,7 +86,7 @@ implementation
       TCCR2B = 1 << CS20;
 
       // one wrap is 256/32768 = 1/128 sec
-      while( wraps_ok < 10 && --wraps != 0 )
+      while( wraps_ok < 50 && --wraps != 0 )
       {
         while( TCNT2 != 0 )
           ;
@@ -103,7 +103,7 @@ implementation
         if(prev_cycles_max>cycles)
           prev_cycles_max=cycles;
 		
-        if(prev_cycles_max-prev_cycles_min<=2){
+        if(prev_cycles_max-prev_cycles_min<=1){
           wraps_ok++;
         } else{
           wraps_ok=0;
