@@ -72,5 +72,22 @@ int blinker;
 int isWriting;
 
 void init(void);
+
 int baudrateRegister(uint32_t baudrate);
 
+void led0On(void);
+void led1On(void);
+void led2On(void);
+void led3On(void);
+
+void led0Off(void);
+void led1Off(void);
+void led2Off(void);
+void led3Off(void);
+
+void led0Toggle(void);
+void led1Toggle(void);
+void led2Toggle(void);
+void led3Toggle(void);
+
+void ledSet(uint8_t val);

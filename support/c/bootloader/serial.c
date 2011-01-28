@@ -27,7 +27,7 @@ void initbootuart(void)
   UART_STATUS_REG = (1<<UART_DOUBLE_SPEED_BIT);
   UART_CONTROL_REG = (1 << ENABLE_RECEIVER_BIT) |
                      (1 << ENABLE_TRANSMITTER_BIT); // enable receive and transmit
-  #ifdef _ATMEGA1281
+  #if PLATFORM == IRIS
   UCSR0C = (0 << USBS0) | (3 << UCSZ00);
   #else  
   UCSR1C = (0 << USBS1) | (3 << UCSZ10); // setting uart frame format 8 data bits; 1 stop bit
@@ -46,14 +46,14 @@ void sendchar(unsigned char c)
 unsigned char recchar(void)
 {
   if (blinker){
-    #ifdef _ATMEGA1281
-    PORTA |= _BV(PA1);
+	ledSet(0);
+    #if PLATFORM == IRIS
+    led1On();
     #else
-		if(isWriting)
-			PORTE = _BV(PE6);
-		else
-			PORTE = _BV(PE5);
-    PORTE = PORTE & 0xF7;
+	if(isWriting)
+		led2On();
+	else
+		led1On();
     #endif
   }
   counter=SERIAL_TRY;
@@ -68,10 +68,10 @@ unsigned char recchar(void)
   }
   else
   {
-    #ifdef _ATMEGA1281 
-    PORTA &= ~(_BV(PA1));
+    #if PLATFORM == IRIS
+    led1Off();
     #else
-    PORTE |= _BV(PE3);
+    led0On();
     #endif
     return UART_DATA_REG;
   }

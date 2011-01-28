@@ -13,6 +13,7 @@ ASRC =
 OPT = s
 BASEADDR = 0x1E000
 
+
 # Name of this Makefile (used for "make depend").
 MAKEFILE = Makefile
 
@@ -42,6 +43,12 @@ CDEFS =
 #CDEFS += -DBAUD_RATE=57600
 CDEFS += -DBAUD_RATE=115200
 #CDEFS += -DBAUD_RATE=230400
+
+#PLATFORMS: USCMINI049 UCMINI050 IRIS
+CDEFS += -DIRIS=0
+CDEFS += -DUCMINI049=1
+CDEFS += -DUCMINI050=2
+CDEFS += -DPLATFORM=2
 
 # Place -I options here
 CINCS =

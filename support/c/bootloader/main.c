@@ -30,7 +30,7 @@
 #include "serial.h"
 #include "flash.h"
 #include "util/delay.h"
-#include <avr/wdt.h>
+#include "avr/wdt.h"
 
 
 /* Uncomment the following to save code space */
@@ -66,28 +66,58 @@ void status(int);
 
 int timeout=TIMEOUT;
 
+//INITIALIZATION
+void initialize(void){ 
+    MCUSR = 0;
+    wdt_disable();
+	#if PLATFORM != IRIS
+	CLKPR=1<<CLKPCE;
+	CLKPR=0xf;
+	#endif
+	//every GPIO is input, except  the leds
+    #if PLATFORM == IRIS
+    DDRA |= _BV(2);
+    DDRA |= _BV(1);
+    DDRA |= _BV(0);
+    PORTA = 7;//inverted logic
+    #elif PLATFORM == UCMINI049
+    DDRE |= _BV(3);
+    DDRE |= _BV(5);
+    DDRE |= _BV(6);
+    DDRE |= _BV(7);
+	#else
+	DDRE |= _BV(4);
+    DDRE |= _BV(5);
+    DDRE |= _BV(6);
+    DDRE |= _BV(7);
+    #endif
+	//turn on the the two farest leds
+	#if PLATFORM == IRIS
+	led0On();
+	led2On();
+	#else
+	led0On();
+	led3On();
+	#endif
+    initbootuart(); // Initialize UART.
+    blinker = 0;
+}
+
 void exitbl(void){
 	void (*funcptr)( void ) = 0x0000; // Set up function pointer to RESET vector.
 	int i;
-	#ifdef _ATMEGA1281
-	PORTA&=~((1<<0)|(1<<1)|(1<<2));
-	#else
-	PORTE&=~((1<<3)|(1<<5)|(1<<6)|(1<<7));
-	#endif
+	ledSet(255);
 	for(i=0;i<3;i++){
 	  _delay_ms(100);
-	  #ifdef _ATMEGA1281
-	  PORTA|=(1<<0)|(1<<1)|(1<<2);
+	  ledSet(0);
 	  _delay_ms(100);
-	  PORTA&=~((1<<0)|(1<<1)|(1<<2));
-	  #else
-	  PORTE|=(1<<3)|(1<<5)|(1<<6)|(1<<7);
-	  _delay_ms(100);
-	  PORTE&=~((1<<3)|(1<<5)|(1<<6)|(1<<7));
-	  #endif
+	  ledSet(255);
 	}
+	_delay_ms(100);
+	ledSet(0);
 	funcptr();
 }
+
 
 int main(void)
 {
@@ -95,32 +125,8 @@ int main(void)
     
     unsigned int temp_int=0;
     unsigned char val;
-    
-    /* Initialization */   
-    MCUSR = 0;
-    wdt_disable();
-	CLKPR=1<<CLKPCE;
-	CLKPR=0xf;
-    #ifdef _ATMEGA1281
-    DDRA |= _BV(2);
-    DDRA |= _BV(1);
-    DDRA |= _BV(0);
-    PORTA = 7;
-    #else
-    DDRE |= _BV(3);
-    DDRE |= _BV(5);
-    DDRE |= _BV(6);
-    DDRE |= _BV(7);
-    DDRE &= ~(_BV(PE4));    //make this pin input
-    DDRB &= ~(_BV(PB7));    //make this pin input too
-    #endif
-	#ifdef _ATMEGA1281
-	  PORTA|=(1<<0)|(1<<2);
-	  #else
-	  PORTE|=(1<<3)|(1<<7);
-	#endif
-    initbootuart(); // Initialize UART.
-    blinker = 0;
+    initialize();
+
 
 //isWriting=1;
     
@@ -160,13 +166,12 @@ int main(void)
             // Chip erase.
             else if(val=='e')
             {  
-		#ifdef _ATMEGA1281
-		PORTA = 7;
-		PORTA &= ~(_BV(PA2));
-		#else
-		PORTE =0;
-		PORTE = _BV(PE7);
-		#endif
+				ledSet(0);
+				#if PLATFORM == IRIS
+				led2On();
+				#else
+				led3On();
+				#endif
 
                 for(address = 0; address < APP_END;address += PAGESIZE)
                 { // NOTE: Here we use address as a byte-address, not word-address, for convenience.
@@ -175,12 +180,8 @@ int main(void)
                 }
                 _delay_ms(5);//if write the program just after we erased the flash, sometimes the first few byte is wrong
                 sendchar('\r'); // Send OK back.
-		#ifdef _ATMEGA1281
-                PORTA = 7;
-		#else
-		PORTE = 0;
-		#endif
-		blinker = 1;
+				ledSet(0);
+				blinker = 1;
             }
             
 #ifndef REMOVE_BLOCK_SUPPORT
@@ -433,28 +434,23 @@ int main(void)
 void status(int time_out)
 
 {
-	#ifdef _ATMEGA1281
+	#if PLATFORM == IRIS
 	if(time_out>2*TIMEOUT/3){
-	  PORTA|=(1<<0)|(1<<1)|(1<<2);
+	  ledSet(7);
 	}else if(time_out>TIMEOUT/3){
-	  PORTA|=(1<<1)|(1<<2);
-	  PORTA&=~(1<<0);
+	  ledSet(3);
 	}else{
-	  PORTA|=(1<<2);
-	  PORTA&=~((1<<0)|(1<<1));
+	  ledSet(1);
 	}
 	#else
 	if(time_out>3*TIMEOUT/4){
-	  PORTE|=(1<<3)|(1<<5)|(1<<6)|(1<<7);
+	  ledSet(15);
 	}else if(time_out>2*TIMEOUT/4){
-	  PORTE|=(1<<5)|(1<<6)|(1<<7);
-	  PORTE&=~(1<<3);
+	  ledSet(7);
 	}else if(time_out>TIMEOUT/4){
-	  PORTE|=(1<<5)|(1<<6);
-	  PORTE&=~((1<<3)|(1<<7));
+	  ledSet(3);
 	}else{
-	  PORTE|=(1<<5);
-	  PORTE&=~((1<<3)|(1<<6)|(1<<7));
+	  ledSet(1);
 	}
 	#endif
 }
