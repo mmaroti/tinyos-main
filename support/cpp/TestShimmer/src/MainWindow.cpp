@@ -45,7 +45,6 @@
 #include "window.h"
 #include "SDataWidget.h"
 #include "LogWidget.h"
-#include "LogWidget_editable.h"
 #include <QLabel>
 
 extern DataRecorder* dr; // FIXME Eliminate this hideous workaround
@@ -72,9 +71,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
         LogWidget* logWidget = new LogWidget(ui->logTab, app);
         ui->logTab->layout()->addWidget(logWidget);
-
-        LogWidget_editable* logWidgetE = new LogWidget_editable(ui->logEditTab, app);
-        ui->logEditTab->layout()->addWidget(logWidgetE);
 
         SDataWidget* sddataWidget = new SDataWidget(ui->sdataTab, app);
         ui->sdataTab->layout()->addWidget(sddataWidget);
@@ -126,7 +122,7 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(dataWidget, SIGNAL(SolverStarted()), this, SLOT(onSolverRunning()));
         connect(dataWidget, SIGNAL(SolverFinished()), this, SLOT(onSolverRunning()));
         connect(&(app.tabWatcher), SIGNAL(SDCardTabGainedFocus()), sddataWidget, SLOT(onSdataLeftFocusIn()));
-        connect(ui->actionLog_Editable, SIGNAL(toggled(bool)), logWidgetE, SLOT(setTableEditable(bool)));
+        //connect(ui->actionLog_Editable, SIGNAL(toggled(bool)), logWidgetE, SLOT(setTableEditable(bool)));
 
         connect(&app.serialListener,      SIGNAL(receiveMessage(ActiveMessage)),
                 &app.timeSyncMsgReceiver, SLOT(onReceiveMessage(ActiveMessage)), Qt::DirectConnection);

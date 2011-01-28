@@ -63,7 +63,7 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
 
     ui->log->setRowCount(0);
     ui->log->horizontalHeader()->resizeSection(0, 40);
-    ui->log->horizontalHeader()->resizeSection(1, 50);
+    ui->log->horizontalHeader()->resizeSection(1, 60);
     ui->log->horizontalHeader()->resizeSection(2, 100);
     ui->log->horizontalHeader()->setResizeMode(3, QHeaderView::Stretch);
     ui->log->horizontalHeader()->resizeSection(4, 40);
@@ -94,6 +94,11 @@ void LogWidget::init()
     ui->motionStartButton->setEnabled(false);
     ui->motionEndButton->setEnabled(false);
     ui->saveButton->setEnabled(false);
+    ui->clearButton->setEnabled(false);
+    ui->loadButton->setEnabled(true);
+    ui->recStartButton->setEnabled(true);
+
+    ui->saveButton->setStyleSheet("* { background-color: rgb(255,185,185) }");
 
     ui->entryLine->setFocus();
 }
@@ -203,6 +208,7 @@ void LogWidget::on_recStartButton_clicked()
     ui->recStartButton->setEnabled(false);
     ui->motionStartButton->setEnabled(true);
     ui->saveButton->setEnabled(false);
+    ui->clearButton->setEnabled(false);
     ui->loadButton->setEnabled(false);
 
     ui->entryLine->setFocus();
@@ -225,6 +231,7 @@ void LogWidget::on_recEndButton_clicked()
         ui->motionStartButton->setEnabled(false);
         ui->entryLine->setEnabled(false);
         ui->saveButton->setEnabled(true);
+        ui->clearButton->setEnabled(true);
 
         emit recordStatusChanged("Stopped receiving...", 1);
         //disconnect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
@@ -269,12 +276,13 @@ void LogWidget::on_loadButton_clicked()
         ui->motionStartButton->setEnabled(false);
         ui->motionEndButton->setEnabled(false);
         ui->saveButton->setEnabled(true);
+        ui->clearButton->setEnabled(true);
+
+        disconnect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
 
         loadLog(file);
         if(ui->log->rowCount() == 0) ui->recStartButton->setEnabled(true);
     }
-
-    ui->entryLine->setFocus();
 }
 
 void LogWidget::on_saveButton_clicked()
@@ -285,11 +293,30 @@ void LogWidget::on_saveButton_clicked()
         ui->recStartButton->setEnabled(true);
         ui->loadButton->setEnabled(true);
         ui->entryLine->setEnabled(true);
+        connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
 
         saveLog( fn );
+        ui->saveButton->setStyleSheet("* { background-color: rgb(185,255,185) }");
     }
 
     ui->entryLine->setFocus();
+}
+
+void LogWidget::on_clearButton_clicked()
+{
+    QMessageBox msgBox;
+    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Cancel);
+    msgBox.setText("WARNING! Deleting ALL log and sample data!");
+    msgBox.setInformativeText("Are you sure?");
+    msgBox.setIcon(QMessageBox::Warning);
+    int ret = msgBox.exec();
+
+    if(ret == QMessageBox::Ok){
+        init();
+
+        application.dataRecorder.clearSamples();
+    }
 }
 
 void LogWidget::onDelRow(int row)
@@ -462,9 +489,9 @@ void LogWidget::saveLog(const QString &filename)
 
     ts << "#LOG metadata" << endl;
 
-    ts << "#Time,Entry" << endl;
+    ts << "#Time,Type,Entry" << endl;
     for (int i=0; i<ui->log->rowCount(); i++){
-      ts << ui->log->item(i,1)->text() << "," << ui->log->item(i,2)->text() << endl;
+      ts << ui->log->item(i,1)->text() << "," << ui->log->item(i,2)->text() << "," << ui->log->item(i,3)->text() << endl;
     }
 
     ts.flush();
@@ -490,7 +517,7 @@ void LogWidget::loadLog(const QString &filename)
             msgBox.exec();
         } else {
             line = ts.readLine();
-            while ( !line.isEmpty() && line != "#Time,Entry" ){
+            while ( !line.isEmpty() && line != "#Time,Type,Entry" ){
                 line = ts.readLine();         // line of text excluding '\n'
             }
             line = ts.readLine();
@@ -511,16 +538,19 @@ void LogWidget::csvToLog(const QString &line)
 
     if(csvIterator.hasNext()){
         QString time = csvIterator.next();
+        QString type = csvIterator.next();
         QString text = csvIterator.next();
 
-        if(text.contains("Motion start", Qt::CaseSensitive)){
+        if(type.contains("Motion start", Qt::CaseSensitive)){
             createItem(text, time, MotionStart , -1);
-        } else if(text.contains("Motion end", Qt::CaseSensitive)){
+        } else if(type.contains("Motion end", Qt::CaseSensitive)){
             createItem(text, time, MotionEnd , -1);
-        } else if(text.contains("Rec Start", Qt::CaseSensitive)){
+        } else if(type.contains("Rec Start", Qt::CaseSensitive)){
             createItem(text, time, RecordStart , -1);
-        } else if(text.contains("Rec End", Qt::CaseSensitive)){
+        } else if(type.contains("Rec End", Qt::CaseSensitive)){
             createItem(text, time, RecordEnd , -1);
+        } else {
+            createItem(text, time, Text, -1);
         }
 
     }

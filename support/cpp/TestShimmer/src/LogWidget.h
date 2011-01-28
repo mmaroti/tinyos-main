@@ -84,6 +84,7 @@ private slots:
     void on_motionEndButton_clicked();
     void on_loadButton_clicked();
     void on_saveButton_clicked();
+    void on_clearButton_clicked();
 
     void ShowContextMenu(const QPoint& pos);
     void on_log_cellClicked(int,int);
