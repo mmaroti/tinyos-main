@@ -154,30 +154,52 @@ void displayErrorMsg(const QString& what) {
 // FIXME Wrap up tryLock and unlock and add set/clear_markers there
 bool Solver::get_lock() {
 
+    bool result = SUCCESS;
+
     if (!mutex->tryLock()) {
+
         displayErrorMsg("the solver is already running!");
-        return FAILED;
+
+        result = FAILED;
     }
 
-    mark_all();
+    return result;
+}
+
+void Solver::set_sample_subrange(const int begin, const int end) {
+
+    if (begin==FROM_BEGINNING && end==TO_END) {
+
+        mark_all();
+    }
+    else {
+
+        set_markers(begin, end);
+    }
+}
+
+bool Solver::write_solver_input() {
 
     if (write_samples()==FAILED){
-        clear_markers();
-        mutex->unlock();
+
         displayErrorMsg("failed to pass input data to the solver!");
+
+        unlock();
+
         return FAILED;
     }
 
     return SUCCESS;
 }
 
-// Entry point
-bool Solver::start() {
+void Solver::unlock() {
 
-    if (get_lock() == FAILED) {
+    clear_markers();
 
-        return FAILED;
-    }
+    mutex->unlock();
+}
+
+void Solver::start_solver() {
 
     init();
 
@@ -188,6 +210,24 @@ bool Solver::start() {
     solver->start(gyro::SOLVER_EXE, args);
 
     cout << endl << "External gyro.exe called" << endl;
+}
+
+// Entry point
+bool Solver::start(const int begin, const int end) {
+
+    if (get_lock() == FAILED) {
+
+        return FAILED;
+    }
+
+    set_sample_subrange(begin, end);
+
+    if (write_solver_input() == FAILED) {
+
+        return FAILED;
+    }
+
+    start_solver();
 
     return SUCCESS;
 }
@@ -200,13 +240,9 @@ void Solver::emit_signal(bool error) {
 
     const QString message(msg.c_str());
 
-    cleanup_solver();
+    cleanup_all();
 
-    cleanup_data();
-
-    clear_markers();
-
-    mutex->unlock();
+    unlock();
 
     emit solver_done(error, message);
 }

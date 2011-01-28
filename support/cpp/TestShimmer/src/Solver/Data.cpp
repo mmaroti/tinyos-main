@@ -31,9 +31,9 @@
 * Author: Ali Baharev
 */
 
+#include <iostream>
 #include <stdexcept>
 #include <sstream>
-#include <QDebug>
 #include "DataRecorder.h"
 #include "Results.hpp"
 
@@ -110,7 +110,7 @@ int n_samples() {
 
     if (begin_mark<0 || begin_mark>=end_mark) {
 
-        qDebug() << "begin, end: " << begin_mark << end_mark;
+        cout << "begin, end: " << begin_mark << end_mark << endl;
         throw logic_error("call set_markers first");
     }
 
@@ -125,8 +125,6 @@ void at(int i, double data[SIZE]) {
 
     dr->at(i+begin_mark, data);
 }
-
-
 
 void load(const Results &r) {
 

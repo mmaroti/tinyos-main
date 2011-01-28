@@ -47,6 +47,11 @@ enum {
     SIZE
 };
 
+enum {
+    FROM_BEGINNING = 0,
+    TO_END = -1
+};
+
 void set_markers(int begin, int end);
 
 void mark_all();
