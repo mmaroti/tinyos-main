@@ -35,26 +35,50 @@
 #include <sstream>
 #include <QDebug>
 #include "DataRecorder.h"
+#include "Results.hpp"
 
 using namespace std;
 
 // FIXME Eliminate this hideous workaround by the Singleton pattern
-
 DataRecorder* dr = 0;
 
-// Assumes singleton, and being called from a single thread
+// Assumes singleton, and being called from a single thread (thread confinement)
+// Attempts to detect concurrency bugs but NOT thread safe
 
 namespace ipo {
 
-int begin_mark = -1;
-int end_mark   = -2;
-int rec_size   = -9;
+enum {
+
+    BEGIN_INVALID = -1,
+    END_INVALID   = -2,
+    SIZE_INVALID  = -9
+};
+
+int begin_mark = BEGIN_INVALID;
+int end_mark   = END_INVALID;
+int rec_size   = SIZE_INVALID;
+
+void check_size() {
+
+    if (rec_size != dr->size()) {
+
+        throw logic_error("concurrency bug, sample size changed");
+    }
+}
 
 void check_validity(int begin, int end) {
+
+    if (begin_mark!=BEGIN_INVALID || end_mark!=END_INVALID || rec_size!=SIZE_INVALID) {
+
+        ostringstream os;
+        os << "concurrency bug detected, markers not cleared yet" << flush;
+        throw logic_error(os.str());
+    }
 
     rec_size = dr->size();
 
     if (begin < 0 || begin >= end || end > rec_size) {
+
         ostringstream os;
         os << __FILE__ << " begin, end, size: " << begin << '\t' << end << '\t' << rec_size << flush;
         throw logic_error(os.str());
@@ -76,33 +100,42 @@ void mark_all() {
 
 void clear_markers() {
 
-    begin_mark = -1;
-    end_mark   = -2;
-    rec_size   = -9;
+    begin_mark = BEGIN_INVALID;
+    end_mark   = END_INVALID;
+
+    rec_size   = SIZE_INVALID;
 }
 
 int n_samples() {
 
     if (begin_mark<0 || begin_mark>=end_mark) {
+
         qDebug() << "begin, end: " << begin_mark << end_mark;
         throw logic_error("call set_markers first");
     }
 
-    if (rec_size != dr->size()) {
-        throw logic_error("sample size changed");
-    }
+    check_size();
 
     return end_mark-begin_mark;
 }
 
 void at(int i, double data[SIZE]) {
 
+    check_size();
+
     dr->at(i+begin_mark, data);
 }
 
+
+
 void load(const Results &r) {
 
-    dr->loadResults(r);
+    if (n_samples() != r.number_of_samples()) {
+
+        throw logic_error("concurrency bug, sample size changed");
+    }
+
+    dr->loadResults(r, begin_mark, end_mark);
 }
 
 }

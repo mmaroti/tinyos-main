@@ -48,14 +48,17 @@ enum {
 };
 
 void set_markers(int begin, int end);
+
 void mark_all();
-void clear_markers();
+
 int n_samples();
+
 void at(int i, double data[SIZE]);
 
 class Results;
-
 void load(const Results& r);
+
+void clear_markers();
 
 }
 

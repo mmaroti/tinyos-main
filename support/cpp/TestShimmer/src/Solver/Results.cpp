@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/** Copyright (c) 2010, 2011, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@
 
 #include <stdexcept>
 #include "Results.hpp"
-
 
 namespace ipo {
 
