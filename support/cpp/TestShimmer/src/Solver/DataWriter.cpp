@@ -74,7 +74,7 @@ void DataWriter::writeAll(const char* filename) {
         out->close();
 
     }
-    catch (...)  {
+    catch (ios_base::failure& )  {
 
         throw DataWriteException();
     }
