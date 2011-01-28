@@ -59,8 +59,8 @@ public:
 
 signals:
 
-    // MUST use Qt::DirectConnection when connecting to this signal
-    void solver_done(bool error, const char* msg, const ipo::Results* res);
+    // MUST use Qt::DirectConnection when connecting to this signal -- is it still required?
+    void solver_done(bool error, const QString message);
 
 private slots:
 
@@ -95,7 +95,7 @@ private:
 
     std::string msg;
 
-    Results* r;
+    Results* result_data;
 };
 
 }

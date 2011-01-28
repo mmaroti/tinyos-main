@@ -476,10 +476,9 @@ void DataWidget::onCut()
     plot->update();
 }
 
-void DataWidget::finished(bool error, const char* msg, const ipo::Results* res) {
+void DataWidget::finished(bool error, const QString msg) {
 
     if (!error) {
-        application.dataRecorder.loadResults(res);
         bool on = true;
         int graphs = DataPlot::XCORRANG | DataPlot::YCORRANG | DataPlot::ZCORRANG ;
         plot->setGraphs(graphs, on);
@@ -506,6 +505,7 @@ void DataWidget::finished(bool error, const char* msg, const ipo::Results* res) 
 
 void DataWidget::on_regressionButton_clicked()
 {
+    // TODO If no samples are loaded, disable regression button
     if (application.dataRecorder.size()<1) {
         QMessageBox mbox;
         mbox.setText("Please load the samples first!");
@@ -518,11 +518,9 @@ void DataWidget::on_regressionButton_clicked()
     if(!registered) {
         registered = true;
 
-        QObject::connect(&(application.solver), SIGNAL(solver_done(bool , const char* , const ipo::Results* )),
-                         this, SLOT(  finished(bool , const char* , const ipo::Results* )), Qt::DirectConnection);
+        QObject::connect(&(application.solver), SIGNAL(solver_done(bool , const QString )),
+                         this, SLOT(  finished(bool , const QString )), Qt::DirectConnection);
     }
-
-    // TODO If no samples are loaded, disable regression button
 
     application.dataRecorder.dump_calibration_data();
 

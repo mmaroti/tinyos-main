@@ -100,4 +100,9 @@ void at(int i, double data[SIZE]) {
     dr->at(i+begin_mark, data);
 }
 
+void load(const Results &r) {
+
+    dr->loadResults(r);
+}
+
 }

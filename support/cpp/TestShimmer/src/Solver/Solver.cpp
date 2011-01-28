@@ -79,8 +79,8 @@ void Solver::cleanup_solver() {
 
 void Solver::cleanup_data() {
 
-    delete r;
-    r = 0;
+    delete result_data;
+    result_data = 0;
 
     msg = "Error: ";
 }
@@ -96,7 +96,7 @@ void Solver::init() {
 
     cleanup_all();
 
-    r = new Results();
+    result_data = new Results();
 
     solver = new QProcess(this);
 
@@ -111,7 +111,7 @@ void Solver::init() {
 
 }
 
-Solver::Solver() : mutex(new QMutex), solver(0), msg(""), r(0) {
+Solver::Solver() : mutex(new QMutex), solver(0), msg(""), result_data(0) {
 
     qRegisterMetaType<QProcess::ProcessError>("QProcess::ProcessError");
     qRegisterMetaType<QProcess::ExitStatus>("QProcess::ExitStatus");
@@ -196,17 +196,19 @@ void Solver::emit_signal(bool error) {
 
     cout << endl << "Emitting signal: " << (error?"FAILED":"SUCCESS") << ", message: " << msg << endl;
 
-    cleanup_solver();
-
-    emit solver_done(error, msg.c_str(), r);
-
     cout << "Releasing resources NOW!" << endl;
+
+    const QString message(msg.c_str());
+
+    cleanup_solver();
 
     cleanup_data();
 
     clear_markers();
 
     mutex->unlock();
+
+    emit solver_done(error, message);
 }
 
 void Solver::started() {
@@ -248,7 +250,9 @@ bool Solver::read_results() {
 
         DataReader dr;
 
-        dr.readAll(gyro::RESULT_FILE, *r);
+        dr.readAll(gyro::RESULT_FILE, *result_data);
+
+        load(*result_data);
 
         msg = "Successfully finished!";
     }

@@ -145,7 +145,7 @@ public:
         void saveCalibToFile(const QString& filename) const;
         void edit(const QString& option);
 
-        void loadResults(const ipo::Results* res);
+        void loadResults(const ipo::Results& res);
         bool euler_angle(int sample, Coordinate k, double& angle_in_rad) const;
         Angle_pair integrated_angle(int sample, Coordinate k) const;
         Angle_pair corrected_angle(int i, Coordinate k) const;

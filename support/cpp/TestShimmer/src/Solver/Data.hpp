@@ -53,6 +53,10 @@ void clear_markers();
 int n_samples();
 void at(int i, double data[SIZE]);
 
+class Results;
+
+void load(const Results& r);
+
 }
 
 #endif // DATA_HPP

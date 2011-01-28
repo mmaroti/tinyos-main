@@ -725,17 +725,17 @@ void DataRecorder::integrate_angles() {
     }
 }
 
-void DataRecorder::loadResults(const ipo::Results* res) {
+void DataRecorder::loadResults(const ipo::Results& res) {
 
     const int n = samples.size();
 
-    if (res->number_of_samples()!=n) {
+    if (res.number_of_samples()!=n) {
         throw std::logic_error("Error: the number of samples has changed since starting the solver!");
     }
 
     for (int i=0; i<n; ++i) {
 
-        const double* const m = res->matrix_at(i);
+        const double* const m = res.matrix_at(i);
 
         Sample& s = samples[i];
 
@@ -745,7 +745,7 @@ void DataRecorder::loadResults(const ipo::Results* res) {
         }
     }
 
-    update_gyro_calib(res->var());
+    update_gyro_calib(res.var());
 
     integrate_angles();
 

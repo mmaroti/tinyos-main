@@ -45,10 +45,6 @@
 class Application;
 class DataRecorder;
 
-namespace ipo {
-    class Results;
-}
-
 namespace Ui {
 
     class DataWidget;
@@ -142,7 +138,7 @@ private slots:
         void onCopy();
         void onCut();
 
-        void finished(bool error, const char* msg, const ipo::Results* res);
+        void finished(bool error, const QString msg);
 
         void onCalculateRange(int from, int to);
 };
