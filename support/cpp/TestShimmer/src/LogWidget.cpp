@@ -63,9 +63,10 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
 
     ui->log->setRowCount(0);
     ui->log->horizontalHeader()->resizeSection(0, 40);
-    ui->log->horizontalHeader()->resizeSection(1, 100);
-    ui->log->horizontalHeader()->setResizeMode(2, QHeaderView::Stretch);
-    ui->log->horizontalHeader()->resizeSection(3, 40);
+    ui->log->horizontalHeader()->resizeSection(1, 50);
+    ui->log->horizontalHeader()->resizeSection(2, 100);
+    ui->log->horizontalHeader()->setResizeMode(3, QHeaderView::Stretch);
+    ui->log->horizontalHeader()->resizeSection(4, 40);
 
     ui->log->setEditTriggers(QAbstractItemView::AllEditTriggers);
 
@@ -117,34 +118,42 @@ void LogWidget::createItem(QString text, QString time, Button button, int at)
         ui->log->insertRow(row);
     }
 
-
     if(button == RecordStart){
         txt = QDate::currentDate().toString();
         txt.append(" - "+text);
-    } else {
-        txt = text;
-    }
 
-    if(button == MotionStart){
+        QTableWidgetItem* item = new QTableWidgetItem("Rec Start", 0);
+        item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+        ui->log->setItem(row, 2, item);
+    } else if(button == RecordEnd){
+        txt = text;
+
+        QTableWidgetItem* item = new QTableWidgetItem("Rec End", 0);
+        item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+        ui->log->setItem(row, 2, item);
+    } else if(button == MotionStart){
+        txt = text;
+
         QTableWidgetItem* gotoButton = new QTableWidgetItem(QIcon(":/icons/back-arrow.png"),"", 0);
         gotoButton->setFlags(gotoButton->flags() & ~Qt::ItemIsEditable);
-        ui->log->setItem(row, 0, gotoButton);        
-    } else {
-        QTableWidgetItem* gotoButton = new QTableWidgetItem("", 0);
-        gotoButton->setFlags(gotoButton->flags() & ~Qt::ItemIsEditable);
-        ui->log->setItem(row, 0, gotoButton);        
-    }
+        ui->log->setItem(row, 0, gotoButton);
 
-    if( button == Load || button == Insert){
-        QTableWidgetItem* item = new QTableWidgetItem(txt,0);
-        item->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-        ui->log->setItem(row,2,item);    
-    } else {
-        QTableWidgetItem* item = new QTableWidgetItem(txt,0);
+        QTableWidgetItem* item = new QTableWidgetItem("Motion start", 0);
         item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-        ui->log->setItem(row,2,item);    
+        ui->log->setItem(row, 2, item);
+    } else if(button == MotionEnd){
+        txt = text;
+
+        QTableWidgetItem* item = new QTableWidgetItem("Motion end", 0);
+        item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+        ui->log->setItem(row, 2, item);
+    } else {
+        txt = text;
+
+        QTableWidgetItem* item = new QTableWidgetItem("", 0);
+        item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+        ui->log->setItem(row, 2, item);
     }
-    
 
     if(button == Insert){
         QTableWidgetItem* timeItem = new QTableWidgetItem(ui->log->item(row-1,1)->text(),0);
@@ -160,14 +169,24 @@ void LogWidget::createItem(QString text, QString time, Button button, int at)
         ui->log->setItem(row,1,timeItem);
     }
 
+    if( time != "" || button == Insert){
+        QTableWidgetItem* item = new QTableWidgetItem(txt,0);
+        item->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        ui->log->setItem(row,3,item);
+    } else {
+        QTableWidgetItem* item = new QTableWidgetItem(txt,0);
+        item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+        ui->log->setItem(row,3,item);
+    }
+
     if(button != RecordStart && button != RecordEnd){
         QTableWidgetItem* del = new QTableWidgetItem(QIcon(":/icons/Delete.png"),"", 0);
         del->setFlags(del->flags() & ~Qt::ItemIsEditable);
-        ui->log->setItem(row, 3, del);        
+        ui->log->setItem(row, 4, del);
     } else {
         QTableWidgetItem* del = new QTableWidgetItem("", 0);
         del->setFlags(del->flags() & ~Qt::ItemIsEditable);
-        ui->log->setItem(row, 3, del);        
+        ui->log->setItem(row, 4, del);
     }
 
     ui->entryLine->clear();
@@ -178,7 +197,7 @@ void LogWidget::on_recStartButton_clicked()
 {
     init();
 
-    QString msg = QString::fromUtf8("Rec start");
+    QString msg;
     if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
     createItem(msg, "", RecordStart, -1);
     ui->recStartButton->setEnabled(false);
@@ -198,7 +217,7 @@ void LogWidget::on_recEndButton_clicked()
     msgBox.setDefaultButton(QMessageBox::Cancel);
     int ret = msgBox.exec();
     if(ret == QMessageBox::Ok){
-        QString msg = QString::fromUtf8("Rec End");
+        QString msg;
         if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
         createItem(msg, "", RecordEnd, -1);
         ui->recStartButton->setEnabled(false);
@@ -216,7 +235,7 @@ void LogWidget::on_recEndButton_clicked()
 
 void LogWidget::on_motionStartButton_clicked()
 {
-    QString msg = QString::fromUtf8("Motion start");
+    QString msg;
     if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
     createItem(msg, "", MotionStart, -1);
     ui->motionStartButton->setEnabled(false);
@@ -228,7 +247,7 @@ void LogWidget::on_motionStartButton_clicked()
 
 void LogWidget::on_motionEndButton_clicked()
 {
-    QString msg = QString::fromUtf8("Motion end");
+    QString msg;
     if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
     createItem(msg, "", MotionEnd, -1);
     ui->motionEndButton->setEnabled(false);
@@ -241,8 +260,6 @@ void LogWidget::on_motionEndButton_clicked()
 
 void LogWidget::on_loadButton_clicked()
 {
-
-
     QString file = QFileDialog::getOpenFileName(this, "Select a file to open", "c:/", "CSV (*.csv);;Any File (*.*)");
     if ( !file.isEmpty() ) {
         init();
@@ -388,7 +405,7 @@ void LogWidget::on_log_cellClicked(int row, int column)
 {
     if(column == 0){
         if(row == findMotionStart(row)) onGoto(row);
-    } else if(column == 3){
+    } else if(column == 4){
         onDelRow(row);
     }
 }
@@ -498,8 +515,12 @@ void LogWidget::csvToLog(const QString &line)
 
         if(text.contains("Motion start", Qt::CaseSensitive)){
             createItem(text, time, MotionStart , -1);
-        } else {
-            createItem(text, time, Load , -1);
+        } else if(text.contains("Motion end", Qt::CaseSensitive)){
+            createItem(text, time, MotionEnd , -1);
+        } else if(text.contains("Rec Start", Qt::CaseSensitive)){
+            createItem(text, time, RecordStart , -1);
+        } else if(text.contains("Rec End", Qt::CaseSensitive)){
+            createItem(text, time, RecordEnd , -1);
         }
 
     }

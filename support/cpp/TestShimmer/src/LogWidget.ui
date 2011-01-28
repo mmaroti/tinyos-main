@@ -75,6 +75,11 @@
        </column>
        <column>
         <property name="text">
+         <string>Type</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
          <string>Entry</string>
         </property>
        </column>
