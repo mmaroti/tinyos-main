@@ -179,7 +179,7 @@ void LogWidget::on_recStartButton_clicked()
     ui->recStartButton->setEnabled(false);
     ui->motionStartButton->setEnabled(true);
     ui->saveButton->setEnabled(false);
-    //ui->loadButton->setEnabled(false);
+    ui->loadButton->setEnabled(false);
 
     ui->entryLine->setFocus();
     emit recordStatusChanged("Receiving...", 2);
@@ -236,17 +236,20 @@ void LogWidget::on_motionEndButton_clicked()
 
 void LogWidget::on_loadButton_clicked()
 {
-    init();
 
-    ui->recStartButton->setEnabled(false);
-    ui->recEndButton->setEnabled(false);
-    ui->motionStartButton->setEnabled(false);
-    ui->motionEndButton->setEnabled(false);
-    ui->saveButton->setEnabled(true);
 
     QString file = QFileDialog::getOpenFileName(this, "Select a file to open", "c:/", "CSV (*.csv);;Any File (*.*)");
     if ( !file.isEmpty() ) {
+        init();
+
+        ui->recStartButton->setEnabled(false);
+        ui->recEndButton->setEnabled(false);
+        ui->motionStartButton->setEnabled(false);
+        ui->motionEndButton->setEnabled(false);
+        ui->saveButton->setEnabled(true);
+
         loadLog(file);
+        if(ui->log->rowCount() == 0) ui->recStartButton->setEnabled(true);
     }
 
     ui->entryLine->setFocus();
@@ -254,13 +257,13 @@ void LogWidget::on_loadButton_clicked()
 
 void LogWidget::on_saveButton_clicked()
 {
-    ui->recStartButton->setEnabled(true);
-    ui->loadButton->setEnabled(true);
-    ui->entryLine->setEnabled(true);
-
     //connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
     QString fn = QFileDialog::getSaveFileName(  this, "Choose a filename to save under", "c:/", "CSV (*.csv)");
     if ( !fn.isEmpty() ) {
+        ui->recStartButton->setEnabled(true);
+        ui->loadButton->setEnabled(true);
+        ui->entryLine->setEnabled(true);
+
         saveLog( fn );
     }
 
