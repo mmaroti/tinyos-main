@@ -122,8 +122,6 @@ HEADERS += src/DataRecorder.h \
     src/Solver/Results.hpp \
     src/Solver/MatrixVector.hpp \
     src/Solver/EulerAngles.hpp \
-    src/Solver/DataWriteException.hpp \
-    src/Solver/DataReadException.hpp \
     src/Solver/DataReader.hpp \
     src/Solver/Data.hpp \
     src/Solver/CompileTimeConstants.hpp \

@@ -35,7 +35,6 @@
 #include <iomanip>
 #include <stdexcept>
 #include "DataWriter.hpp"
-#include "DataWriteException.hpp"
 #include "CompileTimeConstants.hpp"
 
 using namespace std;
@@ -59,25 +58,17 @@ void DataWriter::writeAll(const char* filename) {
     if (n<1)
         throw logic_error("Incorrect number of samples!");
 
-    try {
+    out->open(filename);
 
-        out->open(filename);
+    *out << gyro::NUMBER_OF_SAMPLES << '\n';
 
-        *out << gyro::NUMBER_OF_SAMPLES << '\n';
+    *out << n << '\n';
 
-        *out << n << '\n';
+    *out << gyro::INPUT_DATA << '\n';
 
-        *out << gyro::INPUT_DATA << '\n';
+    write_samples(n);
 
-        write_samples(n);
-
-        out->close();
-
-    }
-    catch (ios_base::failure& )  {
-
-        throw DataWriteException();
-    }
+    out->close();
 }
 
 void DataWriter::write_data(double data[SIZE]) {

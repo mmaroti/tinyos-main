@@ -71,7 +71,7 @@ void check_validity(int begin, int end) {
     if (begin_mark!=BEGIN_INVALID || end_mark!=END_INVALID || rec_size!=SIZE_INVALID) {
 
         ostringstream os;
-        os << "concurrency bug detected, markers not cleared yet" << flush;
+        os << "perhaps a concurrency bug detected, markers not cleared yet" << flush;
         throw logic_error(os.str());
     }
 

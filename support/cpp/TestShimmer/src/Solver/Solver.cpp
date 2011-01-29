@@ -39,9 +39,7 @@
 #include "Solver.hpp"
 #include "Data.hpp"
 #include "DataReader.hpp"
-#include "DataReadException.hpp"
 #include "DataWriter.hpp"
-#include "DataWriteException.hpp"
 #include "Results.hpp"
 
 using namespace std;
@@ -119,8 +117,6 @@ Solver::Solver() : mutex(new QMutex), solver(0), msg(""), result_data(0) {
 
 bool Solver::write_samples() {
 
-    bool result = SUCCESS;
-
     try {
 
         DataWriter dw;
@@ -130,12 +126,20 @@ bool Solver::write_samples() {
         cout << endl << "Samples are successfully written" << endl;
 
     }
-    catch (DataWriteException& ) {
+    catch (ios_base::failure& ) {
 
-        result = FAILED;
+        msg = "(ios_base::failure)";
+
+        return FAILED;
+    }
+    catch (exception& e) {
+
+        msg = string("(") + e.what() + string(")");
+
+        return FAILED;
     }
 
-    return result;
+    return SUCCESS;
 }
 
 void displayErrorMsg(const QString& what) {
@@ -148,43 +152,54 @@ void displayErrorMsg(const QString& what) {
     mbox.exec();
 }
 
-// Released by:
-// - emit_signal()
-// - if writing samples fails
-// FIXME Wrap up tryLock and unlock and add set/clear_markers there
 bool Solver::get_lock() {
-
-    bool result = SUCCESS;
 
     if (!mutex->tryLock()) {
 
         displayErrorMsg("the solver is already running!");
 
-        result = FAILED;
+        return FAILED;
     }
 
-    return result;
+    return SUCCESS;
 }
 
-void Solver::set_sample_subrange(const int begin, const int end) {
+bool Solver::set_sample_subrange(const int begin, const int end) {
 
-    if (begin==FROM_BEGINNING && end==TO_END) {
+    try {
 
-        mark_all();
+        if (begin==FROM_BEGINNING && end==TO_END) {
+
+            mark_all();
+        }
+        else {
+
+            set_markers(begin, end);
+        }
     }
-    else {
+    catch (logic_error& e) {
 
-        set_markers(begin, end);
+        string msg("unexpected error ");
+
+        msg += e.what();
+
+        displayErrorMsg(msg.c_str());
+
+        return FAILED;
     }
+
+    return SUCCESS;
 }
 
 bool Solver::write_solver_input() {
 
-    if (write_samples()==FAILED){
+    if (write_samples() == FAILED) {
 
-        displayErrorMsg("failed to pass input data to the solver!");
+        QString message("failed to pass input data to the solver! ");
 
-        unlock();
+        message.append(msg.c_str());
+
+        displayErrorMsg(message);
 
         return FAILED;
     }
@@ -195,6 +210,8 @@ bool Solver::write_solver_input() {
 void Solver::unlock() {
 
     clear_markers();
+
+    msg = "Error: ";
 
     mutex->unlock();
 }
@@ -213,6 +230,10 @@ void Solver::start_solver() {
 }
 
 // Entry point
+// Lock is released by:
+// - emit_signal()
+// - if setting subrange fails (logic_error)
+// - if writing samples fails
 bool Solver::start(const int begin, const int end) {
 
     if (get_lock() == FAILED) {
@@ -220,9 +241,16 @@ bool Solver::start(const int begin, const int end) {
         return FAILED;
     }
 
-    set_sample_subrange(begin, end);
+    if (set_sample_subrange(begin, end) == FAILED) {
+
+        unlock();
+
+        return FAILED;
+    }
 
     if (write_solver_input() == FAILED) {
+
+        unlock();
 
         return FAILED;
     }
@@ -272,15 +300,13 @@ void Solver::error(QProcess::ProcessError error) {
         msg += "unknown error!";
     }
     else {
-        msg += "undocumented error code received from Qt!";
+        msg += "unexpected error code received from Qt!";
     }
 
     emit_signal(FAILED);
 }
 
 bool Solver::read_results() {
-
-    bool result = SUCCESS;
 
     try {
 
@@ -292,13 +318,19 @@ bool Solver::read_results() {
 
         msg = "Successfully finished!";
     }
-    catch (DataReadException& ) {
+    catch (ios_base::failure& ) {
 
         msg += "failed to read the output of the solver!";
-        result = FAILED;
+        return FAILED;
+    }
+    catch (exception& e) {
+
+        msg += "unexpected error ";
+        msg += e.what();
+        return FAILED;
     }
 
-    return result;
+    return SUCCESS;
 }
 
 bool Solver::process_result(int exitCode) {
@@ -348,7 +380,7 @@ bool Solver::process_result(int exitCode) {
         msg += "the solver failed to read the configuration file!";
     }
     else {
-        throw logic_error("Unknown value returned by the solver, implementation not updated properly!");
+        msg += "unknown value returned by the solver, implementation not updated properly!";
     }
 
     return result;
@@ -359,6 +391,7 @@ void Solver::finished(int exitCode, QProcess::ExitStatus exitStatus) {
     bool result = FAILED;
 
     if (exitStatus == QProcess::NormalExit) {
+
         result = process_result(exitCode);
     }
     else if (exitStatus == QProcess::CrashExit) {
@@ -366,7 +399,8 @@ void Solver::finished(int exitCode, QProcess::ExitStatus exitStatus) {
         return; // FIXME Qt also signals error, it is just stupid.
     }
     else {
-        msg += "undocumented error code received from Qt!";
+
+        msg += "unexpected error code received from Qt!";
     }
 
     emit_signal(result);

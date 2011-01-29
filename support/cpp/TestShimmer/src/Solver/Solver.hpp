@@ -77,7 +77,7 @@ private:
 
     bool get_lock();
     void unlock();
-    void set_sample_subrange(const int begin, const int end);
+    bool set_sample_subrange(const int begin, const int end);
     bool write_solver_input();
     void start_solver();
     void init();

@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/** Copyright (c) 2010, 2011, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -54,6 +54,9 @@ private:
 
     DataReader(const DataReader& );
     DataReader& operator=(const DataReader& );
+
+    void read_header(Results& r);
+    void read_data(Results& r);
 
     void skip_irrelevant_lines();
     void skip_line(const char text[]);

@@ -33,9 +33,9 @@
 
 #include <iostream>
 #include <fstream>
+#include <stdexcept>
 #include "Data.hpp"
 #include "DataReader.hpp"
-#include "DataReadException.hpp"
 #include "CompileTimeConstants.hpp"
 #include "Results.hpp"
 
@@ -56,51 +56,51 @@ DataReader::~DataReader() {
 
 void DataReader::readAll(const char* filename, Results& r) {
 
-    try {
+    in->open(filename);
 
-        in->open(filename);
+    read_header(r);
 
-        skip_irrelevant_lines();
+    read_data(r);
 
-        read_line(gyro::CONFIG_FILE_ID);
+    in->close();
+}
 
-        // TODO Copy error value
-        read_line(gyro::ERROR_IN_G);
+void DataReader::read_header(Results& r) {
 
-        // TODO Check if matches the hard-coded value
-        read_line(gyro::NUMBER_OF_VARS);
+    skip_irrelevant_lines();
 
-        const int n_vars = gyro::NUMBER_OF_VARIABLES;
+    read_line(gyro::CONFIG_FILE_ID);
 
-        // TODO Check acceptance level
-        read_vector(gyro::SOLUTION_VECTOR, r.x, n_vars);
+    // TODO Copy error value
+    read_line(gyro::ERROR_IN_G);
 
-        read_vector(gyro::VARIABLE_LOWER_BOUNDS, r.x_lb, n_vars);
+    // TODO Check if matches the hard-coded value
+    read_line(gyro::NUMBER_OF_VARS);
 
-        read_vector(gyro::VARIABLE_UPPER_BOUNDS,  r.x_ub, n_vars);
+    const int n_vars = gyro::NUMBER_OF_VARIABLES;
 
-        // TODO Check value
-        read_line(gyro::NUMBER_OF_SAMPLES);
+    // TODO Check acceptance level
+    read_vector(gyro::SOLUTION_VECTOR, r.x, n_vars);
 
-        //=======================================================
+    read_vector(gyro::VARIABLE_LOWER_BOUNDS, r.x_lb, n_vars);
 
-        r.n = n_samples();
+    read_vector(gyro::VARIABLE_UPPER_BOUNDS,  r.x_ub, n_vars);
 
-        const int n_elem = 9*(r.n);
+    // TODO Check value
+    read_line(gyro::NUMBER_OF_SAMPLES);
+}
 
-        r.m = new double[n_elem];
+void DataReader::read_data(Results& r) {
 
-        read_vector(gyro::ROTATION_MATRICES, r.m, n_elem);
+    r.n = n_samples();
 
-        skip_line(gyro::END_OF_FILE);
+    const int n_elem = 9*(r.n);
 
-        in->close();
+    r.m = new double[n_elem];
 
-    }
-    catch(ios_base::failure& ) {
+    read_vector(gyro::ROTATION_MATRICES, r.m, n_elem);
 
-        throw DataReadException();
-    }
+    skip_line(gyro::END_OF_FILE);
 }
 
 void DataReader::skip_eol() {
@@ -109,8 +109,14 @@ void DataReader::skip_eol() {
 
     getline(*in, end_of_line);
 
-    if (end_of_line.size()!=0)
-        throw DataReadException();
+    if (end_of_line.size()!=0) {
+
+        string msg("unexpected content ");
+
+        msg.append(end_of_line);
+
+        throw runtime_error(msg);
+    }
 }
 
 void DataReader::read_vector(const char text[], double* r, int length) {
@@ -151,12 +157,15 @@ void DataReader::skip_line(const char text[]) {
     getline(*in, line);
 
     if (line==text) {
+
         cout << line << endl;
     }
     else {
+
         cout << "Expected explanatory comment: " << text << ", ";
         cout << "found: " << line << endl;
-        throw DataReadException();
+
+        throw runtime_error("unexpected text instead if the explanatory comment");
     }
 }
 
