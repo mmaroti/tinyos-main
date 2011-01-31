@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/** Copyright (c) 2010, 2011, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 #include "SerialListener.h"
 #include "qextserialport.h"
 #include <QtDebug>
+#include <QDateTime>
 
 SerialListener::SerialListener()
 {
@@ -274,6 +275,11 @@ void SerialListener::timerEvent(QTimerEvent *)
 		msg.payload.append((char)0);
 		msg.payload.append((char)0x09);
 	}
+
+        // Emulates message loss
+        int sec = QDateTime::currentDateTime().time().second() % 10;
+        if (4<= sec && sec <=6)
+            return;
 
 	emit receiveMessage(msg);
 }
