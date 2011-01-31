@@ -90,6 +90,7 @@ void LogWidget::init()
     ui->motionStartButton->setEnabled(false);
     ui->motionEndButton->setEnabled(false);
     ui->saveButton->setEnabled(false);
+    ui->checkButton->setEnabled(false);
     ui->clearButton->setEnabled(false);
     ui->loadButton->setEnabled(true);
     ui->recStartButton->setEnabled(true);
@@ -205,6 +206,7 @@ void LogWidget::on_recStartButton_clicked()
     ui->recStartButton->setEnabled(false);
     ui->motionStartButton->setEnabled(true);
     ui->saveButton->setEnabled(false);
+    ui->checkButton->setEnabled(false);
     ui->clearButton->setEnabled(false);
     ui->loadButton->setEnabled(false);
 
@@ -227,6 +229,7 @@ void LogWidget::on_recEndButton_clicked()
         ui->motionStartButton->setEnabled(false);
         ui->entryLine->setEnabled(false);
         ui->saveButton->setEnabled(true);
+        ui->checkButton->setEnabled(true);
         ui->clearButton->setEnabled(true);
 
         for(int i=0; i<ui->log->rowCount(); i++){
@@ -275,6 +278,7 @@ void LogWidget::on_loadButton_clicked()
         ui->motionStartButton->setEnabled(false);
         ui->motionEndButton->setEnabled(false);
         ui->saveButton->setEnabled(true);
+        ui->checkButton->setEnabled(true);
         ui->clearButton->setEnabled(true);
 
         disconnect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
@@ -295,7 +299,6 @@ void LogWidget::on_saveButton_clicked()
         connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
 
         saveLog( fn );
-        //ui->saveButton->setStyleSheet("* { background-color: rgb(185,255,185) }");
     }
 
     ui->entryLine->setFocus();
@@ -316,6 +319,41 @@ void LogWidget::on_clearButton_clicked()
 
         application.dataRecorder.clearSamples();
     }
+}
+
+void LogWidget::on_checkButton_clicked()
+{
+    int failed = 0;
+
+    QTime tooShort(0,0,1,0);
+    QTime motionStart, motionEnd;
+    QTime recordStart = QTime::fromString(ui->log->item(findRecordStart(),1)->text(), "hh:mm:ss");
+    QTime recordEnd = QTime::fromString(ui->log->item(findRecordEnd(),1)->text(), "hh:mm:ss");
+
+    for(int i = 0; i < ui->log->rowCount(); i++){
+        if(isMotionStart(i)){
+            motionStart = QTime::fromString(ui->log->item(i,1)->text(), "hh:mm:ss");
+            qDebug() << "Motion start: " << ui->log->item(i, 1)->text() << " - " << ui->log->item(i, 3)->text() << " - Row: " << i;
+        } else if(isMotionEnd(i)){
+            motionEnd = QTime::fromString(ui->log->item(i,1)->text(), "hh:mm:ss");
+
+            QTime motStartToMotEnd = QTime(0,0,0,0).addMSecs(motionStart.msecsTo(motionEnd));
+
+            if(motStartToMotEnd > tooShort){
+                QTime motStartToRecStart = QTime(0,0,0,0).addMSecs(recordStart.msecsTo(motionStart));
+                QTime motEndToRecStart = QTime(0,0,0,0).addMSecs(recordStart.msecsTo(motionEnd));
+                QTime recEndToRecStart = QTime(0,0,0,0).addMSecs(recordStart.msecsTo(recordEnd));
+                qDebug() << motStartToRecStart.toString();
+                qDebug() << motEndToRecStart.toString();
+                qDebug() << recEndToRecStart.toString();
+            } else {
+                failed++;
+            }
+        }
+    }
+
+    qDebug() << "Failed count: " << failed;
+
 }
 
 void LogWidget::onDelRow(int row)
@@ -393,9 +431,32 @@ int LogWidget::findMotionEnd(int startRow)
     return endRow;
 }
 
-bool LogWidget::isMotionStart(int row)
+int LogWidget::findRecordStart()
 {
-    return ui->log->item(row,2)->text().contains("Motion start", Qt::CaseSensitive);
+    int startRow = -1;
+
+    for(int i = 0; i < ui->log->rowCount(); i++){
+        if(ui->log->item(i,2)->text().contains("Rec Start", Qt::CaseSensitive)){
+            startRow = i;
+            break;
+        }
+    }
+
+    return startRow;
+}
+
+int LogWidget::findRecordEnd()
+{
+    int endRow = -1;
+
+    for(int i = ui->log->rowCount()-1; i > 0; i--){
+        if(ui->log->item(i,2)->text().contains("Rec End", Qt::CaseSensitive)){
+            endRow = i;
+            break;
+        }
+    }
+
+    return endRow;
 }
 
 int LogWidget::motionDistance(int startRow, int endRow)
@@ -471,6 +532,21 @@ void LogWidget::on_log_cellChanged(int row, int column)
 bool LogWidget::isRecordEnd(int row)
 {
     return ui->log->item(row,2)->text().contains("Rec End", Qt::CaseSensitive);
+}
+
+bool LogWidget::isRecordStart(int row)
+{
+    return ui->log->item(row,2)->text().contains("Rec Start", Qt::CaseSensitive);
+}
+
+bool LogWidget::isMotionStart(int row)
+{
+    return ui->log->item(row,2)->text().contains("Motion start", Qt::CaseSensitive);
+}
+
+bool LogWidget::isMotionEnd(int row)
+{
+    return ui->log->item(row,2)->text().contains("Motion end", Qt::CaseSensitive);
 }
 
 void LogWidget::saveLog(const QString &filename)

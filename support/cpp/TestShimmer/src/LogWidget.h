@@ -65,6 +65,7 @@ private slots:
     void on_loadButton_clicked();
     void on_saveButton_clicked();
     void on_clearButton_clicked();
+    void on_checkButton_clicked();
 
     void ShowContextMenu(const QPoint& pos);
     void on_log_cellClicked(int,int);
@@ -77,11 +78,18 @@ private:
     void onDelRow(int);
 
     void createItem(QString text, QString time, Button button, int at);
+
+    int findRecordStart();
+    int findRecordEnd();
     int findMotionStart(int);
     int findMotionEnd(int);
     int motionDistance(int, int);
+
+    bool isRecordStart(int);
     bool isRecordEnd(int);
     bool isMotionStart(int);
+    bool isMotionEnd(int);
+
     void init();
     void saveLog(const QString&);
     void loadLog(const QString&);
