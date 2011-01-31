@@ -85,12 +85,12 @@
        </column>
        <column>
         <property name="text">
-         <string>Solver</string>
+         <string>Del</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>Del</string>
+         <string>Solver</string>
         </property>
        </column>
       </widget>
