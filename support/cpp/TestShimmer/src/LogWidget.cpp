@@ -83,6 +83,8 @@ void LogWidget::init()
 {
     inEditing = false;
 
+    application.dataRecorder.clearSamples();
+
     ui->log->clearContents();
     ui->log->setRowCount(0);
 
@@ -211,6 +213,9 @@ void LogWidget::on_recStartButton_clicked()
     ui->loadButton->setEnabled(false);
 
     ui->entryLine->setFocus();
+
+    connect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)),
+            &application.dataRecorder,   SLOT(onReceiveMessage(ActiveMessage)), Qt::DirectConnection);
 }
 
 void LogWidget::on_recEndButton_clicked()
@@ -221,6 +226,9 @@ void LogWidget::on_recEndButton_clicked()
     msgBox.setDefaultButton(QMessageBox::Cancel);
     int ret = msgBox.exec();
     if(ret == QMessageBox::Ok){
+
+        disconnect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)),
+                   &application.dataRecorder,   SLOT(onReceiveMessage(ActiveMessage)));
         QString msg;
         if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
         createItem(msg, "", RecordEnd, -1);
@@ -316,8 +324,6 @@ void LogWidget::on_clearButton_clicked()
 
     if(ret == QMessageBox::Ok){
         init();
-
-        application.dataRecorder.clearSamples();
     }
 }
 
