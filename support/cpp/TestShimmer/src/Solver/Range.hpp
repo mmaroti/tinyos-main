@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, 2011, University of Szeged
+/** Copyright (c) 2011, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -31,31 +31,20 @@
 * Author: Ali Baharev
 */
 
-#ifndef DATA_HPP
-#define DATA_HPP
+#ifndef RANGE_HPP
+#define RANGE_HPP
 
 namespace ipo {
 
-enum {
-    TIME_STAMP,
-    ACCEL_X,
-    ACCEL_Y,
-    ACCEL_Z,
-    GYRO_X,
-    GYRO_Y,
-    GYRO_Z,
-    SIZE
-};
+void set_markers(int begin, int end);
 
-enum {
-    FROM_BEGINNING = 0,
-    TO_END = -1
-};
+void mark_all();
 
-int n_samples();
+class Results;
+void load(const Results& r);
 
-void at(int i, double data[SIZE]);
+void clear_markers();
 
 }
 
-#endif // DATA_HPP
+#endif // RANGE_HPP

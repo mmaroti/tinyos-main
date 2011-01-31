@@ -172,7 +172,8 @@ HEADERS += src/DataRecorder.h \
     src/TabWatcher.hpp \
     src/LogDialog.h \
     src/Solver/ConnectionState.hpp \
-    src/Solver/StateColor.hpp
+    src/Solver/StateColor.hpp \
+    src/Solver/Range.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

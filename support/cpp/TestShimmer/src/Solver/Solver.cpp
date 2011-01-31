@@ -40,6 +40,7 @@
 #include "Data.hpp"
 #include "DataReader.hpp"
 #include "DataWriter.hpp"
+#include "Range.hpp"
 #include "Results.hpp"
 
 using namespace std;
