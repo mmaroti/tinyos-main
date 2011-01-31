@@ -97,8 +97,9 @@ void LogWidget::init()
     ui->clearButton->setEnabled(false);
     ui->loadButton->setEnabled(true);
     ui->recStartButton->setEnabled(true);
+    ui->entryLine->setEnabled(true);
 
-    ui->saveButton->setStyleSheet("* { background-color: rgb(255,185,185) }");
+    //ui->saveButton->setStyleSheet("* { background-color: rgb(255,185,185) }");
 
     ui->entryLine->setFocus();
 }
@@ -233,6 +234,10 @@ void LogWidget::on_recEndButton_clicked()
         ui->saveButton->setEnabled(true);
         ui->clearButton->setEnabled(true);
 
+        for(int i=0; i<ui->log->rowCount(); i++){
+            ui->log->item(i, 3)->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        }
+
         emit recordStatusChanged("Stopped receiving...", 1);
         //disconnect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
     }
@@ -296,7 +301,7 @@ void LogWidget::on_saveButton_clicked()
         connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
 
         saveLog( fn );
-        ui->saveButton->setStyleSheet("* { background-color: rgb(185,255,185) }");
+        //ui->saveButton->setStyleSheet("* { background-color: rgb(185,255,185) }");
     }
 
     ui->entryLine->setFocus();
@@ -549,6 +554,7 @@ void LogWidget::csvToLog(const QString &line)
             createItem(text, time, RecordStart , -1);
         } else if(type.contains("Rec End", Qt::CaseSensitive)){
             createItem(text, time, RecordEnd , -1);
+            ui->entryLine->setEnabled(false);
         } else {
             createItem(text, time, Text, -1);
         }
