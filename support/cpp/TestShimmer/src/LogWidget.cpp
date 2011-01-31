@@ -213,7 +213,6 @@ void LogWidget::on_recStartButton_clicked()
     ui->loadButton->setEnabled(false);
 
     ui->entryLine->setFocus();
-    emit recordStatusChanged("Receiving...", 2);
 }
 
 void LogWidget::on_recEndButton_clicked()
@@ -238,7 +237,6 @@ void LogWidget::on_recEndButton_clicked()
             ui->log->item(i, 3)->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         }
 
-        emit recordStatusChanged("Stopped receiving...", 1);
         //disconnect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
     }
 

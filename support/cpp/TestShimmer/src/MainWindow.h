@@ -55,7 +55,6 @@ protected:
 
 private slots:
         void onSolverRunning();
-        void onConnectionStateChanged(const QString &, int);
 
 signals:
         void focusIn();

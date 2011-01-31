@@ -78,7 +78,7 @@ void SerialListener::onPortChanged(const QString & portName, int baudRate)
 	if( portName == "simulated" )
 	{
 		timerId = startTimer(20);
-                emit showNotification("Generating simulated messages.", 1);
+                emit showNotification("Generating simulated messages.", 0);
 		return;
 	}
 
@@ -107,7 +107,7 @@ void SerialListener::onPortChanged(const QString & portName, int baudRate)
 		badPacketCount = -1;
 		partialPacket.clear();
 
-                emit showNotification("Connected.", 1);
+                emit showNotification("Connected.", 0);
 		connect(port, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
 	}
 
