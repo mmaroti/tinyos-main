@@ -37,7 +37,6 @@
 #include <QObject>
 #include "StateColor.hpp"
 
-class QTimer;
 class ActiveMessage;
 
 class ConnectionState : public QObject {
@@ -66,18 +65,21 @@ public slots:
 
 private slots:
 
-    void timerFired();
+    virtual void timerEvent(QTimerEvent *event);
 
 private:
 
     ConnectionState(const ConnectionState& );
     ConnectionState& operator=(const ConnectionState& );
 
+    void timerStart();
+    void stopTimer();
+
     volatile bool connected;
     volatile bool received;
     volatile StateColor state;
 
-    QTimer* const timer;
+    volatile int timerID;
 };
 
 #endif // CONNECTIONSTATE_HPP

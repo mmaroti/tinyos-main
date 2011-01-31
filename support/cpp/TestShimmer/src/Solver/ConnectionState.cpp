@@ -31,19 +31,40 @@
 * Author: Ali Baharev
 */
 
-#include <QTimer>
+#include <QDebug>
 #include "ConnectionState.hpp"
 
 ConnectionState::ConnectionState() :
-        connected(false), received(false), state(RED), timer(new QTimer)
+        connected(false), received(false), state(RED), timerID(0)
 {
 
-    connect(timer, SIGNAL(timeout()), SLOT(timerFired()));
 }
 
 ConnectionState::~ConnectionState() {
 
-    delete timer;
+    stopTimer();
+}
+
+void ConnectionState::timerStart() {
+
+    if (timerID != 0) {
+
+        qDebug() << "The timer is already running";
+
+        return;
+    }
+
+    timerID = startTimer(1000);
+}
+
+void ConnectionState::stopTimer() {
+
+    if (timerID) {
+
+        killTimer(timerID);
+
+        timerID = 0;
+    }
 }
 
 bool ConnectionState::isConnected() const {
@@ -51,7 +72,7 @@ bool ConnectionState::isConnected() const {
     return connected;
 }
 
-void ConnectionState::timerFired() {
+void ConnectionState::timerEvent(QTimerEvent* ) {
 
     if (!connected) {
 
@@ -77,12 +98,12 @@ void ConnectionState::connectedToPort() {
 
     received = false;
 
-    timer->start(1000);
+    timerStart();
 }
 
 void ConnectionState::disconnected() {
 
-    timer->stop();
+    stopTimer();
 
     connected = false;
 
