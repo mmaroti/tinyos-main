@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/** Copyright (c) 2011, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,57 +28,81 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#ifndef APPLICATION_H
-#define APPLICATION_H
-
-#define C_HZ 204.8
-#define C_TICKS 2       //constant hz and ticks values to use later
-
-#include <QObject>
-#include <QSettings>
-#include "Solver.hpp"
-#include "TabWatcher.hpp"
-#include "TimeSyncMsgReceiver.hpp"
+#include <QTimer>
 #include "ConnectionState.hpp"
-#include "SerialListener.h"
-#include "DataRecorder.h"
-//#include "StationaryCalibrationModule.h"
-#include "ConsoleWidget.h"
 
-class Application : public QObject
+ConnectionState::ConnectionState() :
+        connected(false), received(false), state(RED), timer(new QTimer)
 {
 
-Q_OBJECT
+}
 
-public:
-	Application();
+ConnectionState::~ConnectionState() {
 
-signals:
-	void showMessageSignal(const QString & msg);
-        void showConsoleSignal(const QString & msg);
+    delete timer;
+}
 
-public:
-	void showMessage(const QString & msg) {
-		emit showMessageSignal(msg);
-	}
+bool ConnectionState::isConnected() const {
 
-        void showConsoleMessage(const QString & msg) {
-                emit showConsoleSignal(msg);
-        }
+    return connected;
+}
 
-public:
-	SerialListener serialListener;
-        DataRecorder dataRecorder;
+void ConnectionState::timerFired() {
 
-	QSettings settings;
-        ipo::Solver solver;
-        TabWatcher tabWatcher;
-        TimeSyncMsgReceiver timeSyncMsgReceiver;
-        ConnectionState connectionState;
-};
+    if (!connected) {
 
-#endif // APPLICATION_H
+        state = RED;
+    }
+    else if (!received) {
+
+        state = YELLOW;
+    }
+    else {
+
+        state = GREEN;
+    }
+
+    received = false;
+
+    emit color(state);
+}
+
+void ConnectionState::change(const QString& , int connected) {
+
+    if (connected == 1) {
+
+        connectedToPort();
+    }
+    else if (connected == 0) {
+
+        disconnected();
+    }
+}
+
+void ConnectionState::connectedToPort() {
+
+    connected = true;
+
+    received = false;
+
+    timer->start(1000);
+}
+
+void ConnectionState::disconnected() {
+
+    timer->stop();
+
+    connected = false;
+
+    received = false;
+
+    emit color(RED);
+}
+
+void ConnectionState::msgReceived(const ActiveMessage& ) {
+
+    received = true;
+}

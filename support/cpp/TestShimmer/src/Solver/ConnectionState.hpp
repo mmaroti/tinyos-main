@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/** Copyright (c) 2011, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,57 +28,58 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#ifndef APPLICATION_H
-#define APPLICATION_H
-
-#define C_HZ 204.8
-#define C_TICKS 2       //constant hz and ticks values to use later
+#ifndef CONNECTIONSTATE_HPP
+#define CONNECTIONSTATE_HPP
 
 #include <QObject>
-#include <QSettings>
-#include "Solver.hpp"
-#include "TabWatcher.hpp"
-#include "TimeSyncMsgReceiver.hpp"
-#include "ConnectionState.hpp"
-#include "SerialListener.h"
-#include "DataRecorder.h"
-//#include "StationaryCalibrationModule.h"
-#include "ConsoleWidget.h"
 
-class Application : public QObject
-{
+class QTimer;
+class ActiveMessage;
 
-Q_OBJECT
+class ConnectionState : public QObject {
+
+    Q_OBJECT
 
 public:
-	Application();
+
+    ConnectionState();
+
+    enum { RED, YELLOW, GREEN };
+
+    bool isConnected() const;
+
+    ~ConnectionState();
 
 signals:
-	void showMessageSignal(const QString & msg);
-        void showConsoleSignal(const QString & msg);
 
-public:
-	void showMessage(const QString & msg) {
-		emit showMessageSignal(msg);
-	}
+    void color(int stateColor);
 
-        void showConsoleMessage(const QString & msg) {
-                emit showConsoleSignal(msg);
-        }
+public slots:
 
-public:
-	SerialListener serialListener;
-        DataRecorder dataRecorder;
+    void msgReceived(const ActiveMessage& );
 
-	QSettings settings;
-        ipo::Solver solver;
-        TabWatcher tabWatcher;
-        TimeSyncMsgReceiver timeSyncMsgReceiver;
-        ConnectionState connectionState;
+    void change(const QString& , int connected);
+
+private slots:
+
+    void timerFired();
+
+private:
+
+    ConnectionState(const ConnectionState& );
+    ConnectionState& operator=(const ConnectionState& );
+
+    void connectedToPort();
+    void disconnected();
+
+    volatile bool connected;
+    volatile bool received;
+    volatile int  state;
+
+    QTimer* const timer;
 };
 
-#endif // APPLICATION_H
+#endif // CONNECTIONSTATE_HPP

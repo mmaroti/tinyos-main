@@ -97,7 +97,8 @@ SOURCES += src/DataRecorder.cpp \
     src/SDCard/MoteHeader.cpp \
     src/SDCard/RecordLine.cpp \
     src/TabWatcher.cpp \
-    src/LogDialog.cpp
+    src/LogDialog.cpp \
+    src/Solver/ConnectionState.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -169,7 +170,8 @@ HEADERS += src/DataRecorder.h \
     src/SDCard/MoteHeader.hpp \
     src/SDCard/RecordLine.hpp \
     src/TabWatcher.hpp \
-    src/LogDialog.h
+    src/LogDialog.h \
+    src/Solver/ConnectionState.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \
