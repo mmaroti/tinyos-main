@@ -70,6 +70,11 @@
        </column>
        <column>
         <property name="text">
+         <string>Status</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
          <string>Time</string>
         </property>
        </column>
@@ -86,11 +91,6 @@
        <column>
         <property name="text">
          <string>Del</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Solver</string>
         </property>
        </column>
       </widget>

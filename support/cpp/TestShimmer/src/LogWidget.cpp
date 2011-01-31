@@ -59,11 +59,12 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
     init();
 
     ui->log->setRowCount(0);
-    ui->log->horizontalHeader()->resizeSection(0, 40);
-    ui->log->horizontalHeader()->resizeSection(1, 60);
-    ui->log->horizontalHeader()->resizeSection(2, 100);
-    ui->log->horizontalHeader()->setResizeMode(3, QHeaderView::Stretch);
-    ui->log->horizontalHeader()->resizeSection(4, 40);
+    ui->log->horizontalHeader()->resizeSection(GOTO, 40);
+    ui->log->horizontalHeader()->resizeSection(STATUS, 40);
+    ui->log->horizontalHeader()->resizeSection(TIME, 60);
+    ui->log->horizontalHeader()->resizeSection(TYPE, 100);
+    ui->log->horizontalHeader()->setResizeMode(ENTRY, QHeaderView::Stretch);
+    ui->log->horizontalHeader()->resizeSection(DEL, 40);
 
     ui->log->setEditTriggers(QAbstractItemView::AllEditTriggers);
 
@@ -129,69 +130,73 @@ void LogWidget::createItem(QString text, QString time, Button button, int at)
 
         QTableWidgetItem* item = new QTableWidgetItem("Rec Start", 0);
         item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-        ui->log->setItem(row, 2, item);
+        ui->log->setItem(row, TYPE, item);
     } else if(button == RecordEnd){
         txt = text;
 
         QTableWidgetItem* item = new QTableWidgetItem("Rec End", 0);
         item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-        ui->log->setItem(row, 2, item);
+        ui->log->setItem(row, TYPE, item);
     } else if(button == MotionStart){
         txt = text;
 
+        QTableWidgetItem* statusIcon = new QTableWidgetItem(QIcon(":/icons/warning-icon.png"),"", 0);
+        statusIcon->setFlags(statusIcon->flags() & ~Qt::ItemIsEditable);
+        ui->log->setItem(row, STATUS, statusIcon);
+
         QTableWidgetItem* gotoButton = new QTableWidgetItem(QIcon(":/icons/back-arrow.png"),"", 0);
         gotoButton->setFlags(gotoButton->flags() & ~Qt::ItemIsEditable);
-        ui->log->setItem(row, 0, gotoButton);
+        ui->log->setItem(row, GOTO, gotoButton);
 
         QTableWidgetItem* item = new QTableWidgetItem("Motion start", 0);
         item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-        ui->log->setItem(row, 2, item);
+        ui->log->setItem(row, TYPE, item);
     } else if(button == MotionEnd){
         txt = text;
 
         QTableWidgetItem* item = new QTableWidgetItem("Motion end", 0);
         item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-        ui->log->setItem(row, 2, item);
+        ui->log->setItem(row, TYPE, item);
     } else {
         txt = text;
 
         QTableWidgetItem* item = new QTableWidgetItem("", 0);
         item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-        ui->log->setItem(row, 2, item);
+        ui->log->setItem(row, TYPE, item);
     }
 
     if(button == Insert){
         QTableWidgetItem* timeItem = new QTableWidgetItem(ui->log->item(row-1,1)->text(),0);
         timeItem->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-        ui->log->setItem(row,1,timeItem);
+        ui->log->setItem(row,TIME,timeItem);
     } else if( time != "" ) {
         QTableWidgetItem* timeItem = new QTableWidgetItem(time,0);
         timeItem->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-        ui->log->setItem(row,1,timeItem);
+        ui->log->setItem(row,TIME,timeItem);
     } else {
         QTableWidgetItem* timeItem = new QTableWidgetItem(QTime::currentTime().toString(),0);
         timeItem->setFlags(timeItem->flags() & ~Qt::ItemIsEditable);
-        ui->log->setItem(row,1,timeItem);
+        ui->log->setItem(row,TIME,timeItem);
     }
 
     if( time != "" || button == Insert){
         QTableWidgetItem* item = new QTableWidgetItem(txt,0);
         item->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-        ui->log->setItem(row,3,item);
+        ui->log->setItem(row,ENTRY,item);
     } else {
         QTableWidgetItem* item = new QTableWidgetItem(txt,0);
         item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-        ui->log->setItem(row,3,item);
+        ui->log->setItem(row,ENTRY,item);
     }
 
     if(button != RecordStart && button != RecordEnd){
         QTableWidgetItem* del = new QTableWidgetItem(QIcon(":/icons/Delete.png"),"", 0);
         del->setFlags(del->flags() & ~Qt::ItemIsEditable);
-        ui->log->setItem(row, 4, del);
+        ui->log->setItem(row, DEL, del);
     } else {
         QTableWidgetItem* del = new QTableWidgetItem("", 0);
         del->setFlags(del->flags() & ~Qt::ItemIsEditable);
-        ui->log->setItem(row, 4, del);
+        ui->log->setItem(row, DEL, del);
     }
 
     ui->entryLine->clear();
@@ -241,7 +246,7 @@ void LogWidget::on_recEndButton_clicked()
         ui->clearButton->setEnabled(true);
 
         for(int i=0; i<ui->log->rowCount(); i++){
-            ui->log->item(i, 3)->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+            ui->log->item(i, ENTRY)->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         }
 
         //disconnect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
@@ -338,10 +343,10 @@ void LogWidget::on_checkButton_clicked()
 
     for(int i = 0; i < ui->log->rowCount(); i++){
         if(isMotionStart(i)){
-            motionStart = QTime::fromString(ui->log->item(i,1)->text(), "hh:mm:ss");
-            qDebug() << "Motion start: " << ui->log->item(i, 1)->text() << " - " << ui->log->item(i, 3)->text() << " - Row: " << i;
+            motionStart = QTime::fromString(ui->log->item(i,TIME)->text(), "hh:mm:ss");
+            qDebug() << "Motion start: " << ui->log->item(i, TIME)->text() << " - " << ui->log->item(i, ENTRY)->text() << " - Row: " << i;
         } else if(isMotionEnd(i)){
-            motionEnd = QTime::fromString(ui->log->item(i,1)->text(), "hh:mm:ss");
+            motionEnd = QTime::fromString(ui->log->item(i,TIME)->text(), "hh:mm:ss");
 
             QTime motStartToMotEnd = QTime(0,0,0,0).addMSecs(motionStart.msecsTo(motionEnd));
 
@@ -372,13 +377,13 @@ void LogWidget::onDelRow(int row)
     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Cancel);
 
-    if(ui->log->item(row,2)->text().contains("Motion start", Qt::CaseSensitive)){
+    if(ui->log->item(row,TYPE)->text().contains("Motion start", Qt::CaseSensitive)){
         endRow = findMotionEnd(row);
 
         msgBox.setText("WARNING! Deleting complete motion block!");
         msgBox.setInformativeText("Are you sure?");
         msgBox.setIcon(QMessageBox::Warning);
-    } else if(ui->log->item(row,2)->text().contains("Motion end", Qt::CaseSensitive)){
+    } else if(ui->log->item(row,TYPE)->text().contains("Motion end", Qt::CaseSensitive)){
         startRow = findMotionStart(row);
 
         msgBox.setText("WARNING! Deleting complete motion block!");
@@ -403,7 +408,7 @@ void LogWidget::onGoto(int row)
     QMessageBox msgBox;
     QString msg = "Start - End\n";
     if(findMotionEnd(row) != -1)
-        msg.append(ui->log->item(row,1)->text() + " - " + ui->log->item(findMotionEnd(row),1)->text());
+        msg.append(ui->log->item(row,TIME)->text() + " - " + ui->log->item(findMotionEnd(row),TIME)->text());
 
     msgBox.setText(msg);
     msgBox.exec();
@@ -414,7 +419,7 @@ int LogWidget::findMotionStart(int endRow)
     int startRow = -1;
 
     for(int i = endRow; i > 0; i--){
-        if(ui->log->item(i,2)->text().contains("Motion start", Qt::CaseSensitive)){
+        if(ui->log->item(i,TYPE)->text().contains("Motion start", Qt::CaseSensitive)){
             startRow = i;
             break;
         }
@@ -428,7 +433,7 @@ int LogWidget::findMotionEnd(int startRow)
     int endRow = -1;
 
     for(int i = startRow; i < ui->log->rowCount(); i++){
-        if(ui->log->item(i,2)->text().contains("Motion end", Qt::CaseSensitive)){
+        if(ui->log->item(i,TYPE)->text().contains("Motion end", Qt::CaseSensitive)){
             endRow = i;
             break;
         }
@@ -442,7 +447,7 @@ int LogWidget::findRecordStart()
     int startRow = -1;
 
     for(int i = 0; i < ui->log->rowCount(); i++){
-        if(ui->log->item(i,2)->text().contains("Rec Start", Qt::CaseSensitive)){
+        if(ui->log->item(i,TYPE)->text().contains("Rec Start", Qt::CaseSensitive)){
             startRow = i;
             break;
         }
@@ -456,7 +461,7 @@ int LogWidget::findRecordEnd()
     int endRow = -1;
 
     for(int i = ui->log->rowCount()-1; i > 0; i--){
-        if(ui->log->item(i,2)->text().contains("Rec End", Qt::CaseSensitive)){
+        if(ui->log->item(i,TYPE)->text().contains("Rec End", Qt::CaseSensitive)){
             endRow = i;
             break;
         }
@@ -508,7 +513,7 @@ void LogWidget::on_log_cellChanged(int row, int column)
 //    int row = item->row();
 //    int column = item->column();
     QTableWidgetItem* item = ui->log->item(row, column);
-    if(column == 1 && item->isSelected() && row < ui->log->rowCount()){
+    if(column == TIME && item->isSelected() && row < ui->log->rowCount()){
         QTime before = QTime::fromString(ui->log->item(row-1,column)->text(), "hh:mm:ss");
         QTime after = QTime::fromString(ui->log->item(row+1,column)->text(), "hh:mm:ss");
         QTime now = QTime::fromString(ui->log->item(row,column)->text(), "hh:mm:ss");
@@ -532,27 +537,27 @@ void LogWidget::on_log_cellChanged(int row, int column)
             inEditing = false;
         }
     }
-    if(column == 0 && row==0) qDebug() << "itemchanged";
+    if(column == GOTO && row==0) qDebug() << "itemchanged";
 }
 
 bool LogWidget::isRecordEnd(int row)
 {
-    return ui->log->item(row,2)->text().contains("Rec End", Qt::CaseSensitive);
+    return ui->log->item(row,TYPE)->text().contains("Rec End", Qt::CaseSensitive);
 }
 
 bool LogWidget::isRecordStart(int row)
 {
-    return ui->log->item(row,2)->text().contains("Rec Start", Qt::CaseSensitive);
+    return ui->log->item(row,TYPE)->text().contains("Rec Start", Qt::CaseSensitive);
 }
 
 bool LogWidget::isMotionStart(int row)
 {
-    return ui->log->item(row,2)->text().contains("Motion start", Qt::CaseSensitive);
+    return ui->log->item(row,TYPE)->text().contains("Motion start", Qt::CaseSensitive);
 }
 
 bool LogWidget::isMotionEnd(int row)
 {
-    return ui->log->item(row,2)->text().contains("Motion end", Qt::CaseSensitive);
+    return ui->log->item(row,TYPE)->text().contains("Motion end", Qt::CaseSensitive);
 }
 
 void LogWidget::saveLog(const QString &filename)
@@ -572,7 +577,7 @@ void LogWidget::saveLog(const QString &filename)
 
     ts << "#Time,Type,Entry" << endl;
     for (int i=0; i<ui->log->rowCount(); i++){
-      ts << ui->log->item(i,1)->text() << "," << ui->log->item(i,2)->text() << "," << ui->log->item(i,3)->text() << endl;
+      ts << ui->log->item(i,TIME)->text() << "," << ui->log->item(i,TYPE)->text() << "," << ui->log->item(i,ENTRY)->text() << endl;
     }
 
     ts.flush();

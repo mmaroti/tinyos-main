@@ -12,5 +12,8 @@
         <file>icons/Connection.png</file>
         <file>icons/Standby.png</file>
         <file>icons/NoConnection.png</file>
+        <file>icons/delete-icon.png</file>
+        <file>icons/tick-icon.png</file>
+        <file>icons/warning-icon.png</file>
     </qresource>
 </RCC>

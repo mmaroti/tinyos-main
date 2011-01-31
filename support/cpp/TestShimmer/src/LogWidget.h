@@ -54,6 +54,13 @@ public:
     ~LogWidget();
 
     enum Button { MotionStart, MotionEnd, RecordStart, RecordEnd, Text, Insert, Load };
+    enum Column {
+        GOTO = 0,
+        STATUS = 1,
+        TIME = 2,
+        TYPE = 3,
+        ENTRY = 4,
+        DEL = 5 };
 
 private slots:
 
