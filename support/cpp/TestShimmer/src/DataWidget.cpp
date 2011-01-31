@@ -518,8 +518,7 @@ void DataWidget::on_regressionButton_clicked()
     if(!registered) {
         registered = true;
 
-        QObject::connect(&(application.solver), SIGNAL(solver_done(bool , const QString )),
-                         this, SLOT(  finished(bool , const QString )), Qt::DirectConnection);
+        connect(&(application.solver), SIGNAL(solver_done(bool,const QString)), SLOT(finished(bool,const QString)));
     }
 
     application.dataRecorder.dump_calibration_data();

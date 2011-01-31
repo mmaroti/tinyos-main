@@ -59,15 +59,7 @@ void Solver::cleanup_solver() {
     if (solver!=0) {
         // FIXME What if still running?
 
-        QObject::disconnect(solver, SIGNAL(started()),
-                              this, SLOT(  started()));
-
-        QObject::disconnect(solver, SIGNAL(error(QProcess::ProcessError)),
-                              this, SLOT(  error(QProcess::ProcessError)));
-
-        QObject::disconnect(solver, SIGNAL(finished(int, QProcess::ExitStatus)),
-                              this, SLOT(  finished(int, QProcess::ExitStatus)));
-
+        solver->disconnect();
         solver->close();
         delete solver;
         solver = 0;
@@ -98,14 +90,11 @@ void Solver::init() {
 
     solver = new QProcess(this);
 
-    QObject::connect(solver, SIGNAL(started()),
-                       this, SLOT(  started()), Qt::QueuedConnection);
+    connect(solver, SIGNAL(started()), SLOT(started()) );
 
-    QObject::connect(solver, SIGNAL(error(QProcess::ProcessError)),
-                       this, SLOT(  error(QProcess::ProcessError)), Qt::QueuedConnection);
+    connect(solver, SIGNAL(error(QProcess::ProcessError)), SLOT(error(QProcess::ProcessError)) );
 
-    QObject::connect(solver, SIGNAL(finished(int, QProcess::ExitStatus)),
-                       this, SLOT(  finished(int, QProcess::ExitStatus)), Qt::QueuedConnection);
+    connect(solver, SIGNAL(finished(int, QProcess::ExitStatus)), SLOT(finished(int, QProcess::ExitStatus)) );
 
 }
 

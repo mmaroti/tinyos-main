@@ -59,7 +59,6 @@ public:
 
 signals:
 
-    // MUST use Qt::DirectConnection when connecting to this signal -- is it still required?
     void solver_done(bool error, const QString message);
 
 private slots:
