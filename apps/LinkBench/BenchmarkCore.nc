@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009, University of Szeged
+* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -33,40 +33,49 @@
 *         veresskrisztian@gmail.com
 */
 
-configuration RadioTestAppC {}
+#include "BenchmarkCore.h"
 
-implementation {
-  components MainC, RadioTestC as App, LedsC;
-  App.Boot -> MainC.Boot;
-  App.Leds -> LedsC;
+interface BenchmarkCore {
   
-  // Timers
-  components new TimerMilliC() as Timer;
-  components new TimerMilliC() as TTimer;
-  App.TestEndTimer -> Timer;
-  App.TriggerTimer -> TTimer;
+  /**
+   * Requests a statistics indexed by 'index'
+   * @return the stat
+   */
+  command stat_t* getStat(uint16_t idx);
   
-  // Radiocommunication
-  components new AMReceiverC(AM_CTRLMSG_T)    	    as RxBase;
-  components new DirectAMSenderC(AM_RESPONSEMSG_T)  as TxBase;
-  App.RxBase ->RxBase;
-  App.TxBase ->TxBase;
+  /**
+   * Requests the debug information
+   * @return the line where the first assertion failed
+   */
+  command uint16_t getDebug();
+  
+  /**
+   * Requests the current edge count 
+   * @return the edge count of the current problem
+   */
+  command uint8_t getEdgeCount();
+  
+  /**
+   * Requests the maximal mote id present in the current benchmark
+   * @return the maximal mote id
+   */
+  command uint8_t getMaxMoteId();
+  
+  
+  /** Configures the benchmark core with 'conf' */
+  command void setup(setup_t conf);
+  
+  /** Indicates the successfull configuration of the benchmark */
+  event void setupDone();
+  
+  /** Resets the benchmarking core component */
+  command void reset();
 
-  components new DirectAMSenderC(AM_TESTMSG_T)	    as TxTest;
-  components new AMReceiverC(AM_TESTMSG_T)    	    as RxTest;
-  App.RxTest -> RxTest;
-  App.TxTest -> TxTest;
-
-  components ActiveMessageC;
-  App.AMControl -> ActiveMessageC;
-  App.LowPowerListening -> ActiveMessageC; 
-  App.AMPacket -> ActiveMessageC;
-  App.Packet -> ActiveMessageC;
-  App.PAck -> ActiveMessageC;
-    
-  // Code profiling support
-  components CodeProfileC;
-  App.CPControl -> CodeProfileC;
-  App.CodeProfile -> CodeProfileC; 
-
+  /** Indicates the finish of the reset operation */
+  event void resetDone();
+  
+  /** Indicates the finish of the benchmark */
+  event void finished();
+  
+  
 }
