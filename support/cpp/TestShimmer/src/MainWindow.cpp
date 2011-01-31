@@ -89,8 +89,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
         statusBar()->showMessage("Started.");
 
-        connect(&app.serialListener, SIGNAL(showNotification(const QString &, int)), ui->statusBar, SLOT(showMessage(QString, int)) );
-        connect(&app, SIGNAL(showMessageSignal(const QString &)), statusBar(), SLOT(showMessage(QString)) );
+        connect(&app.serialListener, SIGNAL(showNotification(const QString&)), statusBar(), SLOT(showMessage(const QString&)) );
+        connect(&app, SIGNAL(showMessageSignal(const QString &)), statusBar(), SLOT(showMessage(const QString &)) );
         connect(&app, SIGNAL(showConsoleSignal(const QString &)), consoleWidget , SLOT(onRecieveConsoleSignal(QString)) );
         connect(calibrationWidget, SIGNAL(calibrationDone()), dataWidget, SLOT(newCalibrationOccured()) );
         connect(&(app.dataRecorder), SIGNAL(fileLoaded()), calibrationWidget, SLOT(OnFileLoaded()));
