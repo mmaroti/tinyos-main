@@ -38,6 +38,7 @@ ConnectionState::ConnectionState() :
         connected(false), received(false), state(RED), timer(new QTimer)
 {
 
+    connect(timer, SIGNAL(timeout()), SLOT(timerFired()));
 }
 
 ConnectionState::~ConnectionState() {

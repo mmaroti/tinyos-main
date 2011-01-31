@@ -31,53 +31,9 @@
 * Author: Ali Baharev
 */
 
-#ifndef CONNECTIONSTATE_HPP
-#define CONNECTIONSTATE_HPP
+#ifndef STATECOLOR_HPP
+#define STATECOLOR_HPP
 
-#include <QObject>
-#include "StateColor.hpp"
+enum StateColor { RED, YELLOW, GREEN };
 
-class QTimer;
-class ActiveMessage;
-
-class ConnectionState : public QObject {
-
-    Q_OBJECT
-
-public:
-
-    ConnectionState();
-
-    bool isConnected() const;
-
-    ~ConnectionState();
-
-signals:
-
-    void color(StateColor color);
-
-public slots:
-
-    void msgReceived(const ActiveMessage& );
-
-    void connectedToPort();
-
-    void disconnected();
-
-private slots:
-
-    void timerFired();
-
-private:
-
-    ConnectionState(const ConnectionState& );
-    ConnectionState& operator=(const ConnectionState& );
-
-    volatile bool connected;
-    volatile bool received;
-    volatile StateColor state;
-
-    QTimer* const timer;
-};
-
-#endif // CONNECTIONSTATE_HPP
+#endif // STATECOLOR_HPP

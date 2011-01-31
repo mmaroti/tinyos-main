@@ -70,6 +70,8 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
     ui->log->setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
+
+    connect(&app.connectionState, SIGNAL(color(StateColor)), this, SLOT(stateColor(StateColor)));
 }
 
 LogWidget::~LogWidget()
@@ -552,4 +554,28 @@ void LogWidget::csvToLog(const QString &line)
         }
 
     }
+}
+
+void LogWidget::stateColor(StateColor color) {
+
+    QString col;
+
+    if (color == RED) {
+
+        col = "RED";
+    }
+    else if (color == YELLOW) {
+
+        col = "YELLOW";
+    }
+    else if (color == GREEN) {
+
+        col = "GREEN";
+    }
+    else {
+
+        col = "unknown";
+    }
+
+    qDebug() << "Signal is " << col;
 }

@@ -171,7 +171,8 @@ HEADERS += src/DataRecorder.h \
     src/SDCard/RecordLine.hpp \
     src/TabWatcher.hpp \
     src/LogDialog.h \
-    src/Solver/ConnectionState.hpp
+    src/Solver/ConnectionState.hpp \
+    src/Solver/StateColor.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

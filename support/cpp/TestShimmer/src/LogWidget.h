@@ -36,6 +36,7 @@
 
 #include <QWidget>
 #include <QTableWidgetItem>
+#include "StateColor.hpp"
 
 class Application;
 
@@ -68,6 +69,7 @@ private slots:
     void ShowContextMenu(const QPoint& pos);
     void on_log_cellClicked(int,int);
     void on_log_cellChanged(int,int);
+    void stateColor(StateColor color);
 
 private:
 
