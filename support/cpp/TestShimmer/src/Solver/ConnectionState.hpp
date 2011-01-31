@@ -75,11 +75,11 @@ private:
     void timerStart();
     void stopTimer();
 
-    volatile bool connected;
-    volatile bool received;
-    volatile StateColor state;
+    bool connected;
+    bool received;
+    StateColor state;
 
-    volatile int timerID;
+    int timerID;
 };
 
 #endif // CONNECTIONSTATE_HPP

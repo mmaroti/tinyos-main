@@ -118,13 +118,13 @@ MainWindow::MainWindow(QWidget *parent) :
         app.tabWatcher.registerTabWidget(ui->tabWidget);
 
         connect(&app.serialListener,  SIGNAL(receiveMessage(const ActiveMessage& )),
-                &app.connectionState, SLOT(msgReceived(const ActiveMessage& )), Qt::DirectConnection);
+                &app.connectionState, SLOT(msgReceived(const ActiveMessage& )));
 
         connect(&app.serialListener,  SIGNAL(connected()),
-                &app.connectionState, SLOT(connectedToPort()), Qt::DirectConnection);
+                &app.connectionState, SLOT(connectedToPort()));
 
         connect(&app.serialListener,  SIGNAL(disconnected()),
-                &app.connectionState, SLOT(disconnected()), Qt::DirectConnection);
+                &app.connectionState, SLOT(disconnected()));
 
         ui->sdataTab->setFocusPolicy(Qt::StrongFocus);
         ui->sdataTab->installEventFilter(this);

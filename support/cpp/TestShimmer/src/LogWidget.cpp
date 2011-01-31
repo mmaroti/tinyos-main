@@ -71,7 +71,7 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
 
     connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
 
-    connect(&app.connectionState, SIGNAL(color(StateColor)), this, SLOT(stateColor(StateColor)));
+    connect(&app.connectionState, SIGNAL(color(StateColor)), SLOT(stateColor(StateColor)));
 }
 
 LogWidget::~LogWidget()
