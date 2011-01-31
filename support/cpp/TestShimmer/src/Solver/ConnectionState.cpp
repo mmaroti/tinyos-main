@@ -70,18 +70,6 @@ void ConnectionState::timerFired() {
     emit color(state);
 }
 
-void ConnectionState::change(const QString& , int connected) {
-
-    if (connected == 1) {
-
-        connectedToPort();
-    }
-    else if (connected == 0) {
-
-        disconnected();
-    }
-}
-
 void ConnectionState::connectedToPort() {
 
     connected = true;

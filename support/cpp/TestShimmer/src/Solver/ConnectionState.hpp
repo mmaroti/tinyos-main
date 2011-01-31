@@ -61,7 +61,9 @@ public slots:
 
     void msgReceived(const ActiveMessage& );
 
-    void change(const QString& , int connected);
+    void connectedToPort();
+
+    void disconnected();
 
 private slots:
 
@@ -71,9 +73,6 @@ private:
 
     ConnectionState(const ConnectionState& );
     ConnectionState& operator=(const ConnectionState& );
-
-    void connectedToPort();
-    void disconnected();
 
     volatile bool connected;
     volatile bool received;

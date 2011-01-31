@@ -72,6 +72,9 @@ signals:
 	void receiveMessage(const ActiveMessage & msg);
         void showNotification(const QString & message);
 
+        void connected();
+        void disconnected();
+
 public slots:
 	void onPortChanged(const QString & portName, int baudRate);
 
