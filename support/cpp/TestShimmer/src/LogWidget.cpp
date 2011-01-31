@@ -56,9 +56,6 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
 {
     ui->setupUi(this);
 
-//    delSignalMapper = new QSignalMapper(this);
-//    gotoSignalMapper = new QSignalMapper(this);
-
     init();
 
     ui->log->setRowCount(0);
@@ -73,9 +70,6 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
     ui->log->setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
-
-//    connect(delSignalMapper, SIGNAL(mapped(int)),this, SLOT(onDelRow(int)));
-//    connect(gotoSignalMapper, SIGNAL(mapped(int)), this, SLOT(onGoto(int)));
 }
 
 LogWidget::~LogWidget()

@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/** Copyright (c) 2010, 2011, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,6 @@
 #define LOGWIDGET_H
 
 #include <QWidget>
-#include <QSignalMapper>
-#include <QMap>
 #include <QTableWidgetItem>
 
 class Application;
@@ -46,16 +44,32 @@ namespace Ui{
 }
 
 class LogWidget : public QWidget {
+
     Q_OBJECT
+
 public:
+
     LogWidget(QWidget *parent, Application &app);
     ~LogWidget();
 
     enum Button { MotionStart, MotionEnd, RecordStart, RecordEnd, Text, Insert, Load };
 
+private slots:
+
+    void on_entryLine_returnPressed();
+    void on_recStartButton_clicked();
+    void on_recEndButton_clicked();
+    void on_motionStartButton_clicked();
+    void on_motionEndButton_clicked();
+    void on_loadButton_clicked();
+    void on_saveButton_clicked();
+    void on_clearButton_clicked();
+
+    void ShowContextMenu(const QPoint& pos);
+    void on_log_cellClicked(int,int);
+    void on_log_cellChanged(int,int);
+
 private:
-    Ui::LogWidget *ui;
-    Application &application;
 
     void onGoto(int);
     void onDelRow(int);
@@ -71,23 +85,9 @@ private:
     void loadLog(const QString&);
     void csvToLog(const QString&);
 
+    Ui::LogWidget *ui;
+    Application &application;
     bool inEditing;
-
-signals:
-
-private slots:
-    void on_entryLine_returnPressed();
-    void on_recStartButton_clicked();
-    void on_recEndButton_clicked();
-    void on_motionStartButton_clicked();
-    void on_motionEndButton_clicked();
-    void on_loadButton_clicked();
-    void on_saveButton_clicked();
-    void on_clearButton_clicked();
-
-    void ShowContextMenu(const QPoint& pos);
-    void on_log_cellClicked(int,int);
-    void on_log_cellChanged(int,int);
 };
 
 #endif // LOGWIDGET_H
