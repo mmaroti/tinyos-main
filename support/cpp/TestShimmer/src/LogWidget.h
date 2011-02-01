@@ -61,6 +61,7 @@ public:
         TYPE = 3,
         ENTRY = 4,
         DEL = 5 };
+    enum Status { UNKNOWN, OK, FAILED };
 
 private slots:
 
@@ -84,7 +85,7 @@ private:
     void onGoto(int);
     void onDelRow(int);
 
-    void createItem(QString text, QString time, Button button, int at);
+    void createItem(QString status, QString text, QString time, Button button, int at);
 
     int findRecordStart();
     int findRecordEnd();
