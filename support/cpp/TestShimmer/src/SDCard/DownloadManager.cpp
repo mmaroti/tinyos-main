@@ -34,7 +34,6 @@
 #include <QDebug>
 #include <QString>
 #include <QThreadPool>
-#include <QVarLengthArray>
 #include "DownloadManager.hpp"
 #include "DownloadTask.hpp"
 #include "SDCardCreator.hpp"
