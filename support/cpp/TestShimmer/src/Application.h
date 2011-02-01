@@ -40,6 +40,7 @@
 
 #include <QObject>
 #include <QSettings>
+#include "MockSolver.hpp"
 #include "Solver.hpp"
 #include "TabWatcher.hpp"
 #include "TimeSyncMsgReceiver.hpp"
@@ -76,6 +77,7 @@ public:
 
 	QSettings settings;
         ipo::Solver solver;
+        ipo::MockSolver mockSolver;
         TabWatcher tabWatcher;
         TimeSyncMsgReceiver timeSyncMsgReceiver;
         ConnectionState connectionState;

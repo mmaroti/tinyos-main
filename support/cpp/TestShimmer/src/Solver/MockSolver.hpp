@@ -71,6 +71,8 @@ private:
 
     QMutex* const mutex;
 
+    int beg;
+
 };
 
 class SleepTask : public QObject, public QRunnable {

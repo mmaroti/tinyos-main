@@ -49,10 +49,20 @@
 #include <QFile>
 #include <QFileDialog>
 
+namespace {
+
+    const int NO_MORE = -1;
+    const int TOO_SHORT_IN_SEC = 1;
+
+    const char PASSED_TEXT[] = "Passed";
+    const char FAILED_TEXT[] = "Failed";
+}
+
 LogWidget::LogWidget(QWidget *parent, Application &app) :
         QWidget(parent),
         ui(new Ui::LogWidget),
-        application(app)
+        application(app),
+        blockingBox(0)
 {
     ui->setupUi(this);
 
@@ -73,6 +83,13 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
     connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
 
     connect(&app.connectionState, SIGNAL(color(StateColor)), SLOT(stateColor(StateColor)));
+
+    blockingBox = new QMessageBox(QMessageBox::Information,
+                                  "Checking record",
+                                  "Please wait, computing...",
+                                  QMessageBox::NoButton, this);
+    blockingBox->setModal(true);
+    blockingBox->setStandardButtons(QMessageBox::NoButton);
 }
 
 LogWidget::~LogWidget()
@@ -350,39 +367,7 @@ void LogWidget::on_clearButton_clicked()
 
 void LogWidget::on_checkButton_clicked()
 {
-    int failed = 0;
-
-    QTime tooShort(0,0,1,0);
-    QTime motionStart, motionEnd;
-    QTime recordStart = QTime::fromString(ui->log->item(findRecordStart(),TIME)->text(), "hh:mm:ss");
-    QTime recordEnd = QTime::fromString(ui->log->item(findRecordEnd(),TIME)->text(), "hh:mm:ss");
-
-    for(int i = 0; i < ui->log->rowCount(); i++){
-        if(isMotionStart(i)){
-            motionStart = QTime::fromString(ui->log->item(i,TIME)->text(), "hh:mm:ss");
-            qDebug() << "Motion start: " << ui->log->item(i, TIME)->text() << " - " << ui->log->item(i, ENTRY)->text() << " - Row: " << i;
-        } else if(isMotionEnd(i)){
-            motionEnd = QTime::fromString(ui->log->item(i,TIME)->text(), "hh:mm:ss");
-
-            QTime motStartToMotEnd = QTime(0,0,0,0).addMSecs(motionStart.msecsTo(motionEnd));
-
-            if(motStartToMotEnd > tooShort){
-                QTime motStartToRecStart = QTime(0,0,0,0).addMSecs(recordStart.msecsTo(motionStart));
-                QTime motEndToRecStart = QTime(0,0,0,0).addMSecs(recordStart.msecsTo(motionEnd));
-                QTime recEndToRecStart = QTime(0,0,0,0).addMSecs(recordStart.msecsTo(recordEnd));
-                qDebug() << motStartToRecStart.toString();
-                qDebug() << motEndToRecStart.toString();
-                qDebug() << recEndToRecStart.toString();
-            } else {
-                ui->log->item(findMotionStart(i), STATUS)->setText("Failed");
-                ui->log->item(findMotionStart(i), STATUS)->setIcon(QIcon(":/icons/delete-icon.png"));
-                failed++;
-            }
-        }
-    }
-
-    qDebug() << "Failed count: " << failed;
-
+    startChecking();
 }
 
 void LogWidget::onDelRow(int row)
@@ -691,4 +676,200 @@ void LogWidget::stateColor(StateColor color) {
     }
 
     qDebug() << "Signal is " << col;
+}
+
+//=============================================================================
+
+void LogWidget::startChecking() {
+
+    startAt = endAt = -1;
+
+    checkNextMotion();
+}
+
+int LogWidget::findNextMot() {
+
+    startAt = findMotStart(endAt+1);
+
+    if (startAt == NO_MORE) {
+
+        return NO_MORE;
+    }
+
+    endAt = findMotEnd(startAt+1);
+
+    Q_ASSERT(endAt != NO_MORE);
+
+    return startAt;
+}
+
+void LogWidget::checkNextMotion() {
+
+    if (findNextMot() == NO_MORE) {
+
+        finishedChecking();
+    }
+    else if (isMotionTooShort()) {
+
+        markAsFailed();
+
+        checkNextMotion();
+    }
+    else if (isAlreadyPassed()) {
+
+        checkNextMotion();
+    }
+    else {
+
+        startSolver();
+    }
+}
+
+void LogWidget::startSolver() {
+
+    int begin = recStart().secsTo(motionStart());
+
+    int end = recStart().secsTo(motionEnd());
+
+    bool error = application.mockSolver.start(begin, end, recLengthInSec());
+
+    if (error) {
+
+        finishedChecking();
+    }
+    else {
+
+        blockingBox->show();
+    }
+}
+
+void LogWidget::solverFinished(bool error, const QString message) {
+
+    if (error) {
+
+        qDebug() << message;
+
+        markAsFailed();
+    }
+    else {
+
+        motionOK();
+    }
+
+    checkNextMotion();
+}
+
+void LogWidget::finishedChecking() {
+
+    blockingBox->hide();
+}
+
+void LogWidget::markAsFailed() {
+
+    item(startAt, STATUS).setText(FAILED_TEXT);
+
+    item(startAt, STATUS).setIcon(QIcon(":/icons/delete-icon.png"));
+}
+
+void LogWidget::motionOK() {
+
+    item(startAt, STATUS).setText(PASSED_TEXT);
+
+    item(startAt, STATUS).setIcon(QIcon(":/icons/tick-icon.png"));
+}
+
+const QTime LogWidget::motionStart() {
+
+    Q_ASSERT(isMotionStart(startAt));
+
+    return timeInRow(startAt);
+}
+
+const QTime LogWidget::motionEnd() {
+
+    Q_ASSERT(isMotionEnd(endAt));
+
+    return timeInRow(endAt);
+}
+
+bool LogWidget::isMotionTooShort() {
+
+    return motionStart().secsTo(motionEnd()) <= TOO_SHORT_IN_SEC;
+}
+
+int LogWidget::findMotStart(int pos) {
+
+    for ( ; pos < rowCount(); ++pos ) {
+
+        if( isMotionStart(pos) ) {
+
+            return pos;
+        }
+    }
+
+    return NO_MORE;
+}
+
+int LogWidget::findMotEnd(int pos) {
+
+    for ( ; pos < rowCount(); ++pos ) {
+
+        if( isMotionEnd(pos) ) {
+
+            return pos;
+        }
+    }
+
+    return NO_MORE;
+}
+
+QTableWidget& LogWidget::tableWidget() {
+
+    return *(ui->log);
+}
+
+QTableWidgetItem& LogWidget::item(int row, Column col) {
+
+    return *(tableWidget().item(row, col));
+}
+
+const QTime LogWidget::timeInRow(int row) {
+
+    return QTime::fromString(item(row,TIME).text(), "hh:mm:ss"); // FIXME Why isn't it stored as data???
+}
+
+int LogWidget::rowCount() {
+
+    return tableWidget().rowCount();
+}
+
+bool LogWidget::isAlreadyPassed() {
+
+    return item(startAt, STATUS).text().contains(PASSED_TEXT, Qt::CaseSensitive);
+}
+
+int LogWidget::recLengthInSec() {
+
+    const int lastRow = rowCount() - 1;
+
+    Q_ASSERT(lastRow > 0);
+
+    Q_ASSERT(isRecordEnd(lastRow));
+
+    const QTime recEnd = timeInRow(lastRow);
+
+    int recLength = recStart().secsTo(recEnd);
+
+    Q_ASSERT(recLength >= 0);
+
+    return recLength;
+}
+
+const QTime LogWidget::recStart() {
+
+    Q_ASSERT(rowCount() > 2);
+
+    Q_ASSERT(isRecordStart(0));
+
+    return timeInRow(0);
 }

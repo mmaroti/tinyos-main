@@ -66,7 +66,6 @@ MockSolver::MockSolver() : mutex(new QMutex) {
 
 }
 
-// returns true if an error occured and finished won't be signalled
 bool MockSolver::start(const double begin, const double end, const double length) {
 
     if (!mutex->tryLock()) {
@@ -81,6 +80,8 @@ bool MockSolver::start(const double begin, const double end, const double length
         throw logic_error("0 <= begin && begin < end && end <= length should be true");
     }
 
+    beg = begin;
+
     return startSolver();
 }
 
@@ -90,7 +91,7 @@ bool MockSolver::startSolver() {
 
     if (0<= sec && sec <= 2) {
 
-        qDebug() << "Emulated failure of start";
+        qDebug() << "Emulated failure of start at " << beg;
 
         mutex->unlock();
 
@@ -116,7 +117,7 @@ void MockSolver::finished() {
 
     if (6<= sec && sec <= 8) {
 
-        message.append(QString::number(sec));
+        message.append(QString::number(beg));
 
         error = FAILED;
     }
@@ -132,4 +133,3 @@ MockSolver::~MockSolver() {
 }
 
 }
-

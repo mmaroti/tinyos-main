@@ -38,6 +38,7 @@
 #include <QTableWidgetItem>
 #include "StateColor.hpp"
 
+class QMessageBox;
 class Application;
 
 namespace Ui{
@@ -79,6 +80,7 @@ private slots:
     void on_log_cellClicked(int,int);
     void on_log_cellChanged(int,int);
     void stateColor(StateColor color);
+    void solverFinished(bool error, const QString message);
 
 private:
 
@@ -103,9 +105,41 @@ private:
     void loadLog(const QString&);
     void csvToLog(const QString&);
 
+    //=======================
+    void startChecking();
+    void checkNextMotion();
+    void finishedChecking();
+
+    void startSolver();
+    void markAsFailed();
+    void motionOK();
+
+    int findNextMot();
+    int findMotStart(int from);
+    int findMotEnd(int from);
+
+    const QTime motionStart();
+    const QTime motionEnd();
+    const QTime recStart();
+    const QTime timeInRow(int row);
+    bool isMotionTooShort();
+    bool isAlreadyPassed();
+
+    int rowCount();
+    int recLengthInSec();
+
+    QTableWidget& tableWidget();
+    QTableWidgetItem& item(int row, Column col);
+    //=======================
+
     Ui::LogWidget *ui;
     Application &application;
     bool inEditing;
+
+    //=======================
+    QMessageBox* blockingBox;
+    int startAt;
+    int endAt;
 };
 
 #endif // LOGWIDGET_H

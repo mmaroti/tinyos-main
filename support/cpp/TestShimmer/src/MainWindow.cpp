@@ -126,6 +126,9 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(&app.serialListener,  SIGNAL(disconnected()),
                 &app.connectionState, SLOT(disconnected()));
 
+        connect(&app.mockSolver, SIGNAL(solver_done(bool,QString)),
+                logWidget,       SLOT(solverFinished(bool,QString)));
+
         ui->sdataTab->setFocusPolicy(Qt::StrongFocus);
         ui->sdataTab->installEventFilter(this);
 
