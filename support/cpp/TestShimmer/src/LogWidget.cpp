@@ -166,7 +166,7 @@ void LogWidget::createItem(QString text, QString time, Button button, int at)
     }
 
     if(button == Insert){
-        QTableWidgetItem* timeItem = new QTableWidgetItem(ui->log->item(row-1,1)->text(),0);
+        QTableWidgetItem* timeItem = new QTableWidgetItem(ui->log->item(row-1,1)->text(),0); // FIXME Crashed here
         timeItem->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         ui->log->setItem(row,TIME,timeItem);
     } else if( time != "" ) {
