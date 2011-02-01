@@ -60,7 +60,7 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
 
     ui->log->setRowCount(0);
     ui->log->horizontalHeader()->resizeSection(GOTO, 40);
-    ui->log->horizontalHeader()->resizeSection(STATUS, 70);
+    ui->log->horizontalHeader()->resizeSection(STATUS, 100);
     ui->log->horizontalHeader()->resizeSection(TIME, 60);
     ui->log->horizontalHeader()->resizeSection(TYPE, 100);
     ui->log->horizontalHeader()->setResizeMode(ENTRY, QHeaderView::Stretch);
@@ -165,7 +165,7 @@ void LogWidget::createItem(QString status, QString text, QString time, Button bu
         QTableWidgetItem* timeItem = new QTableWidgetItem(ui->log->item(row-1,TIME)->text(),0);
         timeItem->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         ui->log->setItem(row,TIME,timeItem);
-    } else if( time != "" ) {
+    } else if( time != "" && button != RecordStart && button != RecordEnd ) {
         QTableWidgetItem* timeItem = new QTableWidgetItem(time,0);
         timeItem->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         ui->log->setItem(row,TIME,timeItem);
