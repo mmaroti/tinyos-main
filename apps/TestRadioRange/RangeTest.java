@@ -36,45 +36,68 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import net.tinyos.message.Message;
+import net.tinyos.message.MessageListener;
 import net.tinyos.message.MoteIF;
 import net.tinyos.packet.BuildSource;
 import net.tinyos.packet.PhoenixSource;
 import net.tinyos.util.PrintStreamMessenger;
 
-public class RangeTest{
+public class RangeTest implements MessageListener{
 
   private MoteIF moteIF;
+  static long counter=0;
   
   public RangeTest(MoteIF moteIF) {
     this.moteIF = moteIF;
+    moteIF.registerListener(new DataMsg(), this);
   }
   
-  public void waitForCommands(){
+  public boolean waitForCommands(){
     BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-    String s;
+    String s = null;
     try {
-		while ((s = in.readLine()) != null && s.length() != 0){
+		while ((s = in.readLine()) != null){
 		  String splitted[]=s.split(" ");
 		  int dist=Integer.parseInt(splitted[0]);
+			if(dist==9999)
+				counter=0;
 		  CommandMsg msg = new CommandMsg();
 		  msg.set_distance(dist);
-		  int i=0;
-		  while(i<CommandMsg.numElements_etc()&&i<splitted[1].length()){
-			  msg.setElement_etc(i,(short) splitted[1].charAt(i));
-			  i++;
+		  if(splitted.length>1){
+			  int i=0;
+			  while(i<CommandMsg.numElements_etc()&&i<splitted[1].length()){
+				  msg.setElement_etc(i,(short) splitted[1].charAt(i));
+				  i++;
+			  }
 		  }
 		  moteIF.send(0,msg);
 		  
 		}
 	} catch (NumberFormatException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-		waitForCommands();
+		if(!s.equals("")&&s!=null)
+			System.err.println("Unparsable line");
 	} catch (IOException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-		waitForCommands();
+		System.err.println("Communication error");
+		return true;
 	}
+	if(s.equals("")||s==null)
+		return true;
+	else
+		return false;
+  }
+  
+  @Override
+  public void messageReceived(int to, Message m) {
+  	if(!(m instanceof DataMsg))
+  		return;
+  	DataMsg msg=(DataMsg)m;
+  	String etc="";
+  	for(short chr:msg.get_etc()){
+  		etc+=String.valueOf((char)chr);
+  	}
+  	System.out.println("#"+ counter++ + ":" + etc+" dist="+msg.get_distance()+" mrssi="+msg.get_master_rssi()+" mlqi="+msg.get_master_lqi()+
+  					   " srssi="+msg.get_slave_rssi()+" slqi="+msg.get_slave_lqi());
   }
   
   public static void main(String[] args) throws Exception {
@@ -101,8 +124,8 @@ public class RangeTest{
 
     MoteIF mif = new MoteIF(phoenix);
     RangeTest serial = new RangeTest(mif);
-    serial.waitForCommands();
+    while(!serial.waitForCommands());
+    phoenix.shutdown();
   }
-
 
 }

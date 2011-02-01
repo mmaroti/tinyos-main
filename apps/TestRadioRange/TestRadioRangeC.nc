@@ -78,18 +78,16 @@ implementation {
   }
   
   event void Boot.booted() {
-    if(TOS_NODE_ID==0||TOS_NODE_ID==3)
-      call SerControl.start();
-    else if(TOS_NODE_ID==1)
-      call AMControl.start();
-    else if(TOS_NODE_ID==9)
+    if(TOS_NODE_ID==9)
       call LogWrite.erase();
+		else
+			call SerControl.start();
   }
   
   event void SerControl.startDone(error_t err) {
     if (err != SUCCESS) {
       call SerControl.start();
-    } else if(TOS_NODE_ID==0){
+    } else {
       call AMControl.start();
     }
   }
@@ -102,15 +100,22 @@ implementation {
   
   event message_t* SReceive.receive(message_t* bufPtr, void* payload, uint8_t len) {
     if(len==sizeof(ser_msg_t)&&TOS_NODE_ID==0){
-	ser_msg_t* cmd= (ser_msg_t*)payload;
-	test_msg_t* send = (test_msg_t*)call Packet.getPayload(&packet,sizeof(test_msg_t));
-	send->distance=cmd->distance;
-	memcpy(&(send->etc),&(cmd->etc),ETC_LENGTH);
-	counter=0;
-	call MilliTimer.startPeriodic(300);
-	call Leds.led2On();
-    } else if(TOS_NODE_ID==3){
-	call LogRead.seek(SEEK_BEGINNING);
+			ser_msg_t* cmd= (ser_msg_t*)payload;
+			test_msg_t* send = (test_msg_t*)call Packet.getPayload(&packet,sizeof(test_msg_t));
+			if(cmd->distance==CMD_DOWNLOAD)
+				call LogRead.seek(SEEK_BEGINNING);
+			else if(cmd->distance==CMD_ERASE){
+				call Leds.set(0xff);
+				call LogWrite.erase();
+			}else {
+				send->distance=cmd->distance;
+				memcpy(&(send->etc),&(cmd->etc),ETC_LENGTH);
+				counter=0;
+				call MilliTimer.startPeriodic(300);
+				call Leds.led2On();
+			}
+		} else if(TOS_NODE_ID==3){
+			call LogRead.seek(SEEK_BEGINNING);
     }
     return bufPtr;
   }
@@ -175,7 +180,7 @@ implementation {
   }
   
   //only for TOS_NODE_ID==9
-  event void LogWrite.eraseDone(error_t err){call Leds.set(0xff);}
+  event void LogWrite.eraseDone(error_t err){call Leds.set(0);}
   
   event void AMControl.stopDone(error_t err) {}
   event void SerControl.stopDone(error_t err) {}

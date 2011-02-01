@@ -39,6 +39,8 @@ enum{
   ETC_LENGTH=10,
   AM_SER_MSG=10,
   AM_TEST_MSG=10,
+	CMD_ERASE=65535U,
+	CMD_DOWNLOAD=9999U,
 };
 
 typedef nx_struct test_msg {
