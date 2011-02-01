@@ -10,11 +10,11 @@
 # The example below demonstrates ALL options that can be specified in the correct
 # format:
 # ---
-# config: {bmark: 10, motes: 3, time: 1000, randstart: 30}
+# config: {bmark: 10, motes: 6, time: 1000, randstart: 30, lastchance: 20}
 # timers:
-#  - t1: [0, 10, 100]
+#  - t1: [1, 10, 100]
 #  - t2: [0, 20, 200]
-#  - t3: [0, 30, 300]
+#  - t3: [1, 30, 300]
 #  - t4: [0, 30, 300]
 # forces: [ack, bcast]
 # wakeup: 200
