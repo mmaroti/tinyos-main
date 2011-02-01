@@ -55,14 +55,15 @@ public:
     ~LogWidget();
 
     enum Button { MotionStart, MotionEnd, RecordStart, RecordEnd, Text, Insert, Load };
+
     enum Column {
         GOTO = 0,
         STATUS = 1,
         TIME = 2,
         TYPE = 3,
         ENTRY = 4,
-        DEL = 5 };
-    enum Status { UNKNOWN, OK, FAILED };
+        DEL = 5
+   };
 
 private slots:
 
@@ -89,16 +90,13 @@ private:
 
     void createItem(QString status, QString text, QString time, Button button, int at);
 
-    int findRecordStart();
-    int findRecordEnd();
     int findMotionStart(int);
     int findMotionEnd(int);
-    int motionDistance(int, int);
 
-    bool isRecordStart(int);
-    bool isRecordEnd(int);
-    bool isMotionStart(int);
-    bool isMotionEnd(int);
+    bool isRecordStart(int) const;
+    bool isRecordEnd(int) const;
+    bool isMotionStart(int) const;
+    bool isMotionEnd(int) const;
 
     void init();
     void saveLog(const QString&);
@@ -115,22 +113,25 @@ private:
     void motionOK();
 
     int findNextMot();
-    int findMotStart(int from);
-    int findMotEnd(int from);
+    int findMotStart(int from) const;
+    int findMotEnd(int from) const;
 
-    const QTime motionStart();
-    const QTime motionEnd();
-    const QTime recStart();
-    const QTime timeInRow(int row);
-    bool isMotionTooShort();
-    bool isAlreadyPassed();
+    const QTime motionStart() const;
+    const QTime motionEnd() const;
+    const QTime recStart() const;
+    const QTime timeInRow(int row) const;
+    bool isMotionTooShort() const;
+    bool isAlreadyPassed() const;
 
-    int rowCount();
-    int recLengthInSec();
+    int rowCount() const;
+    int recLengthInSec() const;
 
-    QTableWidget& tableWidget();
+    const QTableWidget& tableWidget() const;
+    const QTableWidgetItem& item(int row, Column col) const;
     QTableWidgetItem& item(int row, Column col);
-    void writeToConsole(const QString& msg);
+    void setText(int row, Column col, const char text[]);
+    void setIcon(int row, Column col, const QIcon& icon);
+    void writeToConsole(const QString& msg) const;
     const QString atRow() const;
     //=======================
 

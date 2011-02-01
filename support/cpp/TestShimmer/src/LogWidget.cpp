@@ -45,7 +45,6 @@
 #include <QMenu>
 #include <QValidator>
 #include <QRegExp>
-#include "LogDialog.h"
 #include <QFile>
 #include <QFileDialog>
 
@@ -445,39 +444,6 @@ int LogWidget::findMotionEnd(int startRow)
     return endRow;
 }
 
-int LogWidget::findRecordStart()
-{
-    int startRow = -1;
-
-    for(int i = 0; i < ui->log->rowCount(); i++){
-        if(ui->log->item(i,TYPE)->text().contains("Rec Start", Qt::CaseSensitive)){
-            startRow = i;
-            break;
-        }
-    }
-
-    return startRow;
-}
-
-int LogWidget::findRecordEnd()
-{
-    int endRow = -1;
-
-    for(int i = ui->log->rowCount()-1; i > 0; i--){
-        if(ui->log->item(i,TYPE)->text().contains("Rec End", Qt::CaseSensitive)){
-            endRow = i;
-            break;
-        }
-    }
-
-    return endRow;
-}
-
-int LogWidget::motionDistance(int startRow, int endRow)
-{
-    return endRow-startRow;
-}
-
 void LogWidget::ShowContextMenu(const QPoint& pos)
 {
     QPoint globalPos = ui->log->mapToGlobal(pos);
@@ -550,22 +516,22 @@ void LogWidget::on_log_cellChanged(int row, int column)
     if(column == GOTO && row==0) qDebug() << "itemchanged";
 }
 
-bool LogWidget::isRecordEnd(int row)
+bool LogWidget::isRecordEnd(int row) const
 {
     return ui->log->item(row,TYPE)->text().contains("Rec End", Qt::CaseSensitive);
 }
 
-bool LogWidget::isRecordStart(int row)
+bool LogWidget::isRecordStart(int row) const
 {
     return ui->log->item(row,TYPE)->text().contains("Rec Start", Qt::CaseSensitive);
 }
 
-bool LogWidget::isMotionStart(int row)
+bool LogWidget::isMotionStart(int row) const
 {
     return ui->log->item(row,TYPE)->text().contains("Motion start", Qt::CaseSensitive);
 }
 
-bool LogWidget::isMotionEnd(int row)
+bool LogWidget::isMotionEnd(int row) const
 {
     return ui->log->item(row,TYPE)->text().contains("Motion end", Qt::CaseSensitive);
 }
@@ -770,38 +736,48 @@ void LogWidget::finishedChecking() {
 
 void LogWidget::markAsFailed() {
 
-    item(startAt, STATUS).setText(FAILED_TEXT);
+    setText(startAt, STATUS, FAILED_TEXT);
 
-    item(startAt, STATUS).setIcon(QIcon(":/icons/delete-icon.png"));
+    setIcon(startAt, STATUS, QIcon(":/icons/delete-icon.png"));
 }
 
 void LogWidget::motionOK() {
 
-    item(startAt, STATUS).setText(PASSED_TEXT);
+    setText(startAt, STATUS, PASSED_TEXT);
 
-    item(startAt, STATUS).setIcon(QIcon(":/icons/tick-icon.png"));
+    setIcon(startAt, STATUS, QIcon(":/icons/tick-icon.png"));
 }
 
-const QTime LogWidget::motionStart() {
+void LogWidget::setText(int row, Column col, const char text[]) {
+
+    item(row, col).setText(text);
+}
+
+void LogWidget::setIcon(int row, Column col, const QIcon& icon) {
+
+    item(row, col).setIcon(icon);
+}
+
+const QTime LogWidget::motionStart() const {
 
     Q_ASSERT(isMotionStart(startAt));
 
     return timeInRow(startAt);
 }
 
-const QTime LogWidget::motionEnd() {
+const QTime LogWidget::motionEnd() const {
 
     Q_ASSERT(isMotionEnd(endAt));
 
     return timeInRow(endAt);
 }
 
-bool LogWidget::isMotionTooShort() {
+bool LogWidget::isMotionTooShort() const {
 
     return motionStart().secsTo(motionEnd()) <= TOO_SHORT_IN_SEC;
 }
 
-int LogWidget::findMotStart(int pos) {
+int LogWidget::findMotStart(int pos) const {
 
     for ( ; pos < rowCount(); ++pos ) {
 
@@ -814,7 +790,7 @@ int LogWidget::findMotStart(int pos) {
     return NO_MORE;
 }
 
-int LogWidget::findMotEnd(int pos) {
+int LogWidget::findMotEnd(int pos) const {
 
     for ( ; pos < rowCount(); ++pos ) {
 
@@ -827,32 +803,37 @@ int LogWidget::findMotEnd(int pos) {
     return NO_MORE;
 }
 
-QTableWidget& LogWidget::tableWidget() {
+const QTableWidget& LogWidget::tableWidget() const {
 
     return *(ui->log);
 }
 
-QTableWidgetItem& LogWidget::item(int row, Column col) {
+const QTableWidgetItem& LogWidget::item(int row, Column col) const {
 
     return *(tableWidget().item(row, col));
 }
 
-const QTime LogWidget::timeInRow(int row) {
+QTableWidgetItem& LogWidget::item(int row, Column col) {
+
+    return *(ui->log->item(row, col));
+}
+
+const QTime LogWidget::timeInRow(int row) const {
 
     return QTime::fromString(item(row,TIME).text(), "hh:mm:ss"); // FIXME Why isn't it stored as data???
 }
 
-int LogWidget::rowCount() {
+int LogWidget::rowCount() const {
 
     return tableWidget().rowCount();
 }
 
-bool LogWidget::isAlreadyPassed() {
+bool LogWidget::isAlreadyPassed() const {
 
     return item(startAt, STATUS).text().contains(PASSED_TEXT, Qt::CaseSensitive);
 }
 
-int LogWidget::recLengthInSec() {
+int LogWidget::recLengthInSec() const {
 
     const int lastRow = rowCount() - 1;
 
@@ -869,7 +850,7 @@ int LogWidget::recLengthInSec() {
     return recLength;
 }
 
-const QTime LogWidget::recStart() {
+const QTime LogWidget::recStart() const {
 
     Q_ASSERT(rowCount() > 2);
 
@@ -883,7 +864,7 @@ const QString LogWidget::atRow() const {
     return QString(" - row " + QString::number(startAt) + " ");
 }
 
-void LogWidget::writeToConsole(const QString& msg) {
+void LogWidget::writeToConsole(const QString& msg) const {
 
     QString time = QDateTime::currentDateTime().time().toString();
 

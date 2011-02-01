@@ -97,7 +97,6 @@ SOURCES += src/DataRecorder.cpp \
     src/SDCard/MoteHeader.cpp \
     src/SDCard/RecordLine.cpp \
     src/TabWatcher.cpp \
-    src/LogDialog.cpp \
     src/Solver/ConnectionState.cpp \
     src/Solver/MockSolver.cpp
 HEADERS += src/DataRecorder.h \
@@ -171,7 +170,6 @@ HEADERS += src/DataRecorder.h \
     src/SDCard/MoteHeader.hpp \
     src/SDCard/RecordLine.hpp \
     src/TabWatcher.hpp \
-    src/LogDialog.h \
     src/Solver/ConnectionState.hpp \
     src/Solver/StateColor.hpp \
     src/Solver/Range.hpp \
