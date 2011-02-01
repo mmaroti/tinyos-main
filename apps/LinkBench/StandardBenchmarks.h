@@ -112,6 +112,7 @@ _BMARK_START_(32)
   { 2, ALL, {TIMER(3), 0}, { SEND_ON_TIMER, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID }
 _BMARK_END_
 
+/** Three parallel timer-based links, direct links **/
 _BMARK_START_(33)
   { 1, 2, {TIMER(1), 0}, { SEND_ON_TIMER, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID },
   { 2, 3, {TIMER(2), 0}, { SEND_ON_TIMER, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID },
@@ -212,23 +213,10 @@ _BMARK_START_(56)
   { 6, ALL, NO_TIMER, { SEND_ON_INIT, 0, 0, 0, 0 }, NUM(INFINITE), NO_REPLY, START_MSG_ID }
 _BMARK_END_
 
-/** The inverse of the previous "message collector" binary tree, a "dissemination" tree:
-    M6 transmits to M2 which forwards it to M3 AND M4. M3 is a simple sink mote.
-    M4 is a router, so what it hears, forwards to M5 AND M6. M5 and M6 are simple sinks.
- **/
-_BMARK_START_(57)
-  { 1, 2, {TIMER(1), 0}, { SEND_ON_TIMER, 0, 0, 0, 0 }, NUM(1), REPLY_ON(1) | REPLY_ON(2), START_MSG_ID },
-  { 2, 3, NO_TIMER, { SEND_ON_REQ, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID },
-  { 2, 4, NO_TIMER, { SEND_ON_REQ, 0, 0, 0, 0 }, NUM(1), REPLY_ON(3) | REPLY_ON(4), START_MSG_ID },
-  { 4, 5, NO_TIMER, { SEND_ON_REQ, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID },
-  { 4, 6, NO_TIMER, { SEND_ON_REQ, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID }
-_BMARK_END_
-
-
 /** A near complete binary tree message collector network.
     There are three chains :  M1 -> M4 -> M6,  M2 -> M5 -> M6, and M3 -> M5 -> M6.
  **/
-_BMARK_START_(58)
+_BMARK_START_(57)
   { 1, 4, {TIMER(1), 0}, { SEND_ON_TIMER, 0, 0, 0, 0 }, NUM(1), REPLY_ON(3), START_MSG_ID },
   { 2, 5, {TIMER(2), 0}, { SEND_ON_TIMER, 0, 0, 0, 0 }, NUM(1), REPLY_ON(4), START_MSG_ID },
   { 3, 5, {TIMER(3), 0}, { SEND_ON_TIMER, 0, 0, 0, 0 }, NUM(1), REPLY_ON(4), START_MSG_ID },
@@ -236,14 +224,38 @@ _BMARK_START_(58)
   { 5, 6, NO_TIMER, { SEND_ON_REQ, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID }
 _BMARK_END_
 
-/** A near complete binary tree message dissemination network.
-    There are three chains :  M1 -> M2 -> M4,  M1 -> M3 -> M5, and M1 -> M3 -> M6.
+/** A "message disseminator" binary tree:
+    M6 transmits to M5 which duplicates these messages towards M4 and M3. M3 is a sink, while 
+    M4 also forwards the messages to M1 and M2.
+ **/
+_BMARK_START_(58)
+  { 6, 5, {TIMER(1), 0}, { SEND_ON_TIMER, 0, 0, 0, 0 }, NUM(1), REPLY_ON(1) | REPLY_ON(2), START_MSG_ID },
+  { 5, 4, NO_TIMER, { SEND_ON_REQ, 0, 0, 0, 0 }, NUM(1), REPLY_ON(3) | REPLY_ON(4), START_MSG_ID },
+  { 5, 3, NO_TIMER, { SEND_ON_REQ, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID },      
+  { 4, 1, NO_TIMER, { SEND_ON_REQ, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID },
+  { 4, 2, NO_TIMER, { SEND_ON_REQ, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID }
+_BMARK_END_
+
+/** A "noisy message disseminator" binary tree:
+    M5 sends messages to M4 and M3. M3 is a sink, while M4 forwards the messages to M1 and M2.
+    M6 acts as a disturbance mote, continously broadcasting.
  **/
 _BMARK_START_(59)
-  { 1, 2, {TIMER(1), 0}, { SEND_ON_TIMER, 0, 0, 0, 0 }, NUM(1), REPLY_ON(2), START_MSG_ID },
-  { 1, 3, {TIMER(2), 0}, { SEND_ON_TIMER, 0, 0, 0, 0 }, NUM(1), REPLY_ON(3) | REPLY_ON(4), START_MSG_ID },
-  { 2, 4, NO_TIMER, { SEND_ON_REQ, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID },
-  { 3, 5, NO_TIMER, { SEND_ON_REQ, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID }, 
-  { 3, 6, NO_TIMER, { SEND_ON_REQ, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID } 
+  { 5, 4, {TIMER(1), 0}, { SEND_ON_TIMER, 0, 0, 0, 0 }, NUM(1), REPLY_ON(2) | REPLY_ON(3), START_MSG_ID },
+  { 5, 3, {TIMER(2), 0}, { SEND_ON_TIMER, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID },
+  { 4, 1, NO_TIMER, { SEND_ON_REQ, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID },
+  { 4, 2, NO_TIMER, { SEND_ON_REQ, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID },
+  { 6, ALL, NO_TIMER, { SEND_ON_INIT, 0, 0, 0, 0 }, NUM(INFINITE), NO_REPLY, START_MSG_ID }
+_BMARK_END_
+
+/** A near complete binary tree message dissemination network.
+    There are three chains :  M6 -> M4 -> M1,  M6 -> M5 -> M2, and M6 -> M5 -> M3.
+ **/
+_BMARK_START_(60)
+  { 6, 4, {TIMER(1), 0}, { SEND_ON_TIMER, 0, 0, 0, 0 }, NUM(1), REPLY_ON(2), START_MSG_ID },
+  { 6, 5, {TIMER(2), 0}, { SEND_ON_TIMER, 0, 0, 0, 0 }, NUM(1), REPLY_ON(3) | REPLY_ON(4), START_MSG_ID },
+  { 4, 1, NO_TIMER, { SEND_ON_REQ, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID },
+  { 5, 2, NO_TIMER, { SEND_ON_REQ, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID }, 
+  { 5, 3, NO_TIMER, { SEND_ON_REQ, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID } 
 _BMARK_END_
 
