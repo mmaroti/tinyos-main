@@ -338,8 +338,8 @@ void LogWidget::on_checkButton_clicked()
 
     QTime tooShort(0,0,1,0);
     QTime motionStart, motionEnd;
-    QTime recordStart = QTime::fromString(ui->log->item(findRecordStart(),1)->text(), "hh:mm:ss");
-    QTime recordEnd = QTime::fromString(ui->log->item(findRecordEnd(),1)->text(), "hh:mm:ss");
+    QTime recordStart = QTime::fromString(ui->log->item(findRecordStart(),TIME)->text(), "hh:mm:ss");
+    QTime recordEnd = QTime::fromString(ui->log->item(findRecordEnd(),TIME)->text(), "hh:mm:ss");
 
     for(int i = 0; i < ui->log->rowCount(); i++){
         if(isMotionStart(i)){
@@ -501,9 +501,9 @@ void LogWidget::ShowContextMenu(const QPoint& pos)
 
 void LogWidget::on_log_cellClicked(int row, int column)
 {
-    if(column == 0){
+    if(column == GOTO){
         if(row == findMotionStart(row)) onGoto(row);
-    } else if(column == 4){
+    } else if(column == DEL){
         onDelRow(row);
     }
 }
