@@ -40,7 +40,7 @@
 #include <QDateTime>
 #include <QDateTimeEdit>
 #include <QMessageBox>
-#include <QtDebug>
+#include <QDebug>
 #include <QAction>
 #include <QMenu>
 #include <QValidator>
