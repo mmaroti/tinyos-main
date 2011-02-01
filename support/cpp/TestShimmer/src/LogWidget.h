@@ -130,6 +130,8 @@ private:
 
     QTableWidget& tableWidget();
     QTableWidgetItem& item(int row, Column col);
+    void writeToConsole(const QString& msg);
+    const QString atRow() const;
     //=======================
 
     Ui::LogWidget *ui;

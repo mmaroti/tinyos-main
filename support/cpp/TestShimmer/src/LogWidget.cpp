@@ -684,6 +684,8 @@ void LogWidget::startChecking() {
 
     startAt = endAt = -1;
 
+    writeToConsole(" checking started");
+
     checkNextMotion();
 }
 
@@ -747,7 +749,9 @@ void LogWidget::solverFinished(bool error, const QString message) {
 
     if (error) {
 
-        qDebug() << message;
+        qDebug() << "Solver failed at row " << startAt;
+
+        writeToConsole( atRow() + message );
 
         markAsFailed();
     }
@@ -872,4 +876,16 @@ const QTime LogWidget::recStart() {
     Q_ASSERT(isRecordStart(0));
 
     return timeInRow(0);
+}
+
+const QString LogWidget::atRow() const {
+
+    return QString(" - row " + QString::number(startAt) + " ");
+}
+
+void LogWidget::writeToConsole(const QString& msg) {
+
+    QString time = QDateTime::currentDateTime().time().toString();
+
+    application.showConsoleMessage( time + msg );
 }

@@ -91,7 +91,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
         connect(&app.serialListener, SIGNAL(showNotification(const QString&)), statusBar(), SLOT(showMessage(const QString&)) );
         connect(&app, SIGNAL(showMessageSignal(const QString &)), statusBar(), SLOT(showMessage(const QString &)) );
-        connect(&app, SIGNAL(showConsoleSignal(const QString &)), consoleWidget , SLOT(onRecieveConsoleSignal(QString)) );
+        connect(&app, SIGNAL(showConsoleSignal(const QString &)), consoleWidget , SLOT(onRecieveConsoleSignal(const QString& )) );
         connect(calibrationWidget, SIGNAL(calibrationDone()), dataWidget, SLOT(newCalibrationOccured()) );
         connect(&(app.dataRecorder), SIGNAL(fileLoaded()), calibrationWidget, SLOT(OnFileLoaded()));
         connect(&(app.dataRecorder), SIGNAL(calibrationDataLoaded()), calibrationWidget, SLOT(OnFileLoaded()));
