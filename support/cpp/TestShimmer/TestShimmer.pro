@@ -98,7 +98,8 @@ SOURCES += src/DataRecorder.cpp \
     src/SDCard/RecordLine.cpp \
     src/TabWatcher.cpp \
     src/LogDialog.cpp \
-    src/Solver/ConnectionState.cpp
+    src/Solver/ConnectionState.cpp \
+    src/Solver/MockSolver.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -173,7 +174,8 @@ HEADERS += src/DataRecorder.h \
     src/LogDialog.h \
     src/Solver/ConnectionState.hpp \
     src/Solver/StateColor.hpp \
-    src/Solver/Range.hpp
+    src/Solver/Range.hpp \
+    src/Solver/MockSolver.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \
