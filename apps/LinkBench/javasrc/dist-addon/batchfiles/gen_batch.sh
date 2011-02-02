@@ -5,6 +5,8 @@
 
 # Print a YAML-correct benchmark description based on env vars
 function print_bmark {
+  # start benchmark
+  echo "---"
   # config section
   if [[ -z $TIME || -z $BMARK ]]; then
     echo "Undefined BMARK or TIME value!"
@@ -54,8 +56,6 @@ function print_bmark {
   unset FORCESV
   # wakeup section
   echo -en ${WAKEUP:+"wakeup: $WAKEUP\n"};
-  # end benchmark
-  echo "---"
 }
 
 # Here is an example how to generate a bunch of descriptions

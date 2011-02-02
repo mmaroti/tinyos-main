@@ -53,6 +53,15 @@
     <delete dir="${build}"/>
   </target>
   <target name="-clean-dist">
+    <input
+      message="All data is going to be deleted from ${dist}. Continue (y/n)?"
+      validargs="y,n"
+      addproperty="do.delete"
+    />
+    <condition property="do.abort">
+      <equals arg1="n" arg2="${do.delete}"/>
+    </condition>
+    <fail if="do.abort">Clean task aborted by user.</fail>
     <delete dir="${dist}"/>
   </target>
 
