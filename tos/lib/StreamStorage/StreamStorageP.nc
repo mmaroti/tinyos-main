@@ -762,7 +762,7 @@ implementation{
 	}
 
 	command uint32_t StreamStorageRead.getMaxAddress(){
-		return current_addr;
+		return current_addr-1;
 	}
 	
 	task void getMinAddr(){
