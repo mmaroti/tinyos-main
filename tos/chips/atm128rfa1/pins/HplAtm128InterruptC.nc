@@ -81,7 +81,8 @@ implementation
     new HplAtm1281PCInterruptP(PCIE1, (uint8_t)&PCMSK1) as PCIntVect1,
     new NoPinC() as NoPin1, new NoPinC() as NoPin2, new NoPinC() as NoPin3,
     new NoPinC() as NoPin4, new NoPinC() as NoPin5, new NoPinC() as NoPin6,
-    new NoPinC() as NoPin7;
+    new NoPinC() as NoPin7,
+    McuSleepC;
 
   
   Int0 = IntPin0;
@@ -130,5 +131,28 @@ implementation
   PCIntVect1.Pin5 -> NoPin5;
   PCIntVect1.Pin6 -> NoPin6;
   PCIntVect1.Pin7 -> NoPin7;
+
+  PCIntVect0.McuPowerState -> McuSleepC;
+  PCIntVect1.McuPowerState -> McuSleepC;
+  PCIntVect0.McuPowerOverride <- McuSleepC;
+  PCIntVect1.McuPowerOverride <- McuSleepC;
+
+  IntPin0.McuPowerState -> McuSleepC;
+  IntPin1.McuPowerState -> McuSleepC;
+  IntPin2.McuPowerState -> McuSleepC;
+  IntPin3.McuPowerState -> McuSleepC;
+  IntPin4.McuPowerState -> McuSleepC;
+  IntPin5.McuPowerState -> McuSleepC;
+  IntPin6.McuPowerState -> McuSleepC;
+  IntPin7.McuPowerState -> McuSleepC;
+
+  IntPin0.McuPowerOverride <- McuSleepC;
+  IntPin1.McuPowerOverride <- McuSleepC;
+  IntPin2.McuPowerOverride <- McuSleepC;
+  IntPin3.McuPowerOverride <- McuSleepC;
+  IntPin4.McuPowerOverride <- McuSleepC;
+  IntPin5.McuPowerOverride <- McuSleepC;
+  IntPin6.McuPowerOverride <- McuSleepC;
+  IntPin7.McuPowerOverride <- McuSleepC;
 }
 
