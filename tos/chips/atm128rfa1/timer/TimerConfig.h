@@ -63,19 +63,21 @@ typedef T2mhz TMcu;
 
 // ------ RTC timer parameters ------
 
-typedef struct T4khz { } T4khz;
-
-typedef T32khz TRtc;
-//typedef T4khz TRtc;
-
-#define RTC_TIMER_KHZ_LOG2	2
+#define RTC_TIMER_KHZ_LOG2	5
 
 #if RTC_TIMER_KHZ_LOG2 == 5
+typedef T32khz TRtc;
 #define RTC_TIMER_MODE		(ATMRFA1_CLK8_NORMAL | ATMRFA1_WGM8_NORMAL | ATMRFA1_ASYNC_ON)
+
 #elif RTC_TIMER_KHZ_LOG2 == 2
+typedef struct T4khz { } T4khz;
+typedef T4khz TRtc;
 #define RTC_TIMER_MODE		(ATMRFA1_CLK8_DIVIDE_8 | ATMRFA1_WGM8_NORMAL | ATMRFA1_ASYNC_ON)
+
 #elif RTC_TIMER_KHZ_LOG2 == 0
+typedef TMilli TRtc;
 #define RTC_TIMER_MODE		(ATMRFA1_CLK8_DIVIDE_32 | ATMRFA1_WGM8_NORMAL | ATMRFA1_ASYNC_ON)
+
 #else
 #error "The RTC must be run at 32 KHz, 4 KHz or 1 KHz."
 #endif

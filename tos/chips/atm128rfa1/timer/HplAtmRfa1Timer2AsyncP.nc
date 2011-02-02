@@ -41,7 +41,6 @@ module HplAtmRfa1Timer2AsyncP @safe()
 		interface AtmegaCounter<uint8_t> as Counter;
 		interface AtmegaCompare<uint8_t> as CompareA;
 //		interface AtmegaCompare<uint8_t> as CompareB;
-//		interface AtmegaCompare<uint8_t> as CompareC;
 		interface McuPowerOverride;
 	}
 

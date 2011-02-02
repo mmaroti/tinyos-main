@@ -48,7 +48,6 @@ implementation
 	Counter = HplAtmRfa1Timer2AsyncP;
 	Compare[0] = HplAtmRfa1Timer2AsyncP.CompareA;
 //	Compare[1] = HplAtmRfa1Timer2AsyncP.CompareB;
-//	Compare[2] = HplAtmRfa1Timer2AsyncP.CompareC;
 
 	components McuSleepC;
 	HplAtmRfa1Timer2AsyncP.McuPowerState -> McuSleepC;
