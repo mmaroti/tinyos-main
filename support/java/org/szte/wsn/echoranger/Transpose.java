@@ -40,12 +40,13 @@ public class Transpose
 {
 	static List<List<String>> lines = new ArrayList<List<String>>();
 	static int maxLength;
+	static String separator=",";
 	
 	static void readLine(String line)
 	{
 		List<String> values = new ArrayList<String>();
 		
-		StringTokenizer tokenizer = new StringTokenizer(line, ",");
+		StringTokenizer tokenizer = new StringTokenizer(line, separator);
 		while( tokenizer.hasMoreTokens() )
 			values.add(tokenizer.nextToken());
 		
@@ -62,7 +63,7 @@ public class Transpose
 			for(int j = 0; j < lines.size(); ++j)
 			{
 				if( j != 0 )
-					System.out.print(',');
+					System.out.print(separator);
 				
 				if( lines.get(j).size() > i )
 					System.out.print(lines.get(j).get(i));
@@ -73,13 +74,14 @@ public class Transpose
 	
 	public static void main(String[] args) throws FileNotFoundException
 	{
-		if( args.length != 1 )
+		if( args.length > 2 || args.length <1 )
 		{
-			System.err.println("usage: java Transpose input.csv");
+			System.err.println("usage: java Transpose [separator char] input.csv");
 			System.exit(1);
 		}
-
-		Scanner scanner = new Scanner(new File(args[0]));
+		if(args.length==2)
+			separator=args[0];
+		Scanner scanner = new Scanner(new File(args[args.length-1]));
 		try {
 			while ( scanner.hasNextLine() ) 
 				readLine(scanner.nextLine());
