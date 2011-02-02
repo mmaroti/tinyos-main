@@ -54,7 +54,11 @@ public:
     LogWidget(QWidget *parent, Application &app);
     ~LogWidget();
 
-    enum Button { MotionStart, MotionEnd, RecordStart, RecordEnd, Text, Insert, Load };
+    //enum Button { MotionStart, MotionEnd, RecordStart, RecordEnd, Text, Insert, Load };
+
+    enum TimeMode { CURRENT, SET, SETNOTEDITABLE };
+    enum Mode { LOAD, NORMAL, INSERT };
+    enum Type { RECORDSTART, RECORDEND, MOTIONSTART, MOTIONEND , TEXT};
 
     enum Column {
         GOTO = 0,
@@ -62,8 +66,8 @@ public:
         TIME = 2,
         TYPE = 3,
         ENTRY = 4,
-        DEL = 5
-   };
+        DEL = 5 };
+    enum Status { UNKNOWN, OK, FAILED, EMPTY };
 
 private slots:
 
@@ -88,10 +92,26 @@ private:
     void onGoto(int);
     void onDelRow(int);
 
-    void createItem(QString status, QString text, QString time, Button button, int at);
+    void createItems(int at, Mode, Type, TimeMode, Status);
+    void createItems(int at, Mode, Type, TimeMode, Status, QString txt, QString time);
+    void createItem(QString txt, int row, Column, bool editable);
+    void createItem(QString txt, int row, Column, bool editable, QIcon);
+    int createRow(int row);
+    void createGoto(int row, Type);
+    void createStatus(int row, Status);
+    void createTime(int row, TimeMode);
+    void createTime(int row, Mode);
+    void createTime(int row, QString time, TimeMode);
+    void createType(int row, Type);
+    void createEntry(int row, QString txt);
+    void createEntry(int row ,Mode, Type);
+    void createDel(int row, Type);
 
     int findMotionStart(int);
     int findMotionEnd(int);
+    int findRecordStart();
+    int findRecordEnd();
+    int motionDistance(int, int);
 
     bool isRecordStart(int) const;
     bool isRecordEnd(int) const;
@@ -99,6 +119,8 @@ private:
     bool isMotionEnd(int) const;
 
     void init();
+    void entryLineInit();
+
     void saveLog(const QString&);
     void loadLog(const QString&);
     void csvToLog(const QString&);
