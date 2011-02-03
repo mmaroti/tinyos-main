@@ -86,6 +86,7 @@ private slots:
     void on_log_cellChanged(int,int);
     void stateColor(StateColor color);
     void solverFinished(bool error, const QString message);
+    void on_log_cellDoubleClicked(int row, int column);
 
 private:
 
@@ -140,7 +141,7 @@ private:
     const QTime recStart() const;
     const QTime timeInRow(int row) const;
     bool isMotionTooShort() const;
-    bool isAlreadyPassed() const;
+    bool isAlreadyPassed(const int row) const;
 
     int rowCount() const;
     int recLengthInSec() const;

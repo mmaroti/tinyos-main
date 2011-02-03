@@ -740,7 +740,7 @@ void LogWidget::checkNextMotion() {
 
         checkNextMotion();
     }
-    else if (isAlreadyPassed()) {
+    else if (isAlreadyPassed(startAt)) {
 
         checkNextMotion();
     }
@@ -885,9 +885,9 @@ int LogWidget::rowCount() const {
     return tableWidget().rowCount();
 }
 
-bool LogWidget::isAlreadyPassed() const {
+bool LogWidget::isAlreadyPassed(const int row) const {
 
-    return item(startAt, STATUS).text().contains(PASSED_TEXT, Qt::CaseSensitive);
+    return item(row, STATUS).text().contains(PASSED_TEXT, Qt::CaseSensitive);
 }
 
 int LogWidget::recLengthInSec() const {
@@ -926,4 +926,16 @@ void LogWidget::writeToConsole(const QString& msg) const {
     QString time = QDateTime::currentDateTime().time().toString();
 
     application.showConsoleMessage( time + msg );
+}
+
+void LogWidget::on_log_cellDoubleClicked(int row, int column)
+{
+    if(column == STATUS && isAlreadyPassed(row)){
+
+        int end = findMotEnd(row+1);
+
+        Q_ASSERT(end!=NO_MORE);
+
+        qDebug() << "Start " << row << ", End " << end;
+    }
 }
