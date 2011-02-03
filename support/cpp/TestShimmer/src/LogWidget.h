@@ -54,7 +54,7 @@ public:
     LogWidget(QWidget *parent, Application &app);
     ~LogWidget();
 
-    enum TimeMode { SET, SETNOTEDITABLE }; // FIXME SETNOTEDITABLE is never used
+    enum TimeMode { SET, SETNOTEDITABLE };
     enum Mode { NORMAL, INSERT };
     enum Type { RECORDSTART, RECORDEND, MOTIONSTART, MOTIONEND , TEXT};
 

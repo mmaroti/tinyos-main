@@ -286,21 +286,27 @@ void LogWidget::on_entryLine_returnPressed()
 
 void LogWidget::on_recStartButton_clicked()
 {
-    init();
+    if(application.connectionState.isConnected()){
+        init();
 
-    createItems(-1, NORMAL, RECORDSTART, EMPTY);
+        createItems(-1, NORMAL, RECORDSTART, EMPTY);
 
-    ui->recStartButton->setEnabled(false);
-    ui->motionStartButton->setEnabled(true);
-    ui->saveButton->setEnabled(false);
-    ui->checkButton->setEnabled(false);
-    ui->clearButton->setEnabled(false);
-    ui->loadButton->setEnabled(false);
+        ui->recStartButton->setEnabled(false);
+        ui->motionStartButton->setEnabled(true);
+        ui->saveButton->setEnabled(false);
+        ui->checkButton->setEnabled(false);
+        ui->clearButton->setEnabled(false);
+        ui->loadButton->setEnabled(false);
 
-    entryLineInit();
+        entryLineInit();
 
-    connect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)),
-            &application.dataRecorder,   SLOT(onReceiveMessage(ActiveMessage)), Qt::DirectConnection);
+        connect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)),
+                &application.dataRecorder,   SLOT(onReceiveMessage(ActiveMessage)), Qt::DirectConnection);
+    } else {
+        QMessageBox msgBox;
+        msgBox.setText("Cannot start recording, while system is not connected!");
+        msgBox.exec();
+    }
 }
 
 void LogWidget::on_recEndButton_clicked()
@@ -663,7 +669,7 @@ void LogWidget::csvToLog(const QString &line)
 
             if(status.contains("Unknown", Qt::CaseSensitive)){
                 createItems(-1, MOTIONSTART, SET, UNKNOWN, text, time);
-            } else if(status.contains("OK", Qt::CaseSensitive)){
+            } else if(status.contains("Passed", Qt::CaseSensitive)){
                 createItems(-1, MOTIONSTART, SET, OK, text, time);
             } else {
                 createItems(-1, MOTIONSTART, SET, FAILED, text, time);
@@ -672,9 +678,9 @@ void LogWidget::csvToLog(const QString &line)
         } else if(type.contains("Motion End", Qt::CaseSensitive)){
             createItems(-1, MOTIONEND, SET, EMPTY, text, time);
         } else if(type.contains("Record Start", Qt::CaseSensitive)){
-            createItems(-1, RECORDSTART, SET, EMPTY, text, time);
+            createItems(-1, RECORDSTART, SETNOTEDITABLE, EMPTY, text, time);
         } else if(type.contains("Record End", Qt::CaseSensitive)){
-            createItems(-1, RECORDEND, SET, EMPTY, text, time);
+            createItems(-1, RECORDEND, SETNOTEDITABLE, EMPTY, text, time);
 
             ui->entryLine->setEnabled(false);
         } else {
