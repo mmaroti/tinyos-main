@@ -54,10 +54,8 @@ public:
     LogWidget(QWidget *parent, Application &app);
     ~LogWidget();
 
-    //enum Button { MotionStart, MotionEnd, RecordStart, RecordEnd, Text, Insert, Load };
-
-    enum TimeMode { CURRENT, SET, SETNOTEDITABLE };
-    enum Mode { LOAD, NORMAL, INSERT };
+    enum TimeMode { SET, SETNOTEDITABLE }; // FIXME SETNOTEDITABLE is never used
+    enum Mode { NORMAL, INSERT };
     enum Type { RECORDSTART, RECORDEND, MOTIONSTART, MOTIONEND , TEXT};
 
     enum Column {
@@ -66,7 +64,9 @@ public:
         TIME = 2,
         TYPE = 3,
         ENTRY = 4,
-        DEL = 5 };
+        DEL = 5
+    };
+
     enum Status { UNKNOWN, OK, FAILED, EMPTY };
 
 private slots:
@@ -92,14 +92,14 @@ private:
     void onGoto(int);
     void onDelRow(int);
 
-    void createItems(int at, Mode, Type, TimeMode, Status);
-    void createItems(int at, Mode, Type, TimeMode, Status, QString txt, QString time);
+    void createItems(int at, Mode, Type, Status); // FIXME Apart from one function call at==-1
+    void createItems(int at, Type, TimeMode, Status, QString txt, QString time);
     void createItem(QString txt, int row, Column, bool editable);
     void createItem(QString txt, int row, Column, bool editable, QIcon);
     int createRow(int row);
     void createGoto(int row, Type);
     void createStatus(int row, Status);
-    void createTime(int row, TimeMode);
+    void createTime(int row);
     void createTime(int row, Mode);
     void createTime(int row, QString time, TimeMode);
     void createType(int row, Type);
@@ -109,9 +109,6 @@ private:
 
     int findMotionStart(int);
     int findMotionEnd(int);
-    int findRecordStart();
-    int findRecordEnd();
-    int motionDistance(int, int);
 
     bool isRecordStart(int) const;
     bool isRecordEnd(int) const;
