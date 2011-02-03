@@ -56,6 +56,7 @@ namespace {
 
     const char PASSED_TEXT[] = "Passed";
     const char FAILED_TEXT[] = "Failed";
+    const char UNKNOWN_TEXT[] ="Unknown";
 }
 
 LogWidget::LogWidget(QWidget *parent, Application &app) :
@@ -82,7 +83,7 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
 
     ui->iconLabel->setTextFormat(Qt::RichText);
 
-    ui->iconLabel->setText("<img src=\":/icons/NoConnection.png\">");
+    ui->iconLabel->setText("<img src=\":/icons/red.png\">");
 
     connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
 
@@ -208,11 +209,11 @@ void LogWidget::createStatus(int row, Status status)
         createItem("", row, STATUS, false);
     } else {
         if(status == UNKNOWN){
-            createItem("Unknown", row, STATUS, false, QIcon(":/icons/warning-icon.png"));
+            createItem(UNKNOWN_TEXT, row, STATUS, false, QIcon(":/icons/Warning.png"));
         } else if(status == OK){
-            createItem("OK", row, STATUS, false, QIcon(":/icons/tick-icon.png"));
+            createItem(PASSED_TEXT, row, STATUS, false, QIcon(":/icons/passed.png"));
         } else if(status == FAILED){
-            createItem("Failed", row, STATUS, false, QIcon(":/icons/delete-icon.png"));
+            createItem(FAILED_TEXT, row, STATUS, false, QIcon(":/icons/failed.png"));
         }
     }
 }
@@ -259,6 +260,8 @@ void LogWidget::createEntry(int row, Mode mode, Type type)
         } else {
             createItem(ui->entryLine->text(), row, ENTRY, true);
         }
+    } else {
+        createItem(ui->entryLine->text(), row, ENTRY, true);
     }
 }
 
@@ -335,7 +338,7 @@ void LogWidget::on_recEndButton_clicked()
         ui->checkButton->setEnabled(true);
         ui->clearButton->setEnabled(true);
 
-        for(int i=0; i<ui->log->rowCount(); i++){ // FIXME Crashes is loop, most likely null pointer
+        for(int i=1; i<ui->log->rowCount()-1; i++){ // FIXME Crashes is loop, most likely null pointer
             ui->log->item(i, TIME)->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
             ui->log->item(i, ENTRY)->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         }
@@ -571,8 +574,8 @@ void LogWidget::on_log_cellChanged(int row, int column)
     }
 
     if(column == TIME && (isMotionStart(row) || isMotionEnd(row)) && item->isSelected() ){
-        ui->log->item(findMotionStart(row), STATUS)->setText("Unknown");
-        ui->log->item(findMotionStart(row), STATUS)->setIcon(QIcon(":/icons/warning-icon.png"));
+        ui->log->item(findMotionStart(row), STATUS)->setText(UNKNOWN_TEXT);
+        ui->log->item(findMotionStart(row), STATUS)->setIcon(QIcon(":/icons/Warning.png"));
     }
 
     if(column == GOTO && row==0) qDebug() << "itemchanged";
@@ -668,9 +671,9 @@ void LogWidget::csvToLog(const QString &line)
 
         if(type.contains("Motion Start", Qt::CaseSensitive)){
 
-            if(status.contains("Unknown", Qt::CaseSensitive)){
+            if(status.contains(UNKNOWN_TEXT, Qt::CaseSensitive)){
                 createItems(-1, MOTIONSTART, SET, UNKNOWN, text, time);
-            } else if(status.contains("Passed", Qt::CaseSensitive)){
+            } else if(status.contains(PASSED_TEXT, Qt::CaseSensitive)){
                 createItems(-1, MOTIONSTART, SET, OK, text, time);
             } else {
                 createItems(-1, MOTIONSTART, SET, FAILED, text, time);
@@ -695,15 +698,15 @@ void LogWidget::stateColor(StateColor color) {
 
     if (color == RED) {
 
-        ui->iconLabel->setText("<img src=\":/icons/NoConnection.png\">");
+        ui->iconLabel->setText("<img src=\":/icons/red.png\">");
     }
     else if (color == YELLOW) {
 
-        ui->iconLabel->setText("<img src=\":/icons/warning-icon.png\">");
+        ui->iconLabel->setText("<img src=\":/icons/yellow.png\">");
     }
     else if (color == GREEN) {
 
-        ui->iconLabel->setText("<img src=\":/icons/Connection.png\">");
+        ui->iconLabel->setText("<img src=\":/icons/green.png\">");
     }
     else {
 
@@ -803,14 +806,14 @@ void LogWidget::markAsFailed() {
 
     setText(startAt, STATUS, FAILED_TEXT);
 
-    setIcon(startAt, STATUS, QIcon(":/icons/delete-icon.png"));
+    setIcon(startAt, STATUS, QIcon(":/icons/failed.png"));
 }
 
 void LogWidget::motionOK() {
 
     setText(startAt, STATUS, PASSED_TEXT);
 
-    setIcon(startAt, STATUS, QIcon(":/icons/tick-icon.png"));
+    setIcon(startAt, STATUS, QIcon(":/icons/passed.png"));
 }
 
 void LogWidget::setText(int row, Column col, const char text[]) {
