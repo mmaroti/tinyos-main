@@ -80,7 +80,6 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
     ui->log->setContextMenuPolicy(Qt::CustomContextMenu);
 
     ui->iconLabel->setTextFormat(Qt::RichText);
-    ui->iconLabel->setText("<img src=\":/icons/NoConnection.png\">");
 
     ui->iconLabel->setText("<img src=\":/icons/NoConnection.png\">");
 
