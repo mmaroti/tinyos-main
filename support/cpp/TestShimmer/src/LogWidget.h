@@ -142,6 +142,8 @@ private:
     const QTime timeInRow(int row) const;
     bool isMotionTooShort() const;
     bool isAlreadyPassed(const int row) const;
+    bool isValidRange(const int begin, const int end, const int length) const;
+    void showAnimation(const int begin, const int end, const int length);
 
     int rowCount() const;
     int recLengthInSec() const;

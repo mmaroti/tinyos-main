@@ -82,6 +82,13 @@ struct Angle_pair {
     const double angle2;
 };
 
+struct Range {
+    Range(int beg, int end) : begin(beg), end(end) { }
+    int size() const { return end-begin; }
+    const int begin;
+    const int end;
+};
+
 class DataRecorder : public QObject
 {
 	Q_OBJECT
@@ -146,6 +153,8 @@ public:
         void edit(const QString& option);
 
         void loadResults(const ipo::Results& res, const int begin, const int end);
+        const Range range(const double begInSec, const double endInSec, const double lenInSec) const;
+        const double* rotmat(const Range& range) const;
         bool euler_angle(int sample, Coordinate k, double& angle_in_rad) const;
         Angle_pair integrated_angle(int sample, Coordinate k) const;
         Angle_pair corrected_angle(int i, Coordinate k) const;

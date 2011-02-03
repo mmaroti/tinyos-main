@@ -751,6 +751,38 @@ void DataRecorder::loadResults(const ipo::Results& res, const int begin, const i
     }
 }
 
+const Range DataRecorder::range(const double begin, const double end, const double length) const {
+
+    const double size = samples.size();
+
+    Q_ASSERT(size!=0);
+
+    const int begSample = static_cast<int>( (begin/length)*size );
+
+    const int endSample = static_cast<int>( (end/length)*size );
+
+    return Range(begSample, endSample);
+}
+
+const double* DataRecorder::rotmat(const Range& range) const {
+
+    double* const matrices = new double[9*range.size()];
+
+    double* pos = matrices;
+
+    for (int i=range.begin; i<range.end; ++i, pos+=9 ) {
+
+        const double* const mat = samples[i].rotmat;
+
+        for (int k=0; k<9; ++k) {
+
+            pos[k] = mat[k];
+        }
+    }
+
+    return matrices;
+}
+
 void DataRecorder::dump_calibration_data() const {
 
     std::cout << "Gyroscope calibration data is: " << std::endl;

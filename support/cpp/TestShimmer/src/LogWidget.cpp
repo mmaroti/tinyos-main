@@ -47,6 +47,7 @@
 #include <QRegExp>
 #include <QFile>
 #include <QFileDialog>
+#include <QTextStream>
 
 namespace {
 
@@ -732,8 +733,6 @@ int LogWidget::findNextMot() {
 
     endAt = findMotEnd(startAt+1);
 
-    Q_ASSERT(endAt != NO_MORE);
-
     return startAt;
 }
 
@@ -866,6 +865,8 @@ int LogWidget::findMotEnd(int pos) const {
         }
     }
 
+    Q_ASSERT(false);
+
     return NO_MORE;
 }
 
@@ -937,14 +938,61 @@ void LogWidget::writeToConsole(const QString& msg) const {
     application.showConsoleMessage( time + msg );
 }
 
-void LogWidget::on_log_cellDoubleClicked(int row, int column)
-{
-    if(column == STATUS && isAlreadyPassed(row)){
+bool LogWidget::isValidRange(const int begin, const int end, const int length) const {
 
-        int end = findMotEnd(row+1);
+    bool retVal = true;
 
-        Q_ASSERT(end!=NO_MORE);
+    if (!(0 <= begin && begin < end && end <= length)) {
 
-        qDebug() << "Start " << row << ", End " << end;
+        QString msg;
+
+        QTextStream out(&msg, QIODevice::WriteOnly);
+
+        out << "Error: begin " << begin << ", end " << end << "length " << length << " s" << flush;
+
+        writeToConsole(msg);
+
+        retVal = false;
     }
+
+    return retVal;
+}
+
+void LogWidget::on_log_cellDoubleClicked(int motStart, int column) {
+
+    if (column != STATUS || !isAlreadyPassed(motStart)) {
+
+        return;
+    }
+
+    int motEnd = findMotEnd(motStart+1);
+
+    int begin = recStart().secsTo(timeInRow(motStart));
+
+    int end   = recStart().secsTo(timeInRow(motEnd));
+
+    int length = recLengthInSec();
+
+    if (!isValidRange(begin, end, length)) {
+
+        return;
+    }
+
+    showAnimation(begin, end, length);
+}
+
+void LogWidget::showAnimation(const int begin, const int end, const int length) {
+
+    if (application.dataRecorder.empty()) {
+
+        writeToConsole("Error: datarecorder is empty!");
+
+        return;
+    }
+
+    const Range range = application.dataRecorder.range(begin, end, length);
+
+    const double* const mat = application.dataRecorder.rotmat(range);
+
+    // TODO build GLWindow here!
 }
