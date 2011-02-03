@@ -304,7 +304,7 @@ void LogWidget::on_recStartButton_clicked()
                 &application.dataRecorder,   SLOT(onReceiveMessage(ActiveMessage)), Qt::DirectConnection);
     } else {
         QMessageBox msgBox;
-        msgBox.setText("Cannot start recording, while system is not connected!");
+        msgBox.setText("Please connect to a mote first on the Connect tab!");
         msgBox.exec();
     }
 }
@@ -334,7 +334,7 @@ void LogWidget::on_recEndButton_clicked()
         ui->checkButton->setEnabled(true);
         ui->clearButton->setEnabled(true);
 
-        for(int i=0; i<ui->log->rowCount(); i++){ // Crashes is loop, most likely null pointer
+        for(int i=0; i<ui->log->rowCount(); i++){ // FIXME Crashes is loop, most likely null pointer
             ui->log->item(i, TIME)->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
             ui->log->item(i, ENTRY)->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         }
@@ -550,7 +550,7 @@ void LogWidget::on_log_cellChanged(int row, int column)
 {
     QTableWidgetItem* item = ui->log->item(row, column);
     if(column == TIME && item->isSelected() && row < ui->log->rowCount()){
-        QTime before = QTime::fromString(ui->log->item(row-1,column)->text(), "hh:mm:ss");
+        QTime before = QTime::fromString(ui->log->item(row-1,column)->text(), "hh:mm:ss"); // FIXME Crashes on this line
         QTime after = QTime::fromString(ui->log->item(row+1,column)->text(), "hh:mm:ss");
         QTime now = QTime::fromString(ui->log->item(row,column)->text(), "hh:mm:ss");
 
@@ -692,29 +692,22 @@ void LogWidget::csvToLog(const QString &line)
 
 void LogWidget::stateColor(StateColor color) {
 
-    QString col;
-
     if (color == RED) {
 
-        col = "RED";
         ui->iconLabel->setText("<img src=\":/icons/NoConnection.png\">");
     }
     else if (color == YELLOW) {
 
-        col = "YELLOW";
         ui->iconLabel->setText("<img src=\":/icons/warning-icon.png\">");
     }
     else if (color == GREEN) {
 
-        col = "GREEN";
         ui->iconLabel->setText("<img src=\":/icons/Connection.png\">");
     }
     else {
 
-        col = "unknown";
+        Q_ASSERT(false);
     }
-
-    qDebug() << "Signal is " << col;
 }
 
 //=============================================================================
