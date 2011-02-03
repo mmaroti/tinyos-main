@@ -13,6 +13,7 @@ INCLUDEPATH += ../QextSerialPort/
 INCLUDEPATH += src/
 INCLUDEPATH += src/Solver/
 INCLUDEPATH += src/SDCard/
+INCLUDEPATH += src/OpenGL/
 
 # INCLUDEPATH += ../qwtplot3d/include
 QMAKE_LIBDIR += ../QextSerialPort/build
@@ -98,7 +99,10 @@ SOURCES += src/DataRecorder.cpp \
     src/SDCard/RecordLine.cpp \
     src/TabWatcher.cpp \
     src/Solver/ConnectionState.cpp \
-    src/Solver/MockSolver.cpp
+    src/Solver/MockSolver.cpp \
+    src/OpenGL/DataHolder.cpp \
+    src/OpenGL/GLWindow.cpp \
+    src/OpenGL/GLRightElbowFlex.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -173,7 +177,13 @@ HEADERS += src/DataRecorder.h \
     src/Solver/ConnectionState.hpp \
     src/Solver/StateColor.hpp \
     src/Solver/Range.hpp \
-    src/Solver/MockSolver.hpp
+    src/Solver/MockSolver.hpp \
+    src/OpenGL/DataHolder.hpp \
+    src/OpenGL/GLWindow.hpp \
+    src/OpenGL/GLRightElbowFlex.hpp \
+    src/OpenGL/GLRightElbowFlex.hpp \
+    src/OpenGL/GLWindow.hpp \
+    src/OpenGL/DataHolder.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

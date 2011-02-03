@@ -1,0 +1,4 @@
+#ifndef DATAHOLDER_HPP
+#define DATAHOLDER_HPP
+
+#endif // DATAHOLDER_HPP
