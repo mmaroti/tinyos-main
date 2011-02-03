@@ -80,6 +80,7 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
     ui->log->setContextMenuPolicy(Qt::CustomContextMenu);
 
     ui->iconLabel->setTextFormat(Qt::RichText);
+    ui->iconLabel->setText("<img src=\":/icons/NoConnection.png\">");
 
     ui->iconLabel->setText("<img src=\":/icons/NoConnection.png\">");
 
@@ -256,7 +257,7 @@ void LogWidget::createEntry(int row, Mode mode, Type type)
         if( type == RECORDSTART){
             createItem(QDate::currentDate().toString()+" - "+ui->entryLine->text(), row, ENTRY, false);
         } else {
-            createItem(ui->entryLine->text(), row, ENTRY, false);
+            createItem(ui->entryLine->text(), row, ENTRY, true);
         }
     }
 }
@@ -329,6 +330,7 @@ void LogWidget::on_recEndButton_clicked()
         ui->clearButton->setEnabled(true);
 
         for(int i=0; i<ui->log->rowCount(); i++){ // Crashes is loop, most likely null pointer
+            ui->log->item(i, TIME)->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
             ui->log->item(i, ENTRY)->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         }
 
@@ -340,6 +342,7 @@ void LogWidget::on_recEndButton_clicked()
 
 void LogWidget::on_motionStartButton_clicked()
 {
+    qDebug() << "Mot Start";
     QString msg;
     if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
     createItems(-1, NORMAL, MOTIONSTART, UNKNOWN);
@@ -352,6 +355,7 @@ void LogWidget::on_motionStartButton_clicked()
 
 void LogWidget::on_motionEndButton_clicked()
 {
+    qDebug() << "Mot end";
     QString msg;
     if(!(ui->entryLine->text() == "")) msg.append(" - "+ui->entryLine->text());
     createItems(-1, NORMAL, MOTIONEND, EMPTY);
@@ -366,6 +370,7 @@ void LogWidget::on_motionEndButton_clicked()
 
 void LogWidget::on_loadButton_clicked()
 {
+    qDebug() << "Load";
     QString file = QFileDialog::getOpenFileName(this, "Select a file to open", "c:/", "CSV (*.csv);;Any File (*.*)");
     if ( !file.isEmpty() ) {
         init();
@@ -388,6 +393,7 @@ void LogWidget::on_loadButton_clicked()
 
 void LogWidget::on_saveButton_clicked()
 {
+    qDebug() << "Save";
     //connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
     QString fn = QFileDialog::getSaveFileName(  this, "Choose a filename to save under", "c:/", "CSV (*.csv)");
     if ( !fn.isEmpty() ) {
@@ -404,6 +410,7 @@ void LogWidget::on_saveButton_clicked()
 
 void LogWidget::on_clearButton_clicked()
 {
+    qDebug() << "Clears";
     QMessageBox msgBox;
     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Cancel);
@@ -419,11 +426,13 @@ void LogWidget::on_clearButton_clicked()
 
 void LogWidget::on_checkButton_clicked()
 {
+    qDebug() << "Check";
     startChecking();
 }
 
 void LogWidget::onDelRow(int row)
 {
+    qDebug() << "Del row: " << row;
     int startRow = row;
     int endRow = row;
 
@@ -460,6 +469,7 @@ void LogWidget::onDelRow(int row)
 
 void LogWidget::onGoto(int row)
 {
+    qDebug() << "Goto: " << row;
     QMessageBox msgBox;
     QString msg = "Start - End\n";
     if(findMotionEnd(row) != -1)
@@ -510,6 +520,7 @@ void LogWidget::ShowContextMenu(const QPoint& pos)
         QAction* selectedItem = myMenu.exec(globalPos);
         if (selectedItem)
         {
+            qDebug() << "Insert";
             createItems(row+1, INSERT, TEXT, EMPTY);
 
             ui->entryLine->setFocus();
@@ -686,7 +697,7 @@ void LogWidget::stateColor(StateColor color) {
     else if (color == YELLOW) {
 
         col = "YELLOW";
-        ui->iconLabel->setText("<img src=\":/icons/Standby.png\">");
+        ui->iconLabel->setText("<img src=\":/icons/warning-icon.png\">");
     }
     else if (color == GREEN) {
 
