@@ -59,12 +59,11 @@ public:
     enum Type { RECORDSTART, RECORDEND, MOTIONSTART, MOTIONEND , TEXT};
 
     enum Column {
-        GOTO = 0,
-        STATUS = 1,
-        TIME = 2,
-        TYPE = 3,
-        ENTRY = 4,
-        DEL = 5
+        STATUS = 0,
+        TIME = 1,
+        TYPE = 2,
+        ENTRY = 3,
+        DEL = 4
     };
 
     enum Status { UNKNOWN, OK, FAILED, EMPTY };

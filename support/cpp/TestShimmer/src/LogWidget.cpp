@@ -48,6 +48,7 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QTextStream>
+#include <QFontMetrics>
 #include "GLWindow.hpp"
 
 namespace {
@@ -74,11 +75,12 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
 
     init();
 
+    QFontMetrics fontMetrics(ui->log->font());
+
     ui->log->setRowCount(0);
-    ui->log->horizontalHeader()->resizeSection(GOTO, 40);
-    ui->log->horizontalHeader()->resizeSection(STATUS, 100);
-    ui->log->horizontalHeader()->resizeSection(TIME, 60);
-    ui->log->horizontalHeader()->resizeSection(TYPE, 100);
+    ui->log->horizontalHeader()->resizeSection(STATUS, fontMetrics.width(UNKNOWN_TEXT)+40);
+    ui->log->horizontalHeader()->resizeSection(TIME, fontMetrics.width("hh:mm:ss")+20);
+    ui->log->horizontalHeader()->resizeSection(TYPE, fontMetrics.width("Record Start")+20);
     ui->log->horizontalHeader()->setResizeMode(ENTRY, QHeaderView::Stretch);
     ui->log->horizontalHeader()->resizeSection(DEL, 40);
 
@@ -126,9 +128,8 @@ void LogWidget::init()
     ui->recStartButton->setEnabled(true);
     ui->entryLine->setEnabled(true);
 
+    connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
     //ui->saveButton->setStyleSheet("* { background-color: rgb(255,185,185) }");
-
-    entryLineInit();
 }
 
 void LogWidget::entryLineInit()
@@ -163,7 +164,6 @@ void LogWidget::createItems(int at, Mode mode, Type type, Status status)
 {
     int row = createRow(at);
 
-    createGoto(row, type);
     createStatus(row, status);
     createType(row, type);
     if(mode == INSERT){
@@ -179,7 +179,6 @@ void LogWidget::createItems(int at, Type type, TimeMode timeMode, Status status,
 {
     int row = createRow(at);
 
-    createGoto(row, type);
     createStatus(row, status);
     createType(row, type);
     createTime(row, time, timeMode);
@@ -197,15 +196,6 @@ int LogWidget::createRow(int at)
     }
 
     return at;
-}
-
-void LogWidget::createGoto(int row, Type type)
-{
-    if( type == MOTIONSTART){
-        createItem("", row, GOTO, false, QIcon(":/icons/back-arrow.png"));
-    } else {
-        createItem("", row, GOTO, false);
-    }
 }
 
 void LogWidget::createStatus(int row, Status status)
@@ -259,12 +249,9 @@ void LogWidget::createTime(int row, QString time, TimeMode timeMode)
 
 void LogWidget::createEntry(int row, Mode mode, Type type)
 {
-    if( mode == NORMAL ){
-        if( type == RECORDSTART){
-            createItem(QDate::currentDate().toString()+" - "+ui->entryLine->text(), row, ENTRY, false);
-        } else {
-            createItem(ui->entryLine->text(), row, ENTRY, true);
-        }
+    if( mode == NORMAL ){        
+        QString msg = QDate::currentDate().toString()+" - ";
+        createItem(msg.append(ui->entryLine->text()), row, ENTRY, false);
     } else {
         createItem(ui->entryLine->text(), row, ENTRY, true);
     }
@@ -343,7 +330,7 @@ void LogWidget::on_recEndButton_clicked()
         ui->checkButton->setEnabled(true);
         ui->clearButton->setEnabled(true);
 
-        for(int i=1; i<ui->log->rowCount()-1; i++){ // FIXME Crashes is loop, most likely null pointer
+        for(int i=0; i<ui->log->rowCount()-1; i++){ // FIXME Crashes is loop, most likely null pointer
             ui->log->item(i, TIME)->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
             ui->log->item(i, ENTRY)->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         }
@@ -481,18 +468,6 @@ void LogWidget::onDelRow(int row)
     entryLineInit();
 }
 
-void LogWidget::onGoto(int row)
-{
-    qDebug() << "Goto: " << row;
-    QMessageBox msgBox;
-    QString msg = "Start - End\n";
-    if(findMotionEnd(row) != -1)
-        msg.append(ui->log->item(row,TIME)->text() + " - " + ui->log->item(findMotionEnd(row),TIME)->text());
-
-    msgBox.setText(msg);
-    msgBox.exec();
-}
-
 int LogWidget::findMotionStart(int endRow)
 {
     int startRow = -1;
@@ -548,9 +523,7 @@ void LogWidget::ShowContextMenu(const QPoint& pos)
 
 void LogWidget::on_log_cellClicked(int row, int column)
 {
-    if(column == GOTO){
-        if(isMotionStart(row)) onGoto(row);
-    } else if(column == DEL){
+    if(column == DEL){
         onDelRow(row);
     }
 }
@@ -583,7 +556,15 @@ void LogWidget::on_log_cellChanged(int row, int column)
         ui->log->item(findMotionStart(row), STATUS)->setIcon(QIcon(":/icons/Warning.png"));
     }
 
-    if(column == GOTO && row==0) qDebug() << "itemchanged";
+    if(column == TIME){
+
+    } else if(column == STATUS){
+
+    } else if(column == TYPE){
+
+    } else if(column == ENTRY){
+
+    }
 }
 
 bool LogWidget::isRecordEnd(int row) const
