@@ -58,6 +58,10 @@ namespace {
     const char PASSED_TEXT[] = "Passed";
     const char FAILED_TEXT[] = "Failed";
     const char UNKNOWN_TEXT[] ="Unknown";
+
+    const char NOT_CONNECTED[] = "<font color=\"red\">Not connected</font>";
+    const char MSG_LOSS[]      = "<font color=\"red\">Packet loss</font>";
+    const char CONNECTION_OK[] = "<font color=\"green\">Connection OK</font>";
 }
 
 LogWidget::LogWidget(QWidget *parent, Application &app) :
@@ -84,7 +88,7 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
 
     ui->iconLabel->setTextFormat(Qt::RichText);
 
-    ui->iconLabel->setText("<img src=\":/icons/red.png\">");
+    ui->iconLabel->setText(NOT_CONNECTED);
 
     connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
 
@@ -699,15 +703,15 @@ void LogWidget::stateColor(StateColor color) {
 
     if (color == RED) {
 
-        ui->iconLabel->setText("<img src=\":/icons/red.png\">");
+        ui->iconLabel->setText(NOT_CONNECTED);
     }
     else if (color == YELLOW) {
 
-        ui->iconLabel->setText("<img src=\":/icons/yellow.png\">");
+        ui->iconLabel->setText(MSG_LOSS);
     }
     else if (color == GREEN) {
 
-        ui->iconLabel->setText("<img src=\":/icons/green.png\">");
+        ui->iconLabel->setText(CONNECTION_OK);
     }
     else {
 
