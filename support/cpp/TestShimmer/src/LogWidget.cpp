@@ -128,7 +128,6 @@ void LogWidget::init()
     ui->recStartButton->setEnabled(true);
     ui->entryLine->setEnabled(true);
 
-    connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
     //ui->saveButton->setStyleSheet("* { background-color: rgb(255,185,185) }");
 }
 
@@ -249,9 +248,12 @@ void LogWidget::createTime(int row, QString time, TimeMode timeMode)
 
 void LogWidget::createEntry(int row, Mode mode, Type type)
 {
-    if( mode == NORMAL ){        
-        QString msg = QDate::currentDate().toString()+" - ";
-        createItem(msg.append(ui->entryLine->text()), row, ENTRY, false);
+    QString msg;
+    if( mode == NORMAL ){
+        if(type == RECORDSTART)
+            msg = QDate::currentDate().toString()+" - ";
+        msg.append(ui->entryLine->text());
+        createItem(msg, row, ENTRY, false);
     } else {
         createItem(ui->entryLine->text(), row, ENTRY, true);
     }
@@ -385,7 +387,7 @@ void LogWidget::on_loadButton_clicked()
         ui->clearButton->setEnabled(true);
         ui->entryLine->setEnabled(false);
 
-        disconnect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
+        //disconnect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
 
         loadLog(file);
         if(ui->log->rowCount() == 0) ui->recStartButton->setEnabled(true);
@@ -422,6 +424,7 @@ void LogWidget::on_clearButton_clicked()
 
     if(ret == QMessageBox::Ok){
         init();
+        //connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
     }
 }
 
