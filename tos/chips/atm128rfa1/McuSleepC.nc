@@ -89,10 +89,8 @@ module McuSleepC @safe() {
     interface Leds;
   }
 }
-implementation {
-  /* There is no dirty bit management because the sleep mode depends on
-     the amount of time remaining in timer2. */
 
+implementation {
   /* Note that the power values are maintained in an order
    * based on their active components, NOT on their values.
    * Look at atm1281hardware.h and page 54 of the ATmeg1281
@@ -105,57 +103,18 @@ implementation {
     (1 << SM2) | (1 << SM1),	//STDBY
     (1 << SM1)};	//POWER_DOWN
 
-  mcu_power_t getPowerState() {
-    // Note: we go to sleep even if timer 0, 1, 3, 4,  or 5's overflow
-    // interrupt is enabled - this allows using timers 0, 1 and 3 as TinyOS
-    // "Alarm"s while still having power management. (see TEP102 Appendix C)
-    // Input capture and output compare for timer 4 and 5 are not functional
-    // on the atm1281.
-
-    // Are there any input capture or output compare interrupts enabled
-    // for timers 0, 1 or 3?
-//    if (
-//        TIMSK0 & (1 << OCIE0A | 1 << OCIE0B ) ||
-//        TIMSK1 & (1 << ICIE1  | 1 << OCIE1A | 1 << OCIE1B | 1 << OCIE1C) ||
-//        TIMSK3 & (1 << ICIE3  | 1 << OCIE3A | 1 << OCIE3B | 1 << OCIE3C)
-//    ) {
-//      return ATM128_POWER_IDLE;
-//    }
-
-    // SPI (Radio stack)
-//    else if (bit_is_set(SPCR, SPIE)) {
-//      return ATM128_POWER_IDLE;
-//    }
-    // UARTs are active
-//    if (UCSR0B & (1 << TXCIE0 | 1 << RXCIE0 | 1 << UDRIE0)) { // UART
-//      return ATM128_POWER_IDLE;
-//    }
-    //if (UCSR1B & (1 << TXCIE1 | 1 << RXCIE1 | 1 << UDRIE1)) { // UART
-    //  return ATM128_POWER_IDLE;
-    //}
-    // I2C (Two-wire) is active
-//    if (bit_is_set(TWCR, TWEN)){
-//      return ATM128_POWER_IDLE;
-//    }
-    // ADC is enabled
-//    else if (bit_is_set(ADCSRA, ADEN)) {
-//      return ATM128_POWER_ADC_NR;
-//    }
-    return ATM128_POWER_DOWN;
-  }
-
   norace int8_t powerState = -1;
 
   async command void McuSleep.sleep() {
 
     if( powerState < 0 ) {
-      powerState = /*mcombine(ATM128_POWER_DOWN,*/ call McuPowerOverride.lowestState()/*)*/;
+      powerState = call McuPowerOverride.lowestState();
       SMCR = (SMCR & 0xf0) | read_uint8_t(&atm128PowerBits[powerState]);
     }
 
 #ifdef TOGGLE_ON_SLEEP
-//    if( powerState == ATM128_POWER_SAVE )
-//      call Leds.led0Off();
+    if( powerState == ATM128_POWER_SAVE )
+      call Leds.led0Off();
 #endif
 
     SET_BIT(SMCR, SE);
@@ -168,19 +127,18 @@ implementation {
     CLR_BIT(SMCR, SE);
 
 #ifdef TOGGLE_ON_SLEEP
-//    call Leds.led0On();
+    call Leds.led0On();
 #endif
 
   }
 
   async command void McuPowerState.update()
   {
-		if(powerState != call McuPowerOverride.lowestState()) {
-	  	powerState = -1;
-		}
+   	powerState = -1;
   }
 
   default async command mcu_power_t McuPowerOverride.lowestState() {
     return ATM128_POWER_DOWN;
   }
 }
+
