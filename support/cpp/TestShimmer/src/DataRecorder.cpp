@@ -764,7 +764,7 @@ const Range DataRecorder::range(const double begin, const double end, const doub
     return Range(begSample, endSample);
 }
 
-const double* DataRecorder::rotmat(const Range& range) const {
+double* DataRecorder::rotmat(const Range& range) const {
 
     double* const matrices = new double[9*range.size()];
 

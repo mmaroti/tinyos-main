@@ -178,9 +178,6 @@ HEADERS += src/DataRecorder.h \
     src/Solver/StateColor.hpp \
     src/Solver/Range.hpp \
     src/Solver/MockSolver.hpp \
-    src/OpenGL/DataHolder.hpp \
-    src/OpenGL/GLWindow.hpp \
-    src/OpenGL/GLRightElbowFlex.hpp \
     src/OpenGL/GLRightElbowFlex.hpp \
     src/OpenGL/GLWindow.hpp \
     src/OpenGL/DataHolder.hpp

@@ -48,6 +48,7 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QTextStream>
+#include "GLWindow.hpp"
 
 namespace {
 
@@ -995,7 +996,18 @@ void LogWidget::showAnimation(const int begin, const int end, const int length) 
 
     const Range range = application.dataRecorder.range(begin, end, length);
 
-    const double* const mat = application.dataRecorder.rotmat(range);
+    double* const mat = application.dataRecorder.rotmat(range);
 
-    // TODO build GLWindow here!
+    GLWindow* win = new GLWindow(mat, range.size());
+
+    connect(win, SIGNAL(closed()), SLOT(glwindowClosed()));
+
+    win->showMaximized();
+
+    win->activateWindow();
+}
+
+void LogWidget::glwindowClosed() {
+
+    delete sender();
 }

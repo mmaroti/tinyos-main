@@ -87,6 +87,7 @@ private slots:
     void stateColor(StateColor color);
     void solverFinished(bool error, const QString message);
     void on_log_cellDoubleClicked(int row, int column);
+    void glwindowClosed();
 
 private:
 

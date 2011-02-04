@@ -154,7 +154,7 @@ public:
 
         void loadResults(const ipo::Results& res, const int begin, const int end);
         const Range range(const double begInSec, const double endInSec, const double lenInSec) const;
-        const double* rotmat(const Range& range) const;
+        double* rotmat(const Range& range) const;
         bool euler_angle(int sample, Coordinate k, double& angle_in_rad) const;
         Angle_pair integrated_angle(int sample, Coordinate k) const;
         Angle_pair corrected_angle(int i, Coordinate k) const;
