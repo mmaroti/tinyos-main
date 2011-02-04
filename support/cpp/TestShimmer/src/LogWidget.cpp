@@ -55,7 +55,7 @@ namespace {
     const int NO_MORE = -1;
     const int TOO_SHORT_IN_SEC = 1;
 
-    const char PASSED_TEXT[] = "Passed";
+    const char PASSED_TEXT[] = "Play";
     const char FAILED_TEXT[] = "Failed";
     const char UNKNOWN_TEXT[] ="Unknown";
 
