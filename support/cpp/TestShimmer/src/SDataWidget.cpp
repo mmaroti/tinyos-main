@@ -46,6 +46,7 @@
 #include "RecordList.hpp"
 #include "MoteHeader.hpp"
 #include "RecordLine.hpp"
+#include "DriveSelectorDialog.h"
 
 
 SDataWidget::SDataWidget(QWidget *parent, Application &app) :
@@ -233,7 +234,8 @@ void SDataWidget::downloadFromDevice() {
     manager.startDownloading(device, this);
 }
 
-void SDataWidget::showBlockingBox(const QString& title, const QString& text) {
+void SDataWidget::showBlockingBox(const QString& title, const QString& text)
+{
 
     blockingBox->setModal(true);
     blockingBox->setStandardButtons(QMessageBox::NoButton);
@@ -242,21 +244,28 @@ void SDataWidget::showBlockingBox(const QString& title, const QString& text) {
     blockingBox->show();
 }
 
-const QString SDataWidget::selectWin32Device() {
-
-    QFileDialog driveDialog(this, "Select drive");
-
-    driveDialog.setFileMode(QFileDialog::DirectoryOnly);
-    driveDialog.setViewMode(QFileDialog::List);
-    driveDialog.setFilter(QDir::Drives);
-    driveDialog.setDirectory("My Computer");
-    driveDialog.exec();
-
-    QStringList dirList = driveDialog.selectedFiles();
-    QString device = dirList.at(0);
+const QString SDataWidget::selectWin32Device()
+{
+    QString device = "";
+    DriveSelectorDialog dial(this);
+    dial.setWindowTitle("Drive Selector");
+    if (dial.exec()==QDialog::Accepted)
+    {
+        device = dial.getDrive();
+        device.chop(1);
+    }
+//    QFileDialog driveDialog(this, "Select drive");
+//
+//    driveDialog.setFileMode(QFileDialog::DirectoryOnly);
+//    driveDialog.setViewMode(QFileDialog::List);
+//    driveDialog.setFilter(QDir::Drives);
+//    driveDialog.setDirectory("My Computer");
+//    driveDialog.exec();
+//
+//    QStringList dirList = driveDialog.selectedFiles();
+//    QString device = dirList.at(0);
 
     qDebug() << device;
-
     return device;
 }
 

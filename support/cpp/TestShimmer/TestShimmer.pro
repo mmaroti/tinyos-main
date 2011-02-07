@@ -102,7 +102,8 @@ SOURCES += src/DataRecorder.cpp \
     src/Solver/MockSolver.cpp \
     src/OpenGL/DataHolder.cpp \
     src/OpenGL/GLWindow.cpp \
-    src/OpenGL/GLRightElbowFlex.cpp
+    src/OpenGL/GLRightElbowFlex.cpp \
+    src/DriveSelectorDialog.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -180,7 +181,8 @@ HEADERS += src/DataRecorder.h \
     src/Solver/MockSolver.hpp \
     src/OpenGL/GLRightElbowFlex.hpp \
     src/OpenGL/GLWindow.hpp \
-    src/OpenGL/DataHolder.hpp
+    src/OpenGL/DataHolder.hpp \
+    src/DriveSelectorDialog.h
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \
@@ -190,6 +192,7 @@ FORMS += src/MainWindow.ui \
     src/GraphWidget.ui \
     src/SDataWidget.ui \
     src/LogWidget.ui \
-    src/LogDialog.ui
+    src/LogDialog.ui \
+    src/DriveSelectorDialog.ui
 RESOURCES += src/Resources.qrc \
     src/textures.qrc
