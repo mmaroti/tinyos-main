@@ -48,7 +48,7 @@ module Sht21P {
   uses interface Timer<TMilli>;
   uses interface Resource as I2CResource;
 
-  uses interface DiagMsg;
+  uses interface Leds;
 }
 implementation {
   uint16_t mesrslt=0;
@@ -135,7 +135,6 @@ implementation {
       signal SplitControl.startDone(SUCCESS);
     } else if(state==S_READ_HUMIDITY){
         call I2CPacket.read(I2C_START | I2C_STOP, I2C_ADDRESS, 2, res);
-            
         if(otherSensorRequested){
           atomic state=S_ON;
           call Temperature.read();
@@ -145,6 +144,7 @@ implementation {
         }
        
     } else if(state==S_READ_TEMP){       
+		call Leds.led0On();
         call I2CPacket.read(I2C_START | I2C_STOP, I2C_ADDRESS, 2, res);
    
         if(otherSensorRequested){
@@ -169,7 +169,7 @@ implementation {
     mesrslt = data[0]<<8;
     mesrslt |= (data[1]&0xfc);
     call I2CResource.release();
-  
+	call Leds.led3On();
     post signalReadDone();
   }
   
@@ -187,24 +187,13 @@ implementation {
   event void I2CResource.granted() {
     if(state == S_READ_TEMP) {
       uint8_t data=0xf3;
-      error_t err=call I2CPacket.write(I2C_START, I2C_ADDRESS, 1, &data);
+      /*error_t err=*/call I2CPacket.write(I2C_START, I2C_ADDRESS, 1, &data);
 
-      if(call DiagMsg.record()){
-	    call DiagMsg.str("sht21.writeSUCC");
-	    call DiagMsg.uint8(I2C_ADDRESS);
-	    call DiagMsg.uint8(err);
-	    call DiagMsg.send();
-      }// ha ezt a blokkot kiveszem, akkor megakad
    } else if (state == S_READ_HUMIDITY) {
      uint8_t data=0xf5;
      
-     error_t err=call I2CPacket.write(I2C_START, I2C_ADDRESS, 1, &data);
-     if(call DiagMsg.record()){
-	    call DiagMsg.str("sht21.wrhumSUCC");
-	    call DiagMsg.uint8(I2C_ADDRESS);
-	    call DiagMsg.uint8(err);
-	    call DiagMsg.send();
-      }// ha ezt a blokkot kiveszem, akkor megakad
+     /*error_t err=*/call I2CPacket.write(I2C_START, I2C_ADDRESS, 1, &data);
+
    }
              
   }
