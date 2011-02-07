@@ -63,7 +63,10 @@ implementation {
   SplitControl = SerialDispatcherC;
   #else
   components SerialAutoControlC, HplCp2102C;
-  SerialAutoControlC.Vdd->HplCp2102C;
+  SerialAutoControlC.Vdd->HplCp2102C.Vdd;
+	#if (UCMINI_REV != 49)
+	SerialAutoControlC.NSuspend->HplCp2102C.NSuspend;
+	#endif
   SerialAutoControlC.SplitControl->SerialDispatcherC;
   MainC.SoftwareInit -> SerialAutoControlC;
   SplitControl = SerialAutoControlC.DummyControl;

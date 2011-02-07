@@ -1,14 +1,25 @@
 module SerialAutoControlC{
   uses interface SplitControl;
   uses interface GpioPCInterrupt as Vdd;
+	#if (UCMINI_REV != 49)
+	uses interface GpioPCInterrupt as NSuspend;
+	#endif
   provides interface Init as SoftwareInit;
   provides interface SplitControl as DummyControl;
 }
 implementation{
-  //TODO this component should work based on usb power (vdd) or usb active/suspend
+  #define SERIAL_AUTO_NSUS
+  //check revision number
+  #if defined(SERIAL_AUTO_NSUS) && UCMINI_REV==49
+	#error "SERIAL_AUTO_NSUS is unsopportet on UCMini 0.49 (UCMINI_REV=49)"
+  #endif
   
   inline bool isUsbOn(){
-    return call Vdd.get();
+	#ifdef SERIAL_AUTO_NSUS
+	  return call NSuspend.get();
+	#else
+	  return call Vdd.get();
+	#endif
   }
   
   task void turnOn(){
@@ -27,6 +38,11 @@ implementation{
     if(isUsbOn()){
       post turnOn();
     }
+    #ifdef SERIAL_AUTO_NSUS
+	  call NSuspend.enable();
+	#else
+	  call Vdd.enable();
+	#endif
     return SUCCESS;
   }
   
@@ -46,6 +62,15 @@ implementation{
       else
 	post turnOff();
   }
+  
+  #if (UCMINI_REV != 49)
+  async event void NSuspend.fired(bool toHigh){
+      if(toHigh)
+	post turnOn();
+      else
+	post turnOff();
+  }
+  #endif
   
   //TODO maybe we should enable real manual control here, but now it's just a dummy interface providing for backward compatibility
   
