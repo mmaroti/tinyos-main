@@ -8,7 +8,7 @@ module SerialAutoControlC{
   provides interface SplitControl as DummyControl;
 }
 implementation{
-  #define SERIAL_AUTO_NSUS
+  //#define SERIAL_AUTO_NSUS
   //check revision number
   #if defined(SERIAL_AUTO_NSUS) && UCMINI_REV==49
 	#error "SERIAL_AUTO_NSUS is unsopportet on UCMini 0.49 (UCMINI_REV=49)"
