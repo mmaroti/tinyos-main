@@ -132,10 +132,6 @@ implementation
   PCIntVect1.Pin6 -> NoPin6;
   PCIntVect1.Pin7 -> NoPin7;
 
-  PCIntVect0.McuPowerState -> McuSleepC;
-  PCIntVect1.McuPowerState -> McuSleepC;
-  PCIntVect0.McuPowerOverride <- McuSleepC;
-  PCIntVect1.McuPowerOverride <- McuSleepC;
 
   IntPin0.McuPowerState -> McuSleepC;
   IntPin1.McuPowerState -> McuSleepC;

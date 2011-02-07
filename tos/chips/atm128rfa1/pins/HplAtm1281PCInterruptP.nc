@@ -21,21 +21,17 @@ generic module HplAtm1281PCInterruptP(uint8_t ctrl_bit,  uint8_t mask_addr)
   provides interface GpioPCInterrupt as GpioPCInterrupt5;
   provides interface GpioPCInterrupt as GpioPCInterrupt6;
   provides interface GpioPCInterrupt as GpioPCInterrupt7;
-  
-  uses interface McuPowerState;
-  provides interface McuPowerOverride;
 }
 implementation
 {
   #define mask  (*TCAST(volatile uint8_t * ONE, mask_addr))
-  #define flag  (*TCAST(volatile uint8_t * ONE, flag_addr))
-  uint8_t state;//TODO non-atomic read in line 62
+  uint8_t state;
   
   inline bool pinget(uint8_t pin);
   
   
   inline error_t InterruptEnable(uint8_t pin){
-	if(mask_addr&(1<<pin))
+	if(mask&(1<<pin))
 	  return EALREADY;
 	else{
 	  atomic {
@@ -44,7 +40,6 @@ implementation
 		  state|=1<<pin;
 	    PCICR|=1<<ctrl_bit;
 	  }
-    call McuPowerState.update();
 	  return SUCCESS;
 	}
   }
@@ -58,7 +53,6 @@ implementation
 		if(mask==0)
 		  PCICR&=~(1<<ctrl_bit);
 	  }
-    call McuPowerState.update();
 	  return SUCCESS;
 	}
   }
@@ -262,15 +256,6 @@ implementation
   async command error_t GpioPCInterrupt7.get(){
 	return InterruptGet(7);
   }
-
-  async command mcu_power_t McuPowerOverride.lowestState() {
-    if(bit_is_set(PCICR,PCIE0) || bit_is_set(PCICR,PCIE1)) {
-      return ATM128_POWER_SAVE;
-    }
-    else {
-      return ATM128_POWER_DOWN;
-    }
-  }  
   
   default async event void GpioPCInterrupt0.fired(bool toHigh){}
   default async event void GpioPCInterrupt1.fired(bool toHigh){}
