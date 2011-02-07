@@ -30,13 +30,14 @@ implementation {
   command error_t SplitControl.start() {
     if(state == S_STARTING) return EBUSY;
     if(state != S_OFF) return EALREADY;
-    
+		state=S_STARTING;
     call Timer.startOneShot(300);
 
     return SUCCESS;
   }
   
   task void signalStopDone() {
+		state=S_OFF;
     signal SplitControl.stopDone(SUCCESS);
   }
 
@@ -44,7 +45,7 @@ implementation {
     if(state == S_STOPPING) return EBUSY;
     if(state == S_OFF) return EALREADY;
     if(state == S_ON) {
-      state = S_OFF;
+      state = S_STOPPING;
       post signalStopDone();
     } else {
       stopRequested = TRUE;
@@ -69,7 +70,7 @@ implementation {
 
   event void Timer.fired() {
 
-    if(state == S_OFF) {
+    if(state == S_STARTING) {
       state = S_ON;
       signal SplitControl.startDone(SUCCESS);
     } else if(state == S_BUSY) {
