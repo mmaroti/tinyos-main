@@ -36,7 +36,7 @@
 
 namespace ipo {
 
-void set_markers(int begin, int end);
+void set_markers_second(const int begSec, const int endSec, const int recLenSec);
 
 void mark_all();
 

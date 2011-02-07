@@ -44,6 +44,7 @@ DataRecorder* dr = 0;
 
 // Assumes singleton, and being called from a single thread (thread confinement)
 // Attempts to detect concurrency bugs but NOT thread safe
+// Unless otherwise stated time is measured in samples
 
 namespace ipo {
 
@@ -85,12 +86,19 @@ void check_validity(int begin, int end) {
     }
 }
 
-void set_markers(int begin, int end) {
+void set_markers(const int begin, const int end) {
 
     check_validity(begin, end);
 
     begin_mark = begin;
     end_mark   = end;
+}
+
+void set_markers_second(const int begInSec, const int endInSec, const int lenInSec) {
+
+    Range range = dr->range(begInSec, endInSec, lenInSec);
+
+    set_markers(range.begin, range.end);
 }
 
 void mark_all() {

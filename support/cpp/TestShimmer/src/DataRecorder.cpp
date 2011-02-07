@@ -32,6 +32,7 @@
 * Author: Péter Ruzicska
 */
 
+#include <sstream>
 #include <stdexcept>
 #include <assert.h>
 #include "DataRecorder.h"
@@ -755,7 +756,14 @@ const Range DataRecorder::range(const double begin, const double end, const doub
 
     const double size = samples.size();
 
-    Q_ASSERT(size!=0);
+    if (!((size!=0) && (0<=begin && begin<end && end<=length))) {
+
+        std::ostringstream os;
+        os << "DataRecoder::range; begin, end, length (sec); size: ";
+        os << begin << ", " << end << ", " << length << "; " << size << std::flush;
+
+        throw std::logic_error(os.str());
+    }
 
     const int begSample = static_cast<int>( (begin/length)*size );
 

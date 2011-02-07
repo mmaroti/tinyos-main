@@ -154,17 +154,17 @@ bool Solver::get_lock() {
     return SUCCESS;
 }
 
-bool Solver::set_sample_subrange(const int begin, const int end) {
+bool Solver::set_sample_subrange(const int begin, const int end, const int length) {
 
     try {
 
-        if (begin==FROM_BEGINNING && end==TO_END) {
+        if (begin==FROM_BEGINNING && end==TO_END && length==WHOLE_REC) {
 
             mark_all();
         }
         else {
 
-            set_markers(begin, end);
+            set_markers_second(begin, end, length);
         }
     }
     catch (logic_error& e) {
@@ -224,14 +224,14 @@ void Solver::start_solver() {
 // - emit_signal()
 // - if setting subrange fails (logic_error)
 // - if writing samples fails
-bool Solver::start(const int begin, const int end) {
+bool Solver::start(const int begin, const int end, const int length) {
 
     if (get_lock() == FAILED) {
 
         return FAILED;
     }
 
-    if (set_sample_subrange(begin, end) == FAILED) {
+    if (set_sample_subrange(begin, end, length) == FAILED) {
 
         unlock();
 

@@ -53,7 +53,7 @@ public:
     Solver();
 
     // returns true if an error occured and finished won't be signalled
-    bool start(const int begin, const int end);
+    bool start(const int beginSecond, const int endSecond, const int lengthSecond);
 
     ~Solver();
 
@@ -76,7 +76,7 @@ private:
 
     bool get_lock();
     void unlock();
-    bool set_sample_subrange(const int begin, const int end);
+    bool set_sample_subrange(const int begin, const int end, const int length);
     bool write_solver_input();
     void start_solver();
     void init();

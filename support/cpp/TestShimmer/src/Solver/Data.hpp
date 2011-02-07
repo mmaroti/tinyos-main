@@ -49,7 +49,8 @@ enum {
 
 enum {
     FROM_BEGINNING = 0,
-    TO_END = -1
+    TO_END = -1,
+    WHOLE_REC = 0
 };
 
 int n_samples();

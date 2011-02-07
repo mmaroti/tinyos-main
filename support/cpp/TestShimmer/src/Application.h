@@ -77,7 +77,6 @@ public:
 
 	QSettings settings;
         ipo::Solver solver;
-        ipo::MockSolver mockSolver;
         TabWatcher tabWatcher;
         TimeSyncMsgReceiver timeSyncMsgReceiver;
         ConnectionState connectionState;

@@ -523,7 +523,7 @@ void DataWidget::on_regressionButton_clicked()
 
     application.dataRecorder.dump_calibration_data();
 
-    bool error = application.solver.start(ipo::FROM_BEGINNING, ipo::TO_END);
+    bool error = application.solver.start(ipo::FROM_BEGINNING, ipo::TO_END, ipo::WHOLE_REC);
 
     if(!error){
         ui->loadBtn->setEnabled(false);

@@ -755,7 +755,7 @@ void LogWidget::startSolver() {
 
     int end = recStart().secsTo(motionEnd());
 
-    bool error = application.mockSolver.start(begin, end, recLengthInSec());
+    bool error = application.solver.start(begin, end, recLengthInSec());
 
     if (error) {
 
