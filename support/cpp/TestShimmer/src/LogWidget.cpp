@@ -249,14 +249,11 @@ void LogWidget::createTime(int row, QString time, TimeMode timeMode)
 void LogWidget::createEntry(int row, Mode mode, Type type)
 {
     QString msg;
-    if( mode == NORMAL ){
-        if(type == RECORDSTART)
-            msg = QDate::currentDate().toString()+" - ";
-        msg.append(ui->entryLine->text());
-        createItem(msg, row, ENTRY, false);
-    } else {
-        createItem(ui->entryLine->text(), row, ENTRY, true);
-    }
+//FIXME mode is not used any more
+    if(type == RECORDSTART)
+        msg = QDate::currentDate().toString()+" - ";
+    msg.append(ui->entryLine->text());
+    createItem(msg, row, ENTRY, true);
 }
 
 void LogWidget::createEntry(int row, QString txt)
@@ -332,9 +329,11 @@ void LogWidget::on_recEndButton_clicked()
         ui->checkButton->setEnabled(true);
         ui->clearButton->setEnabled(true);
 
-        for(int i=0; i<ui->log->rowCount()-1; i++){ // FIXME Crashes is loop, most likely null pointer
-            ui->log->item(i, TIME)->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        for(int i=0; i<ui->log->rowCount(); i++){
             ui->log->item(i, ENTRY)->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        }
+        for(int i=1; i<ui->log->rowCount()-1; i++){
+            ui->log->item(i, TIME)->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         }
 
         //disconnect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
