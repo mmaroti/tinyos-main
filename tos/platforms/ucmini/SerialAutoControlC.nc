@@ -35,14 +35,17 @@ implementation{
   }
   
   command error_t SoftwareInit.init(){
-    if(isUsbOn()){
-      post turnOn();
-    }
-    #ifdef SERIAL_AUTO_NSUS
-	  call NSuspend.enable();
-	#else
-	  call Vdd.enable();
-	#endif
+		atomic{
+			#ifdef SERIAL_AUTO_NSUS
+				call NSuspend.enable();
+			#else
+				call Vdd.enable();
+			#endif
+			if(isUsbOn()){
+				post turnOn();
+			}
+		}
+
     return SUCCESS;
   }
   
