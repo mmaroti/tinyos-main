@@ -17,7 +17,7 @@ Graph::Graph(PlotScrollArea *parent, Application &app) : QWidget(parent),
         scrollArea = parent;
         graphs = XANG | YANG | TIME | GRID;
 
-        connect(&app.dataRecorder, SIGNAL(sampleAdded()), this, SLOT(onSampleAdded()));
+        //connect(&app.dataRecorder, SIGNAL(sampleAdded()), this, SLOT(onSampleAdded()));
         connect(&app.dataRecorder, SIGNAL(samplesCleared()), this, SLOT(onSamplesCleared()));
 
         loadSettingsData();
@@ -460,10 +460,10 @@ void Graph::mousePressEvent(QMouseEvent * event)
             message.append(" , Acceleration: " + QString::number((double)((sample.y()-2048)/(512/GRAV)), 'f', 2) + " m/s^2");
         }
         if( (graphs & XYANG) != 0 || (graphs & YZANG) != 0 || (graphs & ZXANG) != 0 || (graphs & XANG) != 0 || (graphs & YANG) != 0 || (graphs & ZANG) != 0 ){
-            message.append(",  Angle: " + QString::number((sample.y()-2048)/(2048/M_PI), 'f', 1) + "rad; "  + QString::number( (sample.y()-2048)/(2048/M_PI)*57.296, 'f', 2 ) + "°.");
+            message.append(",  Angle: " + QString::number((sample.y()-2048)/(2048/M_PI), 'f', 1) + "rad; "  + QString::number( (sample.y()-2048)/(2048/M_PI)*57.296, 'f', 2 ) + "Â°.");
         }
         if( (graphs & XGYRO) != 0 || (graphs & YGYRO) != 0 || (graphs & ZGYRO) != 0 ){
-            message.append(",  Gyroscope: " + QString::number((sample.y()-2048)/(2048/(4*M_PI)),'f',1) + "rad/sec; " + QString::number( ((sample.y()-2048)/(2048/(4*M_PI)))*RADIAN, 'f', 2 ) + "°/sec; " + QString::number( (((sample.y()-2048)/(2048/(4*M_PI)))*60)/(2*M_PI), 'f', 1 ) + "rpm." );
+            message.append(",  Gyroscope: " + QString::number((sample.y()-2048)/(2048/(4*M_PI)),'f',1) + "rad/sec; " + QString::number( ((sample.y()-2048)/(2048/(4*M_PI)))*RADIAN, 'f', 2 ) + "Â°/sec; " + QString::number( (((sample.y()-2048)/(2048/(4*M_PI)))*60)/(2*M_PI), 'f', 1 ) + "rpm." );
         }
         application.showMessage( message );
     } else if (event->buttons() & Qt::RightButton) {

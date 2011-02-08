@@ -48,11 +48,18 @@
 #include "EulerAngles.hpp"
 
 
+namespace {
+
+    const int RESERVED_SAMPLES = 100000;
+}
+
 DataRecorder::DataRecorder(Application &app) :
         A(gyro::matrix3::identity()),
         b(gyro::vector3(0,0,0)),
         application(app)
 {
+
+    samples.reserve(RESERVED_SAMPLES);
     //loadCalibrationData();
     for(int i=0; i<6; i++){
         accelIdleWindowStart[i] = -1;
@@ -124,6 +131,7 @@ void DataRecorder::onReceiveMessage(const ActiveMessage & msg)
 void DataRecorder::clearSamples()
 {
 	samples.clear();
+
         for(int i=0; i<6; i++){
             accelIdleWindowStart[i] = -1;
         }
