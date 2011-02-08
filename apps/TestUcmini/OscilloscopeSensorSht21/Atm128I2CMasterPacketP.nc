@@ -245,6 +245,7 @@ implementation {
       else if (len > 0) {
         state = I2C_DATA;
 	call I2C.write(data[index]);
+	index++;
       }
       else if (flags & I2C_STOP) {
         state = I2C_STOPPING;
