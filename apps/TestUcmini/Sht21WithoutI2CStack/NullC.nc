@@ -53,9 +53,13 @@
 
 module NullC @safe()
 {
-  uses interface Boot;
-  uses interface BusyWait<TMicro, uint16_t>;
-  uses interface Leds;
+  uses{
+	interface Boot;
+	interface BusyWait<TMicro, uint16_t>;
+	interface Leds;
+	interface McuPowerState;
+  }
+  provides interface McuPowerOverride;
 }
 implementation
 {
@@ -66,38 +70,36 @@ implementation
 	I2C_RD_ADDRESS = I2C_WR_ADDRESS+1,
 	I2C_COMMAND = 0xf3,
 	I2C_DATA_LENGTH=3,
-	I2C_MEAS_WAIT=200000UL,
+	I2C_MEAS_WAIT=85000UL,
   };
   
   uint8_t res[I2C_DATA_LENGTH];
   uint8_t currentChr=0;
   bool command_written=FALSE;
+  bool timer_meas=FALSE;
 
+  async command mcu_power_t McuPowerOverride.lowestState() {
+    return ATM128_POWER_DOWN;
+  }
+  
   void TWI_action(char comm)
   {	
 	  TWCR = (comm|(1<<TWINT)|(1<<TWEN)|(1<<TWIE));
   }
   
-  task void keepalive()
-  {
-    post keepalive();
-  }
-
-  
   event void Boot.booted() {
-		post keepalive();//this currently is essential 
-		DDRF |= _BV(PF2);
-		PORTF |= _BV(PF2);
-
+		call McuPowerState.update();
 		PORTD = _BV(PD0) | _BV(PD1);
-
-		DDRE = _BV(PE7) | _BV(PE6) | _BV(PE5) | _BV(PE3);
+		call BusyWait.wait(15000U);
+		
 		TWBR=255;
 		TWSR=3&0x03;
-		call BusyWait.wait(50000U);
-		TWI_action(1<<TWSTA);//start
+
+		TWI_action(1<<TWSTA);
 		call Leds.led0On();
+
   }
+  
   
   task void waitForMeas(){
 	uint32_t duration=I2C_MEAS_WAIT;

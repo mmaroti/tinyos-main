@@ -52,10 +52,14 @@
 
 configuration NullAppC{}
 implementation {
-  components MainC, NullC, LedsC, BusyWaitMicroC;
-
+  components MainC, NullC, LedsC, BusyWaitMicroC,
+	McuSleepC;
+	
   NullC.Boot -> MainC;
   NullC.BusyWait->BusyWaitMicroC;
   NullC.Leds -> LedsC;
+  
+  NullC.McuPowerState -> McuSleepC;
+  NullC.McuPowerOverride <- McuSleepC;
 }
 
