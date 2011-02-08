@@ -90,6 +90,8 @@ implementation
   event void Boot.booted() {
 		call McuPowerState.update();
 		PORTD = _BV(PD0) | _BV(PD1);
+		DDRF = _BV(PF2);
+		PORTF = _BV(PF2);
 		call BusyWait.wait(15000U);
 		
 		TWBR=255;
