@@ -19,20 +19,14 @@
 configuration OscilloscopeAppC { }
 implementation
 {
-  components OscilloscopeC, MainC, SerialActiveMessageC, LedsC,
+  components OscilloscopeC, MainC, LedsC,
     new TimerMilliC(), Sht21C as Sensor, 
-    new SerialAMSenderC(AM_OSCILLOSCOPE), new SerialAMReceiverC(AM_OSCILLOSCOPE);
+    new SerialAMSenderC(10);
 
   OscilloscopeC.Boot -> MainC;
-  OscilloscopeC.RadioControl -> SerialActiveMessageC;
   OscilloscopeC.AMSend -> SerialAMSenderC;
-  OscilloscopeC.Receive -> SerialAMReceiverC;
-  OscilloscopeC.Timer -> TimerMilliC;
   OscilloscopeC.Read -> Sensor.Temperature;
   OscilloscopeC.Leds -> LedsC;
-
-  components DiagMsgC;
-  OscilloscopeC.DiagMsg -> DiagMsgC;
 
   OscilloscopeC.I2CControl -> Sensor.SplitControl; 
 }
