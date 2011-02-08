@@ -70,7 +70,7 @@ implementation {
   command error_t SplitControl.start() {
     if(state == S_STARTING) return EBUSY;
     if(state != S_OFF) return EALREADY;
-
+    state=S_STARTING;
     call Timer.startOneShot(15);
     return SUCCESS;
   }
