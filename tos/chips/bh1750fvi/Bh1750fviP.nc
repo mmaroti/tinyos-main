@@ -25,6 +25,7 @@ implementation {
   uint8_t state = S_OFF;
   bool on=0;
   bool stopRequested = FALSE;
+  uint8_t cmd;
 
   command error_t SplitControl.start() {
     if(state == S_STARTING) return EBUSY;
@@ -118,7 +119,7 @@ implementation {
   event void I2CResource.granted() {
     if(state == S_STARTING) {
       error_t err;
-      uint8_t cmd=0x01;
+      cmd=0x01;
       err=call I2CPacket.write(I2C_START | I2C_STOP, WRITE_ADDRESS, 1, &cmd);
       if(call DiagMsg.record()){
 	    call DiagMsg.str("P.grantPWRON");
@@ -127,7 +128,7 @@ implementation {
 	    call DiagMsg.send();
       }
     } else if(state == S_BUSY) {
-      uint8_t cmd=0x20;
+      cmd=0x20;
       call I2CPacket.write(I2C_START | I2C_STOP, WRITE_ADDRESS, 1, &cmd);
     }
   }
