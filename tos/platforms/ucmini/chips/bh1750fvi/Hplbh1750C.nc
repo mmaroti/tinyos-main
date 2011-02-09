@@ -4,7 +4,6 @@ configuration Hplbh1750C {
 }
 implementation {
 
-  components bh1750fviP;
   components new Atm128I2CMasterC() as I2CBus;
 
   I2CPacket = I2CBus.I2CPacket;
