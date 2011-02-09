@@ -119,7 +119,7 @@ implementation {
     if(state == S_STARTING) {
       error_t err;
       res[0]=POWER_ON;
-      err=call I2CPacket.write(I2C_START | I2C_STOP, WRITE_ADDRESS, 1, &cmd);
+      err=call I2CPacket.write(I2C_START | I2C_STOP, WRITE_ADDRESS, 1, res[0]);
       if(call DiagMsg.record()){
 	    call DiagMsg.str("P.grantPWRON");
             call DiagMsg.uint8(state);
@@ -128,7 +128,7 @@ implementation {
       }
     } else if(state == S_BUSY) {
       res[0]=ONE_SHOT_H_RES;
-      call I2CPacket.write(I2C_START | I2C_STOP, WRITE_ADDRESS, 1, &cmd);
+      call I2CPacket.write(I2C_START | I2C_STOP, WRITE_ADDRESS, 1, res[0]);
     }
   }
 
