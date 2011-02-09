@@ -64,6 +64,7 @@ implementation {
   uint8_t rawres[3];
   uint32_t rawret;
   uint8_t state = S_ON;
+  uint8_t cmd;
 
   command error_t RawTemperature.read() {
     state = S_READ_TEMP;
@@ -149,10 +150,10 @@ implementation {
     if((num <=6) && accessingROM) {
       call I2CPacket.write(I2C_START | I2C_STOP, ADDRESS, 1, (0xa0 | (num << 1) ));
     } else if(state == S_READ_TEMP) {
-      uint8_t cmd = 0x50;
+      cmd = 0x50;
       call I2CPacket.write(I2C_START | I2C_STOP, ADDRESS, 1, &cmd);
     } else if(state == S_READ_TEMP) {
-      uint8_t cmd = 0x40;
+      cmd = 0x40;
       call I2CPacket.write(I2C_START | I2C_STOP, ADDRESS, 1, &cmd);
     }    
   }
