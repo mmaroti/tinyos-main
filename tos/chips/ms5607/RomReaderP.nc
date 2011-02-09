@@ -83,6 +83,7 @@ implementation {
       if(readingADC) {
         call I2CPacket.read(I2C_START | I2C_STOP, ADDRESS, 3, rawres);
       } else {
+        readingADC=TRUE;
        call I2CPacket.write(I2C_START | I2C_STOP, ADDRESS, 1, 0x00);
       }
     }
@@ -133,11 +134,11 @@ implementation {
       call Timer.startOneShot(2);
     } else
     if(state == S_READ_TEMP) {
-      readingADC = TRUE;
+      //readingADC = TRUE;
       call Timer.startOneShot(2);
     }
     if(state == S_READ_PRESS) {
-      readingADC = TRUE;
+      //readingADC = TRUE;
       call Timer.startOneShot(2);
     }
   }
