@@ -84,7 +84,8 @@ implementation {
         call I2CPacket.read(I2C_START | I2C_STOP, ADDRESS, 3, rawres);
       } else {
         readingADC=TRUE;
-       call I2CPacket.write(I2C_START | I2C_STOP, ADDRESS, 1, 0x00);
+        cmd = 0x00;
+       call I2CPacket.write(I2C_START | I2C_STOP, ADDRESS, 1, cmd);
       }
     }
   }
