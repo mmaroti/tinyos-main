@@ -186,14 +186,12 @@ implementation {
 
   event void I2CResource.granted() {
     if(state == S_READ_TEMP) {
-      uint8_t data=0xf3;
-      /*error_t err=*/call I2CPacket.write(I2C_START, I2C_ADDRESS, 1, &data);
+      res[0]=TRIGGER_T_MEASUREMENT_NO_HOLD_MASTER;
+      call I2CPacket.write(I2C_START, I2C_ADDRESS, 1, res);
 
    } else if (state == S_READ_HUMIDITY) {
-     uint8_t data=0xf5;
-     
-     /*error_t err=*/call I2CPacket.write(I2C_START, I2C_ADDRESS, 1, &data);
-
+     res[0]=TRIGGER_RH_MEASUREMENT_NO_HOLD_MASTER;
+		 call I2CPacket.write(I2C_START, I2C_ADDRESS, 1, res);
    }
              
   }
