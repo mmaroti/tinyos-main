@@ -152,7 +152,7 @@ implementation {
     } else if(state == S_READ_TEMP) {
       cmd = 0x50;
       call I2CPacket.write(I2C_START | I2C_STOP, ADDRESS, 1, &cmd);
-    } else if(state == S_READ_TEMP) {
+    } else if(state == S_READ_PRESS) {
       cmd = 0x40;
       call I2CPacket.write(I2C_START | I2C_STOP, ADDRESS, 1, &cmd);
     }    
