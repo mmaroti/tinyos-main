@@ -32,7 +32,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define F_CPU       16000000
+#ifndef I2C_FREQ
+  #define I2C_FREQ	400000
+#endif
+#ifndef I2C_PRESCALER
+  #define I2C_PRESCALER 0
+#endif
+#define TWBR_VALUE(cpu_mhz) ( ((cpu_mhz*1000000)/I2C_FREQ-16)/2 )
 
 #include "Atm128I2C.h"
 
@@ -63,18 +69,11 @@ implementation {
   async command void I2C.init(bool hasExternalPulldown) {
     // Set the internal pullup resisters
     if (hasExternalPulldown) {
-      //call I2CClk.makeOutput();
-      //call I2CData.makeOutput();
       call I2CClk.set();
       call I2CData.set();
     }
-    //call I2CClk.makeInput();
-    //call I2CData.makeInput();
-    //TWSR = 0;                             // set prescaler == 0
-    //TWBR = (F_CPU / 50000UL - 16) / 2;   // set I2C baud rate
-    //TWBR = 200;
-	TWSR=3;
-	TWBR=255;
+    TWSR=I2C_PRESCALER;
+	TWBR=TWBR_VALUE(PLATFORM_MHZ);
     TWAR = 0;
     TWCR = 0;
   }
@@ -90,12 +89,14 @@ implementation {
 
   async command void I2C.sendCommand() {
     atomic TWCR = current;
-     /*if(call DiagMsg.record()){
-			call DiagMsg.str("Hpl.seComm");
-			call DiagMsg.uint8(current);
-      call DiagMsg.uint8(TWCR);
+     if(call DiagMsg.record()){
+			call DiagMsg.str("cmd");
+			call DiagMsg.uint8(TWBR);
+			call DiagMsg.uint8(TWSR&0x03);
+			call DiagMsg.hex8(TWCR);
+			call DiagMsg.hex8(TWDR);
 			call DiagMsg.send();
-		}*/
+	  }
   }
 
   async command void I2C.readCurrent() {
@@ -208,6 +209,11 @@ implementation {
   default async event void I2C.commandComplete() { }
 
   AVR_ATOMIC_HANDLER(TWI_vect) {
+	if(call DiagMsg.record()){
+		  call DiagMsg.str("int");
+		  call DiagMsg.hex8(TWSR&0xf8);
+		  call DiagMsg.send();
+	}
     signal I2C.commandComplete();
   }
 }
