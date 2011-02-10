@@ -32,15 +32,19 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+//debug values
+#define I2C_PRESCALER 3
+#define I2C_BITRATE 255
+
 #ifndef I2C_PRESCALER
   #define I2C_PRESCALER 0
 #endif
 #ifndef I2C_BITRATE
   #ifndef I2C_FREQ
-      #define I2C_FREQ  50000
+      #define I2C_FREQ  50000U
   #endif
   #define TWBR_VALUE(cpu_mhz) ( ((cpu_mhz*500000)/I2C_FREQ)-8 )
-  #define I2C_BITRATE=TWBR_VALUE(F_CPU)
+  #define I2C_BITRATE TWBR_VALUE(PLATFORM_MHZ)
 #endif
 
 #include "Atm128I2C.h"
@@ -62,8 +66,8 @@ module HplAtm128I2CBusP {
   uses {
     interface GeneralIO as I2CClk;
     interface GeneralIO as I2CData;
-    interface DiagMsg;
     interface McuPowerState;
+    interface DiagMsg;
   }
 }
 implementation {
