@@ -32,24 +32,16 @@
 * Author: Zsolt Szabo
 */
 
-configuration Sht21DriverC {
+configuration Sht21C {
   provides interface Read<uint16_t> as Temperature;
   provides interface Read<uint16_t> as Humidity;
   provides interface SplitControl;
 }
 implementation {
-  components Sht21DriverP;
-  components new TimerMilliC();
+  components Sht21DriverC;
   
-  Temperature = Sht21DriverP.Temperature;
-  Humidity    = Sht21DriverP.Humidity;
-
-  Sht21DriverP.Timer -> TimerMilliC;
-  
-  components HplSht21C;
-  Sht21DriverP.I2CPacket -> HplSht21C;
-  Sht21DriverP.I2CResource -> HplSht21C.Resource;
-
-  SplitControl = Sht21DriverP;
+	Temperature = Sht21DriverC.Temperature;
+  Humidity    = Sht21DriverC.Humidity;
+  SplitControl = Sht21DriverC;
 
 }

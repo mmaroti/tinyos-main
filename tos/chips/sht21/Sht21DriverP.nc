@@ -34,7 +34,7 @@
 
 #include "Sht21.h"
 
-module Sht21P {
+module Sht21DriverP {
   provides interface Read<uint16_t> as Temperature;
   provides interface Read<uint16_t> as Humidity;
   
