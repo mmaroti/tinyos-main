@@ -89,7 +89,8 @@ implementation {
       res[0]=TRIGGER_T_MEASUREMENT_NO_HOLD_MASTER;
     } else if (state == S_READ_HUMIDITY) {
       res[0]=TRIGGER_RH_MEASUREMENT_NO_HOLD_MASTER;
-    }
+    } else
+			return;
     call I2CPacket.write(I2C_START, I2C_ADDRESS, 1, res);
   }
 
@@ -101,10 +102,8 @@ implementation {
     } else if(state!=S_IDLE)
       return EBUSY;
 
-    state = S_READ_TEMP;
-    
+    state = S_READ_TEMP;    
     call I2CResource.request();
-
     return SUCCESS;
   }
 
@@ -116,8 +115,7 @@ implementation {
     } else if(state!=S_IDLE)
       return EBUSY;
 
-    state = S_READ_HUMIDITY;
-    
+    state = S_READ_HUMIDITY;    
     call I2CResource.request();
     return SUCCESS;
   }
