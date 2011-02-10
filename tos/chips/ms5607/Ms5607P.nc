@@ -75,7 +75,7 @@ implementation {
     if(state == S_STARTING) return EBUSY;
     if(state != S_OFF) return EALREADY;
     
-    call Timer.startOneShot(300);
+    call Timer.startOneShot(3);
 
     return SUCCESS;
   }
@@ -162,9 +162,9 @@ implementation {
 
   event void RawPress.readDone(error_t error, uint32_t val) {
     int64_t offset, sensitivity;
-    offset = (uint32_t)c2 << 17 + ((int64_t)c4 * dT) >> 6; // <<17     >>6
-    sensitivity = (uint32_t)c1 << 128 + ((int64_t)c3 * dT) >> 7;// <<16   >>7
-    P = (int64_t)(val * sensitivity >> 21 - offset) >> 15;// >>21    >>15
+    offset = ((uint32_t)c2 << 17) + (((int64_t)c4 * dT) >> 6); // <<17     >>6
+    sensitivity = ((uint32_t)c1 << 16) + (((int64_t)c3 * dT) >> 7);// <<16   >>7
+    P = (int64_t)(val * (sensitivity >> 21) - offset) >> 15;// >>21    >>15
 
     signal Pressure.readDone(error, P);   
   }
