@@ -298,8 +298,7 @@ implementation {
           if (reading == TRUE) {
               if (index < packetLen) {
                   packetPtr[index] = call I2C.read();
-                  if (index == packetLen - 1 &&
-                      !(packetFlags & I2C_ACK_END)) { 
+                  if (index == packetLen - 2 && !(packetFlags & I2C_ACK_END)) { 
                     call I2C.enableAck(FALSE);
                   }
                   //state = I2C_SLAVE_ACK;
