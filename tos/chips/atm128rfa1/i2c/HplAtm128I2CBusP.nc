@@ -32,7 +32,17 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define F_CPU       16000000
+
+#ifndef I2C_PRESCALER
+  #define I2C_PRESCALER 0
+#endif
+#ifndef I2C_BITRATE
+  #ifndef I2C_FREQ
+      #define I2C_FREQ	50000
+  #endif
+  #define TWBR_VALUE(cpu_mhz) ( ((cpu_mhz*500000)/I2C_FREQ)-8 )
+  #define I2C_BITRATE=TWBR_VALUE(F_CPU)
+#endif
 
 #include "Atm128I2C.h"
 
@@ -53,7 +63,6 @@ module HplAtm128I2CBusP {
   uses {
     interface GeneralIO as I2CClk;
     interface GeneralIO as I2CData;
-    interface DiagMsg;
     interface McuPowerState;
   }
 }
@@ -63,16 +72,11 @@ implementation {
   async command void I2C.init(bool hasExternalPulldown) {
     // Set the internal pullup resisters
     if (hasExternalPulldown) {
-      //call I2CClk.makeOutput();
-      //call I2CData.makeOutput();
       call I2CClk.set();
       call I2CData.set();
     }
-    call I2CClk.makeInput();
-    call I2CData.makeInput();
-    TWSR = 0;                             // set prescaler == 0
-    TWBR = (F_CPU / 50000UL - 16) / 2;   // set I2C baud rate
-    //TWBR = 200;
+    TWSR=I2C_PRESCALER;
+    TWBR=I2C_BITRATE;
     TWAR = 0;
     TWCR = 0;
   }
@@ -88,12 +92,6 @@ implementation {
 
   async command void I2C.sendCommand() {
     atomic TWCR = current;
-     /*if(call DiagMsg.record()){
-			call DiagMsg.str("Hpl.seComm");
-			call DiagMsg.uint8(current);
-      call DiagMsg.uint8(TWCR);
-			call DiagMsg.send();
-		}*/
   }
 
   async command void I2C.readCurrent() {
@@ -199,8 +197,8 @@ implementation {
     if(bit_is_set(TWCR,TWEN)) {
       return ATM128_POWER_IDLE;
     }
-		else 
-			return ATM128_POWER_DOWN;
+    else 
+      return ATM128_POWER_DOWN;
   }
 
   default async event void I2C.commandComplete() { }
