@@ -325,7 +325,8 @@ implementation {
               return;
           } else { // Writing
               if (index < packetLen) {
-                  call I2C.write(((packetAddr & 0x7f) << 1) | ATM128_I2C_SLA_READ);
+                  call I2C.write(packetPtr[index]);
+                  index++;
                   call I2C.sendCommand();
               }
               else {
