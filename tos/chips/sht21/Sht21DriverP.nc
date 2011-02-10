@@ -98,7 +98,7 @@ implementation {
     if(state==S_READ_HUMIDITY&&!otherSensorRequested){
       otherSensorRequested=TRUE;
       return SUCCESS;    
-    } else
+    } else if(state!=S_IDLE)
       return EBUSY;
 
     state = S_READ_TEMP;
@@ -113,7 +113,7 @@ implementation {
     if(state==S_READ_TEMP&&!otherSensorRequested){
       otherSensorRequested=TRUE;
       return SUCCESS;
-    } else
+    } else if(state!=S_IDLE)
       return EBUSY;
 
     state = S_READ_HUMIDITY;
