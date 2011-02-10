@@ -32,13 +32,16 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef I2C_FREQ
-  #define I2C_FREQ	400000
-#endif
 #ifndef I2C_PRESCALER
   #define I2C_PRESCALER 0
 #endif
-#define TWBR_VALUE(cpu_mhz) ( ((cpu_mhz*1000000)/I2C_FREQ-16)/2 )
+#ifndef I2C_BITRATE
+  #ifndef I2C_FREQ
+      #define I2C_FREQ  50000
+  #endif
+  #define TWBR_VALUE(cpu_mhz) ( ((cpu_mhz*500000)/I2C_FREQ)-8 )
+  #define I2C_BITRATE=TWBR_VALUE(F_CPU)
+#endif
 
 #include "Atm128I2C.h"
 
@@ -73,7 +76,7 @@ implementation {
       call I2CData.set();
     }
     TWSR=I2C_PRESCALER;
-	TWBR=TWBR_VALUE(PLATFORM_MHZ);
+    TWBR=I2C_BITRATE;
     TWAR = 0;
     TWCR = 0;
   }
