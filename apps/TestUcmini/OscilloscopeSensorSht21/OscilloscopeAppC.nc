@@ -20,7 +20,9 @@ configuration OscilloscopeAppC { }
 implementation
 {
   components OscilloscopeC, MainC, LedsC,
-    new TimerMilliC(), Sht21C as Sensor, 
+    new TimerMilliC(),
+    Sht21C as Sensor, 
+    //Ms5607C as Sensor,
     new SerialAMSenderC(10);
 
   OscilloscopeC.Boot -> MainC;
