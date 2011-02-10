@@ -42,8 +42,6 @@ module Sht21P {
   uses interface I2CPacket<TI2CBasicAddr>;
   uses interface Timer<TMilli>;
   uses interface Resource as I2CResource;
-
-  uses interface Leds;
 }
 implementation {
   uint8_t res[2];
@@ -97,7 +95,7 @@ implementation {
 
   command error_t Temperature.read() { 
     if(state==S_OFF||stopRequested) return EOFF;
-    if(state==S_READ_HUMIDITY){
+    if(state==S_READ_HUMIDITY&&!otherSensorRequested){
       otherSensorRequested=TRUE;
       return SUCCESS;    
     } else
@@ -112,7 +110,7 @@ implementation {
 
   command error_t Humidity.read() {
     if(state==S_OFF||stopRequested) return EOFF;
-    if(state==S_READ_TEMP){
+    if(state==S_READ_TEMP&&!otherSensorRequested){
       otherSensorRequested=TRUE;
       return SUCCESS;
     } else
@@ -136,27 +134,36 @@ implementation {
   task void signalReadDone()
   {
     uint16_t result=(res[0]<<8)+(res[1]&0xfc);
-    if(state == S_READ_TEMP) {
-      signal Temperature.readDone(lastError, result);
-    }
-    if(state == S_READ_HUMIDITY){
-      signal Humidity.readDone(lastError, result);
-    }
+    uint8_t signalState=state;
+    //restore state, *Requested variables, release bus
     if(otherSensorRequested){
-      otherSensorRequested=FALSE;
       if(state==S_READ_HUMIDITY)
         state = S_READ_TEMP;
       else
         state = S_READ_HUMIDITY;
-      sendCommand();
-    } else if(stopRequested){
-      call I2CResource.release();
-      stopRequested=FALSE;
-      state = S_OFF;
-      post signalStopDone();
+      
+      otherSensorRequested=FALSE;
     } else {
       call I2CResource.release();
-      state=S_IDLE;
+      if(!stopRequested)
+        state=S_IDLE;
+      else{
+        stopRequested=FALSE;
+        state=S_OFF;
+      }
+    }
+    //signaling
+    if(signalState == S_READ_TEMP) {
+      signal Temperature.readDone(lastError, result);
+    }
+    if(signalState == S_READ_HUMIDITY){
+      signal Humidity.readDone(lastError, result);
+    }
+    //run *Requested operations
+    if(state==S_READ_HUMIDITY||state==S_READ_TEMP){
+      sendCommand();
+    } else if(state==S_OFF){
+      post signalStopDone();
     }
     
   }
