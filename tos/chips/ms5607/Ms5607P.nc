@@ -103,6 +103,12 @@ implementation {
     c4 = calibration[4];
     c5 = calibration[5];
     c6 = calibration[6];
+    if(call DiagMsg.record()) {
+      call DiagMsg.str("dataReady");
+      call DiagMsg.uint16(c1);
+      call DiagMsg.send();
+    }
+    signal SplitControl.startDone(SUCCESS);
   }
 
   command error_t Pressure.read() {
@@ -129,6 +135,10 @@ implementation {
 
     state = S_READ_TEMP;
     //call I2CResource.request();
+    if(call DiagMsg.record()) {
+      call DiagMsg.str("    Temp.read");
+      call DiagMsg.send();
+    }
     call RawTemp.read();
     return SUCCESS;
   }
@@ -144,7 +154,10 @@ implementation {
   event void Timer.fired() {
     if(state == S_OFF) {
       state = S_ON;
-      signal SplitControl.startDone(SUCCESS);
+      if(setup)
+        call Cal.getData();
+      setup = FALSE;
+      //signal SplitControl.startDone(SUCCESS);
     }  
   }
 
@@ -157,6 +170,12 @@ implementation {
       dT = val - (c5 << 8);  // <<8
       TEMP = 2000 + (dT * (uint32_t)c6 >> 23); // >>23
     }
+    if(call DiagMsg.record()) {
+      call DiagMsg.str("rawTempDone");
+      call DiagMsg.int16(TEMP);
+      call DiagMsg.uint8(error);
+      call DiagMsg.send();
+    } state = S_ON;
     signal Temperature.readDone(error, TEMP);
   }
 
@@ -166,6 +185,11 @@ implementation {
     sensitivity = ((uint32_t)c1 << 16) + (((int64_t)c3 * dT) >> 7);// <<16   >>7
     P = (int64_t)(val * (sensitivity >> 21) - offset) >> 15;// >>21    >>15
 
+    if(call DiagMsg.record()) {
+      call DiagMsg.str("rawPressDone");
+      call DiagMsg.int16(P);
+      call DiagMsg.send();
+    } state = S_ON;
     signal Pressure.readDone(error, P);   
   }
 

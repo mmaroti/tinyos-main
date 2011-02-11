@@ -42,14 +42,14 @@ configuration Ms5607C {
 }
 implementation {
   components Ms5607P, RomReaderP;
-  components new TimerMilliC() as Timer0, new TimerMilliC() as Timer1;
+  components new TimerMilliC() as Timer0;
 
   Pressure = Ms5607P.Pressure;
   PressureSlow = Ms5607P.PressureSlow;
   Temperature = Ms5607P.Temperature;
   TemperatureSlow = Ms5607P.TemperatureSlow;
   Ms5607P.Timer -> Timer0;
-  RomReaderP.Timer -> Timer1;
+  RomReaderP.Timer -> Timer0;
   Ms5607P.RawTemp -> RomReaderP.RawTemperature;
   Ms5607P.RawPress -> RomReaderP.RawPressure;
   Ms5607P.Cal -> RomReaderP;
@@ -65,4 +65,7 @@ implementation {
 
   components LedsC;
   Ms5607P.Leds -> LedsC;
+
+  
+  RomReaderP.DiagMsg -> DiagMsgC;
 }
