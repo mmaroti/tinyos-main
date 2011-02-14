@@ -96,7 +96,7 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
     connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
 
     connect(&app.connectionState, SIGNAL(color(StateColor)), SLOT(stateColor(StateColor)));
-    connect(this, SIGNAL(personSelected(QString)), this, SLOT(onPersonSelected(QString)));
+    connect(this, SIGNAL(personSelected(Person)), SLOT(onPersonSelected(Person)));
 
     blockingBox = new QMessageBox(QMessageBox::Information,
                                   "Checking record",
@@ -131,7 +131,7 @@ void LogWidget::init()
     ui->saveButton->setEnabled(false);
     ui->checkButton->setEnabled(false);
     ui->clearButton->setEnabled(false);
-    ui->clearNotPersonButton->setEnabled(false);
+    ui->clearKeepPersonButton->setEnabled(false);
     ui->entryLine->setEnabled(true);
 
     //ui->saveButton->setStyleSheet("* { background-color: rgb(255,185,185) }");
@@ -287,28 +287,22 @@ void LogWidget::on_entryLine_returnPressed()
 
 void LogWidget::on_recStartButton_clicked()
 {
-    if(application.connectionState.isConnected()){
-        init();
+    init();
 
-        createItems(-1, NORMAL, RECORDSTART, EMPTY);
+    createItems(-1, NORMAL, RECORDSTART, EMPTY);
 
-        //ui->recStartButton->setEnabled(false);
-        ui->motionStartButton->setEnabled(true);
-        //ui->saveButton->setEnabled(false);
-        //ui->checkButton->setEnabled(false);
-        //ui->clearButton->setEnabled(false);
-        //ui->loadButton->setEnabled(false);
-        //ui->selectPersonButton->setEnabled(false);
+    //ui->recStartButton->setEnabled(false);
+    ui->motionStartButton->setEnabled(true);
+    //ui->saveButton->setEnabled(false);
+    //ui->checkButton->setEnabled(false);
+    //ui->clearButton->setEnabled(false);
+    //ui->loadButton->setEnabled(false);
+    //ui->selectPersonButton->setEnabled(false);
 
-        entryLineInit();
+    entryLineInit();
 
-        connect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)),
-                &application.dataRecorder,   SLOT(onReceiveMessage(ActiveMessage)), Qt::DirectConnection);
-    } else {
-        QMessageBox msgBox;
-        msgBox.setText("Please connect to a mote first on the Connect tab!");
-        msgBox.exec();
-    }
+    connect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)),
+            &application.dataRecorder,   SLOT(onReceiveMessage(ActiveMessage)), Qt::DirectConnection);
 }
 
 void LogWidget::on_recEndButton_clicked()
@@ -335,7 +329,7 @@ void LogWidget::on_recEndButton_clicked()
         ui->saveButton->setEnabled(true);
         ui->checkButton->setEnabled(true);
         ui->clearButton->setEnabled(true);
-        ui->clearNotPersonButton->setEnabled(true);
+        ui->clearKeepPersonButton->setEnabled(true);
 
         for(int i=0; i<ui->log->rowCount(); i++){
             ui->log->item(i, ENTRY)->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
@@ -392,7 +386,7 @@ void LogWidget::on_loadButton_clicked()
         ui->saveButton->setEnabled(true);
         ui->checkButton->setEnabled(true);
         ui->clearButton->setEnabled(true);
-        ui->clearNotPersonButton->setEnabled(true);
+        ui->clearKeepPersonButton->setEnabled(true);
         ui->entryLine->setEnabled(false);
 
         //disconnect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
@@ -408,8 +402,8 @@ void LogWidget::on_saveButton_clicked()
     //connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
     //QString fn = QFileDialog::getSaveFileName(  this, "Choose a filename to save under", "c:/"+ui->log->item(0,ENTRY)->text()+".csv", "CSV (*.csv)");
 
-    qint64 id = foo(maci->id(),ui->motionTypeCBox->currentText());
-    QString fn = "../rec/"+QString::number(id)+".csv";
+    qint64 recordID = getRecordID(person.id(),ui->motionTypeCBox->currentText());
+    QString fn = "../rec/"+QString::number(recordID)+".csv";
     if ( !fn.isEmpty() ) {
         ui->recStartButton->setEnabled(true);
         ui->loadButton->setEnabled(true);
@@ -425,9 +419,14 @@ void LogWidget::on_saveButton_clicked()
     entryLineInit();
 }
 
+qint64 LogWidget::getRecordID(qint64 id, const QString& motionType)
+{
+    return 1;
+}
+
 void LogWidget::on_clearButton_clicked()
 {
-    qDebug() << "Clears All";
+    qDebug() << "Clear All";
     QMessageBox msgBox;
     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Cancel);
@@ -439,18 +438,18 @@ void LogWidget::on_clearButton_clicked()
     if(ret == QMessageBox::Ok){
         init();
         ui->personLabel->clear();
-        maci = new Person();
+        person = Person();
         //connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
     }
 }
 
-void LogWidget::on_clearNotPersonButton_clicked()
+void LogWidget::on_clearKeepPersonButton_clicked()
 {
-    qDebug() << "Clears, not person";
+    qDebug() << "Clear, keep person";
     QMessageBox msgBox;
     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Cancel);
-    msgBox.setText("WARNING! Deleting log and sample data (not person)!");
+    msgBox.setText("WARNING! Deleting log and sample data but keeping the person!");
     msgBox.setInformativeText("Are you sure?");
     msgBox.setIcon(QMessageBox::Warning);
     int ret = msgBox.exec();
@@ -540,7 +539,7 @@ void LogWidget::on_log_cellChanged(int row, int column)
         ui->log->item(findMotionStart(row), STATUS)->setIcon(QIcon(":/icons/Warning.png"));
     }
 
-    if(column == TIME){
+    if(column == TIME){ // FIXME What are these empty branched???
 
     } else if(column == STATUS){
 
@@ -553,11 +552,17 @@ void LogWidget::on_log_cellChanged(int row, int column)
 
 void LogWidget::on_selectPersonButton_clicked()
 {
-    maci = new Person(1, "Maci Laci", QDate::fromString("1985-04-07", "yyyy-MM-dd"));
 
-    ui->motionTypeCBox->setEnabled(true);
+    if(!application.connectionState.isConnected()){
 
-    emit personSelected(maci->name());
+        QMessageBox msgBox;
+        msgBox.setText("Please connect to a mote first on the Connect tab!");
+        msgBox.exec();
+
+        return;
+    }
+
+    emit personSelected(Person(1, "Maci Laci", QDate::fromString("1985-04-07", "yyyy-MM-dd")));
 }
 
 void LogWidget::on_motionTypeCBox_currentIndexChanged(int i)
@@ -568,9 +573,18 @@ void LogWidget::on_motionTypeCBox_currentIndexChanged(int i)
     }
 }
 
-void LogWidget::onPersonSelected(QString name)
+void LogWidget::onPersonSelected(const Person& p)
 {
-    ui->personLabel->setText(name);;
+    if (p.isNull()) {
+
+        return;
+    }
+
+    person = p;
+
+    ui->personLabel->setText(person.name());
+
+    ui->motionTypeCBox->setEnabled(true);
 }
 
 int LogWidget::findMotionStart(int endRow)
@@ -668,7 +682,7 @@ void LogWidget::saveLog(const QString &filename)
 
     ts << "#Person metadata" << endl;
     ts << "#ID, Name, Birth" << endl;
-    ts << QString::number(maci->id()) << "," << maci->name() << "," << maci->birth().toString("yyyy-MM-dd") << endl;
+    ts << QString::number(person.id()) << "," << person.name() << "," << person.birth().toString("yyyy-MM-dd") << endl;
 
     ts.flush();
     f.close();
@@ -1057,11 +1071,5 @@ void LogWidget::showAnimation(const int begin, const int end, const int length) 
 
 void LogWidget::glwindowClosed() {
 
-    delete sender();
-}
-
-qint64 LogWidget::foo(qint64 id, QString motionType)
-{
-
-    return 1;
+    delete sender(); // FIXME Is it safe?
 }

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>516</width>
+    <height>332</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -546,9 +546,9 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="clearNotPersonButton">
+        <widget class="QPushButton" name="clearKeepPersonButton">
          <property name="text">
-          <string>Clear, not person</string>
+          <string>Clear, keep person</string>
          </property>
         </widget>
        </item>

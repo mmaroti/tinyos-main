@@ -55,6 +55,37 @@ public:
     LogWidget(QWidget *parent, Application &app);
     ~LogWidget();
 
+signals:
+
+    // TODO Mock implementation -- remove when ready
+    void personSelected(const Person& p);
+
+private slots:
+
+    void on_entryLine_returnPressed();
+    void on_recStartButton_clicked();
+    void on_recEndButton_clicked();
+    void on_motionStartButton_clicked();
+    void on_motionEndButton_clicked();
+    void on_loadButton_clicked();
+    void on_saveButton_clicked();
+    void on_clearButton_clicked();
+    void on_clearKeepPersonButton_clicked();
+    void on_checkButton_clicked();
+    void on_selectPersonButton_clicked();
+    void onPersonSelected(const Person& p);
+    void on_motionTypeCBox_currentIndexChanged(int);
+
+    void ShowContextMenu(const QPoint& pos);
+    void on_log_cellClicked(int,int);
+    void on_log_cellChanged(int,int);
+    void stateColor(StateColor color);
+    void solverFinished(bool error, const QString message);
+    void on_log_cellDoubleClicked(int row, int column);
+    void glwindowClosed();
+
+private:
+
     enum TimeMode { SET, SETNOTEDITABLE };
     enum Mode { NORMAL, INSERT };
     enum Type { RECORDSTART, RECORDEND, MOTIONSTART, MOTIONEND , TEXT};
@@ -69,38 +100,9 @@ public:
 
     enum Status { UNKNOWN, OK, FAILED, EMPTY };
 
-    Person *maci;
+    Person person;
 
-signals:
-    void personSelected(QString);
-
-private slots:
-
-    void on_entryLine_returnPressed();
-    void on_recStartButton_clicked();
-    void on_recEndButton_clicked();
-    void on_motionStartButton_clicked();
-    void on_motionEndButton_clicked();
-    void on_loadButton_clicked();
-    void on_saveButton_clicked();
-    void on_clearButton_clicked();
-    void on_clearNotPersonButton_clicked();
-    void on_checkButton_clicked();
-    void on_selectPersonButton_clicked();
-    void onPersonSelected(QString name);
-    void on_motionTypeCBox_currentIndexChanged(int);
-
-    void ShowContextMenu(const QPoint& pos);
-    void on_log_cellClicked(int,int);
-    void on_log_cellChanged(int,int);
-    void stateColor(StateColor color);
-    void solverFinished(bool error, const QString message);
-    void on_log_cellDoubleClicked(int row, int column);
-    void glwindowClosed();
-
-private:
-
-    qint64 foo(qint64, QString);
+    qint64 getRecordID(qint64 personID, const QString& motionType);
     void onGoto(int);
     void onDelRow(int);
 
