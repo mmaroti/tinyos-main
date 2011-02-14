@@ -123,13 +123,18 @@ implementation {
   }
 
   async event void I2CPacket.readDone(error_t error, uint16_t addr, uint8_t length, uint8_t *data) {
+    uint32_t tmp;
     if(accessingROM) {
       mesres[num] = data[0] << 8;
       mesres[num] = mesres[num] | data[1];
     } else if(readingADC) {
-      rawret = (uint32_t)data[0] << 16;
-      rawret = rawret | (data[1] << 8);
-      rawret = rawret | data[2];
+      tmp = data[0];
+      tmp <<= 16;
+      rawret = tmp;
+      tmp = data[1];
+      tmp <<= 8;
+      rawret |= tmp;
+      rawret|= data[2];
     }
       if(call DiagMsg.record()) {
         call DiagMsg.str("readDone");

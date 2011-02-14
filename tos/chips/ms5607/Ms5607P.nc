@@ -66,6 +66,10 @@ implementation {
   uint16_t c1,c2,c3,c4,c5,c6,OFF,SENS;
   int32_t dT,P;
   int16_t TEMP;
+
+  int32_t tmp, mul;
+  int64_t mul64, tmp64;
+
   bool stopRequested = FALSE;
   bool otherSensorRequested = FALSE;
   bool setup = TRUE;
@@ -166,28 +170,77 @@ implementation {
   }
 
   event void RawTemp.readDone(error_t error, uint32_t val) {
+  uint32_t tmpval = val;
     if(error == SUCCESS) {
-      dT = val - (c5 << 8);  // <<8
-      TEMP = 2000 + (dT * (uint32_t)c6 >> 23); // >>23
+     /* dT = val - (c5 << 8);
+      TEMP = 2000 + (dT * (uint32_t)c6 >> 23);
+    */
+   tmp= c5;
+   tmp <<= 8;
+   dT = val - tmp; 
+   
+   tmp= c6;
+   mul= dT;
+   mul *= tmp;
+   mul >>= 23;
+   
+   
+   TEMP = 2000;
+   TEMP += mul;
     }
+    /*if(TEMP<2000) {
+      int32_t T2 = ((int64_t)dT * dT) >> 31;
+      TEMP -= T2;
+    }*/
     if(call DiagMsg.record()) {
       call DiagMsg.str("rawTempDone");
-      call DiagMsg.int16(TEMP);
+      //call DiagMsg.int16(TEMP);
+      call DiagMsg.uint16(c5);
+      call DiagMsg.uint16(c6);
+      call DiagMsg.uint32(tmpval);
+      call DiagMsg.int32(dT);
       call DiagMsg.uint8(error);
       call DiagMsg.send();
     } state = S_ON;
     signal Temperature.readDone(error, TEMP);
   }
 
-  event void RawPress.readDone(error_t error, uint32_t val) {
+  event void RawPress.readDone(error_t error, uint32_t rawpress) {
     int64_t offset, sensitivity;
-    offset = ((uint32_t)c2 << 17) + (((int64_t)c4 * dT) >> 6); // <<17     >>6
-    sensitivity = ((uint32_t)c1 << 16) + (((int64_t)c3 * dT) >> 7);// <<16   >>7
-    P = (int64_t)(val * (sensitivity >> 21) - offset) >> 15;// >>21    >>15
-
+    /*offset = ((uint64_t)c2 << 17) + (((int64_t)c4 * dT) >> 6); // <<17     >>6
+    sensitivity = ((uint32_t)c1 << 16) + (( (int64_t)c3 * dT) >> 7);// <<16   >>7
+    P = ( (int64_t)val * (sensitivity >> 21) - offset) >> 15;// >>21    >>15
+*/
+    tmp64 = c2;
+   tmp64 <<= 17;
+   
+   mul64 = c4;
+   mul64 *= dT;
+   mul64 >>= 6;
+   
+   offset = mul64;
+    offset += tmp64;
+    tmp64 = c1;
+    tmp64 <<= 16;
+    
+    mul64 = c3;
+    mul64 *= dT;
+    mul64 >>= 7;
+    sensitivity = tmp64;
+    sensitivity += mul64;
+    //sensitivity = ((uint32_t)c1 << 16) + (((int64_t)c3 * dT) >> 7);
+    
+    tmp64 = sensitivity;
+    tmp64 >>= 21;
+    tmp64 *= rawpress;
+    tmp64 -= offset;
+    tmp64 >>= 15;
+    P = tmp64;
     if(call DiagMsg.record()) {
       call DiagMsg.str("rawPressDone");
-      call DiagMsg.int16(P);
+      call DiagMsg.int32(P);
+      call DiagMsg.int32(dT);
+      call DiagMsg.int16(TEMP);
       call DiagMsg.send();
     } state = S_ON;
     signal Pressure.readDone(error, P);   
