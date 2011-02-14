@@ -76,6 +76,9 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
 
     init();
 
+    ui->personLabel->setTextFormat(Qt::RichText);
+    ui->personLabel->setTextFormat(Qt::RichText);
+
     QFontMetrics fontMetrics(ui->log->font());
 
     ui->log->setRowCount(0);
@@ -292,6 +295,7 @@ void LogWidget::on_recStartButton_clicked()
     createItems(-1, NORMAL, RECORDSTART, EMPTY);
 
     //ui->recStartButton->setEnabled(false);
+    ui->selectPersonButton->setEnabled(false);
     ui->motionStartButton->setEnabled(true);
     //ui->saveButton->setEnabled(false);
     //ui->checkButton->setEnabled(false);
@@ -437,7 +441,9 @@ void LogWidget::on_clearButton_clicked()
 
     if(ret == QMessageBox::Ok){
         init();
+        ui->selectPersonButton->setEnabled(true);
         ui->personLabel->clear();
+        ui->birthLabel->clear();
         person = Person();
         //connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
     }
@@ -456,6 +462,7 @@ void LogWidget::on_clearKeepPersonButton_clicked()
 
     if(ret == QMessageBox::Ok){
         init();
+        ui->selectPersonButton->setEnabled(true);
         ui->motionTypeCBox->setEnabled(true);
         //connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
     }
@@ -582,7 +589,9 @@ void LogWidget::onPersonSelected(const Person& p)
 
     person = p;
 
-    ui->personLabel->setText(person.name());
+    ui->personLabel->setText("<span style=\" font-size:8pt; font-weight:600; color:#aa0000;\">"+person.name()+"</span>");
+
+    ui->birthLabel->setText("<span style=\" font-size:8pt; font-weight:600; color:#aa0000;\">"+person.birth().toString("yyyy-MM-dd")+"</span>");
 
     ui->motionTypeCBox->setEnabled(true);
 }
