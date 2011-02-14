@@ -408,17 +408,15 @@ void LogWidget::on_saveButton_clicked()
 
     qint64 recordID = getRecordID(person.id(),ui->motionTypeCBox->currentText());
     QString fn = "../rec/"+QString::number(recordID)+".csv";
-    if ( !fn.isEmpty() ) {
-        ui->recStartButton->setEnabled(true);
-        ui->loadButton->setEnabled(true);
-        ui->selectPersonButton->setEnabled(true);
-        ui->recStartButton->setEnabled(false);
-        ui->loadButton->setEnabled(false);
-        //ui->entryLine->setEnabled(true);
-        //connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
+    ui->recStartButton->setEnabled(true);
+    ui->loadButton->setEnabled(true);
+    ui->selectPersonButton->setEnabled(false);
+    ui->recStartButton->setEnabled(false);
+    ui->loadButton->setEnabled(false);
+    //ui->entryLine->setEnabled(true);
+    //connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
 
-        saveLog( fn );
-    }
+    saveLog( fn );
 
     entryLineInit();
 }
@@ -442,6 +440,7 @@ void LogWidget::on_clearButton_clicked()
     if(ret == QMessageBox::Ok){
         init();
         ui->selectPersonButton->setEnabled(true);
+        ui->selectPersonButton->setFocus();
         ui->personLabel->clear();
         ui->birthLabel->clear();
         person = Person();
@@ -462,8 +461,9 @@ void LogWidget::on_clearKeepPersonButton_clicked()
 
     if(ret == QMessageBox::Ok){
         init();
-        ui->selectPersonButton->setEnabled(true);
+        ui->selectPersonButton->setEnabled(false);
         ui->motionTypeCBox->setEnabled(true);
+        ui->motionTypeCBox->setFocus();
         //connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
     }
 }
