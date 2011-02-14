@@ -50,30 +50,7 @@
 #include <QTextStream>
 #include <QFontMetrics>
 #include "GLWindow.hpp"
-
-class Person {
-
-public:
-
-    Person() : ID(-1), Name("not set"), born(QDate()) { }
-
-    Person(qint64 id, const QString& name, const QDate& birth) : ID(id), Name(name), born(birth) { }
-
-    qint64 id() const { return ID; }
-
-    const QString name() const { return Name; }
-
-    const QDate birth() const { return born; }
-
-private:
-
-    qint64 ID;
-
-    QString Name;
-
-    QDate born;
-
-};
+#include "Person.hpp"
 
 namespace {
 
@@ -119,6 +96,7 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
     connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
 
     connect(&app.connectionState, SIGNAL(color(StateColor)), SLOT(stateColor(StateColor)));
+    connect(this, SIGNAL(personSelected(QString)), this, SLOT(onPersonSelected(QString)));
 
     blockingBox = new QMessageBox(QMessageBox::Information,
                                   "Checking record",
@@ -142,14 +120,18 @@ void LogWidget::init()
     ui->log->clearContents();
     ui->log->setRowCount(0);
 
+    ui->motionTypeCBox->setCurrentIndex(0);
+
+    ui->motionTypeCBox->setEnabled(false);;
+    ui->recStartButton->setEnabled(false);
+    ui->loadButton->setEnabled(false);
     ui->recEndButton->setEnabled(false);
     ui->motionStartButton->setEnabled(false);
     ui->motionEndButton->setEnabled(false);
     ui->saveButton->setEnabled(false);
     ui->checkButton->setEnabled(false);
     ui->clearButton->setEnabled(false);
-    ui->loadButton->setEnabled(true);
-    ui->recStartButton->setEnabled(true);
+    ui->clearNotPersonButton->setEnabled(false);
     ui->entryLine->setEnabled(true);
 
     //ui->saveButton->setStyleSheet("* { background-color: rgb(255,185,185) }");
@@ -310,12 +292,13 @@ void LogWidget::on_recStartButton_clicked()
 
         createItems(-1, NORMAL, RECORDSTART, EMPTY);
 
-        ui->recStartButton->setEnabled(false);
+        //ui->recStartButton->setEnabled(false);
         ui->motionStartButton->setEnabled(true);
-        ui->saveButton->setEnabled(false);
-        ui->checkButton->setEnabled(false);
-        ui->clearButton->setEnabled(false);
-        ui->loadButton->setEnabled(false);
+        //ui->saveButton->setEnabled(false);
+        //ui->checkButton->setEnabled(false);
+        //ui->clearButton->setEnabled(false);
+        //ui->loadButton->setEnabled(false);
+        //ui->selectPersonButton->setEnabled(false);
 
         entryLineInit();
 
@@ -352,6 +335,7 @@ void LogWidget::on_recEndButton_clicked()
         ui->saveButton->setEnabled(true);
         ui->checkButton->setEnabled(true);
         ui->clearButton->setEnabled(true);
+        ui->clearNotPersonButton->setEnabled(true);
 
         for(int i=0; i<ui->log->rowCount(); i++){
             ui->log->item(i, ENTRY)->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
@@ -408,6 +392,7 @@ void LogWidget::on_loadButton_clicked()
         ui->saveButton->setEnabled(true);
         ui->checkButton->setEnabled(true);
         ui->clearButton->setEnabled(true);
+        ui->clearNotPersonButton->setEnabled(true);
         ui->entryLine->setEnabled(false);
 
         //disconnect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
@@ -421,10 +406,16 @@ void LogWidget::on_saveButton_clicked()
 {
     qDebug() << "Save";
     //connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
-    QString fn = QFileDialog::getSaveFileName(  this, "Choose a filename to save under", "c:/", "CSV (*.csv)");
+    //QString fn = QFileDialog::getSaveFileName(  this, "Choose a filename to save under", "c:/"+ui->log->item(0,ENTRY)->text()+".csv", "CSV (*.csv)");
+
+    qint64 id = foo(maci->id(),ui->motionTypeCBox->currentText());
+    QString fn = "../rec/"+QString::number(id)+".csv";
     if ( !fn.isEmpty() ) {
         ui->recStartButton->setEnabled(true);
         ui->loadButton->setEnabled(true);
+        ui->selectPersonButton->setEnabled(true);
+        ui->recStartButton->setEnabled(false);
+        ui->loadButton->setEnabled(false);
         //ui->entryLine->setEnabled(true);
         //connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
 
@@ -436,17 +427,37 @@ void LogWidget::on_saveButton_clicked()
 
 void LogWidget::on_clearButton_clicked()
 {
-    qDebug() << "Clears";
+    qDebug() << "Clears All";
     QMessageBox msgBox;
     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Cancel);
-    msgBox.setText("WARNING! Deleting ALL log and sample data!");
+    msgBox.setText("WARNING! Deleting ALL log, person and sample data!");
     msgBox.setInformativeText("Are you sure?");
     msgBox.setIcon(QMessageBox::Warning);
     int ret = msgBox.exec();
 
     if(ret == QMessageBox::Ok){
         init();
+        ui->personLabel->clear();
+        maci = new Person();
+        //connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
+    }
+}
+
+void LogWidget::on_clearNotPersonButton_clicked()
+{
+    qDebug() << "Clears, not person";
+    QMessageBox msgBox;
+    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Cancel);
+    msgBox.setText("WARNING! Deleting log and sample data (not person)!");
+    msgBox.setInformativeText("Are you sure?");
+    msgBox.setIcon(QMessageBox::Warning);
+    int ret = msgBox.exec();
+
+    if(ret == QMessageBox::Ok){
+        init();
+        ui->motionTypeCBox->setEnabled(true);
         //connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
     }
 }
@@ -492,6 +503,74 @@ void LogWidget::onDelRow(int row)
     }
 
     entryLineInit();
+}
+
+void LogWidget::on_log_cellClicked(int row, int column)
+{
+    if(column == DEL){
+        onDelRow(row);
+    }
+}
+
+void LogWidget::on_log_cellChanged(int row, int column)
+{
+    QTableWidgetItem* item = ui->log->item(row, column);
+    if(column == TIME && item->isSelected() && row < ui->log->rowCount()){
+        QTime before = QTime::fromString(ui->log->item(row-1,column)->text(), "hh:mm:ss"); // FIXME Crashes on this line
+        QTime after = QTime::fromString(ui->log->item(row+1,column)->text(), "hh:mm:ss");
+        QTime now = QTime::fromString(ui->log->item(row,column)->text(), "hh:mm:ss");
+
+        if( (!now.isValid() || before > now || after < now) && !inEditing ){
+            QMessageBox msgBox;
+            msgBox.setText("Time value invalid!\nPlease enter a time value between\n"+ui->log->item(row-1,column)->text()+" - "+ui->log->item(row+1,column)->text());
+            msgBox.exec();
+
+            ui->log->item(row,column)->setText( ui->log->item(row-1,column)->text() );
+            ui->log->openPersistentEditor( ui->log->item(row, column));
+            return;
+
+        } else {
+            ui->log->closePersistentEditor( ui->log->item(row, column));
+            inEditing = false;
+        }
+    }
+
+    if(column == TIME && (isMotionStart(row) || isMotionEnd(row)) && item->isSelected() ){
+        ui->log->item(findMotionStart(row), STATUS)->setText(UNKNOWN_TEXT);
+        ui->log->item(findMotionStart(row), STATUS)->setIcon(QIcon(":/icons/Warning.png"));
+    }
+
+    if(column == TIME){
+
+    } else if(column == STATUS){
+
+    } else if(column == TYPE){
+
+    } else if(column == ENTRY){
+
+    }
+}
+
+void LogWidget::on_selectPersonButton_clicked()
+{
+    maci = new Person(1, "Maci Laci", QDate::fromString("1985-04-07", "yyyy-MM-dd"));
+
+    ui->motionTypeCBox->setEnabled(true);
+
+    emit personSelected(maci->name());
+}
+
+void LogWidget::on_motionTypeCBox_currentIndexChanged(int i)
+{
+    if( i != 0){
+        ui->recStartButton->setEnabled(true);
+        ui->loadButton->setEnabled(true);
+    }
+}
+
+void LogWidget::onPersonSelected(QString name)
+{
+    ui->personLabel->setText(name);;
 }
 
 int LogWidget::findMotionStart(int endRow)
@@ -547,52 +626,6 @@ void LogWidget::ShowContextMenu(const QPoint& pos)
     }
 }
 
-void LogWidget::on_log_cellClicked(int row, int column)
-{
-    if(column == DEL){
-        onDelRow(row);
-    }
-}
-
-void LogWidget::on_log_cellChanged(int row, int column)
-{
-    QTableWidgetItem* item = ui->log->item(row, column);
-    if(column == TIME && item->isSelected() && row < ui->log->rowCount()){
-        QTime before = QTime::fromString(ui->log->item(row-1,column)->text(), "hh:mm:ss"); // FIXME Crashes on this line
-        QTime after = QTime::fromString(ui->log->item(row+1,column)->text(), "hh:mm:ss");
-        QTime now = QTime::fromString(ui->log->item(row,column)->text(), "hh:mm:ss");
-
-        if( (!now.isValid() || before > now || after < now) && !inEditing ){
-            QMessageBox msgBox;
-            msgBox.setText("Time value invalid!\nPlease enter a time value between\n"+ui->log->item(row-1,column)->text()+" - "+ui->log->item(row+1,column)->text());
-            msgBox.exec();
-
-            ui->log->item(row,column)->setText( ui->log->item(row-1,column)->text() );
-            ui->log->openPersistentEditor( ui->log->item(row, column));
-            return;
-
-        } else {
-            ui->log->closePersistentEditor( ui->log->item(row, column));
-            inEditing = false;
-        }
-    }
-
-    if(column == TIME && (isMotionStart(row) || isMotionEnd(row)) && item->isSelected() ){
-        ui->log->item(findMotionStart(row), STATUS)->setText(UNKNOWN_TEXT);
-        ui->log->item(findMotionStart(row), STATUS)->setIcon(QIcon(":/icons/Warning.png"));
-    }
-
-    if(column == TIME){
-
-    } else if(column == STATUS){
-
-    } else if(column == TYPE){
-
-    } else if(column == ENTRY){
-
-    }
-}
-
 bool LogWidget::isRecordEnd(int row) const
 {
     return ui->log->item(row,TYPE)->text().contains("Record End", Qt::CaseSensitive);
@@ -632,6 +665,10 @@ void LogWidget::saveLog(const QString &filename)
     for (int i=0; i<ui->log->rowCount(); i++){ // FIXME Crashes in the loop: item is null pointer
       ts << ui->log->item(i,STATUS)->text() << "," << ui->log->item(i,TIME)->text() << "," << ui->log->item(i,TYPE)->text() << "," << ui->log->item(i,ENTRY)->text() << endl;
     }
+
+    ts << "#Person metadata" << endl;
+    ts << "#ID, Name, Birth" << endl;
+    ts << QString::number(maci->id()) << "," << maci->name() << "," << maci->birth().toString("yyyy-MM-dd") << endl;
 
     ts.flush();
     f.close();
@@ -1021,4 +1058,10 @@ void LogWidget::showAnimation(const int begin, const int end, const int length) 
 void LogWidget::glwindowClosed() {
 
     delete sender();
+}
+
+qint64 LogWidget::foo(qint64 id, QString motionType)
+{
+
+    return 1;
 }

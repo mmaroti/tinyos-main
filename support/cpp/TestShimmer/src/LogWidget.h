@@ -37,6 +37,7 @@
 #include <QWidget>
 #include <QTableWidgetItem>
 #include "StateColor.hpp"
+#include "Person.hpp"
 
 class QMessageBox;
 class Application;
@@ -68,6 +69,11 @@ public:
 
     enum Status { UNKNOWN, OK, FAILED, EMPTY };
 
+    Person *maci;
+
+signals:
+    void personSelected(QString);
+
 private slots:
 
     void on_entryLine_returnPressed();
@@ -78,7 +84,11 @@ private slots:
     void on_loadButton_clicked();
     void on_saveButton_clicked();
     void on_clearButton_clicked();
+    void on_clearNotPersonButton_clicked();
     void on_checkButton_clicked();
+    void on_selectPersonButton_clicked();
+    void onPersonSelected(QString name);
+    void on_motionTypeCBox_currentIndexChanged(int);
 
     void ShowContextMenu(const QPoint& pos);
     void on_log_cellClicked(int,int);
@@ -90,6 +100,7 @@ private slots:
 
 private:
 
+    qint64 foo(qint64, QString);
     void onGoto(int);
     void onDelRow(int);
 

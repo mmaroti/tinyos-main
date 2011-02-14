@@ -182,7 +182,8 @@ HEADERS += src/DataRecorder.h \
     src/OpenGL/GLRightElbowFlex.hpp \
     src/OpenGL/GLWindow.hpp \
     src/OpenGL/DataHolder.hpp \
-    src/DriveSelectorDialog.h
+    src/DriveSelectorDialog.h \
+    src/Person.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \
