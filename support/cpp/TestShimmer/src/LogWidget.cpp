@@ -723,8 +723,18 @@ void LogWidget::loadLog(const QString &filename)
                 line = ts.readLine();         // line of text excluding '\n'
             }
             line = ts.readLine();
+            while( !line.isEmpty() && line != "#Person metadata" ){
+                csvToLog(line);            //convert line string to log row
+                line = ts.readLine();
+            }
+            line = ts.readLine();
+            line = ts.readLine();
+            while( !line.isEmpty() && line != "#Record ID" ){
+                csvToPerson(line);            //convert line string to person data
+                line = ts.readLine();
+            }
             while( !line.isEmpty() ){
-                csvToLog(line);            //convert line string to sample
+                qint64 recordID = line.toInt();            //convert line string to record id
                 line = ts.readLine();
             }
             f.close();
@@ -767,6 +777,21 @@ void LogWidget::csvToLog(const QString &line)
         }
 
     }
+}
+
+void LogWidget::csvToPerson(const QString &line)
+{
+    QStringList list = line.split(",");
+    QStringListIterator csvIterator(list);
+
+    if(csvIterator.hasNext()){
+        qint64 id = csvIterator.next().toInt();
+        QString name   = csvIterator.next();
+        QString birth   = csvIterator.next();
+
+        person = Person(id, name, QDate::fromString(birth, "yyyy-MM-dd"));
+    }
+
 }
 
 void LogWidget::stateColor(StateColor color) {

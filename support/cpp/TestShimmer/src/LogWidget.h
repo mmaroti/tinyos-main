@@ -135,6 +135,7 @@ private:
     void saveLog(const QString&);
     void loadLog(const QString&);
     void csvToLog(const QString&);
+    void csvToPerson(const QString&);
 
     //=======================
     void startChecking();
