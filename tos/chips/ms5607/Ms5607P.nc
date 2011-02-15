@@ -64,10 +64,10 @@ implementation {
   uint32_t mesres;
   uint8_t state = S_OFF;
   uint16_t c1,c2,c3,c4,c5,c6,OFF,SENS;
-  int32_t dT,P;
+  int32_t dT,P, tmpt;
   int16_t TEMP;
 
-  int32_t tmp, mul;
+  int64_t tmp, mul;
   int64_t mul64, tmp64;
 
   bool stopRequested = FALSE;
@@ -175,9 +175,9 @@ implementation {
      /* dT = val - (c5 << 8);
       TEMP = 2000 + (dT * (uint32_t)c6 >> 23);
     */
-   tmp= c5;
-   tmp <<= 8;
-   dT = val - tmp; 
+   tmpt= c5;
+   tmpt <<= 8;
+   dT = val - tmpt; 
    
    tmp= c6;
    mul= dT;
@@ -188,10 +188,10 @@ implementation {
    TEMP = 2000;
    TEMP += mul;
     }
-    /*if(TEMP<2000) {
+    if(TEMP<2000) {
       int32_t T2 = ((int64_t)dT * dT) >> 31;
       TEMP -= T2;
-    }*/
+    }
     if(call DiagMsg.record()) {
       call DiagMsg.str("rawTempDone");
       //call DiagMsg.int16(TEMP);
