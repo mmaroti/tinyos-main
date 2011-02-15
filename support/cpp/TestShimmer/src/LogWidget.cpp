@@ -734,7 +734,7 @@ void LogWidget::loadLog(const QString &filename)
                 line = ts.readLine();
             }
             while( !line.isEmpty() ){
-                qint64 recordID = line.toInt();            //convert line string to record id
+                qint64 recordID = line.toLongLong();            //convert line string to record id
                 line = ts.readLine();
             }
             f.close();
@@ -785,7 +785,7 @@ void LogWidget::csvToPerson(const QString &line)
     QStringListIterator csvIterator(list);
 
     if(csvIterator.hasNext()){
-        qint64 id = csvIterator.next().toInt();
+        qint64 id = csvIterator.next().toLongLong();
         QString name   = csvIterator.next();
         QString birth   = csvIterator.next();
 
