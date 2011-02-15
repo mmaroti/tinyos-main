@@ -589,9 +589,9 @@ void LogWidget::onPersonSelected(const Person& p)
 
     person = p;
 
-    ui->personLabel->setText("<span style=\" font-size:8pt; font-weight:600; color:#aa0000;\">"+person.name()+"</span>");
+    ui->personLabel->setText("<span style=\" font-size:8pt; font-weight:600;\">"+person.name()+"</span>");
 
-    ui->birthLabel->setText("<span style=\" font-size:8pt; font-weight:600; color:#aa0000;\">"+person.birth().toString("yyyy-MM-dd")+"</span>");
+    ui->birthLabel->setText("<span style=\" font-size:8pt; font-weight:600;\">"+person.birth().toString("yyyy-MM-dd")+"</span>");
 
     ui->motionTypeCBox->setEnabled(true);
 }
@@ -692,6 +692,9 @@ void LogWidget::saveLog(const QString &filename)
     ts << "#Person metadata" << endl;
     ts << "#ID, Name, Birth" << endl;
     ts << QString::number(person.id()) << "," << person.name() << "," << person.birth().toString("yyyy-MM-dd") << endl;
+
+    ts << "#Record ID" << endl;
+    ts << getRecordID(person.id(), ui->motionTypeCBox->currentText()) << endl;
 
     ts.flush();
     f.close();
