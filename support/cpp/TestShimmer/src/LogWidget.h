@@ -146,6 +146,7 @@ private:
     int findNextMot();
     int findMotStart(int from) const;
     int findMotEnd(int from) const;
+    void displayWarning(const QString& msg);
 
     const QTime motionStart() const;
     const QTime motionEnd() const;

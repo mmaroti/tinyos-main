@@ -606,15 +606,22 @@ void LogWidget::on_log_cellChanged(int row, int column)
     }
 }
 
+void LogWidget::displayWarning(const QString& msg) {
+
+    QMessageBox::warning(this, "Error", msg);
+}
+
 void LogWidget::on_selectPersonButton_clicked()
 {
 
     if(!application.connectionState.isConnected()){
 
-        QMessageBox msgBox;
-        msgBox.setText("Please connect to a mote first on the Connect tab!");
-        msgBox.exec();
+        displayWarning("Please connect to a mote first on the Connect tab!");
+        return;
+    }
+    else if (!application.connectionState.isGood()) {
 
+        displayWarning("Please check your connection, haven\'t received any packet lately!");
         return;
     }
 

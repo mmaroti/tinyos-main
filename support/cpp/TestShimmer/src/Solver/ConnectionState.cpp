@@ -72,6 +72,11 @@ bool ConnectionState::isConnected() const {
     return connected;
 }
 
+bool ConnectionState::isGood() const {
+
+    return state == GREEN;
+}
+
 void ConnectionState::timerEvent(QTimerEvent* ) {
 
     if (!connected) {
