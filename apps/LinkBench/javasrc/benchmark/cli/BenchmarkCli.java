@@ -63,7 +63,7 @@ public class BenchmarkCli {
     System.out.println();
     System.out.println("1. Print help information.");
     System.out.println("--------------------------------------------------------------------");
-    f.printHelp(150, "Benchmark", "", opt0, "", true);
+    f.printHelp(150, "linkbench", "", opt0, "", true);
 
     // Batch - usage
     Options opt1 = new Options();
@@ -72,7 +72,7 @@ public class BenchmarkCli {
     System.out.println();
     System.out.println("2. Running benchmarks with pre-defined configurations in batch mode.");
     System.out.println("--------------------------------------------------------------------");
-    f.printHelp(150, "Benchmark", "", opt1, "", true);
+    f.printHelp(150, "linkbench", "", opt1, "", true);
     
     // Reset - usage
     Options opt2 = new Options();
@@ -80,7 +80,7 @@ public class BenchmarkCli {
     System.out.println();
     System.out.println("3. Reset all motes.");
     System.out.println("--------------------------------------------------------------------");
-    f.printHelp(150, "Benchmark", "", opt2, "", true);
+    f.printHelp(150, "linkbench", "", opt2, "", true);
     
     // Download - usage
     Options opt3 = new Options();
@@ -91,7 +91,7 @@ public class BenchmarkCli {
     System.out.println();
     System.out.println("4. Only download data from the motes (if data available).");
     System.out.println("--------------------------------------------------------------------");
-    f.printHelp(150, "Benchmark", "", opt3, "", true);
+    f.printHelp(150, "linkbench", "", opt3, "", true);
     
     // Command-line usage
     Options opt4 = new Options();
@@ -109,7 +109,7 @@ public class BenchmarkCli {
     System.out.println();
     System.out.println("5. Running a specific benchmark with command-line arguments");
     System.out.println("--------------------------------------------------------------------");
-    f.printHelp(88, "Benchmark", "", opt4, "", true);
+    f.printHelp(88, "linkbench", "", opt4, "", true);
     
   }
 
@@ -324,12 +324,16 @@ public class BenchmarkCli {
       // -----------------------------------------------------------------------
       if ( cl.hasOption('h') ) {
         BenchmarkCli.printHelp(opt);
+        System.exit(0);
       }
       // Reset request -- if present, do nothing else.
       // -----------------------------------------------------------------------
       else if ( cl. hasOption('r') ) {
         BenchmarkCli cli = new BenchmarkCli();
-        cli.doReset();
+        if ( cli.doReset() )
+          System.exit(0);
+        else
+          System.exit(1);
       }
       // Download request
       // -----------------------------------------------------------------------
@@ -352,7 +356,10 @@ public class BenchmarkCli {
             cli.doPrintXml(cl.getOptionValue("xml"));
           else
             cli.doPrint();
-        }
+
+          System.exit(0);
+        } else
+          System.exit(1);
       }
       // Batch request
       // -----------------------------------------------------------------------
@@ -361,9 +368,10 @@ public class BenchmarkCli {
         String ofile = cl.hasOption('o') ? cl.getOptionValue('o') : "results.xml";
         
         BenchmarkBatch rbb = new BenchmarkBatch(ofile);
-        if ( rbb.parse(bfile) ) {
-          rbb.run();
-        }
+        if ( rbb.parse(bfile) && rbb.run() ) {
+          System.exit(0);
+        } else
+          System.exit(1);
       }
       // Command line control
       // -----------------------------------------------------------------------
@@ -479,8 +487,9 @@ public class BenchmarkCli {
             cli.doPrintXml(cl.getOptionValue("xml"));
           else
             cli.doPrint();
+          
+          System.exit(0);
         }
-
       } else {
         throw new MissingOptionException("Invalid program arguments, use --help for help!");
       }
@@ -488,8 +497,7 @@ public class BenchmarkCli {
       System.err.println();
       System.err.println("Error : " + e.getMessage());
       System.err.println();
-    } finally {
-      System.exit(0);
-    }
+      System.exit(1);
+    } 
   }
 }

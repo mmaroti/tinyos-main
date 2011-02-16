@@ -2,9 +2,26 @@
 # This shell script is useful for generating hundreds of benchmarks
 # based on specific needs without the need of typing 1 billion words.
 #
+# Modify the code of main() as you like.
+
+# Here is an example how to generate a bunch of descriptions
+main() {
+  A_BMARK="58"
+  TIME=1000
+  TIMER1=(0 0 100)
+  TIMER2=(0 33 100)
+  TIMER3=(0 66 100)
+  #ACK=yes
+  A_WAKEUP="0 30 70 130"
+  for BMARK in $A_BMARK; do
+    for WAKEUP in $A_WAKEUP; do
+      print_bmark >> $1
+    done
+  done
+}
 
 # Print a YAML-correct benchmark description based on env vars
-function print_bmark {
+print_bmark() {
   # start benchmark
   echo "---"
   # config section
@@ -58,19 +75,7 @@ function print_bmark {
   echo -en ${WAKEUP:+"wakeup: $WAKEUP\n"};
 }
 
-# Here is an example how to generate a bunch of descriptions
-A_BMARK="58"
-TIME=1000
-TIMER1=(0 0 100)
-TIMER2=(0 33 100)
-TIMER3=(0 66 100)
-#ACK=yes
-A_WAKEUP="0 30 70 130"
-for BMARK in $A_BMARK; do
-  for WAKEUP in $A_WAKEUP; do
-    print_bmark >> batch_lpl.yml
-  done
-done
+main batch_generated.yml
 
 
 

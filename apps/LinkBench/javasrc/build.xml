@@ -54,7 +54,7 @@
   </target>
   <target name="-clean-dist">
     <input
-      message="All data is going to be deleted from ${dist}. Continue (y/n)?"
+      message="All data is going to be deleted from ${dist}. It is possible that results live there. Continue (y/n)?"
       validargs="y,n"
       addproperty="do.delete"
     />
@@ -85,7 +85,7 @@
   </target>
 
   <target name="jar-cli" depends="compile-cli" description="make the CLI jar">
-    <jar destfile="${dist}/Benchmark.jar" basedir="${build}" includes="**/cli/**">
+    <jar destfile="${dist}/linkbench.jar" basedir="${build}" includes="**/cli/**">
       <manifest>
         <attribute name="Main-Class" value="benchmark.cli.BenchmarkCli"/>
         <attribute name="Class-Path" value="lib/benchmark-common.jar lib/commons-cli-1.2.jar"/>

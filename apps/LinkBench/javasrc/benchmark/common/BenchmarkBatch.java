@@ -262,7 +262,7 @@ public class BenchmarkBatch {
   /**
    * Run the previously parsed benchmark configurations.
    */
-  public void run() {
+  public boolean run() {
     PrintStream ps = null;
     try {
       ps = new PrintStream(this.outputfile);
@@ -298,13 +298,16 @@ public class BenchmarkBatch {
       ps.close();
       System.out.println();
       System.out.println("> Batch processing successfully finished!");
+      return true;
     } catch (FileNotFoundException ex) {
       System.out.println("   File named " + outputfile + " cannot be created!");
       System.out.println("> Batch processing failed!");
+      return false;
     } catch (Exception ex) {
       System.out.println("   " + ex.getMessage());
       System.out.println("> Batch processing failed!");
-    }
+      return false;
+    } 
   }
 
 }
