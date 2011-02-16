@@ -19,7 +19,7 @@
      <item>
       <widget class="QGroupBox" name="horizontalGroupBox">
        <property name="title">
-        <string>Person</string>
+        <string/>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>

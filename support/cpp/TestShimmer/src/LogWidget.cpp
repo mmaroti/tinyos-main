@@ -76,8 +76,8 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
 
     init();
 
-    ui->personLabel->setTextFormat(Qt::RichText);
-    ui->personLabel->setTextFormat(Qt::RichText);
+    ui->personLabel->setFont(QFont("Times",13,QFont::Bold));
+    ui->birthLabel->setFont(QFont("Times",10,QFont::Bold));
 
     QFontMetrics fontMetrics(ui->log->font());
 
@@ -125,9 +125,8 @@ void LogWidget::init()
 
     ui->motionTypeCBox->setCurrentIndex(0);
 
-    ui->motionTypeCBox->setEnabled(false);;
+    ui->motionTypeCBox->setEnabled(false);
     ui->recStartButton->setEnabled(false);
-    ui->loadButton->setEnabled(false);
     ui->recEndButton->setEnabled(false);
     ui->motionStartButton->setEnabled(false);
     ui->motionEndButton->setEnabled(false);
@@ -135,7 +134,9 @@ void LogWidget::init()
     ui->checkButton->setEnabled(false);
     ui->clearButton->setEnabled(false);
     ui->clearKeepPersonButton->setEnabled(false);
-    ui->entryLine->setEnabled(true);
+
+    ui->entryLine->setEnabled(true);    
+    ui->loadButton->setEnabled(true);
 
     //ui->saveButton->setStyleSheet("* { background-color: rgb(255,185,185) }");
 }
@@ -290,18 +291,19 @@ void LogWidget::on_entryLine_returnPressed()
 
 void LogWidget::on_recStartButton_clicked()
 {
-    init();
+    //init();
 
     createItems(-1, NORMAL, RECORDSTART, EMPTY);
 
-    //ui->recStartButton->setEnabled(false);
+    ui->recStartButton->setEnabled(false);
     ui->selectPersonButton->setEnabled(false);
     ui->motionStartButton->setEnabled(true);
-    //ui->saveButton->setEnabled(false);
-    //ui->checkButton->setEnabled(false);
-    //ui->clearButton->setEnabled(false);
-    //ui->loadButton->setEnabled(false);
-    //ui->selectPersonButton->setEnabled(false);
+    ui->saveButton->setEnabled(false);
+    ui->checkButton->setEnabled(false);
+    ui->clearButton->setEnabled(false);
+    ui->clearKeepPersonButton->setEnabled(false);
+    ui->loadButton->setEnabled(false);
+    ui->motionTypeCBox->setEnabled(false);
 
     entryLineInit();
 
@@ -383,15 +385,11 @@ void LogWidget::on_loadButton_clicked()
     if ( !file.isEmpty() ) {
         init();
 
-        ui->recStartButton->setEnabled(false);
-        ui->recEndButton->setEnabled(false);
-        ui->motionStartButton->setEnabled(false);
-        ui->motionEndButton->setEnabled(false);
         ui->saveButton->setEnabled(true);
         ui->checkButton->setEnabled(true);
         ui->clearButton->setEnabled(true);
         ui->clearKeepPersonButton->setEnabled(true);
-        ui->entryLine->setEnabled(false);
+        ui->selectPersonButton->setEnabled(false);
 
         //disconnect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
 
@@ -408,15 +406,14 @@ void LogWidget::on_saveButton_clicked()
 
     qint64 recordID = getRecordID(person.id(),ui->motionTypeCBox->currentText());
     QString fn = "../rec/"+QString::number(recordID)+".csv";
-    ui->recStartButton->setEnabled(true);
+    saveLog( fn );
+
     ui->loadButton->setEnabled(true);
     ui->selectPersonButton->setEnabled(false);
     ui->recStartButton->setEnabled(false);
     ui->loadButton->setEnabled(false);
     //ui->entryLine->setEnabled(true);
     //connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
-
-    saveLog( fn );
 
     entryLineInit();
 }
@@ -440,6 +437,7 @@ void LogWidget::on_clearButton_clicked()
     if(ret == QMessageBox::Ok){
         init();
         ui->selectPersonButton->setEnabled(true);
+
         ui->selectPersonButton->setFocus();
         ui->personLabel->clear();
         ui->birthLabel->clear();
@@ -574,7 +572,7 @@ void LogWidget::on_selectPersonButton_clicked()
 
 void LogWidget::on_motionTypeCBox_currentIndexChanged(int i)
 {
-    if( i != 0){
+    if( i != 0 ){
         ui->recStartButton->setEnabled(true);
         ui->loadButton->setEnabled(true);
     }
@@ -589,9 +587,9 @@ void LogWidget::onPersonSelected(const Person& p)
 
     person = p;
 
-    ui->personLabel->setText("<span style=\" font-size:8pt; font-weight:600;\">"+person.name()+"</span>");
+    ui->personLabel->setText(person.name());
 
-    ui->birthLabel->setText("<span style=\" font-size:8pt; font-weight:600;\">"+person.birth().toString("yyyy-MM-dd")+"</span>");
+    ui->birthLabel->setText(person.birth().toString("yyyy-MM-dd"));
 
     ui->motionTypeCBox->setEnabled(true);
 }
@@ -696,6 +694,9 @@ void LogWidget::saveLog(const QString &filename)
     ts << "#Record ID" << endl;
     ts << getRecordID(person.id(), ui->motionTypeCBox->currentText()) << endl;
 
+    ts << "#Motion type" << endl;
+    ts << ui->motionTypeCBox->currentIndex() << endl;
+
     ts.flush();
     f.close();
 }
@@ -733,8 +734,14 @@ void LogWidget::loadLog(const QString &filename)
                 csvToPerson(line);            //convert line string to person data
                 line = ts.readLine();
             }
-            while( !line.isEmpty() ){
+            while( !line.isEmpty() && line != "#Motion type" ){
                 qint64 recordID = line.toLongLong();            //convert line string to record id
+                line = ts.readLine();
+            }
+            line = ts.readLine();
+            while( !line.isEmpty()){
+                ui->motionTypeCBox->setCurrentIndex(line.toInt());         //convert line string to record id
+                ui->recStartButton->setEnabled(false);
                 line = ts.readLine();
             }
             f.close();
@@ -790,6 +797,8 @@ void LogWidget::csvToPerson(const QString &line)
         QString birth   = csvIterator.next();
 
         person = Person(id, name, QDate::fromString(birth, "yyyy-MM-dd"));
+        ui->personLabel->setText(person.name());
+        ui->birthLabel->setText(person.birth().toString("yyyy-MM-dd"));
     }
 
 }
