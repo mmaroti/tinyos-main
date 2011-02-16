@@ -14,6 +14,7 @@ INCLUDEPATH += src/
 INCLUDEPATH += src/Solver/
 INCLUDEPATH += src/SDCard/
 INCLUDEPATH += src/OpenGL/
+INCLUDEPATH += src/SQL/
 
 # INCLUDEPATH += ../qwtplot3d/include
 QMAKE_LIBDIR += ../QextSerialPort/build
@@ -31,6 +32,7 @@ DEFINES += QT_DLL
 
 # QWT3D_DLL
 QT += opengl
+QT += sql
 isEmpty( ISQT4 ):CONFIG += opengl
 SOURCES += src/DataRecorder.cpp \
     src/MainWindow.cpp \
@@ -103,7 +105,9 @@ SOURCES += src/DataRecorder.cpp \
     src/OpenGL/DataHolder.cpp \
     src/OpenGL/GLWindow.cpp \
     src/OpenGL/GLRightElbowFlex.cpp \
-    src/DriveSelectorDialog.cpp
+    src/DriveSelectorDialog.cpp \
+    src/SQL/SQLDialog.cpp \
+    src/SQL/RecordHandler.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -183,7 +187,11 @@ HEADERS += src/DataRecorder.h \
     src/OpenGL/GLWindow.hpp \
     src/OpenGL/DataHolder.hpp \
     src/DriveSelectorDialog.h \
-    src/Person.hpp
+    src/SQL/SQLDialog.hpp \
+    src/SQL/RecordHandler.hpp \
+    src/SQL/Person.hpp \
+    src/SQL/MotionTypes.hpp \
+    src/SQL/CustomSqlQueryModel.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

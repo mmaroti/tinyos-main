@@ -50,12 +50,14 @@
 #include <QTextStream>
 #include <QFontMetrics>
 #include "GLWindow.hpp"
-#include "Person.hpp"
+#include "SQLDialog.hpp"
+#include "RecordHandler.hpp"
 
 namespace {
 
     const int NO_MORE = -1;
     const int TOO_SHORT_IN_SEC = 1;
+    const qint64 INVALID_RECORD_ID = -1;
 
     const char PASSED_TEXT[] = "Play";
     const char FAILED_TEXT[] = "Failed";
@@ -70,14 +72,19 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
         QWidget(parent),
         ui(new Ui::LogWidget),
         application(app),
-        blockingBox(0)
+        blockingBox(0),
+        dial(new SQLDialog),
+        recSelect(new RecordHandler),
+        recordID(INVALID_RECORD_ID)
 {
     ui->setupUi(this);
 
     init();
 
-    ui->personLabel->setFont(QFont("Times",13,QFont::Bold));
-    ui->birthLabel->setFont(QFont("Times",10,QFont::Bold));
+    QFont defaultBoldFont = QFont();
+    defaultBoldFont.setBold(true);
+    ui->personLabel->setFont(defaultBoldFont);
+    ui->birthLabel->setFont(defaultBoldFont);
 
     QFontMetrics fontMetrics(ui->log->font());
 
@@ -99,7 +106,6 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
     connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
 
     connect(&app.connectionState, SIGNAL(color(StateColor)), SLOT(stateColor(StateColor)));
-    connect(this, SIGNAL(personSelected(Person)), SLOT(onPersonSelected(Person)));
 
     blockingBox = new QMessageBox(QMessageBox::Information,
                                   "Checking record",
@@ -107,6 +113,10 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
                                   QMessageBox::NoButton, this);
     blockingBox->setModal(true);
     blockingBox->setStandardButtons(QMessageBox::NoButton);
+
+    connect(dial, SIGNAL(personSelected(Person)), SLOT(onPersonSelected(Person)));
+
+    connect(recSelect, SIGNAL(recordSelected(qint64,Person)), SLOT(onRecordSelected(qint64,Person)));
 }
 
 LogWidget::~LogWidget()
@@ -381,21 +391,40 @@ void LogWidget::on_motionEndButton_clicked()
 void LogWidget::on_loadButton_clicked()
 {
     qDebug() << "Load";
-    QString file = QFileDialog::getOpenFileName(this, "Select a file to open", "c:/", "CSV (*.csv);;Any File (*.*)");
-    if ( !file.isEmpty() ) {
-        init();
 
-        ui->saveButton->setEnabled(true);
-        ui->checkButton->setEnabled(true);
-        ui->clearButton->setEnabled(true);
-        ui->clearKeepPersonButton->setEnabled(true);
-        ui->selectPersonButton->setEnabled(false);
+    recSelect->resize(950, 850);
+    //recSelect->showMaximized();
+    recSelect->show();
+    recSelect->activateWindow();
+}
 
-        //disconnect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
+void LogWidget::onRecordSelected(qint64 recID, const Person& p) {
 
-        loadLog(file);
-        if(ui->log->rowCount() == 0) ui->recStartButton->setEnabled(true);
-    }
+    recordID = recID;
+    person = p;
+
+    loadRecord();
+}
+
+void LogWidget::loadRecord() {
+
+    Q_ASSERT( recordID > 0 );
+
+    QString file("../rec/"+QString::number(recordID)+".csv");
+
+    init();
+
+    ui->personLabel->setText(person.name());
+    ui->birthLabel->setText(person.birth().toString("yyyy-MM-dd"));
+    ui->saveButton->setEnabled(true);
+    ui->checkButton->setEnabled(true);
+    ui->clearButton->setEnabled(true);
+    ui->clearKeepPersonButton->setEnabled(true);
+    ui->selectPersonButton->setEnabled(false);
+
+    //disconnect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
+
+    loadLog(file);
 }
 
 void LogWidget::on_saveButton_clicked()
@@ -404,8 +433,10 @@ void LogWidget::on_saveButton_clicked()
     //connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
     //QString fn = QFileDialog::getSaveFileName(  this, "Choose a filename to save under", "c:/"+ui->log->item(0,ENTRY)->text()+".csv", "CSV (*.csv)");
 
-    qint64 recordID = getRecordID(person.id(),ui->motionTypeCBox->currentText());
+    getUniqueRecordID(ui->motionTypeCBox->currentText());
+
     QString fn = "../rec/"+QString::number(recordID)+".csv";
+
     saveLog( fn );
 
     ui->loadButton->setEnabled(true);
@@ -418,9 +449,27 @@ void LogWidget::on_saveButton_clicked()
     entryLineInit();
 }
 
-qint64 LogWidget::getRecordID(qint64 id, const QString& motionType)
+void LogWidget::getUniqueRecordID(const QString& motionType)
 {
-    return 1;
+    Q_ASSERT(!person.isNull());
+
+    if (recordID > 0) {        
+        Q_ASSERT(QFile::exists("../rec/"+QString::number(recordID)+".csv"));
+        return;
+    }
+
+    MotionType type; // TODO Find a better way to do it!
+
+    if (motionType == "RIGHT_ELBOW_FLEX") {
+        type = RIGHT_ELBOW_FLEX;    }
+    else if (motionType == "LEFT_ELBOW_FLEX") {
+        type = LEFT_ELBOW_FLEX;
+    }
+    else {
+        Q_ASSERT(false);
+    }
+
+    recordID = recSelect->insertRecord(person.id(), type);
 }
 
 void LogWidget::on_clearButton_clicked()
@@ -442,6 +491,7 @@ void LogWidget::on_clearButton_clicked()
         ui->personLabel->clear();
         ui->birthLabel->clear();
         person = Person();
+        recordID = INVALID_RECORD_ID;
         //connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
     }
 }
@@ -463,6 +513,7 @@ void LogWidget::on_clearKeepPersonButton_clicked()
         ui->motionTypeCBox->setEnabled(true);
         ui->motionTypeCBox->setFocus();
         //connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
+        recordID = INVALID_RECORD_ID;
     }
 }
 
@@ -567,7 +618,8 @@ void LogWidget::on_selectPersonButton_clicked()
         return;
     }
 
-    emit personSelected(Person(1, "Maci Laci", QDate::fromString("1985-04-07", "yyyy-MM-dd")));
+    dial->show();
+    dial->activateWindow();
 }
 
 void LogWidget::on_motionTypeCBox_currentIndexChanged(int i)
@@ -580,12 +632,10 @@ void LogWidget::on_motionTypeCBox_currentIndexChanged(int i)
 
 void LogWidget::onPersonSelected(const Person& p)
 {
-    if (p.isNull()) {
-
-        return;
-    }
+    Q_ASSERT(!p.isNull());
 
     person = p;
+    recordID = INVALID_RECORD_ID;
 
     ui->personLabel->setText(person.name());
 
@@ -692,7 +742,7 @@ void LogWidget::saveLog(const QString &filename)
     ts << QString::number(person.id()) << "," << person.name() << "," << person.birth().toString("yyyy-MM-dd") << endl;
 
     ts << "#Record ID" << endl;
-    ts << getRecordID(person.id(), ui->motionTypeCBox->currentText()) << endl;
+    ts << recordID << endl;
 
     ts << "#Motion type" << endl;
     ts << ui->motionTypeCBox->currentIndex() << endl;
@@ -735,7 +785,7 @@ void LogWidget::loadLog(const QString &filename)
                 line = ts.readLine();
             }
             while( !line.isEmpty() && line != "#Motion type" ){
-                qint64 recordID = line.toLongLong();            //convert line string to record id
+                //qint64 recordID = line.toLongLong();            //convert line string to record id
                 line = ts.readLine();
             }
             line = ts.readLine();
@@ -796,11 +846,10 @@ void LogWidget::csvToPerson(const QString &line)
         QString name   = csvIterator.next();
         QString birth   = csvIterator.next();
 
-        person = Person(id, name, QDate::fromString(birth, "yyyy-MM-dd"));
-        ui->personLabel->setText(person.name());
-        ui->birthLabel->setText(person.birth().toString("yyyy-MM-dd"));
+        Q_ASSERT(person.id() == id);
+        Q_ASSERT(person.name() == name);
+        Q_ASSERT(person.birth() == QDate::fromString(birth, "yyyy-MM-dd"));
     }
-
 }
 
 void LogWidget::stateColor(StateColor color) {

@@ -41,6 +41,8 @@
 
 class QMessageBox;
 class Application;
+class SQLDialog;
+class RecordHandler;
 
 namespace Ui{
     class LogWidget;
@@ -54,11 +56,6 @@ public:
 
     LogWidget(QWidget *parent, Application &app);
     ~LogWidget();
-
-signals:
-
-    // TODO Mock implementation -- remove when ready
-    void personSelected(const Person& p);
 
 private slots:
 
@@ -74,6 +71,7 @@ private slots:
     void on_checkButton_clicked();
     void on_selectPersonButton_clicked();
     void onPersonSelected(const Person& p);
+    void onRecordSelected(qint64 recID, const Person& p);
     void on_motionTypeCBox_currentIndexChanged(int);
 
     void ShowContextMenu(const QPoint& pos);
@@ -100,9 +98,7 @@ private:
 
     enum Status { UNKNOWN, OK, FAILED, EMPTY };
 
-    Person person;
-
-    qint64 getRecordID(qint64 personID, const QString& motionType);
+    void getUniqueRecordID(const QString& motionType);
     void onGoto(int);
     void onDelRow(int);
 
@@ -132,6 +128,7 @@ private:
     void init();
     void entryLineInit();
 
+    void loadRecord();
     void saveLog(const QString&);
     void loadLog(const QString&);
     void csvToLog(const QString&);
@@ -179,6 +176,11 @@ private:
     QMessageBox* blockingBox;
     int startAt;
     int endAt;
+
+    SQLDialog* const dial;
+    RecordHandler* const recSelect;
+    qint64 recordID;
+    Person person;
 };
 
 #endif // LOGWIDGET_H
