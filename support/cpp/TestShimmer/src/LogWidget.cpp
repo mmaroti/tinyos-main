@@ -75,6 +75,8 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
         blockingBox(0),
         dial(new SQLDialog),
         recSelect(new RecordHandler),
+        //dial(0),
+        //recSelect(0),
         recordID(INVALID_RECORD_ID)
 {
     ui->setupUi(this);
