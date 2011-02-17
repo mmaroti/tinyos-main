@@ -137,7 +137,7 @@ void GLRightElbowFlex::rotate() {
 }
 
 // TODO Can we pass a member function to GLU?
-void errorCallback() {
+void APIENTRY errorCallback() {
 
     const GLubyte* estring = gluErrorString(glGetError());
 
@@ -182,8 +182,7 @@ void GLRightElbowFlex::initializeGL() {
 
     GLUquadricObj* qobj = gluNewQuadric();
 
-    // FIXME Why does it fail to compile on windows?
-    //gluQuadricCallback(qobj, GLU_ERROR, errorCallback);
+    gluQuadricCallback(qobj, GLU_ERROR, errorCallback);
 
     headSilhouette(qobj);
 
