@@ -16,8 +16,7 @@ STOP_DATE=`date +%Y-%m-%d`
 DATE_STEP='1 month'
 BENCH_FILE="batchfiles/${PROGNAME%.*}.yml"
 
-ERROR_LOGFILE=${PROGNAME%.*}-error.log
-FAIL_LOGFILE=${PROGNAME%.*}-fail.log
+LOGFILE=${PROGNAME%.*}.log
 
 SHORTOPTS="hvF:" 
 LONGOPTS="help,version,svn:,step:,benchfile:,start:,stop:" 
@@ -122,11 +121,18 @@ date1_le_date2() {
 }
 
 check_last() {
-  if [ $? -eq 0 ]; then
+  RET=$?
+  DOFAIL="no"
+  [ "$1" = "--fail" ] && DOFAIL="yes" && shift
+  cat $3 >> $LOGFILE
+  if [ $RET -eq 0 ]; then
     echo -ne "[\033[1m $1 \033[0m]"
+    return 0
   else
-    echo -e "[\033[1m $2 \033[0m]"
-    cat $3 && rm $3
+    echo -ne "[\033[1m $2 \033[0m]"
+    [ $DOFAIL = "yes" ] && return 1
+    cat $3
+    rm $3
     exit 1
   fi
 }
@@ -174,6 +180,7 @@ check_params
 
 SVNBIN=/usr/bin/svn
 TMP=`tempfile`
+trap '{ rm -f "$TMP"; }' EXIT
 
 # make executable the linkbench.sh script
 chmod +x linkbench.sh
@@ -181,38 +188,45 @@ chmod +x linkbench.sh
 echo "-------------------------------------------------------------------------------------------"
 
 # while we do not run past the stop date
-STEP_CURRENT=1
-while [ $STEP_CURRENT -le $STEP_TOTAL ]; do
+STEP_CURRENT=0
+NEXT_DATE=$START_DATE
+
+rm -f $LOGFILE
+while [ $STEP_CURRENT -lt $STEP_TOTAL ]; do
   
-  printf "(%2d/%2d) - %s : " $STEP_CURRENT $STEP_TOTAL $START_DATE
+  ((STEP_CURRENT++))
+  # we can initiate the next svn update, to save as much time as we can.
+  START_DATE=$NEXT_DATE
+  NEXT_DATE=`date -d "$START_DATE +$DATE_STEP" +%Y-%m-%d`
+  
+  printf "(%2d/%2d) - %s : " $STEP_CURRENT $STEP_TOTAL $START_DATE | tee -a $LOGFILE
   
   # (1) update the svn repository
-  ( cd $TOSSVNDIR;  $SVNBIN update -r {$START_DATE} > $TMP 2>&1 )
+  ( cd $TOSSVNDIR; $SVNBIN update -r {$START_DATE} > $TMP 2>&1 )
   check_last "Rev: `tail -1 $TMP | tr -cd '[:digit:]'`" "SVN ERROR" $TMP
   
   # (2) re-make the nesc code
   ( cd $LINKBDIR; ./minstall.sh --compileonly > $TMP 2>&1 )
-  check_last "COMPILE OK" "COMPILE ERROR" $TMP  
+  check_last --fail "COMPILE OK" "COMPILE ERROR" $TMP || { echo ""; continue; }
   
   # (3) program the motes
   ( cd $LINKBDIR ; ./minstall.sh --progonly > $TMP 2>&1 )
-  check_last "PROGRAM OK" "PROGRAM ERROR" $TMP
+  check_last --fail "PROGRAM OK" "PROGRAM ERROR" $TMP || { echo ""; continue; }
   sleep 2
   
   # (4) run the benchmark
   ./linkbench.sh -F $BENCH_FILE -o result-${START_DATE}.xml > $TMP 2>&1
   check_last "RUN OK" "RUN ERROR" $TMP
+  
   sleep 2
   ./linkbench.sh -r > $TMP 2>&1
   check_last "RESET OK" "RESET ERROR" $TMP
   
   # (5) clean
-  ( cd $LINKBDIR; make clean > $TMP 2>&1  )
+  ( cd $LINKBDIR; make clean 2>&1 | tee -a $LOGFILE > $TMP )
   check_last "CLEAN OK" "CLEAN ERROR" $TMP
   
   echo ""
-  # step to the next date
-  START_DATE=`date -d "$START_DATE +$DATE_STEP" +%Y-%m-%d`
-  ((STEP_CURRENT++))
 done
+rm $TMP
 exit 0

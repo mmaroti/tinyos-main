@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Benchmark" default="dist" basedir=".">
-  <description>Benchmark ANT script</description>
+<project name="LinkBench" default="dist" basedir=".">
+  <description>LinkBench ANT script</description>
 
   <!-- set global properties for this build -->
   <property name="base" location="${basedir}/benchmark"/>

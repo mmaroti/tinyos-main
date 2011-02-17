@@ -1,8 +1,7 @@
 #!/bin/bash
-# Install the nesC code to motes currently connected to the PC.
-# Works only with telosa,telosb, and iris motes (but can be easily extended).
+# Install the desired nesC code to currently connected motes. Automatic mote
+# detection works only with telosa,telosb, and iris motes (but can be easily extended).
 #
-# This script can also be used with any application.
 
 PROGNAME=${0##*/} 
 
@@ -210,11 +209,13 @@ if [[ $? -ne 0 || $PLATFORMS = "" || $PRPLAN = "" ]]; then
   exit 1
 fi
 # compile the application
-[ $PROGONLY != 'yes' ] && ( cd $SOURCEDIR && compile_code $PLATFORMS )
+if [ $PROGONLY != 'yes' ]; then
+  cd $SOURCEDIR
+  compile_code $PLATFORMS
+fi  
 # program the motes
-[ $COMPILEONLY != 'yes' ] && ( cd $SOURCEDIR && program_motes $PRPLAN )
+if [ $COMPILEONLY != 'yes' ]; then
+  cd $SOURCEDIR
+  program_motes $PRPLAN
+fi
 exit 0
-
-
-
-

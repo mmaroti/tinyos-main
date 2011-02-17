@@ -32,12 +32,20 @@ LinkBench application README
      - in Unix systems : export DEF_CHANNEL=22
      - in Windows      : set DEF_CHANNEL=22    
 
-4. Compile Quick Info:
-   ------------------------------------
-    a, To compile mote's code execute in the current directory:
-       make <platform>
-    b, To compile the Java code, execute in the javasrc directory:
+4. Quick Install Guide:
+   --------------------
+    a, Connect one mote the your PC, and program it to be a BaseStation.
+       Check on which port it is connected ( with motelist for example), and remember it.
+    b, Connect as much motes as you would like to program to be benchmark 'test motes'.
+    c, Either program them as you like, or execute the minstall.sh script:
+       ./minstall.sh -i /dev/ttyUSBX
+       where /dev/ttyUSBX is the device on which the BaseStation lives.
+    d, Go to the javasrc directory and type:
        ant
+       This will compile and assemble the Java sources.
+    e, Got to the javabin directory created by the previous command, and execute:
+       chmod +x *.sh
+       ./linkbench.sh --help
    
 4. Programming the motes:
    ----------------------
