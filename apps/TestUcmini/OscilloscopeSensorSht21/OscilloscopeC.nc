@@ -20,26 +20,34 @@ module OscilloscopeC @safe()
     interface Boot;
     interface Read<uint16_t>;
     interface SplitControl as I2CControl;
-		interface Leds;
-		interface AMSend;
+    interface Leds;
+    interface AMSend;
+    interface SplitControl as AMControl;
   }
 }
 implementation
 {
 
-	
-	event void I2CControl.startDone(error_t error) {
+  event void I2CControl.startDone(error_t error) {
+    if(error!=SUCCESS)
+      call I2CControl.start();
+    else
+      call AMControl.start();
+  }
+
+  event void AMControl.startDone(error_t error) {
     call Read.read();
   }
 
   event void Boot.booted() {
-		DDRF = _BV(PF2);
-		PORTF = _BV(PF2);
+    DDRF = _BV(PF2);
+    PORTF = _BV(PF2);
     call I2CControl.start();
-    
+    //call AMControl.start();
   }
 
   event void AMSend.sendDone(message_t* msg, error_t error) {}
   event void I2CControl.stopDone(error_t error) {}
+  event void AMControl.stopDone(error_t error) {}
   event void Read.readDone(error_t result, uint16_t data) {}
 }

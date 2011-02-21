@@ -22,12 +22,18 @@ implementation
   components OscilloscopeC, MainC, LedsC,
     new TimerMilliC(),
     Sht21C as Sensor, 
+    //new Taos2550C() as Sensor,
     //Ms5607C as Sensor,
-    new SerialAMSenderC(10);
+    //new AMSenderC(10) as Send,
+    //ActiveMessageC as AMC;
+		new SerialAMSenderC(10) as Send,
+    SerialActiveMessageC as AMC;
 
   OscilloscopeC.Boot -> MainC;
-  OscilloscopeC.AMSend -> SerialAMSenderC;
+  OscilloscopeC.AMSend -> Send;
+  OscilloscopeC.AMControl -> AMC;
   OscilloscopeC.Read -> Sensor.Temperature;
+  //OscilloscopeC.Read -> Sensor.VisibleLight;
   OscilloscopeC.Leds -> LedsC;
 
   OscilloscopeC.I2CControl -> Sensor.SplitControl; 
