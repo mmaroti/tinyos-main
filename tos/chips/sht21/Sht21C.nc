@@ -40,7 +40,7 @@ configuration Sht21C {
 implementation {
   components Sht21DriverC;
   
-	Temperature = Sht21DriverC.Temperature;
+  Temperature = Sht21DriverC.Temperature;
   Humidity    = Sht21DriverC.Humidity;
   SplitControl = Sht21DriverC;
 
