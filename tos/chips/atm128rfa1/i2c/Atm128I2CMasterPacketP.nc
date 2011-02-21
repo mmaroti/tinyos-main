@@ -145,6 +145,7 @@ implementation {
         call I2C.enable(FALSE);
         call I2C.enableInterrupt(FALSE);
         call I2C.setInterruptPending(FALSE);
+        call I2C.setStop(FALSE);
         call I2C.sendCommand();
         call I2C.off();
         state = I2C_OFF;
@@ -185,7 +186,8 @@ implementation {
       call I2C.enableInterrupt(TRUE);
       call I2C.setInterruptPending(TRUE);
       call I2C.enableAck(FALSE);
-      
+      call I2C.setStop(FALSE);
+
       if (flags & I2C_START) {
         call I2C.setStart(TRUE);
         state = I2C_STARTING;
@@ -234,7 +236,8 @@ implementation {
       call I2C.setInterruptPending(TRUE);
       call I2C.enableAck(TRUE);
       call I2C.enableInterrupt(TRUE);
-      
+      call I2C.setStop(FALSE);
+
       if (flags & I2C_START) {
         call I2C.setStart(TRUE);
     //	call WriteDebugLeds.led0On();
@@ -290,7 +293,10 @@ implementation {
           if (reading == TRUE) {     
               state = I2C_DATA;
               call I2C.setInterruptPending(TRUE);
-              call I2C.enableAck(TRUE);
+              if (index == packetLen - 1 && !(packetFlags & I2C_ACK_END)) 
+                call I2C.enableAck(FALSE);
+              else
+                call I2C.enableAck(TRUE);
               call I2C.sendCommand();
           }                        	      	
         break;
@@ -298,7 +304,8 @@ implementation {
           if (reading == TRUE) {
               if (index < packetLen-1) {
                   packetPtr[index] = call I2C.read();
-                  if (index == packetLen - 2 && !(packetFlags & I2C_ACK_END)) { 
+                  index++;
+                  if (index == packetLen - 1 && !(packetFlags & I2C_ACK_END)) { 
                     call I2C.enableAck(FALSE);
                   }
                   //state = I2C_SLAVE_ACK;
@@ -319,7 +326,6 @@ implementation {
                   signal I2CPacket.readDone(SUCCESS, packetAddr, packetLen, packetPtr);
                   return;
               }
-              index++;
               call I2C.sendCommand();
               return;
           } else { // Writing
@@ -350,10 +356,10 @@ implementation {
           packetFlags &= ~I2C_START;
           call I2C.setStart(FALSE);
           if (call I2C.status() != ATM128_I2C_START && call I2C.status() != ATM128_I2C_RSTART) {
-              if (reading) {
+              //if (reading) {
                   //call ReadDebugLeds.set(call I2C.status() >> 4);
                   
-              }
+              //}
               //call ReadDebugLeds.led2On();
               i2c_abort(FAIL);
               return;
@@ -366,8 +372,8 @@ implementation {
             //state = I2C_DATA;
           }
           else {
-              call I2C.write(((packetAddr & 0x7f) << 1) | ATM128_I2C_SLA_WRITE);
-              state = I2C_DATA;
+            call I2C.write(((packetAddr & 0x7f) << 1) | ATM128_I2C_SLA_WRITE);
+            state = I2C_DATA;
           }
           call I2C.sendCommand();
         break;
