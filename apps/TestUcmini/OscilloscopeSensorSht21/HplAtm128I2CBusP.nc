@@ -79,10 +79,17 @@ implementation {
       call I2CClk.set();
       call I2CData.set();
     }
+
     TWSR=I2C_PRESCALER;
     TWBR=I2C_BITRATE;
     TWAR = 0;
     TWCR = 0;
+    if(call DiagMsg.record()){
+      call DiagMsg.str("init");
+      call DiagMsg.uint8(TWBR);
+      call DiagMsg.uint8(TWSR&0x03);
+      call DiagMsg.send();
+    }
   }
 
   async command void I2C.off() {
@@ -97,12 +104,11 @@ implementation {
   async command void I2C.sendCommand() {
     atomic TWCR = current;
      if(call DiagMsg.record()){
-			call DiagMsg.str("cmd");
-			call DiagMsg.uint8(TWBR);
-			call DiagMsg.uint8(TWSR&0x03);
-			call DiagMsg.hex8(TWCR);
-			call DiagMsg.hex8(TWDR);
-			call DiagMsg.send();
+        call DiagMsg.str("cmd");
+
+        call DiagMsg.hex8(TWCR);
+        call DiagMsg.hex8(TWDR);
+        call DiagMsg.send();
 	  }
   }
 
@@ -217,9 +223,10 @@ implementation {
 
   AVR_ATOMIC_HANDLER(TWI_vect) {
 	if(call DiagMsg.record()){
-		  call DiagMsg.str("int");
-		  call DiagMsg.hex8(TWSR&0xf8);
-		  call DiagMsg.send();
+      call DiagMsg.str("int");
+      call DiagMsg.hex8(TWSR&0xf8);
+      call DiagMsg.hex8(TWDR);
+      call DiagMsg.send();
 	}
     signal I2C.commandComplete();
   }
