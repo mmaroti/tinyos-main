@@ -151,7 +151,7 @@ public class BenchmarkController implements MessageListener {
     smsg.set_config_timers_delay(config.get_timers_delay());
     smsg.set_config_timers_period_msec(config.get_timers_period_msec());
 
-    smsg.set_config_lplwakeup(config.get_lplwakeup());
+    smsg.set_config_mac_setup(config.get_mac_setup());
     smsg.set_type(BenchmarkStatic.SETUP_BASE);
 
    	try {
@@ -179,7 +179,7 @@ public class BenchmarkController implements MessageListener {
       if ( !sync(currentMote) ) {
         throw new CommunicationException(
                 "Synchronization Error with Mote ID: " + currentMote + "." +
-                " -- Possible reasons: Not operational, not configured (Only LED 1 On), badly configured (No LEDS On)"
+                " -- Possible reasons: Bad benchmark ID, Mote not operational, not configured (Only LED 1 On), or badly configured (No LEDS On)"
                 );
       }
       else
@@ -245,7 +245,7 @@ public class BenchmarkController implements MessageListener {
    *
    * @throws CommunicationException
    */
-  public void download() throws CommunicationException
+  public void download_stat() throws CommunicationException
 	{
     for ( currentMote = 1; currentMote <= maxMoteId ; ++currentMote ) {
       for ( currentData = 0; currentData < edgecount; ++currentData ) {
@@ -261,14 +261,14 @@ public class BenchmarkController implements MessageListener {
 	}
 
   /**
-   * Download the debug information from the motes.
+   * Download the profile information from the motes.
    *
    * @throws CommunicationException
    */
-  public void download_debug() throws CommunicationException
+  public void download_profile() throws CommunicationException
 	{
     for (currentMote = 1; currentMote <= maxMoteId; ++currentMote) {
-      if (!requestData(currentMote, currentData, BenchmarkStatic.CTRL_DBG_REQ)) {
+      if (!requestData(currentMote, currentData, BenchmarkStatic.CTRL_PROFILE_REQ)) {
         throw new CommunicationException(
                 "Download Debug Error with Mote ID: " + currentMote + ".");
       }
@@ -345,8 +345,8 @@ public class BenchmarkController implements MessageListener {
             this.results.appendStatFromMessage(currentData, rmsg);
           }
           break;
-        case BenchmarkStatic.DATA_DBG_OK:
-          this.results.appendDebugInfoFromMessage(currentMote, rmsg);
+        case BenchmarkStatic.DATA_PROFILE_OK:
+          this.results.appendProfileFromMessage(currentMote, rmsg);
           break;
       }
       handshake = true;

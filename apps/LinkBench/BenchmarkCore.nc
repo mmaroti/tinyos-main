@@ -44,10 +44,10 @@ interface BenchmarkCore {
   command stat_t* getStat(uint16_t idx);
   
   /**
-   * Requests the debug information
-   * @return the line where the first assertion failed
+   * Requests the profile information
+   * @return the mote stat structure
    */
-  command uint16_t getDebug();
+  command profile_t* getProfile();
   
   /**
    * Requests the current edge count 

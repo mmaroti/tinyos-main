@@ -64,7 +64,8 @@ public class BenchmarkBatch {
   private final String S_FORCES           = "forces";
   private final String S_FORCES_ACK       = "ack";
   private final String S_FORCES_BCAST     = "bcast";
-  private final String S_WAKEUP           = "wakeup";
+
+  private final String S_MAC              = "mac";
 
 
   class WrongFormatException extends Exception {
@@ -112,7 +113,7 @@ public class BenchmarkBatch {
         if ( bmark == null )
           throw new WrongFormatException("Check your configuration file's format, it is incorrect!");
         else {
-          String ref[] = { S_CONFIG, S_TIMERS, S_FORCES, S_WAKEUP };
+          String ref[] = { S_CONFIG, S_TIMERS, S_FORCES, S_MAC };
           checkUnknownTags(new HashSet(Arrays.asList(ref)), bmark.keySet());
           
           if ( !bmark.containsKey(S_CONFIG) )
@@ -192,15 +193,48 @@ public class BenchmarkBatch {
           String ref[] = { S_FORCES_ACK, S_FORCES_BCAST};
           checkUnknownTags(new HashSet(Arrays.asList(ref)), new HashSet<String>(forceopts));
         }
-        
-        // wakeup section
+
+        short flags = 0;
+        if ( forceopts != null ) {
+          if ( forceopts.contains(S_FORCES_ACK) )
+            flags |= BenchmarkStatic.GLOBAL_USE_ACK;
+          if ( forceopts.contains(S_FORCES_BCAST) )
+            flags |= BenchmarkStatic.GLOBAL_USE_BCAST;
+        }
+
+        // MAC parameter section
         // ---------------------------------------------------------------------
-        Integer bwakeup = bmark.containsKey(S_WAKEUP)
-                ? (Integer) bmark.get(S_WAKEUP)
-                : (Integer)0;
-        // Value checking
-        if ( bwakeup < 0 )
-          throw new WrongFormatException("All '" + S_WAKEUP + "' values must be non-negative!");
+        List< Map<String,List<Integer>> > macparams = bmark.containsKey(S_MAC)
+                ? (List< Map<String,List<Integer>> >) bmark.get(S_MAC)
+                : null;
+
+        int macsetup[] = new int[BenchmarkStatic.MAC_SETUP_LENGTH];
+        for( int i = 0; i < BenchmarkStatic.MAC_SETUP_LENGTH; ++i ) {
+          macsetup[i] = 0;
+        }
+        
+        // Format checking
+        if (macparams != null) {
+          for (Map<String, List<Integer>> macspec : macparams) {
+
+            if ( macspec.containsKey("lpl") ) {
+              List<Integer> params = (List<Integer>) macspec.get("lpl");
+              if( params.size() != 1)
+                throw new WrongFormatException("LPL MAC expects exactly 1 parameter! (Wakeup interval)");
+              macsetup[BenchmarkStatic.LPL_WAKEUP_OFFSET] = params.get(0).intValue();
+              flags |= BenchmarkStatic.GLOBAL_USE_MAC_LPL;
+            }
+
+            if ( macspec.containsKey("plink") ) {
+              List<Integer> params = (List<Integer>) macspec.get("plink");
+              if( params.size() != 2)
+                throw new WrongFormatException("Packet Link MAC expects exactly 2 parameters! (Max retries & Delay)");
+              macsetup[BenchmarkStatic.PLINK_RETRIES_OFFSET] = params.get(0).intValue();
+              macsetup[BenchmarkStatic.PLINK_DELAY_OFFSET] = params.get(1).intValue();
+              flags |= BenchmarkStatic.GLOBAL_USE_MAC_PLINK;
+            }
+          }
+        }
 
         // Create a SetupT for the current benchmark
         SetupT setup = new SetupT();
@@ -217,17 +251,7 @@ public class BenchmarkBatch {
                 bconfig.get(S_CONFIG_LC) :
                 BenchmarkCommons.DEF_LASTCHANCE);
 
-        setup.set_lplwakeup(bwakeup);
-
-        short flags = 0;
-        if ( forceopts != null ) {
-          if ( forceopts.contains(S_FORCES_ACK) )
-            flags |= BenchmarkStatic.GLOBAL_USE_ACK;
-          if ( forceopts.contains(S_FORCES_BCAST) )
-            flags |= BenchmarkStatic.GLOBAL_USE_BCAST;
-          if ( bmark.containsKey(S_WAKEUP) )
-            flags |= BenchmarkStatic.GLOBAL_USE_EXTERNAL_MAC;
-        }
+        setup.set_mac_setup(macsetup);
         setup.set_flags(flags);
 
         setup.set_timers_isoneshot(ios);
@@ -284,8 +308,8 @@ public class BenchmarkBatch {
           ctrl.setup(s);
           ctrl.syncAll();
           ctrl.run();
-          ctrl.download();
-          ctrl.download_debug();
+          ctrl.download_stat();
+          ctrl.download_profile();
         } catch (BenchmarkController.MessageSendException ex) {
           ctrl.getResults().setError(ex.getMessage());
         } catch (BenchmarkController.CommunicationException ex) {

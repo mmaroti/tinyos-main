@@ -41,7 +41,7 @@
 #define SET_STATE(s) atomic { call Leds.set(s); state = s; }
 
 #if defined(_DEBUG_MODE_)
-  #define _ASSERT_(cond) if(!(cond || dbgLINE)){ dbgLINE = __LINE__; }
+  #define _ASSERT_(cond) if(!(cond || profile.debug)){ profile.debug = __LINE__; }
 #else
   #define str(s) s
   #define _ASSERT_(cond) str()
@@ -66,7 +66,17 @@ module BenchmarkCoreP @safe() {
     interface AMPacket;
     interface PacketAcknowledgements as Ack;
     
+#ifdef LOW_POWER_LISTENING
     interface LowPowerListening;
+#endif
+    
+#ifdef PACKET_LINK
+    interface PacketLink;
+#endif
+
+    interface CodeProfile;    
+    interface StdControl as CodeProfileControl;
+       
     interface Leds;
     
     interface Random;
@@ -102,7 +112,8 @@ implementation {
   uint8_t     c_edge_cnt,c_maxmoteid;
   
   stat_t      stats[MAX_EDGE_COUNT];
- 
+  profile_t   profile;
+  
   // pre-computed values for faster operation
   pending_t   tickMask_start[MAX_TIMER_COUNT];
   pending_t   tickMask_stop [MAX_TIMER_COUNT];
@@ -113,10 +124,6 @@ implementation {
   
   // Last edge index on which we have sent message
   uint8_t  eidx = 0xFF;
-  
-  #ifdef _DEBUG_MODE_
-  uint16_t dbgLINE;
-  #endif
   
   task void sendPending();
   
@@ -133,17 +140,15 @@ implementation {
     // Clear configuration values
     memset(&config,0,sizeof(setup_t));
     memset(stats,0,sizeof(stat_t)*MAX_EDGE_COUNT);
+    memset(&profile,0,sizeof(profile_t));
+    
     memset(tickMask_start,0,sizeof(pending_t)*MAX_TIMER_COUNT);
     memset(tickMask_stop,0,sizeof(pending_t)*MAX_TIMER_COUNT);
     
     pending = 0x0;
     eidx = 0xFF;
     sendlock = UNLOCKED;
-      
-    #ifdef _DEBUG_MODE_
-    dbgLINE = 0;
-    #endif
-
+  
     call Packet.clear(&pkt);
     call Ack.noAck(&pkt);
         
@@ -193,13 +198,9 @@ implementation {
     return stats + idx;
   }
   
-  /** REQUEST DEBUG INFORMATION **/
-  command uint16_t BenchmarkCore.getDebug() {
-    #ifdef _DEBUG_MODE_
-    return dbgLINE;
-    #else
-    return 0;
-    #endif
+  /** REQUEST PROFILE INFORMATION **/
+  command profile_t* BenchmarkCore.getProfile() {
+    return &profile;
   }
   
   /** REQUEST EDGE COUNT **/
@@ -231,7 +232,7 @@ implementation {
     startTimers();
     
     // Start the test timer      
-    call TestTimer.startOneShot(config.runtime_msec); 
+    call TestTimer.startOneShot(config.runtime_msec);
   }
 
   void postNewTrigger(pending_t sbitmask) {
@@ -343,9 +344,21 @@ implementation {
   command error_t Test.start() { 
     _ASSERT_( state == STATE_CONFIGURED )
     
+    // Start the code profiler
+    call CodeProfileControl.start();
+    
     // setup the applied MAC protocol
-    if ( config.flags & GLOBAL_USE_EXTERNAL_MAC )
-      call LowPowerListening.setLocalWakeupInterval(config.lplwakeup);
+#ifdef LOW_POWER_LISTENING    
+    if ( config.flags & GLOBAL_USE_MAC_LPL )
+      call LowPowerListening.setLocalWakeupInterval(config.mac_setup[LPL_WAKEUP_OFFSET]);
+#endif
+
+#ifdef PACKET_LINK
+    if ( config.flags & GLOBAL_USE_MAC_PLINK ) {
+      call PacketLink.setRetries(&pkt,config.mac_setup[PLINK_RETRIES_OFFSET]);
+      call PacketLink.setRetryDelay(&pkt,config.mac_setup[PLINK_DELAY_OFFSET]);
+    }
+#endif
     
     // If a pre-benchmark delay is requested, make a delay
     if ( config.pre_run_msec > 0 ) {
@@ -368,14 +381,37 @@ implementation {
     stopTimers();
     
     // cleanup the MAC
-    if ( config.flags & GLOBAL_USE_EXTERNAL_MAC )
+#ifdef LOW_POWER_LISTENING    
+    if ( config.flags & GLOBAL_USE_MAC_LPL )
       call LowPowerListening.setLocalWakeupInterval(0);
+#endif
+
+#ifdef PACKET_LINK
+    if ( config.flags & GLOBAL_USE_MAC_PLINK ) {
+      call PacketLink.setRetries(&pkt,0);
+      call PacketLink.setRetryDelay(&pkt,0);
+    }
+#endif 
     
     // compute the remained statistic
     for ( i = 0; pending; ++i, pending >>= 1) {
       if ( pending & 0x1 )
         ++(stats[i].remainedCount);
     }
+    
+    // Stop the code profiler
+    call CodeProfileControl.stop();
+    
+    // Compute the mote-statistics
+    profile.max_atomic = call CodeProfile.getMaxAtomicLength();
+    profile.max_interrupt = call CodeProfile.getMaxInterruptLength();
+    profile.max_latency = call CodeProfile.getMaxTaskLatency();
+                  
+    profile.rtx_time = 
+    profile.rstart_count =
+    profile.rx_bytes =
+    profile.tx_bytes =
+    profile.msg_count = 0;    
     
     signal BenchmarkCore.finished();
     return SUCCESS;
@@ -597,8 +633,18 @@ implementation {
       address = ( config.flags & GLOBAL_USE_BCAST ) ? AM_BROADCAST_ADDR : problem[eidx].receiver;
      
       // MAC specific settings
-      if ( config.flags & GLOBAL_USE_EXTERNAL_MAC )
-        call LowPowerListening.setRemoteWakeupInterval(&pkt,config.lplwakeup);
+#ifdef LOW_POWER_LISTENING      
+      if ( config.flags & GLOBAL_USE_MAC_LPL )
+        call LowPowerListening.setRemoteWakeupInterval(
+          &pkt,config.mac_setup[LPL_WAKEUP_OFFSET]);
+#endif
+      
+#ifdef PACKET_LINK
+      if ( config.flags & GLOBAL_USE_MAC_PLINK ) {
+        call PacketLink.setRetries(&pkt,config.mac_setup[PLINK_RETRIES_OFFSET]);
+        call PacketLink.setRetryDelay(&pkt,config.mac_setup[PLINK_DELAY_OFFSET]);
+      }
+#endif
       
       // Find out whether we need to use ACK
       if ( (config.flags & GLOBAL_USE_ACK) || problem[eidx].policy.need_ack ) {

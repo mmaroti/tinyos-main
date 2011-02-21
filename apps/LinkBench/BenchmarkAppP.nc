@@ -50,7 +50,6 @@ module BenchmarkAppP @safe() {
     interface Init as CoreInit;
     
     interface Packet;
-    
     interface Leds;
   }
 
@@ -61,7 +60,7 @@ implementation {
   bool core_configured, core_finished;
   uint8_t resp_request, resp_idx;
   message_t bpkt;
-  
+    
   event void Boot.booted() {
     call AMControl.start();
   }
@@ -89,13 +88,15 @@ implementation {
       msg->payload.stat = *(call BenchmarkCore.getStat(resp_idx));
       call TxData.send(AM_BROADCAST_ADDR, &bpkt, sizeof(datamsg_t));
     
-    // RESPONSE debug information
-    } else if ( resp_request == CTRL_DBG_REQ && core_finished ) {
+    // RESPONSE profile information  
+    } else if ( resp_request == CTRL_PROFILE_REQ && core_finished ) {
 
-      msg->type = DATA_DBG_OK;
-      msg->payload.debug = call BenchmarkCore.getDebug();
+      msg->type = DATA_PROFILE_OK;
+      msg->data_idx = resp_idx;
+      msg->payload.profile = *(call BenchmarkCore.getProfile());      
       call TxData.send(AM_BROADCAST_ADDR, &bpkt, sizeof(datamsg_t));
     }
+      
   }
 
   task void sendSync() {
@@ -142,7 +143,6 @@ implementation {
           break;
           
       case CTRL_STAT_REQ:
-      case CTRL_DBG_REQ:
       case CTRL_PROFILE_REQ:
           if ( core_finished ) {
             resp_request = msg->type;

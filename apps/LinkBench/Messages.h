@@ -61,11 +61,8 @@ enum {
   CTRL_STAT_REQ     = 30,
   DATA_STAT_OK      = 31,
 
-  CTRL_DBG_REQ      = 40,
-  DATA_DBG_OK       = 41,
-  
-  CTRL_PROFILE_REQ  = 50,
-  DATA_PROFILE_OK   = 51
+  CTRL_PROFILE_REQ  = 40,
+  DATA_PROFILE_OK   = 41
 };
 
 
@@ -96,7 +93,7 @@ typedef nx_struct datamsg_t {
   nx_uint8_t    data_idx;         // The requested stat-edge pair index in the requesting stage
   nx_union {
     stat_t      stat;             // The requested stat structure in the requesting stage
-    nx_uint16_t debug;
+    profile_t   profile;          // The profile of the mote
   } payload;
 } datamsg_t;
 

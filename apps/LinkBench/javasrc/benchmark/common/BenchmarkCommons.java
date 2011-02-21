@@ -94,9 +94,21 @@ public class BenchmarkCommons {
     out += ( config.get_flags() & 0x1 ) > 0 ? "On/" : "Off/";
     out += ( config.get_flags() & 0x2 ) > 0 ? "On" : "Off";
     out += newline;
-    out += "  LPL: \t\t";
-    out += (config.get_lplwakeup() == 0) ? "Off" : config.get_lplwakeup() + " ms";
-    out += newline;
+    
+    if ( (config.get_flags() & BenchmarkStatic.GLOBAL_USE_MAC_LPL) > 0 ) {
+      out += "  LPL: \t\t";
+      out += config.getElement_mac_setup(BenchmarkStatic.LPL_WAKEUP_OFFSET);
+      out += " ms" + newline;
+    }
+
+    if ( (config.get_flags() & BenchmarkStatic.GLOBAL_USE_MAC_PLINK) > 0 ) {
+      out +=" PLink: \t\t Retries: ";
+      out += config.getElement_mac_setup(BenchmarkStatic.PLINK_RETRIES_OFFSET);
+      out +=" ms Delay: ";
+      out += config.getElement_mac_setup(BenchmarkStatic.PLINK_DELAY_OFFSET);
+      out += " ms";
+      out += newline;
+    }    
     
     out += "  Timers: \t[";
     short ios[] = config.get_timers_isoneshot();
@@ -127,9 +139,22 @@ public class BenchmarkCommons {
     out +="    <pre_runtime>" + config.get_pre_run_msec() + "</pre_runtime>";
     out +="    <runtime>" + config.get_runtime_msec() + "</runtime>";
     out +="    <post_runtime>" + config.get_post_run_msec() + "</post_runtime>";
-    out +="    <ack>" + (((config.get_flags() & 0x1) > 0 )? "On" : "Off") + "</ack>";
-    out +="    <bcast>" + (((config.get_flags() & 0x2) > 0 ) ? "On" : "Off") + "</bcast>";
-    out +="    <lpl>" + ((config.get_lplwakeup() == 0) ? "Off" : config.get_lplwakeup() + " ms") + "</lpl>";
+    out +="    <ack>" + (((config.get_flags() & BenchmarkStatic.GLOBAL_USE_ACK ) > 0 )? "On" : "Off") + "</ack>";
+    out +="    <bcast>" + (((config.get_flags() & BenchmarkStatic.GLOBAL_USE_BCAST ) > 0 ) ? "On" : "Off") + "</bcast>";
+
+    if ( (config.get_flags() & BenchmarkStatic.GLOBAL_USE_MAC_LPL) > 0 ) {
+      out +="    <lpl wakeup=\"";
+      out += config.getElement_mac_setup(BenchmarkStatic.LPL_WAKEUP_OFFSET);
+      out += "\"/>";
+    }
+
+    if ( (config.get_flags() & BenchmarkStatic.GLOBAL_USE_MAC_PLINK) > 0 ) {
+      out +="    <plink retry=\"";
+      out += config.getElement_mac_setup(BenchmarkStatic.PLINK_RETRIES_OFFSET);
+      out +="\" delay=\"";
+      out += config.getElement_mac_setup(BenchmarkStatic.PLINK_DELAY_OFFSET);
+      out += "\"/>";
+    }
   
     short ios[] = config.get_timers_isoneshot();
     long delay[] = config.get_timers_delay();
@@ -156,7 +181,7 @@ public class BenchmarkCommons {
     String ret = "";
     for (int i = 0; i < stats.size(); ++i) {
       StatT s = stats.get(i);
-      String str = String.format("       E(%2d) :\t[ %2$3d %3$3d %4$3d | %5$4d %6$4d %7$4d | %8$5d %9$4d %10$4d | %11$3d %12$4d | %13$4d %14$4d %15$4d %16$4d %17$4d %18$4d | %19$3d ]",
+      String str = String.format("    Edge(%2d) :\t[ %2$3d %3$3d %4$3d | %5$4d %6$4d %7$4d | %8$5d %9$4d %10$4d | %11$3d %12$4d | %13$4d %14$4d %15$4d %16$4d %17$4d %18$4d | %19$3d ]",
               i,
               s.get_triggerCount(),
               s.get_backlogCount(),
@@ -223,31 +248,58 @@ public class BenchmarkCommons {
   }
 
   /**
-   * Generates a String representation of the debug information of a benchmark
+   * Generates a String representation of the profile information of a benchmark
    *
-   * @param debuglines the debug information
+   * @param profiles the computed profiles
    * @return the string representation
    */
-  public static String debugsAsString(final long[] debuglines) {
-    String ret = "  Mote debug :\t";
-    for( int i = 0; i < debuglines.length; ++i ){
-      ret += debuglines[i] + " ";
+  public static String profilesAsString(final Vector<ProfileT> profiles) {
+    String newline = System.getProperty("line.separator");
+    String hdr = "    Profiles :\t[ Dbg | MaxAtom MaxInt MaxLat | RxTxTime RStartCnt MsgCount       Rx_B       Tx_B ]";
+    String ret = "";
+    for (int i = 0; i < profiles.size(); ++i) {
+      ProfileT p = profiles.get(i);
+      String str = String.format("    Mote(%2d) :\t[ %2$3d | %3$7d %4$6d %5$6d | %6$8d %7$9d %8$8d %9$10d %10$10d ]",
+              i+1,
+              p.get_debug(),
+              p.get_max_atomic(),
+              p.get_max_interrupt(),
+              p.get_max_latency(),
+              p.get_rtx_time(),
+              p.get_rstart_count(),
+              p.get_msg_count(),
+              p.get_rx_bytes(),
+              p.get_tx_bytes());
+       ret += str + newline;
     }
-    return ret;
+    return hdr + newline + ret;
   }
 
   /**
-   * Generates an XML representation of the debug information of a benchmark
+   * Generates an XML representation of the profile information of a benchmark
    *
-   * @param debuglines the debug information
+   * @param profiles the computed profiles
    * @return the XML representation
    */
-  public static String debugsAsXml(final long[] debuglines) {
-    String ret = "<debuglist>";
-    for( int i = 0; i < debuglines.length; ++i ){
-      ret +=  "<debug idx=\"" + (i+1) + "\">" + debuglines[i] + "</debug>";
+  public static String profilesAsXml(final Vector<ProfileT> profiles) {
+    String ret = "<profilelist>";
+    for ( int i = 0; i< profiles.size(); ++i ) {
+      ProfileT p = profiles.get(i);
+      ret += "<profile idx=\"" + (i+1) + "\">";
+
+      ret += "<MAT>" + p.get_max_atomic() + "</MAT>";
+      ret += "<MINT>" + p.get_max_interrupt() + "</MINT>";
+      ret += "<MLAT>" + p.get_max_latency() + "</MLAT>";
+      ret += "<RXTX>" + p.get_rtx_time() + "</RXTX>";
+      ret += "<RST>" + p.get_rstart_count() + "</RST>";
+      ret += "<MSGC>" + p.get_msg_count() + "</MSGC>";
+      ret += "<RXB>" + p.get_rx_bytes() + "</RXB>";
+      ret += "<TXB>" + p.get_tx_bytes() + "</TXB>";
+      ret += "<DBG>" + p.get_debug() + "</DBG>";
+
+      ret += "</profile>";
     }
-    ret += "</debuglist>";
+    ret += "</profilelist>";
     return ret;
   }
 
@@ -257,7 +309,7 @@ public class BenchmarkCommons {
    * @return the ready-for-output representation
    */
   public static String errorAsString(final String s) {
-    return "  Error :\t" + s;
+    return "       Error :\t" + ((s == "") ? "No errors." : s);
   }
 
   /**
@@ -267,6 +319,26 @@ public class BenchmarkCommons {
    */
   public static String errorAsXml(final String s) {
     return "<error>" + s + "</error>";
+  }
+
+
+  /**
+   * Parses a parameter from an array based on its offset and length in bytes.
+   * @param a underlying byte array
+   * @param offset where does it start?
+   * @param bytes how long?
+   * @return the parameter
+   *
+   * Generated interfaces force us to use short for parameter 'a' but it is
+   * a byte array in real.
+   */
+  private static final long parseMacParameter(final short[] a, final byte offset, final byte bytes) {
+    long l = 0;
+    for(int i= offset; i< bytes; ++i) {
+      l |= (byte)(a[i]) & 0xFF;
+      l <<= 8;
+    }
+    return l;
   }
 
 }

@@ -85,7 +85,6 @@ public class BenchmarkCli {
     // Download - usage
     Options opt3 = new Options();
     opt3.addOption(opt.getOption("dload"));
-    opt3.addOption(opt.getOption("dbg"));
     opt3.addOption(opt.getOption("mc"));
     opt3.addOption(opt.getOption("xml"));
     System.out.println();
@@ -103,9 +102,8 @@ public class BenchmarkCli {
     opt4.addOption(opt.getOption("ack"));
     opt4.addOption(opt.getOption("bcast"));
     opt4.addOption(opt.getOption("xml"));
-    opt4.addOption(opt.getOption("lpl"));
+    opt4.addOption(opt.getOption("mac"));
     opt4.addOption(opt.getOption("mc"));
-    opt4.addOption(opt.getOption("dbg"));
     System.out.println();
     System.out.println("5. Running a specific benchmark with command-line arguments");
     System.out.println("--------------------------------------------------------------------");
@@ -177,18 +175,17 @@ public class BenchmarkCli {
             .withLongOpt("triggers")
             .create("tr");
 
+    Option mac = OptionBuilder
+            .withArgName("MAC params")
+            .hasArg()
+            .withDescription("MAC along with parameters:  mactype:param1,param2,...,paramN [ mactypes: lpl,plink ]")
+            .create("mac");
 
     Option xml = OptionBuilder
             .withArgName("file")
             .hasArg()
             .withDescription("Produce xml output")
             .create("xml");
-
-    Option lpl = OptionBuilder
-            .withArgName("MAC param")
-            .hasArg()
-            .withDescription("Wakeup interval for LPL/LPP")
-            .create("lpl");
 
     Option mcount = OptionBuilder
             .withArgName("number")
@@ -203,7 +200,7 @@ public class BenchmarkCli {
     opt.addOption(runtime);
     opt.addOption(lastchance);
     opt.addOption(xml);
-    opt.addOption(lpl);
+    opt.addOption(mac);
     opt.addOption(mcount);
     opt.addOption(trtimers);
     opt.addOption(batchfile);
@@ -214,12 +211,11 @@ public class BenchmarkCli {
     opt.addOption("ack", false, "Force acknowledgements. [default : false]");
     opt.addOption("bcast", "broadcast", false, "Force broadcasting. [default : false]");
     opt.addOption("dload", "download", false, "Only download data from motes.");
-    opt.addOption("dbg", false, "Download also debug information. [default : false]");
 
   }
 
   public boolean doReset() {
-    System.out.print("> Reset all motes   ... ");
+    System.out.print("> Reset all motes ...     ");
     try {
       ctrl.reset();
       System.out.println("OK");
@@ -231,7 +227,7 @@ public class BenchmarkCli {
   }
 
   public boolean doSync() {
-    System.out.print("> Synchronize motes ... ");
+    System.out.print("> Synchronize motes ...   ");
     try {
       ctrl.syncAll();
       System.out.println("OK");
@@ -243,10 +239,10 @@ public class BenchmarkCli {
     }
   }
 
-  public boolean doDownload(final int maxMoteId) {
-    System.out.print("> Downloading data  ... ");
+  public boolean doDownloadStat(final int maxMoteId) {
+    System.out.print("> Downloading data ...    ");
     try {
-      ctrl.download();
+      ctrl.download_stat();
       System.out.println("OK");
       return true;
     } catch (BenchmarkController.CommunicationException ex) {
@@ -256,10 +252,10 @@ public class BenchmarkCli {
     }
   }
 
-  public boolean doDownloadDebug(final int maxMoteId) {
-    System.out.print("> Downloading debug ... ");
+  public boolean doDownloadProfile(final int maxMoteId) {
+    System.out.print("> Downloading profile ... ");
     try {
-      ctrl.download_debug();
+      ctrl.download_profile();
       System.out.println("OK");
       return true;
     } catch (BenchmarkController.CommunicationException ex) {
@@ -270,7 +266,7 @@ public class BenchmarkCli {
   }
 
   public boolean doSetup(final SetupT st) {
-    System.out.print("> Setting up motes  ... ");
+    System.out.print("> Setting up motes ...    ");
     try {
       ctrl.setup(st);
       System.out.println("OK");
@@ -282,7 +278,7 @@ public class BenchmarkCli {
   }
 
   public boolean doRun() {
-    System.out.print("> Running benchmark ... ");
+    System.out.print("> Running benchmark ...   ");
     try {
       ctrl.run();
       System.out.println("OK");
@@ -348,8 +344,8 @@ public class BenchmarkCli {
         // Do what needs to be done
         BenchmarkCli cli = new BenchmarkCli();
         if ( cli.doSync() &&
-             cli.doDownload(maxmoteid) &&
-             (cl.hasOption("dbg") ? cli.doDownloadDebug(maxmoteid) : true) )
+             cli.doDownloadStat(maxmoteid) &&
+             cli.doDownloadProfile(maxmoteid) )
         {
           // Dump results to XML or STDOUT
           if ( cl.hasOption("xml") )
@@ -399,12 +395,6 @@ public class BenchmarkCli {
         if ( lchance < 0 )
           throw new MissingOptionException("Invalid last chance time specified!");        
 
-        int lplwakeup = cl.hasOption("lpl") 
-                                ? Integer.parseInt(cl.getOptionValue("lpl")) 
-                                : 0;
-        if ( lplwakeup < 0 )
-          throw new MissingOptionException("Invalid wakeup interval specified!");
- 
         int maxmoteid = cl.hasOption("mc")
                                 ? Integer.parseInt(cl.getOptionValue("mc")) 
                                 : 1;
@@ -451,15 +441,46 @@ public class BenchmarkCli {
           }
           
         }
-        
+
         short flags = 0;
         if ( cl.hasOption("ack") )
-          flags |= BenchmarkStatic.GLOBAL_USE_ACK; 
+          flags |= BenchmarkStatic.GLOBAL_USE_ACK;
         if ( cl.hasOption("bcast") )
           flags |= BenchmarkStatic.GLOBAL_USE_BCAST;
-        if ( cl.hasOption("lpl") )
-          flags |= BenchmarkStatic.GLOBAL_USE_EXTERNAL_MAC;
+                
+        int macsetup[] = new int[BenchmarkStatic.MAC_SETUP_LENGTH];
+        for( int i = 0; i < BenchmarkStatic.MAC_SETUP_LENGTH; ++i ) {
+          macsetup[i] = 0;
+        }
         
+        if ( cl.hasOption("mac") ) {
+          String[] macs = cl.getOptionValues("mac");
+          Pattern pattern = Pattern.compile("([a-z-]+):(\\d+,){1," + BenchmarkStatic.MAC_SETUP_LENGTH + "}");
+
+          for( int i = 0; i < macs.length; ++i ) {
+            Matcher matcher = pattern.matcher(macs[i]);
+            if (matcher.find()) {
+              if( matcher.group(1) == "lpl" ) {
+                flags |= BenchmarkStatic.GLOBAL_USE_MAC_LPL;
+                macsetup[BenchmarkStatic.LPL_WAKEUP_OFFSET] = Integer.parseInt(matcher.group(2));
+              } else if ( matcher.group(1) == "plink") {
+                flags |= BenchmarkStatic.GLOBAL_USE_MAC_PLINK;
+                macsetup[BenchmarkStatic.PLINK_RETRIES_OFFSET] = Integer.parseInt(matcher.group(2));
+                macsetup[BenchmarkStatic.PLINK_DELAY_OFFSET] = Integer.parseInt(matcher.group(3));
+              } else
+                throw new MissingOptionException("Only 'lpl' and 'plink' MACs supported!");
+
+            } else
+              throw new MissingOptionException("Invalid MAC parameter specification, see help!");
+          }
+
+          for( int i = 0; i < BenchmarkStatic.MAC_SETUP_LENGTH; ++i ) {
+            if ( macsetup[i] < 0 )
+              throw new MissingOptionException("Only non-negative values are valid for MAC parameters!");
+          }
+
+        }
+     
         // Create the setup structure
         SetupT st = new SetupT();
         st.set_problem_idx(problemidx);
@@ -470,16 +491,17 @@ public class BenchmarkCli {
         st.set_timers_isoneshot(ios);
         st.set_timers_delay(delay);
         st.set_timers_period_msec(period);
-        st.set_lplwakeup(lplwakeup);
+        
+        st.set_mac_setup(macsetup);
 
         // Do what needs to be done
         BenchmarkCli cli = new BenchmarkCli();
-        if (cli.doReset()             &&
-            cli.doSetup(st)           &&
-            cli.doSync()              &&
-            cli.doRun()               &&
-            cli.doDownload(maxmoteid) &&
-            (cl.hasOption("dbg") ? cli.doDownloadDebug(maxmoteid) : true) )
+        if (cli.doReset()                    &&
+            cli.doSetup(st)                  &&
+            cli.doSync()                     &&
+            cli.doRun()                      &&
+            cli.doDownloadStat(maxmoteid)    &&
+            cli.doDownloadProfile(maxmoteid) )
         {
 
           // Dump results to XML or STDOUT

@@ -17,7 +17,9 @@
 #  - t3: [1, 30, 300]
 #  - t4: [0, 30, 300]
 # forces: [ack, bcast]
-# wakeup: 200
+# mac:
+#  - lpl: [ 200 ]
+#  - plink: [ 200 100 ]
 # ---
 #
 # All values must be integers. The mandatory options are: config, config.bmark, 
@@ -33,7 +35,10 @@
 config: {bmark: 10, motes: 3, time: 1000, randstart: 30}
 ---
 config: {bmark: 10, time: 20, lchance: 100}
-wakeup: 200
+mac:
+  - lpl: [ 200 ]
+  - plink: [ 200 100 ]
+  
 ---
 config: {bmark: 10, time: 200, motes: 5}
 forces: [ack]
@@ -53,7 +58,8 @@ timers:
  - t1: [0, 0, 200]
  - t2: [0, 0, 100]
 forces: [bcast]
-wakeup: 100
+mac:
+  - plink: [ 200 100 ]
 ---
 config: {bmark: 34, time: 1000}
 timers:

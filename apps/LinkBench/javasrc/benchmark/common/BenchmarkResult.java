@@ -47,7 +47,7 @@ public class BenchmarkResult {
 
   private SetupT            config;
   private Vector<StatT>     stats;
-  private long[]            debuginfo;
+  private Vector<ProfileT>  profiles;
   private String            error;
 
   /**
@@ -72,7 +72,7 @@ public class BenchmarkResult {
   private void init(final SetupT config) {
     this.config = config;
     this.stats = null;
-    this.debuginfo = null;
+    this.profiles = null;
     this.error = "";
   }
 
@@ -83,19 +83,24 @@ public class BenchmarkResult {
    * @param edgecount the new benchmark's edgecount
    */
   public void cleanResize(final int motecount, final int edgecount) {
-    if ( this.stats != null )
+    if ( this.stats != null ) {
       this.stats.clear();
+      this.profiles.clear();
+    }
     
     this.stats = new Vector(edgecount);
-    this.debuginfo = new long[motecount];
+    this.profiles = new Vector(motecount);
+
     // Initialize the elements
     for (int i = 0; i< edgecount; ++i ) {
       this.stats.add(new StatT());
     }
-    for (int i = 0; i< motecount; ++i ) {
-      this.debuginfo[i] = 0;
-    }
 
+    // Initialize the elements
+    for (int i = 0; i< motecount; ++i ) {
+      this.profiles.add(new ProfileT());
+    }
+    
     this.error = "";
   }
 
@@ -132,16 +137,28 @@ public class BenchmarkResult {
   }
 
   /**
-   * Append new debug information to existing ones from a message.
+   * Append new profile information to existing ones from a message.
    * Note that the message does not contain the sender's id, that is why
    * we must explicitly specify it for this function.
    *
    * @param idx the mote's id to which this information belongs
    * @param msg the message holding the information
    */
-  public void appendDebugInfoFromMessage(final int idx, final DataMsgT msg) {
+  public void appendProfileFromMessage(final int idx, final DataMsgT msg) {
 
-    this.debuginfo[idx-1] = msg.get_payload_debug();
+    // Get the new Profile from the message
+    ProfileT p = new ProfileT();
+    p.set_max_atomic(msg.get_payload_profile_max_atomic());
+    p.set_max_interrupt(msg.get_payload_profile_max_interrupt());
+    p.set_max_latency(msg.get_payload_profile_max_latency());
+    p.set_rtx_time(msg.get_payload_profile_rtx_time());
+    p.set_rstart_count(msg.get_payload_profile_rstart_count());
+    p.set_rx_bytes(msg.get_payload_profile_rx_bytes());
+    p.set_tx_bytes(msg.get_payload_profile_tx_bytes());
+    p.set_msg_count(msg.get_payload_profile_msg_count());
+    p.set_debug(msg.get_payload_profile_debug());
+
+    this.profiles.set(idx-1, p);
   }
 
   /**
@@ -228,7 +245,7 @@ public class BenchmarkResult {
    */
   public void print(PrintStream stream) {
     stream.println(BenchmarkCommons.statsAsString(this.stats));
-    stream.println(BenchmarkCommons.debugsAsString(this.debuginfo));
+    stream.println(BenchmarkCommons.profilesAsString(this.profiles));
     stream.println(BenchmarkCommons.errorAsString(this.error));
   }
 
@@ -241,10 +258,10 @@ public class BenchmarkResult {
   public void printXml(PrintStream stream) {
     Calendar calendar = Calendar.getInstance();
     stream.println("<testresult date=\"" + calendar.getTime().toString() + "\">");
-    stream.println(BenchmarkCommons.setupAsXml(config));
-    stream.println(BenchmarkCommons.statsAsXml(stats));
-    stream.println(BenchmarkCommons.debugsAsXml(debuginfo));
-    stream.println(BenchmarkCommons.errorAsXml(error));
+    stream.println(BenchmarkCommons.setupAsXml(this.config));
+    stream.println(BenchmarkCommons.statsAsXml(this.stats));
+    stream.println(BenchmarkCommons.profilesAsXml(this.profiles));
+    stream.println(BenchmarkCommons.errorAsXml(this.error));
     stream.println("</testresult>");
   }
 

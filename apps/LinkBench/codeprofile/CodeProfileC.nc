@@ -33,34 +33,43 @@
 *         veresskrisztian@gmail.com
 */
 
-#include "Messages.h"
-
-configuration BenchmarkAppC {}
+configuration CodeProfileC {
+  provides {
+    interface StdControl;
+    
+    interface CodeProfile;
+    
+    interface Get<uint32_t> as MaxInterruptLength;
+    interface Get<uint32_t> as MaxAtomicLength;
+    interface Get<uint32_t> as MaxTaskLatency;
+    
+  }
+}
 
 implementation {
-  components MainC;
-  Comm.Boot -> MainC.Boot;
+
+  #if defined(CONTROLLER_ATM128)
+    components new AlarmMicro32C() as Alarm;
   
-  components BenchmarkCoreC as Core;
-  components BenchmarkAppP as Comm;
-  Comm.BenchmarkCore -> Core;
-  Comm.CoreControl -> Core;
-  Comm.CoreInit -> Core;
+  #elif defined(CONTROLLER_MSP430)
+    components Msp430CounterMicroC as Counter16;
+    components new AlarmMicro16C() as Alarm16;
+    
+    components new TransformCounterC(TMicro,uint32_t,TMicro,uint16_t,0,uint32_t) as TCounter;
+    TCounter.CounterFrom -> Counter16;
+    
+    components new TransformAlarmC(TMicro,uint32_t,TMicro,uint16_t,0) as Alarm;
+    Alarm.AlarmFrom -> Alarm16;
+    Alarm.Counter -> TCounter;
+
+  #endif
+
+  components CodeProfileP;
+  CodeProfileP.Alarm -> Alarm;
   
-  components new AMReceiverC(AM_CTRLMSG_T)    	      as RxCtrl;
-  components new AMReceiverC(AM_SETUPMSG_T)    	      as RxSetup;
-  Comm.RxCtrl -> RxCtrl;
-  Comm.RxSetup -> RxSetup;
-  
-  components new DirectAMSenderC(AM_SYNCMSG_T)        as TxSync;
-  components new DirectAMSenderC(AM_DATAMSG_T)        as TxData;
-  Comm.TxSync -> TxSync;
-  Comm.TxData -> TxData;
-  
-  components LedsC;
-  Comm.Leds -> LedsC;
-      
-  components ActiveMessageC; 
-  Comm.AMControl -> ActiveMessageC;
-  Comm.Packet -> ActiveMessageC;
+  MaxInterruptLength = CodeProfileP.MaxInterruptLength;
+  MaxAtomicLength = CodeProfileP.MaxAtomicLength;
+  MaxTaskLatency = CodeProfileP.MaxTaskLatency;   
+  StdControl = CodeProfileP;
+  CodeProfile = CodeProfileP;
 }

@@ -33,34 +33,27 @@
 *         veresskrisztian@gmail.com
 */
 
-#include "Messages.h"
+interface CodeProfile {
 
-configuration BenchmarkAppC {}
-
-implementation {
-  components MainC;
-  Comm.Boot -> MainC.Boot;
+  /**
+    * Retrieve the longest interrupt handling time in microseconds
+    *
+    * @return the maximum value
+    */
+  command uint32_t getMaxInterruptLength();
   
-  components BenchmarkCoreC as Core;
-  components BenchmarkAppP as Comm;
-  Comm.BenchmarkCore -> Core;
-  Comm.CoreControl -> Core;
-  Comm.CoreInit -> Core;
+  /**
+    * Retrieve the longest atomic section's time in microseconds
+    *
+    * @return the maximum value
+    */
+  command uint32_t getMaxAtomicLength();
   
-  components new AMReceiverC(AM_CTRLMSG_T)    	      as RxCtrl;
-  components new AMReceiverC(AM_SETUPMSG_T)    	      as RxSetup;
-  Comm.RxCtrl -> RxCtrl;
-  Comm.RxSetup -> RxSetup;
-  
-  components new DirectAMSenderC(AM_SYNCMSG_T)        as TxSync;
-  components new DirectAMSenderC(AM_DATAMSG_T)        as TxData;
-  Comm.TxSync -> TxSync;
-  Comm.TxData -> TxData;
-  
-  components LedsC;
-  Comm.Leds -> LedsC;
-      
-  components ActiveMessageC; 
-  Comm.AMControl -> ActiveMessageC;
-  Comm.Packet -> ActiveMessageC;
+  /**
+    * Retrieve the maximum elapsed time in microseconds between two task.
+    *
+    * @return the maximum value
+    */
+  command uint32_t getMaxTaskLatency();
+    
 }

@@ -55,7 +55,9 @@ enum {
   // Policy flags
   GLOBAL_USE_ACK           = 1<<0,
   GLOBAL_USE_BCAST         = 1<<1,
-  GLOBAL_USE_EXTERNAL_MAC  = 1<<2,
+  
+  GLOBAL_USE_MAC_LPL       = 1<<2,
+  GLOBAL_USE_MAC_PLINK     = 1<<3,
   
   // Sending flags
   SEND_ON_REQ     = 0,
@@ -138,6 +140,14 @@ typedef nx_struct profile_t {
   nx_uint32_t   max_atomic;
   nx_uint32_t   max_interrupt;
   nx_uint32_t   max_latency;
+  
+  nx_uint32_t   rtx_time;
+  nx_seq_base_t rstart_count;
+  nx_seq_base_t rx_bytes;
+  nx_seq_base_t tx_bytes;
+  nx_seq_base_t msg_count;
+  
+  nx_uint16_t   debug;  
 } profile_t;
 
 typedef nx_struct timersetup_t {
@@ -145,6 +155,19 @@ typedef nx_struct timersetup_t {
   nx_uint32_t   delay;
   nx_uint32_t   period_msec;
 } timersetup_t;
+
+// Where the MAC settings are located in the mac_setup_t type?
+enum {
+  // Extend the size of this struct if necessary for new MAC-s.
+  MAC_SETUP_LENGTH = 2,
+
+  LPL_WAKEUP_OFFSET = 0,
+  
+  PLINK_RETRIES_OFFSET = 0,
+  PLINK_DELAY_OFFSET = 1
+};
+
+typedef nx_uint16_t mac_setup_t[MAC_SETUP_LENGTH];
 
 // Basic setup type
 typedef nx_struct setup_t {
@@ -154,9 +177,11 @@ typedef nx_struct setup_t {
   nx_uint32_t   runtime_msec;     // How long should we run the test?
   nx_uint32_t   post_run_msec;
   
-  nx_uint8_t    flags;            // Global flags ( such as ACK, LPL, ... )
+  nx_uint8_t    flags;            // Global flags ( such as BCAST, ACK, LPL, PLINK )
   timersetup_t  timers[MAX_TIMER_COUNT];
-  nx_uint16_t   lplwakeup;
+  
+  // Mac protocol-specific settings
+  mac_setup_t   mac_setup;
 } setup_t;
 
 #endif

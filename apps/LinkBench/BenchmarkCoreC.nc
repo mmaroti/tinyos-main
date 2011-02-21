@@ -54,9 +54,27 @@ implementation {
   Core.TxTest -> TxTest;
   
   components ActiveMessageC;
-  Core.LowPowerListening -> ActiveMessageC;
   Core.Packet -> ActiveMessageC;
   Core.Ack -> ActiveMessageC;
+
+#ifdef LOW_POWER_LISTENING
+  #if defined(RADIO_RF230) || defined(RADIO_CC1000) || defined(RADIO_CC2420)
+    Core.LowPowerListening -> ActiveMessageC;
+  #else
+    #error " * NO PLATFORM SUPPORT FOR LOW POWER LISTENING LAYER *"
+  #endif
+#endif
+
+#ifdef PACKET_LINK  
+  #ifdef RADIO_CC2420
+    components CC2420ActiveMessageC;
+    Core.PacketLink -> CC2420ActiveMessageC;
+  #elif defined(RADIO_RF230)
+    Core.PacketLink -> ActiveMessageC;
+  #else
+    #error " * NO PLATFORM SUPPORT FOR PACKET LINK LAYER *"
+  #endif
+#endif
   
   components new TimerMilliC() as Timer;
   Core.TestTimer -> Timer;
@@ -72,6 +90,10 @@ implementation {
   components RandomMlcgC;
   Core.Random -> RandomMlcgC;
   Core.RandomInit -> RandomMlcgC;
+
+  components CodeProfileC;
+  Core.CodeProfile -> CodeProfileC;
+  Core.CodeProfileControl -> CodeProfileC;
 
   StdControl = Core;
   BenchmarkCore = Core;
