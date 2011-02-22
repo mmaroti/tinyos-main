@@ -83,20 +83,19 @@ DataHolder::~DataHolder() {
     delete[] extrema;
 }
 
-std::ostringstream& DataHolder::reset_oss(int i) const {
-
-    reset_oss();
+void DataHolder::check_index(int i) const {
 
     if (i<0 || i>=size) {
 
+        out->str("");
+
         *out << "index: " << i << ", valid range [0, " << size << ")" << flush;
+
         throw out_of_range(out->str());
     }
-
-    return *out;
 }
 
-std::ostringstream& DataHolder::reset_oss() const {
+ostringstream& DataHolder::get_out() const {
 
     out->str("");
 
@@ -171,9 +170,7 @@ void DataHolder::fill_angle_arrays() {
 
 const double* DataHolder::matrix_at(int i) const {
 
-    if (i<0 || i>=size) {
-        throw out_of_range("Index is out of range in DataHolder::matrix_at()");
-    }
+    check_index(i);
 
     return rotation_matrices + (9*i);
 }
@@ -254,66 +251,57 @@ void DataHolder::save_ranges() {
     save_med_dev();
 }
 
-typedef ostringstream& oss;
+string str(double x) {
+
+    ostringstream os;
+
+    os << fixed << setprecision(1);
+
+    os << x << flush;
+
+    return os.str();
+}
 
 void DataHolder::save_flex() {
 
-    oss os = reset_oss();
-
-    os << flexion[0] << flush;
-
-    flex_range += os.str();
+    flex_range += str(flexion[0]);
 
     flex_range += range(FLEX_MIN, FLEX_MAX);
 }
 
 void DataHolder::save_sup() {
 
-    oss os = reset_oss();
-
-    os << (supination[0] >= 0 ? supination[0] : 0.0) << flush;
-
-    sup_range += os.str();
+    sup_range += str(supination[0] >= 0 ? supination[0] : 0.0);
 
     sup_range += range(SUP_MIN, SUP_MAX);
 }
 
 void DataHolder::save_pron() {
 
-    oss os = reset_oss();
-
-    os << (supination[0] < 0 ? -supination[0] : 0.0) << flush;
-
-    pron_range += os.str();
+    pron_range += str(supination[0] < 0 ? -supination[0] : 0.0);
 
     pron_range += range(PRON_MIN, PRON_MAX);
 }
 
 void DataHolder::save_lat_dev() {
 
-    oss os = reset_oss();
-
-    os << (deviation[0] >= 0 ? deviation[0] : 0.0) << flush;
-
-    lat_range += os.str();
+    lat_range += str(deviation[0] >= 0 ? deviation[0] : 0.0);
 
     lat_range += range(LAT_MIN, LAT_MAX);
 }
 
 void DataHolder::save_med_dev() {
 
-    oss os = reset_oss();
-
-    os << (deviation[0]< 0 ? -deviation[0] : 0.0) << flush;
-
-    med_range += os.str();
+    med_range += str(deviation[0]< 0 ? -deviation[0] : 0.0);
 
     med_range += range(MED_MIN, MED_MAX);
 }
 
+typedef ostringstream& oss;
+
 const string DataHolder::range(int MIN, int MAX) {
 
-    oss os = reset_oss();
+    oss os = get_out();
 
     os << " / " << extrema[MIN] << " / " << extrema[MAX] << " / ";
     os << extrema[MAX]-extrema[MIN] << " deg" << flush;
@@ -355,18 +343,22 @@ double DataHolder::deviation_deg(int i) const {
     return -(acos(m[R11])-PI_HALF)*RAD2DEG;
 }
 
-const std::string DataHolder::flex(int i) const {
+const string DataHolder::flex(int i) const {
 
-    oss os = reset_oss(i);
+    check_index(i);
+
+    oss os = get_out();
 
     os << "Flex " << flexion[i] << " deg";
 
     return os.str();
 }
 
-const std::string DataHolder::sup(int i) const {
+const string DataHolder::sup(int i) const {
 
-    oss os = reset_oss(i);
+    check_index(i);
+
+    oss os = get_out();
 
     if (supination[i] >= 0) {
 
@@ -380,9 +372,11 @@ const std::string DataHolder::sup(int i) const {
     return os.str();
 }
 
-const std::string DataHolder::dev(int i) const {
+const string DataHolder::dev(int i) const {
 
-    oss os = reset_oss(i);
+    check_index(i);
+
+    oss os = get_out();
 
     if (deviation[i] > 0) {
 
@@ -396,9 +390,11 @@ const std::string DataHolder::dev(int i) const {
     return os.str();
 }
 
-const std::string DataHolder::time(int i) const {
+const string DataHolder::time(int i) const {
 
-    oss os = reset_oss(i);
+    check_index(i);
+
+    oss os = get_out();
 
     double sec = i/SAMPLING_RATE;
 
@@ -431,4 +427,3 @@ const char* DataHolder::med_info()  const {
 
     return med_range.c_str();
 }
-

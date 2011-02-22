@@ -84,8 +84,8 @@ private:
     void save_med_dev();
     const std::string range(int MIN, int MAX);
 
-    std::ostringstream& reset_oss() const;
-    std::ostringstream& reset_oss(int i) const;
+    std::ostringstream& get_out() const;
+    void check_index(int i) const;
 
     double flexion_deg(int i) const;
     double supination_deg(int i) const;
