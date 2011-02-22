@@ -42,6 +42,8 @@
 
 GLWindow::GLWindow() : ANIMATION_STEP_MS(20) {
 
+    setAttribute(Qt::WA_DeleteOnClose);
+
     createGLWidget();
 
     init();
@@ -67,11 +69,6 @@ void GLWindow::init() {
     setupConnections();
 
     timerStart();
-}
-
-void GLWindow::closeEvent(QCloseEvent *) {
-
-    emit closed();
 }
 
 void GLWindow::createGLWidget() {

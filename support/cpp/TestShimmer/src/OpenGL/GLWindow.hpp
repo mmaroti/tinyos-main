@@ -51,17 +51,11 @@ public:
 
     GLWindow(double* rotmat, int size);
 
-signals:
-
-    void closed();
-
 protected:
 
     void keyPressEvent(QKeyEvent * event);
 
 private slots:
-
-    void closeEvent(QCloseEvent *);
 
     void nextFrame();
     void toggleAnimationState();

@@ -1164,14 +1164,7 @@ void LogWidget::showAnimation(const int begin, const int end, const int length) 
 
     GLWindow* win = new GLWindow(mat, range.size());
 
-    connect(win, SIGNAL(closed()), SLOT(glwindowClosed()));
-
     win->showMaximized();
 
     win->activateWindow();
-}
-
-void LogWidget::glwindowClosed() {
-
-    delete sender(); // FIXME Is it safe?
 }
