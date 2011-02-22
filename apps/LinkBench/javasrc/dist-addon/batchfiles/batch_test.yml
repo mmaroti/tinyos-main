@@ -1,0 +1,17 @@
+config: {bmark: 10, motes: 3, time: 1000, randstart: 30, lchance: 20}
+timers:
+ - t1: [1, 10, 100]
+ - t2: [0, 20, 200]
+ - t3: [1, 30, 300]
+ - t4: [0, 30, 300]
+forces: [ack]
+---
+config: {bmark: 10, motes: 3, time: 1000, randstart: 30, lchance: 20}
+timers:
+ - t1: [1, 10, 100]
+ - t2: [0, 20, 200]
+ - t3: [1, 30, 300]
+ - t4: [0, 30, 300]
+forces: [bcast]
+mac:
+ - plink: [ 200 100 ]

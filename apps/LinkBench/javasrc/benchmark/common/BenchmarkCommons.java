@@ -42,9 +42,7 @@ public class BenchmarkCommons {
   public static final short   DEF_RUNTIME       = 1000;
   public static final short   DEF_LASTCHANCE    = 20;
 
-  public static final boolean DEF_TIMER_ONESHOT = false;
-  public static final short   DEF_TIMER_DELAY   = 0;
-  public static final short   DEF_TIMER_PERIOD  = 100;
+  private static final String nl = System.getProperty("line.separator");
 
   /**
    * Compute the overall running time of the benchmark defined by the argument
@@ -64,7 +62,7 @@ public class BenchmarkCommons {
   public static String xmlHeader() {
     return "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" +
            "<?xml-stylesheet type=\"text/xsl\" href=\"assets/benchmark.xsl\"?>" +
-           "<resultset>";
+           nl + "<resultset>";
   }
 
   /**
@@ -85,20 +83,19 @@ public class BenchmarkCommons {
    */
   public static String setupAsString(final SetupT config) {
   
-    String newline = System.getProperty("line.separator");
-    String out = "> Problem: \t" + config.get_problem_idx() + newline;
+    String out = "> Problem: \t" + config.get_problem_idx() + nl;
     out += "  Runtime: \t[max (" + config.get_pre_run_msec() + "ms) + " 
            + config.get_runtime_msec() + "ms + " 
-           + config.get_post_run_msec() + " ms]" + newline;
+           + config.get_post_run_msec() + " ms]" + nl;
     out += "  F.Ack/Bcast: \t";
     out += ( config.get_flags() & 0x1 ) > 0 ? "On/" : "Off/";
     out += ( config.get_flags() & 0x2 ) > 0 ? "On" : "Off";
-    out += newline;
+    out += nl;
     
     if ( (config.get_flags() & BenchmarkStatic.GLOBAL_USE_MAC_LPL) > 0 ) {
       out += "  LPL: \t\t";
       out += config.getElement_mac_setup(BenchmarkStatic.LPL_WAKEUP_OFFSET);
-      out += " ms" + newline;
+      out += " ms" + nl;
     }
 
     if ( (config.get_flags() & BenchmarkStatic.GLOBAL_USE_MAC_PLINK) > 0 ) {
@@ -107,7 +104,7 @@ public class BenchmarkCommons {
       out +=" ms Delay: ";
       out += config.getElement_mac_setup(BenchmarkStatic.PLINK_DELAY_OFFSET);
       out += " ms";
-      out += newline;
+      out += nl;
     }    
     
     out += "  Timers: \t[";
@@ -134,26 +131,26 @@ public class BenchmarkCommons {
    * @return the XML representation
    */
   public static String setupAsXml(final SetupT config) {
-    String out = "<configuration>";
-    out +="    <benchidx>" + config.get_problem_idx() + "</benchidx>";
-    out +="    <pre_runtime>" + config.get_pre_run_msec() + "</pre_runtime>";
-    out +="    <runtime>" + config.get_runtime_msec() + "</runtime>";
-    out +="    <post_runtime>" + config.get_post_run_msec() + "</post_runtime>";
-    out +="    <ack>" + (((config.get_flags() & BenchmarkStatic.GLOBAL_USE_ACK ) > 0 )? "On" : "Off") + "</ack>";
-    out +="    <bcast>" + (((config.get_flags() & BenchmarkStatic.GLOBAL_USE_BCAST ) > 0 ) ? "On" : "Off") + "</bcast>";
+    String out = "<configuration>"+nl;
+    out +="<benchidx>" + config.get_problem_idx() + "</benchidx>"+nl;
+    out +="<pre_runtime>" + config.get_pre_run_msec() + "</pre_runtime>"+nl;
+    out +="<runtime>" + config.get_runtime_msec() + "</runtime>"+nl;
+    out +="<post_runtime>" + config.get_post_run_msec() + "</post_runtime>"+nl;
+    out +="<ack>" + (((config.get_flags() & BenchmarkStatic.GLOBAL_USE_ACK ) > 0 )? "On" : "Off") + "</ack>"+nl;
+    out +="<bcast>" + (((config.get_flags() & BenchmarkStatic.GLOBAL_USE_BCAST ) > 0 ) ? "On" : "Off") + "</bcast>"+nl;
 
     if ( (config.get_flags() & BenchmarkStatic.GLOBAL_USE_MAC_LPL) > 0 ) {
-      out +="    <lpl wakeup=\"";
+      out +="<lpl wakeup=\"";
       out += config.getElement_mac_setup(BenchmarkStatic.LPL_WAKEUP_OFFSET);
-      out += "\"/>";
+      out += "\"/>"+nl;
     }
 
     if ( (config.get_flags() & BenchmarkStatic.GLOBAL_USE_MAC_PLINK) > 0 ) {
-      out +="    <plink retry=\"";
+      out +="<plink retry=\"";
       out += config.getElement_mac_setup(BenchmarkStatic.PLINK_RETRIES_OFFSET);
       out +="\" delay=\"";
       out += config.getElement_mac_setup(BenchmarkStatic.PLINK_DELAY_OFFSET);
-      out += "\"/>";
+      out += "\"/>"+nl;
     }
   
     short ios[] = config.get_timers_isoneshot();
@@ -163,7 +160,7 @@ public class BenchmarkCommons {
       out += "<timer idx=\"" + i + "\" ";
       out += (ios[i] == 1 )? "oneshot=\"yes\" " : "oneshot=\"no\" ";
       out += "delay=\"" + delay[i] + "\" ";
-      out += "period=\"" + period[i] + "\"/>";
+      out += "period=\"" + period[i] + "\"/>"+nl;
     }
     out += "</configuration>";
     return out;
@@ -176,7 +173,6 @@ public class BenchmarkCommons {
    * @return the string representation
    */
   public static String statsAsString(final Vector<StatT> stats) {
-    String newline = System.getProperty("line.separator");
     String hdr = "  Statistics :\t[ Tri Blg Res | send Succ Fail | sDone Succ Fail | Ack NAck | Recv  Exp Wrng Dupl Frwd Miss | Rem ]";
     String ret = "";
     for (int i = 0; i < stats.size(); ++i) {
@@ -201,9 +197,9 @@ public class BenchmarkCommons {
               s.get_forwardCount(),
               s.get_missedCount(),
               s.get_remainedCount());
-       ret += str + newline;
+       ret += str + nl;
     }
-    return hdr + newline + ret;
+    return hdr + nl + ret;
   }
 
    /**
@@ -213,7 +209,7 @@ public class BenchmarkCommons {
    * @return the XML representation
    */
   public static String statsAsXml(final Vector<StatT> stats) {
-    String ret = "<statlist>";
+    String ret = "<statlist>"+nl;
     for ( int i = 0; i< stats.size(); ++i ) {
       StatT s = stats.get(i);
       ret += "<stat idx=\"" + i + "\">";
@@ -241,7 +237,7 @@ public class BenchmarkCommons {
       ret += "<MC>" + s.get_missedCount() + "</MC>";
 
       ret += "<REMC>" + s.get_remainedCount() + "</REMC>";
-      ret += "</stat>";
+      ret += "</stat>" + nl;
     }  
     ret += "</statlist>";
     return ret;
@@ -254,7 +250,6 @@ public class BenchmarkCommons {
    * @return the string representation
    */
   public static String profilesAsString(final Vector<ProfileT> profiles) {
-    String newline = System.getProperty("line.separator");
     String hdr = "    Profiles :\t[ Dbg | MaxAtom MaxInt MaxLat | RxTxTime RStartCnt MsgCount       Rx_B       Tx_B ]";
     String ret = "";
     for (int i = 0; i < profiles.size(); ++i) {
@@ -270,9 +265,9 @@ public class BenchmarkCommons {
               p.get_msg_count(),
               p.get_rx_bytes(),
               p.get_tx_bytes());
-       ret += str + newline;
+       ret += str + nl;
     }
-    return hdr + newline + ret;
+    return hdr + nl + ret;
   }
 
   /**
@@ -282,7 +277,7 @@ public class BenchmarkCommons {
    * @return the XML representation
    */
   public static String profilesAsXml(final Vector<ProfileT> profiles) {
-    String ret = "<profilelist>";
+    String ret = "<profilelist>"+nl;
     for ( int i = 0; i< profiles.size(); ++i ) {
       ProfileT p = profiles.get(i);
       ret += "<profile idx=\"" + (i+1) + "\">";
@@ -297,7 +292,7 @@ public class BenchmarkCommons {
       ret += "<TXB>" + p.get_tx_bytes() + "</TXB>";
       ret += "<DBG>" + p.get_debug() + "</DBG>";
 
-      ret += "</profile>";
+      ret += "</profile>"+nl;
     }
     ret += "</profilelist>";
     return ret;

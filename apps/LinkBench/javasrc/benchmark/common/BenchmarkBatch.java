@@ -154,31 +154,40 @@ public class BenchmarkBatch {
         List< Map<String,List<Integer>> > btimers = bmark.containsKey(S_TIMERS)
                 ? (List< Map<String,List<Integer>> >) bmark.get(S_TIMERS)
                 : null;
-        // Trigger timer initialization values
-        short ios[] =   new short[BenchmarkStatic.MAX_TIMER_COUNT];
-        long delay[] =  new long[BenchmarkStatic.MAX_TIMER_COUNT];
-        long period[] = new long[BenchmarkStatic.MAX_TIMER_COUNT];
 
-        for( int i = 0; i < BenchmarkStatic.MAX_TIMER_COUNT; ++i ) {
-          ios[i] = BenchmarkCommons.DEF_TIMER_ONESHOT ? 1 : 0;
-          delay[i] = BenchmarkCommons.DEF_TIMER_DELAY;
-          period[i] = BenchmarkCommons.DEF_TIMER_PERIOD;
-        }
-
+        TimerParser tp = new TimerParser(BenchmarkStatic.MAX_TIMER_COUNT);
+        
         // Format checking
         if (btimers != null) {
           for (Map<String, List<Integer>> timerspec : btimers) {
-            for (int i = 1; i <= BenchmarkStatic.MAX_TIMER_COUNT; ++i) {
+            for (byte i = 1; i <= BenchmarkStatic.MAX_TIMER_COUNT; ++i) {
               if (timerspec.containsKey(S_TIMER_PREFIX + i)) {
                 List<Integer> timervalues = (List<Integer>) timerspec.get(S_TIMER_PREFIX + i);
                 if (timervalues.size() != 3) {
                   throw new WrongFormatException("All timer specification must contain exactly 3 values!");
                 }
 
-                ios[i-1] = timervalues.get(0).shortValue();
-                delay[i-1] = timervalues.get(1).longValue();
-                period[i-1] = timervalues.get(2).longValue();
+                tp.setSpec((byte)(i-1),
+                        timervalues.get(0).shortValue(),
+                        timervalues.get(1).longValue(),
+                        timervalues.get(2).longValue());
               }
+            }
+          }
+        }
+
+        // MAC parameter section
+        // ---------------------------------------------------------------------
+        List< Map<String,List<Integer>> > macparams = bmark.containsKey(S_MAC)
+                ? (List< Map<String,List<Integer>> >) bmark.get(S_MAC)
+                : null;
+
+        MacParser mp = new MacParser();
+        // Format checking
+        if (macparams != null) {
+          for (Map<String, List<Integer>> macspec : macparams) {
+            for ( String key : macspec.keySet() ) {
+              mp.parseAll(key, toIntArray(macspec.get(key)) );
             }
           }
         }
@@ -194,47 +203,13 @@ public class BenchmarkBatch {
           checkUnknownTags(new HashSet(Arrays.asList(ref)), new HashSet<String>(forceopts));
         }
 
-        short flags = 0;
+        short flags = mp.getFlags();
         if ( forceopts != null ) {
           if ( forceopts.contains(S_FORCES_ACK) )
             flags |= BenchmarkStatic.GLOBAL_USE_ACK;
           if ( forceopts.contains(S_FORCES_BCAST) )
             flags |= BenchmarkStatic.GLOBAL_USE_BCAST;
-        }
-
-        // MAC parameter section
-        // ---------------------------------------------------------------------
-        List< Map<String,List<Integer>> > macparams = bmark.containsKey(S_MAC)
-                ? (List< Map<String,List<Integer>> >) bmark.get(S_MAC)
-                : null;
-
-        int macsetup[] = new int[BenchmarkStatic.MAC_SETUP_LENGTH];
-        for( int i = 0; i < BenchmarkStatic.MAC_SETUP_LENGTH; ++i ) {
-          macsetup[i] = 0;
-        }
-        
-        // Format checking
-        if (macparams != null) {
-          for (Map<String, List<Integer>> macspec : macparams) {
-
-            if ( macspec.containsKey("lpl") ) {
-              List<Integer> params = (List<Integer>) macspec.get("lpl");
-              if( params.size() != 1)
-                throw new WrongFormatException("LPL MAC expects exactly 1 parameter! (Wakeup interval)");
-              macsetup[BenchmarkStatic.LPL_WAKEUP_OFFSET] = params.get(0).intValue();
-              flags |= BenchmarkStatic.GLOBAL_USE_MAC_LPL;
-            }
-
-            if ( macspec.containsKey("plink") ) {
-              List<Integer> params = (List<Integer>) macspec.get("plink");
-              if( params.size() != 2)
-                throw new WrongFormatException("Packet Link MAC expects exactly 2 parameters! (Max retries & Delay)");
-              macsetup[BenchmarkStatic.PLINK_RETRIES_OFFSET] = params.get(0).intValue();
-              macsetup[BenchmarkStatic.PLINK_DELAY_OFFSET] = params.get(1).intValue();
-              flags |= BenchmarkStatic.GLOBAL_USE_MAC_PLINK;
-            }
-          }
-        }
+        }      
 
         // Create a SetupT for the current benchmark
         SetupT setup = new SetupT();
@@ -251,12 +226,12 @@ public class BenchmarkBatch {
                 bconfig.get(S_CONFIG_LC) :
                 BenchmarkCommons.DEF_LASTCHANCE);
 
-        setup.set_mac_setup(macsetup);
+        setup.set_mac_setup(mp.getMacParams());
         setup.set_flags(flags);
 
-        setup.set_timers_isoneshot(ios);
-        setup.set_timers_delay(delay);
-        setup.set_timers_period_msec(period);
+        setup.set_timers_isoneshot(tp.getIos());
+        setup.set_timers_delay(tp.getDelay());
+        setup.set_timers_period_msec(tp.getPeriod());
 
         // update our attributes
         this.setups.add(setup);
@@ -276,9 +251,11 @@ public class BenchmarkBatch {
     } catch (WrongFormatException ex) {
       System.out.println("FAIL");
       System.out.println("   " + ex.getMessage());
+      
     } catch (Exception ex) {
       System.out.println("FAIL");
       System.out.println("   Wrong configuration file format! The file must be YAML-formatted.");
+      System.out.println("   " + ex.getMessage());
     }
     return false;
   }
@@ -333,5 +310,14 @@ public class BenchmarkBatch {
       return false;
     } 
   }
+
+  private static int[] toIntArray(List<Integer> list)  {
+    int[] ret = new int[list.size()];
+    int i = 0;
+    for (Integer e : list)
+        ret[i++] = e.intValue();
+    return ret;
+  }
+
 
 }

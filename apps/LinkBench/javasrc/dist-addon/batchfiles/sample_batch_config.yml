@@ -10,7 +10,7 @@
 # The example below demonstrates ALL options that can be specified in the correct
 # format:
 # ---
-# config: {bmark: 10, motes: 6, time: 1000, randstart: 30, lastchance: 20}
+# config: {bmark: 10, motes: 6, time: 1000, randstart: 30, lchance: 20}
 # timers:
 #  - t1: [1, 10, 100]
 #  - t2: [0, 20, 200]

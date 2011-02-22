@@ -38,8 +38,6 @@ import benchmark.common.*;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 import org.apache.commons.cli.*;
 
 public class BenchmarkCli {
@@ -169,9 +167,9 @@ public class BenchmarkCli {
             .hasArg()
             .withDescription("Trigger timer configuration " +
               "index:isoneshot,maxrandomdelay,period.  [default : 1:" +
-              (BenchmarkCommons.DEF_TIMER_ONESHOT ? "1" : "0") +
-              BenchmarkCommons.DEF_TIMER_DELAY +
-              BenchmarkCommons.DEF_TIMER_PERIOD + " ]")
+              TimerParser.DEF_TIMER_ONESHOT + "," +
+              TimerParser.DEF_TIMER_DELAY + "," +
+              TimerParser.DEF_TIMER_PERIOD + " ]")
             .withLongOpt("triggers")
             .create("tr");
 
@@ -401,86 +399,29 @@ public class BenchmarkCli {
         if ( maxmoteid < 1 )
           throw new MissingOptionException("Invalid number of motes specified!");
  
-        // Trigger timer initialization values
-        short ios[] =   new short[BenchmarkStatic.MAX_TIMER_COUNT];
-        long delay[] =  new long[BenchmarkStatic.MAX_TIMER_COUNT];
-        long period[] = new long[BenchmarkStatic.MAX_TIMER_COUNT];
-
-        for( int i = 0; i < BenchmarkStatic.MAX_TIMER_COUNT; ++i ) {
-          ios[i] = BenchmarkCommons.DEF_TIMER_ONESHOT ? 1 : 0;
-          delay[i] = BenchmarkCommons.DEF_TIMER_DELAY;
-          period[i] = BenchmarkCommons.DEF_TIMER_PERIOD;
-        }
-        
+        // Trigger timer parsing
+        TimerParser tp = new TimerParser(BenchmarkStatic.MAX_TIMER_COUNT);
         if ( cl.hasOption("tr") ) {
-          String[] triggers = cl.getOptionValues("tr");
-          Pattern pattern = Pattern.compile("(\\d+):(\\d+),(\\d+),(\\d+)");
-
-          for( int i = 0; i < triggers.length; ++i ) {
-            Matcher matcher = pattern.matcher(triggers[i]);
-            if (matcher.find()) {
-              int trigidx = Integer.parseInt(matcher.group(1));
-              if ( trigidx < 1 || trigidx > BenchmarkStatic.MAX_TIMER_COUNT)
-                throw new MissingOptionException("Valid timer indexes are : [1.." + BenchmarkStatic.MAX_TIMER_COUNT + "], see help!");
-              --trigidx;
-              
-              ios[trigidx] = (byte)Integer.parseInt(matcher.group(2));
-              
-              delay[trigidx] = Integer.parseInt(matcher.group(3));
-              period[trigidx] = Integer.parseInt(matcher.group(4));
-              
-              if (period[trigidx] < 0 || delay[trigidx] < 0 || ios[trigidx] < 0 || ios[trigidx] > 1)
-                throw new MissingOptionException("Trigger timer "+ (trigidx+1) +" is invalid, see help!");
-              
-              // at time 0, only one-shot timers are allowed to fire
-              if (period[trigidx] == 0 && ios[trigidx] != 1)
-                throw new MissingOptionException("Only one-shot timers are allowed with 0 ms period!");
-              
-            } else
-              throw new MissingOptionException("Invalid trigger timer specification, see help!");
+          for ( String s : cl.getOptionValues("tr") ) {
+            tp.parse(s);
           }
-          
         }
 
-        short flags = 0;
+        // Trigger timer parsing
+        MacParser mac = new MacParser();
+        if ( cl.hasOption("mac") ) {
+          for ( String s : cl.getOptionValues("mac") ) {
+            mac.parse(s);
+          }
+        }
+
+        // Mac protocols may have flags set
+        short flags = mac.getFlags();
         if ( cl.hasOption("ack") )
           flags |= BenchmarkStatic.GLOBAL_USE_ACK;
         if ( cl.hasOption("bcast") )
           flags |= BenchmarkStatic.GLOBAL_USE_BCAST;
-                
-        int macsetup[] = new int[BenchmarkStatic.MAC_SETUP_LENGTH];
-        for( int i = 0; i < BenchmarkStatic.MAC_SETUP_LENGTH; ++i ) {
-          macsetup[i] = 0;
-        }
         
-        if ( cl.hasOption("mac") ) {
-          String[] macs = cl.getOptionValues("mac");
-          Pattern pattern = Pattern.compile("([a-z-]+):(\\d+,){1," + BenchmarkStatic.MAC_SETUP_LENGTH + "}");
-
-          for( int i = 0; i < macs.length; ++i ) {
-            Matcher matcher = pattern.matcher(macs[i]);
-            if (matcher.find()) {
-              if( matcher.group(1) == "lpl" ) {
-                flags |= BenchmarkStatic.GLOBAL_USE_MAC_LPL;
-                macsetup[BenchmarkStatic.LPL_WAKEUP_OFFSET] = Integer.parseInt(matcher.group(2));
-              } else if ( matcher.group(1) == "plink") {
-                flags |= BenchmarkStatic.GLOBAL_USE_MAC_PLINK;
-                macsetup[BenchmarkStatic.PLINK_RETRIES_OFFSET] = Integer.parseInt(matcher.group(2));
-                macsetup[BenchmarkStatic.PLINK_DELAY_OFFSET] = Integer.parseInt(matcher.group(3));
-              } else
-                throw new MissingOptionException("Only 'lpl' and 'plink' MACs supported!");
-
-            } else
-              throw new MissingOptionException("Invalid MAC parameter specification, see help!");
-          }
-
-          for( int i = 0; i < BenchmarkStatic.MAC_SETUP_LENGTH; ++i ) {
-            if ( macsetup[i] < 0 )
-              throw new MissingOptionException("Only non-negative values are valid for MAC parameters!");
-          }
-
-        }
-     
         // Create the setup structure
         SetupT st = new SetupT();
         st.set_problem_idx(problemidx);
@@ -488,11 +429,10 @@ public class BenchmarkCli {
         st.set_runtime_msec(runtimemsec);
         st.set_post_run_msec(lchance);
         st.set_flags(flags);
-        st.set_timers_isoneshot(ios);
-        st.set_timers_delay(delay);
-        st.set_timers_period_msec(period);
-        
-        st.set_mac_setup(macsetup);
+        st.set_timers_isoneshot(tp.getIos());
+        st.set_timers_delay(tp.getDelay());
+        st.set_timers_period_msec(tp.getPeriod());
+        st.set_mac_setup(mac.getMacParams());
 
         // Do what needs to be done
         BenchmarkCli cli = new BenchmarkCli();
@@ -511,6 +451,8 @@ public class BenchmarkCli {
             cli.doPrint();
           
           System.exit(0);
+        } else {
+          System.exit(1);
         }
       } else {
         throw new MissingOptionException("Invalid program arguments, use --help for help!");
