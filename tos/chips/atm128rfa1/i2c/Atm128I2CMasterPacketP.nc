@@ -302,8 +302,8 @@ implementation {
         break;
         case I2C_DATA: 
           if (reading == TRUE) {
+              packetPtr[index] = call I2C.read();
               if (index < packetLen-1) {
-                  packetPtr[index] = call I2C.read();
                   index++;
                   if (index == packetLen - 1 && !(packetFlags & I2C_ACK_END)) { 
                     call I2C.enableAck(FALSE);
