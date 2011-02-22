@@ -385,7 +385,7 @@ void GLRightElbowFlex::writeData() {
 
     renderText(-1.0, -2.85, 0.0, data->dev(position).c_str());
 
-    renderText(3.0, -2.5, 0.0, "           min / max / range  deg");
+    renderText(3.0, -2.5, 0.0, "           begin / min / max / range  deg");
 
     renderText(3.0, -3.0, 0.0, data->flex_info());
 

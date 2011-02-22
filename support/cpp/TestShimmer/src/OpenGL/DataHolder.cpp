@@ -83,9 +83,9 @@ DataHolder::~DataHolder() {
     delete[] extrema;
 }
 
-std::ostringstream& DataHolder::init(int i) const {
+std::ostringstream& DataHolder::reset_oss(int i) const {
 
-    init();
+    reset_oss();
 
     if (i<0 || i>=size) {
 
@@ -96,7 +96,7 @@ std::ostringstream& DataHolder::init(int i) const {
     return *out;
 }
 
-std::ostringstream& DataHolder::init() const {
+std::ostringstream& DataHolder::reset_oss() const {
 
     out->str("");
 
@@ -145,7 +145,13 @@ void DataHolder::init_angle_arrays() {
 
 
     if (flexion || supination || deviation) {
+
         throw logic_error("already initialized");
+    }
+
+    if (size<1) {
+
+        throw logic_error("there should be at least 1 sample");
     }
 
     flexion    = new double[size];
@@ -237,20 +243,79 @@ void DataHolder::set_med_dev() {
 
 void DataHolder::save_ranges() {
 
-    flex_range += range(FLEX_MIN, FLEX_MAX);
-    sup_range  += range( SUP_MIN,  SUP_MAX);
-    pron_range += range(PRON_MIN, PRON_MAX);
-    lat_range  += range( LAT_MIN,  LAT_MAX);
-    med_range  += range( MED_MIN,  MED_MAX);
+    save_flex();
+
+    save_sup();
+
+    save_pron();
+
+    save_lat_dev();
+
+    save_med_dev();
 }
 
 typedef ostringstream& oss;
 
+void DataHolder::save_flex() {
+
+    oss os = reset_oss();
+
+    os << flexion[0] << flush;
+
+    flex_range += os.str();
+
+    flex_range += range(FLEX_MIN, FLEX_MAX);
+}
+
+void DataHolder::save_sup() {
+
+    oss os = reset_oss();
+
+    os << (supination[0] >= 0 ? supination[0] : 0.0) << flush;
+
+    sup_range += os.str();
+
+    sup_range += range(SUP_MIN, SUP_MAX);
+}
+
+void DataHolder::save_pron() {
+
+    oss os = reset_oss();
+
+    os << (supination[0] < 0 ? -supination[0] : 0.0) << flush;
+
+    pron_range += os.str();
+
+    pron_range += range(PRON_MIN, PRON_MAX);
+}
+
+void DataHolder::save_lat_dev() {
+
+    oss os = reset_oss();
+
+    os << (deviation[0] >= 0 ? deviation[0] : 0.0) << flush;
+
+    lat_range += os.str();
+
+    lat_range += range(LAT_MIN, LAT_MAX);
+}
+
+void DataHolder::save_med_dev() {
+
+    oss os = reset_oss();
+
+    os << (deviation[0]< 0 ? -deviation[0] : 0.0) << flush;
+
+    med_range += os.str();
+
+    med_range += range(MED_MIN, MED_MAX);
+}
+
 const string DataHolder::range(int MIN, int MAX) {
 
-    oss os = init();
+    oss os = reset_oss();
 
-    os << extrema[MIN] << " / " << extrema[MAX] << " / ";
+    os << " / " << extrema[MIN] << " / " << extrema[MAX] << " / ";
     os << extrema[MAX]-extrema[MIN] << " deg" << flush;
 
     return os.str();
@@ -292,7 +357,7 @@ double DataHolder::deviation_deg(int i) const {
 
 const std::string DataHolder::flex(int i) const {
 
-    ostringstream& os = init(i);
+    oss os = reset_oss(i);
 
     os << "Flex " << flexion[i] << " deg";
 
@@ -301,7 +366,7 @@ const std::string DataHolder::flex(int i) const {
 
 const std::string DataHolder::sup(int i) const {
 
-    ostringstream& os = init(i);
+    oss os = reset_oss(i);
 
     if (supination[i] >= 0) {
 
@@ -317,7 +382,7 @@ const std::string DataHolder::sup(int i) const {
 
 const std::string DataHolder::dev(int i) const {
 
-    ostringstream& os = init(i);
+    oss os = reset_oss(i);
 
     if (deviation[i] > 0) {
 
@@ -333,7 +398,7 @@ const std::string DataHolder::dev(int i) const {
 
 const std::string DataHolder::time(int i) const {
 
-    ostringstream& os = init(i);
+    oss os = reset_oss(i);
 
     double sec = i/SAMPLING_RATE;
 

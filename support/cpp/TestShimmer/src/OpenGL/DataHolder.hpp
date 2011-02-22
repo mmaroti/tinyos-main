@@ -77,10 +77,15 @@ private:
     void set_pronation();
     void set_med_dev();
     void save_ranges();
+    void save_flex();
+    void save_sup();
+    void save_pron();
+    void save_lat_dev();
+    void save_med_dev();
     const std::string range(int MIN, int MAX);
 
-    std::ostringstream& init() const;
-    std::ostringstream& init(int i) const;
+    std::ostringstream& reset_oss() const;
+    std::ostringstream& reset_oss(int i) const;
 
     double flexion_deg(int i) const;
     double supination_deg(int i) const;
