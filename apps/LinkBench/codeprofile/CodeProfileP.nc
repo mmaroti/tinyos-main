@@ -35,8 +35,7 @@
 
 #define ATOMIC_PERIODIC_TIME 1024
 
-#define COUNT_MAX(a,b) (((a) < (b)) ? (b) : (a))
-#define COUNT_MIN(a,b) (((a) > (b)) ? (b) : (a))
+#define _MAX_(a,b) (((a) < (b)) ? (b) : (a))
 
 module CodeProfileP @safe() {
   provides {
@@ -79,14 +78,14 @@ implementation {
     // significantly greater than zero, if interrupt(s) occured in between. That
     // difference is proportional to the running time of the 
     // interrupt handler.
-    mil = COUNT_MAX(t2-t1,mil);
+    mil = _MAX_(t2-t1,mil);
     
     // The difference between the posting time of this task (mtl_offset)
     // and the first expression's execution time ( t1 ) is the time
     // between two measureTask tasks.
     // This way, interleaving tasks' running time is measured.
     
-    mtl = COUNT_MAX(t1-mtl_offset,mtl);
+    mtl = _MAX_(t1-mtl_offset,mtl);
     atomic {
       mtl_offset = call Alarm.getNow();
       if ( alive )
@@ -123,10 +122,11 @@ implementation {
     // to avoid duplicate call to Alarm.getNow()
     mal_offset = call Alarm.getNow();
     
-    // Compute the absolute difference, and update maximum if necessary
-    // Note that in rare cases (mal_offset - target)< 0 can happen, that is 
-    // why a MAX-MIN is needed to avoid unsigned overflow.
-    mal = COUNT_MAX( COUNT_MIN( mal_offset - target, target - mal_offset ),mal);
+    // Compute the difference, and update maximum if necessary
+    // Note that in rare cases (timer pre-firing and overflow)
+    // mal_offset < target can happen. It is ignored in both cases.
+    if ( mal_offset > target )
+      mal = _MAX_( mal_offset - target, mal);
     
     atomic {
       if ( alive )
