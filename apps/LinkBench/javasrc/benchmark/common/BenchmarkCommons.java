@@ -91,21 +91,7 @@ public class BenchmarkCommons {
     out += ( config.get_flags() & 0x1 ) > 0 ? "On/" : "Off/";
     out += ( config.get_flags() & 0x2 ) > 0 ? "On" : "Off";
     out += nl;
-    
-    if ( (config.get_flags() & BenchmarkStatic.GLOBAL_USE_MAC_LPL) > 0 ) {
-      out += "  LPL: \t\t";
-      out += config.getElement_mac_setup(BenchmarkStatic.LPL_WAKEUP_OFFSET);
-      out += " ms" + nl;
-    }
 
-    if ( (config.get_flags() & BenchmarkStatic.GLOBAL_USE_MAC_PLINK) > 0 ) {
-      out +=" PLink: \t\t Retries: ";
-      out += config.getElement_mac_setup(BenchmarkStatic.PLINK_RETRIES_OFFSET);
-      out +=" ms Delay: ";
-      out += config.getElement_mac_setup(BenchmarkStatic.PLINK_DELAY_OFFSET);
-      out += " ms";
-      out += nl;
-    }    
     
     out += "  Timers: \t[";
     short ios[] = config.get_timers_isoneshot();
@@ -119,7 +105,9 @@ public class BenchmarkCommons {
       if (i != BenchmarkStatic.MAX_TIMER_COUNT-1)
         out += " | ";
     }
-    out += "]";
+    out += "]" + nl;
+    
+    out += MacParser.macAsString(config.get_flags(),config.get_mac_setup());
     return out;
   }
 
@@ -139,20 +127,8 @@ public class BenchmarkCommons {
     out +="<ack>" + (((config.get_flags() & BenchmarkStatic.GLOBAL_USE_ACK ) > 0 )? "On" : "Off") + "</ack>"+nl;
     out +="<bcast>" + (((config.get_flags() & BenchmarkStatic.GLOBAL_USE_BCAST ) > 0 ) ? "On" : "Off") + "</bcast>"+nl;
 
-    if ( (config.get_flags() & BenchmarkStatic.GLOBAL_USE_MAC_LPL) > 0 ) {
-      out +="<lpl wakeup=\"";
-      out += config.getElement_mac_setup(BenchmarkStatic.LPL_WAKEUP_OFFSET);
-      out += "\"/>"+nl;
-    }
-
-    if ( (config.get_flags() & BenchmarkStatic.GLOBAL_USE_MAC_PLINK) > 0 ) {
-      out +="<plink retry=\"";
-      out += config.getElement_mac_setup(BenchmarkStatic.PLINK_RETRIES_OFFSET);
-      out +="\" delay=\"";
-      out += config.getElement_mac_setup(BenchmarkStatic.PLINK_DELAY_OFFSET);
-      out += "\"/>"+nl;
-    }
-  
+    out += MacParser.macAsXml(config.get_flags(),config.get_mac_setup());
+    
     short ios[] = config.get_timers_isoneshot();
     long delay[] = config.get_timers_delay();
     long period[] = config.get_timers_period_msec();        
@@ -173,7 +149,9 @@ public class BenchmarkCommons {
    * @return the string representation
    */
   public static String statsAsString(final Vector<StatT> stats) {
-    String hdr = "  Statistics :\t[ Tri Blg Res | send Succ Fail | sDone Succ Fail | Ack NAck | Recv  Exp Wrng Dupl Frwd Miss | Rem ]";
+    String hdr =
+            "  -----------------------------------------------------------------------------------------------------------------" + nl +
+            "  Statistics :\t[ Tri Blg Res | send Succ Fail | sDone Succ Fail | Ack NAck | Recv  Exp Wrng Dupl Frwd Miss | Rem ]";
     String ret = "";
     for (int i = 0; i < stats.size(); ++i) {
       StatT s = stats.get(i);

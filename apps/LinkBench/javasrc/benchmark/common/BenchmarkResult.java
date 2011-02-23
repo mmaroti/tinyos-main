@@ -244,6 +244,7 @@ public class BenchmarkResult {
    * @param stream the stream
    */
   public void print(PrintStream stream) {
+    stream.println(BenchmarkCommons.setupAsString(this.config));
     stream.println(BenchmarkCommons.statsAsString(this.stats));
     stream.println(BenchmarkCommons.profilesAsString(this.profiles));
     stream.println(BenchmarkCommons.errorAsString(this.error));

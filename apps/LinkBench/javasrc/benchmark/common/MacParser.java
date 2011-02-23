@@ -84,6 +84,22 @@ public class MacParser {
 
   }
 
+  public static String macAsString(final short flags, final int[] params) {
+    String nl = System.getProperty("line.separator");
+
+    return  LPLasString(flags,params) + nl +
+            PacketLinkasString(flags,params) + nl;           
+  }
+
+  public static String macAsXml(final short flags, final int[] params) {
+    String nl = System.getProperty("line.separator");
+
+    return "<mac>" +
+            LPLasXml(flags,params) + 
+            PacketLinkasXml(flags,params) +
+            "</mac>" + nl;
+  }
+
   private void parseLPL(final String type, final int[] params) throws MacParserException {
     if ( type.equals("lpl") ) {
       if (params.length != 1) {
@@ -93,6 +109,22 @@ public class MacParser {
       flags |= BenchmarkStatic.GLOBAL_USE_MAC_LPL;
       this.macparams[BenchmarkStatic.LPL_WAKEUP_OFFSET] = params[0];
     }
+  }
+
+  private static String LPLasString(final short flags, final int[] params) {
+    String ret="";
+    if ((flags & BenchmarkStatic.GLOBAL_USE_MAC_LPL) != 0) {
+      ret = "  LPL: \t\t" + params[0] + " ms";
+    }
+    return ret;
+  }
+  
+  private static String LPLasXml(final short flags, final int[] params) {
+    String ret="";
+    if ((flags & BenchmarkStatic.GLOBAL_USE_MAC_LPL) != 0) {
+      ret = "<lpl wakeup=\"" + params[0] + "\"/>";
+    }
+    return ret;
   }
 
   private void parsePacketLink(final String type, final int[] params) throws MacParserException {
@@ -105,6 +137,22 @@ public class MacParser {
       this.macparams[BenchmarkStatic.PLINK_RETRIES_OFFSET] = params[0];
       this.macparams[BenchmarkStatic.PLINK_DELAY_OFFSET] = params[1];
     }
+  }
+
+  private static String PacketLinkasString(final short flags, final int[] params) {
+    String ret="";
+    if ((flags & BenchmarkStatic.GLOBAL_USE_MAC_PLINK) != 0) {
+      ret = "  Packet Link:  Retries: " + params[0] + " ms, Delay: " + params[0] + " ms";
+    }
+    return ret;
+  }
+
+  private static String PacketLinkasXml(final short flags, final int[] params) {
+    String ret="";
+    if ((flags & BenchmarkStatic.GLOBAL_USE_MAC_PLINK) != 0) {
+      ret = "<plink retries=\"" + params[0] + "\" delay=\"" + params[1] + "\"/>";
+    }
+    return ret;
   }
 
 
