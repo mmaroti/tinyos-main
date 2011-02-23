@@ -142,8 +142,8 @@ void LogWidget::init()
     ui->motionEndButton->setEnabled(false);
     ui->saveButton->setEnabled(false);
     ui->checkButton->setEnabled(false);
-    ui->clearButton->setEnabled(false);
-    ui->clearKeepPersonButton->setEnabled(false);
+    ui->clearButton->setEnabled(true);
+    ui->clearKeepPersonButton->setEnabled(true);
 
     ui->entryLine->setEnabled(true);    
     ui->loadButton->setEnabled(true);
@@ -418,8 +418,6 @@ void LogWidget::loadRecord() {
     ui->birthLabel->setText(person.birth().toString("yyyy-MM-dd"));
     ui->saveButton->setEnabled(true);
     ui->checkButton->setEnabled(true);
-    ui->clearButton->setEnabled(true);
-    ui->clearKeepPersonButton->setEnabled(true);
     ui->selectPersonButton->setEnabled(false);
 
     //disconnect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
