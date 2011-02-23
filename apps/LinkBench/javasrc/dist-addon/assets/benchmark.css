@@ -65,6 +65,14 @@ table.summary, table.data {
   color: #027702;
 }
 
+.cprofile {
+  color: #33469A;
+}
+
+.rprofile {
+  color: #554666;
+}
+
 .title_send {
   background-color: #ACF979;
   font: 13px sans-serif;
@@ -79,6 +87,24 @@ table.summary, table.data {
   font: 13px sans-serif;
   font-weight: bold;
   text-align: center; 
+  border-style: solid;
+  border-width: 0px 0px 1px 0px;
+}
+
+.title_cprofile {
+  background-color: #5579BC;
+  font: 13px sans-serif;
+  font-weight: bold;
+  text-align: center;
+  border-style: solid;
+  border-width: 0px 0px 1px 0px;
+}
+
+.title_rprofile {
+  background-color: #887999;
+  font: 13px sans-serif;
+  font-weight: bold;
+  text-align: center;
   border-style: solid;
   border-width: 0px 0px 1px 0px;
 }

@@ -76,9 +76,39 @@
         </xsl:for-each>
       </table>
 
+      <table class="data">
+        <tr>  
+          <td class="sub"></td>
+          <td class="title_cprofile" colspan="3">Code Profile</td>
+          <td class="title_rprofile" colspan="5">Radio Profile</td>
+          <td class="sub"></td>
+        </tr>
+        <tr>
+          <td class="sub"><strong>Mote</strong></td>
+          <td class="sub">Max Atomic</td>
+          <td class="sub">Max Interrupt</td>
+          <td class="sub">Max Latency</td>
+          <td class="sub">RxTx Time</td>
+          <td class="sub">Radio Start cnt</td>
+          <td class="sub">Total Msg cnt</td>
+          <td class="sub">Rx Bytes</td>
+          <td class="sub">Tx Bytes</td>
+          <td class="sub">Debug</td>
+
+        </tr>
+        <xsl:for-each select="profilelist/profile">
+        <tr>
+          <xsl:variable name="curr_idx" select="@idx"/>
+          <td class="sub"><xsl:value-of select="$curr_idx"/></td>
+          <xsl:apply-templates select="current()[@idx=$curr_idx]"/>
+        </tr>
+        </xsl:for-each>
+      </table>
+
+
 <!-- ERROR CHECKING -->
 
-      <table class="data">
+      <!--<table class="data">
       <tr>
         <td class="sub"><strong>Edge</strong></td>
         <td class="sub">Send (S/F)</td>
@@ -151,12 +181,9 @@
 
         </tr>
       </xsl:for-each>
-      </table>
+      </table> -->
 
-<!-- END ERROR CHECKING -->
-
-      <xsl:apply-templates select="debuglist"/>
-      <xsl:apply-templates select="errorlist"/>
+      <xsl:apply-templates select="error"/>
 
     </td>
   </tr>
@@ -181,18 +208,28 @@
           <td class="rt">Lastchance : </td>
           <td class="rt_data"><xsl:value-of select="post_runtime"/> ms</td>
         </tr>
+        
         <tr>
-          <td class="rt">Force-ACK : </td>
-          <td class="rt_data"><xsl:value-of select="ack"/></td>
-        </tr>
-        <tr>
-          <td class="rt">Force-Bcast : </td>
-          <td class="rt_data"><xsl:value-of select="bcast"/></td>
-        </tr>
-        <tr>
-          <td class="rt">LPL : </td>
-          <td class="rt_data"><xsl:value-of select="lpl"/></td>
-        </tr>
+          <td class="rt">Forces : </td>
+          <td class="rt_data">
+        <xsl:choose>
+          <xsl:when test="concat(ack,bcast)!='OffOff'">
+            <xsl:choose>
+              <xsl:when test="ack!='Off'"> ack </xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+              <xsl:when test="bcast!='Off'"> bcast </xsl:when>
+            </xsl:choose>
+           </xsl:when>
+          <xsl:otherwise>
+          none
+          </xsl:otherwise>
+        </xsl:choose>
+        </td>
+        </tr>        
+        
+        <xsl:apply-templates select="mac"/>
+        
         <xsl:for-each select="timer">
           <xsl:sort select="@idx"/>
           <tr>
@@ -207,6 +244,27 @@
     
         </xsl:for-each>
       </table>
+</xsl:template>
+
+<xsl:template match="mac">
+  <xsl:apply-templates/>
+</xsl:template>
+
+<xsl:template match="lpl">
+        <tr>
+          <td class="rt">LPL : </td>
+          <td class="rt_data"><xsl:value-of select="@wakeup"/> ms</td>
+        </tr>
+</xsl:template>
+
+<xsl:template match="plink">
+        <tr>
+          <td class="rt" rowspan="2">Packet Link : </td>
+          <td class="rt_data">Retries : <xsl:value-of select="@retries"/><br/></td>
+        </tr>
+        <tr>
+          <td class="rt_data">Delay : <xsl:value-of select="@delay"/><br/></td>
+        </tr>
 </xsl:template>
 
 <xsl:template match="stat">
@@ -236,21 +294,29 @@
           
 </xsl:template>
 
-<xsl:template match="debuglist">
-  <div class="debuglist">
-  <xsl:for-each select="debug">
-    <xsl:sort select="@idx"/>
-    <strong>Mote <xsl:value-of select="@idx"/> :</strong>
-    <xsl:choose>
-    <xsl:when test=".='0'">
-          <span class="debug_ok">OK</span>
-    </xsl:when>
-    <xsl:otherwise>
-          <span class="debug_fail">FAIL (<xsl:value-of select="."/>)</span>        
-    </xsl:otherwise>
-    </xsl:choose>
-  </xsl:for-each>
-  </div>
+<xsl:template match="profile">
+ 
+          <td class="rt_data cprofile"><xsl:value-of select="MAT"/></td>
+          <td class="rt_data cprofile"><xsl:value-of select="MINT"/></td>
+          <td class="rt_data cprofile"><xsl:value-of select="MLAT"/></td>
+
+          <td class="rt_data rprofile"><xsl:value-of select="RXTX"/></td>
+          <td class="rt_data rprofile"><xsl:value-of select="RST"/></td>
+          <td class="rt_data rprofile"><xsl:value-of select="MSGC"/></td>
+          <td class="rt_data rprofile"><xsl:value-of select="RXB"/></td>
+          <td class="rt_data rprofile"><xsl:value-of select="TXB"/></td>
+          
+          <td class="sub">
+          <xsl:choose>
+          <xsl:when test="DBG='0'">
+            <span class="debug_ok">OK</span>
+          </xsl:when>
+          <xsl:otherwise>
+            <span class="debug_fail">FAIL (<xsl:value-of select="DBG"/>)</span>        
+          </xsl:otherwise>
+          </xsl:choose>
+          </td>
+                                                           
 </xsl:template>
 
 <xsl:template match="error">
