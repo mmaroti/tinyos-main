@@ -33,6 +33,7 @@
 
 #include <QDateEdit>
 #include <QDebug>
+#include <QDir>
 #include <QFontMetrics>
 #include <QLabel>
 #include <QLineEdit>
@@ -106,7 +107,27 @@ SQLDialog::~SQLDialog() {
     // FIXME Resources are leaked -- not clear how to reclaim them
 }
 
+void SQLDialog::checkDBexistence() {
+
+    if (QFile::exists(DB_NAME)) {
+
+        return;
+    }
+
+    QString msg("Failed to open ");
+
+    msg.append(DB_NAME);
+
+    msg.append("\nCurrent working directory is:\n");
+
+    msg.append(QDir::currentPath());
+
+    displayError(msg);
+}
+
 void SQLDialog::connectToDatabase() {
+
+    checkDBexistence();
 
     QSqlDatabase db = QSqlDatabase::addDatabase(DATABASE);
 
@@ -114,7 +135,7 @@ void SQLDialog::connectToDatabase() {
 
     if (!db.open()) {
 
-        displayError("Failed to open the database of the records!");
+        displayError("Failed to open the database!");
     }
 
     QSqlQuery sql("PRAGMA foreign_keys = ON");

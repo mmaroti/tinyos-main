@@ -88,6 +88,7 @@ private:
     Q_DISABLE_COPY(SQLDialog);
 
     void connectToDatabase();
+    void checkDBexistence();
 
     void setupModel();
     QHBoxLayout* createInputLine();
