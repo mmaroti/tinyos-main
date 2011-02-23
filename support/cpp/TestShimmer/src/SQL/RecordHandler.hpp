@@ -100,6 +100,7 @@ private:
     void checkForError(const QSqlError& error);
     qint64 executeRawSQL(const QString& rawSQL);
 
+    void deleteRecordCSV(const qint64 id);
     void deleteRecord(const qint64 id);
 
     const QString getName(int row) const;

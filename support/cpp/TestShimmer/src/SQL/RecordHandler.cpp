@@ -32,6 +32,7 @@
 */
 
 #include <QDebug>
+#include <QFile>
 #include <QFontMetrics>
 #include <QLabel>
 #include <QLineEdit>
@@ -304,7 +305,21 @@ void RecordHandler::deleteClicked() {
     {
         qint64 id = getRecordID(selected.first().row());
 
+        deleteRecordCSV(id);
+
         deleteRecord(id);
+    }
+}
+
+void RecordHandler::deleteRecordCSV(const qint64 id) {
+
+    qDebug() << "Deleting record " << id << ".csv";
+
+    const QString filename = "../rec/"+QString::number(id)+".csv";
+
+    if (!QFile::remove(filename)) {
+
+        qDebug() << "Failed to delete!";
     }
 }
 

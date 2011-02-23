@@ -381,7 +381,35 @@ void SQLDialog::deleteClicked() {
     {
         qint64 id = getPersonID(selected.first().row());
 
+        deleteRecordsOfPerson(id);
+
         deletePerson(id);
+    }
+}
+
+void SQLDialog::deleteRecordsOfPerson(const qint64 id) {
+
+    QSqlQuery query("SELECT id FROM record WHERE person="+QString::number(id)+";");
+
+    checkForError(query.lastError());
+
+    while (query.next()) {
+
+        qint64 id = toInt64(query.value(0));
+
+        deleteRecordCSV(id);
+    }
+}
+
+void SQLDialog::deleteRecordCSV(const qint64 id) {
+
+    qDebug() << "Deleting record " << id << ".csv";
+
+    const QString filename = "../rec/"+QString::number(id)+".csv";
+
+    if (!QFile::remove(filename)) {
+
+        qDebug() << "Failed to delete!";
     }
 }
 

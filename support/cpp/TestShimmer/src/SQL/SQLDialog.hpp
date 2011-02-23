@@ -104,6 +104,8 @@ private:
     qint64 executeRawSQL(const QString& rawSQL);
 
     void insertNewPerson(const QString& name, const QString& birth);
+    void deleteRecordsOfPerson(const qint64 id);
+    void deleteRecordCSV(const qint64 id);
     void deletePerson(const qint64 id);
 
     const QString getName(int row) const;
