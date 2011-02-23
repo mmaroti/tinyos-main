@@ -1,9 +1,7 @@
 COMPONENT=BenchmarkAppC
 
-# use low power listening
+# MAC protocol usage
 #CFLAGS += -DLOW_POWER_LISTENING
-
-# use packet link
 #CFLAGS += -DPACKET_LINK
 
 # use 32-bit length statistics ? (default is 16 bits)
@@ -12,13 +10,20 @@ COMPONENT=BenchmarkAppC
 # the maximum edge count that is present in all benchmarks
 CFLAGS += -DMAX_EDGE_COUNT=8
 
-# exclude the standard benchmarks from the problemset
+# exclude the standard benchmarks (or a part of it) from the problemset
+# for low-memory platforms like telosa it might be necessary
 #CFLAGS += -DEXCLUDE_STANDARD
-# exclude the user defined benchmarks from the problemset
-#CFLAGS += -DEXCLUDE_USERDEFINED
+#CFLAGS += -DEXCLUDE_STANDARD_THROUGHPUT
+#CFLAGS += -DEXCLUDE_STANDARD_COLLISION
+CFLAGS += -DEXCLUDE_STANDARD_FORWARDING
 
+# exclude the user defined benchmarks from the problemset
+CFLAGS += -DEXCLUDE_USERDEFINED
+
+# codeprofile support
 CFLAGS += -Icodeprofile
 
+# channel settings
 CFLAGS += -DCC2420_DEF_CHANNEL=$(DEF_CHANNEL)
 CFLAGS += -DRF230_DEF_CHANNEL=$(DEF_CHANNEL)
 

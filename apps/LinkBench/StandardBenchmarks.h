@@ -14,7 +14,9 @@
  *
  * All of these benchmarks can be run with 4 motes (not all requires 4).
  */
- 
+
+#ifndef EXCLUDE_STANDARD_THROUGHPUT
+
 /** One-edge throughput **/
 _BMARK_START_(10)
   { 1, 2, NO_TIMER , { SEND_ON_INIT,  0, 0, 0, 0 }, NUM(INFINITE), NO_REPLY, START_MSG_ID }
@@ -82,6 +84,8 @@ _BMARK_START_(20)
   { 3, 4, NO_TIMER , { SEND_ON_INIT,  0, 0, 0, 0 }, NUM(INFINITE), NO_REPLY, START_MSG_ID }
 _BMARK_END_
 
+#endif // EXCLUDE_STANDARD_THROUGHPUT
+
 /* Collision problems
  * ----------------------
  * 
@@ -92,6 +96,8 @@ _BMARK_END_
  *
  * All of these benchmarks can be run with 4 motes.
  */ 
+
+#ifndef EXCLUDE_STANDARD_COLLISION
 
 /** Two parallel timer-based links **/
 _BMARK_START_(30)
@@ -138,6 +144,7 @@ _BMARK_START_(36)
   { 4, ALL, NO_TIMER, { SEND_ON_INIT, 0, 0, 0, 0 }, NUM(INFINITE), NO_REPLY, START_MSG_ID }
 _BMARK_END_
 
+#endif // EXCLUDE_STANDARD_COLLISION
 
 /* Forwarding problems
  * ----------------------
@@ -148,6 +155,8 @@ _BMARK_END_
  *
  * All of these benchmarks can be run with 6 motes (not all requires 6).
  */ 
+
+#ifndef EXCLUDE_STANDARD_FORWARDING
 
 /** M2 forwards to M1 what it hears from M1 **/
 _BMARK_START_(50)
@@ -258,4 +267,6 @@ _BMARK_START_(60)
   { 5, 2, NO_TIMER, { SEND_ON_REQ, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID }, 
   { 5, 3, NO_TIMER, { SEND_ON_REQ, 0, 0, 0, 0 }, NUM(1), NO_REPLY, START_MSG_ID } 
 _BMARK_END_
+
+#endif // EXCLUDE_STANDARD_FORWARDING
 
