@@ -34,17 +34,21 @@
 #ifndef ELBOWFLEXSIGN_HPP
 #define ELBOWFLEXSIGN_HPP
 
-struct ElbowFlexSign {
+class ElbowFlexSign {
 
-    ElbowFlexSign(int sup_sign, int dev_sign) : sup(sup_sign), dev(dev_sign) { }
+public:
+
+    static ElbowFlexSign right() {
+
+        return ElbowFlexSign(1, -1);
+    }
 
     const int sup;
     const int dev;
+
+private:
+
+    ElbowFlexSign(int sup_sign, int dev_sign) : sup(sup_sign), dev(dev_sign) { }
 };
-
-inline ElbowFlexSign RElbowFlexSign() {
-
-    return ElbowFlexSign(1, -1);
-}
 
 #endif // ELBOWFLEXSIGN_HPP

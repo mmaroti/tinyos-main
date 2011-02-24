@@ -31,97 +31,32 @@
 * Author: Ali Baharev
 */
 
-#ifndef GLRIGHTELBOWFLEX_HPP
-#define GLRIGHTELBOWFLEX_HPP
+#ifndef ANIMATIONELBOWFLEXSIGN_HPP
+#define ANIMATIONELBOWFLEXSIGN_HPP
 
+// FIXME Where is GLenum defined?
 #include <QGLWidget>
-#include "AnimationElbowFlexSign.hpp"
 
-class DataHolder;
-
-class GLRightElbowFlex : public QGLWidget
-{
-    Q_OBJECT
+class AnimationElbowFlexSign {
 
 public:
 
-    GLRightElbowFlex(AnimationElbowFlexSign right_or_left,
-                     QWidget *parent = 0,
-                     QGLWidget *shareWidget = 0);
+    static AnimationElbowFlexSign right() {
 
-    void setData(const char* filename);
+        return AnimationElbowFlexSign(-1);
+    }
 
-    void setData(double* rotmat, int size);
-
-    int numberOfSamples() const;
-
-    void setFrame(int pos);
-
-    ~GLRightElbowFlex();
-
-    QSize minimumSizeHint() const;
-    QSize sizeHint() const;
-
-signals:
-
-    void clicked();
-
-protected:
-
-    void initializeGL();
-    void paintGL();
-    void resizeGL(int width, int height);
-
-    void mousePressEvent(QMouseEvent* event);
+    const int z_sign;
+    const GLenum hand_front;
+    const GLenum hand_back;
 
 private:
 
-    void rotate();
-
-    void reset();
-
-    void setCameraPosition();
-    void setState();
-
-    void sideView();
-    void planView();
-    void frontView();
-
-    void headSilhouette(GLUquadricObj* qobj);
-    void headSolid(GLUquadricObj* qobj);
-
-    void sideHead();
-    void planHead();
-    void frontHead();
-
-    void writeData();
-
-    void drawLinearParts();
-
-    void drawIrrelevantParts();
-    void shoulder();
-    void neck();
-    void leftUpperArm();
-
-    void body();
-
-    void drawRightArm();
-    void upperArm();
-    void elbow();
-    void rotateForeArm();
-    void foreArm();
-    void hand();
-
-    const AnimationElbowFlexSign type;
-
-    DataHolder* data;
-
-    GLfloat rotmat[16];
-
-    GLuint list;
-
-    int position;
-    int size;
+    AnimationElbowFlexSign(int sign) :
+            z_sign(sign),
+            hand_front(sign==-1?GL_FILL:GL_LINE),
+            hand_back( sign==-1?GL_LINE:GL_FILL)
+    { }
 };
 
-#endif // GLRIGHTELBOWFLEX_HPP
+#endif // ANIMATIONELBOWFLEXSIGN_HPP

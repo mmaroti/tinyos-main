@@ -73,7 +73,7 @@ void GLWindow::init() {
 
 void GLWindow::createGLWidget() {
 
-    widget = new GLRightElbowFlex(this, 0);
+    widget = new GLRightElbowFlex(AnimationElbowFlexSign::right(), this, 0);
 
     widget->setData("MMtricky2");
 }
@@ -81,7 +81,7 @@ void GLWindow::createGLWidget() {
 
 void GLWindow::createGLWidget(double* rotmat, int size) {
 
-    widget = new GLRightElbowFlex(this, 0); // FIXME Duplication
+    widget = new GLRightElbowFlex(AnimationElbowFlexSign::right(), this, 0); // FIXME Duplication
 
     widget->setData(rotmat, size);
 }

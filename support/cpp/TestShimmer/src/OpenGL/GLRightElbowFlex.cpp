@@ -62,8 +62,11 @@ namespace {
     const int LINE_WIDTH = 3;
 }
 
-GLRightElbowFlex::GLRightElbowFlex(QWidget *parent, QGLWidget *shareWidget)
-    : QGLWidget(parent, shareWidget)
+GLRightElbowFlex::GLRightElbowFlex(AnimationElbowFlexSign right_or_left,
+                                   QWidget *parent,
+                                   QGLWidget *shareWidget)
+: QGLWidget(parent, shareWidget),
+  type(right_or_left)
 {
     for (int i=0;i<16; ++i)
         rotmat[i] = (GLfloat) 0.0;
@@ -79,7 +82,7 @@ void GLRightElbowFlex::setData(const char *filename) {
 
     delete data;
 
-    data = new DataHolder(RElbowFlexSign());
+    data = new DataHolder(ElbowFlexSign::right());
 
     data->grab_content(filename);
 
@@ -92,7 +95,7 @@ void GLRightElbowFlex::setData(double* rotmat, int length) {
 
     delete data; // FIXME Duplication
 
-    data = new DataHolder(RElbowFlexSign());
+    data = new DataHolder(ElbowFlexSign::right());
 
     data->set_content(rotmat, length);
 
@@ -219,23 +222,23 @@ void GLRightElbowFlex::shoulder() {
 
     glBegin(GL_LINES);
         glVertex3d(0.0, 2.0, 0.0);
-        glVertex3d(0.0, 2.0,-2.0);
+        glVertex3d(0.0, 2.0, 2.0*type.z_sign);
     glEnd();
 }
 
 void GLRightElbowFlex::neck() {
 
     glBegin(GL_LINES);
-        glVertex3d(0.0, 2.0, -1.0);
-        glVertex3d(0.0, 2.5, -1.0);
+        glVertex3d(0.0, 2.0, 1.0*type.z_sign);
+        glVertex3d(0.0, 2.5, 1.0*type.z_sign);
     glEnd();
 }
 
 void GLRightElbowFlex::leftUpperArm() {
 
     glBegin(GL_LINES);
-        glVertex3d(0.0, 2.0, -2.0);
-        glVertex3d(0.0, 0.0, -2.0);
+        glVertex3d(0.0, 2.0, 2.0*type.z_sign);
+        glVertex3d(0.0, 0.0, 2.0*type.z_sign);
     glEnd();
 }
 
@@ -244,8 +247,8 @@ void GLRightElbowFlex::body() {
     glLineWidth(1.0);
 
     glBegin(GL_LINES);
-        glVertex3d(0.0, 2.0, -1.0);
-        glVertex3d(0.0,-0.4, -1.0);
+        glVertex3d(0.0, 2.0, 1.0*type.z_sign);
+        glVertex3d(0.0,-0.4, 1.0*type.z_sign);
     glEnd();
 
     glLineWidth(LINE_WIDTH);
@@ -285,8 +288,8 @@ void GLRightElbowFlex::foreArm() {
 
 void GLRightElbowFlex::hand() {
 
-    glPolygonMode(GL_FRONT, GL_FILL);
-    glPolygonMode(GL_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT, type.hand_front);
+    glPolygonMode(GL_BACK,  type.hand_back);
 
     glBegin(GL_POLYGON);
        glVertex3d(1.6, -0.15, 0.0);
