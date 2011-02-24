@@ -312,8 +312,6 @@ void LogWidget::on_entryLine_returnPressed()
 
 void LogWidget::on_recStartButton_clicked()
 {
-    //init();
-
     createItems(-1, NORMAL, RECORDSTART, EMPTY);
 
     ui->recStartButton->setEnabled(false);
@@ -330,10 +328,20 @@ void LogWidget::on_recStartButton_clicked()
 
     connect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)),
             &application.dataRecorder,   SLOT(onReceiveMessage(ActiveMessage)), Qt::DirectConnection);
+
+    if(ui->singleMotioncBox->checkState()){
+        on_motionStartButton_clicked();
+        ui->recEndButton->setEnabled(true);
+    }
 }
 
 void LogWidget::on_recEndButton_clicked()
 {
+    if(ui->singleMotioncBox->checkState()){
+        on_motionEndButton_clicked();
+        ui->singleMotioncBox->setEnabled(true);
+    }
+
     QMessageBox msgBox;
     msgBox.setText("Are you sure you want to finish recording?");
     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
@@ -388,6 +396,11 @@ void LogWidget::on_motionStartButton_clicked()
     ui->motionStartButton->setEnabled(false);
     ui->motionEndButton->setEnabled(true);
     ui->recEndButton->setEnabled(false);
+
+    if(ui->singleMotioncBox->checkState()){
+        ui->motionEndButton->setEnabled(false);
+        ui->singleMotioncBox->setEnabled(false);
+    }
 
     entryLineInit();
 }
