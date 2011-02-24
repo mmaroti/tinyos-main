@@ -46,14 +46,14 @@ public:
         return AnimationElbowFlexSign(-1);
     }
 
-    const int z_sign;
+    const int sign;
     const GLenum hand_front;
     const GLenum hand_back;
 
 private:
 
     AnimationElbowFlexSign(int sign) :
-            z_sign(sign),
+            sign(sign),
             hand_front(sign==-1?GL_FILL:GL_LINE),
             hand_back( sign==-1?GL_LINE:GL_FILL)
     { }

@@ -222,23 +222,23 @@ void GLRightElbowFlex::shoulder() {
 
     glBegin(GL_LINES);
         glVertex3d(0.0, 2.0, 0.0);
-        glVertex3d(0.0, 2.0, 2.0*type.z_sign);
+        glVertex3d(0.0, 2.0, 2.0*type.sign);
     glEnd();
 }
 
 void GLRightElbowFlex::neck() {
 
     glBegin(GL_LINES);
-        glVertex3d(0.0, 2.0, 1.0*type.z_sign);
-        glVertex3d(0.0, 2.5, 1.0*type.z_sign);
+        glVertex3d(0.0, 2.0, 1.0*type.sign);
+        glVertex3d(0.0, 2.5, 1.0*type.sign);
     glEnd();
 }
 
 void GLRightElbowFlex::leftUpperArm() {
 
     glBegin(GL_LINES);
-        glVertex3d(0.0, 2.0, 2.0*type.z_sign);
-        glVertex3d(0.0, 0.0, 2.0*type.z_sign);
+        glVertex3d(0.0, 2.0, 2.0*type.sign);
+        glVertex3d(0.0, 0.0, 2.0*type.sign);
     glEnd();
 }
 
@@ -247,8 +247,8 @@ void GLRightElbowFlex::body() {
     glLineWidth(1.0);
 
     glBegin(GL_LINES);
-        glVertex3d(0.0, 2.0, 1.0*type.z_sign);
-        glVertex3d(0.0,-0.4, 1.0*type.z_sign);
+        glVertex3d(0.0, 2.0, 1.0*type.sign);
+        glVertex3d(0.0,-0.4, 1.0*type.sign);
     glEnd();
 
     glLineWidth(LINE_WIDTH);
@@ -407,7 +407,7 @@ void GLRightElbowFlex::planHead() {
 
     glPushMatrix();
 
-        glTranslated(0.0, 1.0, 2.5);
+        glTranslated(0.0, 1.0*(-type.sign), 2.5);
 
         glPointSize(8.0);
 
@@ -445,7 +445,7 @@ void GLRightElbowFlex::frontHead() {
 
     glPushMatrix();
 
-        glTranslated(1.0, 3.0, 0.0);
+        glTranslated(1.0*(-type.sign), 3.0, 0.0);
 
         glPointSize(8.0);
 
