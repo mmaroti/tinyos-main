@@ -191,7 +191,8 @@ HEADERS += src/DataRecorder.h \
     src/SQL/RecordHandler.hpp \
     src/SQL/Person.hpp \
     src/SQL/MotionTypes.hpp \
-    src/SQL/CustomSqlQueryModel.hpp
+    src/SQL/CustomSqlQueryModel.hpp \
+    src/OpenGL/ElbowFlexSign.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

@@ -56,7 +56,7 @@ enum {
 };
 
 // FIXME Knows sampling rate
-DataHolder::DataHolder() : SAMPLING_RATE(204.8), out(new ostringstream) {
+DataHolder::DataHolder(ElbowFlexSign s) : sign(s), SAMPLING_RATE(204.8), out(new ostringstream) {
 
     rotation_matrices = flexion = supination = deviation = 0;
     size = 0;
@@ -332,7 +332,7 @@ double DataHolder::supination_deg(int i) const {
 
     const double* const m = matrix_at(i);
 
-    return atan2(m[R12], m[R13])*RAD2DEG;
+    return atan2(m[R12], m[R13])*RAD2DEG*(sign.sup);
 }
 
 double DataHolder::deviation_deg(int i) const {
@@ -340,7 +340,7 @@ double DataHolder::deviation_deg(int i) const {
     const double* const m = matrix_at(i);
 
     // Sign: to make lateral-medial correct for right arm
-    return -(acos(m[R11])-PI_HALF)*RAD2DEG;
+    return (acos(m[R11])-PI_HALF)*RAD2DEG*(sign.dev);
 }
 
 const string DataHolder::flex(int i) const {

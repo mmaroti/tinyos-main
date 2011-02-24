@@ -36,12 +36,13 @@
 
 #include <iosfwd>
 #include <string>
+#include "ElbowFlexSign.hpp"
 
 class DataHolder {
 
 public:
 
-    DataHolder();
+    DataHolder(ElbowFlexSign sign);
 
     void grab_content(const char* filename);
 
@@ -91,6 +92,7 @@ private:
     double supination_deg(int i) const;
     double deviation_deg(int i) const;
 
+    const ElbowFlexSign sign;
     const double SAMPLING_RATE;
 
     std::ostringstream* const out;

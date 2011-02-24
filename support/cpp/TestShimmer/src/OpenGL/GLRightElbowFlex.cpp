@@ -79,7 +79,7 @@ void GLRightElbowFlex::setData(const char *filename) {
 
     delete data;
 
-    data = new DataHolder;
+    data = new DataHolder(RElbowFlexSign());
 
     data->grab_content(filename);
 
@@ -92,7 +92,7 @@ void GLRightElbowFlex::setData(double* rotmat, int length) {
 
     delete data; // FIXME Duplication
 
-    data = new DataHolder;
+    data = new DataHolder(RElbowFlexSign());
 
     data->set_content(rotmat, length);
 
