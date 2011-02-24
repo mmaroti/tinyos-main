@@ -132,16 +132,20 @@ private:
     void init();
     void entryLineInit();
     void clearLog(bool keepPerson);
-    void setSavedStatus(bool);
-    bool isSaved;
+    void markSaved();
+    void markUnsaved();
 
     void loadRecord();
     void saveLog(const QString&);
     void loadLog(const QString&);
+    bool clearLog();
+    void clearPerson();
     void csvToLog(const QString&);
     void csvToPerson(const QString&);
 
     //=======================
+    bool checkConnection();
+
     void startChecking();
     void checkNextMotion();
     void finishedChecking();
@@ -179,6 +183,7 @@ private:
     Ui::LogWidget *ui;
     Application &application;
     bool inEditing;
+    bool isSaved;
 
     //=======================
     QMessageBox* blockingBox;

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>640</width>
-    <height>555</height>
+    <height>621</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -575,7 +575,7 @@
      <item>
       <widget class="QPushButton" name="loadButton">
        <property name="text">
-        <string>Load</string>
+        <string>Open existing</string>
        </property>
       </widget>
      </item>
@@ -624,14 +624,14 @@
      <item>
       <widget class="QPushButton" name="selectPersonButton">
        <property name="text">
-        <string>Select Person</string>
+        <string>New record</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QGroupBox" name="groupBox_3">
        <property name="title">
-        <string>Motion Type</string>
+        <string>Motion type</string>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_7">
         <item>
@@ -738,7 +738,7 @@
      <item>
       <widget class="QPushButton" name="clearButton">
        <property name="text">
-        <string>Clear All</string>
+        <string>Clear all</string>
        </property>
       </widget>
      </item>
@@ -758,7 +758,7 @@
         <item>
          <widget class="QCheckBox" name="noWarncBox">
           <property name="text">
-           <string>Don't Warn at Rec End</string>
+           <string>Don't warn at rec end</string>
           </property>
           <property name="checked">
            <bool>true</bool>
@@ -768,7 +768,7 @@
         <item>
          <widget class="QCheckBox" name="autoCheckcB">
           <property name="text">
-           <string>Auto Check</string>
+           <string>Auto check</string>
           </property>
           <property name="checked">
            <bool>true</bool>
@@ -778,7 +778,7 @@
         <item>
          <widget class="QCheckBox" name="singleMotioncBox">
           <property name="text">
-           <string>Single Motion</string>
+           <string>Single motion</string>
           </property>
           <property name="checked">
            <bool>true</bool>
@@ -788,7 +788,7 @@
         <item>
          <widget class="QCheckBox" name="autoPlaycBox">
           <property name="text">
-           <string>Auto Play</string>
+           <string>Auto play</string>
           </property>
           <property name="checked">
            <bool>true</bool>
@@ -801,7 +801,7 @@
      <item>
       <widget class="QPushButton" name="permaDeleteButton">
        <property name="text">
-        <string>Delete Permanently</string>
+        <string>Delete permanently</string>
        </property>
       </widget>
      </item>
