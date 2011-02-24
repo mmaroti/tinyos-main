@@ -70,9 +70,14 @@ private slots:
     void on_clearKeepPersonButton_clicked();
     void on_checkButton_clicked();
     void on_selectPersonButton_clicked();
+    void on_permaDeleteButton_clicked();
     void onPersonSelected(const Person& p);
     void onRecordSelected(qint64 recID, const Person& p);
     void on_motionTypeCBox_currentIndexChanged(int);
+    void on_noWarncBox_clicked();
+    void on_autoCheckcB_clicked();
+    void on_singleMotioncBox_clicked();
+    void on_autoPlaycBox_clicked();
 
     void ShowContextMenu(const QPoint& pos);
     void on_log_cellClicked(int,int);
@@ -126,6 +131,9 @@ private:
 
     void init();
     void entryLineInit();
+    void clearLog(bool keepPerson);
+    void setSavedStatus(bool);
+    bool isSaved;
 
     void loadRecord();
     void saveLog(const QString&);

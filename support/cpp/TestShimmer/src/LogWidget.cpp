@@ -148,13 +148,24 @@ void LogWidget::init()
     ui->entryLine->setEnabled(true);    
     ui->loadButton->setEnabled(true);
 
-    //ui->saveButton->setStyleSheet("* { background-color: rgb(255,185,185) }");
+    setSavedStatus(false);
 }
 
 void LogWidget::entryLineInit()
 {
     ui->entryLine->clear();
     ui->entryLine->setFocus();
+}
+
+void LogWidget::setSavedStatus(bool saved)
+{
+    if(saved){
+        isSaved = true;
+        ui->saveButton->setStyleSheet("* { background-color: rgb(185,255,185) }");
+    } else {
+        isSaved = false;
+        ui->saveButton->setStyleSheet("* { background-color: rgb(255,185,185) }");
+    }
 }
 
 void LogWidget::createItem(QString txt, int row, Column column, bool editable)
@@ -327,7 +338,14 @@ void LogWidget::on_recEndButton_clicked()
     msgBox.setText("Are you sure you want to finish recording?");
     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Cancel);
-    int ret = msgBox.exec();
+
+    int ret;
+    if(ui->noWarncBox->checkState()){
+        ret = QMessageBox::Ok;
+    } else {
+        ret = msgBox.exec();
+    }
+
     if(ret == QMessageBox::Ok){
 
         disconnect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)),
@@ -355,9 +373,10 @@ void LogWidget::on_recEndButton_clicked()
         }
 
         //disconnect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
-    }
 
-    entryLineInit();
+        if(ui->autoCheckcB->checkState()) startChecking();
+    }
+        entryLineInit();
 }
 
 void LogWidget::on_motionStartButton_clicked()
@@ -421,6 +440,7 @@ void LogWidget::loadRecord() {
     ui->selectPersonButton->setEnabled(false);
 
     //disconnect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
+    setSavedStatus(true);
 
     loadLog(file);
 }
@@ -443,6 +463,8 @@ void LogWidget::on_saveButton_clicked()
     ui->loadButton->setEnabled(false);
     //ui->entryLine->setEnabled(true);
     //connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
+
+    setSavedStatus(true);
 
     entryLineInit();
 }
@@ -473,52 +495,74 @@ void LogWidget::getUniqueRecordID(const QString& motionType)
 void LogWidget::on_clearButton_clicked()
 {
     qDebug() << "Clear All";
-    QMessageBox msgBox;
-    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-    msgBox.setDefaultButton(QMessageBox::Cancel);
-    msgBox.setText("WARNING! Deleting ALL log, person and sample data!");
-    msgBox.setInformativeText("Are you sure?");
-    msgBox.setIcon(QMessageBox::Warning);
-    int ret = msgBox.exec();
+    if(isSaved){
+        clearLog(false);
+    } else {
+        QMessageBox msgBox;
+        msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+        msgBox.setDefaultButton(QMessageBox::Cancel);
+        msgBox.setText("WARNING! Deleting ALL log, person and sample data!");
+        msgBox.setInformativeText("Are you sure?");
+        msgBox.setIcon(QMessageBox::Warning);
+        int ret = msgBox.exec();
 
-    if(ret == QMessageBox::Ok){
-        init();
-        ui->selectPersonButton->setEnabled(true);
-
-        ui->selectPersonButton->setFocus();
-        ui->personLabel->clear();
-        ui->birthLabel->clear();
-        person = Person();
-        recordID = INVALID_RECORD_ID;
-        //connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
+        if(ret == QMessageBox::Ok){
+            clearLog(false);
+        }
     }
 }
 
 void LogWidget::on_clearKeepPersonButton_clicked()
 {
     qDebug() << "Clear, keep person";
-    QMessageBox msgBox;
-    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-    msgBox.setDefaultButton(QMessageBox::Cancel);
-    msgBox.setText("WARNING! Deleting log and sample data but keeping the person!");
-    msgBox.setInformativeText("Are you sure?");
-    msgBox.setIcon(QMessageBox::Warning);
-    int ret = msgBox.exec();
+    if(isSaved){
+        clearLog(true);
+    } else {
+        QMessageBox msgBox;
+        msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+        msgBox.setDefaultButton(QMessageBox::Cancel);
+        msgBox.setText("WARNING! Deleting log and sample data but keeping the person!");
+        msgBox.setInformativeText("Are you sure?");
+        msgBox.setIcon(QMessageBox::Warning);
+        int ret = msgBox.exec();
 
-    if(ret == QMessageBox::Ok){
-        init();
+        if(ret == QMessageBox::Ok){
+            clearLog(true);
+        }
+    }
+}
+
+void LogWidget::clearLog(bool keepPerson)
+{
+    init();
+    recordID = INVALID_RECORD_ID;
+    if(keepPerson){
         ui->selectPersonButton->setEnabled(false);
         ui->motionTypeCBox->setEnabled(true);
         ui->motionTypeCBox->setFocus();
-        //connect(ui->entryLine, SIGNAL(returnPressed()), this, SLOT(on_entryLine_returnPressed()));
-        recordID = INVALID_RECORD_ID;
+    } else {
+        ui->selectPersonButton->setEnabled(true);
+        ui->personLabel->clear();
+        ui->birthLabel->clear();
+        person = Person();
     }
 }
 
 void LogWidget::on_checkButton_clicked()
 {
-    qDebug() << "Check";
-    startChecking();
+    //qDebug() << "Check";
+    //startChecking();
+}
+
+void LogWidget::on_permaDeleteButton_clicked()
+{
+    QMessageBox msgBox;
+    msgBox.setText("WARNING! Permanently deleting this record!");
+    msgBox.setInformativeText("Are you sure?");
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Cancel);
+    int ret = msgBox.exec();
 }
 
 void LogWidget::onDelRow(int row)
@@ -552,6 +596,7 @@ void LogWidget::onDelRow(int row)
             for(int j=startRow; j<=endRow; j++ ){
                 ui->log->removeRow(startRow);
             }
+            setSavedStatus(false);
         }
     }
 
@@ -593,16 +638,20 @@ void LogWidget::on_log_cellChanged(int row, int column)
         ui->log->item(findMotionStart(row), STATUS)->setIcon(QIcon(":/icons/Warning.png"));
     }
 
-    if(column == TIME){ // FIXME What are these empty branched???
-
-    } else if(column == STATUS){
-
-    } else if(column == TYPE){
-
-    } else if(column == ENTRY){
-
-    }
+    setSavedStatus(false);
 }
+
+void LogWidget::on_noWarncBox_clicked()
+{}
+
+void LogWidget::on_autoCheckcB_clicked()
+{}
+
+void LogWidget::on_autoPlaycBox_clicked()
+{}
+
+void LogWidget::on_singleMotioncBox_clicked()
+{}
 
 void LogWidget::displayWarning(const QString& msg) {
 

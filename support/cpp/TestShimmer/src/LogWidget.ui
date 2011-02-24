@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>516</width>
-    <height>332</height>
+    <width>640</width>
+    <height>555</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -746,6 +746,62 @@
       <widget class="QPushButton" name="clearKeepPersonButton">
        <property name="text">
         <string>Clear, keep person</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QCheckBox" name="noWarncBox">
+          <property name="text">
+           <string>Don't Warn at Rec End</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="autoCheckcB">
+          <property name="text">
+           <string>Auto Check</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="singleMotioncBox">
+          <property name="text">
+           <string>Single Motion</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="autoPlaycBox">
+          <property name="text">
+           <string>Auto Play</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="permaDeleteButton">
+       <property name="text">
+        <string>Delete Permanently</string>
        </property>
       </widget>
      </item>
