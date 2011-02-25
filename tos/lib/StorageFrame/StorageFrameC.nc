@@ -32,7 +32,7 @@
 * Author:Andras Biro
 */
 #include "StreamStorage.h"
-configuration StorageFrameC{
+generic configuration StorageFrameC(){
 	provides interface StreamStorageWrite;
 }
 implementation{
