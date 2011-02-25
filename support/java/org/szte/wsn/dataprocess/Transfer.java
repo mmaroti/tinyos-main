@@ -74,10 +74,10 @@ public class Transfer extends Thread  {
 
 	/**
 	 * Sets the interfaces from String parameters
-	 * @param binaryType
-	 * @param binaryPath
-	 * @param stringType 
-	 * @param stringPath
+	 * @param binaryType [binfile, serial, shimmer]
+	 * @param binaryPath path of binary media
+	 * @param stringType [textfile, console]
+	 * @param stringPath path of string media
 	 * @param structPath path of the struct file
 	 * @param toString if true writes from binary to string, else writes from string to binary 
 	 * @param separator the string that separates the data in the output
