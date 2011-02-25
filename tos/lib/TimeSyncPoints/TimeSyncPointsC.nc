@@ -38,19 +38,23 @@ configuration TimeSyncPointsC
 {
 	provides interface TimeSyncPoints;
 	provides interface StdControl;
+    provides interface Set<uint16_t> as SetInterval;
 }
 implementation
 {
-	components TimeSyncMessageC;
+	components TimeSyncMessageC, LocalTimeMilliC;
   	components TimeSyncPointsP;
-  	components new TimerMilliC() as Timer;
+  	components new TimerMilliC();
 
  	TimeSyncPointsP.PacketTimeStampMilli -> TimeSyncMessageC.PacketTimeStampMilli;
   	TimeSyncPointsP.TimeSyncReceive -> TimeSyncMessageC.Receive[AM_TIMESYNCPOINTS]; 
   	TimeSyncPointsP.TimeSyncPacketMilli -> TimeSyncMessageC.TimeSyncPacketMilli;
   	TimeSyncPointsP.TimeSyncAMSendMilli -> TimeSyncMessageC.TimeSyncAMSendMilli[AM_TIMESYNCPOINTS];
-  	TimeSyncPointsP.TimerMilli -> Timer;
+  	TimeSyncPointsP.Timer -> TimerMilliC;
+    TimeSyncPointsP.AMPacket -> TimeSyncMessageC.AMPacket;
+    TimeSyncPointsP.LocalTime -> LocalTimeMilliC;
   	TimeSyncPoints=TimeSyncPointsP;
   	StdControl=TimeSyncPointsP;
+    SetInterval=TimeSyncPointsP;
 }
 

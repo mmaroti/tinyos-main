@@ -35,76 +35,73 @@
 
 module TimeSyncPointsP
 {
-	provides
-	{
-		interface TimeSyncPoints;
-		interface StdControl;
-	}
-	uses
-	{	
-		interface Receive as TimeSyncReceive;
-		interface TimeSyncPacket<TMilli, uint32_t> as TimeSyncPacketMilli;
-		interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
-		interface TimeSyncAMSend<TMilli, uint32_t> as TimeSyncAMSendMilli;
-		interface Timer<TMilli> as TimerMilli;
-	}
+  provides
+  {
+    interface TimeSyncPoints;
+    interface StdControl;
+    interface Set<uint16_t> as SetInterval;
+  }
+  uses
+  {	
+    interface Receive as TimeSyncReceive;
+    interface TimeSyncPacket<TMilli, uint32_t> as TimeSyncPacketMilli;
+    interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
+    interface TimeSyncAMSend<TMilli, uint32_t> as TimeSyncAMSendMilli;
+    interface AMPacket;
+    interface Timer<TMilli>;
+    interface LocalTime<TMilli>;
+  }
 }
 implementation
 {
-	
-	enum
-	{
-		STOPPED=0,
-		STARTED,
-	};
 
-	uint8_t state = STOPPED;
-	message_t syncMessage;
-	
-	command error_t StdControl.start()
-	{
-		if(state == STOPPED)
-		{
-			state = STARTED;
-			call TimerMilli.startPeriodic(TIMESYNCPOINTS_PERIOD);
-		}
-		return SUCCESS;
-	}
-	
-	command error_t StdControl.stop()
-	{
-		if (state == STARTED)
-		{
-			state = STOPPED;
-			call TimerMilli.stop();
-		}
-		return SUCCESS;
-	}
+  message_t syncMessage;
+  uint16_t period=TIMESYNCPOINTS_PERIOD;
+  
+  command error_t StdControl.start()
+  {
+      if(!call Timer.isRunning())
+      {
+          call Timer.startPeriodic(((uint32_t)period)<<10);
+      }
+      return SUCCESS;
+  }
+  
+  command error_t StdControl.stop()
+  {
+      if (call Timer.isRunning())
+      {
+          call Timer.stop();
+      }
+      return SUCCESS;
+  }
+  
+  command void SetInterval.set(uint16_t value){
+    period=value;
+    if(call Timer.isRunning())
+    {
+      call Timer.startPeriodic(((uint32_t)period)<<10);
+    }
+  }
 
-	event void TimerMilli.fired()
-	{
-		timeSyncPointsMsg_t* packet = (timeSyncPointsMsg_t*)(call TimeSyncAMSendMilli.getPayload(&syncMessage, sizeof(timeSyncPointsMsg_t)));
-   		packet-> nodeID = TOS_NODE_ID;
-   		call TimeSyncAMSendMilli.send(AM_BROADCAST_ADDR, &syncMessage, sizeof(timeSyncPointsMsg_t),0);
-	}
-	
-	event void TimeSyncAMSendMilli.sendDone(message_t* Bufptr, error_t err)
-	{
-	}
-	
-	event message_t* TimeSyncReceive.receive(message_t* msg,void* payload, uint8_t len)
-	{
-		uint32_t localTime = 0;
-		if (state == STARTED)
-		{
-			if ((call TimeSyncPacketMilli.isValid(msg)) && (call PacketTimeStampMilli.isValid(msg)))
-			{
-				timeSyncPointsMsg_t* syncMsg = (timeSyncPointsMsg_t*)payload;
-				localTime=call PacketTimeStampMilli.timestamp(msg);
-				signal TimeSyncPoints.syncPoint(localTime,syncMsg->nodeID,localTime-(call TimeSyncPacketMilli.eventTime(msg)));
-			}
-		}
-		return msg;
-	}
+  event void Timer.fired()
+  {
+      timeSyncPointsMsg_t* packet = (timeSyncPointsMsg_t*)(call TimeSyncAMSendMilli.getPayload(&syncMessage, sizeof(timeSyncPointsMsg_t)));
+      packet->timeStamp = call LocalTime.get();
+      call TimeSyncAMSendMilli.send(AM_BROADCAST_ADDR, &syncMessage, sizeof(timeSyncPointsMsg_t),packet->timeStamp);
+  }
+  
+  event message_t* TimeSyncReceive.receive(message_t* msg,void* payload, uint8_t len)
+  {
+      if (call Timer.isRunning()&&call TimeSyncPacketMilli.isValid(msg))
+      {
+        timeSyncPointsMsg_t* syncMsg = (timeSyncPointsMsg_t*)payload;
+        signal TimeSyncPoints.syncPoint(call TimeSyncPacketMilli.eventTime(msg), call AMPacket.source(msg), syncMsg->timeStamp);
+      }
+      return msg;
+  }
+  
+  event void TimeSyncAMSendMilli.sendDone(message_t* Bufptr, error_t err){}
+  default event void TimeSyncPoints.syncPoint(uint32_t local, am_addr_t nodeId, uint32_t remote){}
 }
 

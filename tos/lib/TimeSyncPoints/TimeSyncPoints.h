@@ -3,11 +3,11 @@
  
  enum {
    AM_TIMESYNCPOINTS = 1,
-   TIMESYNCPOINTS_PERIOD = 5000,
+   TIMESYNCPOINTS_PERIOD = 600U,//10 minutes
  };
 
 typedef struct timeSyncPointsMsg{
-	uint8_t nodeID;
+    uint32_t timeStamp;
 }timeSyncPointsMsg_t; 
 
 #endif
