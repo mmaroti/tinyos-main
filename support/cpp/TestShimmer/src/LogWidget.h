@@ -145,6 +145,7 @@ private:
 
     //=======================
     bool checkConnection();
+    void checkConsistency() const;
 
     void startChecking();
     void checkNextMotion();

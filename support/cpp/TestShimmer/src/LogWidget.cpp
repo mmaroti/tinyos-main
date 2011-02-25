@@ -59,6 +59,8 @@ namespace {
     const int TOO_SHORT_IN_SEC = 1;
     const qint64 INVALID_RECORD_ID = -1;
 
+    const char DATE_FORMAT[] = "yyyy-MM-dd";
+
     const char PASSED_TEXT[] = "Play";
     const char FAILED_TEXT[] = "Failed";
     const char UNKNOWN_TEXT[] ="Unknown";
@@ -314,6 +316,42 @@ void LogWidget::on_entryLine_returnPressed()
     entryLineInit();
 }
 
+void LogWidget::checkConsistency() const {
+
+    QString errorMsg;
+
+    if (person.isNull()) {
+
+        errorMsg = "person is not set; ";
+    }
+    if (person.name() != ui->personLabel->text()) {
+
+        errorMsg += "person label or name not updated; ";
+    }
+
+    const QDate birth = person.birth();
+
+    if (!birth.isValid() || (birth.toString(DATE_FORMAT) != ui->birthLabel->text())) {
+
+        errorMsg += "birth label or date not updated; ";
+    }
+    if (recordID != INVALID_RECORD_ID) {
+
+        errorMsg += "record ID not cleared; ";
+    }
+    if (ui->motionTypeCBox->currentIndex() == 0) {
+
+        errorMsg += "motion type not set; ";
+    }
+
+    if (!errorMsg.isEmpty()) {
+
+        QMessageBox::critical(0, "Application crash", "Exiting, fatal error: "+errorMsg);
+
+        exit(EXIT_FAILURE);
+    }
+}
+
 void LogWidget::on_recStartButton_clicked()
 {
     bool connectionOK = checkConnection();
@@ -322,6 +360,8 @@ void LogWidget::on_recStartButton_clicked()
 
         return;
     }
+
+    checkConsistency();
 
     createItems(-1, NORMAL, RECORDSTART, EMPTY);
 
@@ -478,7 +518,7 @@ void LogWidget::loadRecord() {
     init();
 
     ui->personLabel->setText(person.name());
-    ui->birthLabel->setText(person.birth().toString("yyyy-MM-dd"));
+    ui->birthLabel->setText(person.birth().toString(DATE_FORMAT));
     ui->saveButton->setEnabled(true);
     ui->checkButton->setEnabled(true);
     ui->selectPersonButton->setEnabled(false);
@@ -762,7 +802,7 @@ void LogWidget::onPersonSelected(const Person& p)
 
     ui->personLabel->setText(person.name());
 
-    ui->birthLabel->setText(person.birth().toString("yyyy-MM-dd"));
+    ui->birthLabel->setText(person.birth().toString(DATE_FORMAT));
 
     ui->motionTypeCBox->setEnabled(true);
 
@@ -864,7 +904,7 @@ void LogWidget::saveLog(const QString &filename)
 
     ts << "#Person metadata" << endl;
     ts << "#ID, Name, Birth" << endl;
-    ts << QString::number(person.id()) << "," << person.name() << "," << person.birth().toString("yyyy-MM-dd") << endl;
+    ts << QString::number(person.id()) << "," << person.name() << "," << person.birth().toString(DATE_FORMAT) << endl;
 
     ts << "#Record ID" << endl;
     ts << recordID << endl;
@@ -975,7 +1015,7 @@ void LogWidget::csvToPerson(const QString &line)
 
         Q_ASSERT(person.id() == id);
         Q_ASSERT(person.name() == name);
-        Q_ASSERT(person.birth() == QDate::fromString(birth, "yyyy-MM-dd"));
+        Q_ASSERT(person.birth() == QDate::fromString(birth, DATE_FORMAT));
     }
 }
 
