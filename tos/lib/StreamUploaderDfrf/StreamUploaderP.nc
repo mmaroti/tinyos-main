@@ -7,12 +7,9 @@ module StreamUploaderP{
 		interface DfrfReceive as DataReceive;		
 		interface DfrfReceive as GetReceive;
 		interface DfrfReceive as CommandReceive;
-//		interface Packet;
-//		interface AMPacket;
 		interface StreamStorageRead;
 		interface StreamStorageErase;
 		interface Resource; 
-		interface Timer<TMilli>;
 		interface Leds;
 		interface Boot;
 		interface Init as ConvergecastInit;
@@ -59,8 +56,7 @@ implementation{
 			downloadSeq=rec->seq_num;
 			if(readaddress<lastaddress&&lastaddress<=call StreamStorageRead.getMaxAddress()){
 				streamcommand=STREAM_GETMIN_READ;
-				if(call Resource.request()!=SUCCESS)
-					call Timer.startOneShot(10);
+				call Resource.request();
 			} 
 		} else if(rec->min_address==rec->max_address&&(rec->nodeid==TOS_NODE_ID||rec->nodeid==TOS_BCAST_ADDR)){
 			downloadSeq=rec->seq_num;
@@ -71,21 +67,14 @@ implementation{
 		return TRUE;
 	}
 	
-	event void Timer.fired(){
-		if(call Resource.request()!=SUCCESS)
-			call Timer.startOneShot(10);
-	}
-	
 	event void DataSend.sendDone(void *data){
 		if(datacached==data){
 			datacached=NULL;
 			if(readaddress<lastaddress){
-				if(call Resource.request()!=SUCCESS)
-					call Timer.startOneShot(10);
+				call Resource.request();
 			} else{
 				streamcommand=STREAM_GETMIN;
-				if(call Resource.request()!=SUCCESS)
-					call Timer.startOneShot(10);
+				call Resource.request();
 			}
 		}
 	}
@@ -98,17 +87,14 @@ implementation{
 		memcpy(&(datasend.payload[0]),buf,len);
 		readaddress+=len;
 		datacached=call DataSend.send(&datasend);
-		if(datacached!=NULL){
-			if(readaddress<lastaddress){
-				if(call Resource.request()!=SUCCESS)
-					call Timer.startOneShot(10);
+		if(datacached==NULL){
+			if(readaddress<=lastaddress){
+				call Resource.request();
 			} else{
 				streamcommand=STREAM_GETMIN;
-				if(call Resource.request()!=SUCCESS)
-					call Timer.startOneShot(10);
+				call Resource.request();
 			}
-		}
-			
+		} 			
 	}
 	
 
