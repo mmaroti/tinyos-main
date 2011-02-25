@@ -36,7 +36,7 @@
 configuration ApplicationC{
 }
 implementation{
-	components StorageFrameC,StreamUploaderC;
+	components new StorageFrameC(),StreamUploaderC;
 	components new TimerMilliC() as SensorTimer, EchoRangerC;
 	components ApplicationM as App, MainC, LedsC, LocalTimeMilliC;
 
