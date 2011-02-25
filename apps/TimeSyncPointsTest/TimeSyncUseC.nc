@@ -49,7 +49,7 @@ implementation
 {
 	bool startSend;
 	message_t timeMessage;
-	uint8_t nodeId;
+	am_addr_t nodeId;
 	uint32_t remoteTime,localTime;
 	
 	event void Boot.booted()
@@ -79,7 +79,7 @@ implementation
 		//nothing to do
 	}
 	
-	event void TimeSyncPoints.syncPoint(uint32_t locTime,uint8_t ID, uint32_t remTime)
+	event void TimeSyncPoints.syncPoint(uint32_t locTime,am_addr_t ID, uint32_t remTime)
 	{
 		uint8_t waitTime=0;
 		if (!startSend)
