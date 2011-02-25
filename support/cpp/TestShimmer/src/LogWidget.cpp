@@ -373,6 +373,7 @@ void LogWidget::on_recStartButton_clicked()
     ui->checkButton->setEnabled(false);
     ui->clearButton->setEnabled(false);
     ui->clearKeepPersonButton->setEnabled(false);
+    ui->permaDeleteButton->setEnabled(false);
     ui->loadButton->setEnabled(false);
     ui->motionTypeCBox->setEnabled(false);
 
@@ -443,6 +444,7 @@ void LogWidget::on_recEndButton_clicked()
     ui->checkButton->setFocus();
     ui->clearButton->setEnabled(true);
     ui->clearKeepPersonButton->setEnabled(true);
+    ui->permaDeleteButton->setEnabled(true);
 
     for(int i=0; i<ui->log->rowCount(); i++){
         ui->log->item(i, ENTRY)->setFlags(Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled);
