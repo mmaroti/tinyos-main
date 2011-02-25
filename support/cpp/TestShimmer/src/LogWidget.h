@@ -146,6 +146,8 @@ private:
     //=======================
     bool checkConnection();
     void checkConsistency() const;
+    bool nameIsConsistent() const;
+    bool birthDateIsConsistent() const;
 
     void startChecking();
     void checkNextMotion();

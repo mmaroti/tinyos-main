@@ -324,14 +324,14 @@ void LogWidget::checkConsistency() const {
 
         errorMsg = "person is not set; ";
     }
-    if (person.name() != ui->personLabel->text()) {
+    if (!nameIsConsistent()) {
 
         errorMsg += "person label or name not updated; ";
     }
 
     const QDate birth = person.birth();
 
-    if (!birth.isValid() || (birth.toString(DATE_FORMAT) != ui->birthLabel->text())) {
+    if (!birth.isValid() || !birthDateIsConsistent()) {
 
         errorMsg += "birth label or date not updated; ";
     }
@@ -579,7 +579,7 @@ void LogWidget::on_clearButton_clicked()
 {
     qDebug() << "Clear All";
 
-    if(isSaved || areYouSureDialog("Discarding all log, person and sample data!")) {
+    if(isSaved || person.isNull() || areYouSureDialog("Discarding all log, person and sample data!")) {
 
         clearLog();
 
@@ -593,7 +593,7 @@ void LogWidget::on_clearKeepPersonButton_clicked()
 
     bool updateCtrls = false;
 
-    if(isSaved || areYouSureDialog("Discarding log and sample data but keeping the person!")) {
+    if(isSaved || (rowCount()==0) || areYouSureDialog("Discarding log and sample data but keeping the person!")) {
 
         updateCtrls = clearLog();
     }
@@ -610,6 +610,8 @@ void LogWidget::on_clearKeepPersonButton_clicked()
 
 bool LogWidget::clearLog() {
 
+    qDebug() << "clearLog()";
+
     bool updateCtrls = true;
 
     if (person.isNull()) {
@@ -619,6 +621,12 @@ bool LogWidget::clearLog() {
         Q_ASSERT(ui->personLabel->text().isEmpty() && ui->birthLabel->text().isEmpty());
 
         updateCtrls = false;
+    }
+    else {
+
+        Q_ASSERT(nameIsConsistent());
+
+        Q_ASSERT(birthDateIsConsistent());
     }
 
     init();
@@ -641,6 +649,22 @@ void LogWidget::clearPerson() {
     ui->selectPersonButton->setFocus();
 }
 
+bool LogWidget::nameIsConsistent() const {
+
+    Q_ASSERT(!person.isNull());
+
+    return person.name() == ui->personLabel->text();
+}
+
+bool LogWidget::birthDateIsConsistent() const {
+
+    const QDate birth = person.birth();
+
+    Q_ASSERT(birth.isValid());
+
+    return birth.toString(DATE_FORMAT) == ui->birthLabel->text();
+}
+
 void LogWidget::on_checkButton_clicked()
 {
     qDebug() << "Check";
@@ -652,10 +676,13 @@ void LogWidget::on_checkButton_clicked()
 
 void LogWidget::on_permaDeleteButton_clicked()
 {
+    if (recordID == INVALID_RECORD_ID) {
 
-    if (areYouSureDialog("Permanently deleting this record!")) {
+        on_clearButton_clicked();
+    }
+    else if (areYouSureDialog("Permanently deleting this record!")) {
 
-        ;
+        recSelect->deleteRecord(recordID);
 
         clearLog();
 

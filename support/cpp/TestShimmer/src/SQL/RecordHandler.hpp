@@ -59,6 +59,8 @@ public:
 
     qint64 insertRecord(qint64 personID, MotionType type);
 
+    void deleteRecord(const qint64 id);
+
     ~RecordHandler();
 
     QSize minimumSizeHint() const;
@@ -101,9 +103,6 @@ private:
     void setSelectQueryLikeName();
     void checkForError(const QSqlError& error);
     qint64 executeRawSQL(const QString& rawSQL);
-
-    void deleteRecordCSV(const qint64 id);
-    void deleteRecord(const qint64 id);
 
     const QString getName(int row) const;
     const QDate getDate(int row) const;

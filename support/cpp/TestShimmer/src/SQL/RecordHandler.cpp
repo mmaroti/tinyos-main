@@ -317,13 +317,13 @@ void RecordHandler::deleteClicked() {
     {
         qint64 id = getRecordID(selected.first().row());
 
-        deleteRecordCSV(id);
-
         deleteRecord(id);
     }
 }
 
-void RecordHandler::deleteRecordCSV(const qint64 id) {
+void RecordHandler::deleteRecord(const qint64 id) {
+
+    Q_ASSERT(id > 0);
 
     qDebug() << "Deleting record " << id << ".csv";
 
@@ -333,9 +333,6 @@ void RecordHandler::deleteRecordCSV(const qint64 id) {
 
         qDebug() << "Failed to delete!";
     }
-}
-
-void RecordHandler::deleteRecord(const qint64 id) {
 
     executeRawSQL("DELETE FROM record WHERE id = "+QString::number(id));
 }
