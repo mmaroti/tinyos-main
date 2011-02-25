@@ -159,6 +159,8 @@ QHBoxLayout* SQLDialog::createInputLine() {
 
     connect(nameInput, SIGNAL(textChanged(QString)), SLOT(nameEdited(QString)));
 
+    connect(nameInput, SIGNAL(returnPressed()), SLOT(probablyDone()));
+
     line->addWidget(nameInput);
 
     line->addWidget(new QLabel("Born (YYYY-MM-DD): "));
@@ -292,8 +294,6 @@ qint64 SQLDialog::executeRawSQL(const QString& rawSQL) {
 void SQLDialog::nameEdited(const QString& ) {
 
     setSelectQueryLikeName();
-
-    dateInput->setDate(today);
 }
 
 void SQLDialog::itemActivated(const QModelIndex& item) {
@@ -303,6 +303,16 @@ void SQLDialog::itemActivated(const QModelIndex& item) {
     emit personSelected(getPerson(row));
 
     close();
+}
+
+void SQLDialog::probablyDone() {
+
+    if (model->rowCount()==1 && (dateInput->date()==today)) {
+
+        emit personSelected(getPerson(0));
+
+        close();
+    }
 }
 
 void SQLDialog::clearClicked() {
@@ -360,9 +370,9 @@ void SQLDialog::insertNewPerson(const QString& name, const QString& birth) {
 
     Q_ASSERT (id > 0);
 
-    close();
-
     emit personSelected(Person(id, name, dateInput->date()));
+
+    close();
 }
 
 void SQLDialog::deleteClicked() {
@@ -446,7 +456,7 @@ const QString SQLDialog::getName(int row) const {
     return model->data(nameCol).toString();
 }
 
-const Person SQLDialog::getPerson(const int row) {
+const Person SQLDialog::getPerson(const int row) const {
 
     qint64 id = getPersonID(row);
 
@@ -457,7 +467,7 @@ const Person SQLDialog::getPerson(const int row) {
     return Person(id, name, birth);
 }
 
-qint64 SQLDialog::getPersonID(int row) {
+qint64 SQLDialog::getPersonID(int row) const {
 
     Q_ASSERT( 0<=row && row < model->rowCount() );
 
@@ -468,11 +478,11 @@ qint64 SQLDialog::getPersonID(int row) {
     return toInt64(personID);
 }
 
-qint64 SQLDialog::toInt64(const QVariant& var) {
+qint64 SQLDialog::toInt64(const QVariant& var) const {
 
     bool success = false;
 
-    qint64 int64Value =var.toLongLong(&success);
+    qint64 int64Value = var.toLongLong(&success);
 
     if (!success) {
 
@@ -498,9 +508,10 @@ const QString SQLDialog::name() const {
     return nameInput->text().toUpper().trimmed();
 }
 
-void SQLDialog::displayError(const QString& msg) {
+void SQLDialog::displayError(const QString& msg) const {
 
-    QMessageBox::critical(this, "Fatal error", msg);
+    QMessageBox::critical(0, "Fatal error", msg);
+
     exit(EXIT_FAILURE);
 }
 

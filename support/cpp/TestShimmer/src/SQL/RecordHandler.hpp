@@ -73,6 +73,8 @@ private slots:
 
     void nameEdited(const QString& name);
 
+    void probablyDone();
+
     void itemActivated(const QModelIndex & index);
 
     void clearClicked();
@@ -105,15 +107,15 @@ private:
 
     const QString getName(int row) const;
     const QDate getDate(int row) const;
-    const Person getPerson(const int row);
-    qint64 getID(int row, int col);
-    qint64 getPersonID(int row);
-    qint64 getRecordID(int row);
+    const Person getPerson(const int row) const;
+    qint64 getID(int row, int col) const;
+    qint64 getPersonID(int row) const;
+    qint64 getRecordID(int row) const;
     int pixelWidth(const char text[]) const;
     const QString name() const;
-    qint64 toInt64(const QVariant& var);
+    qint64 toInt64(const QVariant& var) const;
 
-    void displayError(const QString& msg);
+    void displayError(const QString& msg) const;
     void displayWarning(const QString& msg);
     bool displayQuestion(const QString& question);
 

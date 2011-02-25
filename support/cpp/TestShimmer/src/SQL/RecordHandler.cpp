@@ -117,6 +117,8 @@ QHBoxLayout* RecordHandler::createInputLine() {
 
     connect(nameInput, SIGNAL(textChanged(QString)), SLOT(nameEdited(QString)));
 
+    connect(nameInput, SIGNAL(returnPressed()), SLOT(probablyDone()));
+
     line->addWidget(nameInput);
 
     return line;
@@ -274,6 +276,16 @@ void RecordHandler::itemActivated(const QModelIndex& item) {
     close();
 }
 
+void RecordHandler::probablyDone() {
+
+    if (model->rowCount()==1) {
+
+        emit recordSelected(getRecordID(0), getPerson(0));
+
+        close();
+    }
+}
+
 void RecordHandler::clearClicked() {
 
     clearInput();
@@ -356,7 +368,7 @@ const QString RecordHandler::getName(int row) const {
     return model->data(nameCol).toString();
 }
 
-const Person RecordHandler::getPerson(const int row) {
+const Person RecordHandler::getPerson(const int row) const {
 
     qint64 id = getPersonID(row);
 
@@ -367,7 +379,7 @@ const Person RecordHandler::getPerson(const int row) {
     return Person(id, name, birth);
 }
 
-qint64 RecordHandler::getID(int row, int col) {
+qint64 RecordHandler::getID(int row, int col) const {
 
     Q_ASSERT( 0<=row && row < model->rowCount() );
     Q_ASSERT( 0<=col && col < model->columnCount());
@@ -379,21 +391,21 @@ qint64 RecordHandler::getID(int row, int col) {
     return toInt64(id);
 }
 
-qint64 RecordHandler::getRecordID(int row) {
+qint64 RecordHandler::getRecordID(int row) const {
 
     return getID(row, static_cast<int>(REC_ID));
 }
 
-qint64 RecordHandler::getPersonID(int row) {
+qint64 RecordHandler::getPersonID(int row) const {
 
     return getID(row, static_cast<int>(PERSON_ID));
 }
 
-qint64 RecordHandler::toInt64(const QVariant& var) {
+qint64 RecordHandler::toInt64(const QVariant& var) const {
 
     bool success = false;
 
-    qint64 int64Value =var.toLongLong(&success);
+    qint64 int64Value = var.toLongLong(&success);
 
     if (!success) {
 
@@ -419,9 +431,10 @@ const QString RecordHandler::name() const {
     return nameInput->text().toUpper().trimmed();
 }
 
-void RecordHandler::displayError(const QString& msg) {
+void RecordHandler::displayError(const QString& msg) const {
 
-    QMessageBox::critical(this, "Fatal error", msg);
+    QMessageBox::critical(0, "Fatal error", msg);
+    
     exit(EXIT_FAILURE);
 }
 
