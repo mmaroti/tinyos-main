@@ -129,7 +129,7 @@ public class IntegerParser extends PacketParser{
 	 */
 	public int getPacketLength() {
 		
-		return size; //TODO throw illegal state exception if size< 1
+		return size; 
 	}
 
 	@Override
