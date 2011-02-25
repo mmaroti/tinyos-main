@@ -101,7 +101,7 @@ If you want to use a unique structure, you have to add it to the structs.ini (or
 -eg.: nx_le_uint8_t id;
 -Integers start with endiannes indicator, "nx_le" means little endian, othwerwise the variable will be big endian.
 -The next one is sign indicator, "uint" means unsigned integer, "int" means signed integer.
--The next is the size of the variable in bits, only 8, 16, 32, 64 is supported
+-The next is the size of the variable in bits, only 8, 16, 32 is supported
 
 -Constants can be made by  providing the value of a variable after it's name.
 -eg.: int8_t id=0x11;
