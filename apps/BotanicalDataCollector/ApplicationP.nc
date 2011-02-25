@@ -8,10 +8,14 @@ module ApplicationP{
 		interface Read<uint16_t> as Temp;
         interface Read<uint16_t> as Humidity;
 		interface LocalTime<TMilli>;
-		interface StreamStorageWrite;
+        interface StreamStorageWrite as DataStorageWrite;
+        interface StreamStorageWrite as TimeStorageWrite;
 		interface SplitControl as RadioControl;
 		interface LowPowerListening as LPL;
 		interface SystemLowPowerListening as SysLPL;		
+        interface Set<uint16_t> as SetInterval;
+        interface TimeSyncPoints;
+        interface StdControl as TimeSync;
 	}
 }
 implementation{
@@ -35,20 +39,17 @@ implementation{
 			call LPL.setLocalWakeupInterval(500);
 			call SysLPL.setDefaultRemoteWakeupInterval(500);
 			call SysLPL.setDelayAfterReceive(3000);			
-			call Timer.startPeriodic(60000L);
+            
+            call SetInterval.set(1);
+            call TimeSync.start();
+            
+			call Timer.startPeriodicAt(((uint32_t)60)<<10,20000L);
 		}
 	}	
 
 	event void Timer.fired(){
 		call Humidity.read();
 	}
-	
-	enum{
-      SENSOR_HUMIDITY=0,
-      SENSOR_TEMP=1,
-      SENSOR_VLIGHT=2,
-      SENSOR_IRLIGHT=3,
-    };
 	
 	
 	event void Humidity.readDone(error_t result, uint16_t val){
@@ -87,14 +88,26 @@ implementation{
             data.irlight=0;
             call Leds.led2On();
         }
-        call StreamStorageWrite.append(&data, sizeof(data));
+        data.timestamp=call LocalTime.get();
+        call DataStorageWrite.appendWithID(0xaa,&data, sizeof(data));
+    }
+    
+    event void TimeSyncPoints.syncPoint(uint32_t local, am_addr_t nodeId, uint32_t remote){
+      nx_struct{
+        nx_uint16_t nodeId;
+        nx_uint32_t local;
+        nx_uint32_t remote;
+      } timeData;
+      call TimeStorageWrite.appendWithID(0x3d,&timeData, sizeof(timeData));
     }
 
-	event void StreamStorageWrite.appendDone(void *buf, uint16_t len, error_t error){
-		//nothing to do
-	}
-	
-	event void StreamStorageWrite.appendDoneWithID(void *buf, uint16_t len, error_t error){}
-	event void StreamStorageWrite.syncDone(error_t error){}
+
+    event void TimeStorageWrite.appendDone(void *buf, uint16_t len, error_t error){}
+    event void TimeStorageWrite.appendDoneWithID(void *buf, uint16_t len, error_t error){}
+    event void TimeStorageWrite.syncDone(error_t error){}
+    
+	event void DataStorageWrite.appendDone(void *buf, uint16_t len, error_t error){}
+	event void DataStorageWrite.appendDoneWithID(void *buf, uint16_t len, error_t error){}
+	event void DataStorageWrite.syncDone(error_t error){}
 	event void RadioControl.stopDone(error_t error){}
 }
