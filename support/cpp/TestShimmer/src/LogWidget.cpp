@@ -1125,6 +1125,8 @@ void LogWidget::solverFinished(bool error, const QString message) {
 void LogWidget::finishedChecking() {
 
     blockingBox->hide();
+
+    autoPlay();
 }
 
 void LogWidget::markAsFailed() {
@@ -1331,4 +1333,26 @@ void LogWidget::showAnimation(const int begin, const int end, const int length) 
     win->showMaximized();
 
     win->activateWindow();
+}
+
+void LogWidget::autoPlay() {
+
+    if (!isAutoPlayChecked()) {
+
+        return;
+    }
+
+    int row = findMotStart(0);
+
+    if (row == NO_MORE) {
+
+        return;
+    }
+
+    on_log_cellDoubleClicked(row, STATUS);
+}
+
+bool LogWidget::isAutoPlayChecked() const {
+
+    return ui->autoPlaycBox->isChecked();
 }

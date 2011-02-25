@@ -168,6 +168,8 @@ private:
     bool isAlreadyPassed(const int row) const;
     bool isValidRange(const int begin, const int end, const int length) const;
     void showAnimation(const int begin, const int end, const int length);
+    void autoPlay();
+    bool isAutoPlayChecked() const;
 
     int rowCount() const;
     int recLengthInSec() const;
