@@ -3,8 +3,8 @@ module ApplicationP{
 		interface Boot;
 		interface Leds;
 		interface Timer<TMilli>;
-		interface Read<uint16_t> as VLight;
-		interface Read<uint16_t> as IRLight;
+		interface Read<uint8_t> as VLight;
+		interface Read<uint8_t> as IRLight;
 		interface Read<uint16_t> as Temp;
         interface Read<uint16_t> as Humidity;
 		interface LocalTime<TMilli>;
@@ -68,19 +68,25 @@ implementation{
 		call VLight.read();		
 	}
 	
-	 event void VLight.readDone(error_t result, uint16_t val){
-        if(result==SUCCESS)
-            data.vlight=(uint8_t)val;
-        else
+	 event void VLight.readDone(error_t result, uint8_t val){
+        if(result==SUCCESS){
+            data.vlight=val;
+            call Leds.led0Toggle();
+        }else{
             data.vlight=0;
+            call Leds.led2On();
+        }
         call IRLight.read();
     }
     
-     event void IRLight.readDone(error_t result, uint16_t val){
-        if(result==SUCCESS)
-            data.irlight=(uint8_t)val;
-        else
+     event void IRLight.readDone(error_t result, uint8_t val){
+        if(result==SUCCESS){
+            data.irlight=val;
+            call Leds.led1Toggle();
+        }else{
             data.irlight=0;
+            call Leds.led2On();
+        }
         call StreamStorageWrite.append(&data, sizeof(data));
     }
 
