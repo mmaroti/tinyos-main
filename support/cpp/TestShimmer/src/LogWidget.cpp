@@ -1312,6 +1312,8 @@ void LogWidget::on_log_cellDoubleClicked(int motStart, int column) {
         return;
     }
 
+    item(motStart, STATUS).setSelected(true);
+
     showAnimation(begin, end, length);
 }
 

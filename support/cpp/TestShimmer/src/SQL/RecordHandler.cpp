@@ -251,7 +251,7 @@ qint64 RecordHandler::executeRawSQL(const QString& rawSQL) {
 
 qint64 RecordHandler::insertRecord(qint64 personID, MotionType type) {
 
-    QString stmt = "INSERT INTO record VALUES (NULL, "+QString::number(personID)+", "+QString::number(type)+", DATETIME('now'));";
+    QString stmt = "INSERT INTO record VALUES (NULL, "+QString::number(personID)+", "+QString::number(type)+", DATETIME('now', 'localtime'));";
 
     qint64 recID = executeRawSQL(stmt);
 

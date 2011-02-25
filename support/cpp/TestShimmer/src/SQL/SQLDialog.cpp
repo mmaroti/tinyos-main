@@ -356,13 +356,13 @@ void SQLDialog::newPerson() {
 
 void SQLDialog::insertNewPerson(const QString& name, const QString& birth) {
 
-    qint64 id = executeRawSQL("INSERT INTO person VALUES (NULL, '"+name+"', DATE('"+birth+"'), DATETIME('now') );");
+    qint64 id = executeRawSQL("INSERT INTO person VALUES (NULL, '"+name+"', DATE('"+birth+"'), DATETIME('now', 'localtime') );");
 
     Q_ASSERT (id > 0);
 
-    emit personSelected(Person(id, name, dateInput->date()));
+    close();
 
-    //close();
+    emit personSelected(Person(id, name, dateInput->date()));
 }
 
 void SQLDialog::deleteClicked() {
