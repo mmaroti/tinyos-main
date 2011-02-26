@@ -36,7 +36,7 @@
 
 #include <QWidget>
 
-class GLRightElbowFlex;
+class GLElbowFlexWidget;
 class QPushButton;
 class QSlider;
 class QTimer;
@@ -47,9 +47,9 @@ class GLWindow : public QWidget
 
 public:
 
-    GLWindow();
+    static GLWindow* right(double* rotmat, int size);
 
-    GLWindow(double* rotmat, int size);
+    static GLWindow* left(double* rotmat, int size);
 
 protected:
 
@@ -65,9 +65,8 @@ private:
 
     Q_DISABLE_COPY(GLWindow)
 
+    GLWindow(GLElbowFlexWidget* w);
 
-    void createGLWidget();
-    void createGLWidget(double* rotmat, int size);
     void init();
     void createButton();
     void createSlider();
@@ -80,7 +79,7 @@ private:
 
     const int ANIMATION_STEP_MS;
 
-    GLRightElbowFlex* widget;
+    GLElbowFlexWidget* const widget;
     QPushButton* playButton;
     QSlider* slider;
     QTimer*   timer;

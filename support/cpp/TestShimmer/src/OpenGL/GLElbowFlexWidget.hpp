@@ -31,33 +31,29 @@
 * Author: Ali Baharev
 */
 
-#ifndef GLRIGHTELBOWFLEX_HPP
-#define GLRIGHTELBOWFLEX_HPP
+#ifndef GLELBOWFLEXWIDGET_HPP
+#define GLELBOWFLEXWIDGET_HPP
 
 #include <QGLWidget>
 #include "AnimationElbowFlexSign.hpp"
 
 class DataHolder;
 
-class GLRightElbowFlex : public QGLWidget
+class GLElbowFlexWidget : public QGLWidget
 {
     Q_OBJECT
 
 public:
 
-    GLRightElbowFlex(AnimationElbowFlexSign right_or_left,
-                     QWidget *parent = 0,
-                     QGLWidget *shareWidget = 0);
+    static GLElbowFlexWidget* right(double* rotmat, int size);
 
-    void setData(const char* filename);
-
-    void setData(double* rotmat, int size);
+    static GLElbowFlexWidget* left(double* rotmat, int size);
 
     int numberOfSamples() const;
 
     void setFrame(int pos);
 
-    ~GLRightElbowFlex();
+    ~GLElbowFlexWidget();
 
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
@@ -75,6 +71,8 @@ protected:
     void mousePressEvent(QMouseEvent* event);
 
 private:
+
+    GLElbowFlexWidget(AnimationElbowFlexSign sign, DataHolder* dataHolder, double* rotmat, int size);
 
     void rotate();
 
@@ -114,7 +112,7 @@ private:
 
     const AnimationElbowFlexSign type;
 
-    DataHolder* data;
+    DataHolder* const data;
 
     GLfloat rotmat[16];
 
@@ -124,4 +122,4 @@ private:
     int size;
 };
 
-#endif // GLRIGHTELBOWFLEX_HPP
+#endif // GLELBOWFLEXWIDGET_HPP

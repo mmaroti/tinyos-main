@@ -55,6 +55,16 @@ enum {
     SIZE
 };
 
+DataHolder* DataHolder::right() {
+
+    return new DataHolder(ElbowFlexSign::right());
+}
+
+DataHolder* DataHolder::left() {
+
+    return new DataHolder(ElbowFlexSign::left());
+}
+
 // FIXME Knows sampling rate
 DataHolder::DataHolder(ElbowFlexSign s) : sign(s), SAMPLING_RATE(204.8), out(new ostringstream) {
 

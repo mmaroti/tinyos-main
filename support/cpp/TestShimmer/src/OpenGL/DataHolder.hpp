@@ -42,7 +42,9 @@ class DataHolder {
 
 public:
 
-    DataHolder(ElbowFlexSign sign);
+    static DataHolder* right();
+
+    static DataHolder* left();
 
     void grab_content(const char* filename);
 
@@ -67,6 +69,8 @@ public:
     ~DataHolder();
 
 private:
+
+    DataHolder(ElbowFlexSign sign);
 
     DataHolder(const DataHolder& );
     DataHolder& operator=(const DataHolder& );

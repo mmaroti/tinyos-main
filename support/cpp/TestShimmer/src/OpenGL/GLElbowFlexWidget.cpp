@@ -35,7 +35,7 @@
 #include <QtGui>
 #include <QtOpenGL>
 #include <QDebug>
-#include "GLRightElbowFlex.hpp"
+#include "GLElbowFlexWidget.hpp"
 #include "DataHolder.hpp"
 
 namespace {
@@ -62,65 +62,52 @@ namespace {
     const int LINE_WIDTH = 3;
 }
 
-GLRightElbowFlex::GLRightElbowFlex(AnimationElbowFlexSign right_or_left,
-                                   QWidget *parent,
-                                   QGLWidget *shareWidget)
-: QGLWidget(parent, shareWidget),
-  type(right_or_left)
+GLElbowFlexWidget* GLElbowFlexWidget::right(double* rotmat, int size) {
+
+    return new GLElbowFlexWidget(AnimationElbowFlexSign::right(), DataHolder::right(), rotmat, size);
+}
+
+GLElbowFlexWidget* GLElbowFlexWidget::left(double* rotmat, int size) {
+
+    return new GLElbowFlexWidget(AnimationElbowFlexSign::left(), DataHolder::left(), rotmat, size);
+}
+
+GLElbowFlexWidget::GLElbowFlexWidget(AnimationElbowFlexSign sign,
+                                     DataHolder *dataHolder,
+                                     double* rotmatrices,
+                                     int length)
+: type(sign),
+  data(dataHolder)
 {
     for (int i=0;i<16; ++i)
         rotmat[i] = (GLfloat) 0.0;
 
     rotmat[M11] = rotmat[M22] = rotmat[M33] = rotmat[M44] = (GLfloat) 1.0;
 
-    position = size = 0;
-
-    data = 0;
-}
-
-void GLRightElbowFlex::setData(const char *filename) {
-
-    delete data;
-
-    data = new DataHolder(ElbowFlexSign::right());
-
-    data->grab_content(filename);
+    data->set_content(rotmatrices, length);
 
     size = data->number_of_samples();
 
     position = 0;
 }
 
-void GLRightElbowFlex::setData(double* rotmat, int length) {
-
-    delete data; // FIXME Duplication
-
-    data = new DataHolder(ElbowFlexSign::right());
-
-    data->set_content(rotmat, length);
-
-    size = data->number_of_samples();
-
-    position = 0;
-}
-
-GLRightElbowFlex::~GLRightElbowFlex() {
+GLElbowFlexWidget::~GLElbowFlexWidget() {
 
     delete data;
 }
 
-QSize GLRightElbowFlex::minimumSizeHint() const {
+QSize GLElbowFlexWidget::minimumSizeHint() const {
 
     return QSize(300, 300);
 }
 
-QSize GLRightElbowFlex::sizeHint() const {
+QSize GLElbowFlexWidget::sizeHint() const {
 
     return QSize(750, 750);
 }
 
 // TODO Threading?
-void GLRightElbowFlex::rotate() {
+void GLElbowFlexWidget::rotate() {
 
     const double* mat = data->matrix_at(position);
 
@@ -149,7 +136,7 @@ void APIENTRY errorCallback() {
     exit(0);
 }
 
-void GLRightElbowFlex::headSilhouette(GLUquadricObj* qobj) {
+void GLElbowFlexWidget::headSilhouette(GLUquadricObj* qobj) {
 
     gluQuadricDrawStyle(qobj, GLU_SILHOUETTE);
 
@@ -162,7 +149,7 @@ void GLRightElbowFlex::headSilhouette(GLUquadricObj* qobj) {
     glEndList();
 }
 
-void GLRightElbowFlex::headSolid(GLUquadricObj* qobj) {
+void GLElbowFlexWidget::headSolid(GLUquadricObj* qobj) {
 
     gluQuadricDrawStyle(qobj, GLU_FILL);
 
@@ -177,7 +164,7 @@ void GLRightElbowFlex::headSolid(GLUquadricObj* qobj) {
     glEndList();
 }
 
-void GLRightElbowFlex::initializeGL() {
+void GLElbowFlexWidget::initializeGL() {
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
 
@@ -194,7 +181,7 @@ void GLRightElbowFlex::initializeGL() {
     gluDeleteQuadric(qobj);
 }
 
-void GLRightElbowFlex::reset() {
+void GLElbowFlexWidget::reset() {
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -205,7 +192,7 @@ void GLRightElbowFlex::reset() {
     glLoadIdentity();
 }
 
-void GLRightElbowFlex::setState() {
+void GLElbowFlexWidget::setState() {
 
     glEnable(GL_LINE_SMOOTH);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
@@ -218,7 +205,7 @@ void GLRightElbowFlex::setState() {
     glLineWidth(LINE_WIDTH);
 }
 
-void GLRightElbowFlex::shoulder() {
+void GLElbowFlexWidget::shoulder() {
 
     glBegin(GL_LINES);
         glVertex3d(0.0, 2.0, 0.0);
@@ -226,7 +213,7 @@ void GLRightElbowFlex::shoulder() {
     glEnd();
 }
 
-void GLRightElbowFlex::neck() {
+void GLElbowFlexWidget::neck() {
 
     glBegin(GL_LINES);
         glVertex3d(0.0, 2.0, 1.0*type.sign);
@@ -234,7 +221,7 @@ void GLRightElbowFlex::neck() {
     glEnd();
 }
 
-void GLRightElbowFlex::leftUpperArm() {
+void GLElbowFlexWidget::leftUpperArm() {
 
     glBegin(GL_LINES);
         glVertex3d(0.0, 2.0, 2.0*type.sign);
@@ -242,7 +229,7 @@ void GLRightElbowFlex::leftUpperArm() {
     glEnd();
 }
 
-void GLRightElbowFlex::body() {
+void GLElbowFlexWidget::body() {
 
     glLineWidth(1.0);
 
@@ -254,7 +241,7 @@ void GLRightElbowFlex::body() {
     glLineWidth(LINE_WIDTH);
 }
 
-void GLRightElbowFlex::upperArm() {
+void GLElbowFlexWidget::upperArm() {
 
     glBegin(GL_LINES);
         glVertex3d(0.0, 0.0, 0.0);
@@ -262,7 +249,7 @@ void GLRightElbowFlex::upperArm() {
     glEnd();
 }
 
-void GLRightElbowFlex::elbow() {
+void GLElbowFlexWidget::elbow() {
 
     glPointSize(8.0);
 
@@ -273,12 +260,12 @@ void GLRightElbowFlex::elbow() {
     glPointSize(1.0);
 }
 
-void GLRightElbowFlex::rotateForeArm() {
+void GLElbowFlexWidget::rotateForeArm() {
 
     glMultMatrixf(rotmat);
 }
 
-void GLRightElbowFlex::foreArm() {
+void GLElbowFlexWidget::foreArm() {
 
     glBegin(GL_LINES);
         glVertex3d(1.6, 0.0, 0.0);
@@ -286,7 +273,7 @@ void GLRightElbowFlex::foreArm() {
     glEnd();
 }
 
-void GLRightElbowFlex::hand() {
+void GLElbowFlexWidget::hand() {
 
     glPolygonMode(GL_FRONT, type.hand_front);
     glPolygonMode(GL_BACK,  type.hand_back);
@@ -305,7 +292,7 @@ void GLRightElbowFlex::hand() {
 
 }
 
-void GLRightElbowFlex::drawIrrelevantParts() {
+void GLElbowFlexWidget::drawIrrelevantParts() {
 
     glLineWidth(1.0);
 
@@ -318,7 +305,7 @@ void GLRightElbowFlex::drawIrrelevantParts() {
     glLineWidth(LINE_WIDTH);
 }
 
-void GLRightElbowFlex::drawRightArm() {
+void GLElbowFlexWidget::drawRightArm() {
 
     upperArm();
 
@@ -331,19 +318,19 @@ void GLRightElbowFlex::drawRightArm() {
     hand();
 }
 
-void GLRightElbowFlex::drawLinearParts() {
+void GLElbowFlexWidget::drawLinearParts() {
 
     drawIrrelevantParts();
 
     drawRightArm();
 }
 
-void GLRightElbowFlex::setCameraPosition() {
+void GLElbowFlexWidget::setCameraPosition() {
 
     glTranslated(0.0, 0.0, -5.0);
 }
 
-void GLRightElbowFlex::sideHead() {
+void GLElbowFlexWidget::sideHead() {
 
     glPushMatrix();
 
@@ -363,7 +350,7 @@ void GLRightElbowFlex::sideHead() {
     glPopMatrix();
 }
 
-void GLRightElbowFlex::sideView() {
+void GLElbowFlexWidget::sideView() {
 
     glPushMatrix();
 
@@ -373,7 +360,7 @@ void GLRightElbowFlex::sideView() {
     glPopMatrix();
 }
 
-void GLRightElbowFlex::writeData() {
+void GLElbowFlexWidget::writeData() {
 
     glPushMatrix();
 
@@ -403,7 +390,7 @@ void GLRightElbowFlex::writeData() {
     glPopMatrix();
 }
 
-void GLRightElbowFlex::planHead() {
+void GLElbowFlexWidget::planHead() {
 
     glPushMatrix();
 
@@ -427,7 +414,7 @@ void GLRightElbowFlex::planHead() {
     glPopMatrix();
 }
 
-void GLRightElbowFlex::planView() {
+void GLElbowFlexWidget::planView() {
 
     glPushMatrix();
 
@@ -441,7 +428,7 @@ void GLRightElbowFlex::planView() {
     glPopMatrix();
 }
 
-void GLRightElbowFlex::frontHead() {
+void GLElbowFlexWidget::frontHead() {
 
     glPushMatrix();
 
@@ -461,7 +448,7 @@ void GLRightElbowFlex::frontHead() {
     glPopMatrix();
 }
 
-void GLRightElbowFlex::frontView() {
+void GLElbowFlexWidget::frontView() {
 
     glPushMatrix();
 
@@ -477,7 +464,7 @@ void GLRightElbowFlex::frontView() {
     glPopMatrix();
 }
 
-void GLRightElbowFlex::paintGL() {
+void GLElbowFlexWidget::paintGL() {
 
     reset();
 
@@ -494,7 +481,7 @@ void GLRightElbowFlex::paintGL() {
     frontView();
 }
 
-void GLRightElbowFlex::resizeGL(int width, int height) {
+void GLElbowFlexWidget::resizeGL(int width, int height) {
 
     const double left  = -2.5;
     const double right =  7.5;
@@ -517,24 +504,23 @@ void GLRightElbowFlex::resizeGL(int width, int height) {
     glMatrixMode(GL_MODELVIEW);
 }
 
-void GLRightElbowFlex::mousePressEvent(QMouseEvent * /* event */)
+void GLElbowFlexWidget::mousePressEvent(QMouseEvent * /* event */)
 {
     emit clicked();
 }
 
-int GLRightElbowFlex::numberOfSamples() const {
+int GLElbowFlexWidget::numberOfSamples() const {
 
     return size;
 }
 
-void GLRightElbowFlex::setFrame(int pos) {
+void GLElbowFlexWidget::setFrame(int pos) {
 
     if (pos<0 || pos>=size) {
-        throw std::out_of_range("Index is out of range in GLRightElbowFlex::set_position()");
+        throw std::out_of_range("Index is out of range in GLElbowFlexWidget::set_position()");
     }
 
     position = pos;
 
     rotate();
 }
-

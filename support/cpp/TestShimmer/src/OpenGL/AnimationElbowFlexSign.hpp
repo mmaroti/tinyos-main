@@ -46,6 +46,11 @@ public:
         return AnimationElbowFlexSign(-1);
     }
 
+    static AnimationElbowFlexSign left() {
+
+        return AnimationElbowFlexSign(1);
+    }
+
     const int sign;
     const GLenum hand_front;
     const GLenum hand_back;

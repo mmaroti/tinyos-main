@@ -38,11 +38,13 @@
 #include <QTableWidgetItem>
 #include "StateColor.hpp"
 #include "Person.hpp"
+#include "MotionTypes.hpp"
 
 class QMessageBox;
 class Application;
 class SQLDialog;
 class RecordHandler;
+class GLWindow;
 
 namespace Ui{
     class LogWidget;
@@ -102,7 +104,7 @@ private:
 
     enum Status { UNKNOWN, OK, FAILED, EMPTY };
 
-    void getUniqueRecordID(const QString& motionType);
+    void getUniqueRecordID();
     void onGoto(int);
     void onDelRow(int);
 
@@ -148,6 +150,7 @@ private:
     void checkConsistency() const;
     bool nameIsConsistent() const;
     bool birthDateIsConsistent() const;
+    MotionType getMotionType() const;
 
     void startChecking();
     void checkNextMotion();
@@ -170,6 +173,7 @@ private:
     bool isAlreadyPassed(const int row) const;
     bool isValidRange(const int begin, const int end, const int length) const;
     void showAnimation(const int begin, const int end, const int length);
+    GLWindow* getGLWindow(double* mat, int size) const;
     void autoPlay();
     bool isAutoPlayChecked() const;
 

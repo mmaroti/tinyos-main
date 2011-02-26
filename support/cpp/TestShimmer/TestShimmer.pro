@@ -104,10 +104,10 @@ SOURCES += src/DataRecorder.cpp \
     src/Solver/MockSolver.cpp \
     src/OpenGL/DataHolder.cpp \
     src/OpenGL/GLWindow.cpp \
-    src/OpenGL/GLRightElbowFlex.cpp \
     src/DriveSelectorDialog.cpp \
     src/SQL/SQLDialog.cpp \
-    src/SQL/RecordHandler.cpp
+    src/SQL/RecordHandler.cpp \
+    src/OpenGL/GLElbowFlexWidget.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -183,7 +183,6 @@ HEADERS += src/DataRecorder.h \
     src/Solver/StateColor.hpp \
     src/Solver/Range.hpp \
     src/Solver/MockSolver.hpp \
-    src/OpenGL/GLRightElbowFlex.hpp \
     src/OpenGL/GLWindow.hpp \
     src/OpenGL/DataHolder.hpp \
     src/DriveSelectorDialog.h \
@@ -193,7 +192,8 @@ HEADERS += src/DataRecorder.h \
     src/SQL/MotionTypes.hpp \
     src/SQL/CustomSqlQueryModel.hpp \
     src/OpenGL/ElbowFlexSign.hpp \
-    src/OpenGL/AnimationElbowFlexSign.hpp
+    src/OpenGL/AnimationElbowFlexSign.hpp \
+    src/OpenGL/GLElbowFlexWidget.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

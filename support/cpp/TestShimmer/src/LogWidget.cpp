@@ -316,6 +316,13 @@ void LogWidget::on_entryLine_returnPressed()
     entryLineInit();
 }
 
+void fatalError(const QString& msg) {
+
+    QMessageBox::critical(0, "Application crash", "Exiting, fatal error: "+msg);
+
+    exit(EXIT_FAILURE);
+}
+
 void LogWidget::checkConsistency() const {
 
     QString errorMsg;
@@ -346,9 +353,7 @@ void LogWidget::checkConsistency() const {
 
     if (!errorMsg.isEmpty()) {
 
-        QMessageBox::critical(0, "Application crash", "Exiting, fatal error: "+errorMsg);
-
-        exit(EXIT_FAILURE);
+        fatalError(errorMsg);
     }
 }
 
@@ -530,6 +535,28 @@ void LogWidget::loadRecord() {
     loadLog("../rec/"+QString::number(recordID)+".csv");
 
     markSaved();
+
+    autoPlay();
+}
+
+MotionType LogWidget::getMotionType() const {
+
+    const QString motionType = ui->motionTypeCBox->currentText();
+
+    if (motionType == "RIGHT_ELBOW_FLEX") {
+
+        return RIGHT_ELBOW_FLEX;
+    }
+    else if (motionType == "LEFT_ELBOW_FLEX") {
+
+        return LEFT_ELBOW_FLEX;
+    }
+    else {
+
+        fatalError("motion type should have been set");
+
+        return RIGHT_ELBOW_FLEX;
+    }
 }
 
 void LogWidget::on_saveButton_clicked()
@@ -538,7 +565,7 @@ void LogWidget::on_saveButton_clicked()
     //connect(ui->log, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
     //QString fn = QFileDialog::getSaveFileName(  this, "Choose a filename to save under", "c:/"+ui->log->item(0,ENTRY)->text()+".csv", "CSV (*.csv)");
 
-    getUniqueRecordID(ui->motionTypeCBox->currentText());
+    getUniqueRecordID();
 
     QString fn = "../rec/"+QString::number(recordID)+".csv";
 
@@ -554,8 +581,8 @@ void LogWidget::on_saveButton_clicked()
     entryLineInit();
 }
 
-void LogWidget::getUniqueRecordID(const QString& motionType)
-{
+void LogWidget::getUniqueRecordID() {
+
     Q_ASSERT(!person.isNull());
 
     if (recordID > 0) {        
@@ -563,18 +590,7 @@ void LogWidget::getUniqueRecordID(const QString& motionType)
         return;
     }
 
-    MotionType type; // TODO Find a better way to do it!
-
-    if (motionType == "RIGHT_ELBOW_FLEX") {
-        type = RIGHT_ELBOW_FLEX;    }
-    else if (motionType == "LEFT_ELBOW_FLEX") {
-        type = LEFT_ELBOW_FLEX;
-    }
-    else {
-        Q_ASSERT(false);
-    }
-
-    recordID = recSelect->insertRecord(person.id(), type);
+    recordID = recSelect->insertRecord(person.id(), getMotionType());
 }
 
 void LogWidget::on_clearButton_clicked()
@@ -1359,11 +1375,33 @@ void LogWidget::showAnimation(const int begin, const int end, const int length) 
 
     double* const mat = application.dataRecorder.rotmat(range);
 
-    GLWindow* win = new GLWindow(mat, range.size());
+    GLWindow* win = getGLWindow(mat, range.size());
 
     win->showMaximized();
 
     win->activateWindow();
+}
+
+GLWindow* LogWidget::getGLWindow(double* mat, int size) const {
+
+    GLWindow* win = 0;
+
+    const MotionType type = getMotionType();
+
+    if (type == RIGHT_ELBOW_FLEX) {
+
+        win = GLWindow::right(mat, size);
+    }
+    else if (type == LEFT_ELBOW_FLEX) {
+
+        win = GLWindow::left(mat, size);
+    }
+    else {
+
+        Q_ASSERT(false);
+    }
+
+    return win;
 }
 
 void LogWidget::autoPlay() {

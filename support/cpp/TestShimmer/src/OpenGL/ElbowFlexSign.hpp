@@ -43,6 +43,11 @@ public:
         return ElbowFlexSign(1, -1);
     }
 
+    static ElbowFlexSign left() {
+
+        return ElbowFlexSign(-1, 1);
+    }
+
     const int sup;
     const int dev;
 

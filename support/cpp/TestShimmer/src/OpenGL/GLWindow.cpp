@@ -38,25 +38,30 @@
 #include <QSlider>
 #include <QTimer>
 #include "GLWindow.hpp"
-#include "GLRightElbowFlex.hpp"
+#include "GLElbowFlexWidget.hpp"
 
-GLWindow::GLWindow() : ANIMATION_STEP_MS(20) {
+GLWindow* GLWindow::right(double* rotmat, int size) {
 
-    setAttribute(Qt::WA_DeleteOnClose);
-
-    createGLWidget();
-
-    init();
+    return new GLWindow(GLElbowFlexWidget::right(rotmat, size));
 }
 
-GLWindow::GLWindow(double* rotmat, int size) : ANIMATION_STEP_MS(20) {
+GLWindow* GLWindow::left(double* rotmat, int size) {
 
-    createGLWidget(rotmat, size);
+    return new GLWindow(GLElbowFlexWidget::left(rotmat, size));
+}
+
+GLWindow::GLWindow(GLElbowFlexWidget* w) : ANIMATION_STEP_MS(20), widget(w) {
+
+    widget->setParent(this);
+
+    widget->show();
 
     init();
 }
 
 void GLWindow::init() {
+
+    setAttribute(Qt::WA_DeleteOnClose);
 
     createSlider();
 
@@ -69,21 +74,6 @@ void GLWindow::init() {
     setupConnections();
 
     timerStart();
-}
-
-void GLWindow::createGLWidget() {
-
-    widget = new GLRightElbowFlex(AnimationElbowFlexSign::right(), this, 0);
-
-    widget->setData("MMtricky2");
-}
-
-
-void GLWindow::createGLWidget(double* rotmat, int size) {
-
-    widget = new GLRightElbowFlex(AnimationElbowFlexSign::right(), this, 0); // FIXME Duplication
-
-    widget->setData(rotmat, size);
 }
 
 void GLWindow::createSlider() {
