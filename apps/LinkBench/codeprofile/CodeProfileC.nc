@@ -33,6 +33,10 @@
 *         veresskrisztian@gmail.com
 */
 
+#if defined(TOSSIM) && ! defined(MHZ)
+  #define MHZ 8
+#endif
+
 configuration CodeProfileC {
   provides {
     interface StdControl;

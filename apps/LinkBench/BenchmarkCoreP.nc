@@ -66,6 +66,7 @@ module BenchmarkCoreP @safe() {
     interface AMPacket;
     interface PacketAcknowledgements as Ack;
     
+#ifndef TOSSIM
 #ifdef LOW_POWER_LISTENING
     interface LowPowerListening;
 #endif
@@ -73,8 +74,9 @@ module BenchmarkCoreP @safe() {
 #ifdef PACKET_LINK
     interface PacketLink;
 #endif
+#endif
 
-    interface CodeProfile;    
+    interface CodeProfile;
     interface StdControl as CodeProfileControl;
        
     interface Leds;
@@ -348,7 +350,8 @@ implementation {
     call CodeProfileControl.start();
     
     // setup the applied MAC protocol
-#ifdef LOW_POWER_LISTENING    
+#ifndef TOSSIM
+#ifdef LOW_POWER_LISTENING
     if ( config.flags & GLOBAL_USE_MAC_LPL )
       call LowPowerListening.setLocalWakeupInterval(config.mac_setup[LPL_WAKEUP_OFFSET]);
 #endif
@@ -359,7 +362,8 @@ implementation {
       call PacketLink.setRetryDelay(&pkt,config.mac_setup[PLINK_DELAY_OFFSET]);
     }
 #endif
-    
+#endif
+
     // If a pre-benchmark delay is requested, make a delay
     if ( config.pre_run_msec > 0 ) {
       SET_STATE ( STATE_PRE_RUN )
@@ -381,7 +385,8 @@ implementation {
     stopTimers();
     
     // cleanup the MAC
-#ifdef LOW_POWER_LISTENING    
+#ifndef TOSSIM
+#ifdef LOW_POWER_LISTENING
     if ( config.flags & GLOBAL_USE_MAC_LPL )
       call LowPowerListening.setLocalWakeupInterval(0);
 #endif
@@ -391,8 +396,8 @@ implementation {
       call PacketLink.setRetries(&pkt,0);
       call PacketLink.setRetryDelay(&pkt,0);
     }
-#endif 
-    
+#endif
+#endif
     // compute the remained statistic
     for ( i = 0; pending; ++i, pending >>= 1) {
       if ( pending & 0x1 )
@@ -633,7 +638,8 @@ implementation {
       address = ( config.flags & GLOBAL_USE_BCAST ) ? AM_BROADCAST_ADDR : problem[eidx].receiver;
      
       // MAC specific settings
-#ifdef LOW_POWER_LISTENING      
+#ifndef TOSSIM
+#ifdef LOW_POWER_LISTENING
       if ( config.flags & GLOBAL_USE_MAC_LPL )
         call LowPowerListening.setRemoteWakeupInterval(
           &pkt,config.mac_setup[LPL_WAKEUP_OFFSET]);
@@ -645,7 +651,8 @@ implementation {
         call PacketLink.setRetryDelay(&pkt,config.mac_setup[PLINK_DELAY_OFFSET]);
       }
 #endif
-      
+#endif
+
       // Find out whether we need to use ACK
       if ( (config.flags & GLOBAL_USE_ACK) || problem[eidx].policy.need_ack ) {
         call Ack.requestAck(&pkt);

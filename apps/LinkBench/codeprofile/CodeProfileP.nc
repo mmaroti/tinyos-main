@@ -130,7 +130,6 @@ implementation {
     
     atomic {
       if ( alive )
-        mal_offset = call Alarm.getNow();
         call Alarm.start(ATOMIC_PERIODIC_TIME);
     }
   }

@@ -57,6 +57,7 @@ implementation {
   Core.Packet -> ActiveMessageC;
   Core.Ack -> ActiveMessageC;
 
+#ifndef TOSSIM
 #ifdef LOW_POWER_LISTENING
   #if defined(RADIO_RF230) || defined(RADIO_CC1000) || defined(RADIO_CC2420)
     Core.LowPowerListening -> ActiveMessageC;
@@ -65,7 +66,7 @@ implementation {
   #endif
 #endif
 
-#ifdef PACKET_LINK  
+#ifdef PACKET_LINK
   #ifdef RADIO_CC2420
     components CC2420ActiveMessageC;
     Core.PacketLink -> CC2420ActiveMessageC;
@@ -75,7 +76,8 @@ implementation {
     #error " * NO PLATFORM SUPPORT FOR PACKET LINK LAYER *"
   #endif
 #endif
-  
+#endif // TOSSIM
+
   components new TimerMilliC() as Timer;
   Core.TestTimer -> Timer;
   
