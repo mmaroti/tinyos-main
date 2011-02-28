@@ -52,8 +52,6 @@ SOURCES += src/DataRecorder.cpp \
     src/GLWidget.cpp \
     src/window.cpp \
     src/Widget3D.cpp \
-    src/GraphWidget.cpp \
-    src/Graph.cpp \
     src/Solver/Solver.cpp \
     src/Solver/Results.cpp \
     src/Solver/EulerAngles.cpp \
@@ -124,8 +122,6 @@ HEADERS += src/DataRecorder.h \
     src/TurntableCalibrationModule.h \
     src/GLWidget.h \
     src/window.h \
-    src/GraphWidget.h \
-    src/Graph.h \
     src/constants.h \
     src/Widget3D.h \
     src/Solver/Solver.hpp \
@@ -200,7 +196,6 @@ FORMS += src/MainWindow.ui \
     src/ConsoleWidget.ui \
     src/DataWidget.ui \
     src/Widget3D.ui \
-    src/GraphWidget.ui \
     src/SDataWidget.ui \
     src/LogWidget.ui \
     src/LogDialog.ui \

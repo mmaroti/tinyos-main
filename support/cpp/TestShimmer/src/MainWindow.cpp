@@ -40,7 +40,6 @@
 #include "CalibrationWidget.h"
 #include "ConsoleWidget.h"
 #include "DataWidget.h"
-#include "GraphWidget.h"
 #include "Widget3D.h"
 #include "window.h"
 #include "SDataWidget.h"
@@ -77,9 +76,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	DataWidget* dataWidget = new DataWidget(ui->plotTab, app);
 	ui->plotTab->layout()->addWidget(dataWidget);
-
-        GraphWidget* graphWidget = new GraphWidget(ui->graphTab, app);
-        ui->graphTab->layout()->addWidget(graphWidget);
 
         CalibrationWidget* calibrationWidget = new CalibrationWidget(ui->calibrationTab, app);
         ui->calibrationTab->layout()->addWidget(calibrationWidget);

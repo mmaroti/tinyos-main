@@ -442,68 +442,6 @@ QString StationaryCalibrationModule::LSF() {
             returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[i]) + "\n" );
         }
 
-        /*returnMessage.append("a11 ");
-
-        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[0]) + "\n" );
-        //calibrationData[0] = application.settings.value("calibrationData").toDouble();
-
-        application.settings.setArrayIndex(1);
-        returnMessage.append("a12 ");
-        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[1]) + "\n" );
-        //calibrationData[1] = application.settings.value("calibrationData").toDouble();
-
-        application.settings.setArrayIndex(2);
-        returnMessage.append("a13 ");
-        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[2]) + "\n" );
-        //calibrationData[2] = application.settings.value("calibrationData").toDouble();
-
-        application.settings.setArrayIndex(3);
-        returnMessage.append("a21 ");
-        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[3]) + "\n" );
-        //calibrationData[3] = application.settings.value("calibrationData").toDouble();
-
-        application.settings.setArrayIndex(4);
-        returnMessage.append("a22 ");
-        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[4]) + "\n" );
-        //calibrationData[4] = application.settings.value("calibrationData").toDouble();
-
-        application.settings.setArrayIndex(5);
-        returnMessage.append("a23 ");
-        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[5]) + "\n" );
-        //calibrationData[5] = application.settings.value("calibrationData").toDouble();
-
-        application.settings.setArrayIndex(6);
-        returnMessage.append("a31 ");
-        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[6]) + "\n" );
-        //calibrationData[6] = application.settings.value("calibrationData").toDouble();
-
-        application.settings.setArrayIndex(7);
-        returnMessage.append("a32 ");
-        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[7]) + "\n" );
-        //calibrationData[7] = application.settings.value("calibrationData").toDouble();
-
-        application.settings.setArrayIndex(8);
-        returnMessage.append("a33 ");
-        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[8]) + "\n" );
-        //calibrationData[8] = application.settings.value("calibrationData").toDouble();
-
-        application.settings.setArrayIndex(9);
-        returnMessage.append("b1 ");
-        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[9]) + "\n" );
-        //calibrationData[9] = application.settings.value("calibrationData").toDouble();
-
-        application.settings.setArrayIndex(10);
-        returnMessage.append("b2 ");
-        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[10]) + "\n" );
-        //calibrationData[10] = application.settings.value("calibrationData").toDouble();
-
-        application.settings.setArrayIndex(11);
-        returnMessage.append("b3 ");
-        returnMessage.append( QString::number(application.dataRecorder.getAccelCalibration()[11]) + "\n" );
-        //calibrationData[11] = application.settings.value("calibrationData").toDouble();
-
-        application.settings.endArray();*/
-
         return returnMessage;
     }
 }

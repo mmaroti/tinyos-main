@@ -348,13 +348,6 @@ void DataRecorder::loadCalibFromFile(const QString& filename )
             msgBox.setText("Wrong file format!");
             msgBox.exec();
         } else {
-            application.settings.beginWriteArray("stationaryCalibrationData");
-            for(int i = 0; i < 12; i++){
-                line = ts.readLine();         // line of text excluding '\n'
-                application.settings.setArrayIndex(i);
-                application.settings.setValue("stationaryCalibrationData", line.toDouble());    //convert line string to int
-            }
-            application.settings.endArray();
 
             line = ts.readLine();
             if(line != "#Gyro Calibration Data"){
@@ -362,13 +355,6 @@ void DataRecorder::loadCalibFromFile(const QString& filename )
                 msgBox.setText("Wrong file format!");
                 msgBox.exec();
             } else {
-                application.settings.beginWriteArray("gyroCalibrationData");
-                for(int i = 0; i < 12; i++){
-                    line = ts.readLine();         // line of text excluding '\n'
-                    application.settings.setArrayIndex(i);
-                    application.settings.setValue("gyroCalibrationData", line.toDouble());    //convert line string to int
-                }
-                application.settings.endArray();
 
                 line = ts.readLine();
                 if(line != "#Gyro Minimum Averages"){
@@ -376,67 +362,7 @@ void DataRecorder::loadCalibFromFile(const QString& filename )
                     msgBox.setText("Wrong file format!");
                     msgBox.exec();
                 } else {
-                    application.settings.beginWriteArray("gyroAvgsData");
-                    for (int i = 0; i < 3; i++) {
-                        line = ts.readLine();         // line of text excluding '\n'
-                        application.settings.setArrayIndex(i);
-                        application.settings.setValue("gyroAvgsData", line.toDouble());
-                    }
-                    application.settings.endArray();
-                }
-            }
-        }
-        f.close();
-    }
-    emit fileLoaded();
-    //saveCalibrationData();
-}
 
-void DataRecorder::loadCalibFromFileToLive(const QString &filename)
-{
-    QFile f( filename );
-    QString line;
-
-    if( f.open( QIODevice::ReadOnly | QIODevice::Text ) ) //file opened successfully
-    {
-        QTextStream ts( &f );
-
-        line = ts.readLine();
-        while ( !line.isEmpty() && line != "#Static Calibration Data" )
-        {
-            line = ts.readLine();         // line of text excluding '\n'
-        }
-        if(line != "#Static Calibration Data"){
-            QMessageBox msgBox;
-            msgBox.setText("Wrong file format!");
-            msgBox.exec();
-        } else {
-            for(int i = 0; i < 12; i++){
-                line = ts.readLine();         // line of text excluding '\n'
-                accelCalibrationData[i] = line.toDouble();    //convert line string to int
-            }
-
-            line = ts.readLine();
-            if(line != "#Gyro Calibration Data"){
-                QMessageBox msgBox;
-                msgBox.setText("Wrong file format!");
-                msgBox.exec();
-            } else {
-                for(int i = 0; i < 12; i++){
-                    line = ts.readLine();         // line of text excluding '\n'
-                    gyroCalibrationData[i] = line.toDouble();    //convert line string to int
-                }
-
-                line = ts.readLine();
-                if(line != "#Gyro Minimum Averages"){
-                    QMessageBox msgBox;
-                    msgBox.setText("Wrong file format!");
-                    msgBox.exec();
-                } else {
-                    for (int i = 0; i < 3; i++) {
-                        line = ts.readLine();         // line of text excluding '\n'
-                        gyroMinAvgs[i] = line.toDouble();
-                    }
                 }
             }
         }
@@ -448,124 +374,124 @@ void DataRecorder::loadCalibFromFileToLive(const QString &filename)
 
 void DataRecorder::saveCalibToFile(const QString& filename ) const
 {
-    QFile f( filename );
+    QFile f( "../rec/mote_last_used.txt" );
+    int mote;
 
-    if( !f.open( QIODevice::WriteOnly ) )
-      {
-          return;
-      }
+    if( f.open( QIODevice::ReadOnly | QIODevice::Text ) ) //file opened successfully
+    {
+        QTextStream ts( &f );
+        mote = ts.readLine().toInt();
 
-    QTextStream ts( &f );
-
-    ts << "#Static Calibration Data" << endl;
-    if(application.settings.contains("stationaryCalibrationData/size")){
-        int size = application.settings.beginReadArray("stationaryCalibrationData");
-        for (int i = 0; i < size; ++i) {
-            application.settings.setArrayIndex(i);
-            ts << QString::number(application.settings.value("stationaryCalibrationData").toDouble()) << endl;
-        }
-        application.settings.endArray();
     }
-
-    ts << "#Gyro Calibration Data" << endl;
-    if(application.settings.contains("gyroCalibrationData/size")){
-        int size = application.settings.beginReadArray("gyroCalibrationData");
-        for (int i = 0; i < size; ++i) {
-            application.settings.setArrayIndex(i);
-            ts << QString::number(application.settings.value("gyroCalibrationData").toDouble()) << endl;
-        }
-        application.settings.endArray();
-    }
-
-    ts << "#Gyro Minimum Averages" << endl;
-    if(application.settings.contains("gyroAvgsData/size")){
-        int size = application.settings.beginReadArray("gyroAvgsData");
-        for (int i = 0; i < size; ++i) {
-            application.settings.setArrayIndex(i);
-            ts << QString::number(application.settings.value("gyroAvgsData").toDouble()) << endl;
-        }
-        application.settings.endArray();
-    }
-
-    /*ts << "#Static Calibration Data" << endl;
-    for (int i = 0; i < 12; ++i) {
-        ts << QString::number(accelCalibrationData[i]) + "\n" ;
-    }
-
-    ts << "#Gyro Calibration Data" << endl;
-    for (int i = 0; i < 12; ++i) {
-        ts << QString::number(gyroCalibrationData[i]) + "\n" ;
-    }
-
-    ts << "#Gyro Minimum Averages" << endl;
-    for (int i = 0; i < 3; ++i) {
-        ts << QString::number(gyroMinAvgs[i]) + "\n" ;
-    }*/
-
-    ts.flush();
     f.close();
+
+    QFile fi( "../rec/mote"+QString::number(mote)+"calib.csv" );
+
+    if( fi.open( QIODevice::WriteOnly ) ) {
+
+        QTextStream ts( &fi );
+        for(int i = 0; i<12; i++){
+            ts << accelCalibrationData[i] << endl;
+        }
+        for(int i = 0; i<12; i++){
+            ts << gyroCalibrationData[i] << endl;
+        }
+        for(int i = 0; i<3; i++){
+            ts << gyroMinAvgs[i] << endl;
+        }
+
+        ts.flush();
+
+    }
+
+    fi.close();
 }
 
 void DataRecorder::loadCalibrationData()
 {    
-    if(!application.settings.contains("stationaryCalibrationData/size") && !application.settings.contains("gyroCalibrationData/size") && !application.settings.contains("gyroAvgsData/size")){
-        setCalibToZero();
+    QFile f( "../rec/mote_last_used.txt" );
+    int mote;
+
+    if( f.open( QIODevice::ReadOnly | QIODevice::Text ) ) //file opened successfully
+    {
+        QTextStream ts( &f );
+        mote = ts.readLine().toInt();
+
+    } else {
+        QMessageBox msgBox;
+        msgBox.setText("No previous mote data!");
+        msgBox.exec();
     }
-    if(application.settings.contains("stationaryCalibrationData/size")){
-        int size = application.settings.beginReadArray("stationaryCalibrationData");
-        for (int i = 0; i < size; ++i) {
-            application.settings.setArrayIndex(i);
-            accelCalibrationData[i] = application.settings.value("stationaryCalibrationData").toDouble();
+    f.close();
+
+    QFile fi( "../rec/mote"+QString::number(mote)+"calib.csv" );
+
+    if( fi.open( QIODevice::ReadOnly | QIODevice::Text ) ) //file opened successfully
+    {
+        QTextStream ts( &fi );
+        for(int i = 0; i<12; i++){
+            accelCalibrationData[i] = ts.readLine().toDouble();
         }
-        application.settings.endArray();
-    }
-    if(application.settings.contains("gyroCalibrationData/size")){
-        int size = application.settings.beginReadArray("gyroCalibrationData");
-        for (int i = 0; i < size; ++i) {
-            application.settings.setArrayIndex(i);
-            gyroCalibrationData[i] = application.settings.value("gyroCalibrationData").toDouble();
+        for(int i = 0; i<12; i++){
+            gyroCalibrationData[i] = ts.readLine().toDouble();
         }
-        application.settings.endArray();
-    }
-    if(application.settings.contains("gyroAvgsData/size")){
-        int size = application.settings.beginReadArray("gyroAvgsData");
-        for (int i = 0; i < size; ++i) {
-            application.settings.setArrayIndex(i);
-            gyroMinAvgs[i] = application.settings.value("gyroAvgsData").toDouble();
+        for(int i = 0; i<3; i++){
+            gyroMinAvgs[i] = ts.readLine().toDouble();
         }
-        application.settings.endArray();
+    } else {
+        for(int i = 0; i<12; i++){
+            accelCalibrationData[i] = 0;
+        }
+        for(int i = 0; i<12; i++){
+            gyroCalibrationData[i] = 0;
+        }
+        for(int i = 0; i<3; i++){
+            gyroMinAvgs[i] = 0;
+        }
     }
+    fi.close();
+
     emit calibrationDataLoaded();
 }
 
 void DataRecorder::saveCalibrationData() const
 {
-    application.settings.beginWriteArray("stationaryCalibrationData");
-    for (unsigned int i = 0; i < 12; i++) {
-        application.settings.setArrayIndex(i);
-        application.settings.setValue("stationaryCalibrationData", accelCalibrationData[i]);
-    }
-    application.settings.endArray();
+    QFile f( "../rec/mote_last_used.txt" );
+    int mote;
 
-    application.settings.beginWriteArray("gyroCalibrationData");
-    for (unsigned int i = 0; i < 12; i++) {
-        application.settings.setArrayIndex(i);
-        application.settings.setValue("gyroCalibrationData", gyroCalibrationData[i]);
-    }
-    application.settings.endArray();
+    if( f.open( QIODevice::ReadOnly | QIODevice::Text ) ) //file opened successfully
+    {
+        QTextStream ts( &f );
+        mote = ts.readLine().toInt();
 
-    application.settings.beginWriteArray("gyroAvgsData");
-    for (unsigned int i = 0; i < 3; i++) {
-        application.settings.setArrayIndex(i);
-        application.settings.setValue("gyroAvgsData", gyroMinAvgs[i]);
     }
-    application.settings.endArray();
+    f.close();
+
+    QFile fi( "../rec/mote"+QString::number(mote)+"calib.csv" );
+
+    if( fi.open( QIODevice::WriteOnly ) ) {
+
+        QTextStream ts( &fi );
+        for(int i = 0; i<12; i++){
+            ts << accelCalibrationData[i];
+        }
+        for(int i = 0; i<12; i++){
+            ts << gyroCalibrationData[i];
+        }
+        for(int i = 0; i<3; i++){
+            ts << gyroMinAvgs[i];
+        }
+
+        ts.flush();
+
+    }
+
+    fi.close();
 
 }
 
 void DataRecorder::clearCalibrationData()
 {
-    application.settings.clear();
     setCalibToZero();
 }
 

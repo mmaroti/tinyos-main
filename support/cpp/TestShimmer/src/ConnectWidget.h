@@ -28,8 +28,8 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: MiklÃ³s MarÃ³ti
+* Author: PÃ©ter Ruzicska
 */
 
 #ifndef CONNECTWIDGET_H
@@ -70,6 +70,10 @@ private:
 
 	QHash<QString, QRadioButton*> portButtons;
 	QHash<int, QListWidgetItem*> moteItems;
+
+        QString currentPort;
+        QString currentBaud;
+        void loadPortData();
 
 	Application &application;
 

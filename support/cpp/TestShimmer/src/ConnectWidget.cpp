@@ -39,6 +39,7 @@
 #include <QListWidget>
 #include <QList>
 #include <QtDebug>
+#include <QFile>
 #include "Application.h"
 
 ConnectWidget::ConnectWidget(QWidget *parent, Application &app) :
@@ -48,12 +49,30 @@ ConnectWidget::ConnectWidget(QWidget *parent, Application &app) :
 {
         ui->setupUi(this);
 
+        loadPortData();
         rescanPorts();
 
         moteIcon.addFile(":/icons/Wireless.png", QSize(), QIcon::Normal, QIcon::Off);
 
         connect(this, SIGNAL(portChanged(QString, int)), &app.serialListener, SLOT(onPortChanged(QString, int)));
         connect(&app.serialListener, SIGNAL(receiveMessage(const ActiveMessage &)), this, SLOT(onReceiveMessage(const ActiveMessage &)));
+}
+
+void ConnectWidget::loadPortData()
+{
+    QFile f( "../rec/connection.csv" );
+
+    if( f.open( QIODevice::ReadOnly | QIODevice::Text ) ) //file opened successfully
+    {
+        QTextStream ts( &f );
+
+        currentPort = ts.readLine();
+        currentBaud = ts.readLine();
+    } else {
+        currentPort = "0";
+        currentBaud = "0";
+    }
+    f.close();
 }
 
 void ConnectWidget::rescanPorts()
@@ -88,7 +107,8 @@ void ConnectWidget::rescanPorts()
 #endif
                 layout->addWidget(radio);
 
-                if( application.settings.value("port", "") == ports.at(i).portName )
+//                if( application.settings.value("port", "") == ports.at(i).portName )
+                if(currentPort == ports.at(i).portName)
                         radio->setChecked(true);
         }
 
@@ -99,7 +119,8 @@ void ConnectWidget::rescanPorts()
         QSpacerItem *spacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
         layout->addItem(spacer);
 
-        QString baud = application.settings.value("baudrate", "").value<QString>();
+        //QString baud = application.settings.value("baudrate", "").value<QString>();
+        QString baud = currentBaud;
         for(int i = 0; i < ui->baudRate->count(); ++i)
         {
                 if( ui->baudRate->itemText(i) == baud )
@@ -137,8 +158,23 @@ void ConnectWidget::on_connectButton_clicked()
 
         int baudRate = ui->baudRate->currentText().toInt();
 
-        application.settings.setValue("port", portName);
-        application.settings.setValue("baudrate", ui->baudRate->currentText());
+        QFile f( "../rec/connection.csv" );
+
+        if( !f.open( QIODevice::WriteOnly ) ) {
+
+            return;
+
+        }
+
+        QTextStream ts( &f );
+
+        ts << portName << endl;
+        ts << ui->baudRate->currentText() << endl;
+        ts.flush();
+
+        f.close();
+//        application.settings.setValue("port", portName);
+//        application.settings.setValue("baudrate", ui->baudRate->currentText());
 
         emit portChanged(portName, baudRate);
 }
@@ -160,6 +196,19 @@ void ConnectWidget::onReceiveMessage(const ActiveMessage & msg)
                 item->setText("Mote " + QString::number(msg.source));
 
                 moteItems.insert(msg.source, item);
+
+                QFile f( "../rec/mote_last_used.txt" );
+
+                if( !f.open( QIODevice::WriteOnly ) ) {
+
+                    return;
+                }
+
+                QTextStream ts( &f );
+
+                ts << QString::number(msg.source) << endl;
+                ts.flush();
+                f.close();
         }
 }
 

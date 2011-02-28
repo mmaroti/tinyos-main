@@ -930,6 +930,7 @@ bool LogWidget::isMotionEnd(int row) const
 void LogWidget::saveLog(const QString &filename)
 {
     application.dataRecorder.saveSamples(filename);
+    application.dataRecorder.saveCalibToFile(filename);
 
     QFile f( filename );
 

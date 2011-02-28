@@ -124,7 +124,7 @@ void DataWidget::on_loadBtn_clicked()
     QString file = QFileDialog::getOpenFileName(this, "Select one or more files to open", "c:/", "CSV (*.csv);;Any File (*.*)");
     if ( !file.isEmpty() ) {
         application.dataRecorder.loadSamples( file );
-        application.dataRecorder.loadCalibFromFileToLive( file );
+        application.dataRecorder.loadCalibFromFile(file);
     }
 }
 
