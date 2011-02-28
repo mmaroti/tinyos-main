@@ -49,7 +49,7 @@ enum {
     LAT_MAX,
     MED_MIN,
     MED_MAX,
-    SIZE
+    SIZE_OF_ARRAY
 };
 
 class DataHolder {

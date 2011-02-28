@@ -57,7 +57,7 @@ DataHolder::DataHolder(ElbowFlexSign s) : sign(s), SAMPLING_RATE(204.8), out(new
     rotation_matrices = flexion = supination = deviation = 0;
     size = 0;
 
-    extrema = new double[SIZE];
+    extrema = new double[SIZE_OF_ARRAY];
 
     flex_range = "Flex  ";
     sup_range  = "Sup  ";
