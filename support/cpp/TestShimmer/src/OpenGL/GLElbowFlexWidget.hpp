@@ -72,7 +72,7 @@ protected:
 
 private:
 
-    GLElbowFlexWidget(AnimationElbowFlexSign sign, DataHolder* dataHolder, double* rotmat, int size);
+    GLElbowFlexWidget(AnimationElbowFlexType sign, DataHolder* dataHolder, double* rotmat, int size);
 
     void rotate();
 
@@ -99,18 +99,18 @@ private:
     void drawIrrelevantParts();
     void shoulder();
     void neck();
-    void leftUpperArm();
+    void stillUpperArm();
 
     void body();
 
-    void drawRightArm();
+    void drawMovingArm();
     void upperArm();
     void elbow();
     void rotateForeArm();
     void foreArm();
     void hand();
 
-    const AnimationElbowFlexSign type;
+    const AnimationElbowFlexType type;
 
     DataHolder* const data;
 

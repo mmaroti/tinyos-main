@@ -64,15 +64,15 @@ namespace {
 
 GLElbowFlexWidget* GLElbowFlexWidget::right(double* rotmat, int size) {
 
-    return new GLElbowFlexWidget(AnimationElbowFlexSign::right(), DataHolder::right(), rotmat, size);
+    return new GLElbowFlexWidget(AnimationElbowFlexType::right(), DataHolder::right(), rotmat, size);
 }
 
 GLElbowFlexWidget* GLElbowFlexWidget::left(double* rotmat, int size) {
 
-    return new GLElbowFlexWidget(AnimationElbowFlexSign::left(), DataHolder::left(), rotmat, size);
+    return new GLElbowFlexWidget(AnimationElbowFlexType::left(), DataHolder::left(), rotmat, size);
 }
 
-GLElbowFlexWidget::GLElbowFlexWidget(AnimationElbowFlexSign sign,
+GLElbowFlexWidget::GLElbowFlexWidget(AnimationElbowFlexType sign,
                                      DataHolder *dataHolder,
                                      double* rotmatrices,
                                      int length)
@@ -221,7 +221,7 @@ void GLElbowFlexWidget::neck() {
     glEnd();
 }
 
-void GLElbowFlexWidget::leftUpperArm() {
+void GLElbowFlexWidget::stillUpperArm() {
 
     glBegin(GL_LINES);
         glVertex3d(0.0, 2.0, 2.0*type.sign);
@@ -275,8 +275,8 @@ void GLElbowFlexWidget::foreArm() {
 
 void GLElbowFlexWidget::hand() {
 
-    glPolygonMode(GL_FRONT, type.hand_front);
-    glPolygonMode(GL_BACK,  type.hand_back);
+    glPolygonMode(GL_FRONT, type.handFront);
+    glPolygonMode(GL_BACK,  type.handBack);
 
     glBegin(GL_POLYGON);
        glVertex3d(1.6, -0.15, 0.0);
@@ -300,12 +300,12 @@ void GLElbowFlexWidget::drawIrrelevantParts() {
 
     neck();
 
-    leftUpperArm();
+    stillUpperArm();
 
     glLineWidth(LINE_WIDTH);
 }
 
-void GLElbowFlexWidget::drawRightArm() {
+void GLElbowFlexWidget::drawMovingArm() {
 
     upperArm();
 
@@ -322,7 +322,7 @@ void GLElbowFlexWidget::drawLinearParts() {
 
     drawIrrelevantParts();
 
-    drawRightArm();
+    drawMovingArm();
 }
 
 void GLElbowFlexWidget::setCameraPosition() {
@@ -418,7 +418,7 @@ void GLElbowFlexWidget::planView() {
 
     glPushMatrix();
 
-        glTranslated(0.0, -5.0, 0.0);
+        glTranslated(0.0, type.planShift, 0.0);
 
         planHead();
 
@@ -452,7 +452,7 @@ void GLElbowFlexWidget::frontView() {
 
     glPushMatrix();
 
-        glTranslated( 5.0, 0.0, 0.0);
+        glTranslated(type.frontShift, 0.0, 0.0);
 
         frontHead();
 

@@ -37,30 +37,34 @@
 // FIXME Where is GLenum defined?
 #include <QGLWidget>
 
-class AnimationElbowFlexSign {
+class AnimationElbowFlexType {
 
 public:
 
-    static AnimationElbowFlexSign right() {
+    static AnimationElbowFlexType right() {
 
-        return AnimationElbowFlexSign(-1);
+        return AnimationElbowFlexType(-1, 4.5, -5.0);
     }
 
-    static AnimationElbowFlexSign left() {
+    static AnimationElbowFlexType left() {
 
-        return AnimationElbowFlexSign(1);
+        return AnimationElbowFlexType( 1, 6.5, -3.5);
     }
 
     const int sign;
-    const GLenum hand_front;
-    const GLenum hand_back;
+    const GLenum handFront;
+    const GLenum handBack;
+    const double frontShift;
+    const double planShift;
 
 private:
 
-    AnimationElbowFlexSign(int sign) :
+    AnimationElbowFlexType(int sign, double frontShift, double planShift) :
             sign(sign),
-            hand_front(sign==-1?GL_FILL:GL_LINE),
-            hand_back( sign==-1?GL_LINE:GL_FILL)
+            handFront(sign==-1?GL_FILL:GL_LINE),
+            handBack( sign==-1?GL_LINE:GL_FILL),
+            frontShift(frontShift),
+            planShift(planShift)
     { }
 };
 
