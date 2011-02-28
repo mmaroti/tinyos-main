@@ -41,20 +41,6 @@
 
 using namespace std;
 
-enum {
-    FLEX_MIN,
-    FLEX_MAX,
-    SUP_MIN,
-    SUP_MAX,
-    PRON_MIN,
-    PRON_MAX,
-    LAT_MIN,
-    LAT_MAX,
-    MED_MIN,
-    MED_MAX,
-    SIZE
-};
-
 DataHolder* DataHolder::right() {
 
     return new DataHolder(ElbowFlexSign::right());
@@ -143,6 +129,11 @@ void DataHolder::set_content(double* rotmat, int length) {
     rotation_matrices = rotmat;
 
     find_min_max();
+}
+
+const double* DataHolder::min_max() const {
+
+    return extrema;
 }
 
 int DataHolder::number_of_samples() const {

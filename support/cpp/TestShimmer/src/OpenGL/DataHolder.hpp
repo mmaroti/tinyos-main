@@ -38,6 +38,20 @@
 #include <string>
 #include "ElbowFlexSign.hpp"
 
+enum {
+    FLEX_MIN,
+    FLEX_MAX,
+    SUP_MIN,
+    SUP_MAX,
+    PRON_MIN,
+    PRON_MAX,
+    LAT_MIN,
+    LAT_MAX,
+    MED_MIN,
+    MED_MAX,
+    SIZE
+};
+
 class DataHolder {
 
 public:
@@ -65,6 +79,8 @@ public:
     const std::string dev(int i)  const;
 
     const std::string time(int i) const;
+
+    const double* min_max() const;
 
     ~DataHolder();
 
