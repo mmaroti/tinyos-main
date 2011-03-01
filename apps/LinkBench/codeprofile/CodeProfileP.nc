@@ -51,18 +51,19 @@ module CodeProfileP @safe() {
     interface Alarm<TMicro, uint32_t> as Alarm;
   }
 }
+
 implementation {
 
   uint32_t        mil;           // Maximum Interrupt Length
-  norace uint32_t mal;           // Maximum Atomic Length
+  uint32_t        mal;           // Maximum Atomic Length
   uint32_t        mtl;           // Maximum Task Latency
   
-  norace uint32_t mal_offset;
-  uint32_t mtl_offset;
+  uint32_t        mtl_offset;
+  uint32_t        mal_offset;
   norace bool     alive;
 
   command uint32_t CodeProfile.getMaxInterruptLength()  { return mil; }
-  command uint32_t CodeProfile.getMaxAtomicLength()     { return mal; }
+  command uint32_t CodeProfile.getMaxAtomicLength()     { atomic {return mal;} }
   command uint32_t CodeProfile.getMaxTaskLatency()      { return mtl; }
 
   command uint32_t MaxInterruptLength.get()             { return mil; }
@@ -83,55 +84,59 @@ implementation {
     // The difference between the posting time of this task (mtl_offset)
     // and the first expression's execution time ( t1 ) is the time
     // between two measureTask tasks.
-    // This way, interleaving tasks' running time is measured.
-    
+    // This way, interleaving tasks' running time is measured.    
     mtl = _MAX_(t1-mtl_offset,mtl);
-    atomic {
+
+    if ( alive ) {
       mtl_offset = call Alarm.getNow();
-      if ( alive )
-        post measureTask();
+      post measureTask();
     }
+    
   }
 
 
   command error_t StdControl.start() {
-    mil = mal = mtl = 0;
-    alive = TRUE;
     
-    mtl_offset = mal_offset = call Alarm.getNow();
-        
-    call Alarm.start(ATOMIC_PERIODIC_TIME);
+    alive = TRUE;
+    mil = mtl = 0;
+    
+    // Atomic Length Measurement Init
+    atomic {
+      mal = 0;
+      call Alarm.stop();
+      mal_offset = call Alarm.getNow();
+      call Alarm.startAt(mal_offset, ATOMIC_PERIODIC_TIME);
+    }
+    
+    mtl_offset = call Alarm.getNow();
     post measureTask();
+    
     return SUCCESS;
   }
   
   command error_t StdControl.stop() {
-    atomic {
-      call Alarm.stop();
-      alive = FALSE;
-    }
+    call Alarm.stop();
+    alive = FALSE;
     return SUCCESS;
   }
   
-  async event void Alarm.fired() {
-    
-    // When this alarm should have been fired ?
-    uint32_t target = mal_offset + ATOMIC_PERIODIC_TIME;
-    
-    // Get the current time AND store it for the next offset
-    // to avoid duplicate call to Alarm.getNow()
-    mal_offset = call Alarm.getNow();
-    
-    // Compute the difference, and update maximum if necessary
-    // Note that in rare cases (timer pre-firing and overflow)
-    // mal_offset < target can happen. It is ignored in both cases.
-    if ( mal_offset > target )
-      mal = _MAX_( mal_offset - target, mal);
-    
+  async event void Alarm.fired() {    
+    // Get the time
+    uint32_t delay = call Alarm.getNow();
+  
     atomic {
-      if ( alive )
-        call Alarm.start(ATOMIC_PERIODIC_TIME);
-    }
+      // When the alarm should have been fired?
+      // This is also the base of the next fire target.
+      mal_offset += ATOMIC_PERIODIC_TIME;
+
+      // Compute the shift between now and the target    
+      delay -= mal_offset;
+    
+      mal = _MAX_(delay,mal);  
+    }    
+      
+    if ( alive )
+      call Alarm.startAt(mal_offset,ATOMIC_PERIODIC_TIME);
   }
    
 }
