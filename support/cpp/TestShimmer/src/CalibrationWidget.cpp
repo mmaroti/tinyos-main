@@ -155,7 +155,7 @@ void CalibrationWidget::on_importButton_clicked()
 {
     QString file = QFileDialog::getOpenFileName(this, "Select a file to open", "c:/", "CSV (*.csv);;Any File (*.*)");
     if ( !file.isEmpty() ) {
-        application.dataRecorder.loadCalibFromFile( file );;
+        application.dataRecorder.loadCalibFromFile( file );
     }
     loadCalibrationResults();
 }

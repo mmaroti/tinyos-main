@@ -348,21 +348,29 @@ void DataRecorder::loadCalibFromFile(const QString& filename )
             msgBox.setText("Wrong file format!");
             msgBox.exec();
         } else {
-
+            for(int i = 0; i < 12; i++){
+                line = ts.readLine();         // line of text excluding '\n'
+                accelCalibrationData[i] = line.toDouble();
+            }
             line = ts.readLine();
             if(line != "#Gyro Calibration Data"){
                 QMessageBox msgBox;
                 msgBox.setText("Wrong file format!");
                 msgBox.exec();
             } else {
-
+                for(int i = 0; i < 12; i++){
+                    line = ts.readLine();         // line of text excluding '\n'
+                    gyroCalibrationData[i] = line.toDouble();
+                }
                 line = ts.readLine();
                 if(line != "#Gyro Minimum Averages"){
                     QMessageBox msgBox;
                     msgBox.setText("Wrong file format!");
                     msgBox.exec();
                 } else {
-
+                    for(int i = 0; i<3; i++){
+                        gyroMinAvgs[i] = line.toDouble();
+                    }
                 }
             }
         }
