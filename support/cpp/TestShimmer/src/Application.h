@@ -39,8 +39,6 @@
 #define C_TICKS 2       //constant hz and ticks values to use later
 
 #include <QObject>
-#include <QSettings>
-#include "MockSolver.hpp"
 #include "Solver.hpp"
 #include "TabWatcher.hpp"
 #include "TimeSyncMsgReceiver.hpp"
@@ -75,7 +73,6 @@ public:
 	SerialListener serialListener;
         DataRecorder dataRecorder;
 
-	QSettings settings;
         ipo::Solver solver;
         TabWatcher tabWatcher;
         TimeSyncMsgReceiver timeSyncMsgReceiver;

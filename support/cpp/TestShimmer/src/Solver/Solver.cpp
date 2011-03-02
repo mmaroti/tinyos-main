@@ -33,9 +33,9 @@
 
 #include <iostream>
 #include <stdexcept>
-#include "QMessageBox"
-#include "QMutex"
-#include "QSettings"
+#include <QMessageBox>
+#include <QMutex>
+#include <QMetaType>
 #include "Solver.hpp"
 #include "Data.hpp"
 #include "DataReader.hpp"

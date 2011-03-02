@@ -35,8 +35,7 @@
 #include "Application.h"
 
 Application::Application()
-        : dataRecorder(*this),
-        settings("TAMOP422", "TestShimmer")
+        : dataRecorder(*this)
 {
 }
 
