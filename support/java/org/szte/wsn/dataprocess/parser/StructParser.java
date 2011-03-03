@@ -73,8 +73,14 @@ public class StructParser extends PacketParser {
 				System.arraycopy(packet,pointer,packetPart,0,pp.getPacketLength());
 				pointer+=pp.getPacketLength();
 
-				if(!pp.getType().contains("omit"))			
-					ret.addAll(Arrays.asList(pp.parse(packetPart))); 		
+				if(!pp.getType().contains("omit")){			
+					String[] temp=pp.parse(packetPart);
+					if(temp!=null)
+					ret.addAll(Arrays.asList(temp)); 	
+					else
+						return null;
+					
+				}
 
 				if (pp.parse(packetPart)==null)
 					return null;
