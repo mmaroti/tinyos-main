@@ -113,6 +113,9 @@ public:
             return samples.isEmpty();
         }
 
+        const int getCurrentMote() const { return currentMote; }
+        void setCurrentMote(const int& moteID) { currentMote = moteID; }
+
         int getFirstTime() const;
         int getLastTime() const;
 
@@ -120,6 +123,12 @@ public:
         void loadCalibrationData();
         void clearCalibrationData();
         void setCalibToZero();
+        
+        void clearSamples();
+        void saveSamples(const QString& filename) const;
+        void loadSamples(const QString& filename);
+        void loadCalibFromFile(const QString& filename);
+        void edit(const QString& option);
 
         void dump_calibration_data() const;
 
@@ -144,12 +153,7 @@ public:
         void at(int i, double data[ipo::SIZE]) const;
         int from, to;
 
-        void clearSamples();
-        void saveSamples(const QString& filename) const;
-        void loadSamples(const QString& filename);
-        void loadCalibFromFile(const QString& filename);
-        void saveCalibToFile(const QString& filename) const;
-        void edit(const QString& option);
+     
 
         void loadResults(const ipo::Results& res, const int begin, const int end);
         const Range range(const double begInSec, const double endInSec, const double lenInSec) const;
@@ -186,6 +190,8 @@ private:
         double gyroMinAvgs[3];
         int accelIdleWindowStart[6];
         int gyroIdleWindowStart[7];
+
+        int currentMote;
 
         gyro::matrix3 A;
         gyro::vector3 b;

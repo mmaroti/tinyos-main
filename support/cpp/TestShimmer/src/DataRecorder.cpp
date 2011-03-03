@@ -58,6 +58,7 @@ DataRecorder::DataRecorder(Application &app) :
         b(gyro::vector3(0,0,0)),
         application(app)
 {
+    currentMote = 0;
 
     samples.reserve(RESERVED_SAMPLES);
     //loadCalibrationData();
@@ -98,6 +99,7 @@ void DataRecorder::onReceiveMessage(const ActiveMessage & msg)
     // first type of messages
     if( msg.type == 0x37 && msg.payload.size() == 100 )
     {
+
             for(int start = 0; start < 100; start += 20)
             {
                     Sample sample;
@@ -377,66 +379,15 @@ void DataRecorder::loadCalibFromFile(const QString& filename )
         f.close();
     }
     emit fileLoaded();
-    //saveCalibrationData();
-}
-
-void DataRecorder::saveCalibToFile(const QString& filename ) const
-{
-    QFile f( "../rec/mote_last_used.txt" );
-    int mote;
-
-    if( f.open( QIODevice::ReadOnly | QIODevice::Text ) ) //file opened successfully
-    {
-        QTextStream ts( &f );
-        mote = ts.readLine().toInt();
-
-    }
-    f.close();
-
-    QFile fi( "../rec/mote"+QString::number(mote)+"calib.csv" );
-
-    if( fi.open( QIODevice::WriteOnly ) ) {
-
-        QTextStream ts( &fi );
-        for(int i = 0; i<12; i++){
-            ts << accelCalibrationData[i] << endl;
-        }
-        for(int i = 0; i<12; i++){
-            ts << gyroCalibrationData[i] << endl;
-        }
-        for(int i = 0; i<3; i++){
-            ts << gyroMinAvgs[i] << endl;
-        }
-
-        ts.flush();
-
-    }
-
-    fi.close();
 }
 
 void DataRecorder::loadCalibrationData()
-{    
-    QFile f( "../rec/mote_last_used.txt" );
-    int mote;
+{
+    QFile f( "../calib/mote"+QString::number(currentMote)+"calib.csv" );
 
     if( f.open( QIODevice::ReadOnly | QIODevice::Text ) ) //file opened successfully
     {
         QTextStream ts( &f );
-        mote = ts.readLine().toInt();
-
-    } else {
-        QMessageBox msgBox;
-        msgBox.setText("No previous mote data!");
-        msgBox.exec();
-    }
-    f.close();
-
-    QFile fi( "../rec/mote"+QString::number(mote)+"calib.csv" );
-
-    if( fi.open( QIODevice::ReadOnly | QIODevice::Text ) ) //file opened successfully
-    {
-        QTextStream ts( &fi );
         for(int i = 0; i<12; i++){
             accelCalibrationData[i] = ts.readLine().toDouble();
         }
@@ -447,24 +398,20 @@ void DataRecorder::loadCalibrationData()
             gyroMinAvgs[i] = ts.readLine().toDouble();
         }
     } else {
-        for(int i = 0; i<12; i++){
-            accelCalibrationData[i] = 0;
-        }
-        for(int i = 0; i<12; i++){
-            gyroCalibrationData[i] = 0;
-        }
-        for(int i = 0; i<3; i++){
-            gyroMinAvgs[i] = 0;
-        }
+        QMessageBox msgBox;
+        msgBox.setText("No previous mote data!");
+        msgBox.exec();
+
+        setCalibToZero();
     }
-    fi.close();
+    f.close();
 
     emit calibrationDataLoaded();
 }
 
 void DataRecorder::saveCalibrationData() const
 {
-    QFile f( "../rec/mote_last_used.txt" );
+    QFile f( "../calib/mote_last_used.txt" );
     int mote;
 
     if( f.open( QIODevice::ReadOnly | QIODevice::Text ) ) //file opened successfully
@@ -475,7 +422,7 @@ void DataRecorder::saveCalibrationData() const
     }
     f.close();
 
-    QFile fi( "../rec/mote"+QString::number(mote)+"calib.csv" );
+    QFile fi( "../calib/mote"+QString::number(mote)+"calib.csv" );
 
     if( fi.open( QIODevice::WriteOnly ) ) {
 

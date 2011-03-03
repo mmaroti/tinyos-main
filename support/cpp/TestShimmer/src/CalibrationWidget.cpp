@@ -38,7 +38,9 @@
 #include "StationaryCalibrationModule.h"
 #include "PeriodicalCalibrationModule.h"
 #include "Application.h"
+#include <QDebug>
 #include <qfiledialog.h>
+#include <QInputDialog>
 
 CalibrationWidget::CalibrationWidget(QWidget *parent, Application &app) :
     QWidget(parent),
@@ -51,8 +53,6 @@ CalibrationWidget::CalibrationWidget(QWidget *parent, Application &app) :
     periodicalCalibrationModule = new PeriodicalCalibrationModule(app, *calibrationModule);
     turntableCalibrationModule = new TurntableCalibrationModule(app);
 
-    application.dataRecorder.loadCalibrationData();
-    loadCalibrationResults();
 }
 
 CalibrationWidget::~CalibrationWidget()
@@ -145,9 +145,11 @@ void CalibrationWidget::on_startButton_clicked()
 
 void CalibrationWidget::on_exportButton_clicked()
 {
-    QString fn = QFileDialog::getSaveFileName(  this, "Choose a filename to save under", "c:/", "CSV (*.csv)");
+    QFile f( "../calib/mote"+QString::number(application.dataRecorder.getCurrentMote())+"calib.csv" );
+
+    QString fn = QFileDialog::getSaveFileName(  this, "Choose a filename to save under your backup", "c:/", "CSV (*.csv)");
     if ( !fn.isEmpty() ) {
-        application.dataRecorder.saveCalibToFile( fn );
+        if(!f.copy(fn)) qDebug() << "file copied" << "../calib/mote"+QString::number(application.dataRecorder.getCurrentMote())+"calib.csv";
     }
 }
 
@@ -155,9 +157,16 @@ void CalibrationWidget::on_importButton_clicked()
 {
     QString file = QFileDialog::getOpenFileName(this, "Select a file to open", "c:/", "CSV (*.csv);;Any File (*.*)");
     if ( !file.isEmpty() ) {
-        application.dataRecorder.loadCalibFromFile( file );
+        int moteID = QInputDialog::getInteger(this, "Please enter the Mote ID!", "Mote ID:", 0, 0, 20, 1);
+
+        QFile in(file);
+        QString out = "../calib/mote"+QString::number(moteID)+"calib.csv";
+        if( !in.copy(out) ){
+            QMessageBox msg;
+            msg.setText("Failed to import calibration data!");
+            msg.exec();
+        }
     }
-    loadCalibrationResults();
 }
 
 void CalibrationWidget::on_clearButton_clicked()

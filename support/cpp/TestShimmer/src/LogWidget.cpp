@@ -828,6 +828,8 @@ void LogWidget::on_selectPersonButton_clicked()
         dial->show();
 
         dial->activateWindow();
+
+        application.dataRecorder.loadCalibrationData();
     }
 }
 
@@ -930,7 +932,6 @@ bool LogWidget::isMotionEnd(int row) const
 void LogWidget::saveLog(const QString &filename)
 {
     application.dataRecorder.saveSamples(filename);
-    application.dataRecorder.saveCalibToFile(filename);
 
     QFile f( filename );
 
