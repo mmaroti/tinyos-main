@@ -57,9 +57,8 @@ implementation {
   Core.Packet -> ActiveMessageC;
   Core.Ack -> ActiveMessageC;
 
-#ifndef TOSSIM
 #ifdef LOW_POWER_LISTENING
-  #if defined(RADIO_RF230) || defined(RADIO_CC1000) || defined(RADIO_CC2420)
+  #if defined(RADIO_RF230) || defined(RADIO_CC1000) || defined(RADIO_CC2420) || defined(RADIO_CC2520)
     Core.LowPowerListening -> ActiveMessageC;
   #else
     #error " * NO PLATFORM SUPPORT FOR LOW POWER LISTENING LAYER *"
@@ -67,16 +66,15 @@ implementation {
 #endif
 
 #ifdef PACKET_LINK
-  #ifdef RADIO_CC2420
+  #if defined(RADIO_CC2420)   
     components CC2420ActiveMessageC;
     Core.PacketLink -> CC2420ActiveMessageC;
-  #elif defined(RADIO_RF230)
+  #elif defined(RADIO_RF230) || defined(CC2520)
     Core.PacketLink -> ActiveMessageC;
-  #else
+  #else   
     #error " * NO PLATFORM SUPPORT FOR PACKET LINK LAYER *"
   #endif
 #endif
-#endif // TOSSIM
 
   components new TimerMilliC() as Timer;
   Core.TestTimer -> Timer;

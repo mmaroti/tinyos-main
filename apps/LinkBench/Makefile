@@ -20,8 +20,9 @@ CFLAGS += -DEXCLUDE_STANDARD_FORWARDING
 # exclude the user defined benchmarks from the problemset
 CFLAGS += -DEXCLUDE_USERDEFINED
 
-# codeprofile support
+# codeprofile, tossim support
 CFLAGS += -Icodeprofile
+CFLAGS += -Itossim
 
 # channel settings
 CFLAGS += -DCC2420_DEF_CHANNEL=$(DEF_CHANNEL)

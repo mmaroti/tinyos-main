@@ -38,6 +38,7 @@
 configuration BenchmarkAppC {}
 
 implementation {
+
   components MainC;
   Comm.Boot -> MainC.Boot;
   
@@ -46,12 +47,12 @@ implementation {
   Comm.BenchmarkCore -> Core;
   Comm.CoreControl -> Core;
   Comm.CoreInit -> Core;
-  
-  components new AMReceiverC(AM_CTRLMSG_T)    	      as RxCtrl;
-  components new AMReceiverC(AM_SETUPMSG_T)    	      as RxSetup;
-  Comm.RxCtrl -> RxCtrl;
-  Comm.RxSetup -> RxSetup;
-  
+
+  components ActiveMessageC as Radio; 
+  Comm.RadioControl -> Radio;
+  Comm.Packet -> Radio;
+  Comm.Receive -> Radio.Receive;
+
   components new DirectAMSenderC(AM_SYNCMSG_T)        as TxSync;
   components new DirectAMSenderC(AM_DATAMSG_T)        as TxData;
   Comm.TxSync -> TxSync;
@@ -60,7 +61,32 @@ implementation {
   components LedsC;
   Comm.Leds -> LedsC;
       
-  components ActiveMessageC; 
-  Comm.AMControl -> ActiveMessageC;
-  Comm.Packet -> ActiveMessageC;
+ 
+#ifdef TOSSIM
+
+  components SerialActiveMessageC as Serial;
+  components BaseStationP;
+  
+  Comm.TBSInit -> BaseStationP;
+  Comm.RxCtrl -> BaseStationP.NullReceive1;
+  Comm.RxSetup -> BaseStationP.NullReceive2;
+  
+  BaseStationP.Leds -> LedsC;
+  
+  BaseStationP.RadioControl -> Radio;
+  BaseStationP.SerialControl -> Serial;
+  
+  BaseStationP.UartSend -> Serial;
+  BaseStationP.UartReceive -> Serial.Receive;
+  BaseStationP.UartPacket -> Serial;
+  BaseStationP.UartAMPacket -> Serial;
+  
+  BaseStationP.RadioSend -> Radio;
+  BaseStationP.RadioReceive -> Radio.Receive;
+  BaseStationP.RadioSnoop -> Radio.Snoop;
+  BaseStationP.RadioPacket -> Radio;
+  BaseStationP.RadioAMPacket -> Radio;
+
+#endif
+
 }

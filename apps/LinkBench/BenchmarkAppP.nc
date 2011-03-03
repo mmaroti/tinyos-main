@@ -38,19 +38,23 @@ module BenchmarkAppP @safe() {
   uses {
     interface Boot;
       
-    interface Receive as RxCtrl;
-    interface Receive as RxSetup;
+    interface Receive[am_id_t id];
     
     interface AMSend  as TxSync;
     interface AMSend  as TxData;    
     
-    interface SplitControl as AMControl;
+    interface SplitControl as RadioControl;
     interface BenchmarkCore;
     interface StdControl as CoreControl;
     interface Init as CoreInit;
     
     interface Packet;
     interface Leds;
+    
+#ifdef TOSSIM
+    interface Init as TBSInit;    
+#endif
+       
   }
 
 }
@@ -62,21 +66,66 @@ implementation {
   message_t bpkt;
     
   event void Boot.booted() {
-    call AMControl.start();
+#ifdef TOSSIM
+    if ( TOS_NODE_ID == 0 ) { call TBSInit.init(); return; }
+#endif  
+
+    call RadioControl.start();
   }
 
-  event void AMControl.startDone(error_t error) {
+  event void RadioControl.startDone(error_t error) {
+#ifdef TOSSIM
+    if ( TOS_NODE_ID == 0 ) return;
+#endif
+
     if (error != SUCCESS)
-      call AMControl.start();
+      call RadioControl.start();
     else {
       call CoreInit.init();
       core_configured = core_finished = FALSE;
     }
   }
 
-  event void AMControl.stopDone(error_t error) {
-    call AMControl.start();
+  event void RadioControl.stopDone(error_t error) {
+#ifdef TOSSIM
+    if ( TOS_NODE_ID == 0 ) return;
+#endif  
+    call RadioControl.start();    
   }
+
+/*#ifdef TOSSIM  
+  event void BSSerialControl.startDone(error_t error) {
+    if (error != SUCCESS)
+      call BSSerialControl.start();
+  }
+
+  event void BSSerialControl.stopDone(error_t error) { }
+  
+  message_t bss_pkt;
+  message_t bsr_pkt;
+  
+  task void bs_sendSerial() {
+    if(call BSRadioSend.send(0, &radioMsg, sizeof(ThroughputMsg)) != SUCCESS) {
+      post sendRadio();
+    }
+  }
+  
+  task void bs_sendRadio() {
+  
+  }
+  
+  event message_t* BSSerialReceive.receive[am_id_t id](message_t* bufPtr, void* payload, uint8_t len) {
+    post bs_sendRadio();
+    return bufPtr;
+  }
+  
+  event message_t* BSRadioReceive.receive[am_id_t id](message_t* bufPtr, void* payload, uint8_t len) {
+    if ( TOS_NODE_ID == BASESTATION_TOS_NODE_ID ) {
+      post bs_sendSerial();
+    }
+    return bufPtr;
+  }
+#endif*/
 
   task void sendData() {
     datamsg_t* msg = (datamsg_t*)(call Packet.getPayload(&bpkt,sizeof(datamsg_t)));
@@ -96,7 +145,6 @@ implementation {
       msg->payload.profile = *(call BenchmarkCore.getProfile());      
       call TxData.send(AM_BROADCAST_ADDR, &bpkt, sizeof(datamsg_t));
     }
-      
   }
 
   task void sendSync() {
@@ -115,13 +163,12 @@ implementation {
   event void TxSync.sendDone(message_t* bufPtr, error_t error) { }
   event void TxData.sendDone(message_t* bufPtr, error_t error) { }
 
-  event message_t* RxSetup.receive(message_t* bufPtr, void* payload, uint8_t len) {
+  void receive_setup(message_t* bufPtr, void* payload, uint8_t len) {
     setupmsg_t*  msg   = (setupmsg_t*)payload;
     call BenchmarkCore.setup(msg->config);
-    return bufPtr;
   }
 
-  event message_t* RxCtrl.receive(message_t* bufPtr, void* payload, uint8_t len) {
+  void receive_ctrl(message_t* bufPtr, void* payload, uint8_t len) {
     ctrlmsg_t*  msg   = (ctrlmsg_t*)payload;
     switch ( msg->type ) {
     
@@ -152,6 +199,19 @@ implementation {
           break;
       default:
           break;    
+    }
+  }
+  
+  event message_t* Receive.receive[am_id_t id](message_t* bufPtr, void* payload, uint8_t len) {
+    switch (id) {
+      case AM_CTRLMSG_T: 
+        receive_ctrl(bufPtr,payload,len); 
+        break;
+      case AM_SETUPMSG_T: 
+        receive_setup(bufPtr,payload,len); 
+        break;
+      default: 
+        break;
     }
     return bufPtr;
   }

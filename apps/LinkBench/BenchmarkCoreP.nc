@@ -66,14 +66,12 @@ module BenchmarkCoreP @safe() {
     interface AMPacket;
     interface PacketAcknowledgements as Ack;
     
-#ifndef TOSSIM
 #ifdef LOW_POWER_LISTENING
     interface LowPowerListening;
 #endif
     
 #ifdef PACKET_LINK
     interface PacketLink;
-#endif
 #endif
 
     interface CodeProfile;
@@ -350,7 +348,6 @@ implementation {
     call CodeProfileControl.start();
     
     // setup the applied MAC protocol
-#ifndef TOSSIM
 #ifdef LOW_POWER_LISTENING
     if ( config.flags & GLOBAL_USE_MAC_LPL )
       call LowPowerListening.setLocalWakeupInterval(config.mac_setup[LPL_WAKEUP_OFFSET]);
@@ -361,7 +358,6 @@ implementation {
       call PacketLink.setRetries(&pkt,config.mac_setup[PLINK_RETRIES_OFFSET]);
       call PacketLink.setRetryDelay(&pkt,config.mac_setup[PLINK_DELAY_OFFSET]);
     }
-#endif
 #endif
 
     // If a pre-benchmark delay is requested, make a delay
@@ -385,7 +381,6 @@ implementation {
     stopTimers();
     
     // cleanup the MAC
-#ifndef TOSSIM
 #ifdef LOW_POWER_LISTENING
     if ( config.flags & GLOBAL_USE_MAC_LPL )
       call LowPowerListening.setLocalWakeupInterval(0);
@@ -397,7 +392,7 @@ implementation {
       call PacketLink.setRetryDelay(&pkt,0);
     }
 #endif
-#endif
+
     // compute the remained statistic
     for ( i = 0; pending; ++i, pending >>= 1) {
       if ( pending & 0x1 )
@@ -638,7 +633,6 @@ implementation {
       address = ( config.flags & GLOBAL_USE_BCAST ) ? AM_BROADCAST_ADDR : problem[eidx].receiver;
      
       // MAC specific settings
-#ifndef TOSSIM
 #ifdef LOW_POWER_LISTENING
       if ( config.flags & GLOBAL_USE_MAC_LPL )
         call LowPowerListening.setRemoteWakeupInterval(
@@ -651,8 +645,7 @@ implementation {
         call PacketLink.setRetryDelay(&pkt,config.mac_setup[PLINK_DELAY_OFFSET]);
       }
 #endif
-#endif
-
+  
       // Find out whether we need to use ACK
       if ( (config.flags & GLOBAL_USE_ACK) || problem[eidx].policy.need_ack ) {
         call Ack.requestAck(&pkt);
