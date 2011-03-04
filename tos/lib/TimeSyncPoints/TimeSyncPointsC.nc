@@ -44,7 +44,7 @@ implementation
 {
 	components TimeSyncMessageC, LocalTimeMilliC;
   	components TimeSyncPointsP;
-  	components new TimerMilliC();
+  	components new TimerMilliC(), new AMSenderC(AM_TIMESYNCREF), new AMReceiverC(AM_TIMESYNCREF);
 
  	TimeSyncPointsP.PacketTimeStampMilli -> TimeSyncMessageC.PacketTimeStampMilli;
   	TimeSyncPointsP.TimeSyncReceive -> TimeSyncMessageC.Receive[AM_TIMESYNCPOINTS]; 
@@ -53,6 +53,8 @@ implementation
   	TimeSyncPointsP.Timer -> TimerMilliC;
     TimeSyncPointsP.AMPacket -> TimeSyncMessageC.AMPacket;
     TimeSyncPointsP.LocalTime -> LocalTimeMilliC;
+    TimeSyncPointsP.AMSend -> AMSenderC;
+    TimeSyncPointsP.Receive -> AMReceiverC;
   	TimeSyncPoints=TimeSyncPointsP;
   	StdControl=TimeSyncPointsP;
     SetInterval=TimeSyncPointsP;

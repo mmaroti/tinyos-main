@@ -50,6 +50,8 @@ module TimeSyncPointsP
     interface AMPacket;
     interface Timer<TMilli>;
     interface LocalTime<TMilli>;
+    interface AMSend;
+    interface Receive;
   }
 }
 implementation
@@ -57,6 +59,7 @@ implementation
 
   message_t syncMessage;
   uint16_t period=TIMESYNCPOINTS_PERIOD;
+  uint32_t ref_time=0;
   
   command error_t StdControl.start()
   {
@@ -93,14 +96,40 @@ implementation
   
   event message_t* TimeSyncReceive.receive(message_t* msg,void* payload, uint8_t len)
   {
-      if (call Timer.isRunning()&&call TimeSyncPacketMilli.isValid(msg))
-      {
-        timeSyncPointsMsg_t* syncMsg = (timeSyncPointsMsg_t*)payload;
+    if (call Timer.isRunning()&&call TimeSyncPacketMilli.isValid(msg)){
+      timeSyncPointsMsg_t* syncMsg = (timeSyncPointsMsg_t*)payload;
+      if (call AMPacket.source(msg) == REFERENCE_NODEID){
+        if(ref_time!=syncMsg->timeStamp){
+          referenceMsg_t* send=(referenceMsg_t*)call AMSend.getPayload(&syncMessage, sizeof(referenceMsg_t));
+          ref_time=syncMsg->timeStamp;
+          send->nodeTime=call TimeSyncPacketMilli.eventTime(msg);
+          send->refTime=syncMsg->timeStamp;
+          send->nodeid=TOS_NODE_ID;
+          signal TimeSyncPoints.syncPoint(send->nodeTime, REFERENCE_NODEID, syncMsg->timeStamp);
+          call AMSend.send(AM_BROADCAST_ADDR, &syncMessage, sizeof(referenceMsg_t));
+        }
+      } else {
         signal TimeSyncPoints.syncPoint(call TimeSyncPacketMilli.eventTime(msg), call AMPacket.source(msg), syncMsg->timeStamp);
       }
-      return msg;
+    }
+    return msg;
   }
   
+  event message_t* Receive.receive(message_t* msg,void* payload, uint8_t len){
+    referenceMsg_t* received = (referenceMsg_t*)payload;
+    if(ref_time!=received->refTime){
+      referenceMsg_t* send=(referenceMsg_t*)call AMSend.getPayload(&syncMessage, sizeof(referenceMsg_t));
+      ref_time=received->refTime;
+      signal TimeSyncPoints.syncPoint(received->nodeTime, received->nodeid, received->refTime);
+      send->nodeTime=received->nodeTime;
+      send->refTime=received->refTime;
+      send->nodeid=received->nodeid;
+      call AMSend.send(AM_BROADCAST_ADDR, &syncMessage, sizeof(referenceMsg_t));
+    }
+    return msg;
+  }
+  
+  event void AMSend.sendDone(message_t* Bufptr, error_t err){}
   event void TimeSyncAMSendMilli.sendDone(message_t* Bufptr, error_t err){}
   default event void TimeSyncPoints.syncPoint(uint32_t local, am_addr_t nodeId, uint32_t remote){}
 }
