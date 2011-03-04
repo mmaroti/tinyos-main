@@ -169,17 +169,36 @@ void CalibrationWidget::on_importButton_clicked()
     }
 }
 
-void CalibrationWidget::on_clearButton_clicked()
+void CalibrationWidget::on_deleteButton_clicked()
 {
-    application.dataRecorder.clearCalibrationData();
-    loadCalibrationResults();
-}
+    int moteID = QInputDialog::getInteger(this, "Please enter the Mote ID!", "Mote ID:", 0, 0, 20, 1);
 
-void CalibrationWidget::on_useButton_clicked()
-{
-    application.dataRecorder.loadCalibrationData();
-    loadCalibrationResults();
-    emit calibrationDone();
+    QMessageBox msgBox;
+
+    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+
+    msgBox.setDefaultButton(QMessageBox::Cancel);
+
+    msgBox.setWindowTitle("Warning");
+
+    msgBox.setText("You are about to delete calibration data for mote: "+QString::number(moteID)+"!");
+
+    msgBox.setInformativeText("Are you sure?");
+
+    msgBox.setIcon(QMessageBox::Warning);
+
+    if(msgBox.exec() == QMessageBox::Ok){
+        QFile f("../calib/mote"+QString::number(moteID)+"calib.csv");
+        if(f.remove()){
+            QMessageBox msg;
+            msg.setText("Calibration data deleted successfully!");
+            msg.exec();
+        } else {
+            QMessageBox msg;
+            msg.setText("Failed to delete data!");
+            msg.exec();
+        }
+    }
 }
 
 void CalibrationWidget::OnFileLoaded()

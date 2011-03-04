@@ -692,43 +692,6 @@
       </widget>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <item>
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </item>
-     <item>
       <widget class="QPushButton" name="saveButton">
        <property name="text">
         <string>Save</string>
@@ -736,16 +699,16 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="clearButton">
+      <widget class="QPushButton" name="clearKeepPersonButton">
        <property name="text">
-        <string>Clear all</string>
+        <string>Clear, keep person</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="clearKeepPersonButton">
+      <widget class="QPushButton" name="clearButton">
        <property name="text">
-        <string>Clear, keep person</string>
+        <string>Clear all</string>
        </property>
       </widget>
      </item>
@@ -799,13 +762,6 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="permaDeleteButton">
-       <property name="text">
-        <string>Delete permanently</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <spacer name="verticalSpacer">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
@@ -817,6 +773,13 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="permaDeleteButton">
+       <property name="text">
+        <string>Delete permanently</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

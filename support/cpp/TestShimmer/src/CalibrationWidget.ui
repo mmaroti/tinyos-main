@@ -130,22 +130,12 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="clearButton">
+          <widget class="QPushButton" name="deleteButton">
            <property name="text">
-            <string>(C)lear</string>
+            <string>(D)elete</string>
            </property>
            <property name="shortcut">
-            <string>C</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="useButton">
-           <property name="text">
-            <string>(U)se</string>
-           </property>
-           <property name="shortcut">
-            <string>U</string>
+            <string>D</string>
            </property>
           </widget>
          </item>

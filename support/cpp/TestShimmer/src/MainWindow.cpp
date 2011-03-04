@@ -92,17 +92,7 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(&(app.dataRecorder), SIGNAL(fileLoaded()), calibrationWidget, SLOT(OnFileLoaded()));
         connect(&(app.dataRecorder), SIGNAL(calibrationDataLoaded()), calibrationWidget, SLOT(OnFileLoaded()));
         //connect(dataWidget->plot, SIGNAL(angleChanged(double)), window, SLOT(onAngleChanged(double)));
-        connect(ui->actionQuit, SIGNAL(triggered()), this, SLOT(close()));
-        connect(ui->actionLoad, SIGNAL(triggered()), dataWidget, SLOT(on_loadBtn_clicked()));
-        connect(ui->actionSave, SIGNAL(triggered()), dataWidget, SLOT(on_saveBtn_clicked()));
-        connect(ui->actionExport, SIGNAL(triggered()), calibrationWidget, SLOT(on_exportButton_clicked()));
-        connect(ui->actionImport, SIGNAL(triggered()), calibrationWidget, SLOT(on_importButton_clicked()));
-        connect(ui->actionClear, SIGNAL(triggered()), calibrationWidget, SLOT(on_clearButton_clicked()));
-        connect(ui->actionTrim, SIGNAL(triggered()), dataWidget, SLOT(onTrim()));
-        //connect(ui->actionCopy, SIGNAL(triggered()), dataWidget, SLOT(onCopy()));
-        //connect(ui->actionCut, SIGNAL(triggered()), dataWidget, SLOT(onCut()));
-        connect(ui->actionClear_samples, SIGNAL(triggered()), dataWidget, SLOT(on_clearBtn_clicked()) );
-        connect(ui->actionDo_regression, SIGNAL(triggered()), dataWidget, SLOT(on_regressionButton_clicked()));
+
         connect(dataWidget, SIGNAL(SolverStarted()), this, SLOT(onSolverRunning()));
         connect(dataWidget, SIGNAL(SolverFinished()), this, SLOT(onSolverRunning()));
         connect(&(app.tabWatcher), SIGNAL(SDCardTabGainedFocus()), sddataWidget, SLOT(onSdataLeftFocusIn()));
@@ -154,13 +144,11 @@ void MainWindow::onSolverRunning()
         ui->connectTab->setEnabled(false);
         ui->consoleTab->setEnabled(false);
         ui->graphTab->setEnabled(false);
-        ui->menuBar->setEnabled(false);
     } else {
         ui->calibrationTab->setEnabled(true);
         ui->connectTab->setEnabled(true);
         ui->consoleTab->setEnabled(true);
         ui->graphTab->setEnabled(true);
-        ui->menuBar->setEnabled(true);
     }
 
 }
