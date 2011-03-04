@@ -43,6 +43,11 @@ enum{
 	AM_DATA_MSG=0x63,
 };
 
+//commands
+enum{
+  CMD_GETMIN=0x00,
+  CMD_ERASE=0x01,
+};
 typedef nx_struct command_msg {
 	nx_uint8_t cmd;
 } command_msg;
