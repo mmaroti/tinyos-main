@@ -42,6 +42,10 @@ module PlatformP @safe()
 	{
 		interface Init as McuInit;
 		interface Init as LedsInit;
+    #if UCMINI_REV==49
+    interface GeneralIO as Voltmeter;
+    interface GeneralIO as SpiSSN;
+    #endif
 	}
 }
 
@@ -61,6 +65,11 @@ implementation
 	command error_t Init.init()
 	{
 		error_t ok;
+    #if UCMINI_REV==49
+    call Voltmeter.set();
+    call SpiSSN.makeOutput();
+    call SpiSSN.clr();
+    #endif
 
 		ok = call McuInit.init();
 		ok = ecombine(ok, call LedsInit.init());

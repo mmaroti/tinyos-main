@@ -51,7 +51,12 @@ configuration PlatformC
 implementation
 {
 	components PlatformP, McuInitC, MeasureClockC;
-  
+  #if UCMINI_REV==49
+    components HplAtm128GeneralIOC;
+    PlatformP.Voltmeter -> HplAtm128GeneralIOC.PortF0;
+    PlatformP.SpiSSN -> HplAtm128GeneralIOC.PortB0;
+  #endif  
+
 	Init = PlatformP;
 	Atm128Calibrate = MeasureClockC;
 
