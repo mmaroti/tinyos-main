@@ -39,7 +39,7 @@
 #include "PeriodicalCalibrationModule.h"
 #include "Application.h"
 #include <QDebug>
-#include <qfiledialog.h>
+#include <QFileDialog>
 #include <QInputDialog>
 
 CalibrationWidget::CalibrationWidget(QWidget *parent, Application &app) :

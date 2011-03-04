@@ -113,8 +113,8 @@ public:
             return samples.isEmpty();
         }
 
-        const int getCurrentMote() const { return currentMote; }
-        void setCurrentMote(const int& moteID) { currentMote = moteID; }
+        int getCurrentMote() const { return currentMote; }
+        void setCurrentMote(const int moteID) { currentMote = moteID; loadCalibrationData(); }
 
         int getFirstTime() const;
         int getLastTime() const;
@@ -152,8 +152,6 @@ public:
 
         void at(int i, double data[ipo::SIZE]) const;
         int from, to;
-
-     
 
         void loadResults(const ipo::Results& res, const int begin, const int end);
         const Range range(const double begInSec, const double endInSec, const double lenInSec) const;

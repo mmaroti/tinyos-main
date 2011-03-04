@@ -120,14 +120,6 @@ void ConnectWidget::rescanPorts()
 
         QSpacerItem *spacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
         layout->addItem(spacer);
-
-        //QString baud = application.settings.value("baudrate", "").value<QString>();
-        QString baud = currentBaud;
-        for(int i = 0; i < ui->baudRate->count(); ++i)
-        {
-                if( ui->baudRate->itemText(i) == baud )
-                        ui->baudRate->setCurrentIndex(i);
-        }
 }
 
 ConnectWidget::~ConnectWidget()
@@ -200,21 +192,7 @@ void ConnectWidget::onReceiveMessage(const ActiveMessage & msg)
 
                 moteItems.insert(msg.source, item);
 
-                QFile f( "../calib/mote_last_used.txt" );
-
-                if( !f.open( QIODevice::WriteOnly ) ) {
-
-                    return;
-                }
-
-                QTextStream ts( &f );
-
-                ts << QString::number(msg.source) << endl;
-                ts.flush();
-                f.close();
-
                 application.dataRecorder.setCurrentMote(msg.source);
-                application.dataRecorder.loadCalibrationData();
         }
 }
 

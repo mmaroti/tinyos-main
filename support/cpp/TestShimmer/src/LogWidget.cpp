@@ -828,8 +828,6 @@ void LogWidget::on_selectPersonButton_clicked()
         dial->show();
 
         dial->activateWindow();
-
-        application.dataRecorder.loadCalibrationData();
     }
 }
 

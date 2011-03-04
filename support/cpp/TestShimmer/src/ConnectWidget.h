@@ -71,10 +71,6 @@ private:
 	QHash<QString, QRadioButton*> portButtons;
 	QHash<int, QListWidgetItem*> moteItems;
 
-        QString currentPort;
-        QString currentBaud;
-        void loadPortData();
-
 	Application &application;
 
 private slots:

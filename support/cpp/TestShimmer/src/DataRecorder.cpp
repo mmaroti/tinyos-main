@@ -58,7 +58,7 @@ DataRecorder::DataRecorder(Application &app) :
         b(gyro::vector3(0,0,0)),
         application(app)
 {
-    currentMote = 0;
+    currentMote = -1;
 
     samples.reserve(RESERVED_SAMPLES);
     //loadCalibrationData();
@@ -383,6 +383,8 @@ void DataRecorder::loadCalibFromFile(const QString& filename )
 
 void DataRecorder::loadCalibrationData()
 {
+    Q_ASSERT(currentMote > -1);
+
     QFile f( "../calib/mote"+QString::number(currentMote)+"calib.csv" );
 
     if( f.open( QIODevice::ReadOnly | QIODevice::Text ) ) //file opened successfully
@@ -399,7 +401,8 @@ void DataRecorder::loadCalibrationData()
         }
     } else {
         QMessageBox msgBox;
-        msgBox.setText("No previous mote data!");
+        msgBox.setText("Mote "+QString::number(currentMote)+
+                       " does not have any calibration data, you have to calibrate it first!");
         msgBox.exec();
 
         setCalibToZero();
@@ -411,18 +414,9 @@ void DataRecorder::loadCalibrationData()
 
 void DataRecorder::saveCalibrationData() const
 {
-    QFile f( "../calib/mote_last_used.txt" );
-    int mote;
+    Q_ASSERT(currentMote > -1);
 
-    if( f.open( QIODevice::ReadOnly | QIODevice::Text ) ) //file opened successfully
-    {
-        QTextStream ts( &f );
-        mote = ts.readLine().toInt();
-
-    }
-    f.close();
-
-    QFile fi( "../calib/mote"+QString::number(mote)+"calib.csv" );
+    QFile fi( "../calib/mote"+QString::number(currentMote)+"calib.csv" );
 
     if( fi.open( QIODevice::WriteOnly ) ) {
 
@@ -442,7 +436,6 @@ void DataRecorder::saveCalibrationData() const
     }
 
     fi.close();
-
 }
 
 void DataRecorder::clearCalibrationData()
