@@ -38,7 +38,6 @@
 configuration BenchmarkAppC {}
 
 implementation {
-
   components MainC;
   Comm.Boot -> MainC.Boot;
   
@@ -47,46 +46,38 @@ implementation {
   Comm.BenchmarkCore -> Core;
   Comm.CoreControl -> Core;
   Comm.CoreInit -> Core;
-
-  components ActiveMessageC as Radio; 
-  Comm.RadioControl -> Radio;
-  Comm.Packet -> Radio;
-  Comm.Receive -> Radio.Receive;
-
-  components new DirectAMSenderC(AM_SYNCMSG_T)        as TxSync;
-  components new DirectAMSenderC(AM_DATAMSG_T)        as TxData;
-  Comm.TxSync -> TxSync;
-  Comm.TxData -> TxData;
   
   components LedsC;
   Comm.Leds -> LedsC;
-      
- 
+  
 #ifdef TOSSIM
+  
+  components SerialActiveMessageC as Medium; 
+  
+  components new SerialAMReceiverC(AM_CTRLMSG_T)      as RxCtrl;
+  components new SerialAMReceiverC(AM_SETUPMSG_T)     as RxSetup;
 
-  components SerialActiveMessageC as Serial;
-  components BaseStationP;
-  
-  Comm.TBSInit -> BaseStationP;
-  Comm.RxCtrl -> BaseStationP.NullReceive1;
-  Comm.RxSetup -> BaseStationP.NullReceive2;
-  
-  BaseStationP.Leds -> LedsC;
-  
-  BaseStationP.RadioControl -> Radio;
-  BaseStationP.SerialControl -> Serial;
-  
-  BaseStationP.UartSend -> Serial;
-  BaseStationP.UartReceive -> Serial.Receive;
-  BaseStationP.UartPacket -> Serial;
-  BaseStationP.UartAMPacket -> Serial;
-  
-  BaseStationP.RadioSend -> Radio;
-  BaseStationP.RadioReceive -> Radio.Receive;
-  BaseStationP.RadioSnoop -> Radio.Snoop;
-  BaseStationP.RadioPacket -> Radio;
-  BaseStationP.RadioAMPacket -> Radio;
+  components new SerialAMSenderC(AM_SYNCMSG_T)        as TxSync;
+  components new SerialAMSenderC(AM_DATAMSG_T)        as TxData;
 
+#else
+
+  components ActiveMessageC as Medium;
+
+  components new AMReceiverC(AM_CTRLMSG_T)    	      as RxCtrl;
+  components new AMReceiverC(AM_SETUPMSG_T)    	      as RxSetup;
+  
+  components new DirectAMSenderC(AM_SYNCMSG_T)        as TxSync;
+  components new DirectAMSenderC(AM_DATAMSG_T)        as TxData;
+  
 #endif
 
+  Comm.RxCtrl -> RxCtrl;
+  Comm.RxSetup -> RxSetup;
+  
+  Comm.TxSync -> TxSync;
+  Comm.TxData -> TxData;
+
+  Comm.Control -> Medium;
+  Comm.Packet -> Medium;
 }

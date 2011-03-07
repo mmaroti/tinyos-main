@@ -142,7 +142,7 @@ public class MacParser {
   private static String PacketLinkasString(final short flags, final int[] params) {
     String ret="";
     if ((flags & BenchmarkStatic.GLOBAL_USE_MAC_PLINK) != 0) {
-      ret = "  Packet Link:  Retries: " + params[0] + " ms, Delay: " + params[1] + " ms";
+      ret = "  Packet Link:  Retries: " + params[0] + " ms, Delay: " + params[0] + " ms";
     }
     return ret;
   }

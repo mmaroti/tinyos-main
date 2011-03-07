@@ -65,17 +65,17 @@ implementation {
   #endif
 #endif
 
-#ifdef PACKET_LINK
-  #if defined(RADIO_CC2420)   
+#ifdef PACKET_LINK  
+  #if defined(RADIO_CC2420)
     components CC2420ActiveMessageC;
     Core.PacketLink -> CC2420ActiveMessageC;
-  #elif defined(RADIO_RF230) || defined(CC2520)
+  #elif defined(RADIO_RF230) || defined(RADIO_CC2520)
     Core.PacketLink -> ActiveMessageC;
-  #else   
+  #else
     #error " * NO PLATFORM SUPPORT FOR PACKET LINK LAYER *"
   #endif
 #endif
-
+  
   components new TimerMilliC() as Timer;
   Core.TestTimer -> Timer;
   

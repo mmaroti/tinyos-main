@@ -38,23 +38,19 @@ module BenchmarkAppP @safe() {
   uses {
     interface Boot;
       
-    interface Receive[am_id_t id];
+    interface Receive as RxCtrl;
+    interface Receive as RxSetup;
     
     interface AMSend  as TxSync;
-    interface AMSend  as TxData;    
+    interface AMSend  as TxData;
     
-    interface SplitControl as RadioControl;
+    interface SplitControl as Control;
     interface BenchmarkCore;
     interface StdControl as CoreControl;
     interface Init as CoreInit;
     
     interface Packet;
     interface Leds;
-    
-#ifdef TOSSIM
-    interface Init as TBSInit;    
-#endif
-       
   }
 
 }
@@ -66,66 +62,21 @@ implementation {
   message_t bpkt;
     
   event void Boot.booted() {
-#ifdef TOSSIM
-    if ( TOS_NODE_ID == 0 ) { call TBSInit.init(); return; }
-#endif  
-
-    call RadioControl.start();
+    call Control.start();
   }
 
-  event void RadioControl.startDone(error_t error) {
-#ifdef TOSSIM
-    if ( TOS_NODE_ID == 0 ) return;
-#endif
-
+  event void Control.startDone(error_t error) {
     if (error != SUCCESS)
-      call RadioControl.start();
+      call Control.start();
     else {
       call CoreInit.init();
       core_configured = core_finished = FALSE;
     }
   }
 
-  event void RadioControl.stopDone(error_t error) {
-#ifdef TOSSIM
-    if ( TOS_NODE_ID == 0 ) return;
-#endif  
-    call RadioControl.start();    
+  event void Control.stopDone(error_t error) {
+    call Control.start();
   }
-
-/*#ifdef TOSSIM  
-  event void BSSerialControl.startDone(error_t error) {
-    if (error != SUCCESS)
-      call BSSerialControl.start();
-  }
-
-  event void BSSerialControl.stopDone(error_t error) { }
-  
-  message_t bss_pkt;
-  message_t bsr_pkt;
-  
-  task void bs_sendSerial() {
-    if(call BSRadioSend.send(0, &radioMsg, sizeof(ThroughputMsg)) != SUCCESS) {
-      post sendRadio();
-    }
-  }
-  
-  task void bs_sendRadio() {
-  
-  }
-  
-  event message_t* BSSerialReceive.receive[am_id_t id](message_t* bufPtr, void* payload, uint8_t len) {
-    post bs_sendRadio();
-    return bufPtr;
-  }
-  
-  event message_t* BSRadioReceive.receive[am_id_t id](message_t* bufPtr, void* payload, uint8_t len) {
-    if ( TOS_NODE_ID == BASESTATION_TOS_NODE_ID ) {
-      post bs_sendSerial();
-    }
-    return bufPtr;
-  }
-#endif*/
 
   task void sendData() {
     datamsg_t* msg = (datamsg_t*)(call Packet.getPayload(&bpkt,sizeof(datamsg_t)));
@@ -142,20 +93,22 @@ implementation {
 
       msg->type = DATA_PROFILE_OK;
       msg->data_idx = resp_idx;
-      msg->payload.profile = *(call BenchmarkCore.getProfile());      
+      msg->payload.profile = *(call BenchmarkCore.getProfile());
       call TxData.send(AM_BROADCAST_ADDR, &bpkt, sizeof(datamsg_t));
     }
+      
   }
 
   task void sendSync() {
     syncmsg_t* msg = (syncmsg_t*)(call Packet.getPayload(&bpkt,sizeof(syncmsg_t)));
     call Packet.clear(&bpkt);
-    
     // RESPONSE the setup acknowledgement if applicable
     if ( resp_request == CTRL_SETUP_SYN && core_configured ) {
+      
       msg->type = SYNC_SETUP_ACK;
       msg->edgecnt = call BenchmarkCore.getEdgeCount();
       msg->maxmoteid = call BenchmarkCore.getMaxMoteId();
+      dbg("Benchmark","sendSync sending... %d\n",TOS_NODE_ID);      
       call TxSync.send(AM_BROADCAST_ADDR, &bpkt, sizeof(syncmsg_t));
     }
   }
@@ -163,20 +116,24 @@ implementation {
   event void TxSync.sendDone(message_t* bufPtr, error_t error) { }
   event void TxData.sendDone(message_t* bufPtr, error_t error) { }
 
-  void receive_setup(message_t* bufPtr, void* payload, uint8_t len) {
+  event message_t* RxSetup.receive(message_t* bufPtr, void* payload, uint8_t len) {
     setupmsg_t*  msg   = (setupmsg_t*)payload;
+    dbg("Benchmark","RxSetup.receive SETUP%d\n",TOS_NODE_ID);
     call BenchmarkCore.setup(msg->config);
+    return bufPtr;
   }
 
-  void receive_ctrl(message_t* bufPtr, void* payload, uint8_t len) {
-    ctrlmsg_t*  msg   = (ctrlmsg_t*)payload;
+  event message_t* RxCtrl.receive(message_t* bufPtr, void* payload, uint8_t len) {
+    ctrlmsg_t*  msg   = (ctrlmsg_t*)payload;    
     switch ( msg->type ) {
     
       case CTRL_RESET :
+          dbg("Benchmark","RxCtrl.receive RESET %d\n",TOS_NODE_ID);
           call BenchmarkCore.reset();
           break;
           
       case CTRL_SETUP_SYN :
+          dbg("Benchmark","RxCtrl.receive SETUP_SYN %d\n",TOS_NODE_ID);
           if( core_configured ) {
             resp_request = msg->type;
             post sendSync();
@@ -184,13 +141,25 @@ implementation {
           break;
           
       case CTRL_START :
+          dbg("Benchmark","RxCtrl.receive START %d\n",TOS_NODE_ID);
           if( core_configured ) {
+            dbg("Benchmark"," ---- START CORE%d\n",TOS_NODE_ID);
             call CoreControl.start();
           }
           break;
           
       case CTRL_STAT_REQ:
+          dbg("Benchmark","RxCtrl.receive STAT_REQ %d\n",TOS_NODE_ID);
+          if ( core_finished ) {
+            dbg("Benchmark","------- CORE FINISHED\n");
+            resp_request = msg->type;
+            resp_idx = msg->data_req_idx;
+            post sendData();
+          } else
+            dbg("Benchmark","------- CORE NOT FINISHED\n");
+          break;
       case CTRL_PROFILE_REQ:
+          dbg("Benchmark","RxCtrl.receive PROFILE_REQ %d\n",TOS_NODE_ID);
           if ( core_finished ) {
             resp_request = msg->type;
             resp_idx = msg->data_req_idx;
@@ -198,33 +167,20 @@ implementation {
           }
           break;
       default:
-          break;    
-    }
-  }
-  
-  event message_t* Receive.receive[am_id_t id](message_t* bufPtr, void* payload, uint8_t len) {
-    switch (id) {
-      case AM_CTRLMSG_T: 
-        receive_ctrl(bufPtr,payload,len); 
-        break;
-      case AM_SETUPMSG_T: 
-        receive_setup(bufPtr,payload,len); 
-        break;
-      default: 
-        break;
+          break;
     }
     return bufPtr;
   }
  
   event void BenchmarkCore.finished() {
-    core_finished = TRUE;  
-  } 
+    core_finished = TRUE;
+  }
   
   event void BenchmarkCore.setupDone() {
     core_configured = TRUE;
-  } 
+  }
   
   event void BenchmarkCore.resetDone() {
     core_configured = core_finished = FALSE;
-  } 
+  }
 }

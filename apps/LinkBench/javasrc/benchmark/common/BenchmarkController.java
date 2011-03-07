@@ -61,12 +61,12 @@ public class BenchmarkController implements MessageListener {
 
   // Public to be able to set it easily
   public static final short   MAXPROBES   = 3;
-  public static final short   MAXTIMEOUT  = 500;
+  public static final short   MAXTIMEOUT  = 2000;
 
   private BenchmarkResult     results;
   
   // These values are updated during the synchronization phase
-  private int                 maxMoteId   = 1;
+  private int                 maxMoteId   = 2;
   private int                 edgecount   = 0;
 
   public class MessageSendException extends Exception {};
@@ -87,7 +87,7 @@ public class BenchmarkController implements MessageListener {
     mif.registerListener(new SyncMsgT(),this);
     mif.registerListener(new DataMsgT(),this);
 
-    maxMoteId = 1;
+    maxMoteId = 2;
     results = new BenchmarkResult();
 	}
 
@@ -112,32 +112,50 @@ public class BenchmarkController implements MessageListener {
   /**
    * Send a RESET control message to the network.
    * It is a broadcast message, so every mote should receive it.
-   * 
+   *
+   * @param moteId The mote to be resetted
+   * @param use_bcast Whether send one broadcast message or iterate through the motes
    * @throws MessageSendException if an error occured (message is failed to send)
    */
-	public void reset() throws MessageSendException
+	public boolean reset(final boolean use_bcast) throws MessageSendException
   {
     CtrlMsgT cmsg = new CtrlMsgT();
     cmsg.set_type(BenchmarkStatic.CTRL_RESET);
 		try {
-			mif.send(MoteIF.TOS_BCAST_ADDR,cmsg);
-			Thread.sleep((int)(500));
+      if (use_bcast ){
+        mif.send(MoteIF.TOS_BCAST_ADDR,cmsg);
+      } else {
+        currentMote = 1;
+        while ( currentMote <= maxMoteId ) {
+          mif.send(currentMote++,cmsg);
+        }
+      }
+      Thread.sleep((int)(500));
 		} catch(Exception e) {
       throw new MessageSendException();
     }
+    return true;
 	}
-
+  
   /**
    * Send a SETUP control message to the network.
    * It is a broadcast message, so every mote should receive it.
    *
-   * @param config The benchmark configuration
+   * @param config The benchmark configurationT
    * @throws MessageSendException if an error occured (message is failed to send)
    */
-  public void setup(final SetupT config) throws MessageSendException {
-
+  
+  /**
+   * Send a SETUP control message to the network.
+   * It is a broadcast message, so every mote should receive it.
+   * 
+   * @param config The benchmark configurationT
+   * @param use_bcast Whether use one broadcast message or iterate through the motes
+   * @throws MessageSendException if an error occured (message is failed to send)
+   */
+  public void setup(final SetupT config, final boolean use_bcast) throws MessageSendException {
     this.results.setConfig(config);
-    
+
     // Create an appropriate setup message
     SetupMsgT smsg = new SetupMsgT();
 
@@ -155,12 +173,18 @@ public class BenchmarkController implements MessageListener {
     smsg.set_type(BenchmarkStatic.SETUP_BASE);
 
    	try {
-			mif.send(MoteIF.TOS_BCAST_ADDR,smsg);
+      if (use_bcast ){
+        mif.send(MoteIF.TOS_BCAST_ADDR,smsg);
+      } else {
+        currentMote = 1;
+        while ( currentMote <= maxMoteId )
+          mif.send(currentMote++,smsg);
+      }
       Thread.sleep((int)(500));
 		} catch(Exception e) {
 		  throw new MessageSendException();
     }
-	}
+  }
 
   /**
    * Synchronize all motes in the network having mote id from 1 to
@@ -221,16 +245,23 @@ public class BenchmarkController implements MessageListener {
    * Send a START control message to the network.
    * It is a broadcast message, so every mote should receive it.
    *
+   * @param use_bcast Whether use one broadcast message or iterate through the motes
    * @throws MessageSendException if an error occured (message is failed to send)
    */
-  public void run() throws MessageSendException {
+  public void run(final boolean use_bcast) throws MessageSendException {
 
     // Create a START control message
     CtrlMsgT cmsg = new CtrlMsgT();
     cmsg.set_type(BenchmarkStatic.CTRL_START);
 
     try {
-			mif.send(MoteIF.TOS_BCAST_ADDR,cmsg);
+      if (use_bcast ){
+        mif.send(MoteIF.TOS_BCAST_ADDR,cmsg);
+      } else {
+        currentMote = 1;
+        while ( currentMote <= maxMoteId )
+          mif.send(currentMote++,cmsg);
+      }
       // Wait for test completion + 100 msecs
       Thread.sleep(
               (int)(BenchmarkCommons.getRuntime(this.results.getConfig()) + 100)

@@ -74,7 +74,7 @@ module BenchmarkCoreP @safe() {
     interface PacketLink;
 #endif
 
-    interface CodeProfile;
+    interface CodeProfile;    
     interface StdControl as CodeProfileControl;
        
     interface Leds;
@@ -224,6 +224,9 @@ implementation {
   
   /** START THE REAL BENCHMARK */
   void startBenchmark() {
+  
+    dbg("Benchmark","BenchmarkCore startBenchmark\n");
+  
     // If this node sends initial message(s)
     if ( pending )
       post sendPending();
@@ -231,7 +234,8 @@ implementation {
     // Start the trigger timers
     startTimers();
     
-    // Start the test timer      
+    // Start the test timer
+    dbg("Benchmark","BenchmarkCore start TestTimer\n");
     call TestTimer.startOneShot(config.runtime_msec);
   }
 
@@ -269,6 +273,8 @@ implementation {
   /** SETUP THE BENCHMARK **/
   command void BenchmarkCore.setup(setup_t conf) {
     uint8_t idx;
+    
+    dbg("Benchmark","BenchmarkCore.setup\n");
     
     _ASSERT_( state == STATE_IDLE || state == STATE_CONFIGURED )
     _ASSERT_( conf.runtime_msec > 0 );
@@ -343,12 +349,12 @@ implementation {
   /** START THE CURRENTLY CONFIGURED BENCHMARK */
   command error_t Test.start() { 
     _ASSERT_( state == STATE_CONFIGURED )
-    
+    dbg("Benchmark","BenchmarkCore Test.start\n");
     // Start the code profiler
     call CodeProfileControl.start();
     
     // setup the applied MAC protocol
-#ifdef LOW_POWER_LISTENING
+#ifdef LOW_POWER_LISTENING    
     if ( config.flags & GLOBAL_USE_MAC_LPL )
       call LowPowerListening.setLocalWakeupInterval(config.mac_setup[LPL_WAKEUP_OFFSET]);
 #endif
@@ -359,7 +365,7 @@ implementation {
       call PacketLink.setRetryDelay(&pkt,config.mac_setup[PLINK_DELAY_OFFSET]);
     }
 #endif
-
+    
     // If a pre-benchmark delay is requested, make a delay
     if ( config.pre_run_msec > 0 ) {
       SET_STATE ( STATE_PRE_RUN )
@@ -374,6 +380,9 @@ implementation {
   /** STOP A TEST */
   command error_t Test.stop() {
     uint8_t i = 0;
+    
+    dbg("Benchmark","BenchmarkCore Test.stop\n");
+    
     _ASSERT_( state == STATE_PRE_RUN || state == STATE_RUNNING || state == STATE_POST_RUN )
     
     call TestTimer.stop();
@@ -381,7 +390,7 @@ implementation {
     stopTimers();
     
     // cleanup the MAC
-#ifdef LOW_POWER_LISTENING
+#ifdef LOW_POWER_LISTENING    
     if ( config.flags & GLOBAL_USE_MAC_LPL )
       call LowPowerListening.setLocalWakeupInterval(0);
 #endif
@@ -391,8 +400,8 @@ implementation {
       call PacketLink.setRetries(&pkt,0);
       call PacketLink.setRetryDelay(&pkt,0);
     }
-#endif
-
+#endif 
+    
     // compute the remained statistic
     for ( i = 0; pending; ++i, pending >>= 1) {
       if ( pending & 0x1 )
@@ -418,6 +427,8 @@ implementation {
   }
     
   event void TestTimer.fired() {
+    dbg("Benchmark","BenchmarkCore TestTimer.fired\n");
+  
     switch(state) {
     
       case STATE_PRE_RUN:
@@ -469,10 +480,13 @@ implementation {
   }
   
   event message_t* RxTest.receive(message_t* bufPtr, void* payload, uint8_t len) {
+    
     testmsg_t* msg = (testmsg_t*)payload;
     // helper variables
     stat_t* stat = stats + msg->edgeid;
     edge_t* edge = problem + msg->edgeid;     
+    
+    dbg("Benchmark","RxTest.receive\n");
     
     // In case the message is sent to this mote (also)
     if ( state == STATE_RUNNING || state == STATE_POST_RUN ){
@@ -512,14 +526,17 @@ implementation {
   }
   
   event void TxTest.sendDone(message_t* bufPtr, error_t error) {
-  
+    
     testmsg_t* msg = (testmsg_t*)(call Packet.getPayload(bufPtr,sizeof(testmsg_t)));
     bool validSend = TRUE, wasACK = FALSE, sendMore = TRUE;
+    
+   
     
     // helper variables
     stat_t* stat = stats + msg->edgeid;
     edge_t* edge = problem + msg->edgeid;
 
+ dbg("Benchmark","TxTest.sendDone\n");
     _ASSERT_( sendlock == LOCKED )
     _ASSERT_( state == STATE_RUNNING || state == STATE_POST_RUN || state == STATE_FINISHED )
      
@@ -608,9 +625,15 @@ implementation {
       oldlock = sendlock;
       sendlock = LOCKED;
     }
+    
+    
+    
         
     // In case we have any chance to send    
     if ( oldlock == UNLOCKED && state == STATE_RUNNING && pending ) {
+
+
+      dbg("Benchmark","sendPending-1\n");
 
       // find the next edge on which there exist any request
       do {
@@ -632,8 +655,10 @@ implementation {
       // Find out the required addressing mode
       address = ( config.flags & GLOBAL_USE_BCAST ) ? AM_BROADCAST_ADDR : problem[eidx].receiver;
      
+      dbg("Benchmark","sendPending address %d\n",address);
+     
       // MAC specific settings
-#ifdef LOW_POWER_LISTENING
+#ifdef LOW_POWER_LISTENING      
       if ( config.flags & GLOBAL_USE_MAC_LPL )
         call LowPowerListening.setRemoteWakeupInterval(
           &pkt,config.mac_setup[LPL_WAKEUP_OFFSET]);
@@ -645,7 +670,9 @@ implementation {
         call PacketLink.setRetryDelay(&pkt,config.mac_setup[PLINK_DELAY_OFFSET]);
       }
 #endif
-  
+      
+      dbg("Benchmark","sendPending-2\n");
+      
       // Find out whether we need to use ACK
       if ( (config.flags & GLOBAL_USE_ACK) || problem[eidx].policy.need_ack ) {
         call Ack.requestAck(&pkt);
@@ -653,18 +680,23 @@ implementation {
         call Ack.noAck(&pkt);
       }
         
+      dbg("Benchmark","sendPending-3\n");
+      
       // Send out
       switch ( call TxTest.send( address, &pkt, sizeof(testmsg_t)) ) {
         case SUCCESS :
+        dbg("Benchmark","sendPending-4\n");
           ++(stats[eidx].sendSuccessCount);
           break;
         case FAIL :
+        dbg("Benchmark","sendPending-5\n");
           ++(stats[eidx].sendFailCount);
           ++(stats[eidx].resendCount);
           sendlock = UNLOCKED;
           post sendPending();
           break;
         default :
+        dbg("Benchmark","sendPending-6\n");
           _ASSERT_( 0 )
           break;
       }

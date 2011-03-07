@@ -270,7 +270,7 @@ public class BenchmarkBatch {
       ps.println(BenchmarkCommons.xmlHeader());
 
       BenchmarkController ctrl = new BenchmarkController();
-      ctrl.reset();
+      ctrl.reset(false);
 
       int i = 0;
       int total = this.setups.size();
@@ -281,10 +281,10 @@ public class BenchmarkBatch {
         
         System.out.print("\r> Progress : " + (progress * 100 / total ) + "% (" + progress + "/" + total + ")" );
         try {
-          ctrl.reset();
-          ctrl.setup(s);
+          ctrl.reset(false);
+          ctrl.setup(s,false);
           ctrl.syncAll();
-          ctrl.run();
+          ctrl.run(false);
           ctrl.download_stat();
           ctrl.download_profile();
         } catch (BenchmarkController.MessageSendException ex) {

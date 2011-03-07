@@ -66,7 +66,8 @@ public class BenchmarkCli {
     // Batch - usage
     Options opt1 = new Options();
     opt1.addOption(opt.getOption("F"));
-    opt1.addOption(opt.getOption("o"));    
+    opt1.addOption(opt.getOption("o"));
+    opt1.addOption(opt.getOption("tossim"));
     System.out.println();
     System.out.println("2. Running benchmarks with pre-defined configurations in batch mode.");
     System.out.println("--------------------------------------------------------------------");
@@ -75,6 +76,7 @@ public class BenchmarkCli {
     // Reset - usage
     Options opt2 = new Options();
     opt2.addOption(opt.getOption("r"));
+    opt2.addOption(opt.getOption("tossim"));
     System.out.println();
     System.out.println("3. Reset all motes.");
     System.out.println("--------------------------------------------------------------------");
@@ -102,6 +104,7 @@ public class BenchmarkCli {
     opt4.addOption(opt.getOption("xml"));
     opt4.addOption(opt.getOption("mac"));
     opt4.addOption(opt.getOption("mc"));
+    opt4.addOption(opt.getOption("tossim"));
     System.out.println();
     System.out.println("5. Running a specific benchmark with command-line arguments");
     System.out.println("--------------------------------------------------------------------");
@@ -210,12 +213,14 @@ public class BenchmarkCli {
     opt.addOption("bcast", "broadcast", false, "Force broadcasting. [default : false]");
     opt.addOption("dload", "download", false, "Only download data from motes.");
 
+    opt.addOption("tossim", false, "MUST be used if TOSSIM is in use.");
+
   }
 
-  public boolean doReset() {
+  public boolean doReset(final boolean is_tossim) {
     System.out.print("> Reset all motes ...     ");
     try {
-      ctrl.reset();
+      ctrl.reset(!is_tossim);
       System.out.println("OK");
       return true;
     } catch (BenchmarkController.MessageSendException ex) {
@@ -263,10 +268,10 @@ public class BenchmarkCli {
     }
   }
 
-  public boolean doSetup(final SetupT st) {
+  public boolean doSetup(final SetupT st, final boolean is_tossim) {
     System.out.print("> Setting up motes ...    ");
     try {
-      ctrl.setup(st);
+      ctrl.setup(st,!is_tossim);
       System.out.println("OK");
       return true;
     } catch (BenchmarkController.MessageSendException ex) {
@@ -275,10 +280,10 @@ public class BenchmarkCli {
     }
   }
 
-  public boolean doRun() {
+  public boolean doRun(final boolean is_tossim) {
     System.out.print("> Running benchmark ...   ");
     try {
-      ctrl.run();
+      ctrl.run(!is_tossim);
       System.out.println("OK");
       return true;
     } catch (BenchmarkController.MessageSendException ex) {
@@ -324,7 +329,7 @@ public class BenchmarkCli {
       // -----------------------------------------------------------------------
       else if ( cl. hasOption('r') ) {
         BenchmarkCli cli = new BenchmarkCli();
-        if ( cli.doReset() )
+        if ( cli.doReset( cl.hasOption("tossim") ) )
           System.exit(0);
         else
           System.exit(1);
@@ -435,11 +440,12 @@ public class BenchmarkCli {
         st.set_mac_setup(mac.getMacParams());
 
         // Do what needs to be done
+        boolean tossim = cl.hasOption("tossim");
         BenchmarkCli cli = new BenchmarkCli();
-        if (cli.doReset()                    &&
-            cli.doSetup(st)                  &&
+        if (cli.doReset(tossim)              &&
+            cli.doSetup(st,tossim)           &&
             cli.doSync()                     &&
-            cli.doRun()                      &&
+            cli.doRun(tossim)                &&
             cli.doDownloadStat(maxmoteid)    &&
             cli.doDownloadProfile(maxmoteid) )
         {
