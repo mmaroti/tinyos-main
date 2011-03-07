@@ -20,7 +20,7 @@ configuration OscilloscopeAppC { }
 implementation
 {
   components OscilloscopeC, MainC, SerialActiveMessageC, LedsC,
-    new TimerMilliC(),  ms5607C as Sensor, 
+    new TimerMilliC(),  new Ms5607C(TRUE) as Sensor, 
     new SerialAMSenderC(AM_OSCILLOSCOPE), new SerialAMReceiverC(AM_OSCILLOSCOPE);
 
   OscilloscopeC.Boot -> MainC;
@@ -28,7 +28,8 @@ implementation
   OscilloscopeC.AMSend -> SerialAMSenderC;
   OscilloscopeC.Receive -> SerialAMReceiverC;
   OscilloscopeC.Timer -> TimerMilliC;
-  OscilloscopeC.Read -> Sensor;
+  OscilloscopeC.Temp -> Sensor.Temperature;
+  //OscilloscopeC.Press -> Sensor.Pressure;
   OscilloscopeC.Leds -> LedsC;
 
   components DiagMsgC;

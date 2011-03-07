@@ -19,7 +19,7 @@ enum {
   NREADINGS = 10,
 
   /* Default sampling period. */
-  DEFAULT_INTERVAL = 256,
+  DEFAULT_INTERVAL = 1000,
 
   AM_OSCILLOSCOPE = 0x93
 };

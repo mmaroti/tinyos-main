@@ -24,7 +24,8 @@ module OscilloscopeC @safe()
     interface AMSend;
     interface Receive;
     interface Timer<TMilli>;
-    interface Read<uint32_t>;
+    interface Read<int16_t> as Temp;
+    //interface Read<uint32_t> as Press;
     interface Leds;
 interface DiagMsg;
 
@@ -68,7 +69,9 @@ event void I2CControl.startDone(error_t error) {
   }
 
   event void Boot.booted() {
-    post falsag();
+    DDRF = _BV(PF2);
+		PORTF = _BV(PF2);
+    //post falsag();
     local.interval = DEFAULT_INTERVAL;
     local.id = TOS_NODE_ID;
       call I2CControl.start();
@@ -82,7 +85,12 @@ event void I2CControl.startDone(error_t error) {
     reading = 0;
   }
 
+  /*event void Temp.readDone(error_t err, uint16_t tmp) {
+    startTimer();
+  }*/
+
   event void RadioControl.startDone(error_t error) {
+    //call Temp.read();
     startTimer();
   }
 
@@ -137,7 +145,7 @@ event void I2CControl.startDone(error_t error) {
 	  local.count++;
 	suppressCountChange = FALSE;
       }
-    if (call Read.read() != SUCCESS)
+    if (call Temp.read() != SUCCESS)
       report_problem();
   }
 
@@ -150,8 +158,8 @@ event void I2CControl.startDone(error_t error) {
     sendBusy = FALSE;
   }
 
-  event void Read.readDone(error_t result, uint32_t data) {
-    call DiagMsg.uint32(data);
+  event void Temp.readDone(error_t result, int16_t data) {
+    call DiagMsg.uint16(data);
     call DiagMsg.send();
     if (result != SUCCESS)
       {
