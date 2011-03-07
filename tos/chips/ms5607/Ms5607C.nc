@@ -33,21 +33,17 @@
 */
 
 
-configuration Ms5607C {
+generic configuration Ms5607C(bool isMostPrecise) {
   provides interface Read<uint32_t> as Pressure;
-  provides interface Read<uint16_t> as Temperature;
-  provides interface Read<uint32_t> as PressureSlow;
-  provides interface Read<uint16_t> as TemperatureSlow;
+  provides interface Read<int16_t> as Temperature;
   provides interface SplitControl;
 }
 implementation {
-  components Ms5607P, RomReaderP;
+  components Ms5607P, new RomReaderP(isMostPrecise);
   components new TimerMilliC() as Timer0;
 
   Pressure = Ms5607P.Pressure;
-  PressureSlow = Ms5607P.PressureSlow;
   Temperature = Ms5607P.Temperature;
-  TemperatureSlow = Ms5607P.TemperatureSlow;
   Ms5607P.Timer -> Timer0;
   RomReaderP.Timer -> Timer0;
   Ms5607P.RawTemp -> RomReaderP.RawTemperature;
@@ -60,12 +56,6 @@ implementation {
 
   SplitControl = Ms5607P;
 
-  components DiagMsgC;
-  Ms5607P.DiagMsg -> DiagMsgC;
-
   components LedsC;
   Ms5607P.Leds -> LedsC;
-
-  
-  RomReaderP.DiagMsg -> DiagMsgC;
 }

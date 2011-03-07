@@ -34,17 +34,13 @@
 * Author: Zsolt Szabo
 */
 
-module RomReaderP {
+generic module RomReaderP(bool morePrecise) {
   provides interface Read<uint32_t> as RawTemperature;
   provides interface Read<uint32_t> as RawPressure;
-
   provides interface Calibration as Cal;
   uses interface Timer<TMilli>;
-
   uses interface I2CPacket<TI2CBasicAddr>;
   uses interface Resource as I2CResource;
-
-  uses interface DiagMsg;
 }
 implementation {
   enum {
@@ -92,10 +88,6 @@ implementation {
   task void signalReadDone() {
     if(accessingROM) {
       if(num == 6) { 
-          if(call DiagMsg.record()) {
-            call DiagMsg.str("release");
-            call DiagMsg.send();
-          }
         accessingROM = FALSE;
         call I2CResource.release();
         return signal Cal.dataReady(SUCCESS, mesres);
@@ -105,10 +97,7 @@ implementation {
       readingADC = FALSE;
       
       call I2CResource.release();
-      if(call DiagMsg.record()) {
-            call DiagMsg.str("else              g");
-            call DiagMsg.send();
-          }
+
       switch(state) {
         case S_READ_TEMP:
           state = S_ON;
@@ -136,13 +125,7 @@ implementation {
       rawret |= tmp;
       rawret|= data[2];
     }
-      if(call DiagMsg.record()) {
-        call DiagMsg.str("readDone");
-        call DiagMsg.uint8(num);
-        call DiagMsg.uint8(readingADC);
-        call DiagMsg.uint8(accessingROM);
-        call DiagMsg.send();
-      }
+    
     post signalReadDone();
   }
 
@@ -154,49 +137,26 @@ implementation {
       call Timer.startOneShot(2);
     } else
     if(state == S_READ_TEMP) {
-      call Timer.startOneShot(FAST_WAIT);
+      call Timer.startOneShot((morePrecise)?SLOW_WAIT:FAST_WAIT);
     }
     if(state == S_READ_PRESS) {
-      call Timer.startOneShot(FAST_WAIT);
+      call Timer.startOneShot((morePrecise)?SLOW_WAIT:FAST_WAIT);
     }
   }
 
   async event void I2CPacket.writeDone(error_t error, uint16_t addr, uint8_t length, uint8_t *data) {
-    if(call DiagMsg.record()) {
-      call DiagMsg.str("wrDone");
-      call DiagMsg.send();
-    }
     post readTask();
   }
 
   event void I2CResource.granted() {
-     if(call DiagMsg.record()){
-      call DiagMsg.str("granted");
-      call DiagMsg.uint8(state);
-      call DiagMsg.uint8(num);
-      call DiagMsg.uint8(accessingROM);
-      call DiagMsg.send();
-      }
     if((num <=6) && accessingROM) {
-      if(call DiagMsg.record()){
-      call DiagMsg.uint8(num);
-      call DiagMsg.send();
-      }
       cmd = PROM_READ_MASK | (num << 1);
       call I2CPacket.write(I2C_START | I2C_STOP, ADDRESS, 1, &cmd);
     } else if(state == S_READ_TEMP) {
-      cmd = CONVERT_TEMPERATURE_FAST;
-      if(call DiagMsg.record()){
-      call DiagMsg.str("temp");
-      call DiagMsg.send();
-      }
+      cmd = (morePrecise)?CONVERT_TEMPERATURE_SLOW:CONVERT_TEMPERATURE_FAST;
       call I2CPacket.write(I2C_START | I2C_STOP, ADDRESS, 1, &cmd);
     } else if(state == S_READ_PRESS) {
-      cmd = CONVERT_PRESSURE_FAST;
-      if(call DiagMsg.record()){
-      call DiagMsg.str("press");
-      call DiagMsg.send();
-      }
+      cmd = (morePrecise)?CONVERT_TEMPERATURE_SLOW:CONVERT_PRESSURE_FAST;
       call I2CPacket.write(I2C_START | I2C_STOP, ADDRESS, 1, &cmd);
     }    
   }

@@ -37,9 +37,7 @@
 
 module Ms5607P  {
   provides interface Read<uint32_t> as Pressure;
-  provides interface Read<uint16_t> as Temperature;
-  provides interface Read<uint32_t> as PressureSlow;
-  provides interface Read<uint16_t> as TemperatureSlow;
+  provides interface Read<int16_t> as Temperature;
   provides interface SplitControl;
   
   uses interface Timer<TMilli>;
@@ -47,7 +45,6 @@ module Ms5607P  {
   uses interface Read<uint32_t> as RawPress;
   uses interface Calibration as Cal;
 
-  uses interface DiagMsg;
   uses interface Leds;
 }
 implementation {
@@ -107,11 +104,7 @@ implementation {
     c4 = calibration[4];
     c5 = calibration[5];
     c6 = calibration[6];
-    if(call DiagMsg.record()) {
-      call DiagMsg.str("dataReady");
-      call DiagMsg.uint16(c1);
-      call DiagMsg.send();
-    }
+
     signal SplitControl.startDone(SUCCESS);
   }
 
@@ -124,7 +117,6 @@ implementation {
     if(state != S_ON) return EBUSY;
 /*i2c */
     state = S_READ_PRESS;
-    //call I2CResource.request();
     call RawPress.read();
     return SUCCESS;
   }
@@ -138,20 +130,8 @@ implementation {
     if(state != S_ON) return EBUSY;
 
     state = S_READ_TEMP;
-    //call I2CResource.request();
-    if(call DiagMsg.record()) {
-      call DiagMsg.str("    Temp.read");
-      call DiagMsg.send();
-    }
-    call RawTemp.read();
-    return SUCCESS;
-  }
 
-  command error_t PressureSlow.read() {
-    return SUCCESS;
-  }
-  
-  command error_t TemperatureSlow.read() {
+    call RawTemp.read();
     return SUCCESS;
   }
 
@@ -161,7 +141,6 @@ implementation {
       if(setup)
         call Cal.getData();
       setup = FALSE;
-      //signal SplitControl.startDone(SUCCESS);
     }  
   }
 
@@ -170,7 +149,6 @@ implementation {
   }
 
   event void RawTemp.readDone(error_t error, uint32_t val) {
-  uint32_t tmpval = val;
     if(error == SUCCESS) {
      /* dT = val - (c5 << 8);
       TEMP = 2000 + (dT * (uint32_t)c6 >> 23);
@@ -192,16 +170,8 @@ implementation {
       int32_t T2 = ((int64_t)dT * dT) >> 31;
       TEMP -= T2;
     }
-    if(call DiagMsg.record()) {
-      call DiagMsg.str("rawTempDone");
-      //call DiagMsg.int16(TEMP);
-      call DiagMsg.uint16(c5);
-      call DiagMsg.uint16(c6);
-      call DiagMsg.uint32(tmpval);
-      call DiagMsg.int32(dT);
-      call DiagMsg.uint8(error);
-      call DiagMsg.send();
-    } state = S_ON;
+    
+    state = S_ON;
     signal Temperature.readDone(error, TEMP);
   }
 
@@ -210,7 +180,7 @@ implementation {
     /*offset = ((uint64_t)c2 << 17) + (((int64_t)c4 * dT) >> 6); // <<17     >>6
     sensitivity = ((uint32_t)c1 << 16) + (( (int64_t)c3 * dT) >> 7);// <<16   >>7
     P = ( (int64_t)val * (sensitivity >> 21) - offset) >> 15;// >>21    >>15
-*/
+    */
     tmp64 = c2;
    tmp64 <<= 17;
    
@@ -236,20 +206,13 @@ implementation {
     tmp64 -= offset;
     tmp64 >>= 15;
     P = tmp64;
-    if(call DiagMsg.record()) {
-      call DiagMsg.str("rawPressDone");
-      call DiagMsg.int32(P);
-      call DiagMsg.int32(dT);
-      call DiagMsg.int16(TEMP);
-      call DiagMsg.send();
-    } state = S_ON;
+    
+    state = S_ON;
     signal Pressure.readDone(error, P);   
   }
 
   default event void Pressure.readDone(error_t error, uint32_t val) { }
-  default event void Temperature.readDone(error_t error, uint16_t val) { }
-  default event void PressureSlow.readDone(error_t error, uint32_t val) { }
-  default event void TemperatureSlow.readDone(error_t error, uint16_t val) { }
+  default event void Temperature.readDone(error_t error, int16_t val) { }
   default event void SplitControl.startDone(error_t error) { }
   default event void SplitControl.stopDone(error_t error) { }
 }
