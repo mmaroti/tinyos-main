@@ -189,7 +189,8 @@ HEADERS += src/DataRecorder.h \
     src/SQL/CustomSqlQueryModel.hpp \
     src/OpenGL/ElbowFlexSign.hpp \
     src/OpenGL/AnimationElbowFlexSign.hpp \
-    src/OpenGL/GLElbowFlexWidget.hpp
+    src/OpenGL/GLElbowFlexWidget.hpp \
+    src/Range.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

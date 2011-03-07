@@ -31,95 +31,14 @@
 * Author: Ali Baharev
 */
 
-#ifndef GLELBOWFLEXWIDGET_HPP
-#define GLELBOWFLEXWIDGET_HPP
+#ifndef RANGE_HPP
+#define RANGE_HPP
 
-#include <QGLWidget>
-#include "AnimationElbowFlexSign.hpp"
-
-class DataHolder;
-
-class GLElbowFlexWidget : public QGLWidget
-{
-    Q_OBJECT
-
-public:
-
-    static GLElbowFlexWidget* right(double* rotmat, int size);
-
-    static GLElbowFlexWidget* left(double* rotmat, int size);
-
-    int numberOfSamples() const;
-
-    void setFrame(int pos);
-
-    ~GLElbowFlexWidget();
-
-    QSize minimumSizeHint() const;
-    QSize sizeHint() const;
-
-signals:
-
-    void clicked();
-
-protected:
-
-    void initializeGL();
-    void paintGL();
-    void resizeGL(int width, int height);
-
-    void mousePressEvent(QMouseEvent* event);
-
-private:
-
-    GLElbowFlexWidget(AnimationElbowFlexType sign, DataHolder* dataHolder);
-
-    void rotate();
-
-    void reset();
-
-    void setCameraPosition();
-    void setState();
-
-    void sideView();
-    void planView();
-    void frontView();
-
-    void headSilhouette(GLUquadricObj* qobj);
-    void headSolid(GLUquadricObj* qobj);
-
-    void sideHead();
-    void planHead();
-    void frontHead();
-
-    void writeData();
-
-    void drawLinearParts();
-
-    void drawIrrelevantParts();
-    void shoulder();
-    void neck();
-    void stillUpperArm();
-
-    void body();
-
-    void drawMovingArm();
-    void upperArm();
-    void elbow();
-    void rotateForeArm();
-    void foreArm();
-    void hand();
-
-    const AnimationElbowFlexType type;
-
-    DataHolder* const data;
-
-    GLfloat rotmat[16];
-
-    GLuint list;
-
-    int position;
-    int size;
+struct Range {
+    Range(int beg, int end) : begin(beg), end(end) { }
+    int size() const { return end-begin; }
+    const int begin;
+    const int end;
 };
 
-#endif // GLELBOWFLEXWIDGET_HPP
+#endif // RANGE_HPP

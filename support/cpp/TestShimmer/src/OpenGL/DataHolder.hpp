@@ -56,13 +56,9 @@ class DataHolder {
 
 public:
 
-    static DataHolder* right();
+    static DataHolder* right(double* rotmat, int size);
 
-    static DataHolder* left();
-
-    void grab_content(const char* filename);
-
-    void set_content(double* rotmat, int size);
+    static DataHolder* left(double* rotmat, int size);
 
     int number_of_samples() const;
 
@@ -86,7 +82,7 @@ public:
 
 private:
 
-    DataHolder(ElbowFlexSign sign);
+    DataHolder(ElbowFlexSign sign, double* rotmat, const int length);
 
     DataHolder(const DataHolder& );
     DataHolder& operator=(const DataHolder& );
@@ -113,12 +109,14 @@ private:
     double deviation_deg(int i) const;
 
     const ElbowFlexSign sign;
+
+    double* const rotation_matrices;
+
+    const int size;
+
     const double SAMPLING_RATE;
 
     std::ostringstream* const out;
-
-    int size;
-    double* rotation_matrices;
 
     double* flexion;
     double* supination;

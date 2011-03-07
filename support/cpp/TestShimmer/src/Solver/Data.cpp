@@ -96,7 +96,7 @@ void set_markers(const int begin, const int end) {
 
 void set_markers_second(const int begInSec, const int endInSec, const int lenInSec) {
 
-    Range range = dr->range(begInSec, endInSec, lenInSec);
+    Range range = dr->rangeInSample(Range(begInSec, endInSec), lenInSec);
 
     set_markers(range.begin, range.end);
 }

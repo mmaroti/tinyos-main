@@ -64,18 +64,16 @@ namespace {
 
 GLElbowFlexWidget* GLElbowFlexWidget::right(double* rotmat, int size) {
 
-    return new GLElbowFlexWidget(AnimationElbowFlexType::right(), DataHolder::right(), rotmat, size);
+    return new GLElbowFlexWidget(AnimationElbowFlexType::right(), DataHolder::right(rotmat, size));
 }
 
 GLElbowFlexWidget* GLElbowFlexWidget::left(double* rotmat, int size) {
 
-    return new GLElbowFlexWidget(AnimationElbowFlexType::left(), DataHolder::left(), rotmat, size);
+    return new GLElbowFlexWidget(AnimationElbowFlexType::left(), DataHolder::left(rotmat, size));
 }
 
 GLElbowFlexWidget::GLElbowFlexWidget(AnimationElbowFlexType sign,
-                                     DataHolder *dataHolder,
-                                     double* rotmatrices,
-                                     int length)
+                                     DataHolder *dataHolder )
 : type(sign),
   data(dataHolder)
 {
@@ -83,8 +81,6 @@ GLElbowFlexWidget::GLElbowFlexWidget(AnimationElbowFlexType sign,
         rotmat[i] = (GLfloat) 0.0;
 
     rotmat[M11] = rotmat[M22] = rotmat[M33] = rotmat[M44] = (GLfloat) 1.0;
-
-    data->set_content(rotmatrices, length);
 
     size = data->number_of_samples();
 

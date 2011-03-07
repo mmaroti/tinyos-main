@@ -41,21 +41,22 @@
 
 using namespace std;
 
-DataHolder* DataHolder::right() {
+DataHolder* DataHolder::right(double* rotmat, const int length) {
 
-    return new DataHolder(ElbowFlexSign::right());
+    return new DataHolder(ElbowFlexSign::right(), rotmat, length);
 }
 
-DataHolder* DataHolder::left() {
+DataHolder* DataHolder::left(double* rotmat, const int length) {
 
-    return new DataHolder(ElbowFlexSign::left());
+    return new DataHolder(ElbowFlexSign::left(), rotmat, length);
 }
 
 // FIXME Knows sampling rate
-DataHolder::DataHolder(ElbowFlexSign s) : sign(s), SAMPLING_RATE(204.8), out(new ostringstream) {
+DataHolder::DataHolder(ElbowFlexSign s, double* rotmat, const int length)
+    : sign(s), rotation_matrices(rotmat), size(length), SAMPLING_RATE(204.8), out(new ostringstream)
+{
 
-    rotation_matrices = flexion = supination = deviation = 0;
-    size = 0;
+    flexion = supination = deviation = 0;
 
     extrema = new double[SIZE_OF_ARRAY];
 
@@ -64,6 +65,8 @@ DataHolder::DataHolder(ElbowFlexSign s) : sign(s), SAMPLING_RATE(204.8), out(new
     pron_range = "Pron  ";
     lat_range  = "Lat Dev  ";
     med_range  = "Med Dev  ";
+
+    find_min_max();
 }
 
 DataHolder::~DataHolder() {
@@ -98,37 +101,6 @@ ostringstream& DataHolder::get_out() const {
     *out << fixed << setprecision(1);
 
     return *out;
-}
-
-void DataHolder::grab_content(const char *filename) {
-
-    ifstream in;
-
-    in.exceptions(ifstream::failbit | ifstream::badbit | ifstream::eofbit);
-
-    in.open(filename);
-
-    in >> size;
-
-    const int n_elem = 9*size;
-
-    rotation_matrices = new double[n_elem];
-
-    for (int i=0; i<n_elem; ++i) {
-
-        in >> rotation_matrices[i];
-    }
-
-    find_min_max();
-}
-
-void DataHolder::set_content(double* rotmat, int length) {
-
-    size = length;
-
-    rotation_matrices = rotmat;
-
-    find_min_max();
 }
 
 const double* DataHolder::min_max() const {

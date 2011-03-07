@@ -39,12 +39,14 @@
 #include "StateColor.hpp"
 #include "Person.hpp"
 #include "MotionTypes.hpp"
+#include "Range.hpp"
 
 class QMessageBox;
 class Application;
 class SQLDialog;
 class RecordHandler;
 class GLWindow;
+class DataHolder;
 
 namespace Ui{
     class LogWidget;
@@ -171,11 +173,14 @@ private:
     const QTime timeInRow(int row) const;
     bool isMotionTooShort() const;
     bool isAlreadyPassed(const int row) const;
-    bool isValidRange(const int begin, const int end, const int length) const;
-    void showAnimation(const int begin, const int end, const int length);
+    const Range motionBeginEndInSamples(const int row) const;
+    void checkRange(const int begin, const int end) const;
+    void showAnimation(const int motStartRow);
     GLWindow* getGLWindow(double* mat, int size) const;
+    DataHolder* getDataHolder(double* mat, int size) const;
     void autoPlay();
     bool isAutoPlayChecked() const;
+    bool computeExtrema(int motStart);
 
     int rowCount() const;
     int recLengthInSec() const;
@@ -203,6 +208,7 @@ private:
     RecordHandler* const recSelect;
     qint64 recordID;
     Person person;
+    double* const extrema;
 };
 
 #endif // LOGWIDGET_H

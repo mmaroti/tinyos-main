@@ -634,9 +634,13 @@ void DataRecorder::loadResults(const ipo::Results& res, const int begin, const i
     }
 }
 
-const Range DataRecorder::range(const double begin, const double end, const double length) const {
+const Range DataRecorder::rangeInSample(const Range& rangeInSec, const double length) const {
 
-    const double size = samples.size();
+    const double size = samples.size();   
+
+    const double begin = rangeInSec.begin;
+
+    const double end   = rangeInSec.end;
 
     if (!((size!=0) && (0<=begin && begin<end && end<=length))) {
 

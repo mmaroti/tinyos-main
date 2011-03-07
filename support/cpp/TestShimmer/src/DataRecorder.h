@@ -37,6 +37,7 @@
 #include "Data.hpp"
 #include "SerialListener.h"
 #include "MatrixVector.hpp"
+#include "Range.hpp"
 
 #ifndef DATARECORDER_H
 #define DATARECORDER_H
@@ -80,13 +81,6 @@ struct Angle_pair {
     Angle_pair(double a, double b) : angle1(a), angle2(b)  { }
     const double angle1;
     const double angle2;
-};
-
-struct Range {
-    Range(int beg, int end) : begin(beg), end(end) { }
-    int size() const { return end-begin; }
-    const int begin;
-    const int end;
 };
 
 class DataRecorder : public QObject
@@ -154,7 +148,7 @@ public:
         int from, to;
 
         void loadResults(const ipo::Results& res, const int begin, const int end);
-        const Range range(const double begInSec, const double endInSec, const double lenInSec) const;
+        const Range rangeInSample(const Range& rangeInSec, const double lenInSec) const;
         double* rotmat(const Range& range) const;
         bool euler_angle(int sample, Coordinate k, double& angle_in_rad) const;
         Angle_pair integrated_angle(int sample, Coordinate k) const;

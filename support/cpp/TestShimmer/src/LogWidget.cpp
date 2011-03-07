@@ -49,6 +49,7 @@
 #include <QFileDialog>
 #include <QTextStream>
 #include <QFontMetrics>
+#include "DataHolder.hpp"
 #include "GLWindow.hpp"
 #include "SQLDialog.hpp"
 #include "RecordHandler.hpp"
@@ -77,7 +78,8 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
         blockingBox(0),
         dial(new SQLDialog),
         recSelect(new RecordHandler),
-        recordID(INVALID_RECORD_ID)
+        recordID(INVALID_RECORD_ID),
+        extrema(new double[SIZE_OF_ARRAY])
 {
     ui->setupUi(this);
 
@@ -123,7 +125,7 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
 
 LogWidget::~LogWidget()
 {
-
+    delete[] extrema;
 }
 
 void LogWidget::init()
@@ -1317,9 +1319,9 @@ void LogWidget::writeToConsole(const QString& msg) const {
     application.showConsoleMessage( time + msg );
 }
 
-bool LogWidget::isValidRange(const int begin, const int end, const int length) const {
+void LogWidget::checkRange(const int begin, const int end) const {
 
-    bool retVal = true;
+    const int length = recLengthInSec();
 
     if (!(0 <= begin && begin < end && end <= length)) {
 
@@ -1327,14 +1329,52 @@ bool LogWidget::isValidRange(const int begin, const int end, const int length) c
 
         QTextStream out(&msg, QIODevice::WriteOnly);
 
-        out << "Error: begin " << begin << ", end " << end << "length " << length << " s" << flush;
+        out << " begin " << begin << ", end " << end << "length " << length << " s" << flush;
 
-        writeToConsole(msg);
+        fatalError(msg);
+    }
+}
 
-        retVal = false;
+const Range LogWidget::motionBeginEndInSamples(const int motStart) const {
+
+    Q_ASSERT(isMotionStart(motStart));
+
+    int motEnd = findMotEnd(motStart+1);
+
+    int begin = recStart().secsTo(timeInRow(motStart));
+
+    int end   = recStart().secsTo(timeInRow(motEnd));
+
+    checkRange(begin, end);
+
+    const Range rangeInSec(begin, end);
+
+    return application.dataRecorder.rangeInSample(rangeInSec, recLengthInSec());
+}
+
+bool LogWidget::computeExtrema(int motStart) {
+
+    if (!isAlreadyPassed(motStart)) {
+
+        return false;
     }
 
-    return retVal;
+    const Range range = motionBeginEndInSamples(motStart);
+
+    double* const mat = application.dataRecorder.rotmat(range);
+
+    DataHolder* data = getDataHolder(mat, range.size());
+
+    const double* const minMax = data->min_max();
+
+    for (int i=0; i<SIZE_OF_ARRAY; ++i) {
+
+        extrema[i] = minMax[i];
+    }
+
+    delete data;
+
+    return true;
 }
 
 void LogWidget::on_log_cellDoubleClicked(int motStart, int column) {
@@ -1344,25 +1384,12 @@ void LogWidget::on_log_cellDoubleClicked(int motStart, int column) {
         return;
     }
 
-    int motEnd = findMotEnd(motStart+1);
-
-    int begin = recStart().secsTo(timeInRow(motStart));
-
-    int end   = recStart().secsTo(timeInRow(motEnd));
-
-    int length = recLengthInSec();
-
-    if (!isValidRange(begin, end, length)) {
-
-        return;
-    }
-
     item(motStart, STATUS).setSelected(true);
 
-    showAnimation(begin, end, length);
+    showAnimation(motStart);
 }
 
-void LogWidget::showAnimation(const int begin, const int end, const int length) {
+void LogWidget::showAnimation(const int motStartRow) {
 
     if (application.dataRecorder.empty()) {
 
@@ -1371,7 +1398,7 @@ void LogWidget::showAnimation(const int begin, const int end, const int length) 
         return;
     }
 
-    const Range range = application.dataRecorder.range(begin, end, length);
+    const Range range = motionBeginEndInSamples(motStartRow);
 
     double* const mat = application.dataRecorder.rotmat(range);
 
@@ -1398,10 +1425,32 @@ GLWindow* LogWidget::getGLWindow(double* mat, int size) const {
     }
     else {
 
-        Q_ASSERT(false);
+        fatalError("unknown motion type");
     }
 
     return win;
+}
+
+DataHolder* LogWidget::getDataHolder(double* mat, int size) const {
+
+    DataHolder* data = 0;
+
+    const MotionType type = getMotionType();
+
+    if (type == RIGHT_ELBOW_FLEX) {
+
+        data = DataHolder::right(mat, size);
+    }
+    else if (type == LEFT_ELBOW_FLEX) {
+
+        data = DataHolder::left(mat, size);
+    }
+    else {
+
+        fatalError("unknown motion type");
+    }
+
+    return data;
 }
 
 void LogWidget::autoPlay() {
