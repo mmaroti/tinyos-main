@@ -244,30 +244,50 @@ void DataHolder::save_flex() {
 
 void DataHolder::save_sup() {
 
-    sup_range += str(supination[0] >= 0 ? supination[0] : 0.0);
+    sup_range += str(sup_begin());
 
     sup_range += range(SUP_MIN, SUP_MAX);
 }
 
 void DataHolder::save_pron() {
 
-    pron_range += str(supination[0] < 0 ? -supination[0] : 0.0);
+    pron_range += str(pron_begin());
 
     pron_range += range(PRON_MIN, PRON_MAX);
 }
 
 void DataHolder::save_lat_dev() {
 
-    lat_range += str(deviation[0] >= 0 ? deviation[0] : 0.0);
+    lat_range += str(lat_begin());
 
     lat_range += range(LAT_MIN, LAT_MAX);
 }
 
 void DataHolder::save_med_dev() {
 
-    med_range += str(deviation[0]< 0 ? -deviation[0] : 0.0);
+    med_range += str(med_begin());
 
     med_range += range(MED_MIN, MED_MAX);
+}
+
+double DataHolder::sup_begin() const {
+
+    return supination[0] >= 0 ? supination[0] : 0.0;
+}
+
+double DataHolder::pron_begin() const {
+
+    return supination[0] < 0 ? -supination[0] : 0.0;
+}
+
+double DataHolder::lat_begin() const {
+
+    return deviation[0] >= 0 ? deviation[0] : 0.0;
+}
+
+double DataHolder::med_begin() const {
+
+    return deviation[0] < 0 ? -deviation[0] : 0.0;
 }
 
 typedef ostringstream& oss;
@@ -278,6 +298,24 @@ const string DataHolder::range(int MIN, int MAX) {
 
     os << " / " << extrema[MIN] << " / " << extrema[MAX] << " / ";
     os << extrema[MAX]-extrema[MIN] << " deg" << flush;
+
+    return os.str();
+}
+
+const string DataHolder::angles_in_csv() const {
+
+    ostringstream os;
+
+    os << setprecision(4) << scientific;
+
+    const char sep = ',';
+
+    os <<   flexion[0] << sep << extrema[FLEX_MIN] << sep << extrema[FLEX_MAX] << sep;
+    os <<  sup_begin() << sep << extrema[ SUP_MIN] << sep << extrema[ SUP_MAX] << sep;
+    os << pron_begin() << sep << extrema[PRON_MIN] << sep << extrema[PRON_MAX] << sep;
+    os <<  med_begin() << sep << extrema[ MED_MIN] << sep << extrema[ MED_MAX] << sep;
+    os <<  lat_begin() << sep << extrema[ LAT_MIN] << sep << extrema[ LAT_MAX] << flush;
+
 
     return os.str();
 }

@@ -177,10 +177,11 @@ private:
     void checkRange(const int begin, const int end) const;
     void showAnimation(const int motStartRow);
     GLWindow* getGLWindow(double* mat, int size) const;
-    DataHolder* getDataHolder(double* mat, int size) const;
+    DataHolder* getDataHolder(const int motStart) const;
     void autoPlay();
     bool isAutoPlayChecked() const;
     bool computeExtrema(int motStart);
+    const QString anglesCSV();
 
     int rowCount() const;
     int recLengthInSec() const;

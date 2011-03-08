@@ -587,12 +587,18 @@ void LogWidget::getUniqueRecordID() {
 
     Q_ASSERT(!person.isNull());
 
-    if (recordID > 0) {        
-        Q_ASSERT(QFile::exists("../rec/"+QString::number(recordID)+".csv"));
-        return;
-    }
+    const QString angles = anglesCSV();
 
-    recordID = recSelect->insertRecord(person.id(), getMotionType());
+    if (recordID > 0) {
+
+        Q_ASSERT(QFile::exists("../rec/"+QString::number(recordID)+".csv"));
+
+        recSelect->updateRecord(recordID, angles);
+    }
+    else {
+
+        recordID = recSelect->insertRecord(person.id(), getMotionType(), angles);
+    }
 }
 
 void LogWidget::on_clearButton_clicked()
@@ -1374,11 +1380,7 @@ bool LogWidget::computeExtrema(int motStart) {
         return false;
     }
 
-    const Range range = motionBeginEndInSamples(motStart);
-
-    double* const mat = application.dataRecorder.rotmat(range);
-
-    DataHolder* data = getDataHolder(mat, range.size());
+    DataHolder* data = getDataHolder(motStart);
 
     const double* const minMax = data->min_max();
 
@@ -1390,6 +1392,26 @@ bool LogWidget::computeExtrema(int motStart) {
     delete data;
 
     return true;
+}
+
+const QString LogWidget::anglesCSV() {
+
+    QString result;
+
+    const int motStart = findMotStart(0);
+
+    if (motStart==NO_MORE || !isAlreadyPassed(motStart)) {
+
+        return result;
+    }
+
+    DataHolder* data = getDataHolder(motStart);
+
+    result = data->angles_in_csv().c_str();
+
+    delete data;
+
+    return result;
 }
 
 void LogWidget::on_log_cellDoubleClicked(int motStart, int column) {
@@ -1446,7 +1468,13 @@ GLWindow* LogWidget::getGLWindow(double* mat, int size) const {
     return win;
 }
 
-DataHolder* LogWidget::getDataHolder(double* mat, int size) const {
+DataHolder* LogWidget::getDataHolder(const int motStart) const {
+
+    const Range range = motionBeginEndInSamples(motStart);
+
+    double* const mat = application.dataRecorder.rotmat(range);
+
+    const int size = range.size();
 
     DataHolder* data = 0;
 

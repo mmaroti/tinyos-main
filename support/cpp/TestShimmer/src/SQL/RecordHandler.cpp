@@ -75,7 +75,8 @@ RecordHandler::RecordHandler() :
         view(new QTableView),
         nameInput(new QLineEdit),
         clearBtn(createButton("Clear")),
-        delBtn(createButton("Delete selected"))
+        delBtn(createButton("Delete selected")),
+        sqlQuery(new QSqlQuery)
 {
     QVBoxLayout* layout = new QVBoxLayout;
 
@@ -234,32 +235,66 @@ void RecordHandler::setSelectQueryLikeName() {
     }
 }
 
-qint64 RecordHandler::executeRawSQL(const QString& rawSQL) {
+void RecordHandler::executeRawSQL(const QString& rawSQL) {
 
     qDebug() << "Raw SQL: " << rawSQL;
 
-    QSqlQuery sql(rawSQL);
+    sqlQuery->exec(rawSQL);
 
-    checkForError(sql.lastError());
-
-    QVariant newID = sql.lastInsertId();
-
-    qint64 id = newID.isValid() ? toInt64(newID) : -1;
-
-    setSelectQueryLikeName();
-
-    return id;
+    checkForError(sqlQuery->lastError());
 }
 
-qint64 RecordHandler::insertRecord(qint64 personID, MotionType type) {
+qint64 RecordHandler::lastInsertID() const {
 
-    QString stmt = "INSERT INTO record VALUES (NULL, "+QString::number(personID)+", "+QString::number(type)+", DATETIME('now', 'localtime'));";
+    QVariant newID = sqlQuery->lastInsertId();
 
-    qint64 recID = executeRawSQL(stmt);
+    return newID.isValid() ? toInt64(newID) : -1;
+}
+
+int RecordHandler::rowsAffected() const {
+
+    return sqlQuery->numRowsAffected();
+}
+
+const QString RecordHandler::anglesValue(const QString& angles) const {
+
+    return (angles.isEmpty()) ? "NULL" : "'"+angles+"'" ;
+}
+
+qint64 RecordHandler::insertRecord(qint64 personID, MotionType type, const QString& angles) {
+
+    const QString angl = anglesValue(angles);
+
+    QString stmt = "INSERT INTO record VALUES (NULL, "+
+                                               QString::number(personID)+", "+
+                                               QString::number(type)+
+                                               ", DATETIME('now', 'localtime'), "+
+                                               angl+");";
+
+    executeRawSQL(stmt);
+
+    qint64 recID = lastInsertID();
 
     Q_ASSERT(recID > 0);
 
+    setSelectQueryLikeName();
+
     return recID;
+}
+
+void RecordHandler::updateRecord(qint64 recID, const QString& angles) {
+
+    const QString angl = anglesValue(angles);
+
+    QString stmt = "UPDATE record SET angles="+angl+" WHERE id="+QString::number(recID)+";";
+
+    executeRawSQL(stmt);
+
+    const int affected_rows = rowsAffected();
+
+    Q_ASSERT(affected_rows==1);
+
+    setSelectQueryLikeName();
 }
 
 void RecordHandler::nameEdited(const QString& ) {
@@ -335,6 +370,8 @@ void RecordHandler::deleteRecord(const qint64 id) {
     }
 
     executeRawSQL("DELETE FROM record WHERE id = "+QString::number(id));
+
+    setSelectQueryLikeName();
 }
 
 QSize RecordHandler::minimumSizeHint() const {

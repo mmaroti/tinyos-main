@@ -42,8 +42,9 @@ class Person;
 class QHBoxLayout;
 class QLineEdit;
 class QModelIndex;
-class QSqlQueryModel;
 class QSqlError;
+class QSqlQuery;
+class QSqlQueryModel;
 class QTableView;
 class QPushButton;
 
@@ -57,7 +58,9 @@ public:
 
     RecordHandler();
 
-    qint64 insertRecord(qint64 personID, MotionType type);
+    qint64 insertRecord(qint64 personID, MotionType type, const QString& angles);
+
+    void updateRecord(qint64 recID, const QString& angles);
 
     void deleteRecord(const qint64 id);
 
@@ -102,7 +105,10 @@ private:
     void setSelectQuery(const QString& whereClause);
     void setSelectQueryLikeName();
     void checkForError(const QSqlError& error);
-    qint64 executeRawSQL(const QString& rawSQL);
+    void executeRawSQL(const QString& rawSQL);
+    qint64 lastInsertID() const;
+    int rowsAffected() const;
+    const QString anglesValue(const QString& angles) const;
 
     const QString getName(int row) const;
     const QDate getDate(int row) const;
@@ -124,6 +130,7 @@ private:
     QPushButton* const clearBtn;
     QPushButton* const delBtn;
 
+    QSqlQuery* const sqlQuery;
 };
 
 #endif // RECORDSELECTOR_HPP

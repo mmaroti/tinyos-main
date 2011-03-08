@@ -77,6 +77,7 @@ public:
     const std::string time(int i) const;
 
     const double* min_max() const;
+    const std::string angles_in_csv() const;
 
     ~DataHolder();
 
@@ -107,6 +108,11 @@ private:
     double flexion_deg(int i) const;
     double supination_deg(int i) const;
     double deviation_deg(int i) const;
+
+    double  sup_begin() const;
+    double pron_begin() const;
+    double  lat_begin() const;
+    double  med_begin() const;
 
     const ElbowFlexSign sign;
 
