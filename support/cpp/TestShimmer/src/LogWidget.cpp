@@ -959,6 +959,21 @@ void LogWidget::saveLog(const QString &filename)
     ts << "#Motion type" << endl;
     ts << ui->motionTypeCBox->currentIndex() << endl;
 
+    ts << "#Time,FLEX_MIN,FLEX_MAX, ..., MED_MAX" << endl;
+    int motEnd = 0;
+    int motStart = findMotStart(motEnd);
+    while(motStart != NO_MORE) {
+        ts << timeInRow(motStart).toString() << ",";
+
+        if ( computeExtrema(motStart) ){
+            for(int i = 0; i < SIZE_OF_ARRAY; i++){
+                ts << extrema[i] << ",";
+            }
+        }
+        motEnd = findMotionEnd(motStart);
+        motStart = findMotStart(motEnd);
+    }
+
     ts.flush();
     f.close();
 
