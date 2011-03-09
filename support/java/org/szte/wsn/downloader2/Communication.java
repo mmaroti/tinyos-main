@@ -86,11 +86,11 @@ public class Communication  implements MessageListener {
 	}
 	
 	public void sendErase() throws IOException{
-		sendGet(MoteIF.TOS_BCAST_ADDR, 0, 0);
+		sendGet(MoteIF.TOS_BCAST_ADDR, 1, 1);
 	}
 	
 	public void sendErase(int nodeid) throws IOException{
-		sendGet(nodeid, 0, 0);
+		sendGet(nodeid, 1, 1);
 	}
 	
 	
