@@ -308,7 +308,7 @@ const string DataHolder::angles_in_csv() const {
 
     os << setprecision(4) << scientific;
 
-    const char sep = ',';
+    const char sep = ';';
 
     os <<   flexion[0] << sep << extrema[FLEX_MIN] << sep << extrema[FLEX_MAX] << sep;
     os <<  sup_begin() << sep << extrema[ SUP_MIN] << sep << extrema[ SUP_MAX] << sep;
