@@ -422,13 +422,13 @@ void DataRecorder::saveCalibrationData() const
 
         QTextStream ts( &fi );
         for(int i = 0; i<12; i++){
-            ts << accelCalibrationData[i];
+            ts << accelCalibrationData[i] << endl;
         }
         for(int i = 0; i<12; i++){
-            ts << gyroCalibrationData[i];
+            ts << gyroCalibrationData[i] << endl;
         }
         for(int i = 0; i<3; i++){
-            ts << gyroMinAvgs[i];
+            ts << gyroMinAvgs[i] << endl;
         }
 
         ts.flush();

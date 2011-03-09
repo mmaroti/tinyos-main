@@ -419,7 +419,8 @@ QString StationaryCalibrationModule::LSF() {
         msgBox.exec();
         returnMessage = "Maximum Error is too great! ( > 0.1 )  \n";
         return returnMessage;
-    } else {        
+    } else {
+        qDebug() << "setting accel calib data";
         for (unsigned int i = 0; i < linearEquations.getVariableCount(); i++) {
             application.dataRecorder.setAccelCalibration(i, solution->getValueAt(i));
         }
