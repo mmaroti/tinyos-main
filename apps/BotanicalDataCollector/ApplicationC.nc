@@ -20,6 +20,7 @@ implementation{
     ApplicationP.SetInterval->TimeSyncPointsC;
     ApplicationP.TimeSyncPoints->TimeSyncPointsC;
     ApplicationP.TimeSync->TimeSyncPointsC;
+    ApplicationP.Command->StreamUploaderC;
 
 	components RF230ActiveMessageC as LplRadio, SystemLowPowerListeningC;
 	ApplicationP.LPL -> LplRadio.LowPowerListening;

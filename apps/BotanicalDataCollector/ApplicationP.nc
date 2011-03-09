@@ -22,6 +22,7 @@ module ApplicationP{
     interface Set<uint16_t> as SetInterval;
     interface TimeSyncPoints;
     interface StdControl as TimeSync;
+    interface Command;
   }
 }
 implementation{
@@ -33,6 +34,7 @@ implementation{
     nx_uint8_t irlight;
     nx_uint32_t timestamp;
   } data;
+  bool running=FALSE;
 
   event void Boot.booted(){
     call RadioControl.start();
@@ -49,7 +51,8 @@ implementation{
       call SetInterval.set(TIMESYNC_INTERVAL);
       call TimeSync.start();
 
-      call Timer.startPeriodicAt(((uint32_t)60)<<10,(uint32_t)MEASURE_INTERVAL<<10);
+      call Timer.startPeriodicAt(((uint32_t)MEASURE_INTERVAL)<<9,(uint32_t)MEASURE_INTERVAL<<10);
+      running=TRUE;
     }
   }	
 
@@ -102,6 +105,44 @@ implementation{
     } timeData;
     call TimeStorageWrite.appendWithID(0x3d,&timeData, sizeof(timeData));
   }
+  
+  event void Command.newCommand(uint32_t cmd){
+    switch(cmd&0xff){
+      case 0x11:{
+        call DataStorageWrite.sync();
+      }break;
+      case 0x22:{
+        if(running){
+          call Timer.stop();
+          call TimeSync.stop();
+          running=FALSE;
+          call Command.sendData(0x2201);
+        } else {
+          call TimeSync.start();
+          call Timer.startPeriodicAt(((uint32_t)MEASURE_INTERVAL)<<9,(uint32_t)MEASURE_INTERVAL<<10);
+          running=TRUE;
+          call Command.sendData(0x2200);          
+        }
+      }break;
+      case 0x33:{
+        uint16_t interval=cmd>>16;
+        call SetInterval.set(TIMESYNC_INTERVAL);
+        call Command.sendData(((uint32_t)interval<<16)+0x3300);
+      }break;
+      case 0x44:{
+        uint16_t interval=cmd>>16;
+        call Timer.startPeriodic((uint32_t)interval<<10);
+        call Command.sendData(((uint32_t)interval<<16)+0x4400);
+      }break;
+    }
+  }
+  
+  event void DataStorageWrite.syncDone(error_t error){
+    if(error==SUCCESS)
+      call Command.sendData(0x1100);
+    else
+      call Command.sendData(0x1101);
+  }
 
 
   event void TimeStorageWrite.appendDone(void *buf, uint16_t len, error_t error){}
@@ -110,6 +151,5 @@ implementation{
 
   event void DataStorageWrite.appendDone(void *buf, uint16_t len, error_t error){}
   event void DataStorageWrite.appendDoneWithID(void *buf, uint16_t len, error_t error){}
-  event void DataStorageWrite.syncDone(error_t error){}
   event void RadioControl.stopDone(error_t error){}
 }
