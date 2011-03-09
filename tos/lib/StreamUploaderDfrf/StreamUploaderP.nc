@@ -167,6 +167,8 @@ implementation{
             error=call StreamStorageRead.read(readaddress, buffer, MESSAGE_SIZE);	
         }else if(streamcommand==STREAM_ERASE)
             error=call StreamStorageErase.erase();	
+        else
+            error=FAIL;
         if(error!=SUCCESS){
             streamcommand=STREAM_NULL;
             call Resource.release();
