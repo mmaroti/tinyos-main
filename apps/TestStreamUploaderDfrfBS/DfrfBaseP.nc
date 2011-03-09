@@ -55,6 +55,7 @@ module DfrfBaseP{
 
 		interface AMSend as CtrlSend;
 		interface AMSend as DataSend;
+        interface AMSend as TimeSend;
 		interface Receive as GetReceive;
 		interface Receive as CommandReceive;
 		interface Packet as UartPacket;
@@ -77,6 +78,11 @@ module DfrfBaseP{
 		
 		interface Pool<message_t>;
 		interface Queue<message_t*>;
+        
+        interface TimeSyncPoints;
+        interface LocalTime<TMilli>;
+        interface StdControl as TimeSyncCtrl;
+        interface Set<uint16_t> as SetInterval;
 		
 	}
 }
@@ -106,6 +112,8 @@ implementation {
 			call LPL.setLocalWakeupInterval(500);
 			call SysLPL.setDefaultRemoteWakeupInterval(500);
 			call SysLPL.setDelayAfterReceive(3000);
+            call SetInterval.set(0);
+            call TimeSyncCtrl.start();
 			call SerialControl.start();
 		} else 
 			call RadioControl.start();
@@ -128,6 +136,11 @@ implementation {
 			case AM_DATA_MSG:{
 				error=call DataSend.send(TOS_NODE_ID, send, sizeof(data_msg));
 			}break;
+            case AM_TIME_MSG:{
+                time_msg *payload=(time_msg*)call TimeSend.getPayload(send,sizeof(time_msg));
+                payload->sendTime=call LocalTime.get();
+                error=call TimeSend.send(TOS_NODE_ID, send, sizeof(time_msg));
+            }
 		}
 		if(error!=SUCCESS){
 			call Queue.enqueue(send);
@@ -164,6 +177,21 @@ implementation {
 	event void DataSend.sendDone(message_t *msg, error_t error){
 		sendDone(msg,error);
 	}
+	
+	event void TimeSend.sendDone(message_t *msg, error_t error){
+        sendDone(msg,error);
+    }  
+	
+	event void TimeSyncPoints.syncPoint(uint32_t local, am_addr_t nodeId, uint32_t remote){
+        message_t *presendbuffer=call Pool.get();
+        if(presendbuffer!=NULL){
+            time_msg data;//we can use local variable, becouse fillMessage is inline
+            data.remoteTime=remote;
+            data.localTime=local;
+            fillMessage(presendbuffer, &data, sizeof(time_msg),AM_TIME_MSG,nodeId);
+        } else
+            failBlink();
+    }
 	
 	event bool CtrlReceive.receive(void *data){
 		message_t *presendbuffer=call Pool.get();
@@ -210,4 +238,7 @@ implementation {
 	event void CommandSend.sendDone(void *data){
 		senddone();
 	}
+	
+
+
 }
