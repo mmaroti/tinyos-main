@@ -976,6 +976,7 @@ void LogWidget::saveLog(const QString &filename)
                 ts << extrema[i] << ",";
             }
         }
+        ts << endl;
         motEnd = findMotionEnd(motStart);
         motStart = findMotStart(motEnd);
     }
@@ -1024,7 +1025,7 @@ void LogWidget::loadLog(const QString &filename)
                 line = ts.readLine();
             }
             line = ts.readLine();
-            while( !line.isEmpty()){
+            while( !line.isEmpty() && line != "#Time,FLEX_MIN,FLEX_MAX, ..., MED_MAX"){
                 ui->motionTypeCBox->setCurrentIndex(line.toInt());         //convert line string to record id
                 ui->recStartButton->setEnabled(false);
                 line = ts.readLine();
