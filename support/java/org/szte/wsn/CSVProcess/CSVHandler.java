@@ -1,3 +1,36 @@
+/*
+* Copyright (c) 2010, University of Szeged
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions
+* are met:
+*
+* - Redistributions of source code must retain the above copyright
+* notice, this list of conditions and the following disclaimer.
+* - Redistributions in binary form must reproduce the above
+* copyright notice, this list of conditions and the following
+* disclaimer in the documentation and/or other materials provided
+* with the distribution.
+* - Neither the name of University of Szeged nor the names of its
+* contributors may be used to endorse or promote products derived
+* from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+* COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+* OF THE POSSIBILITY OF SUCH DAMAGE.
+*
+* Author:Andras Biro
+*/
 package org.szte.wsn.CSVProcess;
 
 import java.io.BufferedReader;
@@ -13,16 +46,30 @@ import java.util.Date;
 
 import org.szte.wsn.TimeSyncPoint.LinearFunction;
 import org.szte.wsn.TimeSyncPoint.Regression;
-
+/**
+ * CSV table file processor for data(time) functions.
+ * Every table has a time column and columns with data
+ * Column and line numbering starts with 1
+ * @author Andras Biro
+ *
+ */
 public class CSVHandler {
 	private File csvfile;
 	private String separator;
+
+
 	private ArrayList<String> header;
 	private ArrayList<String[]> data;
 	private int timeColumn;
 	private ArrayList<Integer> dataColumns;
 	
-	public static String switchExtension(String fullname, String newEx){
+	/**
+	 * Changes the extension of a filename (the string after the last dot)
+	 * @param fullname Original filename (or path) with extension
+	 * @param newEx New extension of the filename (with dot; for example ".txt")
+	 * @return filename with new extension
+	 */
+	public static String changeExtension(String fullname, String newEx){
 		return fullname.substring(0, fullname.lastIndexOf('.'))+newEx;
 	}
 	
@@ -59,6 +106,15 @@ public class CSVHandler {
 		input.close();
 	}
 	
+	/**
+	 * Default construcor
+	 * @param csvfile CSV file to open
+	 * @param hasheader true, if the CSV file has header: the first line is the name of the columns
+	 * @param separator CSV cell separator e.g. ";"
+	 * @param timeColumn this column holds the time reference of the table
+	 * @param dataColumns these columns holds data
+	 * @throws IOException if can't open/read/close the file
+	 */
 	public CSVHandler(File csvfile, boolean hasheader, String separator, int timeColumn, ArrayList<Integer> dataColumns) throws IOException{
 		this.separator=separator;
 		this.csvfile=csvfile;
@@ -67,44 +123,104 @@ public class CSVHandler {
 		openFile(hasheader);
 	}
 	
+	/**
+	 * Rereads file from the disk. All unsaved changes will be lost
+	 * @param hasheader true, if the CSV file has header: the first line is the name of the columns
+	 * @throws IOException if can't open/read/close the file
+	 */
 	public void reReadFile(boolean hasheader) throws IOException{
 		openFile(hasheader);
 	}
 	
+	/**
+	 * @return separator used in the file
+	 */
+	public String getSeparator() {
+		return separator;
+	}
+	
+	/**
+	 * returns the header line for the file (if it hasn't got one, returns null)
+	 * @return the header line for the file
+	 */
 	public ArrayList<String> getHeader(){
 		return header;
 	}
 	
+	/**
+	 * Returns the name of a column, based on the header (if it hasn't got one, returns null)
+	 * @param id column number
+	 * @return name of the column
+	 */
 	public String getHeaderId(int id){
-		return header.get(id-1);
+		if(header!=null&&header.size()>=id-1)
+			return header.get(id-1);
+		else if(header.size()>=id-1)
+			return "";
+		else
+			return null;
 	}
 	
-	public void setHeader(ArrayList<String> h){
+	/**
+	 * Returns the number of the column with name, based on header.
+	 * If there's no such name, returns -1
+	 * @param name name of the column
+	 * @return number of the column
+	 */
+	public int getColumnNum(String name){
+		if(header==null)
+			return -1;
+		for(String column:header)
+			if(column.equals(name))
+				return header.indexOf(column)+1;
+		return -1;
+	}
+	
+	/**
+	 * Sets the header of the file
+	 * @param h new header
+	 */
+	public void setHeader(ArrayList<String> h) {
 		header=h;
 	}
 	
-	public String getHeaderLine(){
-		String ret="";
-		for(int i=0;i<header.size()-1;i++)
-			ret+=header.get(i)+separator;
-		ret+=header.get(header.size()-1);
-		return ret;
-	}
-	
-	public void setHeaderLine(String h){
-		for(String column:h.split(separator)){
-			header.add(column);
-		}
-	}
-
-
-
+	/**
+	 * Clears the header line (the first line will be data)
+	 */
 	public void clearHeader(){
 		header=null;
 	}
 	
+//these functions seems to be unused	
+//	/**
+//	 * Returns the whole header line (with separators)
+//	 * @return header line
+//	 */
+//	public String getHeaderLine(){
+//		String ret="";
+//		for(int i=0;i<header.size()-1;i++)
+//			ret+=header.get(i)+separator;
+//		ret+=header.get(header.size()-1);
+//		return ret;
+//	}
+//	
+//	/**
+//	 * Sets the whole header line
+//	 * @param h new header line
+//	 */
+//	public void setHeaderLine(String h){
+//		for(String column:h.split(separator)){
+//			header.add(column);
+//		}
+//	}
+	
+	/**
+	 * Writes the current changes to the disk (rewrites the whole file)
+	 * @return false if can't overwrite earlier file, true otherwise
+	 * @throws IOException if can't open/write/close the file
+	 */
 	public boolean flush() throws IOException{
-		File tempfile=new File(switchExtension(csvfile.getName(), ".tmp"));
+		File tempfile=new File(changeExtension(csvfile.getName(), ".tmp"));
 		BufferedWriter output=new BufferedWriter(new FileWriter(tempfile));
 		if(header!=null){
 			for(int i=0;i<header.size()-1;i++)
@@ -126,14 +242,11 @@ public class CSVHandler {
 		return true;
 	}
 	
-	public int getColumnNum(String name){
-		for(String column:header)
-			if(column.equals(name))
-				return header.indexOf(column)+1;
-		return -1;
-	}
-	
-	public String getLine(int line){
+	/**
+	 * @param line number of the line
+	 * @return the whole line, with separators
+	 */
+	private String getLine(int line){
 		line--;
 		String ret="";
 		for(int i=0;i<data.get(line).length-1;i++)
@@ -142,6 +255,12 @@ public class CSVHandler {
 		return ret;
 	}
 	
+	/**
+	 * Returns a cell at given coordinates
+	 * @param column Column number
+	 * @param line Line number
+	 * @return cell
+	 */
 	public String getCell(int column, int line){
 		column--;line--;
 		if(line>=getLineNumber())
@@ -151,7 +270,15 @@ public class CSVHandler {
 		return data.get(line)[column];
 	}
 	
-	public boolean setCell(int column, int line, Object value){
+	/**
+	 * Sets a cell value at given coordinates.
+	 * Creates new column(s) in the line if needed, but not creates new line(s) 
+	 * @param column Column number
+	 * @param line Line number
+	 * @param value New value of the cell
+	 * @return false if there's no such line, true otherwise
+	 */
+	public boolean setCell(int column, int line, String value){
 		column--;line--;
 		if(line>=getLineNumber())
 			return false;
@@ -165,10 +292,15 @@ public class CSVHandler {
 			}
 			data.set(line,newstr);
 		}
-		data.get(line)[column]=value.toString();
+		data.get(line)[column]=value;
 		return true;
 	}
 	
+	/**
+	 * Inserts a column. The columns after the new one will be shifted right
+	 * @param name Name of the column in the header. If there's no header, it has no effect
+	 * @param column Number of the new column. 
+	 */
 	public void addColumn(String name, int column){
 		column--;//start counting from 0 instead of 1
 		if(header!=null)
@@ -192,6 +324,10 @@ public class CSVHandler {
 		}
 	}
 	
+	/**
+	 * Removes a column. The columns after the removed one will be shifted left.
+	 * @param column Number of the column
+	 */
 	public void removeColumn(int column){
 		column--;//start counting from 0 instead of 1
 		if(header!=null)
@@ -211,58 +347,110 @@ public class CSVHandler {
 		}
 	}
 	
+	/**
+	 * Adds a new line at given position with given values. Shifts the line after the new one down
+	 * @param line Number of the line
+	 * @param values Values in the line
+	 */
 	public void addLine(int line, String[] values){
 		line--;
 		data.add(line, values);
 	}
 	
+	/**
+	 * Adds a new line at the end of the table with given values.
+	 * @param values Values in the line
+	 */
 	public void addLine(String[] values){
 		data.add(values);
 	}
+	
+	/**
+	 * Adds a new line at the end of the table with given values.
+	 * @param values Values in the line
+	 */
 	public void addLine(ArrayList<String> values){
 		String[] arrayvalues=new String[values.size()];
 		for(int i=0;i<values.size();i++)
 			arrayvalues[i]=values.get(i);
-		data.add(arrayvalues);
+		addLine(arrayvalues);
 	}
 	
+	/**
+	 * Removes a line from the table. The lines after the removed one will be shifted up
+	 * @param line Number of the line
+	 */
 	public void removeLine(int line){
 		line--;
 		data.remove(line);
 	}
 	
+	/**
+	 * Returns the number of the lines.
+	 * @return number of the lines
+	 */
 	public int getLineNumber(){
 		return data.size();
 	}
 	
+	/**
+	 * Returns the file of the instance
+	 * @return the file of the instance
+	 */
 	public File getFile(){
 		return csvfile;
 	}
 	
+	/**
+	 * Returns the filename of the instance
+	 * @return filename
+	 */
 	public String getName(){
 		return csvfile.getName();
 	}
 	
+	/**
+	 * Sets the time reference column
+	 * @param timeColumn number of the column
+	 */
 	public void setTimeColumn(int timeColumn) {
 		this.timeColumn = timeColumn;
 	}
 
+	/**
+	 * @return Column number of the time reference
+	 */
 	public int getTimeColumn() {
 		return timeColumn;
 	}
 
+	/**
+	 * Sets the data columns
+	 * @param dataColumns
+	 */
 	public void setDataColumns(ArrayList<Integer> dataColumns) {
 		this.dataColumns = dataColumns;
 	}
 	
+	/**
+	 * Adds a column to the data columns
+	 * @param item Column number of the new data column
+	 */
 	private void addDataColumn(int item) {
 		dataColumns.add(item);		
 	}
 
+	/**
+	 * @return data columns
+	 */
 	public ArrayList<Integer> getDataColumns() {
 		return dataColumns;
 	}
 
+	/**
+	 * Try to write the file to the disk at exiting
+	 * @throws IOException
+	 */
 	public void onDestroy() throws IOException{
 		if(!flush())
 			System.err.println("Can't overwrite file: "+csvfile.getName());
@@ -341,8 +529,19 @@ public class CSVHandler {
 		
 	}
 	
-	public void calculateGlobal(File timeFile, int global, boolean insert, long maxerror){
-		ArrayList<LinearFunction> functions=ParseTimeSyncFile(timeFile, maxerror);
+	/**
+	 * Calculate global time with linear functions from the time reference column.  
+	 * Replaces the reference time column, with the calculated one.
+	 * It's possible that the time column isn't monotonically increasing, because the measuring
+	 * device restarted. We call a monotonically increasing part of the table "running". First, we
+	 * search for all the runnings in the table, then we calculate the global time for the last
+	 * running with the last function, then the last before, and so on, until we run out of running
+	 * or function.
+	 * @param functions Linear functions for this file (increasing order in time)
+	 * @param global Column number of the new "globaltime" column 
+	 * @param insert If false, the global column will be rewritten, if true, it will be inserted
+	 */
+	public void calculateGlobal(ArrayList<LinearFunction> functions, int global, boolean insert){
 
 		ArrayList<Integer> breaks=GetBreaks();
 		
@@ -373,10 +572,48 @@ public class CSVHandler {
 		setTimeColumn(global);
 	}
 	
-	public void calculateGlobal(String timeEx, int global, boolean insert, long maxerror){
-		calculateGlobal(new File(switchExtension(getName(), timeEx)), global, insert, maxerror);
+	/**
+	 * Calculate global time with linear functions from the time reference column. 
+	 * Replaces the reference time column, with the calculated one.
+	 * The functions will be calculated from the timesync point pairs with linear regression.
+	 * If a point is farer from the already calculated function than maxerror, it starts a new running.
+	 * @param timeFile Text file with timesync point pairs in lines separated with ":" (globaltime:localtime\n)
+	 * @param global Column number of the new "globaltime" column 
+	 * @param insert If false, the global column will be rewritten, if true, it will be inserted
+	 * @param maxerror Maximum error of a timesync point in the regression.
+	 */
+	public void calculateGlobal(File timeFile, int global, boolean insert, long maxerror){
+		calculateGlobal(ParseTimeSyncFile(timeFile, maxerror), global, insert);
 	}
 	
+	/**
+	 * Calculate global time with linear functions from the time reference column. 
+	 * Replaces the reference time column, with the calculated one.
+	 * The functions will be calculated from the timesync point pairs with linear regression.
+	 * If a point is farer from the already calculated function than maxerror, it starts a new running.
+	 * @param timeEx extension of timesync file (the name is the same as the CSV file). The file is a
+	 * text file with timesync point pairs in lines separated with ":" (globaltime:localtime\n)
+	 * @param global Column number of the new "globaltime" column 
+	 * @param insert If false, the global column will be rewritten, if true, it will be inserted
+	 * @param maxerror Maximum error of a timesync point in the regression.
+	 */
+	public void calculateGlobal(String timeEx, int global, boolean insert, long maxerror){
+		calculateGlobal(new File(changeExtension(getName(), timeEx)), global, insert, maxerror);
+	}
+
+	//TODO: these two method makes unparseble columns
+	/*
+	 * Possible solution hold back the real change until we write the data to disk.
+	 * Also make the constructor smarter: add timeformat/decimal separator;
+	 * After read the file, change the time/data columns to parseble format (if needed: decimal separator
+	 * should be dot; time should be in long: milliseconds after epoch/instrument start).
+	 * The epoch time format has no SimpleDateFormat string. Use null for it.
+	 * After that, save the formats, and use it for file writing.
+	 */
+	/**
+	 * Formats the time column with given SimpleDateFormat
+	 * @param timeformat format of the time
+	 */
 	public void formatTime(String timeformat){
 		if(timeformat==null)
 			return;
@@ -392,6 +629,10 @@ public class CSVHandler {
 		}
 	}
 	
+	/**
+	 * Changes the default decimal separator in the data columns 
+	 * @param decSep New decimal separator
+	 */
 	public void formatDecimalSeparator(String decSep){
 		for(int line=1;line<=getLineNumber();line++){
 			for(int column:dataColumns){
@@ -402,7 +643,6 @@ public class CSVHandler {
 
 
 	//averageing functions
-	
 	private Double getValueAt(long time, int column, int afterLine) throws NumberFormatException{
 		while(Long.parseLong(getCell(timeColumn, afterLine))<time){
 			afterLine++;
@@ -445,7 +685,7 @@ public class CSVHandler {
 					long time=Long.parseLong(getCell(1, line));
 					Double value=getValueAt(time, column, line);
 					if(value!=null)
-						setCell(column, line, value);
+						setCell(column, line, value.toString());
 				}
 			}
 		}
@@ -554,7 +794,16 @@ public class CSVHandler {
 	public static final byte TIMETYPE_END=1;
 	public static final byte TIMETYPE_MIDDLE=2;
 	
-	public CSVHandler averageColumns(long timeWindow, File newFile, byte timeType) throws IOException{
+	/**
+	 * Calculates the averages of the data columns in given lengths 
+	 * @param timeWindow Length of each averaging.
+	 * @param newFile File for the averaged data (other attributes, like separator will be the same as this instance) 
+	 * @param timeType sets the time to use in the averaged time column:
+	 * TIME_START: The start of the window; TIME_END: The end of the window; TIME_MIDDLE:The middle of the window
+	 * @return a new CSVHandler calculated from this instance
+	 * @throws IOException if can't create a new file
+	 */
+	public CSVHandler averageInTime(long timeWindow, File newFile, byte timeType) throws IOException{
 		newFile.delete();
 		CSVHandler ret=new CSVHandler(newFile, header==null?false:true , separator, getTimeColumn(), getDataColumns());
 		ret.setHeader(getHeader());
@@ -586,6 +835,9 @@ public class CSVHandler {
 		
 		return ret;
 	}
+	
+	//TODO: transpose method. This creates unpareble data. Possible solution: see the previous TODO
+	//TODO: main method. Open file, make one change (selected in arg), save
 	
 	
 
