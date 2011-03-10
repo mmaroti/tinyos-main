@@ -139,5 +139,5 @@ public class CSVMerger {
 		return globalFile;
 	}
 
-	//TODO main method
+	//TODO main method; priority: low
 }

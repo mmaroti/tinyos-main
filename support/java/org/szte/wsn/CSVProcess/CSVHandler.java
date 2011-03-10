@@ -836,8 +836,8 @@ public class CSVHandler {
 		return ret;
 	}
 	
-	//TODO: transpose method. This creates unpareble data. Possible solution: see the previous TODO
-	//TODO: main method. Open file, make one change (selected in arg), save
+	//TODO: transpose method. This creates unpareble data. Possible solution: see the previous TODO; priority: medium
+	//TODO: main method. Open file, make one change (selected in arg), save;  priority: medium
 	
 	
 
