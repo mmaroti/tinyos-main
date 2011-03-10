@@ -263,14 +263,14 @@ public class BenchmarkBatch {
   /**
    * Run the previously parsed benchmark configurations.
    */
-  public boolean run() {
+  public boolean run(final boolean is_tossim) {
     PrintStream ps = null;
     try {
       ps = new PrintStream(this.outputfile);
       ps.println(BenchmarkCommons.xmlHeader());
 
       BenchmarkController ctrl = new BenchmarkController();
-      ctrl.reset(false);
+      ctrl.reset(!is_tossim);
 
       int i = 0;
       int total = this.setups.size();
@@ -281,10 +281,10 @@ public class BenchmarkBatch {
         
         System.out.print("\r> Progress : " + (progress * 100 / total ) + "% (" + progress + "/" + total + ")" );
         try {
-          ctrl.reset(false);
-          ctrl.setup(s,false);
+          ctrl.reset(!is_tossim);
+          ctrl.setup(s,!is_tossim);
           ctrl.syncAll();
-          ctrl.run(false);
+          ctrl.run(!is_tossim);
           ctrl.download_stat();
           ctrl.download_profile();
         } catch (BenchmarkController.MessageSendException ex) {
