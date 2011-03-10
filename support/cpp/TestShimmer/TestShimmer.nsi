@@ -52,7 +52,7 @@ Section "TestShimmer (required)"
   File "TestShimmer.ico"
   File "sqlite3.exe"
   
-  CreateShortCut "$DESKTOP\TestShimmer.lnk" "$INSTDIR\app\TestShimmer.exe" "TestShimmer" "$INSTDIR\app\TestShimmer.ico" 0
+  CreateShortCut "$DESKTOP\TestShimmer.lnk" "$INSTDIR\bin\TestShimmer.exe" "TestShimmer" "$INSTDIR\bin\TestShimmer.ico" 0
   
   CreateDirectory $INSTDIR\bin\sqldrivers
   SetOutPath $INSTDIR\bin\sqldrivers
@@ -69,7 +69,7 @@ Section "Start Menu Shortcuts"
 
   CreateDirectory "$SMPROGRAMS\TestShimmer"
   CreateShortCut "$SMPROGRAMS\TestShimmer\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
-  CreateShortCut "$SMPROGRAMS\TestShimmer\TestShimmer.lnk" "$INSTDIR\app\TestShimmer.exe" "TestShimmer" "$INSTDIR\app\TestShimmer.ico" 0
+  CreateShortCut "$SMPROGRAMS\TestShimmer\TestShimmer.lnk" "$INSTDIR\bin\TestShimmer.exe" "TestShimmer" "$INSTDIR\bin\TestShimmer.ico" 0
   
 SectionEnd
 
@@ -81,8 +81,10 @@ Section "Uninstall"
   
 
   ; Remove files and uninstaller
-  Delete $INSTDIR\app\*.*
+  Delete $INSTDIR\bin\sqldrivers\*.*
+  Delete $INSTDIR\bin\*.*  
   Delete $INSTDIR\uninstall.exe
+  Delete $INSTDIR\*.*
 
   ; Remove shortcuts, if any
   Delete "$SMPROGRAMS\TestShimmer\*.*"
