@@ -38,8 +38,7 @@ Section "TestShimmer (required)"
   CreateDirectory $INSTDIR\bin
   CreateDirectory $INSTDIR\calib
 
-  CreateDirectory $INSTDIR\app
-  SetOutPath $INSTDIR\app
+  SetOutPath $INSTDIR\bin
   
   ; Put file there
   File "TestShimmer.exe"
@@ -51,11 +50,12 @@ Section "TestShimmer (required)"
   File "QtOpenGL4.dll"
   File "QtSql4.dll"
   File "TestShimmer.ico"
+  File "sqlite3.exe"
   
   CreateShortCut "$DESKTOP\TestShimmer.lnk" "$INSTDIR\app\TestShimmer.exe" "TestShimmer" "$INSTDIR\app\TestShimmer.ico" 0
   
-  CreateDirectory $INSTDIR\app\sqldrivers
-  SetOutPath $INSTDIR\app\sqldrivers
+  CreateDirectory $INSTDIR\bin\sqldrivers
+  SetOutPath $INSTDIR\bin\sqldrivers
   File "qsqlite4.dll"  
   
   ; Write the uninstall keys for Windows
