@@ -44,6 +44,11 @@ public class TSParser {
 	private File tsFile;
 	private long maxError;
 
+	/**
+	 * returns TimeSync file for given data file (search in the data files directory)
+	 * @param dataFile
+	 * @return TimeSync file
+	 */
 	public static File searchTSFile(File dataFile){
 		File dir=new File(dataFile.getAbsolutePath().substring(0,dataFile.getAbsolutePath().lastIndexOf("/")));
 		String[] fileNames=dir.list();
@@ -57,6 +62,10 @@ public class TSParser {
 		return null;
 	}
 	
+	/**
+	 * Parses TimeSync file and calculates regression
+	 * @return Linear function(s) calculated from the file
+	 */
 	public ArrayList<LinearFunction> parseTimeSyncFile(){
 		ArrayList<LinearFunction> functions=new ArrayList<LinearFunction>();
 		if(tsFile.exists()&&tsFile.isFile()&&tsFile.canRead()){
@@ -104,6 +113,11 @@ public class TSParser {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param tsFile TimeSync file
+	 * @param maxError maximum distance of any new point from the calculated line Regression.java
+	 */
 	public TSParser(File tsFile, long maxError){
 		this.tsFile=tsFile;
 		this.maxError=maxError;
