@@ -45,24 +45,23 @@ public class CSVProcess{
 	private String separator=";";
 	private String nodeIdSeparator=":";
 	
-	private String tsext=".ts";
-	private int localColumn[]={4};
-	private int globalColumn[]={5};
-	private String globalName="globaltime";
+	private int localColumn[]={4}; //time
+	private int globalColumn[]={5}; //time
 	private boolean insertGlobal=true;
 	private int maxerror=120;
 	private String timeformat="yyyy.MM.dd/HH:mm:ss.SSS";
 	private String confFile="convert.conf";
-	private boolean hasHeader=true;
 	private String csvExt=".csv";
-	private int runningConversions;
-	public ArrayList<CSVHandler> filesPerNode_=new ArrayList<CSVHandler>();
-	public ArrayList<CSVHandler> filesPerNode[]=null;
+	
+
 	private ArrayList<Integer> dataColumns[];
 	private long startTime=Long.MIN_VALUE;
 	private long endTime=Long.MAX_VALUE;
 	private long timewindow=900000;
 	private byte timetype=CSVHandler.TIMETYPE_START;
+	
+	private int runningConversions;
+	public ArrayList<CSVHandler> filesPerNode[]=null;	
 	
 	public CSVProcess(ArrayList<String> inputFiles, ArrayList<Integer> dataColumns[]){
 		this.dataColumns=dataColumns;
