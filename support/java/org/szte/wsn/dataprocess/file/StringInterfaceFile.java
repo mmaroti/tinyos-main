@@ -162,6 +162,13 @@ public class StringInterfaceFile implements StringInterface {
 			System.err.println("Error writing string file: " + e.getMessage());
 		}
 	}
+	
+	/**
+	 * @return output filenames
+	 */
+	public String[] getFiles(){
+		return fileNames;
+	}
 
 
 	@Override
