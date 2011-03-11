@@ -16,9 +16,8 @@ public class Converter implements ParsingReady{
 	
 	private Timer timer=new Timer();
 	private Transfer parser;
-	private File csvFile;
 	private String separator;
-	
+	private StringInterfaceFile sif;
 	
 	private static String switchExtension(String fullname, String newEx){
 		return fullname.substring(0, fullname.lastIndexOf('.'))+newEx;
@@ -29,23 +28,35 @@ public class Converter implements ParsingReady{
 		
 		PacketParser[] pp=new PacketParserFactory(confFile).getParsers();
 		String outputfile=switchExtension(file, csvext);
+		sif=new StringInterfaceFile(separator,outputfile , pp, false,Transfer.REWRITE, true, false);
 		Transfer fp=new Transfer(pp,
 				BinaryInterfaceFactory.getBinaryInterface("binfile", file),
-				new StringInterfaceFile(separator,outputfile , pp, false,Transfer.REWRITE, false, false),
+				sif,
 				true);
 		fp.start();
 		parser=fp;
-		csvFile=new File(outputfile);
 		if(parent==null) parent=this;
 		waitForParsing(parent);
 	}
 	
-	public CSVHandler toCSVHandler(int timeColumn, ArrayList<Integer> dataColumns) throws IOException{
-		return new CSVHandler(csvFile, true, separator, timeColumn, dataColumns);
+	public CSVHandler[] toCSVHandlers(int[] timeColumn, ArrayList<Integer>[] dataColumns) throws IOException{
+		String[] filenames=sif.getFiles();
+		CSVHandler[] files=new CSVHandler[filenames.length];
+		if(files.length!=timeColumn.length||files.length!=dataColumns.length)
+			return null;
+		for(int i=0;i<files.length;i++){
+			files[i]=new CSVHandler(new File(filenames[i]), true, separator, timeColumn[i], dataColumns[i]);
+		}
+		return files;
 	}
 	
-	public File getFile(){
-		return csvFile;
+	public File[] getFiles(){
+		String[] filenames=sif.getFiles();
+		File[] files=new File[filenames.length];
+		for(int i=0;i<files.length;i++){
+			files[i]=new File(filenames[i]);
+		}
+		return files;
 	}
 	
 	public class ParsersRunning extends TimerTask{
@@ -93,7 +104,5 @@ public class Converter implements ParsingReady{
 		// TODO Auto-generated method stub
 		return null;
 	}
-
-
 
 }

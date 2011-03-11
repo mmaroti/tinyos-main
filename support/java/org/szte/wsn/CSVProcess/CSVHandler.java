@@ -36,7 +36,6 @@ package org.szte.wsn.CSVProcess;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -45,7 +44,6 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import org.szte.wsn.TimeSyncPoint.LinearFunction;
-import org.szte.wsn.TimeSyncPoint.Regression;
 /**
  * CSV table file processor for data(time) functions.
  * Every table has a time column and columns with data
@@ -458,52 +456,8 @@ public class CSVHandler {
 	
 	//global time calculation functions
 	
-	private ArrayList<LinearFunction> ParseTimeSyncFile(File tsfile,long maxerror){
-		ArrayList<LinearFunction> functions=new ArrayList<LinearFunction>();
-		if(tsfile.exists()&&tsfile.isFile()&&tsfile.canRead()){
-			BufferedReader input;
-			try {
-				input = new BufferedReader(new FileReader(tsfile));
-			} catch (FileNotFoundException e1) {
-				System.err.println("Error: Can't read timestamp file: "+tsfile.getName());
-				return null;
-			}
-			String line;
-			Regression regr=new Regression(maxerror,(double)1000/1024);
-			try {
-				while (( line = input.readLine()) != null){
-					String[] dates = line.split(":");
-					if(dates.length<2){
-						System.err.println("Warning: Too short line in file: "+tsfile.getName());
-						System.err.println(line);
-						continue;
-					}
-					Long pctime,motetime;
-					try{
-						pctime=Long.parseLong(dates[0]);
-						motetime=Long.parseLong(dates[1]);
-					} catch(NumberFormatException e){
-						System.err.println("Warning: Unparsable line in file: "+tsfile.getName());
-						System.err.println(line);
-						continue;
-					}
-					if(!regr.addPoint(motetime, pctime)){//end of running: save the function, then read the next running
-						functions.add(regr.getFunction());
-						System.out.println("pc="+regr.getFunction().getOffset()+"+"+regr.getFunction().getSlope()+"*mote ("+tsfile.getName()+"); points:"+regr.getNumPoints());
-					}
-				}
-			} catch (IOException e) {
-				System.err.println("Error: Can't read timestamp file: "+tsfile.getName());
-				return null;
-			}
-			functions.add(regr.getFunction());
-			System.out.println("pc="+regr.getFunction().getOffset()+"+"+regr.getFunction().getSlope()+"*mote ("+tsfile.getName()+"); points:"+regr.getNumPoints());
-			return functions;
-		} else {
-			System.err.println("Error: Can't read timestamp file: "+tsfile.getName());
-			return null;
-		}
-	}
+	//TODO: this function, and the two tsfile constructor should be removed, and called from an other class (TimeSync packet); priority: high
+	
 	
 	private ArrayList<Integer> GetBreaks(){
 
@@ -570,35 +524,6 @@ public class CSVHandler {
 		}
 		addDataColumn(timeColumn);
 		setTimeColumn(global);
-	}
-	
-	/**
-	 * Calculate global time with linear functions from the time reference column. 
-	 * Replaces the reference time column, with the calculated one.
-	 * The functions will be calculated from the timesync point pairs with linear regression.
-	 * If a point is farer from the already calculated function than maxerror, it starts a new running.
-	 * @param timeFile Text file with timesync point pairs in lines separated with ":" (globaltime:localtime\n)
-	 * @param global Column number of the new "globaltime" column 
-	 * @param insert If false, the global column will be rewritten, if true, it will be inserted
-	 * @param maxerror Maximum error of a timesync point in the regression.
-	 */
-	public void calculateGlobal(File timeFile, int global, boolean insert, long maxerror){
-		calculateGlobal(ParseTimeSyncFile(timeFile, maxerror), global, insert);
-	}
-	
-	/**
-	 * Calculate global time with linear functions from the time reference column. 
-	 * Replaces the reference time column, with the calculated one.
-	 * The functions will be calculated from the timesync point pairs with linear regression.
-	 * If a point is farer from the already calculated function than maxerror, it starts a new running.
-	 * @param timeEx extension of timesync file (the name is the same as the CSV file). The file is a
-	 * text file with timesync point pairs in lines separated with ":" (globaltime:localtime\n)
-	 * @param global Column number of the new "globaltime" column 
-	 * @param insert If false, the global column will be rewritten, if true, it will be inserted
-	 * @param maxerror Maximum error of a timesync point in the regression.
-	 */
-	public void calculateGlobal(String timeEx, int global, boolean insert, long maxerror){
-		calculateGlobal(new File(changeExtension(getName(), timeEx)), global, insert, maxerror);
 	}
 
 	//TODO: these two method makes unparseble columns
