@@ -54,7 +54,8 @@ DataHolder* DataHolder::left(double* rotmat, const int length) {
 
 // FIXME Knows sampling rate
 DataHolder::DataHolder(ElbowFlexSign s, double* rotmat, const int length)
-    : sign(s), rotation_matrices(rotmat), size(length), SAMPLING_RATE(204.8), out(new ostringstream)
+    : sign(s), rotation_matrices(rotmat), size(length), last(length-1),
+      SAMPLING_RATE(204.8), out(new ostringstream)
 {
 
     flexion = supination = deviation = 0;
@@ -221,79 +222,59 @@ void DataHolder::save_ranges() {
     save_med_dev();
 }
 
-string str(double x) {
-
-    ostringstream os;
-
-    os << fixed << setprecision(1);
-
-    os << x << flush;
-
-    return os.str();
-}
-
 void DataHolder::save_flex() {
 
-    flex_range += str(flexion[0]);
-
-    flex_range += range(FLEX_MIN, FLEX_MAX);
+    flex_range += range(flexion[0], flexion[last], FLEX_MIN, FLEX_MAX);
 }
 
 void DataHolder::save_sup() {
 
-    sup_range += str(sup_begin());
-
-    sup_range += range(SUP_MIN, SUP_MAX);
+    sup_range += range(sup_at(0), sup_at(last), SUP_MIN, SUP_MAX);
 }
 
 void DataHolder::save_pron() {
 
-    pron_range += str(pron_begin());
-
-    pron_range += range(PRON_MIN, PRON_MAX);
+    pron_range += range(pron_at(0), pron_at(last), PRON_MIN, PRON_MAX);
 }
 
 void DataHolder::save_lat_dev() {
 
-    lat_range += str(lat_begin());
-
-    lat_range += range(LAT_MIN, LAT_MAX);
+    lat_range += range(lat_at(0), lat_at(last), LAT_MIN, LAT_MAX);
 }
 
 void DataHolder::save_med_dev() {
 
-    med_range += str(med_begin());
-
-    med_range += range(MED_MIN, MED_MAX);
+    med_range += range(med_at(0), med_at(last), MED_MIN, MED_MAX);
 }
 
-double DataHolder::sup_begin() const {
+double DataHolder::sup_at(int i) const {
 
-    return supination[0] >= 0 ? supination[0] : 0.0;
+    return supination[i] >= 0 ? supination[i] : 0.0;
 }
 
-double DataHolder::pron_begin() const {
+double DataHolder::pron_at(int i) const {
 
-    return supination[0] < 0 ? -supination[0] : 0.0;
+    return supination[i] < 0 ? -supination[i] : 0.0;
 }
 
-double DataHolder::lat_begin() const {
+double DataHolder::lat_at(int i) const {
 
-    return deviation[0] >= 0 ? deviation[0] : 0.0;
+    return deviation[i] >= 0 ? deviation[i] : 0.0;
 }
 
-double DataHolder::med_begin() const {
+double DataHolder::med_at(int i) const {
 
-    return deviation[0] < 0 ? -deviation[0] : 0.0;
+    return deviation[i] < 0 ? -deviation[i] : 0.0;
 }
 
 typedef ostringstream& oss;
 
-const string DataHolder::range(int MIN, int MAX) {
+const string DataHolder::range(double begin, double end, int MIN, int MAX) {
 
     oss os = get_out();
 
-    os << " / " << extrema[MIN] << " / " << extrema[MAX] << " / ";
+    os << begin << " / " << end << " / ";
+    os << extrema[MIN] << " / " << extrema[MAX] << " / ";
     os << extrema[MAX]-extrema[MIN] << " deg" << flush;
 
     return os.str();
@@ -303,15 +284,15 @@ const string DataHolder::angles_in_csv() const {
 
     ostringstream os;
 
-    os << setprecision(4) << scientific;
+    os << setprecision(1) << fixed;
 
     const char sep = ';';
 
-    os <<   flexion[0] << sep << extrema[FLEX_MIN] << sep << extrema[FLEX_MAX] << sep;
-    os <<  sup_begin() << sep << extrema[ SUP_MIN] << sep << extrema[ SUP_MAX] << sep;
-    os << pron_begin() << sep << extrema[PRON_MIN] << sep << extrema[PRON_MAX] << sep;
-    os <<  med_begin() << sep << extrema[ MED_MIN] << sep << extrema[ MED_MAX] << sep;
-    os <<  lat_begin() << sep << extrema[ LAT_MIN] << sep << extrema[ LAT_MAX] << flush;
+    os << flexion[0] << sep << flexion[last] << sep << extrema[FLEX_MIN] << sep << extrema[FLEX_MAX] << sep;
+    os <<  sup_at(0) << sep <<  sup_at(last) << sep << extrema[ SUP_MIN] << sep << extrema[ SUP_MAX] << sep;
+    os << pron_at(0) << sep << pron_at(last) << sep << extrema[PRON_MIN] << sep << extrema[PRON_MAX] << sep;
+    os <<  med_at(0) << sep <<  med_at(last) << sep << extrema[ MED_MIN] << sep << extrema[ MED_MAX] << sep;
+    os <<  lat_at(0) << sep <<  lat_at(last) << sep << extrema[ LAT_MIN] << sep << extrema[ LAT_MAX] << flush;
 
 
     return os.str();

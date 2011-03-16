@@ -371,17 +371,17 @@ void GLElbowFlexWidget::writeData() {
 
     renderText(-1.0, -2.85, 0.0, data->dev(position).c_str());
 
-    renderText(3.0, -2.5, 0.0, "           begin / min / max / range  deg");
+    renderText(2.5, -2.5, 0.0, "           begin / end / min / max / range  deg");
 
-    renderText(3.0, -3.0, 0.0, data->flex_info());
+    renderText(2.5, -3.0, 0.0, data->flex_info());
 
-    renderText(3.0, -3.5, 0.0, data->sup_info());
+    renderText(2.5, -3.5, 0.0, data->sup_info());
 
-    renderText(3.0, -4.0, 0.0, data->pron_info());
+    renderText(2.5, -4.0, 0.0, data->pron_info());
 
-    renderText(3.0, -4.5, 0.0, data->med_info());
+    renderText(2.5, -4.5, 0.0, data->med_info());
 
-    renderText(3.0, -5.0, 0.0, data->lat_info());
+    renderText(2.5, -5.0, 0.0, data->lat_info());
 
     glPopMatrix();
 }

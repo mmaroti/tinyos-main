@@ -105,7 +105,7 @@ private:
     void save_pron();
     void save_lat_dev();
     void save_med_dev();
-    const std::string range(int MIN, int MAX);
+    const std::string range(double begin, double end, int MIN, int MAX);
 
     std::ostringstream& get_out() const;
     void check_index(int i) const;
@@ -114,16 +114,18 @@ private:
     double supination_deg(int i) const;
     double deviation_deg(int i) const;
 
-    double  sup_begin() const;
-    double pron_begin() const;
-    double  lat_begin() const;
-    double  med_begin() const;
+    double  sup_at(int i) const;
+    double pron_at(int i) const;
+    double  lat_at(int i) const;
+    double  med_at(int i) const;
 
     const ElbowFlexSign sign;
 
     double* const rotation_matrices;
 
     const int size;
+
+    const int last;
 
     const double SAMPLING_RATE;
 
