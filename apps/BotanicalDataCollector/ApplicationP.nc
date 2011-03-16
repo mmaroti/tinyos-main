@@ -44,9 +44,9 @@ implementation{
     if(error!=SUCCESS)
       call RadioControl.start();
     else{
-      call LPL.setLocalWakeupInterval(500);
-      call SysLPL.setDefaultRemoteWakeupInterval(500);
-      call SysLPL.setDelayAfterReceive(3000);			
+      call LPL.setLocalWakeupInterval(512);
+      call SysLPL.setDefaultRemoteWakeupInterval(512);
+      call SysLPL.setDelayAfterReceive(3072);			
 
       call SetInterval.set(TIMESYNC_INTERVAL);
       call TimeSync.start();
