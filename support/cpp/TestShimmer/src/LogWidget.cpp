@@ -118,6 +118,10 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
     blockingBox->setModal(true);
     blockingBox->setStandardButtons(QMessageBox::NoButton);
 
+    dial->setWindowTitle("Add or select a person");
+
+    recSelect->setWindowTitle("Select a record");
+
     connect(dial, SIGNAL(personSelected(Person)), SLOT(onPersonSelected(Person)));
 
     connect(recSelect, SIGNAL(recordSelected(qint64,Person)), SLOT(onRecordSelected(qint64,Person)));
@@ -1441,6 +1445,8 @@ void LogWidget::showAnimation(const int motStartRow) {
     double* const mat = application.dataRecorder.rotmat(range);
 
     GLWindow* win = getGLWindow(mat, range.size());
+
+    win->setWindowTitle(person.name()+"  "+person.birth().toString(Qt::ISODate));
 
     win->showMaximized();
 
