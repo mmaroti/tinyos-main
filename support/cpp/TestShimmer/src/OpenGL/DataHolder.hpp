@@ -90,8 +90,12 @@ private:
 
     void init_angle_arrays();
     void fill_angle_arrays();
-    void find_horizontal_position();
     void find_min_max();
+    void make_dev_zero_at_horizontal_crossing();
+    int  find_horizontal_plane_crossing() const;
+    double y_gl_coordinate(int i) const;
+    double angle_making_deviation_zero(int i) const;
+    void rotate_all_around_y_axis(const double dev);
 
     void set_pronation();
     void set_med_dev();

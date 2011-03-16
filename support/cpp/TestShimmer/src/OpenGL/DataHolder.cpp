@@ -33,8 +33,8 @@
 
 #include <algorithm>
 #include <cmath>
-#include <fstream>
 #include <iomanip>
+#include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include "DataHolder.hpp"
@@ -67,7 +67,7 @@ DataHolder::DataHolder(ElbowFlexSign s, double* rotmat, const int length)
     lat_range  = "Lat Dev  ";
     med_range  = "Med Dev  ";
 
-    find_horizontal_position();
+    make_dev_zero_at_horizontal_crossing();
     find_min_max();
 }
 
@@ -329,59 +329,80 @@ namespace {
     const double PI_HALF = 1.57079632679;
 }
 
-void DataHolder::find_horizontal_position() {
+void DataHolder::make_dev_zero_at_horizontal_crossing() {
 
-    if (size<2) {
+    if (size < 2) {
 
         throw logic_error("there should be at least 2 samples");
     }
 
-    int i = 1;
+    const int i = find_horizontal_plane_crossing();
+
+    if (i < size) {
+
+        const double angle = angle_making_deviation_zero(i);
+
+        rotate_all_around_y_axis(angle);
+    }
+}
+
+int  DataHolder::find_horizontal_plane_crossing() const {
+
+    int i = 1; // caller assumes i > 0
 
     for ( ; i<size; ++i) {
 
-        if (matrix_at(i)[R31] > 0)
+        if (y_gl_coordinate(i) > 0) {
+
             break;
+        }
     }
 
-    if (i<size) {
+    return i;
+}
 
-        const double* const m1 = matrix_at(i-1);
-        const double* const m2 = matrix_at(i);
+double DataHolder::y_gl_coordinate(int i) const {
 
-        const double x = (m1[R21]+m2[R21])/2;
-        const double z = (m1[R11]+m2[R11])/2;
+    return matrix_at(i)[R31];
+}
 
-        double dev = atan2(-z,x);
+double DataHolder::angle_making_deviation_zero(int i) const {
 
-        oss os = get_out();
+    const double* const m1 = matrix_at(i-1);
+    const double* const m2 = matrix_at(i);
 
-        os << dev*RAD2DEG << ";  ";
+    const double x_gl_coord = (m1[R21]+m2[R21])/2;
+    const double z_gl_coord = (m1[R11]+m2[R11])/2;
 
-        //flex_range = os.str() + flex_range;
+    double dev = atan2(-z_gl_coord,x_gl_coord);
 
-        dev = -dev;
+    cout << "Deviation at crossing horizontal plane: ";
+    cout << fixed << setprecision(2) << dev*RAD2DEG << " deg" << endl;
 
-        double m[9];
+    return -dev;
+}
 
-        m[R11] = cos(dev); m[R12] = -sin(dev); m[R13] = 0.0;
-        m[R21] = sin(dev); m[R22] =  cos(dev); m[R23] = 0.0;
-        m[R31] = 0.0;      m[R32] =  0.0;      m[R33] = 1.0;
+void DataHolder::rotate_all_around_y_axis(const double angle) {
 
-        using namespace gyro;
+    using namespace gyro;
 
-        matrix3 correction(m);
+    double m[9];
 
-        for (int i=0; i<size; ++i) {
+    m[R11] = cos(angle); m[R12] = -sin(angle); m[R13] = 0.0;
+    m[R21] = sin(angle); m[R22] =  cos(angle); m[R23] = 0.0;
+    m[R31] = 0.0;        m[R32] =  0.0;        m[R33] = 1.0;
 
-            double* r_old = const_cast<double*> (matrix_at(i));
+    const matrix3 correction(m);
 
-            matrix3 R(r_old);
+    for (int i=0; i<size; ++i) {
 
-            matrix3 R_new = correction*R;
+        double* R_old = const_cast<double*> (matrix_at(i));
 
-            R_new.copy_to(r_old);
-        }
+        matrix3 R(R_old);
+
+        matrix3 R_new = correction*R;
+
+        R_new.copy_to(R_old);
     }
 }
 
@@ -413,7 +434,7 @@ const string DataHolder::flex(int i) const {
 
     oss os = get_out();
 
-    os << "Flex " << flexion[i] << " deg";//  " << matrix_at(i)[R31];
+    os << "Flex " << flexion[i] << " deg";
 
     return os.str();
 }
