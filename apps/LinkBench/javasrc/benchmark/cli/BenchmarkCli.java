@@ -367,7 +367,7 @@ public class BenchmarkCli {
         String ofile = cl.hasOption('o') ? cl.getOptionValue('o') : "results.xml";
         
         BenchmarkBatch rbb = new BenchmarkBatch(ofile);
-        if ( rbb.parse(bfile) && rbb.run() ) {
+        if ( rbb.parse(bfile) && rbb.run( cl.hasOption("tossim") ) ) {
           System.exit(0);
         } else
           System.exit(1);
