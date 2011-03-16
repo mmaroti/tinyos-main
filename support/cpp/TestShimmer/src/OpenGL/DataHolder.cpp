@@ -38,6 +38,7 @@
 #include <sstream>
 #include <stdexcept>
 #include "DataHolder.hpp"
+#include "MatrixVector.hpp"
 
 using namespace std;
 
@@ -66,6 +67,7 @@ DataHolder::DataHolder(ElbowFlexSign s, double* rotmat, const int length)
     lat_range  = "Lat Dev  ";
     med_range  = "Med Dev  ";
 
+    find_horizontal_position();
     find_min_max();
 }
 
@@ -119,11 +121,6 @@ void DataHolder::init_angle_arrays() {
     if (flexion || supination || deviation) {
 
         throw logic_error("already initialized");
-    }
-
-    if (size<1) {
-
-        throw logic_error("there should be at least 1 sample");
     }
 
     flexion    = new double[size];
@@ -332,6 +329,62 @@ namespace {
     const double PI_HALF = 1.57079632679;
 }
 
+void DataHolder::find_horizontal_position() {
+
+    if (size<2) {
+
+        throw logic_error("there should be at least 2 samples");
+    }
+
+    int i = 1;
+
+    for ( ; i<size; ++i) {
+
+        if (matrix_at(i)[R31] > 0)
+            break;
+    }
+
+    if (i<size) {
+
+        const double* const m1 = matrix_at(i-1);
+        const double* const m2 = matrix_at(i);
+
+        const double x = (m1[R21]+m2[R21])/2;
+        const double z = (m1[R11]+m2[R11])/2;
+
+        double dev = atan2(-z,x);
+
+        oss os = get_out();
+
+        os << dev*RAD2DEG << ";  ";
+
+        //flex_range = os.str() + flex_range;
+
+        dev = -dev;
+
+        double m[9];
+
+        m[R11] = cos(dev); m[R12] = -sin(dev); m[R13] = 0.0;
+        m[R21] = sin(dev); m[R22] =  cos(dev); m[R23] = 0.0;
+        m[R31] = 0.0;      m[R32] =  0.0;      m[R33] = 1.0;
+
+        using namespace gyro;
+
+        matrix3 correction(m);
+
+        for (int i=0; i<size; ++i) {
+
+            double* r_old = const_cast<double*> (matrix_at(i));
+
+            matrix3 R(r_old);
+
+            matrix3 R_new = correction*R;
+
+            R_new.copy_to(r_old);
+        }
+    }
+}
+
 double DataHolder::flexion_deg(int i) const {
 
     const double* const m = matrix_at(i);
@@ -360,7 +413,7 @@ const string DataHolder::flex(int i) const {
 
     oss os = get_out();
 
-    os << "Flex " << flexion[i] << " deg";
+    os << "Flex " << flexion[i] << " deg";//  " << matrix_at(i)[R31];
 
     return os.str();
 }

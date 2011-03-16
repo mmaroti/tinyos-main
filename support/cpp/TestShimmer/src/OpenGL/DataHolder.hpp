@@ -90,6 +90,7 @@ private:
 
     void init_angle_arrays();
     void fill_angle_arrays();
+    void find_horizontal_position();
     void find_min_max();
 
     void set_pronation();
