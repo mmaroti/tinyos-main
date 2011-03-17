@@ -63,6 +63,9 @@ public class Communication  implements MessageListener {
 			DataMsg rec=(DataMsg)m;
 			byte[] data=rec.get_payload();
 			sd.newData(rec.get_source(),rec.get_address(),data);
+		} else if(m instanceof TimeMsg){
+			TimeMsg rec=(TimeMsg)m;
+			System.out.println(rec.get_localTime()+";"+rec.get_remoteTime()+";"+rec.get_sendTime()+";"+rec.get_bootCount());
 		}
 	}
 	
@@ -104,6 +107,7 @@ public class Communication  implements MessageListener {
 		this.moteIF = new MoteIF(phoenix);
 		this.moteIF.registerListener(new DataMsg(), this);
 		this.moteIF.registerListener(new CtrlMsg(), this);
+		this.moteIF.registerListener(new TimeMsg(), this);
 	}
 
 }
