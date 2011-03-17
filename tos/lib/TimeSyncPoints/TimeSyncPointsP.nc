@@ -29,6 +29,7 @@
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 * Author: Zoltan Kincses
+* Author: Andras Biro
 */
 
 #include "TimeSyncPoints.h"
@@ -40,6 +41,9 @@ module TimeSyncPointsP
     interface TimeSyncPoints;
     interface StdControl;
     interface Set<uint16_t> as SetInterval;
+    interface Set<uint8_t> as SetSavePoints;
+    interface Get<uint8_t> as GetLastRSSI;
+    interface Get<uint8_t> as GetLastLQI;    
   }
   uses
   {	
@@ -50,6 +54,10 @@ module TimeSyncPointsP
     interface AMPacket;
     interface Timer<TMilli>;
     interface LocalTime<TMilli>;
+    
+    interface Get<uint16_t> as getBootCount;
+    interface PacketField<uint8_t> as PacketRSSI;
+    interface PacketField<uint8_t> as PacketLinkQuality;
   }
 }
 implementation
@@ -57,8 +65,12 @@ implementation
 
   message_t syncMessage;
   uint16_t period=TIMESYNCPOINTS_PERIOD;
-  uint32_t ref_time=0;
   bool running=FALSE;
+  uint8_t lastRSSI,lastLQI;
+  uint8_t pointsToSave=0xff;
+  uint16_t pointsReceived=0;
+  uint16_t pointSaveOffset=0;
+  
   
   command error_t StdControl.start()
   {
@@ -89,24 +101,44 @@ implementation
       call Timer.startPeriodic(((uint32_t)period)<<10);
     }
   }
+  
+  command void SetSavePoints.set(uint8_t value){  
+    pointsToSave=value;
+  }
 
   event void Timer.fired()
   {
       timeSyncPointsMsg_t* packet = (timeSyncPointsMsg_t*)(call TimeSyncAMSendMilli.getPayload(&syncMessage, sizeof(timeSyncPointsMsg_t)));
       packet->timeStamp = call LocalTime.get();
+      packet->bootCount = call getBootCount.get();
       call TimeSyncAMSendMilli.send(AM_BROADCAST_ADDR, &syncMessage, sizeof(timeSyncPointsMsg_t),packet->timeStamp);
+      pointSaveOffset+=pointsToSave;
+      if(pointSaveOffset>(pointsReceived+pointsToSave))
+        pointSaveOffset=pointsReceived-pointsToSave;
+      pointsReceived=0;
   }
   
   event message_t* TimeSyncReceive.receive(message_t* msg,void* payload, uint8_t len)
   {
-    if (running&&call TimeSyncPacketMilli.isValid(msg)){
+    pointsReceived++;
+    if ((pointsReceived>pointSaveOffset&&pointsReceived<=pointSaveOffset+pointsToSave)&&running&&call TimeSyncPacketMilli.isValid(msg)){
       timeSyncPointsMsg_t* syncMsg = (timeSyncPointsMsg_t*)payload;
-      signal TimeSyncPoints.syncPoint(call TimeSyncPacketMilli.eventTime(msg), call AMPacket.source(msg), syncMsg->timeStamp);
+      lastRSSI=call PacketRSSI.get(msg);
+      lastLQI=call PacketLinkQuality.get(msg);
+      signal TimeSyncPoints.syncPoint(call TimeSyncPacketMilli.eventTime(msg), call AMPacket.source(msg), syncMsg->timeStamp, syncMsg->bootCount);
     }
     return msg;
   }
   
+  command uint8_t GetLastRSSI.get(){
+    return lastRSSI;
+  }
+  
+  command uint8_t GetLastLQI.get(){
+    return lastLQI;
+  }
+  
   event void TimeSyncAMSendMilli.sendDone(message_t* Bufptr, error_t err){}
-  default event void TimeSyncPoints.syncPoint(uint32_t local, am_addr_t nodeId, uint32_t remote){}
+  default event void TimeSyncPoints.syncPoint(uint32_t local, am_addr_t nodeId, uint32_t remote, uint16_t bootCount){}
 }
 

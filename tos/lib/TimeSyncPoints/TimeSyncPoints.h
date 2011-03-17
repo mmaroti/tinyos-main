@@ -7,6 +7,7 @@ enum {
 };
 
 typedef struct timeSyncPointsMsg{
+    uint16_t bootCount;
     uint32_t timeStamp;
 }timeSyncPointsMsg_t; 
 

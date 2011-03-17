@@ -39,11 +39,14 @@ configuration TimeSyncPointsC
 	provides interface TimeSyncPoints;
 	provides interface StdControl;
     provides interface Set<uint16_t> as SetInterval;
+    provides interface Set<uint8_t> as SetSavePoints;
+    provides interface Get<uint8_t> as GetLastRSSI;
+    provides interface Get<uint8_t> as GetLastLQI;
 }
 implementation
 {
-	components TimeSyncMessageC, LocalTimeMilliC;
-  	components TimeSyncPointsP;
+	components TimeSyncMessageC, LocalTimeMilliC, new EepromVariableUint16P(0);
+  	components TimeSyncPointsP, RF230ActiveMessageC;
   	components new TimerMilliC();
 
  	TimeSyncPointsP.PacketTimeStampMilli -> TimeSyncMessageC.PacketTimeStampMilli;
@@ -53,8 +56,16 @@ implementation
   	TimeSyncPointsP.Timer -> TimerMilliC;
     TimeSyncPointsP.AMPacket -> TimeSyncMessageC.AMPacket;
     TimeSyncPointsP.LocalTime -> LocalTimeMilliC;
+    TimeSyncPointsP.PacketRSSI->RF230ActiveMessageC.PacketRSSI;
+    TimeSyncPointsP.PacketLinkQuality->RF230ActiveMessageC.PacketLinkQuality;
+    TimeSyncPointsP.getBootCount->EepromVariableUint16P;
   	TimeSyncPoints=TimeSyncPointsP;
   	StdControl=TimeSyncPointsP;
     SetInterval=TimeSyncPointsP;
+    SetSavePoints=TimeSyncPointsP;
+    GetLastRSSI=TimeSyncPointsP.GetLastRSSI;
+    GetLastLQI=TimeSyncPointsP.GetLastLQI;
+    
+    
 }
 

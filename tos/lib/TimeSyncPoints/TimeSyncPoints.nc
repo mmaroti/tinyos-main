@@ -43,5 +43,5 @@ interface TimeSyncPoints {
 	 * @param  nodeID        the node ID of the remote mote
 	 * @param  remoteTime    the local time on the remote mote
 	 */
-	event void syncPoint(uint32_t localTime, am_addr_t nodeID, uint32_t remoteTime);
+	event void syncPoint(uint32_t localTime, am_addr_t nodeID, uint32_t remoteTime, uint16_t remoteBootCount);
 }
