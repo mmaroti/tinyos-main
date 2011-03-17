@@ -2,7 +2,10 @@
   #define MEASURE_INTERVAL 60
 #endif
 #ifndef TIMESYNC_INTERVAL
-  #define TIMESYNC_INTERVAL 600
+  #define TIMESYNC_INTERVAL 30
+#endif
+#ifndef TIMESYNC_SAVEPOINT
+  #define TIMESYNC_SAVEPOINT 3
 #endif
 module ApplicationP{
   uses{
@@ -13,6 +16,7 @@ module ApplicationP{
     interface Read<uint8_t> as IRLight;
     interface Read<uint16_t> as Temp;
     interface Read<uint16_t> as Humidity;
+    interface Read<uint16_t> as VRef;
     interface LocalTime<TMilli>;
     interface StreamStorageWrite as DataStorageWrite;
     interface StreamStorageWrite as TimeStorageWrite;
@@ -20,23 +24,42 @@ module ApplicationP{
     interface LowPowerListening as LPL;
     interface SystemLowPowerListening as SysLPL;		
     interface Set<uint16_t> as SetInterval;
+    interface Set<uint8_t> as SetSavePoints;
+    interface Get<uint8_t> as GetLastRSSI;
+    interface Get<uint8_t> as GetLastLQI;
     interface TimeSyncPoints;
     interface StdControl as TimeSync;
     interface Command;
+    interface Set<uint16_t> as EepromWrite;
+    interface Get<uint16_t> as EepromRead;
   }
 }
 implementation{
 
-  nx_struct{
+  nx_struct data{//size=14
     nx_uint16_t temp;
     nx_uint16_t humidity;
+    nx_uint16_t vref;
     nx_uint8_t vlight;
     nx_uint8_t irlight;
     nx_uint32_t timestamp;
+    nx_uint16_t bootCount;
   } data;
+  
+  nx_struct time{//size=16
+    nx_uint16_t nodeId;
+    nx_uint32_t local;
+    nx_uint16_t localBootCount;
+    nx_uint32_t remote;
+    nx_uint16_t remoteBootCount;
+    nx_uint8_t rssi;
+    nx_uint8_t lqi;
+  } timeData;
+  
   bool running=FALSE;
 
   event void Boot.booted(){
+    call EepromWrite.set(call EepromRead.get()+1);
     call RadioControl.start();
   }
 
@@ -49,6 +72,7 @@ implementation{
       call SysLPL.setDelayAfterReceive(3072);			
 
       call SetInterval.set(TIMESYNC_INTERVAL);
+      call SetSavePoints.set(TIMESYNC_SAVEPOINT);
       call TimeSync.start();
 
       call Timer.startPeriodicAt(((uint32_t)MEASURE_INTERVAL)<<9,(uint32_t)MEASURE_INTERVAL<<10);
@@ -75,7 +99,15 @@ implementation{
       data.temp=val;
     else
       data.temp=0xffff;
-    call VLight.read();		
+    call VRef.read();	
+  }
+  
+  event void VRef.readDone(error_t result, uint16_t val){
+    if(result==SUCCESS)
+      data.vref=val;
+    else
+      data.vref=0xffff;
+    call VLight.read(); 
   }
 
   event void VLight.readDone(error_t result, uint8_t val){
@@ -94,16 +126,19 @@ implementation{
 	data.irlight=0;
     }
     data.timestamp=call LocalTime.get();
-    call DataStorageWrite.appendWithID(0xaa,&data, sizeof(data));
+    data.bootCount=call EepromRead.get();
+    call DataStorageWrite.append(&data, sizeof(data));
   }
 
-  event void TimeSyncPoints.syncPoint(uint32_t local, am_addr_t nodeId, uint32_t remote){
-    nx_struct{
-      nx_uint16_t nodeId;
-      nx_uint32_t local;
-      nx_uint32_t remote;
-    } timeData;
-    call TimeStorageWrite.appendWithID(0x3d,&timeData, sizeof(timeData));
+  event void TimeSyncPoints.syncPoint(uint32_t local, am_addr_t nodeId, uint32_t remote, uint16_t remoteBootCount){
+
+    timeData.nodeId=nodeId;
+    timeData.local=local;
+    timeData.localBootCount=call EepromRead.get();
+    timeData.remote=remote;
+    timeData.rssi=call GetLastRSSI.get();
+    timeData.lqi=call GetLastLQI.get();
+    call TimeStorageWrite.append(&timeData, sizeof(timeData));
   }
   
   event void Command.newCommand(uint32_t cmd){
@@ -133,6 +168,11 @@ implementation{
         uint16_t interval=cmd>>16;
         call Timer.startPeriodic((uint32_t)interval<<10);
         call Command.sendData(((uint32_t)interval<<16)+0x4400);
+      }break;
+      case 0x55:{
+        uint8_t value=cmd>>16;
+        call SetSavePoints.set(value);
+        call Command.sendData(((uint32_t)value<<16)+0x5500);
       }break;
     }
   }
