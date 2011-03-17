@@ -21,6 +21,7 @@ implementation{
         STREAM_GETMIN=CMD_GETMIN,
         STREAM_ERASE=CMD_ERASE,
         STREAM_GETMIN_READ,
+        STREAM_EXTERNAL_COMMAND,
         STREAM_READ,
         STREAM_NULL=0,
         BS_ADDRESS=0,
@@ -41,10 +42,11 @@ implementation{
       if(streamcommand==STREAM_NULL){
         command_msg *rec=(command_msg*)payload;
         call Leds.led1Toggle();
-        if(rec->cmd>=0x10)
+        if(rec->cmd>=0x10){
+          streamcommand=STREAM_EXTERNAL_COMMAND;
           signal Command.newCommand(rec->cmd);
-        else if(call Resource.request()==SUCCESS){
-            streamcommand=rec->cmd;
+        }else if(call Resource.request()==SUCCESS){
+          streamcommand=rec->cmd;
         }
       }
       return TRUE;
@@ -189,6 +191,8 @@ implementation{
         } else
             ctrlsend.seq_num=seq_num++;
         ctrlcached=call CtrlSend.send(&ctrlsend);
+        if(streamcommand==STREAM_EXTERNAL_COMMAND)
+          streamcommand=STREAM_NULL;
         call Leds.led2Toggle();
         return TRUE;
     }
