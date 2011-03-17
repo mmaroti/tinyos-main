@@ -50,7 +50,7 @@ public class TSParser {
 	 * @return TimeSync file
 	 */
 	public static File searchTSFile(File dataFile){
-		File dir=new File(dataFile.getAbsolutePath().substring(0,dataFile.getAbsolutePath().lastIndexOf("/")));
+		File dir=new File(dataFile.getAbsolutePath().substring(0,dataFile.getAbsolutePath().lastIndexOf(File.separator)));
 		String[] fileNames=dir.list();
 		for(String name_ext:fileNames){
 			String nameOnly=name_ext;
