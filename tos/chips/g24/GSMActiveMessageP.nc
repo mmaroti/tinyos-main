@@ -32,8 +32,6 @@
 * Author: Zoltan Kincses
 */ 
 
-#include<stdio.h>
-
 module GSMActiveMessageP{
 	provides interface SplitControl;
 	provides interface AMSend; 
@@ -57,6 +55,7 @@ implementation{
 	bool busy=FALSE;
 	
 	char *convertToHex(uint8_t *toConvert, uint8_t len);
+	void procToHex(char *hex, uint8_t x);
 	
 	command error_t SplitControl.start(){
 		error_t err=call GsmControl.onGsmModule();
@@ -164,29 +163,32 @@ implementation{
 		*(hexString)='\0';
 ////////// HEADER //////////////////////////////////////////
 		strcat(hexString,"5041434B4554");
-		if(len<=15){
-			hexChar[0]='0';
-			sprintf(hexChar+1,"%X",len);
-			strcat(hexString,hexChar);
-		}else{
-			sprintf(hexChar,"%X",len);
-			strcat(hexString,hexChar);
-		}
+		procToHex(hexChar,len);
+		strcat(hexString,hexChar);
 ////////// HEADER END //////////////////////////////////////
 ////////// DATA       //////////////////////////////////////
 		for(i=0;i<len;i++){
-			if(toConvert[i]<=15){
-				hexChar[0]='0';
-				sprintf(hexChar+1,"%X",toConvert[i]);
-				strcat(hexString,hexChar);
-			}else{
-				sprintf(hexChar,"%X",toConvert[i]);
-				strcat(hexString,hexChar);
-			}
+			procToHex(hexChar,toConvert[i]);
+			strcat(hexString,hexChar);
 		}	
 		strcat(hexString,"0D");
-
 ////////// DATA END    //////////////////////////////////////
 		return hexString;
+	}
+	
+	void procToHex(char *hex, uint8_t x){
+		char baseDigits[]={'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+		uint8_t convertedNum[3],i=0;
+        
+		if(x<=15){
+			convertedNum[1]=0;
+		}
+		do{
+			convertedNum[i++]=x%16;
+			x=x/16;
+		}while(x!=0);
+		hex[0]=baseDigits[convertedNum[1]];
+		hex[1]=baseDigits[convertedNum[0]];
+		hex[2]='\0';
 	}
 }
