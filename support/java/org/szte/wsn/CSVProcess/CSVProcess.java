@@ -29,7 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Author:Andras Biro
+ * Author:Andras Biro, Miklos Toth
  */
 package org.szte.wsn.CSVProcess;
 
@@ -138,14 +138,9 @@ public class CSVProcess{
 								timeType=CSVHandler.TIMETYPE_START;
 							else
 							System.out.println("WARNING: Could not identify timeType during the parsing of "+fileName +"CSVProcess config file. ");
-							}	
+							}	//end of global parameter parsing
 						
-						
-						if(keyWord.equalsIgnoreCase("csvExt")) 
-							csvExt=value;
-						
-						if(keyWord.equalsIgnoreCase("outputFile")) 
-							outputFile=new File(value);
+
 						
 					}
 				}
