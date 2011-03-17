@@ -109,9 +109,9 @@ implementation {
 	event void RadioControl.startDone(error_t error) {
 		if(error == SUCCESS) {
 			call ConvInit.init();
-			call LPL.setLocalWakeupInterval(500);
-			call SysLPL.setDefaultRemoteWakeupInterval(500);
-			call SysLPL.setDelayAfterReceive(3000);
+			call LPL.setLocalWakeupInterval(512);
+			call SysLPL.setDefaultRemoteWakeupInterval(512);
+			call SysLPL.setDelayAfterReceive(3072);
             call SetInterval.set(0);
             call TimeSyncCtrl.start();
 			call SerialControl.start();
@@ -182,12 +182,13 @@ implementation {
         sendDone(msg,error);
     }  
 	
-	event void TimeSyncPoints.syncPoint(uint32_t local, am_addr_t nodeId, uint32_t remote){
+	event void TimeSyncPoints.syncPoint(uint32_t local, am_addr_t nodeId, uint32_t remote, uint16_t bootCount){
         message_t *presendbuffer=call Pool.get();
         if(presendbuffer!=NULL){
             time_msg data;//we can use local variable, becouse fillMessage is inline
             data.remoteTime=remote;
             data.localTime=local;
+						data.bootCount=bootCount;
             fillMessage(presendbuffer, &data, sizeof(time_msg),AM_TIME_MSG,nodeId);
         } else
             failBlink();
