@@ -51,6 +51,7 @@ Section "TestShimmer (required)"
   File "QtSql4.dll"
   File "TestShimmer.ico"
   File "sqlite3.exe"
+  File "pthreadGCE2.dll"
   
   CreateShortCut "$DESKTOP\TestShimmer.lnk" "$INSTDIR\bin\TestShimmer.exe" "TestShimmer" "$INSTDIR\bin\TestShimmer.ico" 0
   
