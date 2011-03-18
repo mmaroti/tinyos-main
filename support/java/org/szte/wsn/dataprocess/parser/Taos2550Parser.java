@@ -14,8 +14,9 @@ public class Taos2550Parser extends IntegerParser{
 	protected int byteToCount(byte packet)
 	{	
 		int count=(int) super.byteToLong(new byte[] {packet});
+		count&=0x7f;
 		int s=0xf&count;
-		int c=Integer.rotateRight(count-128-s,4);
+		int c=Integer.rotateRight(count&0x70,4);
 		int twopowc=(int) Math.pow(2,c);
 		count=(int) (Math.floor(16.5*(twopowc-1)))+s*twopowc;
 
