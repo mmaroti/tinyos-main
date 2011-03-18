@@ -34,6 +34,10 @@ Section "TestShimmer (required)"
 
   ; Create /rec /tmp /bin directories
   CreateDirectory $INSTDIR\rec
+  SetOutPath $INSTDIR\rec
+	File "records.sqlite"
+	File "3.csv"
+  
   CreateDirectory $INSTDIR\tmp
   CreateDirectory $INSTDIR\bin
   CreateDirectory $INSTDIR\calib
