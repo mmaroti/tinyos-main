@@ -100,13 +100,13 @@ implementation {
   command error_t StdControl.start() {
     
     alive = TRUE;
-    min_mil = min_mtl = -(0x7fffffffL-1L);
-    max_mil = max_mtl = 0x7fffffffL;
+    min_mil = min_mtl = 0x7fffffffL;
+    max_mil = max_mtl = -(0x7fffffffL-1L);
     
     // Atomic Length Measurement Init
     atomic {
-      max_mal = 0x7fffffffL;
-      min_mal = -(0x7fffffffL-1L);
+      max_mal = -(0x7fffffffL-1L);
+      min_mal = 0x7fffffffL;
       call Alarm.stop();
       mal_offset = call Alarm.getNow();
       call Alarm.startAt(mal_offset, ATOMIC_PERIODIC_TIME);
