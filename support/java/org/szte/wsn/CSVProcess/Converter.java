@@ -68,7 +68,8 @@ public class Converter implements ParsingReady{
 				true);
 		fp.start();
 		parser=fp;
-		if(parent==null) parent=this;
+		if(parent==null)
+			parent=this;
 		waitForParsing(parent);
 	}
 	
