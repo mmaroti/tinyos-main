@@ -16,8 +16,14 @@ public class Taos2550LuxParser extends Taos2550Parser{
 	{
 		int visibleAndInfra=super.byteToCount(packet[0]);
 		int infra=super.byteToCount(packet[1]);
-		double r=infra/(visibleAndInfra-infra);
-		double lux=(visibleAndInfra-infra)*0.39*Math.exp(-0.181*r*r);
+		double lux;
+		if(infra!=visibleAndInfra){
+			double r=infra/(visibleAndInfra-infra);
+			lux=(visibleAndInfra-infra)*0.39*Math.exp(-0.181*r*r);
+		}else{
+			lux=(visibleAndInfra-infra)/2;
+		}
+		
 		return new String[]{Double.toString(lux)};
 	}
 	
