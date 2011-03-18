@@ -36,16 +36,12 @@
 #define ATOMIC_PERIODIC_TIME 1024
 
 #define _MAX_(a,b) (((a) < (b)) ? (b) : (a))
+#define _MIN_(a,b) (((a) > (b)) ? (b) : (a))
 
 module CodeProfileP @safe() {
   provides {
     interface StdControl;
-    
     interface CodeProfile;
-    interface Get<uint32_t> as MaxInterruptLength;
-    interface Get<uint32_t> as MaxAtomicLength;
-    interface Get<uint32_t> as MaxTaskLatency;
-    
   }
   uses {
     interface Alarm<TMicro, uint32_t> as Alarm;
@@ -54,21 +50,25 @@ module CodeProfileP @safe() {
 
 implementation {
 
-  uint32_t        mil;           // Maximum Interrupt Length
-  uint32_t        mal;           // Maximum Atomic Length
-  uint32_t        mtl;           // Maximum Task Latency
+  int32_t        max_mil;           // Maximum Interrupt Length
+  int32_t        max_mal;           // Maximum Atomic Length
+  int32_t        max_mtl;           // Maximum Task Latency
   
-  uint32_t        mtl_offset;
-  uint32_t        mal_offset;
-  norace bool     alive;
+  int32_t        min_mil;           // Mininum Interrupt Length
+  int32_t        min_mal;           // Mininum Atomic Length
+  int32_t        min_mtl;           // Mininum Task Latency
+  
+  uint32_t       mtl_offset;
+  uint32_t       mal_offset;
+  norace bool    alive;
 
-  command uint32_t CodeProfile.getMaxInterruptLength()  { return mil; }
-  command uint32_t CodeProfile.getMaxAtomicLength()     { atomic {return mal;} }
-  command uint32_t CodeProfile.getMaxTaskLatency()      { return mtl; }
+  command int32_t CodeProfile.getMaxInterruptLength()  { return max_mil; }
+  command int32_t CodeProfile.getMaxAtomicLength()     { atomic {return max_mal;} }
+  command int32_t CodeProfile.getMaxTaskLatency()      { return max_mtl; }
 
-  command uint32_t MaxInterruptLength.get()             { return mil; }
-  command uint32_t MaxAtomicLength.get()                { return mal; }
-  command uint32_t MaxTaskLatency.get()                 { return mtl; }
+  command int32_t CodeProfile.getMinInterruptLength()  { return min_mil; }
+  command int32_t CodeProfile.getMinAtomicLength()     { atomic {return min_mal;} }
+  command int32_t CodeProfile.getMinTaskLatency()      { return min_mtl; }
 
   task void measureTask() {
     
@@ -79,13 +79,15 @@ implementation {
     // significantly greater than zero, if interrupt(s) occured in between. That
     // difference is proportional to the running time of the 
     // interrupt handler.
-    mil = _MAX_(t2-t1,mil);
+    max_mil = _MAX_((int32_t)(t2-t1),max_mil);
+    min_mil = _MIN_((int32_t)(t2-t1),min_mil);
     
     // The difference between the posting time of this task (mtl_offset)
     // and the first expression's execution time ( t1 ) is the time
     // between two measureTask tasks.
     // This way, interleaving tasks' running time is measured.    
-    mtl = _MAX_(t1-mtl_offset,mtl);
+    max_mtl = _MAX_((int32_t)(t1-mtl_offset),max_mtl);
+    min_mtl = _MIN_((int32_t)(t1-mtl_offset),min_mtl);
 
     if ( alive ) {
       mtl_offset = call Alarm.getNow();
@@ -98,11 +100,13 @@ implementation {
   command error_t StdControl.start() {
     
     alive = TRUE;
-    mil = mtl = 0;
+    min_mil = min_mtl = -(0x7fffffffL-1L);
+    max_mil = max_mtl = 0x7fffffffL;
     
     // Atomic Length Measurement Init
     atomic {
-      mal = 0;
+      max_mal = 0x7fffffffL;
+      min_mal = -(0x7fffffffL-1L);
       call Alarm.stop();
       mal_offset = call Alarm.getNow();
       call Alarm.startAt(mal_offset, ATOMIC_PERIODIC_TIME);
@@ -122,17 +126,18 @@ implementation {
   
   async event void Alarm.fired() {    
     // Get the time
-    uint32_t delay = call Alarm.getNow();
+    int64_t delay = (int64_t)call Alarm.getNow();
   
     atomic {
       // When the alarm should have been fired?
       // This is also the base of the next fire target.
       mal_offset += ATOMIC_PERIODIC_TIME;
       
-      // Compute the shift between now and the target    
+      // Compute the shift between now and the target
       delay -= mal_offset;
     
-      mal = _MAX_(delay,mal);
+      max_mal = _MAX_((int32_t)delay,max_mal);
+      min_mal = _MIN_((int32_t)delay,min_mal);
     }    
       
     if ( alive )

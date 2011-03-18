@@ -228,16 +228,19 @@ public class BenchmarkCommons {
    * @return the string representation
    */
   public static String profilesAsString(final Vector<ProfileT> profiles) {
-    String hdr = "    Profiles :\t[ Dbg | MaxAtom MaxInt MaxLat | RxTxTime RStartCnt MsgCount       Rx_B       Tx_B ]";
+    String hdr = "    Profiles :\t[ Dbg | MaxAtom MaxInt MaxLat | MinAtom MinInt MinLat | RxTxTime RStartCnt MsgCount       Rx_B       Tx_B ]";
     String ret = "";
     for (int i = 0; i < profiles.size(); ++i) {
       ProfileT p = profiles.get(i);
-      String str = String.format("    Mote(%2d) :\t[ %2$3d | %3$7d %4$6d %5$6d | %6$8d %7$9d %8$8d %9$10d %10$10d ]",
+      String str = String.format("    Mote(%2d) :\t[ %2$3d | %3$7d %4$6d %5$6d | %3$7d %4$6d %5$6d | %6$8d %7$9d %8$8d %9$10d %10$10d ]",
               i+1,
               p.get_debug(),
               p.get_max_atomic(),
               p.get_max_interrupt(),
               p.get_max_latency(),
+              p.get_min_atomic(),
+              p.get_min_interrupt(),
+              p.get_min_latency(),
               p.get_rtx_time(),
               p.get_rstart_count(),
               p.get_msg_count(),
@@ -263,6 +266,9 @@ public class BenchmarkCommons {
       ret += "<MAT>" + p.get_max_atomic() + "</MAT>";
       ret += "<MINT>" + p.get_max_interrupt() + "</MINT>";
       ret += "<MLAT>" + p.get_max_latency() + "</MLAT>";
+      ret += "<MINAT>" + p.get_max_atomic() + "</MINAT>";
+      ret += "<MININT>" + p.get_max_interrupt() + "</MININT>";
+      ret += "<MINLAT>" + p.get_max_latency() + "</MINLAT>";
       ret += "<RXTX>" + p.get_rtx_time() + "</RXTX>";
       ret += "<RST>" + p.get_rstart_count() + "</RST>";
       ret += "<MSGC>" + p.get_msg_count() + "</MSGC>";
@@ -282,7 +288,7 @@ public class BenchmarkCommons {
    * @return the ready-for-output representation
    */
   public static String errorAsString(final String s) {
-    return "       Error :\t" + ((s == "") ? "No errors." : s);
+    return "       Error :\t" + ((s.compareTo("") == 0) ? "No errors." : s);
   }
 
   /**

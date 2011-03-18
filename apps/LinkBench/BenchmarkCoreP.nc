@@ -415,6 +415,10 @@ implementation {
     profile.max_atomic = call CodeProfile.getMaxAtomicLength();
     profile.max_interrupt = call CodeProfile.getMaxInterruptLength();
     profile.max_latency = call CodeProfile.getMaxTaskLatency();
+    
+    profile.min_atomic = call CodeProfile.getMinAtomicLength();
+    profile.min_interrupt = call CodeProfile.getMinInterruptLength();
+    profile.min_latency = call CodeProfile.getMinTaskLatency();
                   
     profile.rtx_time = 
     profile.rstart_count =

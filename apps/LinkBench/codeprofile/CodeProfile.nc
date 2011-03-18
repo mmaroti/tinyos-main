@@ -36,24 +36,27 @@
 interface CodeProfile {
 
   /**
-    * Retrieve the longest interrupt handling time in microseconds
+    * Retrieve the longest/shortest interrupt handling time in microseconds
     *
-    * @return the maximum value
+    * @return the maximum/minimum value
     */
-  command uint32_t getMaxInterruptLength();
+  command int32_t getMaxInterruptLength();
+  command int32_t getMinInterruptLength();
   
   /**
-    * Retrieve the longest atomic section's time in microseconds
+    * Retrieve the longest/shortest atomic section's time in microseconds
     *
-    * @return the maximum value
+    * @return the maximum/minimum value
     */
-  command uint32_t getMaxAtomicLength();
+  command int32_t getMaxAtomicLength();
+  command int32_t getMinAtomicLength();
   
   /**
-    * Retrieve the maximum elapsed time in microseconds between two task.
+    * Retrieve the maximum/minimum elapsed time in microseconds between two task.
     *
-    * @return the maximum value
+    * @return the maximum/minimum value
     */
-  command uint32_t getMaxTaskLatency();
+  command int32_t getMaxTaskLatency();
+  command int32_t getMinTaskLatency();
     
 }

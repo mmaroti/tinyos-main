@@ -40,13 +40,7 @@
 configuration CodeProfileC {
   provides {
     interface StdControl;
-    
     interface CodeProfile;
-    
-    interface Get<uint32_t> as MaxInterruptLength;
-    interface Get<uint32_t> as MaxAtomicLength;
-    interface Get<uint32_t> as MaxTaskLatency;
-    
   }
 }
 
@@ -71,9 +65,6 @@ implementation {
   components CodeProfileP;
   CodeProfileP.Alarm -> Alarm;
   
-  MaxInterruptLength = CodeProfileP.MaxInterruptLength;
-  MaxAtomicLength = CodeProfileP.MaxAtomicLength;
-  MaxTaskLatency = CodeProfileP.MaxTaskLatency;   
   StdControl = CodeProfileP;
   CodeProfile = CodeProfileP;
 }

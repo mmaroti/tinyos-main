@@ -151,6 +151,10 @@ public class BenchmarkResult {
     p.set_max_atomic(msg.get_payload_profile_max_atomic());
     p.set_max_interrupt(msg.get_payload_profile_max_interrupt());
     p.set_max_latency(msg.get_payload_profile_max_latency());
+    p.set_min_atomic(msg.get_payload_profile_min_atomic());
+    p.set_min_interrupt(msg.get_payload_profile_min_interrupt());
+    p.set_min_latency(msg.get_payload_profile_min_latency());
+
     p.set_rtx_time(msg.get_payload_profile_rtx_time());
     p.set_rstart_count(msg.get_payload_profile_rstart_count());
     p.set_rx_bytes(msg.get_payload_profile_rx_bytes());
