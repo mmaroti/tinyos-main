@@ -105,7 +105,7 @@ public class CSVHandler {
 	}
 	
 	/**
-	 * Default construcor
+	 * Construcor
 	 * @param csvfile CSV file to open
 	 * @param hasheader true, if the CSV file has header: the first line is the name of the columns
 	 * @param separator CSV cell separator e.g. ";"
@@ -118,6 +118,25 @@ public class CSVHandler {
 		this.csvfile=csvfile;
 		this.timeColumn=timeColumn;
 		this.dataColumns=dataColumns;
+		openFile(hasheader);
+	}
+	
+	/**
+	 * Construcor
+	 * @param csvfile CSV file to open
+	 * @param hasheader true, if the CSV file has header: the first line is the name of the columns
+	 * @param separator CSV cell separator e.g. ";"
+	 * @param timeColumn this column holds the time reference of the table
+	 * @param dataColumns these columns holds data
+	 * @throws IOException if can't open/read/close the file
+	 */
+	public CSVHandler(File csvfile, boolean hasheader, String separator, int timeColumn, Integer dataColumns[]) throws IOException{
+		this.dataColumns=new ArrayList<Integer>();
+		for(Integer curr:dataColumns)
+			this.dataColumns.add(curr);
+		this.separator=separator;
+		this.csvfile=csvfile;
+		this.timeColumn=timeColumn;
 		openFile(hasheader);
 	}
 	
@@ -180,6 +199,16 @@ public class CSVHandler {
 	 */
 	public void setHeader(ArrayList<String> h) {
 		header=h;
+	}
+	
+	/**
+	 * Sets the header of the file
+	 * @param h new header
+	 */
+	public void setHeader(String[] h) {
+		header.clear();
+		for(String curr:h)
+			header.add(curr);
 	}
 	
 	/**
@@ -454,6 +483,13 @@ public class CSVHandler {
 			System.err.println("Can't overwrite file: "+csvfile.getName());
 	}
 	
+	public boolean isEmpty(){
+		if(getLineNumber()==0&&header==null)
+			return true;
+		else
+			return false;
+		
+	}
 	//global time calculation functions
 	
 	//TODO: this function, and the two tsfile constructor should be removed, and called from an other class (TimeSync packet); priority: high
