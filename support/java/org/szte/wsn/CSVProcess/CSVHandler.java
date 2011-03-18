@@ -564,7 +564,7 @@ public class CSVHandler {
 
 	//TODO: these two method makes unparseble columns
 	/*
-	 * Possible solution hold back the real change until we write the data to disk.
+	 * Possible solution is to hold back the real change until we write the data to disk.
 	 * Also make the constructor smarter: add timeformat/decimal separator;
 	 * After read the file, change the time/data columns to parseble format (if needed: decimal separator
 	 * should be dot; time should be in long: milliseconds after epoch/instrument start).
