@@ -196,13 +196,13 @@ public class PacketParserFactory {
 		{
 			return new Sht11TempParser(name, type);
 		}
-		else if(type.contains("taos2550"))
-		{
-			return new Taos2550Parser(name, type);
-		}
 		else if(type.contains("taos2550lux"))
 		{
 			return new Taos2550LuxParser(name, type);
+		}
+		else if(type.contains("taos2550"))
+		{
+			return new Taos2550Parser(name, type);
 		}
 		else
 			return null;
