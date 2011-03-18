@@ -128,11 +128,11 @@ implementation {
       // When the alarm should have been fired?
       // This is also the base of the next fire target.
       mal_offset += ATOMIC_PERIODIC_TIME;
-
+      
       // Compute the shift between now and the target    
       delay -= mal_offset;
     
-      mal = _MAX_(delay,mal);  
+      mal = _MAX_(delay,mal);
     }    
       
     if ( alive )

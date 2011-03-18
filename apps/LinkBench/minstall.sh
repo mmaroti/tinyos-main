@@ -66,7 +66,7 @@ detect_motes() {
     return 1
   fi
 
-  TELOS_B=`sort $TMP | grep '1027 24577.*Rev B' | awk '{print $4}'`
+  TELOS_B=`sort $TMP | grep '1027 24577.*Rev.B' | awk '{print $4}'`
   TELOS_A=`sort $TMP | grep '1027 24577.*Rev A' | awk '{print $4}'`
   IRIS=`sort $TMP | grep '1027 24592' | awk '{print $4}' | sed -n '1~2p'`
   
