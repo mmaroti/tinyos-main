@@ -34,6 +34,8 @@
 package org.szte.wsn.downloader2;
 
 import java.io.IOException;
+import java.util.Date;
+
 import net.tinyos.message.Message;
 import net.tinyos.message.MessageListener;
 import net.tinyos.message.MoteIF;
@@ -65,7 +67,8 @@ public class Communication  implements MessageListener {
 			sd.newData(rec.get_source(),rec.get_address(),data);
 		} else if(m instanceof TimeMsg){
 			TimeMsg rec=(TimeMsg)m;
-			System.out.println(rec.get_localTime()+";"+rec.get_remoteTime()+";"+rec.get_sendTime()+";"+rec.get_bootCount());
+			sd.newTimeSync(rec.get_remoteTime()+rec.get_sendTime()-rec.get_localTime(),
+					rec.get_bootCount(), new Date().getTime(),m.getSerialPacket().get_header_src());
 		}
 	}
 	

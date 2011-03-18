@@ -34,12 +34,14 @@
 
 package org.szte.wsn.downloader2;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.szte.wsn.CSVProcess.CSVHandler;
 import org.szte.wsn.dataprocess.file.Gap;
 
 
@@ -58,6 +60,7 @@ public class StreamDownloader{
 	private Timer timer=new Timer();
 	private TimerTask startdownload=null;
 	private TimerTask pingtask=null;
+	private CSVHandler timeSync;
 
 	private int pinginterval;
 	private boolean erase;
@@ -248,6 +251,13 @@ public class StreamDownloader{
 		this.pongwait=pongwait;
 		this.pinginterval=pinginterval;
 		this.erase=false;
+		Integer datac[]={1,3,4,5,6,7};
+		try {
+			this.timeSync=new CSVHandler(new File("00000time.csv"), true, ";", 2,datac);
+		} catch (IOException e) {
+			System.err.println("Error: Can't open or parse the timesync file");
+			System.exit(1);
+		}
 		currently_handled=new Pong(NONE, 0, 0);
 		communication=new Communication(this, source);
 		pingtask  = new Ping();
@@ -260,6 +270,13 @@ public class StreamDownloader{
 		this.erase=true;
 		this.timeout=timeout;
 		communication=new Communication(this, source);
+		Integer datac[]={1,3,4,5,6,7};
+		try {
+			this.timeSync=new CSVHandler(new File("00000time.csv"), true, ";", 2,datac);
+		} catch (IOException e) {
+			System.err.println("Error: Can't open or parse the timesync file");
+			System.exit(1);
+		}
 		try{
 			if(listenonly==NONE){
 			    timer.schedule(new EraseExit(), timeout*1000);
@@ -421,6 +438,21 @@ public class StreamDownloader{
 			if(!timeout_mod)
 				timeout=10;
 			new StreamDownloader(erase, timeout, source);
+		}
+	}
+
+	public void newTimeSync(Long moteTime, Integer bootCount, Long pcTime, Integer nodeId) {
+		if(timeSync.isEmpty()){
+			String[] header={"nodeId","local","localBootCount","remote","remoteBootCount","rssi","lqi"};
+			timeSync.setHeader(header);
+		}
+		String line[]={nodeId.toString(), pcTime.toString(), "0", moteTime.toString(),
+				bootCount.toString(),"0","0"};
+		timeSync.addLine(line);
+		try {
+			timeSync.flush();
+		} catch (IOException e) {
+			System.err.println("Warning: Can't write timeSync file");
 		}
 	}	
 }
