@@ -121,6 +121,10 @@ public class DataWriter {
 		return offset+data.length;
 	}
 	
+	public long writeData(byte[] data) throws IOException{
+		return writeData(dataFile.length()-1, data);
+	}
+	
 	private void writeGapFile(){
 		try {
 			Writer output = new BufferedWriter(new FileWriter(gapFile));
