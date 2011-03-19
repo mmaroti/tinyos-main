@@ -1,0 +1,3 @@
+COMPONENT=OscilloscopeAppC
+CFLAGS += -DUCMINI_REV=49
+include $(MAKERULES)

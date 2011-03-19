@@ -1,0 +1,2 @@
+COMPONENT=RCTestC
+include $(MAKERULES)
