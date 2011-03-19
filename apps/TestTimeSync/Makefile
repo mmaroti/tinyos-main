@@ -1,6 +1,0 @@
-COMPONENT = TestTimeStampC
-CFLAGS += "-I$(TOSDIR)/lib/diagmsg"
-CFLAGS += "-DTOSH_DATA_LENGTH=100"
-CFLAGS += "-DRF230_HARDWARE_ACK"
-
-include $(MAKERULES)

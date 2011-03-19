@@ -1,2 +1,0 @@
-COMPONENT=RCTestC
-include $(MAKERULES)

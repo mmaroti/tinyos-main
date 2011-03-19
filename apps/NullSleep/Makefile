@@ -1,4 +1,0 @@
-COMPONENT=NullSleepAppC
-include $(MAKERULES)
-CFLAGS += -DSERIAL_AUTO
-
