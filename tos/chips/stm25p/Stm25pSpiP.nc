@@ -79,7 +79,7 @@ implementation {
   norace stm25p_addr_t m_cur_addr;
   norace stm25p_len_t m_cur_len;
   norace uint8_t m_crc_buf[ CRC_BUF_SIZE ];
-  norace uint16_t m_crc;
+  norace uint16_t m_crc=unique("Stm25pOn");// placeholder for unique id
 
   error_t newRequest( bool write, stm25p_len_t cmd_len );
   void signalDone( error_t error );
@@ -123,7 +123,7 @@ implementation {
     return call SpiResource.release();
   }
 
-  async command uint8_t ClientResource.isOwner() {
+  async command bool ClientResource.isOwner() {
     return call SpiResource.isOwner();
   }
 
