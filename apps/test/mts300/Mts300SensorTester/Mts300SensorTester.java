@@ -38,17 +38,20 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import net.tinyos.message.*;
 import net.tinyos.util.*;
+import net.tinyos.packet.*; 
 
 class Mts300SensorTester implements MessageListener{
 	private MoteIF mif;
+	private PhoenixSource phoenix; 
 	private int recMsgNum=0;
 	private FileOutputStream fileOutput;
 	private PrintStream printToFile;
 	public ReceivedData[] recDataArray;
 	
-	public Mts300SensorTester(String from,String to)
+	public Mts300SensorTester(String from,String to,String source)
 	{
-		mif = new MoteIF(PrintStreamMessenger.err);
+		phoenix=BuildSource.makePhoenix(source, PrintStreamMessenger.err);
+		mif = new MoteIF(phoenix);
 		mif.registerListener(new ControlMsg(),this);
 		mif.registerListener(new DataMsg(),this);
 		recDataArray = new ReceivedData[Math.abs(Integer.parseInt(to)-Integer.parseInt(from))+1];
@@ -154,9 +157,9 @@ class Mts300SensorTester implements MessageListener{
 	public static void main (String[] args)
 	{
 		String[] temp;
-		if (args.length<2)
+		if (args.length<4)
 		{
-			out.println("Usage: SensorTester [device test type] [motes which are used in the test (from-to)]");
+			out.println("Usage: SensorTester [device test type] [motes which are used in the test (from-to)] -comm <source>");
 			out.println("[device test type]: ");
 			out.println("\tBeeper test:     beeper");
 			out.println("\tLight  test:     light");
@@ -167,7 +170,7 @@ class Mts300SensorTester implements MessageListener{
 		else
 		{
 			temp = args[1].split("-");
-			Mts300SensorTester tester= new Mts300SensorTester(temp[0],temp[1]);
+			Mts300SensorTester tester= new Mts300SensorTester(temp[0],temp[1],args[3]);
 			tester.run(args[0],temp[0],temp[1]);
 			tester.Display(args[0]);
 			System.exit(0);
