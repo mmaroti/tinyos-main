@@ -36,9 +36,17 @@ configuration Stm25pOffC {
   provides interface Init as Stm25pOff;
 }
 implementation {
-  components Stm25pOffP, Stm25pSpiC;
+  components Stm25pOffP;
   Stm25pOff = Stm25pOffP;
 
-  Stm25pOffP.Stm25pSpi -> Stm25pSpiC;
-  Stm25pOffP.Resource -> Stm25pSpiC;  
+  components HplStm25pSpiC as SpiC;
+  Stm25pOffP.SpiResource -> SpiC;
+  Stm25pOffP.SpiByte -> SpiC;
+  //SpiP.SpiPacket -> SpiC;
+
+  components HplStm25pPinsC as PinsC;
+  Stm25pOffP.CSN -> PinsC.CSN;
+  Stm25pOffP.Hold -> PinsC.Hold;
+
+    
 }

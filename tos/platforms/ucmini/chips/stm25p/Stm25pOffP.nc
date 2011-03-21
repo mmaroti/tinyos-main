@@ -34,25 +34,52 @@
 
 module Stm25pOffP {
   provides interface Init as Stm25pOff;
-  uses interface Stm25pSpi;
-  uses interface Resource;
+  uses interface Resource as SpiResource;
+  uses interface GeneralIO as CSN;
+  uses interface GeneralIO as Hold;
+  uses interface SpiByte;
 }
 implementation {
+  enum {
+    S_DEEP_SLEEP = 0xb9,
+  };
+
+  bool m_init = FALSE;
+
+  uint8_t sendCmd( uint8_t cmd, uint8_t len ) {
+    uint8_t tmp = 0;
+    int i;
+
+    call CSN.clr();
+    for ( i = 0; i < len; i++ )
+      tmp = call SpiByte.write( cmd );
+    call CSN.set();
+
+    return tmp;
+  }
+
   command error_t Stm25pOff.init() {
+    call CSN.makeOutput();
     if(!uniqueCount("Stm25pOn")) {
-      while( (call Resource.immediateRequest()) != SUCCESS) ;
+      call Hold.makeOutput();
+      call CSN.set();
+      call Hold.set();
+      if(call SpiResource.immediateRequest()==SUCCESS){
+        sendCmd(S_DEEP_SLEEP, 1);
+      } else if(call SpiResource.request()==SUCCESS)
+        m_init=TRUE;//otherwise we can't put the chip to deep sleep
     }
-  return SUCCESS;
+    call CSN.set();
+    return SUCCESS;
   }
 
-  event void Resource.granted() {
-    call Stm25pSpi.powerDown();
-    call Resource.release();
+  event void SpiResource.granted() {
+    if (m_init){
+      m_init=FALSE;
+      sendCmd(S_DEEP_SLEEP, 1);
+      call SpiResource.release();
+    }
+    sendCmd(S_DEEP_SLEEP, 1);
+    call SpiResource.release();
   }
-
-  async event void Stm25pSpi.sectorEraseDone( uint8_t sector, error_t error ) {}
-  async event void Stm25pSpi.readDone( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len, error_t error ) {}
-  async event void Stm25pSpi.pageProgramDone( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len, error_t error ) {}
-  async event void Stm25pSpi.computeCrcDone( uint16_t crc, stm25p_addr_t addr, stm25p_len_t len, error_t error ) {}
-  async event void Stm25pSpi.bulkEraseDone( error_t error ) {}
 }
