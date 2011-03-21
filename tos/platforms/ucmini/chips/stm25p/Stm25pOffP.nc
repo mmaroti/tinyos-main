@@ -40,46 +40,22 @@ module Stm25pOffP {
   uses interface SpiByte;
 }
 implementation {
-  enum {
-    S_DEEP_SLEEP = 0xb9,
-  };
-
-  bool m_init = FALSE;
-
-  uint8_t sendCmd( uint8_t cmd, uint8_t len ) {
-    uint8_t tmp = 0;
-    int i;
-
-    call CSN.clr();
-    for ( i = 0; i < len; i++ )
-      tmp = call SpiByte.write( cmd );
-    call CSN.set();
-
-    return tmp;
-  }
 
   command error_t Stm25pOff.init() {
     call CSN.makeOutput();
-    if(!uniqueCount("Stm25pOn")) {
-      call Hold.makeOutput();
-      call CSN.set();
-      call Hold.set();
-      if(call SpiResource.immediateRequest()==SUCCESS){
-        sendCmd(S_DEEP_SLEEP, 1);
-      } else if(call SpiResource.request()==SUCCESS)
-        m_init=TRUE;//otherwise we can't put the chip to deep sleep
-    }
+    call Hold.makeOutput();
     call CSN.set();
+    call Hold.set();
+    if(!uniqueCount("Stm25pOn")) {
+      call SpiResource.request();
+    }
     return SUCCESS;
   }
 
   event void SpiResource.granted() {
-    if (m_init){
-      m_init=FALSE;
-      sendCmd(S_DEEP_SLEEP, 1);
-      call SpiResource.release();
-    }
-    sendCmd(S_DEEP_SLEEP, 1);
+    call CSN.clr();
+    call SpiByte.write(0xb9);//deep sleep
+    call CSN.set();
     call SpiResource.release();
   }
 }
