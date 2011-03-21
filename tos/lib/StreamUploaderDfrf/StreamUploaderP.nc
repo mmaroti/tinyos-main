@@ -13,6 +13,7 @@ module StreamUploaderP{
         interface Leds;
         interface Boot;
         interface Init as ConvergecastInit;
+        interface Timer<TMilli>;
     }
     provides interface Command;
 }
@@ -37,6 +38,12 @@ implementation{
     ctrl_msg ctrlsend;
     data_msg datasend;
     void *datacached=NULL;
+    
+    inline void reset(){
+      if(call Resource.isOwner)
+        call Resource.release();
+      streamcommand=STREAM_NULL;
+    }
 
     event bool CommandReceive.receive(void *payload){
       if(streamcommand==STREAM_NULL){
@@ -45,9 +52,10 @@ implementation{
         if(rec->cmd>=0x10){
           streamcommand=STREAM_EXTERNAL_COMMAND;
           signal Command.newCommand(rec->cmd);
-        }else if(call Resource.request()==SUCCESS){
+        } else if(call Resource.request()==SUCCESS){
           streamcommand=rec->cmd;
-        }
+        } else
+          reset();
       }
       return TRUE;
     }
@@ -60,8 +68,10 @@ implementation{
             lastaddress=rec->max_address;
             downloadSeq=rec->seq_num;
             if(readaddress<lastaddress&&lastaddress<=call StreamStorageRead.getMaxAddress()){
-                streamcommand=STREAM_GETMIN_READ;
-                call Resource.request();
+                if(call Resource.request()==SUCCESS)
+                  streamcommand=STREAM_GETMIN_READ;
+                else
+                  reset();
             } 
         } else if(rec->min_address==rec->max_address&&(rec->nodeid==TOS_NODE_ID||rec->nodeid==TOS_BCAST_ADDR)){
             downloadSeq=rec->seq_num;
@@ -69,21 +79,32 @@ implementation{
               signal Command.newCommand(rec->min_address);
             else if(call Resource.request()==SUCCESS){
                 streamcommand=rec->min_address;
-            }
+            } else
+              reset();
         }
         return TRUE;
     }
     
     event void DataSend.sendDone(void *data){
         if(datacached==data){
+            error_t e;
             datacached=NULL;
             if(readaddress<lastaddress){
-                call Resource.request();
+                e=call Resource.request();
             } else{
                 streamcommand=STREAM_GETMIN;
-                call Resource.request();
+                e=call Resource.request();
             }
+            if(e!=SUCCESS)
+              reset();
         }
+    }
+    
+    event void Timer.fired(){
+      datacached=call DataSend.send(&datasend);
+      if(datacached==NULL){
+        call Timer.startOneShot(10);
+      }
     }
 
     event void StreamStorageRead.readDone(void *buf, uint8_t len, error_t error){
@@ -95,13 +116,8 @@ implementation{
         readaddress+=len;
         datacached=call DataSend.send(&datasend);
         if(datacached==NULL){
-            if(readaddress<=lastaddress){
-                call Resource.request();
-            } else{
-                streamcommand=STREAM_GETMIN;
-                call Resource.request();
-            }
-        } 			
+          call Timer.startOneShot(10);
+        }		
     }
     
 
@@ -110,7 +126,7 @@ implementation{
             void * ctrlcached;
             if(streamcommand==STREAM_GETMIN){
                 ctrlsend.max_address=call StreamStorageRead.getMaxAddress();
-                call Resource.release();
+                call Resource.release();//!
                 ctrlsend.min_address=addr;
                 ctrlsend.source=TOS_NODE_ID;
                 if(downloadSeq!=0){
@@ -129,12 +145,12 @@ implementation{
                     if(lastaddress-readaddress<MESSAGE_SIZE)
                         readaddress=lastaddress-MESSAGE_SIZE;
                     if(call StreamStorageRead.read(readaddress, buffer, MESSAGE_SIZE)!=SUCCESS){
-                        call Resource.release();
+                        call Resource.release();//!
                         streamcommand=STREAM_NULL;		
                     }				
                 } else {
                     ctrlsend.max_address=call StreamStorageRead.getMaxAddress();
-                    call Resource.release();
+                    call Resource.release();//!
                     ctrlsend.min_address=addr;
                     ctrlsend.source=TOS_NODE_ID;
                     if(downloadSeq!=0){
@@ -147,7 +163,7 @@ implementation{
                 }
             }
         } else {
-            call Resource.release();
+            call Resource.release();//!
         }
     }
     

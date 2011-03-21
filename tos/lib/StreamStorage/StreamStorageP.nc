@@ -413,11 +413,11 @@ implementation{
 					return;
 				}break;
 				default:{
-					status=NORMAL;
 					#ifdef DEBUG
 							printf("Read error\n");
 							printfflush();
 					#endif	
+                    status=NORMAL;
 					signal StreamStorageRead.readDone(readbuffer, readlength, error);
 					return;
 				}break;
@@ -488,8 +488,10 @@ implementation{
 						#endif
 						addressTranslation.logAddress+=PAGE_SIZE;
 						err=call LogRead.seek(addressTranslation.logAddress);
-					} else if(addressTranslation.streamAddress-*metadata<0)//seems like the data is somewhere before us (which should be impossible), or not in the flash (overwritten?)
-						signal StreamStorageRead.readDone(readbuffer, readlength, FAIL);
+					} else if(addressTranslation.streamAddress-*metadata<0){//seems like the data is somewhere before us (which should be impossible), or not in the flash (overwritten?)
+						status=NORMAL;
+                        signal StreamStorageRead.readDone(readbuffer, readlength, FAIL);
+                    }
 					else{//the data is on this page
 						#ifdef DEBUG
 							printf("Data is on this page\n");
@@ -525,9 +527,10 @@ implementation{
 						#endif
 						addressTranslation.logAddress-=PAGE_SIZE;
 						err=call LogRead.seek(addressTranslation.logAddress);
-					} else if(addressTranslation.streamAddress-*metadata>=PAGE_SIZE+len)//seems like the data is somewhere ahead us (which should be impossible), or not in the flash (overwritten?) 
-						signal StreamStorageRead.readDone(readbuffer, readlength, FAIL);
-					else{//the data is on this page
+					} else if(addressTranslation.streamAddress-*metadata>=PAGE_SIZE+len){//seems like the data is somewhere ahead us (which should be impossible), or not in the flash (overwritten?) 
+						status=NORMAL;
+                        signal StreamStorageRead.readDone(readbuffer, readlength, FAIL);
+                    }else{//the data is on this page
 						#ifdef DEBUG
 							printf("Data is on this page\n");
 							printfflush();
