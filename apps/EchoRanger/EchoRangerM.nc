@@ -73,7 +73,7 @@ implementation
 	enum
 	{
 		STATE_READY = 0,
-		STATE_WARMUP = 1,
+		STATE_WAIT = 1,
 		STATE_LISTEN = 2,
 		STATE_PROCESS = 3,
 	};
@@ -82,17 +82,37 @@ implementation
 		call MicSetting.gainAdjust(value);
 	}
 
+	/**
+	 * waitCount: number of dummy buffers to be posted before the real one
+	 * postCount: number of times the postBuffer has been called
+	 *
+	 * We always post at least TWO dummy buffers to wait, but maybe more. 
+	 * The real buffer is posted when the one before the last dummy buffer
+	 * is full. The sounder is going to be called when the last dummy
+	 * buffer is full.
+	 *
+	 * If you set waitCount to 2, then the real buffer is recorded exactly
+	 * when the sounder is turned on. If waitCount is 3, then an extra wait
+	 * period is inserted, which is 64 samples.
+	 */
+
+	uint8_t waitCount = 4;
+	uint8_t postCount;
+
 	command error_t EchoRanger.read()
 	{
 		if( state == STATE_READY )
 		{
 			call Leds.led0On();
+			state = STATE_WAIT;
 
-			state = STATE_WARMUP;
-			call MicRead.postBuffer(buffer + ECHORANGER_BUFFER - 2, 2);
-			call MicRead.postBuffer(buffer, ECHORANGER_BUFFER);
-			call MicRead.read(56);	// 17723 Hz
+			// post two dummy buffers
+			call MicRead.postBuffer(buffer + ECHORANGER_BUFFER - 64, 64);
+			call MicRead.postBuffer(buffer + ECHORANGER_BUFFER - 128, 64);
+			postCount = 2;
 
+			// start the microphone at 17 KHz
+			call MicRead.read(56);
 			range.temperature = 0xFFFF;
 			call ReadTemp.read();
 
@@ -104,26 +124,48 @@ implementation
 
 	event void ReadTemp.readDone(error_t result, uint16_t value)
 	{
-		if( state == STATE_WARMUP && result == SUCCESS )
+		if( state == STATE_WAIT && result == SUCCESS )
 			range.temperature = value;
 	}
 
  	event void MicRead.bufferDone(error_t result, uint16_t* bufPtr, uint16_t count)
 	{
-		if( state == STATE_WARMUP )
+		if( state == STATE_WAIT )
 		{
-			state = STATE_LISTEN;
+			if( postCount < waitCount )
+			{
+				if(postCount==2){
+				call SounderPin.set();
+				call Alarm.start(ECHORANGER_BEEP);
+				}
+				// repost the same buffer to wait more
+				call MicRead.postBuffer(bufPtr, count);
+				postCount += 1;
+				//call SounderPin.set();
+				//call Alarm.start(ECHORANGER_BEEP);
+				
+			}
+			else if( postCount == waitCount )
+			{
+				// post the real buffer we want to record
+				call MicRead.postBuffer(buffer, ECHORANGER_BUFFER);
+				postCount += 1;
+			}
+			else
+			{
+				// the real buffer is beeing recorded now
+				
 
-			call Alarm.start(ECHORANGER_BEEP);
-			call Leds.led1On();
-			call SounderPin.set();
+				state = STATE_LISTEN;
+				call Leds.led1On();
+			}
 		}
 	}
 
 	async event void Alarm.fired()
 	{
-		call Leds.led1Off();
 		call SounderPin.clr();
+		call Leds.led1Off();
 	}
 
 	task void process();
