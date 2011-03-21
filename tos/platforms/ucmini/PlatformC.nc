@@ -50,18 +50,28 @@ configuration PlatformC
 }
 implementation
 {
-	components PlatformP, McuInitC, MeasureClockC;
-  #if UCMINI_REV==49
-    components HplAtm128GeneralIOC;
-    PlatformP.Voltmeter -> HplAtm128GeneralIOC.PortF0;
+	components PlatformP, McuInitC, MeasureClockC, RFA1RadioOffP, Stm25pOffC;
+  components HplAtm128GeneralIOC;
+  #if (UCMINI_REV==49) || (UCMINI_REV==52)
     PlatformP.SpiSSN -> HplAtm128GeneralIOC.PortB0;
+  #endif
+  #if UCMINI_REV==49
+    PlatformP.Voltmeter -> HplAtm128GeneralIOC.PortF0;
   #endif  
+
+  #if (UCMINI_REV==52) || (UCMINI_REV==100)
+    PlatformP.VBattADC -> HplAtm128GeneralIOC.PortF2;
+    PlatformP.VMeasureBridge -> HplAtm128GeneralIOC.PortD6;
+  #endif
 
 	Init = PlatformP;
 	Atm128Calibrate = MeasureClockC;
 
 	LedsInit = PlatformP.LedsInit;
 	PlatformP.McuInit -> McuInitC;
+
+  PlatformP.RadioInit -> RFA1RadioOffP.RFA1RadioOff;
+  PlatformP.Stm25pInit -> Stm25pOffC.Stm25pOff;
 
 #ifdef SERIAL_AUTO
 	components SerialActiveMessageC;

@@ -42,9 +42,17 @@ module PlatformP @safe()
 	{
 		interface Init as McuInit;
 		interface Init as LedsInit;
+    interface Init as RadioInit;
+    interface Init as Stm25pInit;
+    #if (UCMINI_REV==52) || (UCMINI_REV==49)
+    interface GeneralIO as SpiSSN;
+    #endif
     #if UCMINI_REV==49
     interface GeneralIO as Voltmeter;
-    interface GeneralIO as SpiSSN;
+    #endif
+    #if (UCMINI_REV==52) || (UCMINI_REV==100)
+    interface GeneralIO as VBattADC;
+    interface GeneralIO as VMeasureBridge;
     #endif
 	}
 }
@@ -65,15 +73,29 @@ implementation
 	command error_t Init.init()
 	{
 		error_t ok;
-    #if UCMINI_REV==49
-    call Voltmeter.set();
+    #if (UCMINI_REV==52) || (UCMINI_REV==49)
     call SpiSSN.makeOutput();
     call SpiSSN.clr();
     #endif
+    #if UCMINI_REV==49
+    call Voltmeter.set();
+    #endif
+
+    #if (UCMINI_REV==52) || (UCMINI_REV==100)
+    call VMeasureBridge.makeOutput();
+    call VMeasureBridge.set();
+    call VBattADC.set();
+    call VBattADC.makeOutput();
+    #endif
+
+    MCUCR |= 1<<JTD;
+    MCUCR |= 1<<JTD; 
 
 		ok = call McuInit.init();
 		ok = ecombine(ok, call LedsInit.init());
 		ok = ecombine(ok, powerInit());
+    call RadioInit.init();
+    call Stm25pInit.init();
 
 		return ok;
 	}
