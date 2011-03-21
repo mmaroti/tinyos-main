@@ -83,6 +83,7 @@ module RFA1DriverLayerP
 
 implementation
 {
+  
   rfa1_header_t* getHeader(message_t* msg)
   {
     return ((void*)msg) + call Config.headerLength(msg);
@@ -140,7 +141,7 @@ implementation
     IRQ_PLL_LOCK=128,
   };
 
-  norace uint8_t radioIrq;
+  norace uint8_t radioIrq = unique("RFA1RadioOn"); //placeholder for unique id
 
   tasklet_norace uint8_t txPower;
   tasklet_norace uint8_t channel;
