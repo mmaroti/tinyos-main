@@ -1,0 +1,1 @@
+../../../../chips/stm25p/Stm25pSpiP.nc
