@@ -31,7 +31,6 @@
 * Author: Miklos Maroti
 */
 
-#include "HplAtmRfa1Timer.h"
 #include "TimerConfig.h"
 
 module AppGetTracesP
@@ -43,6 +42,7 @@ module AppGetTracesP
 //		interface AtmegaCounter<uint8_t> as Counter;
 //		interface AtmegaCompare<uint8_t> as Compare;
 		interface Counter<TRtc, uint16_t> as Counter;
+		interface Alarm<TRtc, uint16_t> as Alarm;
 		interface DiagMsg;
 		interface SplitControl;
 	}
@@ -52,7 +52,7 @@ implementation
 {
 	enum
 	{
-		TRACE_COUNT = 10,
+		TRACE_COUNT = 20,
 		TRACE_SIZE = 9,
 	};
 
@@ -132,45 +132,40 @@ implementation
 
 	task void testTimer()
 	{
+		uint8_t i;
 /*
 		atomic
 		{
 			trace[0] = call Counter.get();
-			trace[1] = call Compare.test();
+			trace[1] = call Counter.test();
 			trace[2] = call Counter.get();
-			trace[3] = call Compare.test();
+			trace[3] = call Counter.test();
 			trace[4] = call Counter.get();
-			trace[5] = call Compare.test();
+			trace[5] = call Counter.test();
 			trace[6] = call Counter.get();
-			trace[7] = call Compare.test();
+			trace[7] = call Counter.test();
 			trace[8] = call Counter.get();
 		}
 */
 
 		atomic
 		{
-		trace[0] = call Counter.get();
-		trace[1] = call Counter.isOverflowPending();
-		trace[2] = call Counter.get();
-		trace[3] = call Counter.isOverflowPending();
-		trace[4] = call Counter.get();
-		trace[5] = call Counter.isOverflowPending();
-		trace[6] = call Counter.get();
-		trace[7] = call Counter.isOverflowPending();
-		trace[8] = call Counter.get();
+			trace[0] = call Counter.get();
+			trace[1] = call Counter.isOverflowPending();
+			trace[2] = call Counter.get();
+			trace[3] = call Counter.isOverflowPending();
+			trace[4] = call Counter.get();
+			trace[5] = call Counter.isOverflowPending();
+			trace[6] = call Counter.get();
+			trace[7] = call Counter.isOverflowPending();
+			trace[8] = call Counter.get();
 		}
-/*
-		trace[0] &= 0x1FF;
-		trace[1] &= 0x1FF;
-		trace[2] &= 0x1FF;
-		trace[3] &= 0x1FF;
-		trace[4] &= 0x1FF;
-		trace[5] &= 0x1FF;
-		trace[6] &= 0x1FF;
-		trace[7] &= 0x1FF;
-		trace[8] &= 0x1FF;
-*/
-		if( trace[1] == 0 && trace[7] != 0 )
+
+//		for(i = 0; i <= 8; ++i)
+//			trace[i] &= 0x1FF;
+
+//		if( trace[3] == 0 && trace[5] != 0 )
+		if( trace[4] == 0 )
 //		if( trace[4] == 0xFF )
 			insertTrace();
 
@@ -187,27 +182,22 @@ implementation
 		call Leds.led0On();
 		post randomizer();
 
-/*
-		call Counter.setMode(RTC_TIMER_MODE);
-		call Counter.start();
+//		call Counter.setMode(ATMRFA1_CLK8_DIVIDE_32 | ATMRFA1_WGM8_NORMAL);
+//		call Counter.start();
 
-		call Compare.setMode(0);
-		call Compare.set(0);
-		call Compare.start();
-*/
+//		call Compare.setMode(0);
+//		call Compare.set(0);
+//		call Compare.start();
 
 		post testTimer();
 		post reportTask();
+
+		call Alarm.getAlarm();
 	}
 
 	event void SplitControl.stopDone(error_t result) { }
 
-	async event void Counter.overflow()
-	{
-	}
-/*
-	async event void Compare.fired()
-	{
-	}
-*/
+	async event void Counter.overflow() { }
+
+	async event void Alarm.fired() { }
 }

@@ -31,6 +31,8 @@
 * Author: Miklos Maroti
 */
 
+#include "TimerConfig.h"
+
 configuration AppGetTracesC
 { 
 } 
@@ -43,16 +45,15 @@ implementation
 	AppGetTracesP.Leds -> LedsC;
 	AppGetTracesP.SplitControl -> SerialActiveMessageC;
 	AppGetTracesP.DiagMsg -> DiagMsgC;
-/*
-	components HplAtmRfa1Timer2AsyncC;
-	components new AtmegaAsyncTimerP(TRUE), BusyWaitMicroC;
-	AtmegaAsyncTimerP.SubCounter -> HplAtmRfa1Timer2AsyncC;
-	AtmegaAsyncTimerP.BusyWait -> BusyWaitMicroC;
-	AppGetTracesP.Counter -> AtmegaAsyncTimerP;
-*/
 
-	components AtmegaAsyncTimerC;
-	AppGetTracesP.Counter -> AtmegaAsyncTimerC;
+	components HplAtmRfa1Timer2AsyncC;
+	components new AtmegaAsyncTimerP(TRtc, RTC_TIMER_MODE, 4);
+	AtmegaAsyncTimerP.AtmegaCounter -> HplAtmRfa1Timer2AsyncC;
+	AtmegaAsyncTimerP.AtmegaCompare -> HplAtmRfa1Timer2AsyncC.Compare[0];
+	AppGetTracesP.Counter -> AtmegaAsyncTimerP;
+	AppGetTracesP.Alarm -> AtmegaAsyncTimerP;
+	components McuInitC;
+	McuInitC.TimerInit -> AtmegaAsyncTimerP.Init;
 
 /*
 	components HplAtmRfa1Timer2AsyncC;
