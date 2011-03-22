@@ -36,10 +36,14 @@ package org.szte.wsn.downloader2;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import jline.ConsoleReader;
+import jline.Terminal;
 
 import org.szte.wsn.CSVProcess.CSVHandler;
 import org.szte.wsn.dataprocess.file.Gap;
@@ -64,6 +68,9 @@ public class StreamDownloader{
 
 	private int pinginterval;
 	private boolean erase;
+	
+	private Terminal terminal;
+	private ConsoleReader reader;
 	
 	private final class Pong{
 		private long minaddress, maxaddress;
@@ -233,6 +240,7 @@ public class StreamDownloader{
 	}
 	
 	public static int lastpercent=-1;
+
 	public static String ProgressBar(long length, long current, long data ,float error, long errorcount){
 		if(length<=0)
 			return "";
@@ -291,6 +299,27 @@ public class StreamDownloader{
 			System.err.println("Can't send erase command; exiting");
 			System.exit(1);
 		}
+	}
+	//experimental constructor
+	public StreamDownloader(String source){
+		communication=new Communication(this, source);
+		Integer datac[]={1,3,4,5,6,7};
+		try {
+			this.timeSync=new CSVHandler(new File("00000time.csv"), true, ";", 2,datac);
+		} catch (IOException e) {
+			System.err.println("Error: Can't open or parse the timesync file");
+			System.exit(1);
+		}
+		terminal=Terminal.setupTerminal();
+		try {
+			reader=new ConsoleReader();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		terminal.beforeReadLine(reader, "", (char)0);
+		
+		
 	}
 
 	public void newData(int nodeid, long address, byte[] data) {
@@ -396,7 +425,7 @@ public class StreamDownloader{
 	public static void main(String[] args) throws Exception {
 		//System.out.println(TOSSerial.getTOSCommMap());
 		String source = "sf@localhost:9002";
-		int listenonly=NONE, timeout=3,pinginterval=10,pongwait=3;
+		int listenonly=NONE, timeout=10,pinginterval=10,pongwait=3;
 		boolean timeout_mod=false;
 		int erase=ERASE_NO;
 		if (args.length == 0||args.length == 2||args.length == 4||args.length == 6) {
