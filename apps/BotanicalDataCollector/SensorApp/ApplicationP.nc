@@ -32,6 +32,10 @@ module ApplicationP{
     interface Command;
     interface Set<uint16_t> as EepromWrite;
     interface Get<uint16_t> as EepromRead;
+    interface Debug as StorDebug;
+    interface Debug as DataDebug;
+    interface Debug as TimeDebug;
+    interface Debug as UplDebug;
   }
 }
 implementation{
@@ -173,6 +177,43 @@ implementation{
         uint8_t value=cmd>>16;
         call SetSavePoints.set(value);
         call Command.sendData(((uint32_t)value<<16)+0x5500);
+      }break;
+      //debug
+      case 0xF0:{
+        call Command.sendData(((uint32_t)(call StorDebug.getStatus())<<16)+0xF000);
+      }break;
+      case 0xF1:{
+        uint16_t owned=call UplDebug.isResourceOwned()?0xff00:0;
+        owned+=call UplDebug.getStatus();
+        call Command.sendData(((uint32_t)owned<<16)+0xF100);
+      }break;
+      case 0xF2:{
+        uint8_t owned=call DataDebug.isResourceOwned()?0xff:0;
+        call Command.sendData(((uint32_t)owned<<16)+0xF200);
+      }break;
+      case 0xF3:{
+        uint8_t owned=call TimeDebug.isResourceOwned()?0xff:0;
+        call Command.sendData(((uint32_t)owned<<16)+0xF200);
+      }break;
+      case 0xF4:{
+        call StorDebug.resetStatus();
+        call Command.sendData(0xF400);
+      }break;
+      case 0xF5:{
+        call UplDebug.resetStatus();
+        call Command.sendData(0xF500);
+      }break;
+      case 0xF6:{
+        call UplDebug.releaseResource();
+        call Command.sendData(0xF600);
+      }break;
+      case 0xF7:{
+        call DataDebug.releaseResource();
+        call Command.sendData(0xF700);
+      }break;
+      case 0xF8:{
+        call DataDebug.releaseResource();
+        call Command.sendData(0xF800);
       }break;
     }
   }

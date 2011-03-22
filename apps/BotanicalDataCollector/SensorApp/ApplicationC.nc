@@ -2,7 +2,7 @@ configuration ApplicationC{
 }
 implementation{
 	components new TimerMilliC(), new EepromVariableUint16P(0);
-	components new StorageFrameC(), MainC, ApplicationP, LedsC, LocalTimeMilliC;
+	components new StorageFrameC() as DataStor, new StorageFrameC() as TimeStor, MainC, ApplicationP, LedsC, LocalTimeMilliC;
 	components StreamUploaderC, ActiveMessageC, TimeSyncPointsC;
 	components new SensirionSht11C(), new Taos2550C(), new VoltageC();
 	
@@ -12,8 +12,8 @@ implementation{
 	ApplicationP.VLight->Taos2550C.VisibleLight;
 	ApplicationP.IRLight->Taos2550C.InfraredLight;
     ApplicationP.VRef->VoltageC;
-	ApplicationP.DataStorageWrite->StorageFrameC;
-    ApplicationP.TimeStorageWrite->StorageFrameC;
+	ApplicationP.DataStorageWrite->DataStor;
+    ApplicationP.TimeStorageWrite->TimeStor;
 	ApplicationP.Leds->LedsC;	
 	ApplicationP.Timer->TimerMilliC;
 	ApplicationP.LocalTime->LocalTimeMilliC;
@@ -27,6 +27,12 @@ implementation{
     ApplicationP.Command->StreamUploaderC;
     ApplicationP.EepromWrite->EepromVariableUint16P;
     ApplicationP.EepromRead->EepromVariableUint16P;
+    
+    components StreamStorageC;
+    ApplicationP.StorDebug->StreamStorageC;
+    ApplicationP.DataDebug->DataStor;
+    ApplicationP.TimeDebug->TimeStor;
+    ApplicationP.UplDebug->StreamUploaderC;
 
 	components RF230ActiveMessageC as LplRadio, SystemLowPowerListeningC;
 	ApplicationP.LPL -> LplRadio.LowPowerListening;
