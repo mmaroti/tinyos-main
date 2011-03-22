@@ -206,7 +206,10 @@ public class CSVHandler {
 	 * @param h new header
 	 */
 	public void setHeader(String[] h) {
-		header.clear();
+		if(header!=null)
+			header.clear();
+		else
+			header=new ArrayList<String>();
 		for(String curr:h)
 			header.add(curr);
 	}
