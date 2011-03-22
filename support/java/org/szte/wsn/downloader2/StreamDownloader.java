@@ -252,6 +252,33 @@ public class StreamDownloader{
 			return "";
 	}
 	
+	private String repetition(String base, int times){
+		String ret="";
+		for(int i=0;i<times;i++)
+			ret+=base;
+		return ret;
+	}
+	
+	public void setProgress(int completed, int total) {
+		if (terminal == null)
+			return;
+		int w = reader.getTermwidth();
+		int progress = (completed * 20) / total;
+		String totalStr = String.valueOf(total);
+		String percent = String.format("%0"+totalStr.length()+"d/%s [", completed, totalStr);
+		String result = percent + repetition("=", progress)+ repetition(" ", w/2 - progress) + "]";
+		try {
+	       reader.getCursorBuffer().clearBuffer();
+	       reader.getCursorBuffer().write(result);
+	       reader.setCursorPosition(w);
+	       reader.redrawLine();
+		}
+		catch (IOException e) {
+	       e.printStackTrace();
+                               
+		}
+	}
+	
 	public StreamDownloader(int listenonly, int pinginterval, int pongwait, int timeout, String source) {
 		this.listenonly=listenonly;
 		this.timeout=timeout;
@@ -317,7 +344,11 @@ public class StreamDownloader{
 			e.printStackTrace();
 		}
 		terminal.beforeReadLine(reader, "", (char)0);
-		
+		for(int i=0;i<4534;i++){
+			setProgress(i, 4534);
+			if(i%100==0)
+				System.out.println("gf");
+		}
 		
 	}
 
@@ -426,8 +457,9 @@ public class StreamDownloader{
 		String source = "sf@localhost:9002";
 		int listenonly=NONE, timeout=10,pinginterval=10,pongwait=3;
 		boolean timeout_mod=false;
+		boolean newver=false;
 		int erase=ERASE_NO;
-		if (args.length == 0||args.length == 2||args.length == 4||args.length == 6) {
+		if (args.length==1||args.length == 0||args.length == 2||args.length == 4||args.length == 6) {
 			for(int i=0;i<args.length;i++){
 				try{
 					if (args[i].equals("--comm")||args[i].equals("-c")) {
@@ -450,6 +482,8 @@ public class StreamDownloader{
 							} else
 								throw e;
 						}
+					} else if (args[i].equals("--new")||args[i].equals("-n")) {
+						newver=true;
 					} else {
 						StreamDownloader.usage();
 					}
@@ -460,12 +494,16 @@ public class StreamDownloader{
 		} else {
 			StreamDownloader.usage();
 		}
-		if(erase==ERASE_NO)
-			new StreamDownloader(listenonly, pinginterval, pongwait, timeout, source);
-		else{
-			if(!timeout_mod)
-				timeout=10;
-			new StreamDownloader(erase, timeout, source);
+		if(newver)
+			new StreamDownloader(source);
+		else {
+			if(erase==ERASE_NO)
+				new StreamDownloader(listenonly, pinginterval, pongwait, timeout, source);
+			else{
+				if(!timeout_mod)
+					timeout=10;
+				new StreamDownloader(erase, timeout, source);
+			}
 		}
 	}
 
