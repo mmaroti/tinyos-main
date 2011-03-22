@@ -36,7 +36,6 @@ package org.szte.wsn.downloader2;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Timer;
