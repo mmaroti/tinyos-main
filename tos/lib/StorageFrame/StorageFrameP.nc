@@ -31,9 +31,10 @@
 *
 * Author:Andras Biro
 */
-module StorageFrameP{
+generic module StorageFrameP(){
 	provides interface StreamStorageWrite as FramedWrite;
-
+    provides interface Debug;
+    
 	uses interface StreamStorageWrite;
 	uses interface Resource;
 }
@@ -55,6 +56,17 @@ implementation{
 	int16_t current;
 	nx_uint16_t buffer;
 	uint8_t request;
+    
+    command uint8_t Debug.getStatus(){
+      return 0;
+    }
+    command bool Debug.isResourceOwned(){
+      return call Resource.isOwner();
+    }
+    command void Debug.resetStatus(){}
+    command void Debug.releaseResource(){
+      call Resource.release();
+    }
 	
 	event void Resource.granted(){
 	  error_t error=SUCCESS;//to avoid a nesc warning

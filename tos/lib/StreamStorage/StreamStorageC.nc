@@ -40,6 +40,7 @@ configuration StreamStorageC{
 		interface StreamStorageWrite;
 		interface StreamStorageRead;
 		interface SplitControl;
+		interface Debug;
 	}
 }
 implementation{
@@ -53,6 +54,7 @@ implementation{
 	StreamStorageWrite=StreamStorageP;
 	StreamStorageErase=StreamStorageP;
 	SplitControl=StreamStorageP;
+	Debug=StreamStorageP;
 	
 //	components LedsC;
 //	StreamStorageP.Leds->LedsC;

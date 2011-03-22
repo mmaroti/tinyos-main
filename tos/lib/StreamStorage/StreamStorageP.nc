@@ -43,6 +43,7 @@ module StreamStorageP{
 		interface StreamStorageWrite;
 		interface StreamStorageErase;
 		interface SplitControl;
+		interface Debug;
 	}
 	uses {
 		interface LogRead;
@@ -102,6 +103,20 @@ implementation{
 		uint32_t address;
 		bool valid;
 	} minAddress;
+	
+//Debug
+	command uint8_t Debug.getStatus(){
+		return status;
+	}
+	
+    command bool Debug.isResourceOwned(){
+      return FALSE;
+    }
+    
+    command void Debug.resetStatus(){
+      status=NORMAL;
+    }
+    command void Debug.releaseResource(){}
 	
 //Start/Stop
 	

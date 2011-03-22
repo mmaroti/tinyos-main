@@ -2,6 +2,7 @@
 #include "StreamStorage.h"
 configuration StreamUploaderC{
   provides interface Command;
+  provides interface Debug;
 }
 implementation{
     components StreamUploaderP, ActiveMessageC,ConvergecastC, MainC, new StreamStorageClientC();
@@ -12,7 +13,7 @@ implementation{
 
     components new BroadcastClientC(AM_GET_MSG, sizeof(get_msg)) as DfrfGet;
     components new BroadcastClientC(AM_COMMAND_MSG, sizeof(command_msg)) as DfrfCommand;
-    components NoLedsC as LedsC;
+    components NoLedsC as LedsC, new TimerMilliC();
     
     DfrfCtrl.DfrfPolicy->GradientPolicyC;
     DfrfData.DfrfPolicy->SpanningTreePolicyC;
@@ -30,5 +31,7 @@ implementation{
     StreamUploaderP.Resource->StreamStorageClientC;
     StreamUploaderP.Leds->LedsC;
     StreamUploaderP.Boot->MainC;
+    StreamUploaderP.Timer->TimerMilliC;
     Command=StreamUploaderP;
+    Debug=StreamUploaderP;
 }

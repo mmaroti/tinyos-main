@@ -34,11 +34,13 @@
 #include "StreamStorage.h"
 generic configuration StorageFrameC(){
 	provides interface StreamStorageWrite;
+    provides interface Debug;
 }
 implementation{
-	components new StreamStorageClientC(), StorageFrameP;
+	components new StreamStorageClientC(), new StorageFrameP();
 	StorageFrameP.StreamStorageWrite->StreamStorageClientC;
 	StorageFrameP.Resource->StreamStorageClientC;
 	
+    Debug=StorageFrameP;
 	StreamStorageWrite=StorageFrameP.FramedWrite;
 }

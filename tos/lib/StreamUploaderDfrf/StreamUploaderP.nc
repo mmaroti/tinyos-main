@@ -16,6 +16,7 @@ module StreamUploaderP{
         interface Timer<TMilli>;
     }
     provides interface Command;
+    provides interface Debug;
 }
 implementation{
     enum{
@@ -39,10 +40,20 @@ implementation{
     data_msg datasend;
     void *datacached=NULL;
     
-    inline void reset(){
-      if(call Resource.isOwner)
-        call Resource.release();
+    command uint8_t Debug.getStatus(){
+      return streamcommand;
+    }
+    
+    command bool Debug.isResourceOwned(){
+      return call Resource.isOwner();
+    }
+    
+    command void Debug.resetStatus(){
       streamcommand=STREAM_NULL;
+    }
+    
+    command void Debug.releaseResource(){
+      call Resource.release();
     }
 
     event bool CommandReceive.receive(void *payload){
@@ -54,8 +65,7 @@ implementation{
           signal Command.newCommand(rec->cmd);
         } else if(call Resource.request()==SUCCESS){
           streamcommand=rec->cmd;
-        } else
-          reset();
+        } 
       }
       return TRUE;
     }
@@ -70,8 +80,6 @@ implementation{
             if(readaddress<lastaddress&&lastaddress<=call StreamStorageRead.getMaxAddress()){
                 if(call Resource.request()==SUCCESS)
                   streamcommand=STREAM_GETMIN_READ;
-                else
-                  reset();
             } 
         } else if(rec->min_address==rec->max_address&&(rec->nodeid==TOS_NODE_ID||rec->nodeid==TOS_BCAST_ADDR)){
             downloadSeq=rec->seq_num;
@@ -79,24 +87,20 @@ implementation{
               signal Command.newCommand(rec->min_address);
             else if(call Resource.request()==SUCCESS){
                 streamcommand=rec->min_address;
-            } else
-              reset();
+            }
         }
         return TRUE;
     }
     
     event void DataSend.sendDone(void *data){
         if(datacached==data){
-            error_t e;
             datacached=NULL;
             if(readaddress<lastaddress){
-                e=call Resource.request();
+                call Resource.request();
             } else{
                 streamcommand=STREAM_GETMIN;
-                e=call Resource.request();
+                call Resource.request();
             }
-            if(e!=SUCCESS)
-              reset();
         }
     }
     
