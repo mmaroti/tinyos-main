@@ -228,11 +228,11 @@ public class BenchmarkCommons {
    * @return the string representation
    */
   public static String profilesAsString(final Vector<ProfileT> profiles) {
-    String hdr = "    Profiles :\t[ Dbg | MaxAtom MaxInt MaxLat | MinAtom MinInt MinLat | RxTxTime RStartCnt MsgCount       Rx_B       Tx_B ]";
+    String hdr = "    Profiles :\t[ Dbg | MaxAtom MaxInt MaxLat | MinAtom MinInt MinLat |   RxTxTime  RStartCnt     RxMsgs       Rx_B       Tx_B ]";
     String ret = "";
     for (int i = 0; i < profiles.size(); ++i) {
       ProfileT p = profiles.get(i);
-      String str = String.format("    Mote(%2d) :\t[ %2$3d | %3$7d %4$6d %5$6d | %3$7d %4$6d %5$6d | %6$8d %7$9d %8$8d %9$10d %10$10d ]",
+      String str = String.format("    Mote(%2d) :\t[ %2$3d | %3$7d %4$6d %5$6d | %6$7d %7$6d %8$6d | %9$10d %10$10d %11$10d %12$10d %13$10d ]",
               i+1,
               p.get_debug(),
               p.get_max_atomic(),
@@ -243,7 +243,7 @@ public class BenchmarkCommons {
               p.get_min_latency(),
               p.get_rtx_time(),
               p.get_rstart_count(),
-              p.get_msg_count(),
+              p.get_rx_msgs(),
               p.get_rx_bytes(),
               p.get_tx_bytes());
        ret += str + nl;
@@ -266,12 +266,12 @@ public class BenchmarkCommons {
       ret += "<MAT>" + p.get_max_atomic() + "</MAT>";
       ret += "<MINT>" + p.get_max_interrupt() + "</MINT>";
       ret += "<MLAT>" + p.get_max_latency() + "</MLAT>";
-      ret += "<MINAT>" + p.get_max_atomic() + "</MINAT>";
-      ret += "<MININT>" + p.get_max_interrupt() + "</MININT>";
-      ret += "<MINLAT>" + p.get_max_latency() + "</MINLAT>";
+      ret += "<MINAT>" + p.get_min_atomic() + "</MINAT>";
+      ret += "<MININT>" + p.get_min_interrupt() + "</MININT>";
+      ret += "<MINLAT>" + p.get_min_latency() + "</MINLAT>";
       ret += "<RXTX>" + p.get_rtx_time() + "</RXTX>";
       ret += "<RST>" + p.get_rstart_count() + "</RST>";
-      ret += "<MSGC>" + p.get_msg_count() + "</MSGC>";
+      ret += "<RXMSGS>" + p.get_rx_msgs() + "</RXMSGS>";
       ret += "<RXB>" + p.get_rx_bytes() + "</RXB>";
       ret += "<TXB>" + p.get_tx_bytes() + "</TXB>";
       ret += "<DBG>" + p.get_debug() + "</DBG>";

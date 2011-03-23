@@ -137,18 +137,20 @@ typedef nx_struct stat_t {
 } stat_t;
 
 typedef nx_struct profile_t {
-  nx_int32_t   max_atomic;
-  nx_int32_t   min_atomic;
-  nx_int32_t   max_interrupt;
-  nx_int32_t   min_interrupt;
-  nx_int32_t   max_latency;
-  nx_int32_t   min_latency;
+     
+  nx_int32_t  min_atomic;
+  nx_int32_t  min_interrupt;
+  nx_int32_t  min_latency;
   
-  nx_uint32_t   rtx_time;
-  nx_seq_base_t rstart_count;
-  nx_seq_base_t rx_bytes;
-  nx_seq_base_t tx_bytes;
-  nx_seq_base_t msg_count;
+  nx_int32_t  max_atomic;
+  nx_int32_t  max_interrupt;
+  nx_int32_t  max_latency;
+  
+  nx_uint32_t  rtx_time;
+  nx_uint32_t  rstart_count;
+  nx_uint32_t  rx_bytes;
+  nx_uint32_t  tx_bytes;
+  nx_uint32_t  rx_msgs;
   
   nx_uint16_t   debug;  
 } profile_t;

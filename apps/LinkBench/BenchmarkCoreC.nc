@@ -58,21 +58,31 @@ implementation {
   Core.Ack -> ActiveMessageC;
 
 #ifdef LOW_POWER_LISTENING
-  #if defined(RADIO_RF230) || defined(RADIO_CC1000) || defined(RADIO_CC2420) || defined(RADIO_CC2520)
+  #if defined(RADIO_RF230) || defined(RADIO_CC1000) || defined(RADIO_CC2420) || defined(RADIO_CC2520) || defined(RADIO_CC2420X)
     Core.LowPowerListening -> ActiveMessageC;
   #else
     #error " * NO PLATFORM SUPPORT FOR LOW POWER LISTENING LAYER *"
   #endif
 #endif
 
-#ifdef PACKET_LINK  
+#ifdef PACKET_LINK
   #if defined(RADIO_CC2420)
     components CC2420ActiveMessageC;
     Core.PacketLink -> CC2420ActiveMessageC;
-  #elif defined(RADIO_RF230) || defined(RADIO_CC2520)
+  #elif defined(RADIO_RF230) || defined(RADIO_CC2520) || defined(RADIO_CC2420X)
     Core.PacketLink -> ActiveMessageC;
   #else
     #error " * NO PLATFORM SUPPORT FOR PACKET LINK LAYER *"
+  #endif
+#endif
+
+#ifdef TRAFFIC_MONITOR
+  #if defined(RADIO_RF230)
+    components RF230RadioC;
+    Core.TrafficMonitor -> RF230RadioC;
+  #elif defined(RADIO_CC2420X)
+    components CC2420XRadioC;
+    Core.TrafficMonitor -> CC2420XRadioC;
   #endif
 #endif
   

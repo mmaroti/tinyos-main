@@ -159,7 +159,7 @@ public class BenchmarkResult {
     p.set_rstart_count(msg.get_payload_profile_rstart_count());
     p.set_rx_bytes(msg.get_payload_profile_rx_bytes());
     p.set_tx_bytes(msg.get_payload_profile_tx_bytes());
-    p.set_msg_count(msg.get_payload_profile_msg_count());
+    p.set_rx_msgs(msg.get_payload_profile_rx_msgs());
     p.set_debug(msg.get_payload_profile_debug());
 
     this.profiles.set(idx-1, p);

@@ -74,6 +74,10 @@ module BenchmarkCoreP @safe() {
     interface PacketLink;
 #endif
 
+#ifdef TRAFFIC_MONITOR
+    interface TrafficMonitor;
+#endif
+
     interface CodeProfile;    
     interface StdControl as CodeProfileControl;
        
@@ -132,7 +136,7 @@ implementation {
    
     SET_STATE( STATE_INVALID )
    
-    // Disassociate the problem    
+    // Disassociate the problem
     problem = (edge_t*)NULL;
     c_edge_cnt = c_maxmoteid = 0;
     outgoing_edges = 0;
@@ -353,6 +357,15 @@ implementation {
     // Start the code profiler
     call CodeProfileControl.start();
     
+#ifdef TRAFFIC_MONITOR
+    // save the current time.
+    profile.rtx_time = call TrafficMonitor.getActiveTime();
+    profile.rstart_count = call TrafficMonitor.getStartCount();
+    profile.rx_bytes = call TrafficMonitor.getRxBytes();
+    profile.tx_bytes = call TrafficMonitor.getTxBytes();
+    profile.rx_msgs = call TrafficMonitor.getRxMessages();
+#endif
+    
     // setup the applied MAC protocol
 #ifdef LOW_POWER_LISTENING    
     if ( config.flags & GLOBAL_USE_MAC_LPL )
@@ -400,8 +413,8 @@ implementation {
       call PacketLink.setRetries(&pkt,0);
       call PacketLink.setRetryDelay(&pkt,0);
     }
-#endif 
-    
+#endif
+
     // compute the remained statistic
     for ( i = 0; pending; ++i, pending >>= 1) {
       if ( pending & 0x1 )
@@ -410,22 +423,25 @@ implementation {
     
     // Stop the code profiler
     call CodeProfileControl.stop();
-    
+      
     // Compute the mote-statistics
-    profile.max_atomic = call CodeProfile.getMaxAtomicLength();
-    profile.max_interrupt = call CodeProfile.getMaxInterruptLength();
-    profile.max_latency = call CodeProfile.getMaxTaskLatency();
-    
     profile.min_atomic = call CodeProfile.getMinAtomicLength();
     profile.min_interrupt = call CodeProfile.getMinInterruptLength();
     profile.min_latency = call CodeProfile.getMinTaskLatency();
-                  
-    profile.rtx_time = 
-    profile.rstart_count =
-    profile.rx_bytes =
-    profile.tx_bytes =
-    profile.msg_count = 0;    
-    
+      
+    profile.max_atomic = call CodeProfile.getMaxAtomicLength();
+    profile.max_interrupt = call CodeProfile.getMaxInterruptLength();
+    profile.max_latency = call CodeProfile.getMaxTaskLatency();
+
+#ifdef TRAFFIC_MONITOR
+    // save the curent time.
+    profile.rtx_time = call TrafficMonitor.getActiveTime() - profile.rtx_time;
+    profile.rstart_count = call TrafficMonitor.getStartCount() - profile.rstart_count;
+    profile.rx_bytes = call TrafficMonitor.getRxBytes() - profile.rx_bytes;
+    profile.tx_bytes = call TrafficMonitor.getTxBytes() - profile.tx_bytes;
+    profile.rx_msgs = call TrafficMonitor.getRxMessages() - profile.rx_msgs;
+#endif 
+   
     signal BenchmarkCore.finished();
     return SUCCESS;
   }
