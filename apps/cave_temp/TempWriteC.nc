@@ -60,7 +60,7 @@ implementation {
 	  } logentry_t;
 	bool m_busy = TRUE;
 	uint32_t ts;
-	uint16_t c=4;
+	uint16_t c=1;
 	uint16_t set=0;
 	uint16_t set2=1;
   	logentry_t m_entry;
@@ -70,7 +70,7 @@ implementation {
 
 	event void Boot.booted() {
 		call RadioControl.start();
-		call LPL.setLocalDutyCycle(50);
+		//call LPL.setLocalDutyCycle(50);
 	}
 
 	event void RadioControl.startDone(error_t err){
@@ -116,6 +116,9 @@ implementation {
 		if(len==sizeof(ControlMsg)){
 			ControlMsg* btrpkt = (ControlMsg*)payload;
 			c=btrpkt->control;
+			call Leds.led1On();
+			call Timer0.startPeriodic(TIMER_PERIOD_MILLI_DEFAULT);
+			call Leds.led1Off();
 		}
 	return msgPtr;
 	}
