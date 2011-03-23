@@ -222,7 +222,7 @@ implementation
 	{
 		// pure airtime: preable (4 bytes), SFD (1 byte), length (1 byte), payload + CRC (len bytes)
 
-		return call RFA1Packet.payloadLength(msg);
+		return call RFA1Packet.payloadLength(msg) + 6;
 	}
 
 /*----------------- RandomCollisionConfig -----------------*/
