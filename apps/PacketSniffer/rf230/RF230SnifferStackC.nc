@@ -43,7 +43,8 @@ configuration RF230SnifferStackC {
 }
 
 implementation {
-
+  #define UQ_METADATA_FLAGS	"UQ_RF230_METADATA_FLAGS"
+	#define UQ_RADIO_ALARM		"UQ_RF230_RADIO_ALARM"
 
 // -------- Some interface transformation hacks
 
@@ -64,41 +65,53 @@ implementation {
   
   SnifferData = SnifferDataP;
 
-// -------- Message Buffering
+// -------- MessageBuffer
 
-	components MessageBufferLayerC;
+	components new MessageBufferLayerC();
 	MessageBufferLayerC.RadioSend -> RadioDriverLayerC;
 	MessageBufferLayerC.RadioReceive -> RadioDriverLayerC;
 	MessageBufferLayerC.RadioState -> RadioDriverLayerC;
-	
-  SplitControl = MessageBufferLayerC;
 
+  SplitControl = MessageBufferLayerC;
+  
 // -------- IEEE 802.15.4 
 
-  components Ieee154PacketLayerC;
+  components new Ieee154PacketLayerC();
 	Ieee154PacketLayerC.SubPacket -> TimeStampingLayerC;
 
 // -------- TimeStamping
 
-  components TimeStampingLayerC;
-  TimeStampingLayerC.LocalTimeRadio -> RadioDriverLayerC;
-  TimeStampingLayerC.SubPacket      -> MetadataFlagsLayerC;
+	components new TimeStampingLayerC();
+	TimeStampingLayerC.LocalTimeRadio -> RadioDriverLayerC;
+	TimeStampingLayerC.SubPacket -> MetadataFlagsLayerC;
+	TimeStampingLayerC.TimeStampFlag -> MetadataFlagsLayerC.PacketFlag[unique(UQ_METADATA_FLAGS)];
 
 // -------- MetadataFlags
 
-  components MetadataFlagsLayerC;
+  components new MetadataFlagsLayerC();
   MetadataFlagsLayerC.SubPacket -> RadioDriverLayerC;
 
+// -------- RadioP
+
+	components RF230RadioP as RadioP;
+	RadioP.Ieee154PacketLayer -> Ieee154PacketLayerC;
+	RadioP.RadioAlarm -> RadioAlarmC.RadioAlarm[unique(UQ_RADIO_ALARM)];
+	RadioP.PacketTimeStamp -> TimeStampingLayerC;
+	RadioP.RF230Packet -> RadioDriverLayerC;
+
+// -------- RadioAlarm
+
+	components new RadioAlarmC();
+	RadioAlarmC.Alarm -> RadioDriverLayerC;
+	
 // -------- Radio Driver
 
-  components RF230DriverLayerC as RadioDriverLayerC;
-  components RF230RadioP, RadioAlarmC;
-  
-  RF230RadioP.Ieee154PacketLayer -> Ieee154PacketLayerC;
-	RF230RadioP.RadioAlarm -> RadioAlarmC.RadioAlarm[unique("RadioAlarm")];
-	RF230RadioP.PacketTimeStamp -> TimeStampingLayerC;
-	RF230RadioP.RF230Packet -> RadioDriverLayerC;
-  
-  RadioDriverLayerC.Config -> RF230RadioP;
-  RadioDriverLayerC.PacketTimeStamp -> TimeStampingLayerC;
+	components RF230DriverLayerC as RadioDriverLayerC;
+  RadioDriverLayerC.Config -> RadioP;
+	RadioDriverLayerC.PacketTimeStamp -> TimeStampingLayerC;
+	RadioDriverLayerC.TransmitPowerFlag -> MetadataFlagsLayerC.PacketFlag[unique(UQ_METADATA_FLAGS)];
+	RadioDriverLayerC.RSSIFlag -> MetadataFlagsLayerC.PacketFlag[unique(UQ_METADATA_FLAGS)];
+	RadioDriverLayerC.TimeSyncFlag -> MetadataFlagsLayerC.PacketFlag[unique(UQ_METADATA_FLAGS)];
+	RadioDriverLayerC.RadioAlarm -> RadioAlarmC.RadioAlarm[unique(UQ_RADIO_ALARM)];
+
 }
