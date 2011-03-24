@@ -131,18 +131,6 @@ const string TimeSyncDB::date(const VirtualMoteID& vmote) const {
 	return (i!=motes.end()) ? i->second : string();
 }
 
-void TimeSyncDB::dump() const {
-
-	Map::const_iterator i = motes.begin();
-
-	cout << "---------------------------------------------------------" << endl;
-
-	while (i!=motes.end()) {
-
-		cout << i->first << '\t' << i->second << endl;
-	}
-}
-
 TimeSyncDB::~TimeSyncDB() {
 	// Do NOT remove this empty dtor: required to generate the dtor of auto_ptr
 }

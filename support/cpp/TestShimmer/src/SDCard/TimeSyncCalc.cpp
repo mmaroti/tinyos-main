@@ -33,6 +33,7 @@
 
 #include <assert.h>
 #include <iostream>
+#include <stdint.h>
 #include "TimeSyncCalc.hpp"
 #include "TimeSyncMerger.hpp"
 #include "LinearEquations.h"
@@ -81,7 +82,7 @@ const TimeSyncData TimeSyncCalc::compute_skew_offset(const vector<Pair>& sync_po
 
     //lin_eq.printStatistics();
 
-    Solution* solution = lin_eq.solveWithSVD(0.0);
+    Solution* solution = lin_eq.solveWithSVD(0);
 
     const double skew_1 = solution->getValue("skew_1");
     const double offset = solution->getValue("offset");
@@ -101,11 +102,11 @@ void TimeSyncCalc::add_equation(LinearEquations& lin_eq, const Pair& pair) const
     // t1    = skew  *t2 + offset
     // t1-t2 = skew_1*t2 + offset
 
-    unsigned int t1 = pair.first;
-    unsigned int t2 = pair.second;
+    int64_t t1 = pair.first;
+    int64_t t2 = pair.second;
 
     if (swap_pairs) {
-        unsigned int tmp = t1;
+        int64_t tmp = t1;
         t1 = t2;
         t2 = tmp;
     }

@@ -55,8 +55,6 @@ public:
 
 	const std::string date(const VirtualMoteID& vmote_id) const;
 
-	void dump() const;
-
 	~TimeSyncDB();
 
 private:
