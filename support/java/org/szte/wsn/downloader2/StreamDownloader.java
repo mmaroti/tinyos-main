@@ -37,39 +37,17 @@ package org.szte.wsn.downloader2;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import jline.ConsoleReader;
-import jline.Terminal;
+import java.util.HashSet;
 
 import org.szte.wsn.CSVProcess.CSVHandler;
-import org.szte.wsn.dataprocess.file.Gap;
-
 
 public class StreamDownloader{
-	
-	private static final int MIN_DOWNLOAD_SIZE=DataMsg.numElements_payload()*4;
-	private static final int NONE=0xffff;
-	private static final int ERASE_NO=-1;
-	private static final int ERASE_ALL=0xffff;
-	
-	private Communication communication;
-	private int listenonly,timeout,pongwait;
-	private ArrayList<DataWriter> writers = new ArrayList<DataWriter>();
-	private ArrayList<Pong> pongs=new ArrayList<Pong>();
-	private Pong currently_handled;
-	private Timer timer=new Timer();
-	private TimerTask startdownload=null;
-	private TimerTask pingtask=null;
+	private Communication comm;
+	private ConsoleHandler console;
 	private CSVHandler timeSync;
-
-	private int pinginterval;
-	private boolean erase;
-	
-	private Terminal terminal;
-	private ConsoleReader reader;
+	private ArrayList<DataWriter> writers = new ArrayList<DataWriter>();
+	private Pong currently_handled;
+	private boolean welcomePrinted=false;
 	
 	private final class Pong{
 		private long minaddress, maxaddress;
@@ -92,140 +70,42 @@ public class StreamDownloader{
 		public int getNodeID(){
 			return nodeid;
 		}
-	}
-	
-	/**
-	 * This class handles the downloading. Will be scheduled delayed after ping, or run
-	 * after a "download complete" pong to correct downloading errors  
-	 */
-	public final class StartDownload extends TimerTask{
-		ArrayList<Pong> pongs;
-		
-		public StartDownload(ArrayList<Pong> pongs){
-			this.pongs=pongs;
-		}
-
-		@Override
-		public void run() {
-			Pong maxdownloadPong=null;
-			long maxdownload=Long.MIN_VALUE;
-			for(Pong p:pongs){
-				if(currently_handled.getNodeID()==p.getNodeID()||currently_handled.getNodeID()==NONE){
-					try {
-						DataWriter currentwriter=StreamDownloader.getWriter(p.getNodeID(), writers);
-						if(currentwriter!=null){
-							long download;
-							Gap repair=currentwriter.repairGap(p.minaddress);
-							if(repair!=null){
-								maxdownload=Long.MAX_VALUE;
-								maxdownloadPong=p;
-								break;
-							}
-							if(p.getMinAddress()<currentwriter.getMaxAddress()){
-								download=p.getMaxAddress()-currentwriter.getMaxAddress();
-							}else{
-								download=p.getMaxAddress()-p.getMinAddress();
-							}
-							if(download>maxdownload){
-								maxdownload=download;
-								maxdownloadPong=p;
-							}
-						} else {
-							if(p.maxaddress-p.minaddress>maxdownload){
-								maxdownload=p.maxaddress-p.minaddress;
-								maxdownloadPong=p;
-							}
-						}
-					} catch (IOException e) {
-						System.err.println("Error: Can't read file "+DataWriter.nodeidToPath(p.getNodeID(),".bin"));
-					}
-				}
-			}
-			if(maxdownload>MIN_DOWNLOAD_SIZE&&maxdownloadPong!=null){
-				if(pingtask!=null){
-					pingtask.cancel();
-					pingtask=null;
-				}
-				DataWriter maxdownloadWriter=getWriter(maxdownloadPong.getNodeID(), writers);
-				maxdownloadWriter.setLastModified();
-				
-				if(maxdownload==Long.MAX_VALUE){
-					Gap repair=maxdownloadWriter.repairGap(maxdownloadPong.minaddress);
-					System.out.println("Download from #"+maxdownloadWriter.getNodeid()+" ("+repair.getStart()+"-"+repair.getEnd()+")");
-
-					try{
-						communication.sendGet(maxdownloadWriter.getNodeid(), repair.getStart(), repair.getEnd());
-						lastpercent=-1;
-						currently_handled=new Pong(maxdownloadWriter.getNodeid(), repair.getStart(), repair.getEnd());
-					} 
-					catch(IOException e){
-						System.err.println("Warning: Can't send get message");
-					}
-				} else {
-					long minaddress;
-					try {
-						minaddress = (maxdownloadPong.minaddress>maxdownloadWriter.getMaxAddress())?maxdownloadPong.minaddress:maxdownloadWriter.getMaxAddress();
-						System.out.println("Download from #"+maxdownloadWriter.getNodeid()+" ("+minaddress+"-"+maxdownloadPong.maxaddress+")");
-
-						try{
-							communication.sendGet(maxdownloadWriter.getNodeid(), minaddress, maxdownloadPong.maxaddress);
-							currently_handled=new Pong(maxdownloadWriter.getNodeid(), minaddress, maxdownloadPong.maxaddress);
-
-						} 
-						catch(IOException e){
-							System.err.println("Warning: Can't send get message");
-						}
-					}catch (IOException e) {
-						System.err.println("Error: Can't read file "+DataWriter.nodeidToPath(maxdownloadPong.getNodeID(),".bin"));
-					}
-				}
-			}
-			pongs.clear();
-		}
-	}
-	
-	/**
-	 * This class handles download timeout. 
-	 */
-	//TODO this should schedule after download started, not fixedrate 
-	public final class ClearHandled extends TimerTask {
-		public void run() {
-			long now=(new Date()).getTime();
-			if(currently_handled.getNodeID()!=NONE&&getWriter(currently_handled.getNodeID(), writers).getLastModified()+timeout*1000<now){
-				currently_handled=new Pong(NONE,0,0);
-				if(pingtask==null){
-					System.out.println("Download timed out");
-					pingtask=new Ping();
-					timer.scheduleAtFixedRate(pingtask, 0, pinginterval*1000);
-				}
-			}
-		}
-	}
-	
-	/**
-	 * Sends ping periodically
-	 */
-	public final class Ping extends TimerTask {
-		public void run() {
-			System.out.println("Ping");
-			communication.sendPing();
-			startdownload=new StartDownload(pongs);
-			timer.schedule(startdownload, pongwait*1000);
-		}
-	}
-	
-	/**
-	 * This class handles erase timeout
-	 */
-	public final class EraseExit extends TimerTask {
-		public void run() {
-			System.out.println("Timeout: exiting");
-			System.exit(0);
-		}
-	}
+	}	
 	
 
-	public static DataWriter getWriter(int nodeid, ArrayList<DataWriter> datawriters ){
+	
+	public StreamDownloader(String source){
+		comm=new Communication(this, source);
+		console=new ConsoleHandler("StreamDownloader shell", ">", "help");
+		try {
+			this.timeSync=new CSVHandler(new File("00000time.csv"), true, ";", 2, new Integer[]{1,3,4,5,6,7});
+		} catch (IOException e) {
+			System.err.println("Error: Can't open or parse the timesync file");
+			System.exit(1);
+		}	
+		comm.discover();
+	}
+	
+	public void discoveryComplate(HashSet<Integer> motes) {
+		System.out.print("Fount "+motes.size()+" motes. Discover again?");
+		if(console.readChar(new String[]{"y","n"}).endsWith("y")){
+			comm.discover();
+		} else 
+			waitForCommands();
+	}
+	
+	
+	
+	private void waitForCommands() {
+		if(!welcomePrinted){
+			welcomePrinted=true;
+			console.printWelcome();
+		}
+		String command=console.readCommand();
+			
+	}
+
+	private static DataWriter getWriter(int nodeid, ArrayList<DataWriter> datawriters ){
 		for(int i=0;i<datawriters.size();i++){
 			if(datawriters.get(i).getNodeid()==nodeid){
 				return datawriters.get(i);
@@ -234,114 +114,6 @@ public class StreamDownloader{
 		return null;	
 	}
 	
-	public static int lastpercent=-1;
-
-	public static String ProgressBar(long length, long current, long data ,float error, long errorcount){
-		if(length<=0)
-			return "";
-		java.text.DecimalFormat floatformat = new java.text.DecimalFormat("###.##");
-		int perct=(int)(100*current/length);
-		if(perct%5==0&&perct!=lastpercent){
-			lastpercent=perct;
-			return perct+"% = "+floatformat.format((float)data/1024)+"KiB. Gaps: "+floatformat.format(error)+"% ("+errorcount+")\n";
-		}else
-			return "";
-	}
-	
-	private String repetition(String base, int times){
-		String ret="";
-		for(int i=0;i<times;i++)
-			ret+=base;
-		return ret;
-	}
-	
-	public void setProgress(int completed, int total) {
-		if (terminal == null)
-			return;
-		int w = reader.getTermwidth();
-		int progress = (completed * 20) / total;
-		String totalStr = String.valueOf(total);
-		String percent = String.format("%0"+totalStr.length()+"d/%s [", completed, totalStr);
-		String result = percent + repetition("=", progress)+ repetition(" ", w/2 - progress) + "]";
-		try {
-	       reader.getCursorBuffer().clearBuffer();
-	       reader.getCursorBuffer().write(result);
-	       reader.setCursorPosition(w);
-	       reader.redrawLine();
-		}
-		catch (IOException e) {
-	       e.printStackTrace();
-                               
-		}
-	}
-	
-	public StreamDownloader(int listenonly, int pinginterval, int pongwait, int timeout, String source) {
-		this.listenonly=listenonly;
-		this.timeout=timeout;
-		this.pongwait=pongwait;
-		this.pinginterval=pinginterval;
-		this.erase=false;
-		Integer datac[]={1,3,4,5,6,7};
-		try {
-			this.timeSync=new CSVHandler(new File("00000time.csv"), true, ";", 2,datac);
-		} catch (IOException e) {
-			System.err.println("Error: Can't open or parse the timesync file");
-			System.exit(1);
-		}
-		currently_handled=new Pong(NONE, 0, 0);
-		communication=new Communication(this, source);
-		pingtask  = new Ping();
-	    timer.scheduleAtFixedRate(pingtask, 0, pinginterval*1000);
-	    timer.scheduleAtFixedRate(new ClearHandled(), timeout*1000, timeout*1000);
-	}
-	
-	public StreamDownloader(int listenonly,int timeout, String source){//eraser constructor
-		this.listenonly=listenonly;
-		this.erase=true;
-		this.timeout=timeout;
-		communication=new Communication(this, source);
-		Integer datac[]={1,3,4,5,6,7};
-		try {
-			this.timeSync=new CSVHandler(new File("00000time.csv"), true, ";", 2,datac);
-		} catch (IOException e) {
-			System.err.println("Error: Can't open or parse the timesync file");
-			System.exit(1);
-		}
-		if(listenonly==NONE){
-		    timer.schedule(new EraseExit(), timeout*1000);
-			communication.sendErase();
-			System.out.println("Erase command sent to every node");
-		} else{
-			communication.sendErase(listenonly);
-			System.out.println("Erase command sent to node #"+listenonly);
-		}
-	}
-	//experimental constructor
-	public StreamDownloader(String source){
-		communication=new Communication(this, source);
-		Integer datac[]={1,3,4,5,6,7};
-		try {
-			this.timeSync=new CSVHandler(new File("00000time.csv"), true, ";", 2,datac);
-		} catch (IOException e) {
-			System.err.println("Error: Can't open or parse the timesync file");
-			System.exit(1);
-		}
-		terminal=Terminal.setupTerminal();
-		try {
-			reader=new ConsoleReader();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		terminal.beforeReadLine(reader, "", (char)0);
-		for(int i=0;i<4534;i++){
-			setProgress(i, 4534);
-			if(i%100==0)
-				System.out.println("gf");
-		}
-		
-	}
-
 	public void newData(int nodeid, long address, byte[] data) {
 		//System.out.print(".");
 		if(currently_handled.getNodeID()==nodeid){
@@ -354,139 +126,18 @@ public class StreamDownloader{
 			try {//write
 				long done=writer.writeData(address, data);
 				done-=currently_handled.getMinAddress();
-				System.out.print(ProgressBar(currently_handled.getMaxAddress()-currently_handled.getMinAddress(),
-											 done, writer.getMaxAddress()-writer.getGapCount(), writer.getGapPercent(), writer.getGapCount()));
+				//System.out.print(ProgressBar(currently_handled.getMaxAddress()-currently_handled.getMinAddress(),
+				//							 done, writer.getMaxAddress()-writer.getGapCount(), writer.getGapPercent(), writer.getGapCount()));
+				console.setProgress(done, currently_handled.getMaxAddress()-currently_handled.getMinAddress()
+						, ""+(writer.getMaxAddress()-writer.getGapCount()), "Gaps: "+writer.getGapPercent()+"% ("+writer.getGapCount()+")");
 			} catch (IOException e) {
 				System.err.println("Error: Can't write file "+DataWriter.nodeidToPath(writer.getNodeid(),".bin"));
 			}
 		} else
 			System.err.println("Warning: unhandled data from #"+nodeid);
-	}
-
-	public void newPong(int nodeid, long min_address, long max_address, boolean complete) {
-		if(listenonly==NONE||listenonly==nodeid){
-			if(erase){
-				if(min_address==max_address&&max_address==0&&complete){
-					System.out.println("Erase complete; node #"+nodeid+" "+min_address+"-"+max_address);
-					try {
-						new DataWriter(nodeid).erase();
-						System.out.println("Local files erased");
-					} catch (IOException e) {
-						System.err.println("Can't erase local files");
-					}
-					if(listenonly!=NONE){
-						System.exit(0);
-					}
-				} else if(min_address!=max_address||max_address!=0){
-					System.out.println("Erase failed; node #"+nodeid+" "+min_address+"-"+max_address);
-					System.out.println("Retry");
-					communication.sendErase(nodeid);
-				} else if(!complete){
-					System.out.println("New node #"+nodeid+" "+min_address+"-"+max_address);
-					System.out.println("send erase");
-					communication.sendErase(nodeid);
-				}
-			} else {
-				if(getWriter(nodeid, writers)==null){
-					writers.add(new DataWriter(nodeid));
-				}
-				
-				if(new Date().getTime()-startdownload.scheduledExecutionTime()<=0){
-					System.out.println("Node #"+nodeid+" "+min_address+"-"+max_address);
-					pongs.add(new Pong(nodeid, min_address, max_address));
-				}else if(currently_handled.getNodeID()==nodeid&&complete){
-					System.out.println("Download complete; node #"+nodeid+" "+min_address+"-"+max_address);
-					getWriter(nodeid, writers).setLastModified();
-					pongs.clear();
-					pongs.add(new Pong(nodeid, min_address, max_address));
-					new StartDownload(pongs).run();
-				}else{
-					System.err.println("Warning: Unhandled pong from "+nodeid+" (timeout)");
-				}
-			}
-		} else
-			System.out.println("Unhandled pong from "+nodeid);
+			comm.stopSending(nodeid);
 	}
 	
-	public void pongError(int nodeid) {
-		System.out.println("Node #"+nodeid+" Streamstorage doesn't start");
-		System.out.println("Probably unexpected data in the storage. Erase advised");
-		
-	}
-	
-	public static void usage(){
-		System.out.println("Usage: StreamDownloader [options]");
-		System.out.println("Options: ");
-		System.out.println("-c <port>:");
-		System.out.println("--comm <port>: Listen on <port>. Default: sf@localhost:9002");
-		System.out.println("-o <id>:");
-		System.out.println("--only <id>: Only download mote Nr. <id>");
-		System.out.println("-i <number>:");
-		System.out.println("--pinginterval <number>: Ping interval in seconds. Default: 10");
-		System.out.println("-t <number>:");
-		System.out.println("--timeout <number>: Download/erase timeout in seconds. Default download: 2; Default erase: 10");
-		System.out.println("-w <number>:");
-		System.out.println("--pongwait <number>: the program waits <number> seconds after ping for pongs. Default: 3");
-		System.out.println("-e <id>:");
-		System.out.println("--erase <id>: Erase the flash of the node <id>. <id>=all will erase all nodes. Deletes local files too");
-		System.exit(1);
-	}
-	
-	public static void main(String[] args) throws Exception {
-		//System.out.println(TOSSerial.getTOSCommMap());
-		String source = "sf@localhost:9002";
-		int listenonly=NONE, timeout=10,pinginterval=10,pongwait=3;
-		boolean timeout_mod=false;
-		boolean newver=false;
-		int erase=ERASE_NO;
-		if (args.length==1||args.length == 0||args.length == 2||args.length == 4||args.length == 6) {
-			for(int i=0;i<args.length;i++){
-				try{
-					if (args[i].equals("--comm")||args[i].equals("-c")) {
-						source = args[++i];
-					} else if (args[i].equals("--only")||args[i].equals("-o")) {
-						listenonly = Integer.parseInt(args[++i]);
-					} else if (args[i].equals("--timeout")||(args[i].equals("-t"))) {
-						timeout = Integer.parseInt(args[++i]);
-						timeout_mod=true;
-					} else if (args[i].equals("--pinginterval")||args[i].equals("-i")) {
-						pinginterval = Integer.parseInt(args[++i]);
-					} else if (args[i].equals("--pongwait")||args[i].equals("-w")) {
-						pongwait = Integer.parseInt(args[++i]);
-					} else if (args[i].equals("--erase")||args[i].equals("-e")) {
-						try{
-							erase = Integer.parseInt(args[++i]);
-						} catch(NumberFormatException e) {
-							if(args[i+1].equals("all")){
-								erase=ERASE_ALL;
-							} else
-								throw e;
-						}
-					} else if (args[i].equals("--new")||args[i].equals("-n")) {
-						newver=true;
-					} else {
-						StreamDownloader.usage();
-					}
-				}catch(NumberFormatException e) {
-					StreamDownloader.usage();
-				}
-			}
-		} else {
-			StreamDownloader.usage();
-		}
-		if(newver)
-			new StreamDownloader(source);
-		else {
-			if(erase==ERASE_NO)
-				new StreamDownloader(listenonly, pinginterval, pongwait, timeout, source);
-			else{
-				if(!timeout_mod)
-					timeout=10;
-				new StreamDownloader(erase, timeout, source);
-			}
-		}
-	}
-
 	public void newTimeSync(Long moteTime, Integer bootCount, Long pcTime, Integer nodeId) {
 		if(timeSync.isEmpty()){
 			String[] header={"nodeId","local","localBootCount","remote","remoteBootCount","rssi","lqi"};
@@ -501,4 +152,11 @@ public class StreamDownloader{
 			System.err.println("Warning: Can't write timeSync file");
 		}
 	}	
+	
+	public static void main(String[] args){
+		new StreamDownloader("sf@localhost:9002");		
+	}
+
+
+	
 }

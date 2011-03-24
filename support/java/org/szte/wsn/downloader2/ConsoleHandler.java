@@ -14,6 +14,7 @@ public class ConsoleHandler {
 	private String helpCommand;
 	private Terminal terminal=Terminal.setupTerminal();
 	private boolean progressPrinted=false;
+	private String name;
 	
 	private void exception(IOException e){
 		System.err.println("Exception from ConsoleReader, exiting");
@@ -28,7 +29,7 @@ public class ConsoleHandler {
 		return ret;
 	}
 	
-	public void setProgress(int completed, int total, String preInfo, String postInfo) {
+	public void setProgress(long completed, long total, String preInfo, String postInfo) {
 		if (terminal == null)
 			return;
 		reader.setDefaultPrompt("");
@@ -49,7 +50,12 @@ public class ConsoleHandler {
 		}
 	}
 	
-	public ConsoleHandler(String prompt,String helpCommand){
+	public void printWelcome(){
+		System.out.println(name+" Type '"+helpCommand+"' for instructions");
+	}
+	
+	public ConsoleHandler(String name,String prompt,String helpCommand){
+		this.name=name;
 		this.prompt=prompt;
 		this.helpCommand=helpCommand;
 		try {

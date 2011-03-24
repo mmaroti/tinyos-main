@@ -56,10 +56,13 @@ public class Communication  implements MessageListener {
 	private PhoenixSource phoenix;
 	private StreamDownloader sd;
 	private short seqnum=0;
-	private final int M_DISCOVER=0;
-	private final int M_AUTODOWNLOAD=0;
+	private final int M_NOTHING=0;
+	private final int M_DISCOVER=1;
+	private final int M_AUTODOWNLOAD=2;
 	private int mode=M_AUTODOWNLOAD;
 	private HashSet<Integer> motes=new HashSet<Integer>();
+
+	private boolean verbose=true;
 	
 	private void exception(IOException e){
 		System.err.println("Communication error, can't send message. Exiting");
@@ -71,8 +74,8 @@ public class Communication  implements MessageListener {
 
 		@Override
 		public void run() {
-			mode=M_AUTODOWNLOAD;
-			//sd.discoveryComplate(motes);
+			mode=M_NOTHING;
+			sd.discoveryComplate(motes);
 		}
 		
 	}
@@ -80,16 +83,7 @@ public class Communication  implements MessageListener {
 	@Override
 	public void messageReceived(int to, Message m) {
 		if(m instanceof CtrlMsg){
-			if(mode==M_AUTODOWNLOAD){
-				CtrlMsg rec=(CtrlMsg)m;
-				if(seqnum==rec.get_seq_num())
-					sd.newPong(rec.get_source(),rec.get_min_address(),rec.get_max_address(),true);
-				else
-					if(rec.get_min_address()==4294967295L&&rec.get_max_address()==4294967295L)
-						sd.pongError(rec.get_source());
-					else
-						sd.newPong(rec.get_source(),rec.get_min_address(),rec.get_max_address(),false);
-			} else if(mode==M_DISCOVER){
+			if(mode==M_DISCOVER){
 				motes.add(m.getSerialPacket().get_header_src());
 			}
 		} else if(m instanceof DataMsg){
@@ -124,6 +118,8 @@ public class Communication  implements MessageListener {
 
 	public void sendPing(){
 		sendCommnad(CommandMsg.COMMAND_PING);
+		if(verbose)
+			System.out.println("Ping sent");
 	}
 	
 	public void sendErase(){
@@ -163,9 +159,16 @@ public class Communication  implements MessageListener {
 
 	public void discover(){
 		motes.clear();
+		if(verbose)
+			System.out.println("Starting discovery");
 		mode=M_DISCOVER;
 		timer.schedule(new Discover(), 5000);
 		sendPing();	
+	}
+
+	public void stopSending(int nodeid) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
