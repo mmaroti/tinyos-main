@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, 2011 University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,8 @@
 #include "MoteHeader.hpp"
 #include "RecordLine.hpp"
 #include "RecordScout.hpp"
+#include "TimeSyncCalc.hpp"
+#include "TimeSyncData.hpp"
 #include "TimeSyncMerger.hpp"
 
 RecordList::RecordList() :
@@ -50,6 +52,7 @@ RecordList::RecordList() :
         records(new QVector<RecordLine>),
         matching_header(new QVector<MoteHeader>),
         matching_records(new QVector<RecordLine>),
+        matching_timesync_data(new QVector<TimeSyncData>),
         scout(new sdc::RecordScout)
 {
 
@@ -62,6 +65,7 @@ RecordList::~RecordList() {
     delete records;
     delete matching_header;
     delete matching_records;
+    delete matching_timesync_data;
     delete scout;
 }
 
@@ -162,6 +166,7 @@ void RecordList::read_all() {
 
     matching_header->clear(); // TODO Check what is good for the GUI
     matching_records->clear();
+    matching_timesync_data->clear();
 
     scout->read_all_existing();
 
@@ -280,6 +285,7 @@ void RecordList::search_for_matching(int mote, int reboot) {
 
     matching_header->clear();
     matching_records->clear();
+    matching_timesync_data->clear();
 
     sdc::TimeSyncMerger merger(mote, reboot);
 
@@ -287,11 +293,19 @@ void RecordList::search_for_matching(int mote, int reboot) {
 
     const Set& matching = merger.recordID_of_pairs();
 
+    int size = 0;
+
     for (Set::const_iterator i=matching.begin(); i!=matching.end(); ++i) {
 
         copy_matching_header(*i);
         copy_matching_line(*i);
+
+        ++size;
     }
+
+    matching_timesync_data->resize(size);
+
+    sdc::TimeSyncCalc fill_timesync_data(merger, matching_timesync_data->data(), size);
 
     qDebug() << "Set size:     " << matching.size();
     dump_matching_data();

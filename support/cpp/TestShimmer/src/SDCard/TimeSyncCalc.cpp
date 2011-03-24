@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, 2011 University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
 *      Author: Ali Baharev
 */
 
+#include <assert.h>
 #include <iostream>
 #include "TimeSyncCalc.hpp"
 #include "TimeSyncMerger.hpp"
@@ -40,23 +41,27 @@ using namespace std;
 
 namespace sdc {
 
-TimeSyncCalc::TimeSyncCalc(int mote, int reboot)
-    : time_sync(new TimeSyncMerger(mote, reboot))
+TimeSyncCalc::TimeSyncCalc(const TimeSyncMerger& merger, TimeSyncData* data, int length)
 {
-    const Map& pairs = time_sync->pairs();
+    const Map& pairs = merger.pairs();
+
+    assert(static_cast<int>(pairs.size())==length);
 
     Map::const_iterator i = pairs.begin();
+
+    int k = 0;
 
     while (i != pairs.end()) {
 
         cout << "Processing " << i->first << endl;
 
-        compute_skew_offset(i->second);
+        data[k++] = compute_skew_offset(i->second);
 
         ++i;
     }
 }
-void TimeSyncCalc::compute_skew_offset(const vector<Pair>& sync_points) const {
+
+const TimeSyncData TimeSyncCalc::compute_skew_offset(const vector<Pair>& sync_points) const {
 
     LinearEquations lin_eq;
 
@@ -70,11 +75,19 @@ void TimeSyncCalc::compute_skew_offset(const vector<Pair>& sync_points) const {
         add_equation(lin_eq, sync_points.at(i));
     }
 
-    lin_eq.printStatistics();
+    //lin_eq.printStatistics();
 
     Solution* solution = lin_eq.solveWithSVD(0.0);
 
-    solution->print();
+    const double skew_1 = solution->getValue("skew_1");
+    const double offset = solution->getValue("offset");
+
+    cout << "skew_1: " << skew_1 << ", offset: " << offset << endl;
+
+    cout << "average error " << solution->getAverageError() << endl;
+    cout << "maximum error " << solution->getMaximumError() << endl;
+
+    return TimeSyncData(skew_1, offset);
 }
 
 void TimeSyncCalc::add_equation(LinearEquations& lin_eq, const Pair& pair) const {
@@ -88,10 +101,6 @@ void TimeSyncCalc::add_equation(LinearEquations& lin_eq, const Pair& pair) const
     eq->setCoefficient("offset", 1.0);
 
     lin_eq.addEquation(eq);
-}
-
-TimeSyncCalc::~TimeSyncCalc() {
-    // Do NOT remove this empty dtor: required to generate the dtor of auto_ptr
 }
 
 }

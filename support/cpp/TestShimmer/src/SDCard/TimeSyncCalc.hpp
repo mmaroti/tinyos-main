@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, 2011 University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,8 @@
 #ifndef TIMESYNCCALC_HPP_
 #define TIMESYNCCALC_HPP_
 
-#include <memory>
 #include <vector>
+#include "TimeSyncData.hpp"
 
 class LinearEquations;
 
@@ -49,17 +49,13 @@ class TimeSyncCalc {
 
 public:
 
-    TimeSyncCalc(int mote, int reboot);
-
-    ~TimeSyncCalc();
+    TimeSyncCalc(const TimeSyncMerger& merger, TimeSyncData* data, int length);
 
 private:
 
-    void compute_skew_offset(const std::vector<Pair>& sync_points) const;
+    const TimeSyncData compute_skew_offset(const std::vector<Pair>& sync_points) const;
 
     void add_equation(LinearEquations& lin_eq, const Pair& pair) const;
-
-    const std::auto_ptr<const TimeSyncMerger> time_sync;
 };
 
 }

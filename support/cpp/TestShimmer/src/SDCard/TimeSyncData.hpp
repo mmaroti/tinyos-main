@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, 2011 University of Szeged
+/* Copyright (c) 2011 University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -31,71 +31,28 @@
 * Author: Ali Baharev
 */
 
-#ifndef RECORDLIST_HPP
-#define RECORDLIST_HPP
+#ifndef TIMESYNCDATA_HPP
+#define TIMESYNCDATA_HPP
 
-#include <QVector>
-
-namespace sdc {
-    class RecordID;
-    class RecordScout;
-}
-
-class QMutex;
-class QString;
-class MoteHeader;
-class RecordLine;
-class TimeSyncData;
-
-class RecordList {
+class TimeSyncData {
 
 public:
 
-    RecordList();
+    TimeSyncData() : skew_1(0), offset(0) { }
 
-    void read_all_existing();
+    TimeSyncData(double skew_1, double offset)
+        : skew_1(skew_1), offset(offset)
+    { }
 
-    const QVector<MoteHeader>& headers() const;
+    double get_skew_1() const { return skew_1; }
 
-    const QVector<RecordLine>& record_info() const;
-
-    void search_for_matching_records(int mote, int reboot);
-
-    const QVector<MoteHeader>& matching_headers() const;
-
-    const QVector<RecordLine>& matching_record_info() const;
-
-    ~RecordList();
+    double get_offset() const { return offset; }
 
 private:
 
-    Q_DISABLE_COPY(RecordList)
+    double skew_1;
 
-    void read_all();
-    void search_for_matching(int mote, int reboot);
-
-    void copy_headers();
-    void copy_lines();
-
-    void copy_matching_header(const sdc::RecordID& rid);
-    void copy_matching_line(const sdc::RecordID& rid);
-    void dump_matching_data() const;
-
-    void show_read_error(const char* what, const char* name) const;
-    void show_lock_error() const;
-    void show_error(const QString& msg) const;
-
-    void check_lock() const;
-
-    QMutex* const mutex;
-    // TODO The containers should go into their own class
-    QVector<MoteHeader>* const header;
-    QVector<RecordLine>* const records;
-    QVector<MoteHeader>* const matching_header;
-    QVector<RecordLine>* const matching_records;
-    QVector<TimeSyncData>* const matching_timesync_data;
-    sdc::RecordScout* const scout;
-
+    double offset;
 };
 
-#endif // RECORDLIST_HPP
+#endif // TIMESYNCDATA_HPP
