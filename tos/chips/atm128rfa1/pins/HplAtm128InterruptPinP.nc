@@ -65,7 +65,7 @@ implementation
   }
 
   async command mcu_power_t McuPowerOverride.lowestState() {
-    if(bit >= 4) {
+    if(bit >= 4&&EIMSK&(1<<bit)) {
       return ATM128_POWER_SAVE;
     }
     else {
