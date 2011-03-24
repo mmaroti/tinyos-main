@@ -62,6 +62,10 @@ public class Communication  implements MessageListener {
 	private int mode=M_AUTODOWNLOAD;
 	private HashSet<Integer> motes=new HashSet<Integer>();
 
+	public HashSet<Integer> getMotes() {
+		return motes;
+	}
+
 	private boolean verbose=true;
 	
 	private void exception(IOException e){
@@ -157,8 +161,11 @@ public class Communication  implements MessageListener {
 		phoenix.shutdown();
 	}
 
-	public void discover(){
-		motes.clear();
+	public void discover(HashSet<Integer> pastmotes){
+		if(pastmotes==null)
+			motes.clear();
+		else
+			motes=pastmotes;
 		if(verbose)
 			System.out.println("Starting discovery");
 		mode=M_DISCOVER;

@@ -77,19 +77,20 @@ public class StreamDownloader{
 	public StreamDownloader(String source){
 		comm=new Communication(this, source);
 		console=new ConsoleHandler("StreamDownloader shell", ">", "help");
+		console.addCommand("motelist", "Display the id of all known motes");
 		try {
 			this.timeSync=new CSVHandler(new File("00000time.csv"), true, ";", 2, new Integer[]{1,3,4,5,6,7});
 		} catch (IOException e) {
 			System.err.println("Error: Can't open or parse the timesync file");
 			System.exit(1);
 		}	
-		comm.discover();
+		comm.discover(null);
 	}
 	
 	public void discoveryComplate(HashSet<Integer> motes) {
-		System.out.print("Fount "+motes.size()+" motes. Discover again?");
+		System.out.print(motes.size()+" motes found. Discover again?");
 		if(console.readChar(new String[]{"y","n"}).endsWith("y")){
-			comm.discover();
+			comm.discover(motes);
 		} else 
 			waitForCommands();
 	}
@@ -97,12 +98,25 @@ public class StreamDownloader{
 	
 	
 	private void waitForCommands() {
+		
 		if(!welcomePrinted){
 			welcomePrinted=true;
 			console.printWelcome();
 		}
-		String command=console.readCommand();
-			
+		boolean exitCommandLoop=false;
+		while(!exitCommandLoop){
+			String command=console.readCommand();
+			if(command.equals("motelist")){
+				HashSet<Integer> motes=comm.getMotes();
+				System.out.println("Known motes: ");
+				for(Integer i:motes){
+					System.out.print(i+"; ");
+				}
+				System.out.println();
+			} else {
+				System.out.println("Unimplemented command.");
+			}
+		}
 	}
 
 	private static DataWriter getWriter(int nodeid, ArrayList<DataWriter> datawriters ){
