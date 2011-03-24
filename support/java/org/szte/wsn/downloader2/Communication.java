@@ -35,6 +35,9 @@ package org.szte.wsn.downloader2;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import net.tinyos.message.Message;
 import net.tinyos.message.MessageListener;
@@ -45,22 +48,50 @@ import net.tinyos.util.PrintStreamMessenger;
 
 public class Communication  implements MessageListener {
 
+	private Timer timer=new Timer();
+	//private TimerTask startdownload=null;
+	//private TimerTask pingtask=null;
+	
 	private MoteIF moteIF;
 	private PhoenixSource phoenix;
 	private StreamDownloader sd;
 	private short seqnum=0;
+	private final int M_DISCOVER=0;
+	private final int M_AUTODOWNLOAD=0;
+	private int mode=M_AUTODOWNLOAD;
+	private HashSet<Integer> motes=new HashSet<Integer>();
+	
+	private void exception(IOException e){
+		System.err.println("Communication error, can't send message. Exiting");
+		e.printStackTrace();
+		System.exit(1);
+	}
+	
+	public final class Discover extends TimerTask {
+
+		@Override
+		public void run() {
+			mode=M_AUTODOWNLOAD;
+			//sd.discoveryComplate(motes);
+		}
+		
+	}
 	
 	@Override
 	public void messageReceived(int to, Message m) {
 		if(m instanceof CtrlMsg){
-			CtrlMsg rec=(CtrlMsg)m;
-			if(seqnum==rec.get_seq_num())
-				sd.newPong(rec.get_source(),rec.get_min_address(),rec.get_max_address(),true);
-			else
-				if(rec.get_min_address()==4294967295L&&rec.get_max_address()==4294967295L)
-					sd.pongError(rec.get_source());
+			if(mode==M_AUTODOWNLOAD){
+				CtrlMsg rec=(CtrlMsg)m;
+				if(seqnum==rec.get_seq_num())
+					sd.newPong(rec.get_source(),rec.get_min_address(),rec.get_max_address(),true);
 				else
-					sd.newPong(rec.get_source(),rec.get_min_address(),rec.get_max_address(),false);
+					if(rec.get_min_address()==4294967295L&&rec.get_max_address()==4294967295L)
+						sd.pongError(rec.get_source());
+					else
+						sd.newPong(rec.get_source(),rec.get_min_address(),rec.get_max_address(),false);
+			} else if(mode==M_DISCOVER){
+				motes.add(m.getSerialPacket().get_header_src());
+			}
 		} else if(m instanceof DataMsg){
 			DataMsg rec=(DataMsg)m;
 			byte[] data=rec.get_payload();
@@ -81,22 +112,34 @@ public class Communication  implements MessageListener {
 		moteIF.send(MoteIF.TOS_BCAST_ADDR, get);
 	}
 	
-	private void sendCommnad(short command) throws IOException{
+	private void sendCommnad(short command){
 		CommandMsg cmd=new CommandMsg();
 		cmd.set_cmd(command);
-		moteIF.send(MoteIF.TOS_BCAST_ADDR, cmd);
+		try {
+			moteIF.send(MoteIF.TOS_BCAST_ADDR, cmd);
+		} catch (IOException e) {
+			exception(e);
+		}
 	}
 
-	public void sendPing() throws IOException{
+	public void sendPing(){
 		sendCommnad(CommandMsg.COMMAND_PING);
 	}
 	
-	public void sendErase() throws IOException{
-		sendGet(MoteIF.TOS_BCAST_ADDR, 1, 1);
+	public void sendErase(){
+		try {
+			sendGet(MoteIF.TOS_BCAST_ADDR, 1, 1);
+		} catch (IOException e) {
+			exception(e);
+		}
 	}
 	
-	public void sendErase(int nodeid) throws IOException{
-		sendGet(nodeid, 1, 1);
+	public void sendErase(int nodeid){
+		try {
+			sendGet(nodeid, 1, 1);
+		} catch (IOException e) {
+			exception(e);
+		}
 	}
 	
 	
@@ -111,6 +154,18 @@ public class Communication  implements MessageListener {
 		this.moteIF.registerListener(new DataMsg(), this);
 		this.moteIF.registerListener(new CtrlMsg(), this);
 		this.moteIF.registerListener(new TimeMsg(), this);
+	}
+	
+	public void stop(){
+		timer.cancel();
+		phoenix.shutdown();
+	}
+
+	public void discover(){
+		motes.clear();
+		mode=M_DISCOVER;
+		timer.schedule(new Discover(), 5000);
+		sendPing();	
 	}
 
 }
