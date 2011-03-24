@@ -175,8 +175,12 @@ void SDataWidget::createChildItem(int i, QTreeWidgetItem* parent, Side side)
 
 void SDataWidget::on_toPlotButton_clicked()
 {
+    int mote = (ui->sdataLeft->currentItem()->parent()->text(MOTE_ID)).toInt();
+    int recid= (ui->sdataLeft->currentItem()->text(RECORD_ID)).toInt();
 
-    if(ui->sdataRight->selectedItems().size() > 0){
+    recordList.link(mote, recid);
+
+/*  if(ui->sdataRight->selectedItems().size() > 0){
         if(ui->sdataRight->currentItem()->parent()){
 
             QString msg;
@@ -193,6 +197,7 @@ void SDataWidget::on_toPlotButton_clicked()
             msgBox.exec();
         }
     }
+*/
 }
 
 void SDataWidget::on_clearButton_clicked()

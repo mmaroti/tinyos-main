@@ -41,7 +41,7 @@ using namespace std;
 
 namespace sdc {
 
-TimeSyncCalc::TimeSyncCalc(const TimeSyncMerger& merger, TimeSyncData* data, int length)
+TimeSyncCalc::TimeSyncCalc(const TimeSyncMerger& merger, const RecordID& rid, TimeSyncData* data, int length)
 {
     const Map& pairs = merger.pairs();
 
@@ -53,7 +53,11 @@ TimeSyncCalc::TimeSyncCalc(const TimeSyncMerger& merger, TimeSyncData* data, int
 
     while (i != pairs.end()) {
 
-        cout << "Processing " << i->first << endl;
+        RecordPairID p = i->first;
+
+        cout << "Processing " <<  p << endl;
+
+        swap_pairs = p.isFirst(rid);
 
         data[k++] = compute_skew_offset(i->second);
 
@@ -96,8 +100,18 @@ void TimeSyncCalc::add_equation(LinearEquations& lin_eq, const Pair& pair) const
 
     // t1    = skew  *t2 + offset
     // t1-t2 = skew_1*t2 + offset
-    eq->setConstant(pair.first-pair.second);
-    eq->setCoefficient("skew_1",   pair.second);
+
+    unsigned int t1 = pair.first;
+    unsigned int t2 = pair.second;
+
+    if (swap_pairs) {
+        unsigned int tmp = t1;
+        t1 = t2;
+        t2 = tmp;
+    }
+
+    eq->setConstant(t1-t2);
+    eq->setCoefficient("skew_1", t2);
     eq->setCoefficient("offset", 1.0);
 
     lin_eq.addEquation(eq);

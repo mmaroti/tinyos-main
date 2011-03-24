@@ -45,6 +45,8 @@ public:
 
 	RecordPairID(const RecordID& rid1, const RecordID& rid2);
 
+	bool isFirst(const RecordID& rid) const;
+
 	friend bool operator<(const RecordPairID& lhs, const RecordPairID& rhs);
 
 	friend std::ostream& operator<<(std::ostream& , const RecordPairID& );

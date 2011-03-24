@@ -41,6 +41,7 @@ class LinearEquations;
 
 namespace sdc {
 
+class RecordID;
 class TimeSyncMerger;
 
 typedef std::pair<unsigned int, unsigned int> Pair;
@@ -49,13 +50,15 @@ class TimeSyncCalc {
 
 public:
 
-    TimeSyncCalc(const TimeSyncMerger& merger, TimeSyncData* data, int length);
+    TimeSyncCalc(const TimeSyncMerger& merger, const RecordID& rid, TimeSyncData* data, int length);
 
 private:
 
     const TimeSyncData compute_skew_offset(const std::vector<Pair>& sync_points) const;
 
     void add_equation(LinearEquations& lin_eq, const Pair& pair) const;
+
+    bool swap_pairs;
 };
 
 }

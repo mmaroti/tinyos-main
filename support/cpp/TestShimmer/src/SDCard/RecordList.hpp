@@ -59,6 +59,8 @@ public:
 
     const QVector<RecordLine>& record_info() const;
 
+    void link(int mote, int reboot);
+
     void search_for_matching_records(int mote, int reboot);
 
     const QVector<MoteHeader>& matching_headers() const;

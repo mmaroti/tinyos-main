@@ -40,6 +40,7 @@
 #include <QVector>
 #include "RecordList.hpp"
 #include "MoteHeader.hpp"
+#include "RecordID.hpp"
 #include "RecordLine.hpp"
 #include "RecordScout.hpp"
 #include "TimeSyncCalc.hpp"
@@ -258,6 +259,22 @@ void RecordList::search_for_matching_records(int mote, int reboot) {
     qDebug() << "Finished RecordList::search_for_matching_records()";
 }
 
+void RecordList::link(int mote, int reboot) {
+
+    search_for_matching_records(mote, reboot);
+
+    qDebug() << mote << "  " << reboot << "  " << scout->find_recordinfo(sdc::RecordID(mote, reboot)).length().c_str();
+
+    for (int i=0; i<matching_records->size(); ++i) {
+
+        const RecordLine& r = matching_records->at(i);
+
+        TimeSyncData sync = matching_timesync_data->at(i);
+
+        qDebug() << r.mote_id() << "  " << r.record_id() << "  " << sync.get_skew_1() << "  " << sync.get_offset();
+    }
+}
+
 void RecordList::copy_matching_header(const sdc::RecordID& rid) {
 
     const sdc::MoteInfo& m = scout->find_moteinfo(rid);
@@ -305,7 +322,13 @@ void RecordList::search_for_matching(int mote, int reboot) {
 
     matching_timesync_data->resize(size);
 
-    sdc::TimeSyncCalc fill_timesync_data(merger, matching_timesync_data->data(), size);
+    sdc::RecordID rec_id(mote, reboot);
+
+    TimeSyncData* data = matching_timesync_data->data();
+
+    sdc::TimeSyncCalc fill_timesync_data(merger, rec_id, data, size);
+
+    Q_ASSERT(matching_records->size()==matching_timesync_data->size());
 
     qDebug() << "Set size:     " << matching.size();
     dump_matching_data();

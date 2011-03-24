@@ -61,6 +61,11 @@ RecordPairID::RecordPairID(const RecordID& rid1, const RecordID& rid2) {
 	}
 }
 
+bool RecordPairID::isFirst(const RecordID& rid) const {
+
+    return id1 == rid;
+}
+
 bool operator<(const RecordPairID& lhs, const RecordPairID& rhs) {
 
 	return lhs.id1!=rhs.id1 ? lhs.id1 < rhs.id1 : lhs.id2 < rhs.id2;

@@ -258,7 +258,7 @@
       <item>
        <widget class="QPushButton" name="toPlotButton">
         <property name="text">
-         <string>Show in Plot</string>
+         <string>Link</string>
         </property>
        </widget>
       </item>
