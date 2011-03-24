@@ -208,13 +208,9 @@ public class StreamDownloader{
 	public final class Ping extends TimerTask {
 		public void run() {
 			System.out.println("Ping");
-			try {
-				communication.sendPing();
-				startdownload=new StartDownload(pongs);
-				timer.schedule(startdownload, pongwait*1000);
-			} catch (IOException e) {
-				System.err.println("Warning: Can't send ping");
-			}
+			communication.sendPing();
+			startdownload=new StartDownload(pongs);
+			timer.schedule(startdownload, pongwait*1000);
 		}
 	}
 	
@@ -311,19 +307,13 @@ public class StreamDownloader{
 			System.err.println("Error: Can't open or parse the timesync file");
 			System.exit(1);
 		}
-		try{
-			if(listenonly==NONE){
-			    timer.schedule(new EraseExit(), timeout*1000);
-				communication.sendErase();
-				System.out.println("Erase command sent to every node");
-			} else{
-				communication.sendErase(listenonly);
-				System.out.println("Erase command sent to node #"+listenonly);
-			}
-			
-		} catch (IOException e){
-			System.err.println("Can't send erase command; exiting");
-			System.exit(1);
+		if(listenonly==NONE){
+		    timer.schedule(new EraseExit(), timeout*1000);
+			communication.sendErase();
+			System.out.println("Erase command sent to every node");
+		} else{
+			communication.sendErase(listenonly);
+			System.out.println("Erase command sent to node #"+listenonly);
 		}
 	}
 	//experimental constructor
@@ -390,21 +380,11 @@ public class StreamDownloader{
 				} else if(min_address!=max_address||max_address!=0){
 					System.out.println("Erase failed; node #"+nodeid+" "+min_address+"-"+max_address);
 					System.out.println("Retry");
-					try {
-						communication.sendErase(nodeid);
-					} catch (IOException e) {
-						System.err.println("Can't send erase command; exiting");
-						System.exit(1);
-					}
+					communication.sendErase(nodeid);
 				} else if(!complete){
 					System.out.println("New node #"+nodeid+" "+min_address+"-"+max_address);
 					System.out.println("send erase");
-					try {
-						communication.sendErase(nodeid);
-					} catch (IOException e) {
-						System.err.println("Can't send erase command; exiting");
-						System.exit(1);
-					}
+					communication.sendErase(nodeid);
 				}
 			} else {
 				if(getWriter(nodeid, writers)==null){
