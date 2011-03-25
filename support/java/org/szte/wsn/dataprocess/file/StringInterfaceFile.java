@@ -87,7 +87,7 @@ public class StringInterfaceFile implements StringInterface {
 		fileNames=monoStruct?new String[packetParsers.length]:new String[]{path};
 		if(monoStruct)
 			for(int i=0;i<packetParsers.length;i++){
-				fileNames[i]=path.substring(0,endOfPath)+packetParsers[i].getName()+path.substring(endOfPath);
+				fileNames[i]=path.substring(0,endOfPath)+"_"+packetParsers[i].getName()+path.substring(endOfPath);
 			}
 		files=new RandomAccessFile[fileNames.length];
 		starts=new boolean[fileNames.length];
