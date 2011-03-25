@@ -31,6 +31,7 @@
 *      Author: Ali Baharev
 */
 
+#include <ctime>
 #include <QDebug>
 #include <QRunnable>
 #include <QThreadPool>
@@ -39,7 +40,6 @@
 #include <QTextStream>
 #include "TimeSyncMsgReceiver.hpp"
 #include "SerialListener.h"
-#include "Utility.hpp"
 
 using namespace std;
 using namespace sdc;
@@ -83,7 +83,16 @@ void InsertTask::run() {
 
     if (result.second==true) {
 
-        dumpToFile(current_time());
+        time_t booted = time(NULL);
+
+        uint correction = mote_time/1024; // TODO Magic number used...
+
+        booted -= (correction);
+
+        //qDebug() << "Booted: " << ctime(&booted);
+        //qDebug() << "Correction: " << correction << " s";
+
+        dumpToFile(ctime(&booted));
     }
 }
 
