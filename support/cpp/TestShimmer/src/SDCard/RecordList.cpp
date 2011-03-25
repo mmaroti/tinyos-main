@@ -263,7 +263,13 @@ void RecordList::link(int mote, int reboot) {
 
     search_for_matching_records(mote, reboot);
 
-    qDebug() << mote << "  " << reboot << "  " << scout->find_recordinfo(sdc::RecordID(mote, reboot)).length().c_str();
+    const sdc::RecordInfo recinfo = scout->find_recordinfo(sdc::RecordID(mote, reboot));
+
+    std::string length = recinfo.length();
+
+    QDateTime booted = stdDate2QDate(recinfo.date_recorded().c_str());
+
+    qDebug() << mote << "  " << reboot << "  " << length.c_str() << "  " << booted << "  " << booted.toUTC().toTime_t();
 
     for (int i=0; i<matching_records->size(); ++i) {
 
