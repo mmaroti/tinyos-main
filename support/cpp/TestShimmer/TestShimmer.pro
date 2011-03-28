@@ -68,7 +68,6 @@ SOURCES += src/DataRecorder.cpp \
     src/SDCard/VirtualMoteID.cpp \
     src/SDCard/Utility.cpp \
     src/SDCard/Tracker.cpp \
-    src/SDCard/TimeSyncWriter.cpp \
     src/SDCard/TimeSyncReader.cpp \
     src/SDCard/TimeSyncMerger.cpp \
     src/SDCard/TimeSyncInfo.cpp \
@@ -105,7 +104,8 @@ SOURCES += src/DataRecorder.cpp \
     src/DriveSelectorDialog.cpp \
     src/SQL/SQLDialog.cpp \
     src/SQL/RecordHandler.cpp \
-    src/OpenGL/GLElbowFlexWidget.cpp
+    src/OpenGL/GLElbowFlexWidget.cpp \
+    src/SDCard/RecordLinker.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -142,7 +142,6 @@ HEADERS += src/DataRecorder.h \
     src/SDCard/Utility.hpp \
     src/SDCard/TypeDefs.hpp \
     src/SDCard/Tracker.hpp \
-    src/SDCard/TimeSyncWriter.hpp \
     src/SDCard/TimeSyncReader.hpp \
     src/SDCard/TimeSyncMerger.hpp \
     src/SDCard/TimeSyncInfo.hpp \
@@ -191,7 +190,8 @@ HEADERS += src/DataRecorder.h \
     src/OpenGL/AnimationElbowFlexSign.hpp \
     src/OpenGL/GLElbowFlexWidget.hpp \
     src/Range.hpp \
-    src/SDCard/TimeSyncData.hpp
+    src/SDCard/TimeSyncData.hpp \
+    src/SDCard/RecordLinker.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

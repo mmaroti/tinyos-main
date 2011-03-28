@@ -42,10 +42,12 @@
 #include "MoteHeader.hpp"
 #include "RecordID.hpp"
 #include "RecordLine.hpp"
+#include "RecordLinker.hpp"
 #include "RecordScout.hpp"
 #include "TimeSyncCalc.hpp"
 #include "TimeSyncData.hpp"
 #include "TimeSyncMerger.hpp"
+#include "Utility.hpp"
 
 RecordList::RecordList() :
         mutex(new QMutex),
@@ -261,23 +263,57 @@ void RecordList::search_for_matching_records(int mote, int reboot) {
 
 void RecordList::link(int mote, int reboot) {
 
+    sdc::RecordLinker linker(sdc::time_to_filename().c_str());
+
+    linker.write_participant(mote, reboot);
+
     search_for_matching_records(mote, reboot);
-
-    const sdc::RecordInfo recinfo = scout->find_recordinfo(sdc::RecordID(mote, reboot));
-
-    std::string length = recinfo.length();
-
-    QDateTime booted = stdDate2QDate(recinfo.date_recorded().c_str());
-
-    qDebug() << mote << "  " << reboot << "  " << length.c_str() << "  " << booted << "  " << booted.toUTC().toTime_t();
 
     for (int i=0; i<matching_records->size(); ++i) {
 
         const RecordLine& r = matching_records->at(i);
 
+        linker.write_participant(r.mote_id(), r.record_id());
+    }
+
+    const sdc::RecordInfo recinfo = scout->find_recordinfo(sdc::RecordID(mote, reboot));
+
+    uint boot_utc = 0; // TODO Why isn't it time_t
+
+    if (recinfo.date_recorded().size()>0) {
+
+        QDateTime booted = stdDate2QDate(recinfo.date_recorded().c_str());
+
+        boot_utc = booted.toUTC().toTime_t();
+    }
+
+    linker.write_reference_boot_time(boot_utc);
+
+    std::string length = recinfo.length();
+
+    linker.write_record(mote, reboot, length, boot_utc, 0, 0);
+
+    for (int i=0; i<matching_records->size(); ++i) {
+
+        const RecordLine& r = matching_records->at(i);
+
+        std::string len = r.length().toStdString();
+
+        boot_utc = 0;
+
+        if (!r.recorded().isNull()) {
+
+            boot_utc = r.recorded().toUTC().toTime_t();
+        }
+
         TimeSyncData sync = matching_timesync_data->at(i);
 
-        qDebug() << r.mote_id() << "  " << r.record_id() << "  " << sync.get_skew_1() << "  " << sync.get_offset();
+        linker.write_record(r.mote_id(),
+                            r.record_id(),
+                            len,
+                            boot_utc,
+                            sync.get_skew_1(),
+                            sync.get_offset());
     }
 }
 

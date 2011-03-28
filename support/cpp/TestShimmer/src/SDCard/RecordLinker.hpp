@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, 2011 University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,64 @@
 *      Author: Ali Baharev
 */
 
-#include "TimeSyncWriter.hpp"
+#ifndef RECORDLINKER_HPP_
+#define RECORDLINKER_HPP_
 
-namespace asol {
+#include <iosfwd>
+#include <memory>
+#include <string>
+
+namespace sdc {
+
+class RecordLinker {
+
+public:
+
+	RecordLinker(const char* filename);
+
+	void write_participant(int mote, int record);
+
+	void write_reference_boot_time(unsigned int global_start_utc);
+
+	void write_record(int mote,
+			          int reboot,
+			          const std::string& length,
+			          unsigned int boot_utc,
+			          double skew_1,
+			          double offset);
+
+	~RecordLinker();
+
+private:
+
+	RecordLinker(const RecordLinker& );
+	RecordLinker& operator=(const RecordLinker& );
+
+	void write_header();
+	void write_data();
+	void write_line(const std::string& line);
+	const std::string mote_time2global_time(unsigned int mote_time) const;
+
+
+	const std::string record_file_name() const;
+
+	const std::auto_ptr<std::ofstream> out;
+
+	unsigned int global_start;
+
+	int mote;
+
+	int reboot;
+
+	std::string length;
+
+	unsigned int boot_utc;
+
+	double skew_1;
+
+	double offset;
+};
 
 }
+
+#endif /* RECORDLINKER_HPP_ */
