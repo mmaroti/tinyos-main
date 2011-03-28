@@ -1,5 +1,3 @@
-#include "Ms5607.h" 
-
 /*
 * Copyright (c) 2011, University of Szeged
 * All rights reserved.
@@ -34,6 +32,7 @@
 * Author: Zsolt Szabo
 */
 
+#include "Ms5607.h" 
 
 module Ms5607P  {
   provides interface Read<uint32_t> as Pressure;
