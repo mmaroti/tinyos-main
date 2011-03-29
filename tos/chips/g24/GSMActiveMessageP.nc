@@ -54,7 +54,7 @@ implementation{
 	message_t message;
 	bool busy=FALSE;
 	
-	char *convertToHex(uint8_t *toConvert, uint8_t len);
+	char *convertToHex(uint8_t *toConvert, uint16_t dest_addr, uint16_t link_source_addr, uint8_t len, uint8_t group_ID, uint8_t handler_ID);
 	void procToHex(char *hex, uint8_t x);
 	
 	command error_t SplitControl.start(){
@@ -119,7 +119,7 @@ implementation{
 	}
 	
 	command error_t AMSend.send(am_addr_t addr, message_t *msg, uint8_t len){
-		error_t err=call GsmControl.mipSend(SOCKET,convertToHex((uint8_t*)msg->data,len));
+		error_t err=call GsmControl.mipSend(SOCKET,	convertToHex((uint8_t*) msg->data, addr, TOS_NODE_ID, len, 22, 1));
 		if(err==SUCCESS){
 			busy=TRUE;
 		}else{
@@ -155,17 +155,30 @@ implementation{
 		return 0;
 	}
 	
-	char* convertToHex(uint8_t *toConvert, uint8_t len){
-		static char hexString[(TOSH_DATA_LENGTH*2)+16];
+	char *convertToHex(uint8_t *toConvert, uint16_t dest_addr, uint16_t link_source_addr, uint8_t len, uint8_t group_ID, uint8_t handler_ID){
+		static char hexString[(TOSH_DATA_LENGTH*2)+9];
 		char hexChar[3];
 		uint8_t i;
-		
+				
 		*(hexString)='\0';
-////////// HEADER //////////////////////////////////////////
-		strcat(hexString,"5041434B4554");
-		procToHex(hexChar,len);
+		procToHex(hexChar,(len+8)); // packet length
 		strcat(hexString,hexChar);
-////////// HEADER END //////////////////////////////////////
+		procToHex(hexChar,1); // packet id
+		strcat(hexString,hexChar);
+		procToHex(hexChar,dest_addr); // destination address lower byte
+		strcat(hexString,hexChar);
+		procToHex(hexChar,dest_addr>>8); // destination address upper byte
+		strcat(hexString,hexChar);
+		procToHex(hexChar,link_source_addr); // linksoure address lower byte
+		strcat(hexString,hexChar);
+		procToHex(hexChar,link_source_addr>>8); // linksource address upper byte
+		strcat(hexString,hexChar);
+		procToHex(hexChar,len); // payload length
+		strcat(hexString,hexChar);
+		procToHex(hexChar,group_ID); // gorup ID
+		strcat(hexString,hexChar);
+		procToHex(hexChar,handler_ID); // handler ID
+		strcat(hexString,hexChar); 
 ////////// DATA       //////////////////////////////////////
 		for(i=0;i<len;i++){
 			procToHex(hexChar,toConvert[i]);
