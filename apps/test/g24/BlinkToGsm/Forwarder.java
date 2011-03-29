@@ -113,12 +113,14 @@ public class Forwarder {
 	  }
 	  
 	  public void run(){
-		  while(runFw){
+		 while(runFw){
 	       try{
-    	   	os.write(is.read());
+    	   		os.write(is.read());
 	       }catch(IOException e){
-			System.err.println("Can't read/write streams.");
-			System.exit(1);
+	    	   if(runFw){
+	    		   System.err.println("Can't read/write streams.");
+	    		   System.exit(1);
+	    	   }
 	       }
 	     };
 	  }
