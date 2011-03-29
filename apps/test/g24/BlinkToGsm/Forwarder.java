@@ -105,7 +105,7 @@ public class Forwarder {
 	public class IsToOs implements Runnable{
 	  InputStream is;
 	  OutputStream os;
-	  boolean stop=false;
+	  boolean runFw=true;
 	  
 	  public IsToOs(InputStream is, OutputStream os){
 	    this.is=is;
@@ -113,18 +113,18 @@ public class Forwarder {
 	  }
 	  
 	  public void run(){
-	     do{
+		  while(runFw){
 	       try{
-		os.write(is.read());
+    	   	os.write(is.read());
 	       }catch(IOException e){
-		System.err.println("Can't read/write streams.");
-		System.exit(1);
+			System.err.println("Can't read/write streams.");
+			System.exit(1);
 	       }
-	     }while(stop);
+	     };
 	  }
 
 	  public void stopFw(){
-	    stop=true;
+	    runFw=false;
 	  }
 	}
 	
@@ -138,6 +138,7 @@ public class Forwarder {
 	public void stop(){
 	  atob.stopFw();
 	  btoa.stopFw();
+	  
 	}
 
 	public void disconnect(){
