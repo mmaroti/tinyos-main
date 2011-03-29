@@ -82,11 +82,15 @@ public class Forwarder {
 	  
 	  try{
 	    osA.write(VERSION);
-	    osB.write(VERSION);
-	    if(isA.read()!=VERSION[0]||isA.read()!=VERSION[1]||isB.read()!=VERSION[0]||isB.read()!=VERSION[1]){
-	      System.err.println("Version error.");
+	    if(isA.read()!=VERSION[0]||isA.read()!=VERSION[1]){
+	      System.err.println("Version error on port "+portA);
 	      System.exit(1);
 	    }
+// 	    osB.write(VERSION);
+// 	    if(isB.read()!=VERSION[0]||isB.read()!=VERSION[1]){
+// 	      System.err.println("Version error on port "+portB);
+// 	      System.exit(1);
+// 	    }
 	  }catch(IOException e){
 	    System.err.println("Can't read/write streams.");
 	    System.exit(1);
