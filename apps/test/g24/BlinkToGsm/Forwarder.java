@@ -40,13 +40,16 @@ public class Forwarder {
 	
 	InputStream isA, isB;
 	OutputStream osA, osB;
-	Thread atob, btoa;
+	
+	ServerSocket serverSocketA = null;
+	ServerSocket serverSocketB = null;
+
+	Socket clientSocketA = null, clientSocketB = null;
+	
+	IsToOs atob, btoa;
 	
 	public Forwarder(int portA, int portB){
-	  ServerSocket serverSocketA = null;
-	  ServerSocket serverSocketB = null;
-
-	  Socket clientSocketA = null, clientSocketB = null;
+	  
 	  
 
 	  try {
@@ -86,21 +89,23 @@ public class Forwarder {
 	      System.err.println("Version error on port "+portA);
 	      System.exit(1);
 	    }
-// 	    osB.write(VERSION);
-// 	    if(isB.read()!=VERSION[0]||isB.read()!=VERSION[1]){
-// 	      System.err.println("Version error on port "+portB);
-// 	      System.exit(1);
-// 	    }
+//	 	    osB.write(VERSION);
+//	 	    if(isB.read()!=VERSION[0]||isB.read()!=VERSION[1]){
+//	 	      System.err.println("Version error on port "+portB);
+//	 	      System.exit(1);
+//	 	    }
 	  }catch(IOException e){
 	    System.err.println("Can't read/write streams.");
 	    System.exit(1);
 	  }
-	  System.err.println("Version OK. Starting forwarding");
+	  System.out.println("Version OK. Starting forwarding");
+	  System.out.println("Press enter to exit");
 	}
 	
 	public class IsToOs implements Runnable{
 	  InputStream is;
 	  OutputStream os;
+	  boolean stop=false;
 	  
 	  public IsToOs(InputStream is, OutputStream os){
 	    this.is=is;
@@ -115,15 +120,40 @@ public class Forwarder {
 		System.err.println("Can't read/write streams.");
 		System.exit(1);
 	       }
-	     }while(true);
+	     }while(stop);
+	  }
+
+	  public void stopFw(){
+	    stop=true;
 	  }
 	}
 	
 	public void start(){
-	  atob=new Thread(new IsToOs(isA,osB),"AtoB");
-	  btoa=new Thread(new IsToOs(isB,osA),"BtoA");
-	  atob.start();
-	  btoa.start();
+	  atob=new IsToOs(isA,osB);
+	  new Thread(atob,"AtoB").start();
+	  btoa=new IsToOs(isB,osA);
+	  new Thread(btoa,"BtoA").start();
+	}
+
+	public void stop(){
+	  atob.stopFw();
+	  btoa.stopFw();
+	}
+
+	public void disconnect(){
+	  try{
+	    isA.close();
+	    isB.close();
+	    osA.close();
+	    osB.close();
+	    clientSocketA.close();
+	    clientSocketB.close();
+	    serverSocketA.close();
+	    serverSocketB.close();
+	  }catch(IOException e){
+	    System.err.println("Can't close IOStreams or sockets");
+	    System.exit(1);
+	  }
 	}
 	  
 	public static void main(String[] args) throws IOException {
@@ -140,14 +170,11 @@ public class Forwarder {
 	    System.out.println("Usage: java server [port A] [port B]");
 	    System.exit(1);
 	  }
-	  new Forwarder(portA,portB).start();
-// 	  isA.close();
-// 	  isB.close();
-// 	  osA.close();
-// 	  osB.close();
-// 	  clientSocketA.close();
-// 	  clientSocketB.close();
-// 	  serverSocketA.close();
-// 	  serverSocketB.close();
+	  Forwarder fw=new Forwarder(portA,portB);
+	  fw.start();
+	  BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+	  stdin.readLine();
+	  fw.stop();
+	  fw.disconnect();	  
 	}
 }
