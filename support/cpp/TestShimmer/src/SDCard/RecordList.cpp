@@ -307,6 +307,8 @@ void RecordList::link(int mote, int reboot) {
                                  sync.get_offset());
     }
 
+    linker.write_record_header();
+
     linker.write_record(mote, reboot, 0, 0);
 
     for (int i=0; i<matching_records->size(); ++i) {
