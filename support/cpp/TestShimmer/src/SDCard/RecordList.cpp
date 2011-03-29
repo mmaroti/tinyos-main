@@ -263,18 +263,9 @@ void RecordList::search_for_matching_records(int mote, int reboot) {
 
 void RecordList::link(int mote, int reboot) {
 
-    sdc::RecordLinker linker(sdc::time_to_filename().c_str());
-
-    linker.write_participant(mote, reboot);
-
     search_for_matching_records(mote, reboot);
 
-    for (int i=0; i<matching_records->size(); ++i) {
-
-        const RecordLine& r = matching_records->at(i);
-
-        linker.write_participant(r.mote_id(), r.record_id());
-    }
+    sdc::RecordLinker linker(sdc::time_to_filename().c_str());
 
     const sdc::RecordInfo recinfo = scout->find_recordinfo(sdc::RecordID(mote, reboot));
 
@@ -287,11 +278,11 @@ void RecordList::link(int mote, int reboot) {
         boot_utc = booted.toUTC().toTime_t();
     }
 
-    linker.write_reference_boot_time(boot_utc);
+    linker.set_reference_boot_time(boot_utc);
 
     std::string length = recinfo.length();
 
-    linker.write_record(mote, reboot, length, boot_utc, 0, 0);
+    linker.write_participant(mote, reboot, length, boot_utc, 0, 0);
 
     for (int i=0; i<matching_records->size(); ++i) {
 
@@ -308,10 +299,24 @@ void RecordList::link(int mote, int reboot) {
 
         TimeSyncData sync = matching_timesync_data->at(i);
 
+        linker.write_participant(r.mote_id(),
+                                 r.record_id(),
+                                 len,
+                                 boot_utc,
+                                 sync.get_skew_1(),
+                                 sync.get_offset());
+    }
+
+    linker.write_record(mote, reboot, 0, 0);
+
+    for (int i=0; i<matching_records->size(); ++i) {
+
+        const RecordLine& r = matching_records->at(i);
+
+        TimeSyncData sync = matching_timesync_data->at(i);
+
         linker.write_record(r.mote_id(),
                             r.record_id(),
-                            len,
-                            boot_utc,
                             sync.get_skew_1(),
                             sync.get_offset());
     }

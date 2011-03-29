@@ -31,6 +31,7 @@
 *      Author: Ali Baharev
 */
 
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
 #include <limits>
@@ -55,7 +56,7 @@ RecordLinker::RecordLinker(const char* filename) : out(new ofstream(filename)) {
 
 	out->exceptions(ios_base::failbit | ios_base::badbit);
 
-	*out << "# Mote and reboot IDs involved\n";
+	*out << "#mote,reboot_ID,length,boot_unix_time,skew_1,offset\n";
 
 	skew_1 = offset = 0;
 
@@ -64,26 +65,13 @@ RecordLinker::RecordLinker(const char* filename) : out(new ofstream(filename)) {
 	mote = reboot = -1;
 }
 
-void RecordLinker::write_participant(int mote, int record) {
-
-	*out << mote << '/' << record << '\t';
-}
-
-void RecordLinker::write_reference_boot_time(unsigned int global_start_utc) {
-
-	global_start = global_start_utc;
-
-	*out << "\n# Mote providing reference time booted at (Unix time, zero if unknown)\n";
-	*out << global_start << '\n';
-
-}
-
-void RecordLinker::write_record(int Mote,
-		                        int Reboot,
-		  			            const std::string& Length,
-		                        unsigned int Boot_utc,
-		                        double Skew_1,
-		                        double Offset)
+void RecordLinker::write_participant(
+		int Mote,
+		int Reboot,
+		const std::string& Length,
+		unsigned int Boot_utc,
+		double Skew_1,
+		double Offset)
 {
 	mote     = Mote;
 	reboot   = Reboot;
@@ -93,23 +81,35 @@ void RecordLinker::write_record(int Mote,
 	offset   = Offset;
 
 	write_header();
-
-	write_data();
 }
 
 void RecordLinker::write_header() {
 
-	*out << "# Mote and reboot ID\n";
-	*out << mote << '/' << reboot << '\n';
-	*out << "# Length of record\n";
-	*out << length << '\n';
-	*out << "# Unix time of boot (zero if unknown)\n";
-	*out << boot_utc << '\n';
-	*out << "# Skew-1 and offset (second)\n";
-	*out << skew_1/1024 << '/' << offset/1024 << '\n';
-	*out << "# Unix time, mote time (32kHz ticks), counter, ";
-	*out << "accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z, volt, temp\n";
+	*out << mote << ',' << reboot << ',' << length_to_second() << ',';
+	*out << boot_utc << ',' << skew_1/1024 << ',' << offset/1024 << '\n';
 }
+
+void RecordLinker::set_reference_boot_time(unsigned int global_start_utc) {
+
+	global_start = global_start_utc;
+}
+
+void RecordLinker::write_record(int Mote,
+		                        int Reboot,
+		                        double Skew_1,
+		                        double Offset)
+{
+	mote     = Mote;
+	reboot   = Reboot;
+	skew_1   = Skew_1;
+	offset   = Offset;
+
+	*out << "\n#mote,reboot_ID,unix_time,mote_time,counter,";
+	*out << "accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z,volt,temp\n";
+
+	write_data();
+}
+
 
 void RecordLinker::write_data() {
 
@@ -145,7 +145,8 @@ void RecordLinker::write_line(const std::string& line) {
 
 	iss >> mote_time;
 
-	*out << mote_time2global_time(mote_time) << ',' << line << '\n';
+	*out << mote << ',' << reboot << ',' << mote_time2global_time(mote_time) << ',';
+	*out << line << '\n';
 }
 
 const string RecordLinker::mote_time2global_time(unsigned int mote_time) const {
@@ -167,6 +168,28 @@ const string RecordLinker::mote_time2global_time(unsigned int mote_time) const {
 	oss << fixed << setprecision(3) << time << flush;
 
 	return oss.str();
+}
+
+// FIXME In the new SQLite DB, store length in ms or ticks, not as string
+const string RecordLinker::length_to_second() const {
+
+	// 01 2 34 5 67 8 901
+	// hh : mm : ss . mmm
+	if (!(length.at(2)==':' &&
+		  length.at(5)==':' &&
+		  length.at(8)=='.' &&
+		  length.size()==12))
+	{
+		throw runtime_error("invalid time format: "+length);
+	}
+
+	int time = 0;
+
+	time += atoi(length.substr(0, 2).c_str())*3600;
+	time += atoi(length.substr(3, 2).c_str())*60;
+	time += atoi(length.substr(6, 2).c_str());
+
+	return int2str(time)+length.substr(8);
 }
 
 const string RecordLinker::record_file_name() const {

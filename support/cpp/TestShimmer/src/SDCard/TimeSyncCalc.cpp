@@ -104,18 +104,16 @@ void TimeSyncCalc::add_equation(LinearEquations& lin_eq, const Pair& pair) const
 
     int64_t t1 = pair.first;
     int64_t t2 = pair.second;
-    int sign = 1;
 
     if (swap_pairs) {
         int64_t tmp = t1;
         t1 = t2;
         t2 = tmp;
-        sign = -1;
     }
 
     eq->setConstant(t1-t2);
-    eq->setCoefficient("skew_1", sign*t2);
-    eq->setCoefficient("offset", sign);
+    eq->setCoefficient("skew_1", t2);
+    eq->setCoefficient("offset", -1); // Sign unclear though...
 
     lin_eq.addEquation(eq);
 }

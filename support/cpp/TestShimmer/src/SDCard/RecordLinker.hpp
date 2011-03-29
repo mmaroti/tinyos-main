@@ -46,14 +46,17 @@ public:
 
 	RecordLinker(const char* filename);
 
-	void write_participant(int mote, int record);
+	void write_participant(int mote,
+	          	  	  	   int reboot,
+	          	  	  	   const std::string& length,
+	          	  	  	   unsigned int boot_utc,
+	          	  	  	   double skew_1,
+	          	  	  	   double offset);
 
-	void write_reference_boot_time(unsigned int global_start_utc);
+	void set_reference_boot_time(unsigned int global_start_utc);
 
 	void write_record(int mote,
 			          int reboot,
-			          const std::string& length,
-			          unsigned int boot_utc,
 			          double skew_1,
 			          double offset);
 
@@ -68,6 +71,7 @@ private:
 	void write_data();
 	void write_line(const std::string& line);
 	const std::string mote_time2global_time(unsigned int mote_time) const;
+	const std::string length_to_second() const;
 
 
 	const std::string record_file_name() const;
