@@ -163,7 +163,7 @@ implementation{
 		*(hexString)='\0';
 		procToHex(hexChar,(len+8)); // packet length
 		strcat(hexString,hexChar);
-		procToHex(hexChar,1); // packet id
+		procToHex(hexChar,0); // packet id
 		strcat(hexString,hexChar);
 		procToHex(hexChar,dest_addr); // destination address lower byte
 		strcat(hexString,hexChar);
