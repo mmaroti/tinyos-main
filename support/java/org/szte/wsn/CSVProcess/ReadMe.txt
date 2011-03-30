@@ -16,28 +16,22 @@ The parameters which are missing from the configuration file will be set to the 
 
 
 separator
-	String(character) value, TODO,  default is ";"
+	String(character) value, separator of the values of different columns in output files,  default is ";"
 
 nodeIdSeparator
-	String(character) value, separates header id from node id in header ,default is ":"
-
-avgOutputFileName
-	String value, name of the output file of the averages, default is "avgfile.csv"
-
-insertGlobal
-	Boolean value [true,false], determines whether we want to insert the global time column into the output file?? TODO ,default value is "true"
+	String(character) value, separator of header id from node id in header of output files  ,default is ":"
 		
 maxerror
-	Integer value, determines the threshold in detecting tears in local timeline ??? TODO ,default value is 120
+	Integer value, determines the threshold in detecting disruptions in local timeline ,default value is 120
 
 timeformat
 	String value, determines the time display format, default is "yyyy.MM.dd/HH:mm:ss.SSS"
 
 confFile
-	String value, path of the converters configuration file, default is "convert.conf"
+	String value, path of the used structure's configuration file, default is "convert.conf"
 
 csvExt
-	String value, extension of output files, when there are more files TODO, default is ".csv" 
+	String value, extension of output files, when there are more files, default is ".csv" 
 
 startTime
 	Long value [min, any long value], determines the starting time of the merging in the global file, default is "min" 
@@ -49,24 +43,36 @@ timeWindow
 	Long value, determines the length of the average calculation in millisecundums, default is 900000
 
 timeType
-	String value???[start,end,middle], determines whether the starting, ending or middle of the time period
+	String value [start,end,middle], determines whether the starting, ending or middle of the time period
 	 should be displayed at the averages, default is start
 
-If we have different structures in our data set, we can process them separatly. 
+If we have different structures in our data set, we can process them separately. 
 To do so we have to set some structure related parameters.
 After the global parameters we have to place structure keyword and the name of that structure.   
 The parameters of the structure can follow this line. We can repeat it with every structure. 
-eg.:structture sample1
+eg.:structure data
 
 
 localColumn
-	Integer value, indicates the column of the local time TODO, default?? is 4
+	Integer value, indicates the column of the local time,  no default value, 
+	this is field is mandatory
 	
 globalColumn
-	Integer value, indicates the column of the global time TODO, default?? is 5
+	Integer value, indicates the column of the global time,  no default value, 
+	this is field is mandatory
 	
 dataColumns
-	List of Integer values separated by ',' ,shows which are the data columns TODO, default?? is "1,2,3,4" 
+	List of Integer values separated by ',' ,shows which are the data columns, no default value, 
+	this is field is mandatory
 
-outputfile
-	String value, path of the structure's output file, default is "global.csv"
+outputFileName
+	String value, prefix of the structure's output file, default is "global"
+	
+insertGlobal
+	Boolean value [true,false], determines whether we want to insert the global time column into the output file, default value is "true"
+
+avgOutputFileName
+	String value, the prefix of the output file of the averages, default is "avgfile"
+	
+Every structure must be closed, by the endofstruct keyword.	
+	
