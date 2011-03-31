@@ -47,6 +47,7 @@ enum{
 enum{
   CMD_GETMIN=0x00,
   CMD_ERASE=0x01,
+  CMD_STOPSEND=0x02,
 };
 typedef nx_struct command_msg {
 	nx_uint8_t cmd;

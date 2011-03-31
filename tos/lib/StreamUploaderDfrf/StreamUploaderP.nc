@@ -63,7 +63,9 @@ implementation{
         if(rec->cmd>=0x10){
           streamcommand=STREAM_EXTERNAL_COMMAND;
           signal Command.newCommand(rec->cmd);
-        } else if(call Resource.request()==SUCCESS){
+        } else if(rec->cmd==CMD_STOPSEND){
+	  lastaddress==readaddress;
+	}else if(call Resource.request()==SUCCESS){
           streamcommand=rec->cmd;
         } 
       }
