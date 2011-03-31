@@ -35,7 +35,7 @@ public class ConsoleHandler {
 		reader.setDefaultPrompt("");
 		int barWidth = reader.getTermwidth()/2-2;
 		int progress=(int)((double)completed/total*barWidth);
-		String bar="["+repetition("=",progress)+repetition("-",barWidth-progress)+"]";
+		String bar=" ["+repetition("=",progress)+repetition("-",barWidth-progress)+"] ";
 		String result=preInfo+bar+postInfo;
 		progressPrinted=true;
 		try {
@@ -117,7 +117,7 @@ public class ConsoleHandler {
 		return null;
 	}
 	
-	private void printHelp(ConsoleCommand cmd){
+	public void printCommandHelp(ConsoleCommand cmd){
 		if(cmd==null){
 			System.err.println("Unknown command. Type '"+helpCommand+"' for help.");
 		} else if(cmd.help==null||cmd.help.equals("")){
@@ -134,6 +134,11 @@ public class ConsoleHandler {
 		}
 	}
 	
+
+	public void printHelp(String cmd) {
+		printCommandHelp(searchCommand(cmd));		
+	}
+	
 	public String readCommand(){
 		String command=null;
 		try {
@@ -147,14 +152,14 @@ public class ConsoleHandler {
 				ConsoleCommand cmd=searchCommand(readcmd[0]);
 				
 				if(cmd==null){
-					printHelp(null);
+					printCommandHelp(null);
 				} else if(cmd.fullCommand.equals(helpCommand)){
 					if(readcmd.length>2)
-						printHelp(null);
+						printCommandHelp(null);
 					else if(readcmd.length==1){
-						printHelp(cmd);
+						printCommandHelp(cmd);
 					} else {
-						printHelp(searchCommand(readcmd[1]));
+						printCommandHelp(searchCommand(readcmd[1]));
 					}
 				} else {
 					command=cmd.fullCommand;
@@ -198,5 +203,6 @@ public class ConsoleHandler {
 		}
 		return ret;//should never happend
 	}
+
 	
 }
