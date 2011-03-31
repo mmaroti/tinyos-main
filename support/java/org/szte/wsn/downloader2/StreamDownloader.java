@@ -202,13 +202,13 @@ public class StreamDownloader{
 
 	public void downloadComplete(int error, long min_address, long max_address) {
 		if(error==Communication.E_SUCCESS){
-			currentMote=currently_handled.getNodeID();
-			DataWriter writer=getWriter(currentMote, writers);
+			int current=currently_handled.getNodeID();
+			DataWriter writer=getWriter(current, writers);
 			if(writer!=null&&writer.getGapCount()==0)
 				System.out.println("Download complete");
 			else {
 				ArrayList<Pong> pongs=new ArrayList<Pong>();
-				pongs.add(new Pong(currentMote, min_address, max_address));
+				pongs.add(new Pong(current, min_address, max_address));
 				getAddressesComplete(pongs, true);
 				return;
 			}
