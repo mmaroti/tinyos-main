@@ -282,19 +282,24 @@ public class StreamDownloader{
 				System.out.println("Are you sure you want to quit?");
 				String chr=console.readChar(new String[]{"y", "n"});
 				if(chr.equals("y")){
+					System.out.println("1");
 					for(DataWriter writer:writers)
 						try {
 							writer.close();
 						} catch (IOException e) {
 							System.err.println("Can't close file of nodeid: "+writer.getNodeid());
 						}
+					System.out.println("2");
 					comm.stop();
+					System.out.println("3");
 					exitCommandLoop=true;
+					System.out.println("4");
 				}
 			} else {
 				System.out.println("Unimplemented command.");
 			}
 		}
+		System.out.println("5");
 	}
 
 	private static DataWriter getWriter(int nodeid, ArrayList<DataWriter> datawriters ){
