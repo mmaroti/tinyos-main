@@ -346,7 +346,10 @@ public class StreamDownloader{
 	}	
 	
 	public static void main(String[] args){
-		new StreamDownloader("sf@localhost:9002");		
+		if(args.length==0)
+			new StreamDownloader("sf@localhost:9002");
+		else
+			new StreamDownloader(args[0]);
 	}
 	
 }
