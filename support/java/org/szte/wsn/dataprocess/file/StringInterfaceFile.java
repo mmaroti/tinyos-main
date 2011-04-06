@@ -114,7 +114,8 @@ public class StringInterfaceFile implements StringInterface {
 	@Override
 	/**
 	 * implements writePacket for file application
-	 * 
+	 * if monoStruct it works simultaneously with different files
+	 * uses the name of the struct
 	 */
 	public void writePacket(StringPacket packet) {
 		int count=0;
