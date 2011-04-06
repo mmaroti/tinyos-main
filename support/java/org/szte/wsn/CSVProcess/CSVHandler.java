@@ -75,7 +75,11 @@ public class CSVHandler {
 		header=null;
 		data=new ArrayList<String[]>();
 	}
-	
+	/**
+	 * opens and reads csv file into ArrayList<String[]> data
+	 * @param hasheader
+	 * @throws IOException
+	 */
 	private void openFile(boolean hasheader) throws IOException{
 		if(!csvfile.exists()){
 			initEmptyFile();
@@ -105,7 +109,7 @@ public class CSVHandler {
 	}
 	
 	/**
-	 * Construcor
+	 * Constructor
 	 * @param csvfile CSV file to open
 	 * @param hasheader true, if the CSV file has header: the first line is the name of the columns
 	 * @param separator CSV cell separator e.g. ";"
@@ -122,7 +126,7 @@ public class CSVHandler {
 	}
 	
 	/**
-	 * Construcor
+	 * Constructor
 	 * @param csvfile CSV file to open
 	 * @param hasheader true, if the CSV file has header: the first line is the name of the columns
 	 * @param separator CSV cell separator e.g. ";"

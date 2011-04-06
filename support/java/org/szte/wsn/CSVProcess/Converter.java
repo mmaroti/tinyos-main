@@ -73,13 +73,32 @@ public class Converter implements ParsingReady{
 		waitForParsing(parent);
 	}
 	
-	public CSVHandler[] toCSVHandlers(int[] timeColumn, ArrayList<Integer>[] dataColumns) throws IOException{
+	/**
+	 * returns the CSVHandlers for one .bin file
+	 * @param structs the parameters of the structures
+	 * @return array of CSVHandlers
+	 * @throws IOException
+	 */
+	public CSVHandler[] toCSVHandlers(ArrayList<StructParams> structs) throws IOException{
 		String[] filenames=sif.getFiles();
 		CSVHandler[] files=new CSVHandler[filenames.length];
-		if(files.length!=timeColumn.length||files.length!=dataColumns.length)
-			return null;
+		if(files.length!=structs.size()){
+			System.out.println("ERROR. Different number of structures in configuration files during toCSVHandlers.");
+			System.exit(1);
+			return null;			
+		}
 		for(int i=0;i<files.length;i++){
-			files[i]=new CSVHandler(new File(filenames[i]), true, separator, timeColumn[i], dataColumns[i]);
+			int count=-1;
+			for(int j=0;j<structs.size();j++){
+				if(filenames[i].contains(structs.get(j).getName()))
+					count=j;
+			}
+			if(count<0){
+				System.out.println("ERROR. Could not match files to structure names during toCSVHandlers.");
+				System.exit(1);
+			}
+				
+			files[i]=new CSVHandler(new File(filenames[i]), true, separator, structs.get(count).getLocalColumn(), structs.get(count).getDataColumns());
 		}
 		return files;
 	}

@@ -55,32 +55,28 @@ public class CSVProcess{
 	private static long timeWindow=900000;	
 	private static byte timeType=CSVHandler.TIMETYPE_START;
 
-	//private ArrayList<StructParams> structures;
+	private ArrayList<StructParams> structures;
 	//TODO local variables
-	private ArrayList<Integer>[] datacolumns;
+	
 	private File outputFile;
 	private File avgOutputFileName;
 	private int globalColumn[];
 	private boolean insertGlobal;
-	private int localColumn[];
 	
 	private int runningConversions;
 	public ArrayList<CSVHandler> filesPerNode[]=null;	
 
-	@SuppressWarnings("unchecked")
+
 	public CSVProcess(ArrayList<String> inputFiles, ArrayList<StructParams> structs){
+		this.structures=structs;
 		
-		datacolumns=new ArrayList[structs.size()];
-		
-			
+				
 		outputFile=structs.get(0).getOutputFile();
 		avgOutputFileName=structs.get(0).getAvgOutputFile();
 		globalColumn=new int[structs.size()];
-		localColumn=new int[structs.size()];
+
 		for(int i=0;i<structs.size();i++){
 			globalColumn[i]=structs.get(i).getGlobalColumn();
-			localColumn[i]=structs.get(i).getLocalColumn();
-			datacolumns[i]=structs.get(i).getDataColumns();
 			
 		}
 		this.insertGlobal=structs.get(0).isInsertGlobal();
@@ -274,12 +270,15 @@ public class CSVProcess{
 
 	public class PerConversion implements ParsingReady {
 
+		/**
+		 * runs when the conversion finished 
+		 */
 		@SuppressWarnings("unchecked")
-		@Override
+		@Override		
 		public void Ready(Converter output) {
 			CSVHandler[] ready=null;
 			try {
-				ready = output.toCSVHandlers(localColumn, datacolumns);
+				ready = output.toCSVHandlers(structures);
 			} catch (IOException e) {
 				System.out.println("Can't open parsed file");
 			} 
@@ -294,7 +293,7 @@ public class CSVProcess{
 				ArrayList<LinearFunction> func=parser.parseTimeSyncFile();
 				for(int i=0;i<ready.length;i++){
 
-					ready[i].calculateGlobal (func, globalColumn[i], insertGlobal) ;
+					ready[i].calculateGlobal (func, globalColumn[i], insertGlobal) ; //for every struct
 					filesPerNode[i].add(ready[i]);
 				}
 			}
