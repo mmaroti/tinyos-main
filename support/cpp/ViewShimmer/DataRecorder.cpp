@@ -47,6 +47,7 @@
 #include <qmutex.h>
 #include <qreadwritelock.h>
 #include "signaldata.h"
+#include <QVarLengthArray>
 
 class DataRecorder::PrivateData
 {
@@ -88,6 +89,48 @@ public:
     QMutex mutex; // protecting pendingValues
     QVector<QPointF> pendingValues;
 
+};
+
+class DataRecorder::MoteData
+{
+public:
+    MoteData()
+    {
+        samples.reserve(RESERVED_SAMPLES);
+    }
+
+    ~MoteData()
+    {
+        samples.clear();
+    }
+
+    const Sample & at(int i) const {
+            return samples[i];
+    }
+
+    double getLastXAccel(){
+        return (double)samples[samples.size()-1].xAccel;
+    }
+
+    bool empty() const {
+        return samples.isEmpty();
+    }
+
+    void addSample(const Sample & sample){
+        samples.append(sample);
+    }
+
+    int size(){
+        return samples.size();
+    }
+
+private:
+    QVarLengthArray<Sample> samples;
+    int rebootID;
+    double length;
+    double boot_Unix_time;
+    double skew_1;
+    double offset;
 };
 
 //DataRecorder::DataRecorder(Application &app) : application(app)
