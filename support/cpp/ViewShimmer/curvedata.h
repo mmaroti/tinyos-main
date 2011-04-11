@@ -1,7 +1,11 @@
+#ifndef CURVEDATA_H
+#define CURVEDATA_H
+
 #include <qwt_series_data.h>
 #include <qpointer.h>
 
 class SignalData;
+//class DataRecorder;
 
 class CurveData: public QwtSeriesData<QPointF>
 {
@@ -14,3 +18,5 @@ public:
 
     virtual QRectF boundingRect() const;
 };
+
+#endif

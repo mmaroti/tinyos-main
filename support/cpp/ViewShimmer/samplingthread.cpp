@@ -3,6 +3,7 @@
 #include <qwt_math.h>
 #include <math.h>
 #include "Application.h"
+#include "constants.h"
 
 #if QT_VERSION < 0x040600
 #define qFastSin(x) ::sin(x)
@@ -57,12 +58,12 @@ double SamplingThread::value(double timeStamp) const
     const double v = 10;
     if(application.dataRecorder.size() > (int)(timeStamp*C_HZ)+1) {
 
-        application.window.setTime(QString::number((int)(timeStamp*C_HZ)));
-        application.window.setSamples(QString::number(application.dataRecorder.size()));
+        //application.window.setTime(QString::number((int)(timeStamp*C_HZ)));
+        //application.window.setSamples(QString::number(application.dataRecorder.size()));
 
-        const double z = application.dataRecorder.at((int)(timeStamp*C_HZ)).xAccel;
+        //const double z = application.dataRecorder.at((int)(timeStamp*C_HZ)).xAccel;
 
-        return z/61;
+        //return z/61;
     }
     return v;
 }

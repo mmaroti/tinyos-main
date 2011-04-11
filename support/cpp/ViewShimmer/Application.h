@@ -35,15 +35,11 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
-#define C_HZ 204.8
-#define C_TICKS 2       //constant hz and ticks values to use later
-
 #include <QObject>
 #include "SerialListener.h"
 #include "DataRecorder.h"
 #include "ConnectWidget.h"
-#include "samplingthread.h"
-#include "mainwindow.h"
+//#include "mainwindow.h"
 
 class Application : public QObject
 {
@@ -57,8 +53,7 @@ public:
 	SerialListener serialListener;
         DataRecorder dataRecorder;
         ConnectWidget connectWidget;
-        SamplingThread samplingThread;
-        MainWindow window;
+        //MainWindow window;
 };
 
 #endif // APPLICATION_H

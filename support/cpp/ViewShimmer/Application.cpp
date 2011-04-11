@@ -35,23 +35,12 @@
 #include "Application.h"
 
 Application::Application() :
-    dataRecorder(*this),
-    connectWidget(NULL, *this),
-    samplingThread(NULL, *this),
-    window()
+    dataRecorder(),
+    connectWidget(NULL, *this)
+    //window()
 {
-    window.resize(800,400);
+    //window.resize(800,400);
     connectWidget.show();
 
-    samplingThread.setFrequency(window.frequency());
-    samplingThread.setAmplitude(window.amplitude());
-    samplingThread.setInterval(window.signalInterval());
-
-    window.connect(&window, SIGNAL(frequencyChanged(double)),
-        &samplingThread, SLOT(setFrequency(double)));
-    window.connect(&window, SIGNAL(amplitudeChanged(double)),
-        &samplingThread, SLOT(setAmplitude(double)));
-    window.connect(&window, SIGNAL(signalIntervalChanged(double)),
-        &samplingThread, SLOT(setInterval(double)));
 }
 

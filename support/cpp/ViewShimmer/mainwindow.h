@@ -6,6 +6,7 @@
 class Plot;
 class Knob;
 class WheelBox;
+class QPushButton;
 class QLabel;
 
 class MainWindow : public QWidget
@@ -17,23 +18,17 @@ public:
 
     void start();
 
-    double amplitude() const;
-    double frequency() const;
-    double signalInterval() const;
-
     void setTime(QString);
     void setSamples(QString);
 
 Q_SIGNALS:
-    void amplitudeChanged(double);
-    void frequencyChanged(double);
     void signalIntervalChanged(double);
 
-private:
+public Q_SLOTS:
+    void onConnectButtonPressed();
 
-    Knob *d_frequencyKnob;
-    Knob *d_amplitudeKnob;
-    WheelBox *d_timerWheel;
+private:
+    QPushButton *d_connectButton;
     WheelBox *d_intervalWheel;
 
     Plot *d_plot;

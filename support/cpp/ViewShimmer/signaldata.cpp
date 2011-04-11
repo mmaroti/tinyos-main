@@ -2,6 +2,8 @@
 #include <qvector.h>
 #include <qmutex.h>
 #include <qreadwritelock.h>
+#include <QtDebug>
+#include <QVarLengthArray>
 
 class SignalData::PrivateData
 {
@@ -36,11 +38,13 @@ public:
 
     QReadWriteLock lock;
 
-    QVector<QPointF> values;
+    //QVector<QPointF> values;
+    QVarLengthArray<QPointF> values;
     QRectF boundingRect;
 
     QMutex mutex; // protecting pendingValues
-    QVector<QPointF> pendingValues;
+   // QVector<QPointF> pendingValues;
+    QVarLengthArray<QPointF> pendingValues;
 };
 
 SignalData::SignalData()
@@ -81,7 +85,7 @@ void SignalData::unlock()
 void SignalData::append(const QPointF &sample)
 {
     d_data->mutex.lock();
-    d_data->pendingValues += sample;
+    d_data->pendingValues.append(sample);
 
     const bool isLocked = d_data->lock.tryLockForWrite();
     if ( isLocked )
@@ -102,11 +106,13 @@ void SignalData::append(const QPointF &sample)
 
 void SignalData::clearStaleValues(double limit)
 {
+    qDebug() << "clearStaleValues " << limit;
     d_data->lock.lockForWrite();
 
     d_data->boundingRect = QRectF(1.0, 1.0, -2.0, -2.0); // invalid
 
-    const QVector<QPointF> values = d_data->values;
+    //const QVector<QPointF> values = d_data->values;
+    const QVarLengthArray<QPointF> values = d_data->values;
     d_data->values.clear();
     d_data->values.reserve(values.size());
 

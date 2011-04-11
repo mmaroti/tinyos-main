@@ -39,6 +39,7 @@
 #include <QHash>
 #include <QIcon>
 #include "SerialListener.h"
+#include "mainwindow.h"
 
 class Application;
 class QRadioButton;
@@ -72,6 +73,7 @@ private:
 	QHash<int, QListWidgetItem*> moteItems;
 
 	Application &application;
+        MainWindow* mainWindow;
 
 private slots:
 	void on_refreshButton_clicked();

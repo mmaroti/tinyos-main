@@ -5,6 +5,7 @@
 class QwtPlotCurve;
 class QwtPlotMarker;
 class QwtPlotDirectPainter;
+class MoteCurve;
 
 class Plot: public QwtPlot
 {
@@ -15,10 +16,12 @@ public:
     virtual ~Plot();
 
     void start();
+    void stop();
     virtual void replot();
 
 public Q_SLOTS:
-    void setIntervalLength(double);
+    void setIntervalLength(double);    
+    void showCurve(QwtPlotItem *item, bool on);
 
 protected:
     virtual void resizeEvent(QResizeEvent *);
@@ -29,7 +32,7 @@ private:
     void incrementInterval();
 
     QwtPlotMarker *d_origin;
-    QwtPlotCurve *d_curve;
+    MoteCurve *d_curve;
     int d_paintedPoints;
 
     QwtPlotDirectPainter *d_directPainter;

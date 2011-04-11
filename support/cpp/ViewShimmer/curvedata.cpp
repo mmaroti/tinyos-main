@@ -1,12 +1,13 @@
 #include "curvedata.h"
 #include "signaldata.h"
+#include "DataRecorder.h"
 
 const SignalData &CurveData::values() const
 {
     return SignalData::instance();
 }
 
-SignalData &CurveData::values() 
+SignalData &CurveData::values()
 {
     return SignalData::instance();
 }

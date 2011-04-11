@@ -32,16 +32,19 @@
 * Author: Péter Ruzicska
 */
 
-#include <QVarLengthArray>
-#include <QObject>
-#include "SerialListener.h"
 
 #ifndef DATARECORDER_H
 #define DATARECORDER_H
 
 #define MAX_MOTE 5
 
-class Application;
+#include <QVarLengthArray>
+#include <QObject>
+#include <qrect.h>
+#include "SerialListener.h"
+#include "constants.h"
+
+//class Application;
 
 enum Coordinate { X, Y, Z };
 
@@ -62,29 +65,71 @@ struct Sample
         int temp;
 };
 
+class MoteData
+{
+public:
+    MoteData()
+    {
+        samples.reserve(RESERVED_SAMPLES);
+    };
+    ~MoteData()
+    {
+        samples.clear();
+    };
+
+    const Sample & at(int i) const {
+            return samples[i];
+    }
+
+    double getLastXAccel(){
+        return (double)samples[samples.size()-1].xAccel;
+    }
+
+    bool empty() const {
+        return samples.isEmpty();
+    }
+
+    void addSample(const Sample & sample){
+        samples.append(sample);
+    }
+
+    int size(){
+        return samples.size();
+    }
+
+private:
+    QVarLengthArray<Sample> samples;
+    int rebootID;
+    double length;
+    double boot_Unix_time;
+    double skew_1;
+    double offset;
+};
+
 class DataRecorder : public QObject
 {
 	Q_OBJECT
 
 public:
-        DataRecorder(Application &app);
+        //DataRecorder(Application &app);
+        DataRecorder();
         ~DataRecorder();
 
-	int size() const {
-		return samples.size();
-	}
+        //static DataRecorder &instance();
+        DataRecorder *instance();
 
-	const Sample & at(int i) const {
-		return samples[i];
-	}
+        int size() const;
+        QPointF value(int index) const;
 
-        double getLastXAccel(){
-            return (double)samples[samples.size()-1].xAccel;
-        }
+        void append(const QPointF &pos);
+        void clearStaleValues(double min);
 
-        bool empty() const {
-            return samples.isEmpty();
-        }
+        QRectF boundingRect() const;
+
+
+
+        void lock();
+        void unlock();
 
 signals:
 
@@ -94,10 +139,18 @@ public slots:
         void onReceiveMessage(const ActiveMessage & msg);
 
 private:
+        //DataRecorder();
+        DataRecorder(const DataRecorder &);
+        DataRecorder &operator=( const DataRecorder & );
 
-	QVarLengthArray<Sample> samples;
+        //virtual ~DataRecorder();
 
-        Application &application; // FIXME
+        //QVarLengthArray<Sample> samples;
+        QVarLengthArray<MoteData> motes;
+
+        //Application &application; // FIXME
+        class PrivateData;
+        PrivateData *d_data;
 
 };
 

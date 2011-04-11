@@ -10,8 +10,5 @@ int main(int argc, char **argv)
 
     bool ok = app.exec(); 
 
-    application.samplingThread.stop();
-    application.samplingThread.wait(1000);
-
     return ok;
 }

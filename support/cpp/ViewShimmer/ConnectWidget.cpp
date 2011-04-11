@@ -127,9 +127,12 @@ void ConnectWidget::on_connectButton_clicked()
 
     emit portChanged(portName, baudRate);
 
-    application.window.show();
-    application.samplingThread.start();
-    application.window.start();
+    mainWindow = new MainWindow();
+    mainWindow->resize(800,400);
+    mainWindow->start();
+    mainWindow->show();
+    //application.window.show();
+    //application.window.start();
 }
 
 void ConnectWidget::on_disconnectButton_clicked()

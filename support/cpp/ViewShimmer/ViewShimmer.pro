@@ -14,7 +14,6 @@ LIBS += -lqwtd
 win32:LIBS += -lsetupapi
 DEFINES += QT_DLL \
     QWT_DLL
-
 SOURCES += main.cpp \
     Application.cpp \
     SerialListener.cpp \
@@ -24,9 +23,10 @@ SOURCES += main.cpp \
     plot.cpp \
     knob.cpp \
     wheelbox.cpp \
-    samplingthread.cpp \
     curvedata.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    scrollbar.cpp \
+    scrollzoomer.cpp
 HEADERS += Application.h \
     SerialListener.h \
     ConnectWidget.h \
@@ -36,10 +36,9 @@ HEADERS += Application.h \
     plot.h \
     knob.h \
     wheelbox.h \
-    samplingthread.h \
     curvedata.h \
-    mainwindow.h
-
+    mainwindow.h \
+    scrollbar.h \
+    scrollzoomer.h
 FORMS += mainwindow.ui \
     ConnectWidget.ui
-

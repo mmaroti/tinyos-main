@@ -1,5 +1,6 @@
 #include "plot.h"
 #include "curvedata.h"
+#include "DataRecorder.h"
 #include "signaldata.h"
 #include <qwt_plot_grid.h>
 #include <qwt_plot_layout.h>
@@ -10,6 +11,67 @@
 #include <qwt_curve_fitter.h>
 #include <qwt_painter.h>
 #include <qevent.h>
+#include "scrollzoomer.h"
+
+#include <qwt_scale_widget.h>
+#include <qwt_scale_draw.h>
+
+#include <qwt_legend.h>
+#include <qwt_legend_item.h>
+
+
+const unsigned int c_rangeMax = 1000;
+
+class Zoomer: public ScrollZoomer
+{
+public:
+    Zoomer(QwtPlotCanvas *canvas):
+        ScrollZoomer(canvas)
+    {
+    }
+
+    virtual void rescale()
+    {
+        QwtScaleWidget *scaleWidget = plot()->axisWidget(yAxis());
+        QwtScaleDraw *sd = scaleWidget->scaleDraw();
+
+        int minExtent = 0;
+        if ( zoomRectIndex() > 0 )
+        {
+            // When scrolling in vertical direction
+            // the plot is jumping in horizontal direction
+            // because of the different widths of the labels
+            // So we better use a fixed extent.
+
+            minExtent = sd->spacing() + sd->majTickLength() + 1;
+            minExtent += sd->labelSize(scaleWidget->font(), c_rangeMax).width();
+        }
+
+        sd->setMinimumExtent(minExtent);
+
+        ScrollZoomer::rescale();
+    }
+};
+
+class MoteCurve: public QwtPlotCurve
+{
+public:
+    MoteCurve(const QString &title):
+        QwtPlotCurve(title)
+    {
+        //setRenderHint(QwtPlotItem::RenderAntialiased);
+    }
+
+    void setColor(const QColor &color)
+    {
+        QColor c = color;
+        c.setAlpha(150);
+
+        setPen(c);
+        //setBrush(c);
+    }
+};
+
 
 Plot::Plot(QWidget *parent):
     QwtPlot(parent),
@@ -36,6 +98,10 @@ Plot::Plot(QWidget *parent):
 
     plotLayout()->setAlignCanvasToScales(true);
 
+    QwtLegend *legend = new QwtLegend;
+    legend->setItemMode(QwtLegend::CheckableItem);
+    insertLegend(legend, QwtPlot::RightLegend);
+
     setAxisTitle(QwtPlot::xBottom, "Time [s]");
     setAxisScale(QwtPlot::xBottom, d_interval.minValue(), d_interval.maxValue()); 
     setAxisScale(QwtPlot::yLeft, -180.0, 180.0);
@@ -54,9 +120,9 @@ Plot::Plot(QWidget *parent):
     d_origin->setLinePen(QPen(Qt::gray, 0.0, Qt::DashLine));
     d_origin->attach(this);
 
-    d_curve = new QwtPlotCurve();
+    d_curve = new MoteCurve("Mote 1");
     d_curve->setStyle(QwtPlotCurve::Lines);
-    d_curve->setPen(QPen(Qt::green));
+    d_curve->setColor(Qt::red);
 #if 1
     d_curve->setRenderHint(QwtPlotItem::RenderAntialiased, true);
 #endif
@@ -65,6 +131,15 @@ Plot::Plot(QWidget *parent):
 #endif
     d_curve->setData(new CurveData());
     d_curve->attach(this);
+
+    // enable zooming
+
+    Zoomer *zoomer = new Zoomer(canvas());
+    zoomer->setRubberBandPen(QPen(Qt::red, 2, Qt::DotLine));
+    zoomer->setTrackerPen(QPen(Qt::red));
+
+    connect(this, SIGNAL(legendChecked(QwtPlotItem *, bool)),
+        SLOT(showCurve(QwtPlotItem *, bool)));
 }
 
 Plot::~Plot()
@@ -76,6 +151,11 @@ void Plot::start()
 {
     d_clock.start();
     d_timerId = startTimer(10);
+}
+
+void Plot::stop()
+{
+   killTimer(d_timerId);
 }
 
 void Plot::replot()
@@ -123,6 +203,7 @@ void Plot::incrementInterval()
         d_interval.maxValue() + d_interval.width());
 
     CurveData *data = (CurveData *)d_curve->data();
+    data->values().value(data->values().size()-1).x();
     data->values().clearStaleValues(d_interval.minValue());
 
     // To avoid, that the grid is jumping, we disable 
@@ -149,11 +230,16 @@ void Plot::incrementInterval()
 
 void Plot::timerEvent(QTimerEvent *event)
 {
+
     if ( event->timerId() == d_timerId )
     {
         updateCurve();
 
-        const double elapsed = d_clock.elapsed() / 1000.0;
+        double elapsed = d_clock.elapsed() / 1000.0;
+        qDebug() << elapsed;
+        CurveData *data = (CurveData *)d_curve->data();
+
+        if(data->values().size() > 0) elapsed = data->values().value(data->values().size()-1).x();
         if ( elapsed > d_interval.maxValue() )
             incrementInterval();
 
@@ -179,4 +265,14 @@ void Plot::resizeEvent(QResizeEvent *event)
     QPalette pal = canvas()->palette();
     pal.setBrush(QPalette::Window, QBrush(gradient));
     canvas()->setPalette(pal);
+}
+
+void Plot::showCurve(QwtPlotItem *item, bool on)
+{
+    item->setVisible(on);
+    QWidget *w = legend()->find(item);
+    if ( w && w->inherits("QwtLegendItem") )
+        ((QwtLegendItem *)w)->setChecked(on);
+
+    replot();
 }
