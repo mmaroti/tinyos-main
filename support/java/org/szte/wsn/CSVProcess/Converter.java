@@ -88,15 +88,7 @@ public class Converter implements ParsingReady{
 			return null;			
 		}
 		for(int i=0;i<files.length;i++){
-			int count=-1;
-			for(int j=0;j<structs.size();j++){
-				if(filenames[i].contains(structs.get(j).getName()))
-					count=j;
-			}
-			if(count<0){
-				System.out.println("ERROR. Could not match files to structure names during toCSVHandlers.");
-				System.exit(1);
-			}
+			int count=CSVProcess.findIdForName(filenames[i],structs);
 				
 			files[i]=new CSVHandler(new File(filenames[i]), true, separator, structs.get(count).getLocalColumn(), structs.get(count).getDataColumns());
 		}

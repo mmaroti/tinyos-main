@@ -121,7 +121,7 @@ public class CSVHandler {
 		this.separator=separator;
 		this.csvfile=csvfile;
 		this.timeColumn=timeColumn;
-		this.dataColumns=dataColumns;
+		this.dataColumns=new ArrayList<Integer>(dataColumns);
 		openFile(hasheader);
 	}
 	

@@ -57,34 +57,27 @@ public class CSVProcess{
 
 	private ArrayList<StructParams> structures;
 	//TODO local variables
-	
-	private File outputFile;
+
 	private File avgOutputFileName;
-	private int globalColumn[];
-	private boolean insertGlobal;
-	
+
 	private int runningConversions;
 	public ArrayList<CSVHandler> filesPerNode[]=null;	
 
 
 	public CSVProcess(ArrayList<String> inputFiles, ArrayList<StructParams> structs){
 		this.structures=structs;
-		
-				
-		outputFile=structs.get(0).getOutputFile();
-		avgOutputFileName=structs.get(0).getAvgOutputFile();
-		globalColumn=new int[structs.size()];
 
-		for(int i=0;i<structs.size();i++){
-			globalColumn[i]=structs.get(i).getGlobalColumn();
-			
-		}
-		this.insertGlobal=structs.get(0).isInsertGlobal();
-		try {
-			this.outputFile.createNewFile();
-		} catch (IOException e) {
-			System.err.println("Can't acces outputfile: "+this.outputFile.getAbsolutePath()+", exiting");
-			System.exit(1);
+
+		//outputFile=structs.get(0).getOutputFile();
+		avgOutputFileName=structs.get(0).getAvgOutputFile();
+
+		for(int i=0;i<structures.size();i++){
+			try {			
+				structures.get(i).getOutputFile().createNewFile();
+			} catch (IOException e) {
+				System.err.println("Can't acces outputfile: "+structures.get(i).getOutputFile().getAbsolutePath()+", exiting");
+				System.exit(1);
+			}
 		}
 		runningConversions=inputFiles.size();
 		for(String file:inputFiles)
@@ -231,13 +224,41 @@ public class CSVProcess{
 		}
 		return structs;
 	}
+/**
+ * Searches the name of the structure in the structs ArrayList and returns the id of it
+ * @param name 
+ * @param structs
+ * @return
+ */
+	static int findIdForName(String name, ArrayList<StructParams> structs){		
+		int ret=-1;	
 
+		for(int j=0;j<structs.size();j++){
+			if(name.contains(structs.get(j).getName()))
+				ret=j;
+		}
+		if(ret<0){
+			System.out.println("ERROR. Could not match files to structure names during CSVProcess.findIdForName()." );
+
+			System.exit(1);
+		}
+		return ret; 
+	}
+	
+	/**
+	 * 
+	 * @param fileGroup
+	 */
 	private void mergeConversion(ArrayList<CSVHandler> fileGroup) {
 		CSVMerger merger=null;
 		CSVHandler globalFile=null;
 		merger=new CSVMerger(fileGroup);
+		String fileName=fileGroup.get(0).getFile().getName();
+
+		int count=findIdForName(fileName,structures);
 		try {
-			globalFile=merger.createGlobalFile(outputFile, nodeIdSeparator, startTime, endTime);
+			globalFile=merger.createGlobalFile(structures.get(count).getOutputFile(), nodeIdSeparator, startTime, endTime);
+
 		} catch (IOException e) {
 			System.err.println("E: Can't merge inputfiles");
 		}
@@ -291,9 +312,11 @@ public class CSVProcess{
 				File tsFile=TSParser.searchTSFile(ready[0].getFile());
 				TSParser parser=new TSParser(tsFile, maxError);
 				ArrayList<LinearFunction> func=parser.parseTimeSyncFile();
-				for(int i=0;i<ready.length;i++){
 
-					ready[i].calculateGlobal (func, globalColumn[i], insertGlobal) ; //for every struct
+				for(int i=0;i<ready.length;i++){
+					String fileName=ready[i].getFile().getName();
+					int count=findIdForName(fileName,structures);
+					ready[i].calculateGlobal (func, structures.get(count).getGlobalColumn(), structures.get(count).isInsertGlobal()) ; //for every struct
 					filesPerNode[i].add(ready[i]);
 				}
 			}
@@ -307,7 +330,10 @@ public class CSVProcess{
 
 	}
 
-
+/**
+ * 
+ * @param args path of configuration file
+ */
 	public static void main(String[] args){
 		String[] fileNames=new File(".").list();
 		ArrayList<String> inputfiles=new ArrayList<String>();
@@ -318,10 +344,10 @@ public class CSVProcess{
 		}
 		String initFileName=(args.length>0)?args[0]:"ini.conf";
 		ArrayList<StructParams> structs= initParams(initFileName);		
-		
-		File outputfile=structs.get(0).getOutputFile(); //TODO
-		outputfile.delete();
-		
+
+		for(int i=0;i<structs.size();i++)
+			structs.get(i).getOutputFile().delete(); 
+
 
 		new CSVProcess(inputfiles,structs);
 
