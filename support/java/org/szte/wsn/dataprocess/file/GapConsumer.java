@@ -79,7 +79,7 @@ public class GapConsumer{
 					e.printStackTrace();
 				}
 			}else {
-				System.out.println("Gapfile doesn't exist");
+				System.out.println("Gapfile doesn't exist: "+gapPath);
 			}	
 	}
 	
