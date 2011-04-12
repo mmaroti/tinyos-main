@@ -95,11 +95,10 @@ implementation {
   }
   
   async command void SPI.initMaster() {
-    call SS.makeOutput();
-    call SS.clr();
     call MOSI.makeOutput();
     call MISO.makeInput();
     call SCK.makeOutput();
+    call SS.makeOutput();
     call SPI.setMasterBit(TRUE);
   }
 
@@ -112,7 +111,6 @@ implementation {
   }
   
   async command void SPI.sleep() {
-//    call SS.set();	// why was this needed?
   }
   
   async command uint8_t SPI.read()        { return SPDR; }
