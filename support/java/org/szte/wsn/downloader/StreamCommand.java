@@ -58,6 +58,7 @@ public class StreamCommand implements MessageListener {
 	private static final long CMD_ERASE = 0;
 	private static final long CMD_MEASNOW = 1;
 	private static final long CMD_SETGAIN = 128;
+	private static final long CMD_SETWAIT = 120;
 	private long command;
 	//private ArrayList<dataFile> files = new ArrayList<dataFile>();
 	
@@ -151,6 +152,12 @@ public class StreamCommand implements MessageListener {
 				return -1;
 			else
 				return StreamCommand.setArgument(ret,argument);
+		}else if(command.equals("setwait")){
+			long ret=CMD_SETWAIT;
+			if(argument<0)
+				return -1;
+			else
+				return StreamCommand.setArgument(ret,argument);
 		}else if(command.equals("measnow")){
 			return CMD_MEASNOW;
 		} else
@@ -176,7 +183,7 @@ public class StreamCommand implements MessageListener {
 		parser.addOption("-h,--help %v#Displays help information",help);
 		parser.addOption("-s,--source %s#Select serial port source (default: sf@localhost:9002)",source);
 		parser.addOption("-n,--nodeid %s#Select node (special nodeids: all; first)",nodeid);
-		parser.addOption("-c,--command %s#Select command: erase, setgain, measnow (default: erase; working only if --raw doesn't set)",command);
+		parser.addOption("-c,--command %s#Select command: erase, setgain, measnow, setwait (default: erase; working only if --raw doesn't set)",command);
 		parser.addOption("-r,--raw %d#Select command with number (working only if --command doesn't set)",rawcommand);
 		parser.addOption("-v,--value %d#Setting command argument",commandValue);
 		parser.matchAllArgs (args);
