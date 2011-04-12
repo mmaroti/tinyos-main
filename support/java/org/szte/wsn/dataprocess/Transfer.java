@@ -68,6 +68,8 @@ public class Transfer extends Thread  {
 	private PacketParser[] packetParsers;
 	private BinaryInterface binary;
 	private StringInterface string;
+	private String binarySourceName;
+	private String stringSourceName;
 	boolean toString;
 	static ArgParser parser;
 	
@@ -90,6 +92,8 @@ public class Transfer extends Thread  {
 			boolean toString, String separator,boolean showName, byte outputMode, boolean monoStruct, boolean noheader){
 		packetParsers=new PacketParserFactory(structPath).getParsers();
 		binary=BinaryInterfaceFactory.getBinaryInterface(binaryType, binaryPath);	
+		binarySourceName=binaryPath;
+		stringSourceName=stringPath;
 		string=StringInterfaceFactory.getStringInterface(stringType, stringPath, packetParsers, separator, showName, outputMode, monoStruct, noheader);
 		this.toString=toString;
 		if((binary==null)||(string==null))
@@ -109,16 +113,20 @@ public class Transfer extends Thread  {
 		this.packetParsers=packetParsers;
 		this.binary=binary;
 		this.string=string;
+		binarySourceName="unknown binary source";
+		stringSourceName="unknown String source";
 		this.toString=toString;
 	}
 
 	@Override
 	/**
 	 * implements the communication in both directions
+	 * only one direction one time
 	 */
 	public void run(){
 		if(toString){
 			byte data[]=binary.readPacket();
+			boolean successful=true; 
 			while(data!=null){
 				boolean match=false;
 				int parserCounter=0;
@@ -133,12 +141,18 @@ public class Transfer extends Thread  {
 				}
 				if(!match){
 					System.out.println("Unmatched frame! Length of frame is: "+data.length+" byte.");
+					successful=false;
 				} 
 				data=binary.readPacket();
-			}	
+			}
+			if (successful)
+				System.out.println("Parsing finished successfully: "+binarySourceName);
+			else
+				System.out.println("Warning! There were unmatched frames during the parsing of: "+binarySourceName);
 		}
-		else{			//other direction
+		else{			//from string to binary  direction
 			StringPacket sp=string.readPacket();
+			boolean successful=true; 
 			while(sp!=null){
 				PacketParser pp=PacketParserFactory.getParser(sp.getName(), packetParsers);
 
@@ -150,6 +164,7 @@ public class Transfer extends Thread  {
 					{
 						System.out.print("Warning! Input doesn't match to structure definition.");
 						System.out.println(" Name of structure is: "+sp.getName()+".");
+						successful=false;
 					}
 				} catch (IOException e) {
 
@@ -160,6 +175,10 @@ public class Transfer extends Thread  {
 				sp=string.readPacket();
 			}
 
+			if (successful)
+				System.out.println("Parsing finished successfully: "+stringSourceName);
+			else
+				System.out.println("Warning! There were unmatched frames during the parsing of: "+stringSourceName);
 		}	
 
 	}

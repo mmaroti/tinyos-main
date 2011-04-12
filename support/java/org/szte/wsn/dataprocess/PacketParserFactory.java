@@ -61,6 +61,7 @@ public class PacketParserFactory {
 	/**
 	 * 
 	 * @param fileName loads configuration from the fileName
+	 * to packetParsers array
 	 */
 	void loadConfig(String fileName){
 		

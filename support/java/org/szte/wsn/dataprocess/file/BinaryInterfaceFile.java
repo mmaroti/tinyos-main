@@ -168,6 +168,10 @@ public class BinaryInterfaceFile implements BinaryInterface{
 		
 	}
 
+	public RandomAccessFile getDataFile() {
+		return dataFile;
+	}
+
 
 
 }
