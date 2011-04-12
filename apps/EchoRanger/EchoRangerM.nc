@@ -43,6 +43,7 @@ module EchoRangerM
 		interface Get<uint16_t*> as LastBuffer;
 		interface Get<echorange_t*> as LastRange;
 		interface Set<uint8_t> as SetGain;
+		interface Set<uint8_t> as SetWait;
 	}
 
 	uses
@@ -93,11 +94,15 @@ implementation
 	 *
 	 * If you set waitCount to 2, then the real buffer is recorded exactly
 	 * when the sounder is turned on. If waitCount is 3, then an extra wait
-	 * period is inserted, which is 64 samples.
+	 * period is inserted, which is 128 samples.
 	 */
 
-	uint8_t waitCount = 4;
+	uint8_t waitCount = 2;
 	uint8_t postCount;
+
+	command void SetWait.set(uint8_t value){
+		waitCount=value;
+	}
 
 	command error_t EchoRanger.read()
 	{
@@ -132,17 +137,15 @@ implementation
 	{
 		if( state == STATE_WAIT )
 		{
-			if( postCount < waitCount )
-			{
-				if(postCount==2){
+			if(postCount==2){
 				call SounderPin.set();
 				call Alarm.start(ECHORANGER_BEEP);
 				}
+			if( postCount < waitCount )
+			{
 				// repost the same buffer to wait more
 				call MicRead.postBuffer(bufPtr, count);
 				postCount += 1;
-				//call SounderPin.set();
-				//call Alarm.start(ECHORANGER_BEEP);
 				
 			}
 			else if( postCount == waitCount )

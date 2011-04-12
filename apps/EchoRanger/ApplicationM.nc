@@ -55,6 +55,7 @@ module ApplicationM{
 		interface Get<uint16_t*> as LastBuffer;
 		interface Get<echorange_t*> as LastRange;
 		interface Set<uint8_t> as SetGain;
+		interface Set<uint8_t> as SetWait;
 		interface Command;
 	}
 }
@@ -95,8 +96,11 @@ implementation{
 	event void Command.newCommand(uint32_t id){
 		if((id&0xff)==128){
 		    call SetGain.set((id>>8)&0xff);
-		    call Command.sendData(id);
-		} else if(id==1){
+		    call Command.sendData(id);	
+		}else if((id&0xff)==120){
+		    call SetWait.set((id>>8)&0xff);
+		    call Command.sendData(id);	
+		}else if(id==1){
 		    uint32_t period=(uint32_t)SAMP_T*1024*60;
 		    call SensorTimer.startPeriodicAt(call SensorTimer.getNow()-period+(uint32_t)3*1024,period);	
 		    call Command.sendData(id);

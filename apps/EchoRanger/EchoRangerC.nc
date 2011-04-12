@@ -38,6 +38,7 @@ configuration EchoRangerC
 	provides
 	{
 		interface Set<uint8_t> as SetGain;
+		interface Set<uint8_t> as SetWait;
 	  
 		interface Read<echorange_t*> as EchoRanger;
 		interface Get<uint16_t*> as LastBuffer;
@@ -65,7 +66,8 @@ implementation
 	EchoRangerM.LocalTime -> LocalTimeMicroC;
 	EchoRangerM.ReadTemp -> TempC;
 
-	SetGain = EchoRangerM;
+	SetGain = EchoRangerM.SetGain;
+	SetWait = EchoRangerM.SetWait;
 	EchoRanger = EchoRangerM;
 	LastBuffer = EchoRangerM;
 	LastRange = EchoRangerM;

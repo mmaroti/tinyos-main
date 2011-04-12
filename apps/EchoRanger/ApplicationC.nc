@@ -50,5 +50,6 @@ implementation{
 	App.Read -> EchoRangerC;
 	App.LastBuffer -> EchoRangerC;
 	App.LastRange -> EchoRangerC;
-	App.SetGain->EchoRangerC;
+	App.SetGain->EchoRangerC.SetGain;
+	App.SetWait->EchoRangerC.SetWait;
 }
