@@ -68,6 +68,10 @@ public class TSParser {
 	 */
 	public ArrayList<LinearFunction> parseTimeSyncFile(){
 		ArrayList<LinearFunction> functions=new ArrayList<LinearFunction>();
+		if(tsFile==null){
+			System.err.println("Error: in TSParser, missing timestamp file . The thread will terminate");
+			System.exit(1);
+		}
 		if(tsFile.exists()&&tsFile.isFile()&&tsFile.canRead()){
 			BufferedReader input;
 			try {
