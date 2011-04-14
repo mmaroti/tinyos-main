@@ -1,0 +1,7 @@
+COMPONENT = TestShimmerC
+CFLAGS += -DTOSH_DATA_LENGTH=114
+CFLAGS += -DCC2420_DEF_CHANNEL=11
+CFLAGS += -I$(TOSDIR)/lib/diagmsg
+CFLAGS += -I$(TOSDIR)/lib/timer
+
+include $(MAKERULES)
