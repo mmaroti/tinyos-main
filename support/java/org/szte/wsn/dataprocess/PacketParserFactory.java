@@ -92,7 +92,7 @@ public class PacketParserFactory {
 			words[wc]=words[wc].trim();				//removes the white spaces from the beginning and the end of the phrase
 			if(!words[wc].contains("struct")){			//simple variable
 
-				String[] parts=words[wc].split(" ");
+				String[] parts=words[wc].split(" ");	
 				String parserName=parts[parts.length-1];
 				String parserType=words[wc].substring(0, (words[wc].length()-parserName.length())).trim();
 				PacketParser pp=getPacketParser(returnArray.toArray(new PacketParser[returnArray.size()]), parserName, parserType);

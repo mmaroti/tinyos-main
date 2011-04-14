@@ -36,6 +36,8 @@ package org.szte.wsn.dataprocess;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.ArrayList;
+
 import argparser.ArgParser;
 import argparser.BooleanHolder;
 import argparser.IntHolder;
@@ -72,7 +74,7 @@ public class Transfer extends Thread  {
 	private String stringSourceName;
 	boolean toString;
 	static ArgParser parser;
-	
+
 
 	/**
 	 * Sets the interfaces from String parameters
@@ -127,6 +129,7 @@ public class Transfer extends Thread  {
 		if(toString){
 			byte data[]=binary.readPacket();
 			boolean successful=true; 
+			ArrayList<Integer> unmatched=new ArrayList<Integer>();
 			while(data!=null){
 				boolean match=false;
 				int parserCounter=0;
@@ -140,15 +143,25 @@ public class Transfer extends Thread  {
 					parserCounter++;
 				}
 				if(!match){
-					System.out.println("Unmatched frame! Length of frame is: "+data.length+" byte.");
+					//System.out.println("Unmatched frame! Length of frame is: "+data.length+" byte.");
+					unmatched.add(data.length);
 					successful=false;
 				} 
 				data=binary.readPacket();
 			}
 			if (successful)
 				System.out.println("Parsing finished successfully: "+binarySourceName);
-			else
+			else{
 				System.out.println("Warning! There were unmatched frames during the parsing of: "+binarySourceName);
+				while(unmatched.size()>0){
+					int node=unmatched.get(0);
+					int count=0;	
+					while(unmatched.remove((Integer)node))
+						count++;					
+					System.out.println("Unmatched frame size: "+node+" occurrence: "+count);					
+				}
+
+			}
 		}
 		else{			//from string to binary  direction
 			StringPacket sp=string.readPacket();
@@ -261,7 +274,7 @@ public class Transfer extends Thread  {
 		}
 		if(!outputFileh.value.equals("")) 
 			outputFiles[0]=outputFileh.value;
-		
+
 		if(inputFileh.value.equals("")&&(!inputh.value.equals("console"))){ 
 			System.out.println("Error! No input file provided.\n");			
 			Transfer.usageThanExit();
