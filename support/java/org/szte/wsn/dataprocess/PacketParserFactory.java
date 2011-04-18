@@ -50,13 +50,13 @@ import org.szte.wsn.dataprocess.parser.Taos2550Parser;
 
 public class PacketParserFactory {	
 	PacketParser[] packetParsers;
-	
+
 	/**
 	 * 
 	 * @param fileName location of configuration file
 	 */
 	public PacketParserFactory(String fileName){			
-			loadConfig(fileName);		
+		loadConfig(fileName);		
 	}
 	/**
 	 * 
@@ -64,12 +64,12 @@ public class PacketParserFactory {
 	 * to packetParsers array
 	 */
 	void loadConfig(String fileName){
-		
+
 		ArrayList<PacketParser> returnArray=new ArrayList<PacketParser>();
-		
+
 		FileInputStream file;
 		byte[] bArray=null; 
-		
+
 		try {
 			file = new FileInputStream(fileName);
 			bArray = new byte[file.available ()];
@@ -77,10 +77,10 @@ public class PacketParserFactory {
 			file.close ();
 		} 
 		catch (IOException e) {
-			
-				System.out.println("IO ERROR while opening: "+fileName);
-				e.printStackTrace();
-				System.exit(1);			
+
+			System.out.println("IO ERROR while opening: "+fileName);
+			e.printStackTrace();
+			System.exit(1);			
 		}
 
 		String strLine = new String (bArray);
@@ -96,49 +96,90 @@ public class PacketParserFactory {
 				String parserName=parts[parts.length-1];
 				String parserType=words[wc].substring(0, (words[wc].length()-parserName.length())).trim();
 				PacketParser pp=getPacketParser(returnArray.toArray(new PacketParser[returnArray.size()]), parserName, parserType);
-				if(pp!=null)						
+				if(pp!=null){	
+					checkName(pp,returnArray, fileName);
+					checkSize(pp,returnArray, fileName);
 					returnArray.add(pp);
+				}
 				else{
-					System.out.println("Error: not existing type: \""+parserType+"\" in "+ fileName);
+					System.err.println("Error: not existing type: \""+parserType+"\" in "+ fileName);
 					System.exit(1);
 				}
 			}
 			else{
 				ArrayList<PacketParser> variableArray=new ArrayList<PacketParser>();
 				String[] parts=words[wc].split("\\{");
-				
+
 				parts=parts[0].split(" ");
-				String parserName=parts[parts.length-1].replaceAll("[^\\w]", "");;
-			    
-				
+				String parserName=parts[parts.length-1].replaceAll("[^\\w]", "");				
+
 				words[wc]=words[wc].split("\\{")[1];
 				while((wc<words.length)&&(!words[wc].contains("}"))){
-					
+
 					words[wc]=words[wc].trim();
 					parts=words[wc].split(" ");
 					String variableName=parts[parts.length-1];
 					String variableType=words[wc].substring(0, (words[wc].length()-variableName.length())).trim();
-					
+
 					PacketParser pp=getPacketParser(returnArray.toArray(new PacketParser[returnArray.size()]), variableName, variableType);
-					if(pp!=null)						
+					if(pp!=null){				
+						checkName(pp, variableArray, fileName);
 						variableArray.add(pp);
+						}
 					else{
 						System.out.println("Error: not existing type: \""+variableType+"\" in "+ fileName);
 						System.exit(1);
 					}
-						
+
 					wc++;
-					
+
 				}				
-				returnArray.add(new StructParser(parserName,"struct", variableArray.toArray(new PacketParser[variableArray.size()])));						
+				PacketParser sp=new StructParser(parserName,"struct", variableArray.toArray(new PacketParser[variableArray.size()]));
+				checkName(sp, returnArray,fileName);
+				
+				returnArray.add(sp);						
+			
 			}
 			wc++;
-			
-			
+
+
 		}//while ends here
 		packetParsers=returnArray.toArray(new PacketParser[returnArray.size()]);
 	}
+
+	/**
+	 * Checks whether the name already exist in parsers, 
+	 * @param cp PacketParser
+	 * @param parsers ArrayList of existing parsers
+	 * @param fileName name of parsed file
+	*/
+	private void checkName(PacketParser cp, ArrayList<PacketParser> parsers, String fileName) {
+		for(PacketParser pp:parsers){
+			if (pp.getName().equals(cp.getName())){
+				System.err.println("Error: during parse of "+fileName+". Duplicate parser name on same level: "+pp.getName()+ " ! Would indicate unpredictable running. Program will exit.");
+				System.exit(1);
+				}	
+		}
+	}
+	/**
+	 * Checks whether there is a parser with the same size without id,
+	 * or same size and same id
+	 * @param cp PacketParser
+	 * @param parsers ArrayList of existing parsers
+	 * @param fileName name of parsed file
+	*/
+	private void checkSize(PacketParser cp, ArrayList<PacketParser> parsers, String fileName) {
+		for(PacketParser pp:parsers){	
+			
+			if(cp.getPacketLength()==pp.getPacketLength()){
+				System.err.println("Error: during parse of "+fileName+". Simple parser: "+cp.getName()+ " has the same length as a previous parser: "+pp.getName()+ " ! Would indicate unpredictable running. Program will exit.");
+				System.exit(1);
+			}				
+		}
+	}
 	
+	
+
 	/**
 	 * 
 	 * @return returns the PacketParsers which are available 
@@ -160,8 +201,8 @@ public class PacketParserFactory {
 		}			
 		return null;
 	}
-	
-	
+
+
 	/**
 	 * 
 	 * @param packetArray existing PacketParsers
@@ -208,7 +249,7 @@ public class PacketParserFactory {
 		else
 			return null;
 	}
-	
+
 	/**
 	 * 
 	 * @param packetArray already existing PacketParsers
@@ -223,5 +264,5 @@ public class PacketParserFactory {
 				return i;
 		return -1;
 	}
-	
+
 }

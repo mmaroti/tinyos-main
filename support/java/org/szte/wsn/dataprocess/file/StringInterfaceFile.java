@@ -160,7 +160,8 @@ public class StringInterfaceFile implements StringInterface {
 
 
 		}catch (Exception e){		//Catch exception if any
-			System.err.println("Error writing string file: " + e.getMessage());
+			System.err.println("Error writing string file, packet name: "+packet.getName()+" Error message:" + e.getMessage());
+			
 		}
 	}
 	
