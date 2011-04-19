@@ -50,6 +50,11 @@
         </property>
        </layout>
       </widget>
+      <widget class="QWidget" name="Ellipsoid">
+       <attribute name="title">
+        <string>Ellipsoid</string>
+       </attribute>
+      </widget>
       <widget class="QWidget" name="sdataTab">
        <attribute name="title">
         <string>SD Card</string>
