@@ -15,6 +15,7 @@ INCLUDEPATH += src/Solver/
 INCLUDEPATH += src/SDCard/
 INCLUDEPATH += src/OpenGL/
 INCLUDEPATH += src/SQL/
+INCLUDEPATH += src/Ellipsoid/
 
 # INCLUDEPATH += ../qwtplot3d/include
 QMAKE_LIBDIR += ../QextSerialPort/build
@@ -105,7 +106,8 @@ SOURCES += src/DataRecorder.cpp \
     src/SQL/SQLDialog.cpp \
     src/SQL/RecordHandler.cpp \
     src/OpenGL/GLElbowFlexWidget.cpp \
-    src/SDCard/RecordLinker.cpp
+    src/SDCard/RecordLinker.cpp \
+    src/Ellipsoid/AccelMagMsgReceiver.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -191,7 +193,8 @@ HEADERS += src/DataRecorder.h \
     src/OpenGL/GLElbowFlexWidget.hpp \
     src/Range.hpp \
     src/SDCard/TimeSyncData.hpp \
-    src/SDCard/RecordLinker.hpp
+    src/SDCard/RecordLinker.hpp \
+    src/Ellipsoid/AccelMagMsgReceiver.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \
