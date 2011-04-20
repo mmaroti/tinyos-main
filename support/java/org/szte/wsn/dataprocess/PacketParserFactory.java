@@ -66,6 +66,7 @@ public class PacketParserFactory {
 	void loadConfig(String fileName){
 
 		ArrayList<PacketParser> returnArray=new ArrayList<PacketParser>();
+		ArrayList<String[]> ids=new ArrayList<String[]>();
 
 		FileInputStream file;
 		byte[] bArray=null; 
@@ -122,10 +123,14 @@ public class PacketParserFactory {
 					String variableType=words[wc].substring(0, (words[wc].length()-variableName.length())).trim();
 
 					PacketParser pp=getPacketParser(returnArray.toArray(new PacketParser[returnArray.size()]), variableName, variableType);
+					if (variableName.contains("=")){
+						String[] idNameAndValue=variableName.split("=");						
+						ids.add(new String[]{parserName,idNameAndValue[0],idNameAndValue[1]});						
+					}
 					if(pp!=null){				
 						checkName(pp, variableArray, fileName);
 						variableArray.add(pp);
-						}
+					}
 					else{
 						System.out.println("Error: not existing type: \""+variableType+"\" in "+ fileName);
 						System.exit(1);
@@ -136,14 +141,16 @@ public class PacketParserFactory {
 				}				
 				PacketParser sp=new StructParser(parserName,"struct", variableArray.toArray(new PacketParser[variableArray.size()]));
 				checkName(sp, returnArray,fileName);
-				
+				checkSizeAndId(sp, returnArray, ids, fileName);
 				returnArray.add(sp);						
-			
+
 			}
 			wc++;
 
 
 		}//while ends here
+
+
 		packetParsers=returnArray.toArray(new PacketParser[returnArray.size()]);
 	}
 
@@ -152,33 +159,51 @@ public class PacketParserFactory {
 	 * @param cp PacketParser
 	 * @param parsers ArrayList of existing parsers
 	 * @param fileName name of parsed file
-	*/
+	 */
 	private void checkName(PacketParser cp, ArrayList<PacketParser> parsers, String fileName) {
 		for(PacketParser pp:parsers){
 			if (pp.getName().equals(cp.getName())){
 				System.err.println("Error: during parse of "+fileName+". Duplicate parser name on same level: "+pp.getName()+ " ! Would indicate unpredictable running. Program will exit.");
 				System.exit(1);
-				}	
+			}	
 		}
 	}
 	/**
-	 * Checks whether there is a parser with the same size without id,
-	 * or same size and same id
+	 * Checks whether there is a parser with the same size without id
 	 * @param cp PacketParser
 	 * @param parsers ArrayList of existing parsers
 	 * @param fileName name of parsed file
-	*/
+	 */
 	private void checkSize(PacketParser cp, ArrayList<PacketParser> parsers, String fileName) {
-		for(PacketParser pp:parsers){	
-			
+		for(PacketParser pp:parsers){			
 			if(cp.getPacketLength()==pp.getPacketLength()){
-				System.err.println("Error: during parse of "+fileName+". Simple parser: "+cp.getName()+ " has the same length as a previous parser: "+pp.getName()+ " ! Would indicate unpredictable running. Program will exit.");
+				System.err.println("Error: during parse of "+fileName+". Simple parser: "+cp.getName()+ " has the same length an existing parser: "+pp.getName()+ " ! Would indicate unpredictable running. Program will exit.");
 				System.exit(1);
 			}				
 		}
 	}
-	
-	
+	/**
+	 * Checks whether there is a parser with the same size and id
+	 * @param cp PacketParser
+	 * @param parsers ArrayList of existing parsers
+	 * @param fileName name of parsed file
+	 * @param ids ArrayList of used [StructName, IdName, IdValue]
+	 */
+	private void checkSizeAndId(PacketParser cp, ArrayList<PacketParser> parsers, ArrayList<String[]> ids, String fileName) {
+		if(ids.size()>0){
+			String[] idAct=ids.get(ids.size()-1);				
+			for(String[] id:ids){
+				PacketParser parser=getParser(id[0],parsers.toArray(new PacketParser[parsers.size()]));
+				if((parser!=null)&&(parser.getPacketLength()==cp.getPacketLength())&&(idAct[2].equals(id[2]))){							
+					System.err.println("Error: during parse of "+fileName+". Struct parser: "+cp.getName()+ " has the same length and id as an existing parser: "+parser.getName()+ " ! Would indicate unpredictable running. Program will exit.");
+					System.exit(1);
+				}
+			}
+		}
+	}
+
+
+
 
 	/**
 	 * 
