@@ -31,8 +31,44 @@
 *      Author: Ali Baharev
 */
 
+#include <iostream>
+#include "ActiveMessage.hpp"
 #include "AccelMagMsgReceiver.hpp"
+#include "MatrixVector.hpp"
+
+using std::cout;
+using std::endl;
+using gyro::vector3;
+
+const int ACCEL_SAMPLE_COUNT = 20;
+const int TEMP_COUNT         = ACCEL_SAMPLE_COUNT;
+const int MAG_SAMPLE_COUNT   = 4;
 
 void AccelMagMsgReceiver::onReceiveMessage(const ActiveMessage& msg) {
 
+    unsigned int t_mote = msg.getInt(0);
+
+    vector3 accel(msg.getInt(4), msg.getInt(8), msg.getInt(12));
+
+    accel /= ACCEL_SAMPLE_COUNT;
+
+    const unsigned int acc_rng = msg.getShort(16);
+
+    vector3 mag(msg.getInt(18), msg.getInt(22), msg.getInt(26));
+
+    mag /= MAG_SAMPLE_COUNT;
+
+    const unsigned int mag_rng = msg.getShort(30);
+
+    unsigned int temp = msg.getInt(32);
+
+    temp /= TEMP_COUNT;
+
+    const unsigned int temp_rng = msg.getShort(36);
+
+    cout << "Time: " << t_mote << endl;
+    cout << "Accel: " << accel << ";  " << acc_rng << endl;
+    cout << "Magn:  " << mag   << ";  " << mag_rng << endl;
+    cout << "Temp:  " << temp << "; " << temp_rng << endl;
+    cout << endl;
 }
