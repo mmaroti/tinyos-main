@@ -33,6 +33,7 @@
 */
 
 #include "SerialListener.h"
+#include "ActiveMessage.hpp"
 #include "qextserialport.h"
 #include <QtDebug>
 #include <QDateTime>
@@ -282,59 +283,4 @@ void SerialListener::timerEvent(QTimerEvent *)
             return;
 
 	emit receiveMessage(msg);
-}
-
-unsigned char ActiveMessage::getByte(int index) const
-{
-	return (unsigned char)payload.at(index);
-}
-
-unsigned short ActiveMessage::getShort(int index) const
-{
-	return (payload.at(index) & 0xFF) + ((payload.at(index + 1) & 0xFF) << 8);
-}
-
-unsigned int ActiveMessage::getID() const
-{
-        return source;
-}
-
-unsigned int ActiveMessage::getInt(int index) const
-{
-	unsigned int a, b, c, d;
-
-	a = payload.at(index);
-	b = payload.at(index + 1);
-	c = payload.at(index + 2);
-	d = payload.at(index + 3);
-
-	a &= 0xFF;
-	b &= 0xFF;
-	c &= 0xFF;
-	d &= 0xFF;
-
-	return (d << 24) + (c << 16) + (b << 8) + a;
-}
-
-QString ActiveMessage::toString() const
-{
-	QString s = "(dst:" + QString::number(dest)
-		+ " src:" + QString::number(source)
-		+ " grp:" + QString::number(group)
-		+ " typ:" + QString::number(type)
-		+ " len:" + QString::number(payload.size())
-		+ " bytes:";
-
-	for(int i = 0; i < payload.size(); ++i)
-	{
-		s += " 0x";
-
-		QString t = QString::number(payload.at(i) & 0xFF, 16);
-		if( t.length() == 1 )
-			s += '0';
-
-		s += t;
-	}
-
-	return s + ')';
 }

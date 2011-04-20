@@ -37,6 +37,7 @@
 #include <assert.h>
 #include "DataRecorder.h"
 #include "Application.h"
+#include "ActiveMessage.hpp"
 #include <QtDebug>
 #include <qfile.h>
 #include <QStringList>

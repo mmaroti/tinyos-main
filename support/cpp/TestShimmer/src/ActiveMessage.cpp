@@ -32,51 +32,59 @@
 * Author: Péter Ruzicska
 */
 
-#ifndef SERIALLISTENER_H
-#define SERIALLISTENER_H
+#include "ActiveMessage.hpp"
 
-#include <QObject>
-#include <QString>
-
-class ActiveMessage;
-class QextSerialPort;
-
-class SerialListener :
-	public QObject
+unsigned char ActiveMessage::getByte(int index) const
 {
-	Q_OBJECT
+        return (unsigned char)payload.at(index);
+}
 
-public:
-	SerialListener();
-	virtual ~SerialListener();
+unsigned short ActiveMessage::getShort(int index) const
+{
+        return (payload.at(index) & 0xFF) + ((payload.at(index + 1) & 0xFF) << 8);
+}
 
-signals:
-	void receiveMessage(const ActiveMessage & msg);
-        void showNotification(const QString & message);
+unsigned int ActiveMessage::getID() const
+{
+        return source;
+}
 
-        void connected();
-        void disconnected();
+unsigned int ActiveMessage::getInt(int index) const
+{
+        unsigned int a, b, c, d;
 
-public slots:
-	void onPortChanged(const QString & portName, int baudRate);
+        a = payload.at(index);
+        b = payload.at(index + 1);
+        c = payload.at(index + 2);
+        d = payload.at(index + 3);
 
-private slots:
-	void onReadyRead();
-	virtual void timerEvent(QTimerEvent *event);
+        a &= 0xFF;
+        b &= 0xFF;
+        c &= 0xFF;
+        d &= 0xFF;
 
-private:
-	QextSerialPort *port;
-	void disconnectPort(const char * message);
+        return (d << 24) + (c << 16) + (b << 8) + a;
+}
 
-	bool escaped;
-	QByteArray partialPacket;
+QString ActiveMessage::toString() const
+{
+        QString s = "(dst:" + QString::number(dest)
+                + " src:" + QString::number(source)
+                + " grp:" + QString::number(group)
+                + " typ:" + QString::number(type)
+                + " len:" + QString::number(payload.size())
+                + " bytes:";
 
-	int badPacketCount;
-	void receiveRawPacket(const QByteArray & packet);
-	void receiveTosPacket(const QByteArray & packet);
+        for(int i = 0; i < payload.size(); ++i)
+        {
+                s += " 0x";
 
-	int timerId;
-	int moteTime;
-};
+                QString t = QString::number(payload.at(i) & 0xFF, 16);
+                if( t.length() == 1 )
+                        s += '0';
 
-#endif // SERIALLISTENER_H
+                s += t;
+        }
+
+        return s + ')';
+}

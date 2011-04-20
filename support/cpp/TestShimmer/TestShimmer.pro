@@ -107,7 +107,8 @@ SOURCES += src/DataRecorder.cpp \
     src/SQL/RecordHandler.cpp \
     src/OpenGL/GLElbowFlexWidget.cpp \
     src/SDCard/RecordLinker.cpp \
-    src/Ellipsoid/AccelMagMsgReceiver.cpp
+    src/Ellipsoid/AccelMagMsgReceiver.cpp \
+    src/ActiveMessage.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -194,7 +195,8 @@ HEADERS += src/DataRecorder.h \
     src/Range.hpp \
     src/SDCard/TimeSyncData.hpp \
     src/SDCard/RecordLinker.hpp \
-    src/Ellipsoid/AccelMagMsgReceiver.hpp
+    src/Ellipsoid/AccelMagMsgReceiver.hpp \
+    src/ActiveMessage.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

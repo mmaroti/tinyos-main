@@ -32,51 +32,30 @@
 * Author: Péter Ruzicska
 */
 
-#ifndef SERIALLISTENER_H
-#define SERIALLISTENER_H
+#ifndef ACTIVEMESSAGE_HPP
+#define ACTIVEMESSAGE_HPP
 
-#include <QObject>
 #include <QString>
+#include <QByteArray>
 
-class ActiveMessage;
-class QextSerialPort;
-
-class SerialListener :
-	public QObject
+class ActiveMessage
 {
-	Q_OBJECT
+public: // FIXME Why are these public?
+        int dest;
+        int source;
+        int group;
+        int type;
+
+        QByteArray payload;
 
 public:
-	SerialListener();
-	virtual ~SerialListener();
+        // TODO Could use the same concept as in BlockIterator
+        unsigned char getByte(int index) const;
+        unsigned short getShort(int index) const;
+        unsigned int getInt(int index) const;
+        unsigned int getID() const;
 
-signals:
-	void receiveMessage(const ActiveMessage & msg);
-        void showNotification(const QString & message);
-
-        void connected();
-        void disconnected();
-
-public slots:
-	void onPortChanged(const QString & portName, int baudRate);
-
-private slots:
-	void onReadyRead();
-	virtual void timerEvent(QTimerEvent *event);
-
-private:
-	QextSerialPort *port;
-	void disconnectPort(const char * message);
-
-	bool escaped;
-	QByteArray partialPacket;
-
-	int badPacketCount;
-	void receiveRawPacket(const QByteArray & packet);
-	void receiveTosPacket(const QByteArray & packet);
-
-	int timerId;
-	int moteTime;
+        QString toString() const;
 };
 
-#endif // SERIALLISTENER_H
+#endif // ACTIVEMESSAGE_HPP

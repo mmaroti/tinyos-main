@@ -41,6 +41,7 @@
 #include <QtDebug>
 #include <QFile>
 #include "Application.h"
+#include "ActiveMessage.hpp"
 
 ConnectWidget::ConnectWidget(QWidget *parent, Application &app) :
         QWidget(parent),
