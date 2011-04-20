@@ -105,7 +105,7 @@ void DataRecorder::onReceiveMessage(const ActiveMessage & msg)
             {
                     Sample sample;
 
-                    sample.time = msg.getInt(start);
+                    sample.time = msg.getUInt(start);
                     sample.xAccel = msg.getShort(start + 4);
                     sample.yAccel = msg.getShort(start + 6);
                     sample.zAccel = msg.getShort(start + 8);

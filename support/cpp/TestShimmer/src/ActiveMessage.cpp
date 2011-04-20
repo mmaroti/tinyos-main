@@ -49,7 +49,7 @@ unsigned int ActiveMessage::getID() const
         return source;
 }
 
-unsigned int ActiveMessage::getInt(int index) const
+unsigned int ActiveMessage::getUInt(int index) const
 {
         unsigned int a, b, c, d;
 
@@ -62,6 +62,22 @@ unsigned int ActiveMessage::getInt(int index) const
         b &= 0xFF;
         c &= 0xFF;
         d &= 0xFF;
+
+        return (d << 24) + (c << 16) + (b << 8) + a;
+}
+
+int ActiveMessage::getSignedInt(int index) const
+{
+        int a, b, c, d;
+
+        a = payload.at(index);
+        b = payload.at(index + 1);
+        c = payload.at(index + 2);
+        d = payload.at(index + 3);
+
+        a &= 0xFF;
+        b &= 0xFF;
+        c &= 0xFF;
 
         return (d << 24) + (c << 16) + (b << 8) + a;
 }

@@ -46,29 +46,23 @@ const int MAG_SAMPLE_COUNT   = 4;
 
 void AccelMagMsgReceiver::onReceiveMessage(const ActiveMessage& msg) {
 
-    unsigned int t_mote = msg.getInt(0);
+    unsigned int t_mote = msg.getUInt(0);
 
-    vector3 accel(msg.getInt(4), msg.getInt(8), msg.getInt(12));
-
-    accel /= ACCEL_SAMPLE_COUNT;
-
-    const unsigned int acc_rng = msg.getShort(16);
-
-    vector3 mag(msg.getInt(18), msg.getInt(22), msg.getInt(26));
+    vector3 mag(msg.getSignedInt(4), msg.getSignedInt(8), msg.getSignedInt(12));
 
     mag /= MAG_SAMPLE_COUNT;
 
-    const unsigned int mag_rng = msg.getShort(30);
+    vector3 accel(msg.getUInt(16), msg.getUInt(20), msg.getUInt(24));
 
-    unsigned int temp = msg.getInt(32);
+    accel /= ACCEL_SAMPLE_COUNT;
+
+    unsigned int temp = msg.getUInt(28);
 
     temp /= TEMP_COUNT;
 
-    const unsigned int temp_rng = msg.getShort(36);
-
     cout << "Time: " << t_mote << endl;
-    cout << "Accel: " << accel << ";  " << acc_rng << endl;
-    cout << "Magn:  " << mag   << ";  " << mag_rng << endl;
-    cout << "Temp:  " << temp << "; " << temp_rng << endl;
+    cout << "Accel: " << accel << endl;
+    cout << "Magn:  " << mag   << endl;
+    cout << "Temp:  " << temp << endl;
     cout << endl;
 }

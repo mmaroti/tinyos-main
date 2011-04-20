@@ -52,7 +52,8 @@ public:
         // TODO Could use the same concept as in BlockIterator
         unsigned char getByte(int index) const;
         unsigned short getShort(int index) const;
-        unsigned int getInt(int index) const;
+        unsigned int getUInt(int index) const;
+        int getSignedInt(int index) const;
         unsigned int getID() const;
 
         QString toString() const;

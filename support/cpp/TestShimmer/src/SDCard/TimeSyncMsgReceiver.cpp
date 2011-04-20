@@ -38,6 +38,7 @@
 #include <QMutexLocker>
 #include <QFile>
 #include <QTextStream>
+#include "ActiveMessage.hpp"
 #include "TimeSyncMsgReceiver.hpp"
 #include "SerialListener.h"
 
@@ -134,9 +135,9 @@ void TimeSyncMsgReceiver::onReceiveMessage(const ActiveMessage& msg) {
 
     //cout << "mote " << msg.source << ", block " << msg.getInt(0) << ", time " << msg.getInt(4) << endl;
 
-    VirtualMoteID vmote_id(msg.source, msg.getInt(0));
+    VirtualMoteID vmote_id(msg.source, msg.getUInt(0));
 
-    uint time = msg.getInt(4);
+    uint time = msg.getUInt(4);
 
     QRunnable* insertTask = new InsertTask(&setLock, motes, vmote_id, time);
 

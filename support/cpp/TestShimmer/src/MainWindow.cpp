@@ -106,6 +106,9 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(&app.serialListener,  SIGNAL(receiveMessage(const ActiveMessage& )),
                 &app.connectionState, SLOT(msgReceived(const ActiveMessage& )));
 
+        connect(&app.serialListener,  SIGNAL(receiveMessage(const ActiveMessage& )),
+                &app.accelMagMsgReceiver, SLOT(onReceiveMessage(const ActiveMessage& )));
+
         connect(&app.serialListener,  SIGNAL(connected()),
                 &app.connectionState, SLOT(connectedToPort()));
 

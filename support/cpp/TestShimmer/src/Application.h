@@ -47,6 +47,7 @@
 #include "DataRecorder.h"
 //#include "StationaryCalibrationModule.h"
 #include "ConsoleWidget.h"
+#include "AccelMagMsgReceiver.hpp"
 
 class Application : public QObject
 {
@@ -76,6 +77,7 @@ public:
         ipo::Solver solver;
         TabWatcher tabWatcher;
         TimeSyncMsgReceiver timeSyncMsgReceiver;
+        AccelMagMsgReceiver accelMagMsgReceiver;
         ConnectionState connectionState;
 };
 
