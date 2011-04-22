@@ -119,7 +119,7 @@ class PlatformTest implements MessageListener {
 				} else if (uint16Msg.get_dataType()=='o' & osrFirst==true){
 					printToFile.println("The result of the Overal Solar Radiation measurement");
 					printToFile.printf("%-13s %-13s %-13s %-13s %-13s%n","NodeID","Minimum","Average","Maximum","Energy");		
-					osrFirst=true;	
+					osrFirst=false;	
 				}
 				printToFile.printf("%-13d %-13d %-13.2f %-13d %-13.2f%n",uint16Msg.get_receiverNodeID(),uint16Msg.get_min(),((double)uint16Msg.get_sum_a()/(double)uint16Msg.get_sampleCnt()),uint16Msg.get_max(),((double)uint16Msg.get_sum_e()/(double)(uint16Msg.get_sampleCnt()-1)));
 			}
