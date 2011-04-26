@@ -113,7 +113,7 @@ implementation {
     }
 
 #ifdef TOGGLE_ON_SLEEP
-    if( powerState == ATM128_POWER_SAVE )
+    if( powerState >= ATM128_POWER_SAVE )
       call Leds.led0Off();
 #endif
 
