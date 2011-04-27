@@ -133,7 +133,7 @@ public class Programmer implements SerialPortListener
 		serial.setSerialPortParams(baudrate, 8, SerialPort.STOPBITS_1, false);
 	}
 	
-	public void resetTinyOS(int baudrate) throws IOException
+	public boolean resetTinyOS(int baudrate) throws IOException
 	{
 		byte[] req = new byte[] { (byte)0x7e, (byte)0x44, (byte)0x19, (byte)0x72, 'R', 'S', 'T', (byte)0xb9, (byte)0x1e, (byte)0x7e };
 		byte[] ack = new byte[] { (byte)0x7e, (byte)0x45, (byte)0x72, 'Z', 'B', 'P', (byte)0x76, (byte)0x35, (byte)0x7e };
@@ -174,7 +174,7 @@ public class Programmer implements SerialPortListener
 							if( Arrays.equals(response, ack) )
 							{
 								System.out.println(" done");
-								return;
+								return true;
 							}
 						}
 					}
@@ -183,6 +183,7 @@ public class Programmer implements SerialPortListener
 		}
 		
 		System.out.println(" failed");
+		return false;
 	}
 
 	public void accessBootloder() throws IOException
@@ -259,12 +260,13 @@ public class Programmer implements SerialPortListener
 		System.out.println(" done");
 	}
 	
-	public static void main(String[] args) throws IOException
+	public static void main(String[] args) throws IOException, InterruptedException
 	{
 		String port = null;
 		int baudrate = 0;
 		boolean reset = false;
 		String srec = null;
+		int sleep = 0;
 
 		if( args.length == 0 )
 		{
@@ -273,6 +275,7 @@ public class Programmer implements SerialPortListener
 			System.out.println("\t-port <name>\t\tsets the communication port (mandatory)");
 			System.out.println("\t-baudrate <rate>\tsets the baudrate of TinyOS serial (0=auto)");
 			System.out.println("\t-reset\t\t\tsoftware reset through TinyOS serial");
+			System.out.println("\t-sleep <seconds>\twaits (omitted if a reset fails)");
 			System.out.println("\t-upload <srec file>\tuploads file through ZigBit bootloader");
 			System.exit(0);
 		}
@@ -285,6 +288,8 @@ public class Programmer implements SerialPortListener
 				baudrate = Integer.parseInt(args[++i]);
 			else if( args[i].equals("-reset") )
 				reset = true;
+			else if( args[i].equals("-sleep") )
+				sleep = Integer.parseInt(args[++i]);
 			else if( args[i].equals("-upload") )
 				srec = args[++i];
 			else
@@ -305,9 +310,13 @@ public class Programmer implements SerialPortListener
 		if( reset )
 		{
 			programmer.openPort(port);
-			programmer.resetTinyOS(baudrate);
+			if( programmer.resetTinyOS(baudrate) == false )
+				sleep = 0;
 			programmer.closePort();
 		}
+
+		if( sleep > 0 )
+			Thread.sleep(1000 * sleep);
 		
 		if( srec != null )
 		{
