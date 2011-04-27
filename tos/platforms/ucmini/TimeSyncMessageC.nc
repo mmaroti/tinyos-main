@@ -46,7 +46,7 @@ configuration TimeSyncMessageC
 
 implementation
 {
-	components RF212TimeSyncMessageC as MessageC;
+	components RFA1TimeSyncMessageC as MessageC;
   
 	SplitControl	= MessageC;
   	Receive		= MessageC.Receive;
