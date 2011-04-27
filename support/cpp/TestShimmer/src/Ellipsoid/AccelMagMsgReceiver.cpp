@@ -40,9 +40,9 @@ using std::cout;
 using std::endl;
 using gyro::vector3;
 
-const int ACCEL_SAMPLE_COUNT = 20;
+const int ACCEL_SAMPLE_COUNT = 100;
 const int TEMP_COUNT         = ACCEL_SAMPLE_COUNT;
-const int MAG_SAMPLE_COUNT   = 4;
+const int MAG_SAMPLE_COUNT   = 20;
 
 void AccelMagMsgReceiver::onReceiveMessage(const ActiveMessage& msg) {
 
@@ -56,7 +56,7 @@ void AccelMagMsgReceiver::onReceiveMessage(const ActiveMessage& msg) {
 
     accel /= ACCEL_SAMPLE_COUNT;
 
-    unsigned int temp = msg.getUInt(28);
+    double temp = msg.getUInt(28);
 
     temp /= TEMP_COUNT;
 
