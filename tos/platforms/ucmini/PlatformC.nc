@@ -59,7 +59,7 @@ implementation
     PlatformP.Voltmeter -> HplAtm128GeneralIOC.PortF0;
   #endif  
 
-  #if (UCMINI_REV==52) || (UCMINI_REV==100)
+  #if (UCMINI_REV!=49)
     PlatformP.VBattADC -> HplAtm128GeneralIOC.PortF2;
     PlatformP.VMeasureBridge -> HplAtm128GeneralIOC.PortD6;
   #endif

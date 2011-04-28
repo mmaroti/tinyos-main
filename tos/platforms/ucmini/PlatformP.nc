@@ -50,7 +50,7 @@ module PlatformP @safe()
     #if UCMINI_REV==49
     interface GeneralIO as Voltmeter;
     #endif
-    #if (UCMINI_REV==52) || (UCMINI_REV==100)
+    #if (UCMINI_REV!=49)
     interface GeneralIO as VBattADC;
     interface GeneralIO as VMeasureBridge;
     #endif
@@ -81,7 +81,7 @@ implementation
     call Voltmeter.set();
     #endif
 
-    #if (UCMINI_REV==52) || (UCMINI_REV==100)
+    #if (UCMINI_REV!=49)
     call VMeasureBridge.makeOutput();
     call VMeasureBridge.set();
     call VBattADC.set();
