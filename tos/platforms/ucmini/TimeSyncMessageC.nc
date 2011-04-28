@@ -58,7 +58,7 @@ implementation
 	TimeSyncAMSendRadio	= MessageC;
 	TimeSyncPacketRadio	= MessageC;
 
-	PacketTimeStampMilli	= MessageC;
-	TimeSyncAMSendMilli	= MessageC;
-	TimeSyncPacketMilli	= MessageC;
+	PacketTimeStampMilli	= MessageC.PacketTimeStampMilli;
+	TimeSyncAMSendMilli	= MessageC.TimeSyncAMSendMilli;
+	TimeSyncPacketMilli	= MessageC.TimeSyncPacketMilli;
 }
