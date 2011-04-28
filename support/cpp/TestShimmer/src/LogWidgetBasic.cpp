@@ -277,7 +277,7 @@ void LogWidgetBasic::createTime(int row, QString time, TimeMode timeMode)
     }
 }
 
-void LogWidgetBasic::createEntry(int row, Mode mode, Type type) // FIXME mode is not used any more
+void LogWidgetBasic::createEntry(int row, Mode , Type type) // FIXME mode is not used any more
 {
     QString msg;
 
@@ -981,7 +981,7 @@ void LogWidgetBasic::showAnimation(const int motStartRow) {
     win->activateWindow();
 }
 
-GLWindow* LogWidgetBasic::getGLWindow(double* mat, int size) const {
+GLWindow* LogWidgetBasic::getGLWindow(double* , int ) const {
 
     GLWindow* win = 0;
 
@@ -1007,9 +1007,9 @@ DataHolder* LogWidgetBasic::getDataHolder(const int motStart) const {
 
     const Range range = motionBeginEndInSamples(motStart);
 
-    double* const mat = application.dataRecorder.rotmat(range);
+    //double* const mat = application.dataRecorder.rotmat(range);
 
-    const int size = range.size();
+   //const int size = range.size();
 
     DataHolder* data = 0;
 
