@@ -44,6 +44,7 @@
 #include "window.h"
 #include "SDataWidget.h"
 #include "LogWidget.h"
+#include "LogWidgetBasic.h"
 #include <QLabel>
 
 extern DataRecorder* dr; // FIXME Eliminate this hideous workaround
@@ -70,6 +71,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
         LogWidget* logWidget = new LogWidget(ui->logTab, app);
         ui->logTab->layout()->addWidget(logWidget);
+
+        LogWidgetBasic* logWidgetBasic = new LogWidgetBasic(ui->logTab, app);
+        ui->basicLogTab->layout()->addWidget(logWidgetBasic);
 
         SDataWidget* sddataWidget = new SDataWidget(ui->sdataTab, app);
         ui->sdataTab->layout()->addWidget(sddataWidget);

@@ -31,7 +31,6 @@ win32:LIBS += -lsetupapi
 # LIBS += ../qwtplot3d/lib/libqwtplot3d.a
 DEFINES += QT_DLL
 
-# QWT3D_DLL
 QT += opengl
 QT += sql
 isEmpty( ISQT4 ):CONFIG += opengl
@@ -89,6 +88,7 @@ SOURCES += src/DataRecorder.cpp \
     src/SDCard/TimeSyncMsgReceiver.cpp \
     src/SDCard/RootDirPath.cpp \
     src/LogWidget.cpp \
+    src/LogWidgetBasic.cpp \
     src/SDCard/MoteInfo.cpp \
     src/SDCard/TimeSyncDB.cpp \
     src/SDCard/RecordScout.cpp \
@@ -168,6 +168,7 @@ HEADERS += src/DataRecorder.h \
     src/SDCard/TimeSyncMsgReceiver.hpp \
     src/SDCard/MoteRegistrar.hpp \
     src/LogWidget.h \
+    src/LogWidgetBasic.h \
     src/SDCard/TimeSyncDB.hpp \
     src/SDCard/RecordScout.hpp \
     src/SDCard/MoteInfo.hpp \
@@ -205,6 +206,7 @@ FORMS += src/MainWindow.ui \
     src/Widget3D.ui \
     src/SDataWidget.ui \
     src/LogWidget.ui \
+    src/LogWidgetBasic.ui \
     src/LogDialog.ui \
     src/DriveSelectorDialog.ui
 RESOURCES += src/Resources.qrc \

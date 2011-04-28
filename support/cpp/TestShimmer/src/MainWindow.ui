@@ -105,6 +105,12 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_8"/>
       </widget>
+      <widget class="QWidget" name="basicLogTab">
+       <attribute name="title">
+        <string>Marker</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_10"/>
+      </widget>
      </widget>
     </item>
    </layout>
