@@ -77,7 +77,7 @@ public class Transfer extends Thread  {
 
 
 	/**
-	 * Sets the interfaces from String parameters
+	 * Sets the interfaces from simple parameters
 	 * @param binaryType [binfile, serial, shimmer]
 	 * @param binaryPath path of binary media
 	 * @param stringType [textfile, console]
@@ -135,15 +135,14 @@ public class Transfer extends Thread  {
 				int parserCounter=0;
 				while ((!match)&&(parserCounter<packetParsers.length)){
 					PacketParser pp=packetParsers[parserCounter];
-					if(pp.parse(data)!=null){
+					if((pp.getPacketLength()==data.length)&&(pp.parse(data)!=null)){
 						match=true;
 						string.writePacket(new StringPacket(pp.getName(),pp.getFields(),pp.parse(data)));
 						//if the second parameter is different from pp.getFields than it will control the order of writing	
 					}
 					parserCounter++;
 				}
-				if(!match){
-					//System.out.println("Unmatched frame! Length of frame is: "+data.length+" byte.");
+				if(!match){					
 					unmatched.add(data.length);
 					successful=false;
 				} 
