@@ -288,7 +288,7 @@ public class StreamDownloader{
 						} catch (IOException e) {
 							System.err.println("Can't close file of nodeid: "+writer.getNodeid());
 						}
-					comm.stop();
+					//comm.stop();
 					exitCommandLoop=true;
 				}
 			} else {
