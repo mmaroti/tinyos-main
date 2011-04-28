@@ -30,7 +30,6 @@ win32:LIBS += -lsetupapi
 
 # LIBS += ../qwtplot3d/lib/libqwtplot3d.a
 DEFINES += QT_DLL
-
 QT += opengl
 QT += sql
 isEmpty( ISQT4 ):CONFIG += opengl
@@ -108,7 +107,8 @@ SOURCES += src/DataRecorder.cpp \
     src/OpenGL/GLElbowFlexWidget.cpp \
     src/SDCard/RecordLinker.cpp \
     src/Ellipsoid/AccelMagMsgReceiver.cpp \
-    src/ActiveMessage.cpp
+    src/ActiveMessage.cpp \
+    src/Ellipsoid/EllipsoidCalibration.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -208,6 +208,7 @@ FORMS += src/MainWindow.ui \
     src/LogWidget.ui \
     src/LogWidgetBasic.ui \
     src/LogDialog.ui \
-    src/DriveSelectorDialog.ui
+    src/DriveSelectorDialog.ui \
+    src/EllipsoidCalibration.ui
 RESOURCES += src/Resources.qrc \
     src/textures.qrc
