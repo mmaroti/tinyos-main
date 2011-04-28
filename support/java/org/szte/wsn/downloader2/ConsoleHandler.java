@@ -185,12 +185,14 @@ public class ConsoleHandler {
 		}
 		prompt=prompt.substring(0,prompt.length()-1);
 		prompt+="]";
-		while(ret.length()!=1){
+		while(ret.length()!=1&&ret!=null){
 			try {
 				ret=reader.readLine(prompt);
 			} catch (IOException e) {
 				exception(e);
 			}
+			if(ret==null)
+				break;
 			ret=ret.toLowerCase();
 			if(ret.length()==1){
 				for(String s:allowed){
