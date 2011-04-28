@@ -350,6 +350,7 @@ public class StreamDownloader{
 			new StreamDownloader("sf@localhost:9002");
 		else
 			new StreamDownloader(args[0]);
+		System.exit(0);//this is ugly, but the serial jni seems unstoppable on windows
 	}
 	
 }
