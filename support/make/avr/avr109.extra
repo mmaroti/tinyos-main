@@ -5,8 +5,8 @@ $(error AVR109 must be defined, try "make $(TARGETS) help")
 endif
 
 PROGRAM = avr109
-#BAUDRATE = 57600
-BAUDRATE = 115200
+AVR109_BAUDRATE ?= 115200
+AVR109_SLEEP ?= 0
 
 ifeq ($(PROGRAMMER),avrdude)
     ifeq ($(shell [ -f /bin/cygwin1.dll ] && echo cygwin),cygwin)
@@ -17,14 +17,13 @@ ifeq ($(PROGRAMMER),avrdude)
         BOOTLOADER_IMG := $(shell cygpath -m $(BOOTLOADER_IMG))
       endif
     endif
-    PROGRAMMER_FLAGS = -cavr109 -P$(AVR109) -b$(BAUDRATE) $(PROGRAMMER_PART) $(PROGRAMMER_EXTRA_FLAGS)
+    PROGRAMMER_FLAGS = -cavr109 -P$(AVR109) -b$(AVR109_BAUDRATE) $(PROGRAMMER_PART) $(PROGRAMMER_EXTRA_FLAGS)
     PROGRAMMER_INSTALL_SREC_FLAGS = -U flash:w:$(INSTALL_SREC):a
     PROGRAMMER_INSTALL_BOOTLOADER_FLAGS = -V -D -U flash:w:$(BOOTLOADER_IMG):a
 endif
 
 program: FORCE
-	java org.szte.wsn.zigbit.Programmer -port $(AVR109) -baudrate $(BAUDRATE) -reset
-#	java org.szte.wsn.zigbit.Programmer -port $(AVR109) -baudrate 57600 -reset
+	java org.szte.wsn.zigbit.Programmer -port $(AVR109) -reset -sleep $(AVR109_SLEEP)
 	@echo "    installing $(PLATFORM) binary using avr109"
 	$(PROGRAMMER) $(PROGRAMMER_FLAGS) $(PROGRAMMER_INSTALL_SREC_FLAGS)
 
