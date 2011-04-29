@@ -39,7 +39,7 @@
  * @date August 7 2005
  *
  */
-
+//#define SERIAL_AUTO_DEBUG
 #include "Serial.h"
 configuration SerialActiveMessageC {
   provides {
@@ -59,23 +59,28 @@ implementation {
   MainC.SoftwareInit -> SerialDispatcherC;
   Leds = SerialDispatcherC;
   
-  #ifndef SERIAL_AUTO
-  SplitControl = SerialDispatcherC;
+  
+  #ifdef DISABLE_SERIAL_AUTO
+    SplitControl = SerialDispatcherC;
   #else
-  components SerialAutoControlC, HplCp2102C;
-  SerialAutoControlC.Vdd->HplCp2102C.Vdd;
-	#if (UCMINI_REV != 49)
-	SerialAutoControlC.NSuspend->HplCp2102C.NSuspend;
-	#endif
-  SerialAutoControlC.SplitControl->SerialDispatcherC;
-  MainC.SoftwareInit -> SerialAutoControlC;
-  SplitControl = SerialAutoControlC.DummyControl;
+    components SerialAutoControlC, HplCp2102C;
+    SerialAutoControlC.Vdd->HplCp2102C.Vdd;
+    #if (UCMINI_REV != 49)
+      SerialAutoControlC.NSuspend->HplCp2102C.NSuspend;
+    #endif
+    SerialAutoControlC.SplitControl->SerialDispatcherC;
+    MainC.SoftwareInit -> SerialAutoControlC;
+    SplitControl = SerialAutoControlC.DummyControl;
+    #ifdef SERIAL_AUTO_DEBUG
+      components LedsC;
+      SerialAutoControlC.Leds->LedsC;
+    #endif
   #endif
   #ifndef DISABLE_SERIAL_RESET
-  components SerialResetP;
-  SerialResetP.Send -> SerialDispatcherC.Send[0x72];
-  SerialResetP.Receive -> SerialDispatcherC.Receive[0x72];
-  SerialDispatcherC.SerialPacketInfo[0x72] -> SerialResetP;
+    components SerialResetP;
+    SerialResetP.Send -> SerialDispatcherC.Send[0x72];
+    SerialResetP.Receive -> SerialDispatcherC.Receive[0x72];
+    SerialDispatcherC.SerialPacketInfo[0x72] -> SerialResetP;
   #endif
   
   AMSend = AM;
