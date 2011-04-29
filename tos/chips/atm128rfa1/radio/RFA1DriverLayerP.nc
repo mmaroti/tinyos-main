@@ -213,7 +213,7 @@ implementation
 
     txPower = RFA1_DEF_RFPOWER & RFA1_TX_PWR_MASK;
     channel = RFA1_DEF_CHANNEL & RFA1_CHANNEL_MASK;
-	
+	TRX_CTRL_1 |= 1<<TX_AUTO_CRC_ON;
     PHY_CC_CCA=RFA1_CCA_MODE_VALUE|channel;
 	
     SET_BIT(TRXPR,SLPTR);
@@ -539,7 +539,7 @@ implementation
     else
       sendSignal=FALSE;
     
-    if(PHY_RSSI&RX_CRC_VALID)
+    if(!(PHY_RSSI&(1<<RX_CRC_VALID)))
         sendSignal=FALSE;
     
     state = STATE_RX_ON;
