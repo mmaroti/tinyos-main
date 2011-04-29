@@ -73,7 +73,10 @@ implementation
   PlatformP.RadioInit -> RFA1RadioOffP.RFA1RadioOff;
   PlatformP.Stm25pInit -> Stm25pOffC.Stm25pOff;
 
-#ifdef SERIAL_AUTO
-	components SerialActiveMessageC;
-#endif
+  #ifndef DISABLE_SERIAL_AUTO
+    components SerialAutoControlC;
+  #endif
+  #ifndef DISABLE_SERIAL_RESET
+    components SerialResetC;
+  #endif
 }

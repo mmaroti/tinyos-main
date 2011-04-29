@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/** Copyright (c) 2011, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,21 +28,20 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklos Maroti
+* Author: Andras Biro
 */
-
-#include "message.h"
-
-configuration SerialResetC
-{
+configuration SerialAutoControlC{
 }
-
-implementation
-{ 
-	components SerialResetP, LedsC, SerialDispatcherC, MainC, PlatformSerialC;
-
-	SerialResetP.Leds -> LedsC;
-	SerialResetP.Send -> SerialDispatcherC.Send[0x72];
-	SerialResetP.Receive -> SerialDispatcherC.Receive[0x72];
-	SerialDispatcherC.SerialPacketInfo[0x72] -> SerialResetP;
+implementation{
+  components SerialAutoControlP, HplCp2102C, SerialActiveMessageC, MainC;
+  SerialAutoControlP.Vdd->HplCp2102C.Vdd;
+  #if (UCMINI_REV != 49)
+    SerialAutoControlP.NSuspend->HplCp2102C.NSuspend;
+  #endif
+  SerialAutoControlP.SplitControl->SerialActiveMessageC;
+  MainC.SoftwareInit -> SerialAutoControlP;
+  #ifdef SERIAL_AUTO_DEBUG
+    components LedsC;
+    SerialAutoControlC.Leds->LedsC;
+  #endif
 }
