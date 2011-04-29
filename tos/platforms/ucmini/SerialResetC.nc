@@ -31,7 +31,8 @@
 * Author: Miklos Maroti
 */
 
-#include "message.h"
+// just to make sure that fastserial can get its include file
+#include "Serial.h"
 
 configuration SerialResetC
 {

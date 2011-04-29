@@ -30,6 +30,10 @@
 *
 * Author: Andras Biro
 */
+
+// just to make sure that fastserial can get its include file
+#include "Serial.h"
+
 configuration SerialAutoControlC{
 }
 implementation{
