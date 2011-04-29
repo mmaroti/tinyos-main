@@ -30,7 +30,6 @@
 *
 * Author: Miklos Maroti
 */
-//#define BOOTLOADER_ADDRESS 0x1E000
 
 module SerialResetP
 {
@@ -43,19 +42,12 @@ module SerialResetP
 	{
 		interface Send;
 		interface Receive;
-		interface StdControl;
-		interface Boot;
 		interface Leds;
 	}
 }
 
 implementation
 {
-	event void Boot.booted()
-	{
-		call StdControl.start();
-	}
-
 	// this is dirty, but we do to save ram
 	message_t* sendMsg;
 
