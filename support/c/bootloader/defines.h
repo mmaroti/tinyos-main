@@ -5,8 +5,8 @@
 #define	_B4096	// boot size select: _Bxxxx (words), powers of two only
 #include	<avr/io.h>
 
-#define TIMEOUT 24
-#define SERIAL_TRY 80000
+#define TIMEOUT 30
+#define SERIAL_TRY 90000
 
 #ifdef _ATMEGA1281
   #define F_CPU 8000000
