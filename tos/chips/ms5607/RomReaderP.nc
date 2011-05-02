@@ -156,7 +156,7 @@ implementation {
       cmd = (morePrecise)?CONVERT_TEMPERATURE_SLOW:CONVERT_TEMPERATURE_FAST;
       call I2CPacket.write(I2C_START | I2C_STOP, ADDRESS, 1, &cmd);
     } else if(state == S_READ_PRESS) {
-      cmd = (morePrecise)?CONVERT_TEMPERATURE_SLOW:CONVERT_PRESSURE_FAST;
+      cmd = (morePrecise)?CONVERT_PRESSURE_SLOW:CONVERT_PRESSURE_FAST;
       call I2CPacket.write(I2C_START | I2C_STOP, ADDRESS, 1, &cmd);
     }    
   }
