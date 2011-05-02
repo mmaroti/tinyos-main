@@ -31,20 +31,24 @@
 *      Author: Ali Baharev
 */
 
-#include <iostream>
-#include "EllipsoidCalibration.hpp"
+#ifndef ELLIPSOIDCALIBRATION_HPP
+#define ELLIPSOIDCALIBRATION_HPP
 
-using namespace std;
+#include "ui_EllipsoidCalibration.h"
 
-EllipsoidCalibration::EllipsoidCalibration(QWidget* parent) : QWidget(parent) {
+class EllipsoidCalibration : public QWidget, private Ui::EllipsoidCalibration
+{
+    Q_OBJECT
 
-    setupUi(this);
-    setVisible(true);
-    showMaximized();
-}
+public:
+
+    EllipsoidCalibration(QWidget* parent);
+
+private slots:
 
 
-void EllipsoidCalibration::on_pushButton_pressed() {
+private slots:
+    void on_pushButton_pressed();
+};
 
-    cout << "Button pressed" << endl;
-}
+#endif // ELLIPSOIDCALIBRATION_HPP

@@ -197,7 +197,8 @@ HEADERS += src/DataRecorder.h \
     src/SDCard/TimeSyncData.hpp \
     src/SDCard/RecordLinker.hpp \
     src/Ellipsoid/AccelMagMsgReceiver.hpp \
-    src/ActiveMessage.hpp
+    src/ActiveMessage.hpp \
+    src/Ellipsoid/EllipsoidCalibration.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

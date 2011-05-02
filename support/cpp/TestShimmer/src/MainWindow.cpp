@@ -46,6 +46,7 @@
 #include "LogWidget.h"
 #include "LogWidgetBasic.h"
 #include <QLabel>
+#include "EllipsoidCalibration.hpp"
 
 extern DataRecorder* dr; // FIXME Eliminate this hideous workaround
 
@@ -86,6 +87,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	ConsoleWidget* consoleWidget = new ConsoleWidget(ui->consoleTab, app);
 	ui->consoleTab->layout()->addWidget(consoleWidget);
+
+        ui->ellipsoidTab->setLayout(new QVBoxLayout);
+        EllipsoidCalibration* ellipsoid = new EllipsoidCalibration(ui->ellipsoidTab);
+        ui->ellipsoidTab->layout()->addWidget(ellipsoid);
+
 
         statusBar()->showMessage("Started.");
 
