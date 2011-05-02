@@ -40,10 +40,18 @@ implementation {
 
   BusControl = I2CBusP.SplitControl;
 
-  I2CBusP.POWER -> IO.PortF2;
+#if UCMINI_REV == 49 || UCMINI_REV == 50 || UCMINI_REV == 52 
+  I2CBusP.Power -> IO.PortF2;
+#else
+  I2CBusP.Power -> IO.PortF1;
+#endif
 
-  components Sht21C, bh1750fviC, ms5607C;
+  components Sht21C, Bh1750fviC, new Ms5607C(FALSE);
   I2CBusP.TemphumSplit -> Sht21C.SplitControl;
-  I2CBusP.LightSplit   -> bh1750fviC.SplitControl;
-  I2CBusP.PressureSplit-> ms5607C.SplitControl;
+  I2CBusP.LightSplit   -> Bh1750fviC.SplitControl;
+  I2CBusP.PressureSplit-> Ms5607C.SplitControl;
+
+  components DiagMsgC, LedsC;
+  I2CBusP.DiagMsg -> DiagMsgC;
+  I2CBusP.Leds -> LedsC;
 }

@@ -36,62 +36,135 @@ module I2CBusP {
   uses interface SplitControl as TemphumSplit;
   uses interface SplitControl as LightSplit;
   uses interface SplitControl as PressureSplit;
-  uses interface GeneralIO as POWER;
+  uses interface GeneralIO as Power;
+
+  uses interface DiagMsg;
+  uses interface Leds;
 }
 implementation {
-  uint8_t cnt=0;
-  command error_t SplitControl.start() {
-    call POWER.makeOutput();
-    call POWER.set();
+/*
+cnt bits:
+1:Temphum started
+2:Temphum startDone
+4:Light started
+8:Light startDone
+16:Pressure started
+32:Pressure startDone
+64:bus is on:all lower bits should be 1
+128:bus is off: all lower bits should be 0
 
-    call TemphumSplit.start();
-    //call LightSplit.start();
-    //call PressureSplit.start();
-    return SUCCESS;
+*/
+  uint8_t cnt=128;
+  bool startError;
+  
+  command error_t SplitControl.start() {
+    error_t error;
+    if(cnt&64)
+      return EALREADY;
+    else if(!(cnt&128) )
+      return EBUSY;
+    cnt=0;
+    startError=FALSE;
+    call Power.makeOutput();
+    call Power.set();
+
+    error=call TemphumSplit.start(); 
+    if(error==SUCCESS){
+      cnt|=1; //call Leds.led0On();
+      error=call LightSplit.start();
+    }
+    if(error==SUCCESS){
+      cnt|=4; //call Leds.led1On();
+      error=call PressureSplit.start();
+    }
+    if(error==SUCCESS){
+      cnt|=16; //call Leds.led2On();
+      return SUCCESS;
+    }
+    else {
+      startError=TRUE;//we should go to OFF state
+      call Power.clr();
+      return error;
+    }
   }
+  
+  task void stopDone(){
+    cnt=128;
+    signal SplitControl.stopDone(SUCCESS);
+  }  
 
   command error_t SplitControl.stop() {
-    call POWER.clr();
-    signal SplitControl.stopDone(SUCCESS);
+    if(cnt&128)
+      return EALREADY;
+    else if(!(cnt&64))
+      return EBUSY;
+    cnt=0;
+    call Power.clr();
+    post stopDone();
     return SUCCESS;
   }
   
   event void TemphumSplit.startDone(error_t error) {
-    cnt |= 1;
-    if(cnt == 7)
+    if(error!=SUCCESS){
+      call TemphumSplit.start();
+      return;
+    } call Leds.led0On();
+    if(startError){
+      cnt&=~1;
+      if(cnt==0)
+	cnt=128;
+      return;
+    }
+    cnt |= 2;
+    if(cnt == 63){
+      cnt|=64;
       signal SplitControl.startDone(SUCCESS);
+    }
   }
   
   event void LightSplit.startDone(error_t error) {
-    cnt |= 2;
-    if(cnt == 7)
+    if(error!=SUCCESS){
+      call LightSplit.start();
+      return;
+    } call Leds.led1On();
+    if(startError){
+      cnt&=~4;
+      if(cnt==0)
+	cnt=128;
+      return;
+    }
+    cnt |= 8;
+    if(cnt == 63){
+      cnt|=64;
       signal SplitControl.startDone(SUCCESS);
+    }
   }
   
   event void PressureSplit.startDone(error_t error) {
-    cnt |= 4;
-    if(cnt == 7)
+    if(error!=SUCCESS){
+      call PressureSplit.start();
+      return;
+    } call Leds.led2On();
+    if(startError){
+      cnt&=~16;
+      if(cnt==0)
+	cnt=128;
+      return;
+    }
+    cnt |= 32;
+    if(cnt == 63){
+      cnt|=64;
       signal SplitControl.startDone(SUCCESS);
+    }
   }
   
-  event void TemphumSplit.stopDone(error_t error) {
-    cnt &= 6;
-    if(cnt == 0)
-      signal SplitControl.stopDone(SUCCESS);
-  }
-
-  event void LightSplit.stopDone(error_t error) {
-    cnt &= 4;
-    if(cnt == 0)
-      signal SplitControl.stopDone(SUCCESS);
-  }
-
-  event void PressureSplit.stopDone(error_t error) {
-    cnt &= 3;
-    if(cnt == 0)
-      signal SplitControl.stopDone(SUCCESS);
-  }
   
-  default event void SplitControl.startDone(error_t error) { }
+  event void TemphumSplit.stopDone(error_t error) {}
+
+  event void LightSplit.stopDone(error_t error) {}
+
+  event void PressureSplit.stopDone(error_t error) {}
+  
+  default event void SplitControl.startDone(error_t error) {call Leds.led3On(); }
   default event void SplitControl.stopDone(error_t error) { }
 }
