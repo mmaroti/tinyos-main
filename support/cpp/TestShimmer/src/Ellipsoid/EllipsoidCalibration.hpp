@@ -35,6 +35,7 @@
 #define ELLIPSOIDCALIBRATION_HPP
 
 #include "ui_EllipsoidCalibration.h"
+#include "AccelMagSample.hpp"
 
 class EllipsoidCalibration : public QWidget, private Ui::EllipsoidCalibration
 {
@@ -44,11 +45,17 @@ public:
 
     EllipsoidCalibration(QWidget* parent);
 
+public slots:
+
+    void onNewSampleReceived(const AccelMagSample sample);
+
 private slots:
 
-
-private slots:
     void on_pushButton_pressed();
+
+private:
+
+    AccelMagSample currentSample;
 };
 
 #endif // ELLIPSOIDCALIBRATION_HPP

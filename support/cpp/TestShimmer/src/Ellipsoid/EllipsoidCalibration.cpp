@@ -39,12 +39,26 @@ using namespace std;
 EllipsoidCalibration::EllipsoidCalibration(QWidget* parent) : QWidget(parent) {
 
     setupUi(this);
+
+    label->setText("");
+
     setVisible(true);
     showMaximized();
 }
 
+void EllipsoidCalibration::onNewSampleReceived(const AccelMagSample sample) {
+
+    // TODO Show current-prev difference
+    // Not editable, format properly, select whole row, delete, timestamp?
+    // Start, Stop, Save, Clear
+    currentSample = sample;
+
+    label->setText(currentSample.timeStr()+";  "+currentSample.accelStr()+"; "+currentSample.magStr());
+}
 
 void EllipsoidCalibration::on_pushButton_pressed() {
 
-    cout << "Button pressed" << endl;
+    tableWidget->insertRow(0);
+    tableWidget->setItem(0, 0, new QTableWidgetItem(currentSample.timeStr()));
+    tableWidget->setItem(0, 1, new QTableWidgetItem(currentSample.accelStr()));
 }

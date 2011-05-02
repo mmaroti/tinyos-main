@@ -31,35 +31,47 @@
 *      Author: Ali Baharev
 */
 
-#ifndef ACCELMAGMSGRECEIVER_HPP
-#define ACCELMAGMSGRECEIVER_HPP
+#ifndef ACCELMAGSAMPLE_HPP
+#define ACCELMAGSAMPLE_HPP
 
-#include <QObject>
-#include "AccelMagSample.hpp"
+#include <QString>
+#include "MatrixVector.hpp"
 
-class ActiveMessage;
-
-class AccelMagMsgReceiver : public QObject {
-
-    Q_OBJECT
+class AccelMagSample {
 
 public:
 
-    AccelMagMsgReceiver() { }
+    AccelMagSample();
 
-signals:
+    AccelMagSample(unsigned int mote_time,
+                   const gyro::vector3& acceleration,
+                   const gyro::vector3& magnetometer_reading,
+                   double temperature);
 
-    void newSample(const AccelMagSample sample);
+    bool isNull() const { return time==0; }
 
-public slots:
+    unsigned int moteTime() const { return time; }
 
-    void onReceiveMessage(const ActiveMessage& msg);
+    const gyro::vector3 acceleration() const { return accel; }
+
+    const gyro::vector3 magnetometerReading() const { return mag; }
+
+    double temperature() const { return temp; }
+
+    const QString timeStr() const;
+
+    const QString accelStr() const;
+
+    const QString magStr() const;
+
+    const QString tempStr() const;
 
 private:
 
-    AccelMagMsgReceiver(const AccelMagMsgReceiver& );
-    AccelMagMsgReceiver& operator=(const AccelMagMsgReceiver& );
-
+    unsigned int time;
+    gyro::vector3 accel;
+    gyro::vector3 mag;
+    double temp;
 };
 
-#endif // ACCELMAGMSGRECEIVER_HPP
+#endif // ACCELMAGSAMPLE_HPP

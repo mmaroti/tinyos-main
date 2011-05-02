@@ -31,35 +31,48 @@
 *      Author: Ali Baharev
 */
 
-#ifndef ACCELMAGMSGRECEIVER_HPP
-#define ACCELMAGMSGRECEIVER_HPP
-
-#include <QObject>
+#include <ostream>
 #include "AccelMagSample.hpp"
 
-class ActiveMessage;
+using namespace gyro;
 
-class AccelMagMsgReceiver : public QObject {
+AccelMagSample::AccelMagSample()
+: time(0), accel(vector3(0,0,0)), mag(vector3(0,0,0)), temp(0)
+{
 
-    Q_OBJECT
+}
 
-public:
+AccelMagSample::AccelMagSample(unsigned int mote_time,
+                               const vector3& acceleration,
+                               const vector3& magnetometer_reading,
+                               double temperature)
+: time(mote_time), accel(acceleration), mag(magnetometer_reading), temp(temperature)
+{
 
-    AccelMagMsgReceiver() { }
+}
 
-signals:
+const QString AccelMagSample::timeStr() const {
 
-    void newSample(const AccelMagSample sample);
+    return QString::number(time);
+}
 
-public slots:
+const QString toQStr(const vector3& v) {
 
-    void onReceiveMessage(const ActiveMessage& msg);
+    return QString::number(v[X])+", "+QString::number(v[Y])+", "+QString::number(v[Z]);
+}
 
-private:
+const QString AccelMagSample::accelStr() const {
 
-    AccelMagMsgReceiver(const AccelMagMsgReceiver& );
-    AccelMagMsgReceiver& operator=(const AccelMagMsgReceiver& );
+    return toQStr(accel);
+}
 
-};
+const QString AccelMagSample::magStr() const {
 
-#endif // ACCELMAGMSGRECEIVER_HPP
+    return toQStr(mag);
+}
+
+const QString AccelMagSample::tempStr() const {
+
+    return QString::number(temp);
+}
+
