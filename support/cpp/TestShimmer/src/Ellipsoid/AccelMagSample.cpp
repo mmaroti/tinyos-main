@@ -31,7 +31,9 @@
 *      Author: Ali Baharev
 */
 
+#include <iomanip>
 #include <ostream>
+#include <sstream>
 #include "AccelMagSample.hpp"
 
 using namespace gyro;
@@ -56,19 +58,27 @@ const QString AccelMagSample::timeStr() const {
     return QString::number(time);
 }
 
-const QString toQStr(const vector3& v) {
+const QString vec2QStr(const gyro::vector3& v) {
 
-    return QString::number(v[X])+", "+QString::number(v[Y])+", "+QString::number(v[Z]);
+    using namespace std;
+
+    ostringstream os;
+
+    os << fixed << setprecision(2) << right;
+
+    os << setw(6) << v[X] << ", " << setw(6) << v[Y] << ", " << setw(6) << v[Z];
+
+    return os.str().c_str();
 }
 
 const QString AccelMagSample::accelStr() const {
 
-    return toQStr(accel);
+    return vec2QStr(accel);
 }
 
 const QString AccelMagSample::magStr() const {
 
-    return toQStr(mag);
+    return vec2QStr(mag);
 }
 
 const QString AccelMagSample::tempStr() const {

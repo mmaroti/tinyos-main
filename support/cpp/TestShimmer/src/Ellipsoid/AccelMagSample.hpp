@@ -37,6 +37,8 @@
 #include <QString>
 #include "MatrixVector.hpp"
 
+const QString vec2QStr(const gyro::vector3& v);
+
 class AccelMagSample {
 
 public:

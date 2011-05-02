@@ -51,11 +51,21 @@ public slots:
 
 private slots:
 
-    void on_pushButton_pressed();
+    void on_tableWidget_itemActivated(QTableWidgetItem* item);
+    void on_tableWidget_cellDoubleClicked(int row, int column);
+    void on_clearButton_clicked();
+    void on_saveButton_clicked();
+    void on_captureButton_pressed();
 
 private:
 
-    AccelMagSample currentSample;
+    void addItem(int col, const QString& str);
+
+    void clearAll();
+    void deleteRow(int row);
+
+    AccelMagSample previous;
+    AccelMagSample current;
 };
 
 #endif // ELLIPSOIDCALIBRATION_HPP

@@ -32,33 +32,132 @@
 */
 
 #include <iostream>
+#include <QFileDialog>
+#include <QMessageBox>
 #include "EllipsoidCalibration.hpp"
 
 using namespace std;
 
+using gyro::vector3;
+
 EllipsoidCalibration::EllipsoidCalibration(QWidget* parent) : QWidget(parent) {
 
     setupUi(this);
-
-    label->setText("");
+    currentLabel->setFont(QFont("Courier"));
+    diffLabel->setFont(QFont("Courier"));
 
     setVisible(true);
     showMaximized();
+
+    tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+    tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 }
 
 void EllipsoidCalibration::onNewSampleReceived(const AccelMagSample sample) {
 
-    // TODO Show current-prev difference
-    // Not editable, format properly, select whole row, delete, timestamp?
-    // Start, Stop, Save, Clear
-    currentSample = sample;
+    previous = current;
 
-    label->setText(currentSample.timeStr()+";  "+currentSample.accelStr()+"; "+currentSample.magStr());
+    current = sample;
+
+    currentLabel->setText("Current: "+current.timeStr()+";  "+current.accelStr()+"; "+current.magStr());
+
+    vector3 accelDiff = current.acceleration() - previous.acceleration();
+
+    vector3 magnDiff = current.magnetometerReading() - previous.magnetometerReading();
+
+    diffLabel->setText("Change:  " + vec2QStr(accelDiff) + "; " + vec2QStr(magnDiff) );
 }
 
-void EllipsoidCalibration::on_pushButton_pressed() {
+void EllipsoidCalibration::addItem(int col, const QString& str) {
+
+    // FIXME Who the hell deletes it?
+    QTableWidgetItem* item = new QTableWidgetItem(str);
+
+    item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+    tableWidget->setItem(0, col, item);
+}
+
+void EllipsoidCalibration::on_captureButton_pressed() {
+
+    if (current.isNull()) {
+        QMessageBox::warning(this, "Warning", "Connect to a mote first!");
+        return;
+    }
+
+    enum { ACCEL, MAGN, TEMP };
 
     tableWidget->insertRow(0);
-    tableWidget->setItem(0, 0, new QTableWidgetItem(currentSample.timeStr()));
-    tableWidget->setItem(0, 1, new QTableWidgetItem(currentSample.accelStr()));
+
+    addItem(ACCEL, current.accelStr());
+    addItem(MAGN,  current.magStr());
+    addItem(TEMP,  current.tempStr());
+}
+
+void EllipsoidCalibration::on_saveButton_clicked() {
+
+    if (tableWidget->rowCount()==0) {
+
+        return;
+    }
+
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"));
+
+    // TODO Write to file
+}
+
+void EllipsoidCalibration::on_clearButton_clicked() {
+
+    if (tableWidget->rowCount()==0) {
+
+        return;
+    }
+
+    // FIXME How to make Cancel the default button?
+    const int ret = QMessageBox::warning(this, "Warning", "Dropping all data!\nAre you sure?",
+                                         QMessageBox::Yes, QMessageBox::Cancel);
+
+    if (ret==QMessageBox::Yes) {
+
+        clearAll();
+    }
+}
+
+void EllipsoidCalibration::clearAll() {
+
+    const int size = tableWidget->rowCount();
+
+    for (int i=size-1; i>=0; --i) {
+
+        tableWidget->removeRow(i);
+    }
+
+    current = previous = AccelMagSample();
+
+    currentLabel->clear();
+
+    diffLabel->clear();
+}
+
+void EllipsoidCalibration::on_tableWidget_cellDoubleClicked(int row, int column) {
+
+    deleteRow(row);
+
+}
+
+void EllipsoidCalibration::on_tableWidget_itemActivated(QTableWidgetItem* item) {
+
+    deleteRow(item->row());
+}
+
+void EllipsoidCalibration::deleteRow(int row) {
+
+    const int ret = QMessageBox::warning(this, "Warning", "Do you want to drop this sample?",
+                                         QMessageBox::Yes, QMessageBox::Cancel);
+
+    if (ret==QMessageBox::Yes) {
+
+        tableWidget->removeRow(row);
+    }
 }
