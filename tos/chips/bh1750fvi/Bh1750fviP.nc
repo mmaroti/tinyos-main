@@ -14,15 +14,17 @@ module Bh1750fviP {
 implementation {
   uint16_t mesrslt=0;
   uint8_t  res[2];
+  uint8_t cmd;
   enum {
     S_OFF = 0,
     S_STARTING,
     S_STOPPING,
-    S_ON,
+    S_IDLE,
     S_BUSY,
+    S_RESET,
   };
   
-  uint8_t state = S_OFF;
+  norace uint8_t state = S_OFF;
   bool on=0;
   bool stopRequested = FALSE;
 
@@ -35,6 +37,10 @@ implementation {
     return SUCCESS;
   }
 
+  task void signalStartDone() {
+    signal SplitControl.startDone(SUCCESS);
+  }
+
   task void signalStopDone() {
     signal SplitControl.stopDone(SUCCESS);
   }
@@ -42,7 +48,7 @@ implementation {
   command error_t SplitControl.stop() {
     if(state == S_STOPPING) return EBUSY;
     if(state == S_OFF) return EALREADY;
-    if(state == S_ON) {
+    if(state == S_IDLE) {
       atomic state = S_OFF;
       post signalStopDone();
     } else {
@@ -53,9 +59,9 @@ implementation {
 
   command error_t Light.read() {
     if(state == S_OFF) return EOFF;
-    if(state != S_ON) return EBUSY;
+    if(state != S_IDLE) return EBUSY;
 
-    atomic state = S_BUSY;   
+    atomic state = S_RESET;//S_BUSY;   
     call I2CResource.request();
     return SUCCESS;
   }
@@ -65,33 +71,25 @@ implementation {
       atomic state = S_STARTING;
       call I2CResource.request();
     } else if(state == S_BUSY) {
-       uint16_t i;
        error_t err;
         call Leds.led0On();
         err=call I2CPacket.read(I2C_START | I2C_STOP, READ_ADDRESS, 2, res);
-        
-          for(i=0; i<65535U; i++)
-            asm volatile ("nop"::);
-        if(call DiagMsg.record()){
-	    call DiagMsg.str("P.firBUS");
-            call DiagMsg.uint8(state);
-	    call DiagMsg.uint8(err);
-	    call DiagMsg.send();
-      }
 
         if(stopRequested) {
-          atomic state = S_ON;
+          atomic state = S_IDLE;
           call SplitControl.stop();
         }
-    } else if(state == S_STARTING) {
+    }/* else if(state == S_STARTING) {
+        atomic state = S_IDLE;
+        call I2CResource.release();
         signal SplitControl.startDone(SUCCESS); 
-    } else if(state == S_ON) {
+    }*/ else if(state == S_IDLE) {
          call I2CResource.release();
     }
   }
  
   task void signalReadDone() {
-    atomic {state= S_ON;
+    atomic {state= S_IDLE;
     signal Light.readDone(SUCCESS, mesrslt);}
   }
 
@@ -105,30 +103,35 @@ implementation {
   }
   
   task void startTimeout() {
-    if(state == S_ON) call Timer.startOneShot(TIMEOUT_H_RES);
-    else if(state == S_STARTING) call Timer.startOneShot(11);
+    if(state == S_IDLE) call Timer.startOneShot(TIMEOUT_H_RES);
+    //else if(state == S_STARTING) call Timer.startOneShot(11);
     else if(state == S_BUSY) call Timer.startOneShot(TIMEOUT_H_RES);
   }
 
   async event void I2CPacket.writeDone(error_t error, uint16_t addr, uint8_t length, uint8_t* data) {
-    if (state==S_ON)call Leds.led2On();
+    if (state==S_IDLE)call Leds.led2On();
+    if ((state == S_STARTING) && (error == SUCCESS)) {
+      state = S_IDLE;
+      //post signalStartDone();
+      signal SplitControl.startDone(SUCCESS);
+      call I2CResource.release();
+    }
+    if (state == S_RESET) {
+      state = S_BUSY;
+      call I2CResource.release();
+      return (void)call I2CResource.request();
+    }
     post startTimeout();
   }
 
   event void I2CResource.granted() {
-    if(state == S_STARTING) {
+    if(state == S_STARTING || state == S_RESET) {
       error_t err;
-      res[0]=POWER_ON;
-      err=call I2CPacket.write(I2C_START | I2C_STOP, WRITE_ADDRESS, 1, res[0]);
-      if(call DiagMsg.record()){
-	    call DiagMsg.str("P.grantPWRON");
-            call DiagMsg.uint8(state);
-	    call DiagMsg.uint8(err);
-	    call DiagMsg.send();
-      }
+      cmd=POWER_ON;
+      err=call I2CPacket.write(I2C_START | I2C_STOP, WRITE_ADDRESS, 1, &cmd);
     } else if(state == S_BUSY) {
-      res[0]=ONE_SHOT_H_RES;
-      call I2CPacket.write(I2C_START | I2C_STOP, WRITE_ADDRESS, 1, res[0]);
+      cmd=ONE_SHOT_H_RES;
+      call I2CPacket.write(I2C_START | I2C_STOP, WRITE_ADDRESS, 1, &cmd);
     }
   }
 
