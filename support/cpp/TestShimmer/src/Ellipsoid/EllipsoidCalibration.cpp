@@ -141,6 +141,8 @@ void EllipsoidCalibration::exportSamples(QTextStream &out) {
         out << acc->text() << ", " << magn->text() << ", " << temp->text() << '\n';
     }
 
+    out << '\n';
+
     out.flush();
 }
 
