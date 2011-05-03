@@ -37,6 +37,8 @@
 #include "ui_EllipsoidCalibration.h"
 #include "AccelMagSample.hpp"
 
+class QTextStream;
+
 class EllipsoidCalibration : public QWidget, private Ui::EllipsoidCalibration
 {
     Q_OBJECT
@@ -59,10 +61,14 @@ private slots:
 
 private:
 
-    void addItem(int col, const QString& str);
+    enum Column { ACCEL, MAGN, TEMP };
+
+    void addItem(Column col, const QString& str);
 
     void clearAll();
     void deleteRow(int row);
+
+    void exportSamples(QTextStream& out);
 
     AccelMagSample previous;
     AccelMagSample current;

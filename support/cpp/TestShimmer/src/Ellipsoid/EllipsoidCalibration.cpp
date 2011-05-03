@@ -34,6 +34,7 @@
 #include <iostream>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QTextStream>
 #include "EllipsoidCalibration.hpp"
 
 using namespace std;
@@ -56,6 +57,7 @@ EllipsoidCalibration::EllipsoidCalibration(QWidget* parent) : QWidget(parent) {
 
 void EllipsoidCalibration::onNewSampleReceived(const AccelMagSample sample) {
 
+    // FIXME Check mote ID!
     previous = current;
 
     current = sample;
@@ -69,7 +71,7 @@ void EllipsoidCalibration::onNewSampleReceived(const AccelMagSample sample) {
     diffLabel->setText("Change:  " + vec2QStr(accelDiff) + "; " + vec2QStr(magnDiff) );
 }
 
-void EllipsoidCalibration::addItem(int col, const QString& str) {
+void EllipsoidCalibration::addItem(Column col, const QString& str) {
 
     // FIXME Who the hell deletes it?
     QTableWidgetItem* item = new QTableWidgetItem(str);
@@ -86,8 +88,6 @@ void EllipsoidCalibration::on_captureButton_pressed() {
         return;
     }
 
-    enum { ACCEL, MAGN, TEMP };
-
     tableWidget->insertRow(0);
 
     addItem(ACCEL, current.accelStr());
@@ -102,9 +102,46 @@ void EllipsoidCalibration::on_saveButton_clicked() {
         return;
     }
 
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"));
+    QString name = QFileDialog::getSaveFileName(this, tr("Save File"));
 
-    // TODO Write to file
+    if (name.isEmpty()) {
+
+        return;
+    }
+
+    QFile file(name);
+
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+
+        QMessageBox::critical(this, "Error", "Failed to create file!");
+        return;
+    }
+
+    QTextStream out(&file);
+
+    exportSamples(out);
+
+    file.close();
+}
+
+void EllipsoidCalibration::exportSamples(QTextStream &out) {
+
+    out << "# Mote ID\n";
+    out << current.moteID() << '\n';
+    out << "# Samples: accel(x,y,z), magnetometer(x,y,z), temperature\n";
+
+    const int size = tableWidget->rowCount();
+
+    for (int i=0; i<size; ++i) {
+
+        const QTableWidgetItem* acc  = tableWidget->item(i, ACCEL);
+        const QTableWidgetItem* magn = tableWidget->item(i, MAGN);
+        const QTableWidgetItem* temp = tableWidget->item(i, TEMP);
+
+        out << acc->text() << ", " << magn->text() << ", " << temp->text() << '\n';
+    }
+
+    out.flush();
 }
 
 void EllipsoidCalibration::on_clearButton_clicked() {
