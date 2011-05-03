@@ -39,16 +39,17 @@
 using namespace gyro;
 
 AccelMagSample::AccelMagSample()
-: time(0), accel(vector3(0,0,0)), mag(vector3(0,0,0)), temp(0)
+: mote_id(-1), time(0), accel(vector3(0,0,0)), mag(vector3(0,0,0)), temp(0)
 {
 
 }
 
-AccelMagSample::AccelMagSample(unsigned int mote_time,
+AccelMagSample::AccelMagSample(int mote_id,
+                               unsigned int mote_time,
                                const vector3& acceleration,
                                const vector3& magnetometer_reading,
                                double temperature)
-: time(mote_time), accel(acceleration), mag(magnetometer_reading), temp(temperature)
+: mote_id(mote_id), time(mote_time), accel(acceleration), mag(magnetometer_reading), temp(temperature)
 {
 
 }

@@ -45,12 +45,15 @@ public:
 
     AccelMagSample();
 
-    AccelMagSample(unsigned int mote_time,
+    AccelMagSample(int mote_id,
+                   unsigned int mote_time,
                    const gyro::vector3& acceleration,
                    const gyro::vector3& magnetometer_reading,
                    double temperature);
 
-    bool isNull() const { return time==0; }
+    bool isNull() const { return mote_id==-1 && time==0; }
+
+    int moteID() const { return mote_id; }
 
     unsigned int moteTime() const { return time; }
 
@@ -70,6 +73,7 @@ public:
 
 private:
 
+    int mote_id;
     unsigned int time;
     gyro::vector3 accel;
     gyro::vector3 mag;

@@ -66,5 +66,5 @@ void AccelMagMsgReceiver::onReceiveMessage(const ActiveMessage& msg) {
     cout << "Temp:  " << temp << endl;
     cout << endl;
 
-    emit newSample(AccelMagSample(t_mote, accel, mag, temp));
+    emit newSample(AccelMagSample(msg.source, t_mote, accel, mag, temp));
 }

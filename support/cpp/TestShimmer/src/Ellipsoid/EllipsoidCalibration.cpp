@@ -140,7 +140,7 @@ void EllipsoidCalibration::clearAll() {
     diffLabel->clear();
 }
 
-void EllipsoidCalibration::on_tableWidget_cellDoubleClicked(int row, int column) {
+void EllipsoidCalibration::on_tableWidget_cellDoubleClicked(int row, int ) {
 
     deleteRow(row);
 
