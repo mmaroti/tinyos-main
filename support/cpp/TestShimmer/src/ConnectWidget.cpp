@@ -193,7 +193,11 @@ void ConnectWidget::onReceiveMessage(const ActiveMessage & msg)
 
                 moteItems.insert(msg.source, item);
 
-                application.dataRecorder.setCurrentMote(msg.source);
+                // FIXME Temporary hack
+                if (msg.source < 10) {
+
+                    application.dataRecorder.setCurrentMote(msg.source);
+                }
         }
 }
 
