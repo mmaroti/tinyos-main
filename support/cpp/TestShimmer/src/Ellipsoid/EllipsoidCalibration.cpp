@@ -150,6 +150,8 @@ void EllipsoidCalibration::on_clearButton_clicked() {
 
     if (tableWidget->rowCount()==0) {
 
+        clearSamples();
+
         return;
     }
 
@@ -163,7 +165,16 @@ void EllipsoidCalibration::on_clearButton_clicked() {
     }
 }
 
-void EllipsoidCalibration::clearAll() {
+void EllipsoidCalibration::clearSamples() {
+
+    current = previous = AccelMagSample();
+
+    currentLabel->clear();
+
+    diffLabel->clear();
+}
+
+void EllipsoidCalibration::clearRows() {
 
     const int size = tableWidget->rowCount();
 
@@ -171,12 +182,13 @@ void EllipsoidCalibration::clearAll() {
 
         tableWidget->removeRow(i);
     }
+}
 
-    current = previous = AccelMagSample();
+void EllipsoidCalibration::clearAll() {
 
-    currentLabel->clear();
+    clearRows();
 
-    diffLabel->clear();
+    clearSamples();
 }
 
 void EllipsoidCalibration::on_tableWidget_cellDoubleClicked(int row, int ) {

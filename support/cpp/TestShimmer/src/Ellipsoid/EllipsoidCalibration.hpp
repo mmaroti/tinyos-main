@@ -66,6 +66,8 @@ private:
     void addItem(Column col, const QString& str);
 
     void clearAll();
+    void clearSamples();
+    void clearRows();
     void deleteRow(int row);
 
     void exportSamples(QTextStream& out);

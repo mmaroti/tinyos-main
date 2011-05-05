@@ -46,6 +46,11 @@ const int MAG_SAMPLE_COUNT   = 20;
 
 void AccelMagMsgReceiver::onReceiveMessage(const ActiveMessage& msg) {
 
+    if (msg.type != 0x12) {
+
+        return;
+    }
+
     unsigned int t_mote = msg.getUInt(0);
 
     vector3 mag(msg.getSignedInt(4), msg.getSignedInt(8), msg.getSignedInt(12));
@@ -60,11 +65,11 @@ void AccelMagMsgReceiver::onReceiveMessage(const ActiveMessage& msg) {
 
     temp /= TEMP_COUNT;
 
-    cout << "Time: " << t_mote << endl;
-    cout << "Accel: " << accel << endl;
-    cout << "Magn:  " << mag   << endl;
-    cout << "Temp:  " << temp << endl;
-    cout << endl;
+    //cout << "Time: " << t_mote << endl;
+    //cout << "Accel: " << accel << endl;
+    //cout << "Magn:  " << mag   << endl;
+    //cout << "Temp:  " << temp << endl;
+    //cout << endl;
 
     emit newSample(AccelMagSample(msg.source, t_mote, accel, mag, temp));
 }
