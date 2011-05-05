@@ -34,10 +34,12 @@
 #ifndef ACCELMAGMSGRECEIVER_HPP
 #define ACCELMAGMSGRECEIVER_HPP
 
+#include <map>
 #include <QObject>
 #include "AccelMagSample.hpp"
 
 class ActiveMessage;
+class CalibrationMatrices;
 
 class AccelMagMsgReceiver : public QObject {
 
@@ -45,11 +47,15 @@ class AccelMagMsgReceiver : public QObject {
 
 public:
 
-    AccelMagMsgReceiver() { }
+    AccelMagMsgReceiver();
+
+    ~AccelMagMsgReceiver();
 
 signals:
 
     void newSample(const AccelMagSample sample);
+
+    void sampleReceived(const AccelMagSample sample);
 
 public slots:
 
@@ -59,6 +65,10 @@ private:
 
     AccelMagMsgReceiver(const AccelMagMsgReceiver& );
     AccelMagMsgReceiver& operator=(const AccelMagMsgReceiver& );
+
+    void loadCalibrationMatrices();
+
+    std::map<int,CalibrationMatrices>* const calibrationMatrices;
 
 };
 

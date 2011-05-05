@@ -31,6 +31,7 @@
 *      Author: Ali Baharev
 */
 
+#include <QDir>
 #include <iostream>
 #include "ActiveMessage.hpp"
 #include "AccelMagMsgReceiver.hpp"
@@ -39,10 +40,54 @@
 using std::cout;
 using std::endl;
 using gyro::vector3;
+using gyro::matrix3;
 
 const int ACCEL_SAMPLE_COUNT = 100;
 const int TEMP_COUNT         = ACCEL_SAMPLE_COUNT;
 const int MAG_SAMPLE_COUNT   = 20;
+
+class CalibrationMatrices {
+
+public:
+
+    CalibrationMatrices() { }
+
+    CalibrationMatrices(const matrix3& A_acc, const vector3& b_acc,
+                        const matrix3& A_magn, const vector3& b_magn)
+    : A_acc(A_acc), b_acc(b_acc), A_magn(A_magn), b_magn(b_magn)
+    { }
+
+    const vector3 accel(const vector3& x) const { return A_acc*(x-b_acc); }
+    const vector3 magn(const vector3 &x) const { return A_magn*(x-b_magn); }
+
+private:
+
+    matrix3 A_acc;
+    vector3 b_acc;
+
+    matrix3 A_magn;
+    vector3 b_magn;
+};
+
+AccelMagMsgReceiver::AccelMagMsgReceiver()
+    : calibrationMatrices(new std::map<int,CalibrationMatrices>)
+{
+    loadCalibrationMatrices();
+}
+
+void AccelMagMsgReceiver::loadCalibrationMatrices() {
+
+    QDir dir("../calib", "*.cal");
+
+    QFileInfoList list = dir.entryInfoList();
+
+    for (int i = 0; i < list.size(); ++i) {
+        QFileInfo fileInfo = list.at(i);
+        std::cout << qPrintable(QString("%1 %2").arg(fileInfo.size(), 10)
+                                                .arg(fileInfo.fileName()));
+        std::cout << std::endl;
+    }
+}
 
 void AccelMagMsgReceiver::onReceiveMessage(const ActiveMessage& msg) {
 
@@ -72,4 +117,9 @@ void AccelMagMsgReceiver::onReceiveMessage(const ActiveMessage& msg) {
     //cout << endl;
 
     emit newSample(AccelMagSample(msg.source, t_mote, accel, mag, temp));
+}
+
+AccelMagMsgReceiver::~AccelMagMsgReceiver() {
+
+    delete calibrationMatrices;
 }

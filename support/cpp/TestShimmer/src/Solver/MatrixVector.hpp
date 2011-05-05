@@ -45,9 +45,11 @@ class Vector {
 
 public:
 
+        Vector() { v[X] = v[Y] = v[Z] = T(0.0); }
+
         Vector(const T& x, const T& y, const T& z) { v[X] = x; v[Y] = y; v[Z] = z; }
 
-        Vector(const T x[3]) { v[X] = x[X]; v[Y] = x[Y]; v[Z] = x[Z]; }
+        explicit Vector(const T x[3]) { v[X] = x[X]; v[Y] = x[Y]; v[Z] = x[Z]; }
 
         void copy_to(T array[3]) const;
 
@@ -197,7 +199,9 @@ class Matrix {
 
 public:
 
-        Matrix(const T array[9]);
+        Matrix();
+
+        explicit Matrix(const T array[9]);
 
         void copy_to(T array[9]) const;
 
@@ -212,8 +216,6 @@ public:
         static const Matrix identity();
 
 private:
-
-        Matrix();
 
         T m[3][3];
 };
