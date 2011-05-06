@@ -31,6 +31,7 @@
 *      Author: Ali Baharev
 */
 
+#include <cmath>
 #include <iostream>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -91,7 +92,26 @@ void EllipsoidCalibration::onNewSampleReceived(const AccelMagSample sample) {
 
     z /= z.length();
 
-    armWidget->setFrame(matrix3(x, y, z));
+    static int counter = 0;
+
+    ++counter;
+
+    if (counter==3) {
+
+        cout << "x: " << x << endl;
+        cout << "y: " << y << endl;
+        cout << "z: " << z << endl;
+
+        double heading = atan2(y[Y], y[X])*180.0/M_PI;
+
+        cout << heading << endl << endl;
+
+        armWidget->setReference(heading);
+    }
+    else if (counter > 3) {
+
+        armWidget->setFrame(matrix3(x, y, z));
+    }
 
 }
 

@@ -77,6 +77,8 @@ ArmWidget::ArmWidget(AnimationElbowFlexType sign) : type(sign)
         rotmat[i] = (GLfloat) 0.0;
 
     rotmat[M11] = rotmat[M22] = rotmat[M33] = rotmat[M44] = (GLfloat) 1.0;
+
+    referenceHeading = 0.0;
 }
 
 ArmWidget::~ArmWidget() {
@@ -282,6 +284,8 @@ void ArmWidget::drawLinearParts() {
 
     drawIrrelevantParts();
 
+    rotateToReferenceHeading();
+
     drawMovingArm();
 }
 
@@ -467,6 +471,16 @@ void ArmWidget::resizeGL(int width, int height) {
 void ArmWidget::mousePressEvent(QMouseEvent * /* event */)
 {
     emit clicked();
+}
+
+void ArmWidget::setReference(double magneticHeadingDegrees) {
+
+    referenceHeading = magneticHeadingDegrees;
+}
+
+void ArmWidget::rotateToReferenceHeading() {
+
+    glRotated(referenceHeading, 0.0, 1.0, 0.0);
 }
 
 void ArmWidget::setFrame(const gyro::matrix3& rotationMatrix) {

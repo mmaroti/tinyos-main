@@ -48,6 +48,8 @@ public:
 
     static ArmWidget* left();
 
+    void setReference(double magneticHeadingDegrees);
+
     void setFrame(const gyro::matrix3& rotationMatrix);
 
     ~ArmWidget();
@@ -75,6 +77,7 @@ private:
 
     void setCameraPosition();
     void setState();
+    void rotateToReferenceHeading();
 
     void sideView();
     void planView();
@@ -110,6 +113,8 @@ private:
     GLfloat rotmat[16];
 
     GLuint list;
+
+    double referenceHeading;
 };
 
 #endif // ARMWIDGET_HPP
