@@ -39,6 +39,8 @@
 
 class QTextStream;
 
+class ArmWidget;
+
 class EllipsoidCalibration : public QWidget, private Ui::EllipsoidCalibration
 {
     Q_OBJECT
@@ -74,6 +76,8 @@ private:
 
     AccelMagSample previous;
     AccelMagSample current;
+
+    ArmWidget* armWidget;
 };
 
 #endif // ELLIPSOIDCALIBRATION_HPP

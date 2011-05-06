@@ -36,6 +36,7 @@
 #include <QMessageBox>
 #include <QTextStream>
 #include "EllipsoidCalibration.hpp"
+#include "ArmWidget.hpp"
 
 using namespace std;
 
@@ -53,6 +54,8 @@ EllipsoidCalibration::EllipsoidCalibration(QWidget* parent) : QWidget(parent) {
     tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 
     tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+
+    armWidget = ArmWidget::right();
 }
 
 void EllipsoidCalibration::onNewSampleReceived(const AccelMagSample sample) {
@@ -69,6 +72,7 @@ void EllipsoidCalibration::onNewSampleReceived(const AccelMagSample sample) {
     vector3 magnDiff = current.magnetometerReading() - previous.magnetometerReading();
 
     diffLabel->setText("Change:  " + vec2QStr(accelDiff) + "; " + vec2QStr(magnDiff) );
+
 }
 
 void EllipsoidCalibration::addItem(Column col, const QString& str) {
