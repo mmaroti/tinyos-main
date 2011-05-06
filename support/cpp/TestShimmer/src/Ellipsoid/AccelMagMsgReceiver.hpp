@@ -38,6 +38,8 @@
 #include <QObject>
 #include "AccelMagSample.hpp"
 
+class QTextStream;
+
 class ActiveMessage;
 class CalibrationMatrices;
 
@@ -67,6 +69,14 @@ private:
     AccelMagMsgReceiver& operator=(const AccelMagMsgReceiver& );
 
     void loadCalibrationMatrices();
+
+    void loadFile(QTextStream& in);
+
+    const gyro::matrix3 loadMatrix(QTextStream& in) const;
+
+    const gyro::vector3 loadVector(QTextStream& in) const;
+
+    void insertCalibrationMatrices(int moteID, const CalibrationMatrices& M);
 
     std::map<int,CalibrationMatrices>* const calibrationMatrices;
 

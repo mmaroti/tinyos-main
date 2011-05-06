@@ -32,13 +32,14 @@
 */
 
 #include <QDir>
+#include <QFile>
+#include <QTextStream>
 #include <iostream>
 #include "ActiveMessage.hpp"
 #include "AccelMagMsgReceiver.hpp"
 #include "MatrixVector.hpp"
 
-using std::cout;
-using std::endl;
+using namespace std;
 using gyro::vector3;
 using gyro::matrix3;
 
@@ -70,22 +71,115 @@ private:
 };
 
 AccelMagMsgReceiver::AccelMagMsgReceiver()
-    : calibrationMatrices(new std::map<int,CalibrationMatrices>)
+    : calibrationMatrices(new map<int,CalibrationMatrices>)
 {
     loadCalibrationMatrices();
 }
 
 void AccelMagMsgReceiver::loadCalibrationMatrices() {
 
-    QDir dir("../calib", "*.cal");
+    const QString CALIB_DIR("../calib");
+
+    QDir dir(CALIB_DIR, "*.cal");
 
     QFileInfoList list = dir.entryInfoList();
 
     for (int i = 0; i < list.size(); ++i) {
-        QFileInfo fileInfo = list.at(i);
-        std::cout << qPrintable(QString("%1 %2").arg(fileInfo.size(), 10)
-                                                .arg(fileInfo.fileName()));
-        std::cout << std::endl;
+
+        QString name = list.at(i).fileName();
+
+        QFile file(CALIB_DIR+"/"+name);
+
+        if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+
+            QTextStream in(&file);
+
+            loadFile(in);
+        }
+    }
+}
+
+
+void AccelMagMsgReceiver::loadFile(QTextStream& in) {
+
+    if ("# Mote ID"!= in.readLine()) {
+
+        return;
+    }
+
+    int moteID = in.readLine().toInt();
+
+    QString buffer = in.readLine();
+
+    if (buffer != "# Accelerometer A11, A12, A13, A22, A23, A33, B1, B2, B3; y = A(x-b)") {
+
+        return;
+    }
+
+    matrix3 A_acc = loadMatrix(in);
+
+    vector3 b_acc = loadVector(in);
+
+    buffer = in.readLine();
+
+    if (buffer != "# Magnetometer A11, A12, A13, A22, A23, A33, B1, B2, B3; y = A(x-b)") {
+
+        return;
+    }
+
+    matrix3 A_magn = loadMatrix(in);
+
+    vector3 b_magn = loadVector(in);
+
+    QTextStream::Status status = in.status();
+
+    if (status!=QTextStream::Ok) {
+
+        return;
+    }
+
+    insertCalibrationMatrices(moteID, CalibrationMatrices(A_acc, b_acc, A_magn, b_magn));
+}
+
+const gyro::vector3 AccelMagMsgReceiver::loadVector(QTextStream& in) const {
+
+    double x[3];
+
+    for (int i=0; i<3; ++i) {
+
+        x[i] = in.readLine().toDouble();
+    }
+
+    return vector3(x);
+}
+
+const gyro::matrix3 AccelMagMsgReceiver::loadMatrix(QTextStream& in) const {
+
+    double x[6];
+
+    for (int i=0; i<6; ++i) {
+
+        x[i] = in.readLine().toDouble();
+    }
+
+    double values[] = { x[0], x[1], x[2],
+                         0.0, x[3], x[4],
+                         0.0,  0.0, x[5] };
+
+    return matrix3(values);
+}
+
+void AccelMagMsgReceiver::insertCalibrationMatrices(int moteID, const CalibrationMatrices& M) {
+
+    bool inserted = calibrationMatrices->insert(make_pair(moteID, M)).second;
+
+    if (inserted) {
+
+        cout << "Successfully loaded calibration data of mote " << moteID << endl;
+    }
+    else {
+
+         cout << "Mote ID " << moteID << " already in use!" << endl;
     }
 }
 
