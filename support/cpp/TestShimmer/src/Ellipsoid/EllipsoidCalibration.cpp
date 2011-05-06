@@ -56,6 +56,8 @@ EllipsoidCalibration::EllipsoidCalibration(QWidget* parent) : QWidget(parent) {
     tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 
     armWidget = ArmWidget::right();
+
+    armWidget->showMaximized();
 }
 
 void EllipsoidCalibration::onNewSampleReceived(const AccelMagSample sample) {
@@ -72,6 +74,24 @@ void EllipsoidCalibration::onNewSampleReceived(const AccelMagSample sample) {
     vector3 magnDiff = current.magnetometerReading() - previous.magnetometerReading();
 
     diffLabel->setText("Change:  " + vec2QStr(accelDiff) + "; " + vec2QStr(magnDiff) );
+
+    //================================================================================
+
+    using namespace gyro;
+
+    vector3 x = sample.acceleration();
+
+    x /= x.length();
+
+    vector3 y = cross_product(x, sample.magnetometerReading());
+
+    y /= y.length();
+
+    vector3 z = cross_product(x, y);
+
+    z /= z.length();
+
+    armWidget->setFrame(matrix3(x, y, z));
 
 }
 

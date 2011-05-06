@@ -228,7 +228,7 @@ void ArmWidget::rotateForeArm() {
 void ArmWidget::foreArm() {
 
     glBegin(GL_LINES);
-        glVertex3d(1.6, 0.0, 0.0);
+        glVertex3d(0.0,-1.6, 0.0);
         glVertex3d(0.0, 0.0, 0.0);
     glEnd();
 }
@@ -239,15 +239,15 @@ void ArmWidget::hand() {
     glPolygonMode(GL_BACK,  type.handBack);
 
     glBegin(GL_POLYGON);
-       glVertex3d(1.6, -0.15, 0.0);
-       glVertex3d(2.0, -0.15, 0.0);
-       glVertex3d(2.0,  0.15, 0.0);
-       glVertex3d(1.6,  0.15, 0.0);
+        glVertex3d(-0.15,-1.6, 0.0);
+        glVertex3d(-0.15,-2.0, 0.0);
+        glVertex3d( 0.15,-2.0, 0.0);
+        glVertex3d( 0.15,-1.6, 0.0);
     glEnd();
 
     glBegin(GL_LINES);
-        glVertex3d(1.7, 0.15, 0.0);
-        glVertex3d(1.7, 0.3, 0.0);
+        glVertex3d(0.15, -1.7, 0.0);
+        glVertex3d(0.3 , -1.7, 0.0);
     glEnd();
 
 }
@@ -475,17 +475,17 @@ void ArmWidget::setFrame(const gyro::matrix3& rotationMatrix) {
 
     rotationMatrix.copy_to(mat);
 
-    rotmat[M31] = (GLfloat) mat[R11];
-    rotmat[M21] = (GLfloat) mat[R31];
+    rotmat[M21] = (GLfloat)-mat[R11];
+    rotmat[M22] = (GLfloat)-mat[R12];
+    rotmat[M23] = (GLfloat)-mat[R13];
+
     rotmat[M11] = (GLfloat) mat[R21];
-
-    rotmat[M32] = (GLfloat) mat[R12];
-    rotmat[M22] = (GLfloat) mat[R32];
     rotmat[M12] = (GLfloat) mat[R22];
-
-    rotmat[M33] = (GLfloat) mat[R13];
-    rotmat[M23] = (GLfloat) mat[R33];
     rotmat[M13] = (GLfloat) mat[R23];
+
+    rotmat[M31] = (GLfloat)-mat[R31];
+    rotmat[M32] = (GLfloat)-mat[R32];
+    rotmat[M33] = (GLfloat)-mat[R33];
 
     updateGL();
 }
