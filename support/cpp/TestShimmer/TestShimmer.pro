@@ -109,7 +109,8 @@ SOURCES += src/DataRecorder.cpp \
     src/Ellipsoid/AccelMagMsgReceiver.cpp \
     src/ActiveMessage.cpp \
     src/Ellipsoid/EllipsoidCalibration.cpp \
-    src/Ellipsoid/AccelMagSample.cpp
+    src/Ellipsoid/AccelMagSample.cpp \
+    src/OpenGL/ArmWidget.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -200,7 +201,8 @@ HEADERS += src/DataRecorder.h \
     src/Ellipsoid/AccelMagMsgReceiver.hpp \
     src/ActiveMessage.hpp \
     src/Ellipsoid/EllipsoidCalibration.hpp \
-    src/Ellipsoid/AccelMagSample.hpp
+    src/Ellipsoid/AccelMagSample.hpp \
+    src/OpenGL/ArmWidget.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \
