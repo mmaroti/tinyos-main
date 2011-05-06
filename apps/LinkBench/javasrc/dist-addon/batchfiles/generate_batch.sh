@@ -6,16 +6,22 @@
 
 # Here is an example how to generate a bunch of descriptions
 main() {
-  A_BMARK="58"
-  TIME=1000
+  A_BMARK=""
+  TIME=10000
   TIMER1=(0 0 100)
-  TIMER2=(0 33 100)
-  TIMER3=(0 66 100)
+  #TIMER2=(0 33 100)
+  #TIMER3=(0 66 100)
   #ACK=yes
-  A_WAKEUP="0 30 70 130"
-  for BMARK in $A_BMARK; do
-    for WAKEUP in $A_WAKEUP; do
+  #ACK=yes
+  WAKEUP=400
+  TIMES="100 500 1000 2000"
+  for t in $TIMES; do
+
+  for BMARK in `seq 100 105`; do
+    TIMER1[2]=$t
+    #for WAKEUP in $A_WAKEUP; do
       print_bmark >> $1
+    
     done
   done
 }
@@ -75,7 +81,7 @@ print_bmark() {
   echo -en ${WAKEUP:+"wakeup: $WAKEUP\n"};
 }
 
-main batch_generated.yml
+main $1
 
 
 

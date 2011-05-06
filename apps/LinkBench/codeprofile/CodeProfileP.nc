@@ -33,7 +33,7 @@
 *         veresskrisztian@gmail.com
 */
 
-#define ATOMIC_PERIODIC_TIME 1024
+#define ATOMIC_PERIODIC_TIME 4096
 
 #define _MAX_(a,b) (((a) < (b)) ? (b) : (a))
 #define _MIN_(a,b) (((a) > (b)) ? (b) : (a))

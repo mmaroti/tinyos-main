@@ -11,7 +11,6 @@ VERBOSE=yes
 PROGONLY=no
 COMPILEONLY=no
 IGNOREUSB=0
-SOURCEDIR=.
 
 LOGFILE=${0%.*}.log
 
@@ -20,7 +19,7 @@ LONGOPTS="help,quiet,startid:,ignoreusb:,progonly,compileonly"
 usage()
 { 
   echo "
-  Usage: $PROGNAME [options] [ nesc source directory]
+  Usage: $PROGNAME [options] [ platform ]
          
     Compiles TinyOS code and programs multiple motes in parallel. Note that
     by default, mote on /dev/ttyUSB0 is ignored (used to be a BaseStation).
@@ -68,7 +67,7 @@ detect_motes() {
 
   TELOS_B=`sort $TMP | grep '1027 24577.*Rev.B' | awk '{print $4}'`
   TELOS_A=`sort $TMP | grep '1027 24577.*Rev A' | awk '{print $4}'`
-  IRIS=`sort $TMP | grep '1027 24592' | awk '{print $4}' | sed -n '1~2p'`
+  MIB520=`sort $TMP | grep '1027 24592' | awk '{print $4}' | sed -n '1~2p'`
   
   for device in `cat $TMP | awk '{print $4}' | sort`; do
     # fall over if we should ignore the current device
@@ -81,7 +80,7 @@ detect_motes() {
     # else, go ahead
     array_find $device $TELOS_B && PRPLAN="$PRPLAN telosb $device " && PLATFORMS="$PLATFORMS telosb"
     array_find $device $TELOS_A && PRPLAN="$PRPLAN telosa $device " && PLATFORMS="$PLATFORMS telosa"
-    array_find $device $IRIS    && PRPLAN="$PRPLAN iris $device " && PLATFORMS="$PLATFORMS iris"
+    array_find $device $MIB520  && PRPLAN="$PRPLAN $1 $device " && PLATFORMS="$PLATFORMS $1"
   done
   rm $TMP
   return 0
@@ -198,24 +197,19 @@ while true; do
    esac 
    shift
 done
-if [ $# -ne 0 ]; then 
-  SOURCEDIR=$1
-fi
 
 # detect the motes connected
-detect_motes
+detect_motes $1
 if [[ $? -ne 0 || $PLATFORMS = "" || $PRPLAN = "" ]]; then
   [ $VERBOSE != "no" ] && echo "Nothing to do. Quitting."
   exit 1
 fi
 # compile the application
 if [ $PROGONLY != 'yes' ]; then
-  cd $SOURCEDIR
   compile_code $PLATFORMS
 fi  
 # program the motes
 if [ $COMPILEONLY != 'yes' ]; then
-  cd $SOURCEDIR
   program_motes $PRPLAN
 fi
 exit 0

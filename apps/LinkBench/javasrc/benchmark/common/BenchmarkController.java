@@ -60,7 +60,7 @@ public class BenchmarkController implements MessageListener {
   private static short        currentData = 0;
 
   // Public to be able to set it easily
-  public static final short   MAXPROBES   = 3;
+  public static final short   MAXPROBES   = 6;
   public static final short   MAXTIMEOUT  = 2000;
 
   private BenchmarkResult     results;

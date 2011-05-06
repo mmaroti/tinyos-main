@@ -46,6 +46,7 @@ configuration BenchmarkCoreC {
 }
 
 implementation {
+
   components BenchmarkCoreP as Core;
   
   components new DirectAMSenderC(AM_TESTMSG_T)	    as TxTest;
@@ -80,9 +81,15 @@ implementation {
   #if defined(RADIO_RF230)
     components RF230RadioC;
     Core.TrafficMonitor -> RF230RadioC;
+
   #elif defined(RADIO_CC2420X)
     components CC2420XRadioC;
     Core.TrafficMonitor -> CC2420XRadioC;
+  
+  #elif defined(RADIO_CC2420)
+    components CC2420ActiveMessageC;
+    Core.TrafficMonitor -> CC2420ActiveMessageC;  
+    
   #endif
 #endif
   
