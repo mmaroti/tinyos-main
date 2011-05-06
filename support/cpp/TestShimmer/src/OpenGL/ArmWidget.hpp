@@ -36,6 +36,8 @@
 
 #include <QGLWidget>
 #include "AnimationElbowFlexSign.hpp"
+#include "MatrixVector.hpp"
+
 class ArmWidget : public QGLWidget
 {
     Q_OBJECT
@@ -46,7 +48,7 @@ public:
 
     static ArmWidget* left();
 
-    void setFrame(int pos);
+    void setFrame(const gyro::matrix3& rotationMatrix);
 
     ~ArmWidget();
 
@@ -68,8 +70,6 @@ protected:
 private:
 
     ArmWidget(AnimationElbowFlexType sign);
-
-    void rotate();
 
     void reset();
 
@@ -110,9 +110,6 @@ private:
     GLfloat rotmat[16];
 
     GLuint list;
-
-    int position;
-    int size;
 };
 
 #endif // ARMWIDGET_HPP

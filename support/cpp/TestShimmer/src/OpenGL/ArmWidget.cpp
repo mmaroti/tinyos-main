@@ -77,8 +77,6 @@ ArmWidget::ArmWidget(AnimationElbowFlexType sign) : type(sign)
         rotmat[i] = (GLfloat) 0.0;
 
     rotmat[M11] = rotmat[M22] = rotmat[M33] = rotmat[M44] = (GLfloat) 1.0;
-
-    position = 0;
 }
 
 ArmWidget::~ArmWidget() {
@@ -93,26 +91,6 @@ QSize ArmWidget::minimumSizeHint() const {
 QSize ArmWidget::sizeHint() const {
 
     return QSize(750, 750);
-}
-
-// TODO Threading?
-void ArmWidget::rotate() {
-
-    const double* mat = 0; // FIMXE
-
-    rotmat[M31] = (GLfloat) mat[R11];
-    rotmat[M21] = (GLfloat) mat[R31];
-    rotmat[M11] = (GLfloat) mat[R21];
-
-    rotmat[M32] = (GLfloat) mat[R12];
-    rotmat[M22] = (GLfloat) mat[R32];
-    rotmat[M12] = (GLfloat) mat[R22];
-
-    rotmat[M33] = (GLfloat) mat[R13];
-    rotmat[M23] = (GLfloat) mat[R33];
-    rotmat[M13] = (GLfloat) mat[R23];
-
-    updateGL();
 }
 
 // TODO Can we pass a member function to GLU?
@@ -491,13 +469,23 @@ void ArmWidget::mousePressEvent(QMouseEvent * /* event */)
     emit clicked();
 }
 
-void ArmWidget::setFrame(int pos) {
+void ArmWidget::setFrame(const gyro::matrix3& rotationMatrix) {
 
-    if (pos<0 || pos>=size) {
-        throw std::out_of_range("Index is out of range in ArmWidget::set_position()");
-    }
+    double mat[9];
 
-    position = pos;
+    rotationMatrix.copy_to(mat);
 
-    rotate();
+    rotmat[M31] = (GLfloat) mat[R11];
+    rotmat[M21] = (GLfloat) mat[R31];
+    rotmat[M11] = (GLfloat) mat[R21];
+
+    rotmat[M32] = (GLfloat) mat[R12];
+    rotmat[M22] = (GLfloat) mat[R32];
+    rotmat[M12] = (GLfloat) mat[R22];
+
+    rotmat[M33] = (GLfloat) mat[R13];
+    rotmat[M23] = (GLfloat) mat[R33];
+    rotmat[M13] = (GLfloat) mat[R23];
+
+    updateGL();
 }
