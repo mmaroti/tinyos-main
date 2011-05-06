@@ -78,6 +78,8 @@ private:
 
     void insertCalibrationMatrices(int moteID, const CalibrationMatrices& M);
 
+    bool computeCalibratedVectors(int moteID, gyro::vector3& accel, gyro::vector3& magn) const;
+
     std::map<int,CalibrationMatrices>* const calibrationMatrices;
 
 };

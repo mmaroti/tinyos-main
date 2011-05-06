@@ -204,6 +204,8 @@ void AccelMagMsgReceiver::onReceiveMessage(const ActiveMessage& msg) {
 
     temp /= TEMP_COUNT;
 
+    computeCalibratedVectors(msg.source, accel, mag);
+
     //cout << "Time: " << t_mote << endl;
     //cout << "Accel: " << accel << endl;
     //cout << "Magn:  " << mag   << endl;
@@ -211,6 +213,26 @@ void AccelMagMsgReceiver::onReceiveMessage(const ActiveMessage& msg) {
     //cout << endl;
 
     emit newSample(AccelMagSample(msg.source, t_mote, accel, mag, temp));
+}
+
+bool AccelMagMsgReceiver::computeCalibratedVectors(int moteID, vector3& accel, vector3& magn) const {
+
+    typedef map<int,CalibrationMatrices>::const_iterator itr;
+
+    itr i = calibrationMatrices->find(moteID);
+
+    if (i==calibrationMatrices->end()) {
+
+        return false;
+    }
+
+    const CalibrationMatrices& M = i->second;
+
+    accel = M.accel(accel);
+
+    magn = M.magn(magn);
+
+    return true;
 }
 
 AccelMagMsgReceiver::~AccelMagMsgReceiver() {
