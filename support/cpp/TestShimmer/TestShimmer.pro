@@ -110,7 +110,9 @@ SOURCES += src/DataRecorder.cpp \
     src/ActiveMessage.cpp \
     src/Ellipsoid/EllipsoidCalibration.cpp \
     src/Ellipsoid/AccelMagSample.cpp \
-    src/OpenGL/ArmWidget.cpp
+    src/OpenGL/ArmWidget.cpp \
+    src/Solver/MatrixVector.cpp \
+    src/Solver/MatrixVectorInstantiation.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \

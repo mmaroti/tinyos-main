@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/** Copyright (c) 2010, 2011 University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -40,295 +40,101 @@ namespace gyro {
 
 enum coordinate { X, Y, Z };
 
+template <typename> class Vector;
+template <typename> class Matrix;
+
+template <typename T> const Vector<T> operator+(const Vector<T>& x, const Vector<T>& y);
+template <typename T> const Vector<T> operator-(const Vector<T>& x, const Vector<T>& y);
+template <typename T> const Vector<T> operator*(const Vector<T>& x, double y);
+template <typename T> const Vector<T> operator/(const Vector<T>& x, double y);
+template <typename T> const Matrix<T> operator+(const Matrix<T>& A, const Matrix<T>& B);
+
+template <typename T> const T operator*(const Vector<T>& x, const Vector<T>& y);
+template <typename T> const Vector<T> operator*(const T& c, const Vector<T>& x);
+template <typename T> const Vector<T> cross_product(const Vector<T>& x, const Vector<T>& y);
+
 template <typename T>
 class Vector {
 
 public:
 
-        Vector() { v[X] = v[Y] = v[Z] = T(0.0); }
+	Vector() { v[X] = v[Y] = v[Z] = T(0.0); }
 
-        Vector(const T& x, const T& y, const T& z) { v[X] = x; v[Y] = y; v[Z] = z; }
+	Vector(const T& x, const T& y, const T& z) { v[X] = x; v[Y] = y; v[Z] = z; }
 
-        explicit Vector(const T x[3]) { v[X] = x[X]; v[Y] = x[Y]; v[Z] = x[Z]; }
+	explicit Vector(const T x[3]) { v[X] = x[X]; v[Y] = x[Y]; v[Z] = x[Z]; }
 
-        void copy_to(T array[3]) const;
+	template <typename U>
+	explicit Vector(const Vector<U> x) { v[X] = x[X]; v[Y] = x[Y]; v[Z] = x[Z]; }
 
-        Vector& operator+=(const Vector& x);
+	void copy_to(T array[3]) const;
 
-        Vector& operator-=(const Vector& x);
+	const T length() const;
 
-        Vector& operator*=(double x);
+	Vector& operator+=(const Vector& x);
 
-        Vector& operator/=(double x);
+	Vector& operator-=(const Vector& x);
 
-        template <typename C>
-        friend const C operator*(const Vector<C>& x, const Vector<C>& y);
+	Vector& operator*=(double x);
 
-        const T& operator[] (coordinate i) const { return v[i]; }
+	Vector& operator/=(double x);
 
-        void enforce_range_minus_pi_plus_pi();
+	const T& operator[] (coordinate i) const { return v[i]; }
 
-        std::ostream& print(std::ostream& os) const  { return os<<v[X]<<'\t'<<v[Y]<<'\t'<<v[Z]; }
+	void enforce_range_minus_pi_plus_pi(); // only for T = double
 
-        template <typename C>
-        friend class Matrix;
+	std::ostream& print(std::ostream& os) const  { return os<<v[X]<<'\t'<<v[Y]<<'\t'<<v[Z]; }
+
+	friend const T operator* <>(const Vector& x, const Vector& y);
+
+	friend const Vector operator* <>(const T& c, const Vector& x);
+
+	friend const Vector cross_product <>(const Vector& x, const Vector& y);
+
+	template <typename>	friend class Matrix;
+
+	template <typename U, typename V>
+	friend const Vector<U> operator*(const Matrix<U>& M, const Vector<V>& v);
 
 private:
 
-        T v[3];
+	T v[3];
 };
-
-template <typename T>
-std::ostream& operator<<(std::ostream& os, const Vector<T>& x) {
-
-        return x.print(os);
-}
-
-template <typename T>
-void Vector<T>::copy_to(T array[3]) const {
-
-        for (int i=0; i<3; ++i) {
-                array[i] = v[i];
-        }
-}
-
-template <typename T>
-Vector<T>& Vector<T>::operator+=(const Vector& x) {
-
-        for (int i=0; i<3; ++i) {
-                v[i] += x.v[i];
-        }
-
-        return *this;
-}
-
-template <typename T>
-const Vector<T> operator+(const Vector<T>& x, const Vector<T>& y) {
-
-        Vector<T> z(x);
-
-        return z += y;
-}
-
-template <typename T>
-Vector<T>& Vector<T>::operator-=(const Vector& x) {
-
-        for (int i=0; i<3; ++i) {
-                v[i] -= x.v[i];
-        }
-
-        return *this;
-}
-
-template <typename T>
-const Vector<T> operator-(const Vector<T>& x, const Vector<T>& y) {
-
-        Vector<T> z(x);
-
-        return z -= y;
-}
-
-template <typename T>
-const T operator*(const Vector<T>& x, const Vector<T>& y) {
-
-        return x.v[X]*y.v[X]+x.v[Y]*y.v[Y]+x.v[Z]*y.v[Z];
-}
-
-template <typename T>
-Vector<T>& Vector<T>::operator*=(double x) {
-
-        for (int i=0; i<3; ++i) {
-                v[i] *= x;
-        }
-
-        return *this;
-}
-
-template <typename T>
-const Vector<T> operator*(const Vector<T>& x, double y) {
-
-        Vector<T> z(x);
-
-        return z*=y;
-}
-
-template <typename T>
-const Vector<T> operator*(double x, const Vector<T>& y) {
-
-        return y*x;
-}
-
-template <typename T>
-Vector<T>& Vector<T>::operator/=(double x) {
-
-        for (int i=0; i<3; ++i) {
-                v[i] /= x;
-        }
-
-        return *this;
-}
-
-template <typename T>
-const Vector<T> operator/(const Vector<T>& x, double y) {
-
-        Vector<T> z(x);
-
-        return z/=y;
-}
-
-template <typename T>
-void Vector<T>::enforce_range_minus_pi_plus_pi() {
-
-        const double PI(3.14159265358979323846);
-        const double PI_TIMES_2(6.28318530717958647693);
-
-        for (int i=0; i<3; ++i) {
-
-                while (v[i] < -PI) {
-                        v[i] += PI_TIMES_2;
-                }
-
-                while (v[i] >  PI) {
-                        v[i] -= PI_TIMES_2;
-                }
-        }
-}
 
 template <typename T>
 class Matrix {
 
 public:
 
-        Matrix();
+	Matrix();
 
-        explicit Matrix(const T array[9]);
+	explicit Matrix(const T array[9]);
 
-        void copy_to(T array[9]) const;
+	Matrix(const T& x1, const T& x2, const T& x3,
+		   const T& x4, const T& x5, const T& x6,
+		   const T& x7, const T& x8, const T& x9);
 
-        Matrix& operator+=(const Matrix& M);
+	Matrix(const Vector<T>& row_x, const Vector<T>& row_y, const Vector<T>& row_z);
 
-        const Vector<T> operator*(const Vector<T>& v) const;
+	void copy_to(T array[9]) const;
 
-        const Matrix operator*(const Matrix& M) const;
+	const Matrix operator*(const Matrix& M) const;
 
-        std::ostream& print(std::ostream& os) const;
+	const Vector<T> operator[] (coordinate i) const;
 
-        static const Matrix identity();
+	std::ostream& print(std::ostream& os) const;
+
+	static const Matrix identity();
+
+	Matrix& operator+=(const Matrix& M);
+
+	template <typename U, typename V>
+	friend const Vector<U> operator*(const Matrix<U>& M, const Vector<V>& v);
 
 private:
 
-        T m[3][3];
+	T m[3][3];
 };
-
-template <typename T>
-Matrix<T>::Matrix(const T array[9]) {
-
-        for (int i=0, k=0; i<3; ++i) {
-                for (int j=0; j<3; ++j) {
-                        m[i][j] = array[k++];
-                }
-        }
-}
-
-template <typename T>
-void Matrix<T>::copy_to(T array[9]) const {
-
-        for (int i=0, k=0; i<3; ++i) {
-                for (int j=0; j<3; ++j) {
-                        array[k++] = m[i][j];
-                }
-        }
-}
-
-template <typename T>
-Matrix<T>::Matrix() {
-
-        for (int i=0; i<3; ++i) {
-                for (int j=0; j<3; ++j) {
-                        m[i][j] = T(0.0);
-                }
-        }
-}
-
-template <typename T>
-const Matrix<T> Matrix<T>::identity() {
-
-        Matrix I;
-
-        for (int i=0; i<3; ++i) {
-                I.m[i][i] = T(1.0);
-        }
-
-        return I;
-}
-
-template <typename T>
-std::ostream& Matrix<T>::print(std::ostream& os) const {
-
-        os << '\n';
-
-        for (int i=0; i<3; ++i) {
-                os << m[i][0] << '\t' << m[i][1] << '\t' << m[i][2] << '\n';
-        }
-
-        return os;
-}
-
-template <typename T>
-std::ostream& operator<<(std::ostream& os, const Matrix<T>& x) {
-
-        return x.print(os);
-}
-
-template <typename T>
-const Vector<T> Matrix<T>::operator*(const Vector<T>& x) const {
-
-        Vector<T> z(0.0, 0.0, 0.0);
-
-        for (int i=0; i<3; ++i) {
-                for (int j=0; j<3; ++j) {
-                        z.v[i] += m[i][j]*x.v[j];
-                }
-        }
-
-        return z;
-}
-
-template <typename T>
-const Matrix<T> Matrix<T>::operator*(const Matrix<T>& M) const {
-
-        Matrix<T> z;
-
-        for (int i=0; i<3; ++i) {
-                for (int j=0; j<3; ++j) {
-                        for (int k=0; k<3; ++k) {
-                                z.m[i][j] += m[i][k]*M.m[k][j];
-                        }
-                }
-        }
-
-        return z;
-}
-
-template <typename T>
-Matrix<T>& Matrix<T>::operator+=(const Matrix<T>& M) {
-
-        for (int i=0; i<3; ++i) {
-                for (int j=0; j<3; ++j) {
-                        m[i][j] += M.m[i][j];
-                }
-        }
-
-        return *this;
-}
-
-template <typename T>
-const Matrix<T> operator+(const Matrix<T>& A, const Matrix<T>& B) {
-
-        Matrix<T> C(A);
-
-        return C+=B;
-}
 
 typedef Vector<double> vector3;
 typedef Matrix<double> matrix3;
