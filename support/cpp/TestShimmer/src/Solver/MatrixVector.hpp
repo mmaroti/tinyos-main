@@ -49,6 +49,7 @@ template <typename T> const Vector<T> operator*(const Vector<T>& x, double y);
 template <typename T> const Vector<T> operator/(const Vector<T>& x, double y);
 template <typename T> const Matrix<T> operator+(const Matrix<T>& A, const Matrix<T>& B);
 
+template <typename T> std::ostream& operator<<(std::ostream& os, const Vector<T>& v);
 template <typename T> const T operator*(const Vector<T>& x, const Vector<T>& y);
 template <typename T> const Vector<T> operator*(const T& c, const Vector<T>& x);
 template <typename T> const Vector<T> cross_product(const Vector<T>& x, const Vector<T>& y);

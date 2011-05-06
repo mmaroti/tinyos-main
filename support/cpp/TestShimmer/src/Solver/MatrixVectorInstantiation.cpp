@@ -70,6 +70,7 @@ template const vector3 operator*(const vector3& x, double y);
 template const vector3 operator/(const vector3& x, double y);
 template const matrix3 operator+(const matrix3& A, const matrix3& B);
 
+template std::ostream& operator<<(std::ostream& os, const vector3& x);
 template const double  operator*(const vector3& x, const vector3& y);
 template const vector3 operator*(const double& c, const vector3& x);
 template const vector3 cross_product(const vector3& x, const vector3& y);
