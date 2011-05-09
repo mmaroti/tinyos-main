@@ -22,6 +22,7 @@ implementation{
     enum{
         STREAM_GETMIN=CMD_GETMIN,
         STREAM_ERASE=CMD_ERASE,
+        STREAM_STOPSEND=CMD_STOPSEND,
         STREAM_GETMIN_READ,
         STREAM_EXTERNAL_COMMAND,
         STREAM_READ,
@@ -63,9 +64,13 @@ implementation{
         if(rec->cmd>=0x10){
           streamcommand=STREAM_EXTERNAL_COMMAND;
           signal Command.newCommand(rec->cmd);
-        } else if(rec->cmd==CMD_STOPSEND){
-	  lastaddress==readaddress;
-	}else if(call Resource.request()==SUCCESS){
+        }else if(rec->cmd==CMD_STOPSEND){
+          if(streamcommand!=STREAM_READ)
+            call Command.sendData(((uint32_t)(rec->cmd)<<16)+1);
+          else {
+            streamcommand=STREAM_STOPSEND;
+          }
+        } else if(call Resource.request()==SUCCESS){
           streamcommand=rec->cmd;
         } 
       }
@@ -97,6 +102,10 @@ implementation{
     event void DataSend.sendDone(void *data){
         if(datacached==data){
             datacached=NULL;
+            if(streamcommand==STREAM_STOPSEND){
+                streamcommand=STREAM_NULL;
+                return;
+            }
             if(readaddress<lastaddress){
                 call Resource.request();
             } else{
@@ -107,6 +116,10 @@ implementation{
     }
     
     event void Timer.fired(){
+      if(streamcommand==STREAM_STOPSEND){
+        streamcommand=STREAM_NULL;
+        return;
+      }
       datacached=call DataSend.send(&datasend);
       if(datacached==NULL){
         call Timer.startOneShot(10);
@@ -115,6 +128,10 @@ implementation{
 
     event void StreamStorageRead.readDone(void *buf, uint8_t len, error_t error){
         call Resource.release();
+        if(streamcommand==STREAM_STOPSEND){
+          streamcommand=STREAM_NULL;
+          return;
+        }
         datasend.source=TOS_NODE_ID;
         datasend.address=readaddress;
         datasend.seqnum=seq_num++;
@@ -181,7 +198,12 @@ implementation{
     
 
     event void Resource.granted(){
-        error_t error=SUCCESS;	
+        error_t error=SUCCESS;  
+        if(streamcommand==STREAM_STOPSEND){
+          call Resource.release();
+          streamcommand=STREAM_NULL;
+          return;
+        }
         call Leds.led0Toggle();
         if(streamcommand==STREAM_GETMIN||streamcommand==STREAM_GETMIN_READ){
             error=call StreamStorageRead.getMinAddress();
