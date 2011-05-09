@@ -1,0 +1,14 @@
+#$Id:
+
+PLATFORM = ucdual
+PROGRAMMER ?= avrdude
+
+PROGRAMMER_PART ?= -pm128rfa1
+
+VOLUMEFILE = volumes-stm25p.xml
+VOLUME_ALLOCATOR ?= tos-storage-stm25p
+
+$(call TOSMake_include_platform,avr)
+
+ucdual: $(BUILD_DEPS)
+	@:
