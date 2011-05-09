@@ -31,90 +31,80 @@
 * Author: Ali Baharev
 */
 
-#ifndef ARMWIDGET_HPP
-#define ARMWIDGET_HPP
+#ifndef RECWINDOW_HPP
+#define RECWINDOW_HPP
 
-#include <QGLWidget>
-#include "AnimationElbowFlexSign.hpp"
+#include <map>
+#include <vector>
+#include <QWidget>
 #include "MatrixVector.hpp"
 
-class ArmWidget : public QGLWidget
+class QPushButton;
+class ArmWidget;
+
+class RecWindow : public QWidget
 {
     Q_OBJECT
 
 public:
 
-    static ArmWidget* right();
+    static RecWindow* right();
 
-    static ArmWidget* left();
+    static RecWindow* left();
 
-    void setReference(int mote, const gyro::matrix3& rotationMatrix);
+    // TODO Display Rec ID, if any, on the title bar
+    // TODO Should reference, matrices be cleared on show/close?
+    // TODO Enable/disable buttons on close?
 
-    void setFrame(int mote, const gyro::matrix3& rotationMatrix);
+public slots:
 
-    ~ArmWidget();
-
-    QSize minimumSizeHint() const;
-    QSize sizeHint() const;
-
-signals:
-
-    void clicked();
+    void updateMatrix(int mote, const gyro::matrix3 rotMat);
 
 protected:
 
-    void initializeGL();
-    void paintGL();
-    void resizeGL(int width, int height);
+    void keyPressEvent(QKeyEvent * event);
 
-    void mousePressEvent(QMouseEvent* event);
+private slots:
+
+    void setReferenceClicked();
+    void captureClicked();
+    void finishedClicked();
+    void nextFrameClicked();
+    void dropFrameClicked();
+    void saveClicked();
+    void clearClicked();
 
 private:
 
-    ArmWidget(AnimationElbowFlexType sign);
+    Q_DISABLE_COPY(RecWindow)
 
-    void reset();
+    RecWindow(ArmWidget* w);
 
-    void setCameraPosition();
-    void setState();
-    void rotateToReferenceHeading();
+    void init();
+    void createButtons();
+    void setupLayout();
+    void setupConnections();
 
-    void sideView();
-    void planView();
-    void frontView();
+    void setCapturingState();
+    void setEditingState();
 
-    void headSilhouette(GLUquadricObj* qobj);
-    void headSolid(GLUquadricObj* qobj);
+    void displayCurrentFrame();
 
-    void sideHead();
-    void planHead();
-    void frontHead();
+    QPushButton* setReferenceButton;
+    QPushButton* captureButton;
+    QPushButton* finishedButton;
 
-    void writeData();
+    QPushButton* nextFrameButton;
+    QPushButton* dropFrameButton;
+    QPushButton* saveButton;
+    QPushButton* clearButton;
 
-    void drawLinearParts();
+    ArmWidget* widget;
 
-    void drawIrrelevantParts();
-    void shoulder();
-    void neck();
-    void stillUpperArm();
-
-    void body();
-
-    void drawMovingArm();
-    void upperArm();
-    void elbow();
-    void rotateForeArm();
-    void foreArm();
-    void hand();
-
-    const AnimationElbowFlexType type;
-
-    GLfloat rotmat[16];
-
-    GLuint list;
-
-    double referenceHeading;
+    typedef std::map<int,gyro::matrix3> Map;
+    Map matrices;
+    std::vector<Map> frames;
+    size_t frameIndex;
 };
 
-#endif // ARMWIDGET_HPP
+#endif // RECWINDOW_HPP

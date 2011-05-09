@@ -37,7 +37,7 @@
 #include <QMessageBox>
 #include <QTextStream>
 #include "EllipsoidCalibration.hpp"
-#include "ArmWidget.hpp"
+#include "RecWindow.hpp"
 
 using namespace std;
 
@@ -56,9 +56,9 @@ EllipsoidCalibration::EllipsoidCalibration(QWidget* parent) : QWidget(parent) {
 
     tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 
-    armWidget = ArmWidget::right();
+    recWindow = RecWindow::right();
 
-    armWidget->showMaximized();
+    recWindow->showMaximized();
 }
 
 void EllipsoidCalibration::onNewSampleReceived(const AccelMagSample sample) {
@@ -92,27 +92,7 @@ void EllipsoidCalibration::onNewSampleReceived(const AccelMagSample sample) {
 
     z /= z.length();
 
-    static int counter = 0;
-
-    ++counter;
-
-    if (counter==3) {
-
-        cout << "x: " << x << endl;
-        cout << "y: " << y << endl;
-        cout << "z: " << z << endl;
-
-        double heading = atan2(y[Y], y[X])*180.0/M_PI;
-
-        cout << heading << endl << endl;
-
-        armWidget->setReference(heading);
-    }
-    else if (counter > 3) {
-
-        armWidget->setFrame(matrix3(x, y, z));
-    }
-
+    recWindow->updateMatrix(sample.moteID(), matrix3(x,y,z));
 }
 
 void EllipsoidCalibration::addItem(Column col, const QString& str) {

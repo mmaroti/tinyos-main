@@ -39,7 +39,7 @@
 
 class QTextStream;
 
-class ArmWidget;
+class RecWindow;
 
 class EllipsoidCalibration : public QWidget, private Ui::EllipsoidCalibration
 {
@@ -77,7 +77,7 @@ private:
     AccelMagSample previous;
     AccelMagSample current;
 
-    ArmWidget* armWidget;
+    RecWindow* recWindow;
 };
 
 #endif // ELLIPSOIDCALIBRATION_HPP

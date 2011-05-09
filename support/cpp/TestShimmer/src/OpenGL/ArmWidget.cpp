@@ -31,10 +31,10 @@
 * Author: Ali Baharev
 */
 
+#include <iostream>
 #include <stdexcept>
 #include <QtGui>
 #include <QtOpenGL>
-#include <QDebug>
 #include "ArmWidget.hpp"
 
 namespace {
@@ -473,9 +473,20 @@ void ArmWidget::mousePressEvent(QMouseEvent * /* event */)
     emit clicked();
 }
 
-void ArmWidget::setReference(double magneticHeadingDegrees) {
+void ArmWidget::setReference(int mote, const gyro::matrix3& rotMat) {
 
-    referenceHeading = magneticHeadingDegrees;
+    using namespace std;
+    using namespace gyro;
+
+    cout << "x: " << rotMat[X] << endl;
+    cout << "y: " << rotMat[Y] << endl;
+    cout << "z: " << rotMat[Z] << endl;
+
+    double heading = atan2(rotMat[Y][Y], rotMat[Y][X])*180.0/M_PI;
+
+    cout << heading << endl << endl;
+
+    referenceHeading = heading;
 }
 
 void ArmWidget::rotateToReferenceHeading() {
@@ -483,7 +494,7 @@ void ArmWidget::rotateToReferenceHeading() {
     glRotated(referenceHeading, 0.0, 1.0, 0.0);
 }
 
-void ArmWidget::setFrame(const gyro::matrix3& rotationMatrix) {
+void ArmWidget::setFrame(int mote, const gyro::matrix3& rotationMatrix) {
 
     double mat[9];
 
