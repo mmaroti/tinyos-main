@@ -59,7 +59,7 @@ implementation {
   Core.Ack -> ActiveMessageC;
 
 #ifdef LOW_POWER_LISTENING
-  #if defined(RADIO_RF230) || defined(RADIO_CC1000) || defined(RADIO_CC2420) || defined(RADIO_CC2520) || defined(RADIO_CC2420X)
+  #if defined(RADIO_RF230) || defined(RADIO_CC1000) || defined(RADIO_CC2420) || defined(RADIO_CC2520) || defined(RADIO_CC2420X) || defined(RADIO_RFA1)
     Core.LowPowerListening -> ActiveMessageC;
   #else
     #error " * NO PLATFORM SUPPORT FOR LOW POWER LISTENING LAYER *"
