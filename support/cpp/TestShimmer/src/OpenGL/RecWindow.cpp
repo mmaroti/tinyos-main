@@ -99,9 +99,10 @@ void RecWindow::setCapturingState() {
     dropFrameButton->setDisabled(true);
     saveButton->setDisabled(true);
     clearButton->setDisabled(true);
+
+    captureButton->setFocus();
 }
 
-// TODO Disables finished when frames is empty
 void RecWindow::setEditingState() {
 
     globals::disconnect_Ellipsoid_AccelMagMsgReceiver();
@@ -117,6 +118,8 @@ void RecWindow::setEditingState() {
 
     frameIndex = 0;
     displayCurrentFrame();
+
+    nextFrameButton->setFocus();
 }
 
 void RecWindow::setupLayout() {
@@ -185,6 +188,7 @@ void RecWindow::setReferenceClicked() {
 
 void RecWindow::captureClicked() {
 
+    // Check matrices.size()
     frames.push_back(matrices);
 }
 
@@ -221,6 +225,8 @@ void RecWindow::dropFrameClicked() {
     if (!frames.empty()) {
 
         displayCurrentFrame();
+
+        nextFrameButton->setFocus();
     }
     else {
 

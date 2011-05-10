@@ -186,6 +186,8 @@ void EllipsoidCalibration::on_clearButton_clicked() {
     if (ret==QMessageBox::Yes) {
 
         clearAll();
+
+        recWindow->showMaximized();
     }
 }
 
