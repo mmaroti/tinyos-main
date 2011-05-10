@@ -45,6 +45,7 @@ configuration PlatformC
 	uses
 	{
 		interface Init as LedsInit;
+        interface Init as SubInit;
 	}
 
 }
@@ -57,6 +58,7 @@ implementation
 	Atm128Calibrate = MeasureClockC;
 
 	LedsInit = PlatformP.LedsInit;
+    SubInit = PlatformP.SubInit;
 	PlatformP.McuInit -> McuInitC;
 
   PlatformP.RadioInit -> RFA1RadioOffP.RFA1RadioOff;
