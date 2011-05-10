@@ -55,15 +55,17 @@ configuration MicaBusC {
 implementation {
   components HplAtm128GeneralIOC as Pins, MicaBusP;
   components HplAtm128InterruptC;
+  components new NoPinC() as NoPW1, new NoPinC() as NoPW7;
   
   PW0 = Pins.PortB6;
-
+  PW1 = NoPW1;
   PW2 = Pins.PortB7;
   PW3 = Pins.PortG0;
   PW4 = Pins.PortG1;
   PW5 = Pins.PortG2;
   PW6 = Pins.PortG5;
-
+  PW7 = NoPW7;
+  
   Int0 = Pins.PortE4;
   Int1 = Pins.PortE5;
   Int2 = Pins.PortE6;
