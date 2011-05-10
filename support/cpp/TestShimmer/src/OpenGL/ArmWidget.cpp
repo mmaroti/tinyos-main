@@ -219,8 +219,9 @@ void ArmWidget::upperArm() {
         glVertex3d(0.0,-2.0, 0.0);
     glEnd();
 
-
     glPopMatrix();
+
+    glTranslated(-2*upperArmMat[M12], -2*upperArmMat[M22]+2, -2*upperArmMat[M32]);
 
 }
 
