@@ -56,7 +56,4 @@ enum {
 #define PLATFORM_BAUDRATE 115200L
 #endif
 
-// we have no external pullups
-#define ATM128_I2C_EXTERNAL_PULLDOWN TRUE
-
 #endif //HARDWARE_H
