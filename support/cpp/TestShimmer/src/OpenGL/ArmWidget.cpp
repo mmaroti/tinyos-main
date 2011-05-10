@@ -210,19 +210,27 @@ void ArmWidget::upperArm() {
 
     glPushMatrix();
 
-    glTranslated(0.0, 2.0, 0.0);
+        glTranslated(0.0, 2.0, 0.0);
 
-    glMultMatrixf(upperArmMat);
+        glMultMatrixf(upperArmMat);
 
-    glBegin(GL_LINES);
-        glVertex3d(0.0, 0.0, 0.0);
-        glVertex3d(0.0,-2.0, 0.0);
-    glEnd();
+        glBegin(GL_LINES);
+            glVertex3d(0.0, 0.0, 0.0);
+            glVertex3d(0.0,-2.0, 0.0);
+        glEnd();
 
     glPopMatrix();
+}
 
-    glTranslated(-2*upperArmMat[M12], -2*upperArmMat[M22]+2, -2*upperArmMat[M32]);
+void ArmWidget::moveToElbow() {
 
+    const double LENGTH = -2;
+
+    const double x = upperArmMat[M12]*LENGTH;
+    const double y = upperArmMat[M22]*LENGTH - LENGTH;
+    const double z = upperArmMat[M32]*LENGTH;
+
+    glTranslated(x, y, z);
 }
 
 void ArmWidget::elbow() {
@@ -285,7 +293,11 @@ void ArmWidget::drawMovingArm() {
 
     upperArm();
 
+    moveToElbow();
+
     elbow();
+
+    rotateToReferenceHeading();
 
     rotateForeArm();
 
@@ -297,8 +309,6 @@ void ArmWidget::drawMovingArm() {
 void ArmWidget::drawLinearParts() {
 
     drawIrrelevantParts();
-
-    rotateToReferenceHeading();
 
     drawMovingArm();
 }

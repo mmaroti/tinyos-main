@@ -108,6 +108,7 @@ private:
 
     void drawMovingArm();
     void upperArm();
+    void moveToElbow();
     void elbow();
     void rotateForeArm();
     void foreArm();
