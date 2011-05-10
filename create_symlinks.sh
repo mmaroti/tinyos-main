@@ -3,6 +3,7 @@ SOURCE=$SZTETOSROOT
 DEST=$TOSROOT
 DIRS="/tos/chips/
 /tos/platforms/
+/tos/sensorboards/
 /support/make/
 /support/make/avr/
 "
