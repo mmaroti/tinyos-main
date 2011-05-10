@@ -12,6 +12,8 @@
   <property name="build" location="${basedir}/build"/>
   <property name="dist"  location="${basedir}/../javabin"/>
   <property name="lib" location="${dist}/lib"/>
+  
+  <property name="java-package" value="benchmark.common"/>
 
   <property environment="env"/>
   <property name="jar-tinyos" location="${env.TOSROOT}/support/sdk/java/tinyos.jar"/>
@@ -46,12 +48,92 @@
       <fileset dir="${dist-addon}" />
     </copy>
   </target>
+  
+  <target name="-init-mig">
+		<echo message="Generating TinyOS message classes (Mig)" />
+		
+		<exec executable="mig" failonerror="true">
+			<arg value="-o" />
+			<arg path="${src-common}/StatT.java" />
+			<arg value="-java-classname=${java-package}.StatT" />
+			<arg value="java" />
+			<arg path="${basedir}/../BenchmarkCore.h" />
+			<arg value="stat_t" />
+		</exec>
+		
+		<exec executable="mig" failonerror="true">
+			<arg value="-o" />
+			<arg path="${src-common}/ProfileT.java" />
+			<arg value="-java-classname=${java-package}.ProfileT" />
+			<arg value="java" />
+			<arg path="${basedir}/../BenchmarkCore.h" />
+			<arg value="profile_t" />
+		</exec>
+		
+		<exec executable="mig" failonerror="true">
+			<arg value="-o" />
+			<arg path="${src-common}/SetupT.java" />
+			<arg value="-java-classname=${java-package}.SetupT" />
+			<arg value="java" />
+			<arg path="${basedir}/../BenchmarkCore.h" />
+			<arg value="setup_t" />
+		</exec>
+		
+		<exec executable="mig" failonerror="true">
+			<arg value="-o" />
+			<arg path="${src-common}/CtrlMsgT.java" />
+			<arg value="-java-classname=${java-package}.CtrlMsgT" />
+			<arg value="java" />
+			<arg path="${basedir}/../Messages.h" />
+			<arg value="ctrlmsg_t" />
+		</exec>
+		
+		<exec executable="mig" failonerror="true">
+			<arg value="-o" />
+			<arg path="${src-common}/SyncMsgT.java" />
+			<arg value="-java-classname=${java-package}.SyncMsgT" />
+			<arg value="java" />
+			<arg path="${basedir}/../Messages.h" />
+			<arg value="syncmsg_t" />
+		</exec>
+		
+		<exec executable="mig" failonerror="true">
+			<arg value="-o" />
+			<arg path="${src-common}/SetupMsgT.java" />
+			<arg value="-java-classname=${java-package}.SetupMsgT" />
+			<arg value="java" />
+			<arg path="${basedir}/../Messages.h" />
+			<arg value="setupmsg_t" />
+		</exec>
+		
+		<exec executable="mig" failonerror="true">
+			<arg value="-o" />
+			<arg path="${src-common}/DataMsgT.java" />
+			<arg value="-java-classname=${java-package}.DataMsgT" />
+			<arg value="java" />
+			<arg path="${basedir}/../Messages.h" />
+			<arg value="datamsg_t" />
+		</exec>
 
-  <target name="init" depends="-init-build,-init-dist" />
+		<exec executable="ncg" failonerror="true">
+			<arg line="-o ${src-common}/BenchmarkStatic.java -java-classname=${java-package}.BenchmarkStatic java ${basedir}/../Messages.h MAX_TIMER_COUNT SETUP_BASE CTRL_SETUP_SYN SYNC_SETUP_ACK CTRL_START CTRL_RESET CTRL_STAT_REQ DATA_STAT_OK CTRL_PROFILE_REQ DATA_PROFILE_OK GLOBAL_USE_ACK GLOBAL_USE_BCAST GLOBAL_USE_MAC_LPL GLOBAL_USE_MAC_PLINK LPL_WAKEUP_OFFSET PLINK_RETRIES_OFFSET PLINK_DELAY_OFFSET MAC_SETUP_LENGTH" />
+		</exec>
+		
+	</target>
+
+  <target name="init" depends="-init-build,-init-dist,-init-mig" />
 
   <target name="-clean-build">
     <delete dir="${build}"/>
   </target>
+  
+  <target name="-clean-mig">
+  	<delete>
+    	<fileset dir="${src-common}" includes="**/*T.java"/>
+  	</delete>
+    <delete file="${src-common}/BenchmarkStatic.java"/>
+  </target>
+  
   <target name="-clean-dist">
     <input
       message="All data is going to be deleted from ${dist}. It is possible that results live there. Continue (y/n)?"
@@ -65,7 +147,7 @@
     <delete dir="${dist}"/>
   </target>
 
-  <target name="clean" depends="-clean-build,-clean-dist" description="clean up" />
+  <target name="clean" depends="-clean-build,-clean-dist,-clean-mig" description="clean up" />
     
 
   <target name="compile-common" depends="-check-compile-common,init" unless="compile.common" description="compile the Common library code">

@@ -20,10 +20,6 @@ CFLAGS += -DEXCLUDE_STANDARD
 # exclude the user defined benchmarks from the problemset
 #CFLAGS += -DEXCLUDE_USERDEFINED
 
-
-
-
-
 # codeprofile, tossim support
 CFLAGS += -Icodeprofile
 CFLAGS += -Itossim
@@ -31,8 +27,10 @@ CFLAGS += -DTRAFFIC_MONITOR
 CFLAGS += -I$(SZTETOSDIR)/lib/cc2420traffic
 
 # channel settings
-CFLAGS += -DCC2420_DEF_CHANNEL=$(DEF_CHANNEL)
-CFLAGS += -DRF230_DEF_CHANNEL=$(DEF_CHANNEL)
+ifneq (,$(DEF_CHANNEL))
+	CFLAGS += -DCC2420_DEF_CHANNEL=$(DEF_CHANNEL)
+	CFLAGS += -DRF230_DEF_CHANNEL=$(DEF_CHANNEL)
+endif
 
 ifneq (,$(findstring USE_32_BITS,$(CFLAGS)))
   CFLAGS += -DTOSH_DATA_LENGTH=97
@@ -40,6 +38,7 @@ else
   CFLAGS += -DTOSH_DATA_LENGTH=90
 endif
 
+TOSMAKE_PATH += $(SZTETOSROOT)/support/make/
 include Makefile.Mig
 include $(MAKERULES)
 include Makefile.Pdetect
