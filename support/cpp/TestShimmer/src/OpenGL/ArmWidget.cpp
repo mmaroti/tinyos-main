@@ -244,7 +244,7 @@ void ArmWidget::elbow() {
     glPointSize(1.0);
 }
 
-void ArmWidget::rotateForeArm() {
+void ArmWidget::applyForeArmRotation() {
 
     glMultMatrixf(foreArmMat);
 }
@@ -291,15 +291,17 @@ void ArmWidget::drawIrrelevantParts() {
 
 void ArmWidget::drawMovingArm() {
 
+    rotateToUpperArmRef();
+
     upperArm();
 
     moveToElbow();
 
     elbow();
 
-    rotateToReferenceHeading();
+    rotateToForeArmRef();
 
-    rotateForeArm();
+    applyForeArmRotation();
 
     foreArm();
 
@@ -524,10 +526,18 @@ void ArmWidget::setReference(const std::map<int,gyro::matrix3>& matrices) {
         return;
     }
 
-    setReference(matrices.begin()->first, matrices.begin()->second);
+    typedef std::map<int,gyro::matrix3>::const_iterator itr;
+
+    itr i = matrices.begin();
+
+    foreArmRefHeading = magneticHeading(i->second) + 90.0;
+
+    ++i;
+
+    upperArmRefHeading = magneticHeading(i->second) + 90.0;
 }
 
-void ArmWidget::setReference(int mote, const gyro::matrix3& rotMat) {
+double ArmWidget::magneticHeading(const gyro::matrix3& rotMat) const {
 
     using namespace std;
     using namespace gyro;
@@ -540,12 +550,17 @@ void ArmWidget::setReference(int mote, const gyro::matrix3& rotMat) {
 
     cout << heading << endl << endl;
 
-    foreArmRefHeading = heading;
+    return heading;
 }
 
-void ArmWidget::rotateToReferenceHeading() {
+void ArmWidget::rotateToUpperArmRef() {
 
-    glRotated(foreArmRefHeading, 0.0, 1.0, 0.0);
+    glRotated(upperArmRefHeading, 0.0, 1.0, 0.0);
+}
+
+void ArmWidget::rotateToForeArmRef() {
+
+    glRotated(foreArmRefHeading-upperArmRefHeading, 0.0, 1.0, 0.0);
 }
 
 void ArmWidget::updateMatrix(GLfloat rotMat[16], const gyro::matrix3& rotationMatrix) {

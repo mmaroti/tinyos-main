@@ -74,15 +74,10 @@ private:
 
     ArmWidget(AnimationElbowFlexType sign);
 
-    void setReference(int mote, const gyro::matrix3& rotationMatrix);
-
-    void updateMatrix(GLfloat mat[16], const gyro::matrix3& rotationMatrix);
-
     void reset();
 
     void setCameraPosition();
     void setState();
-    void rotateToReferenceHeading();
 
     void sideView();
     void planView();
@@ -107,12 +102,17 @@ private:
     void body();
 
     void drawMovingArm();
+    void rotateToUpperArmRef();
     void upperArm();
     void moveToElbow();
     void elbow();
-    void rotateForeArm();
+    void rotateToForeArmRef();
+    void applyForeArmRotation();
     void foreArm();
     void hand();
+
+    void updateMatrix(GLfloat mat[16], const gyro::matrix3& rotationMatrix);
+    double magneticHeading(const gyro::matrix3& rotationMatrix) const;
 
     const AnimationElbowFlexType type;
 
