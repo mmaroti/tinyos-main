@@ -48,8 +48,8 @@ implementation
 
 	Counter = HplAtmRfa1Timer1P;
 	Compare[0] = HplAtmRfa1Timer1P.CompareA;
-//	Compare[1] = HplAtmRfa1Timer1P.CompareB;
-//	Compare[2] = HplAtmRfa1Timer1P.CompareC;
+	Compare[1] = HplAtmRfa1Timer1P.CompareB;
+	Compare[2] = HplAtmRfa1Timer1P.CompareC;
 	Capture = HplAtmRfa1Timer1P;
 
 	components McuSleepC;
