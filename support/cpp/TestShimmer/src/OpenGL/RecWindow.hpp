@@ -53,7 +53,7 @@ public:
     static RecWindow* left();
 
     // TODO Display Rec ID, if any, on the title bar
-    // TODO Should reference, matrices be cleared on show/close?
+    // TODO Should reference heading and matrices be cleared on show/close?
     // TODO Enable/disable buttons on close?
 
 public slots:
@@ -89,6 +89,8 @@ private:
     void setEditingState();
 
     void displayCurrentFrame();
+
+    bool areYouSure(const char* text);
 
     QPushButton* setReferenceButton;
     QPushButton* captureButton;

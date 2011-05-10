@@ -34,6 +34,7 @@
 #ifndef ARMWIDGET_HPP
 #define ARMWIDGET_HPP
 
+#include <map>
 #include <QGLWidget>
 #include "AnimationElbowFlexSign.hpp"
 #include "MatrixVector.hpp"
@@ -48,9 +49,9 @@ public:
 
     static ArmWidget* left();
 
-    void setReference(int mote, const gyro::matrix3& rotationMatrix);
+    void display(const std::map<int,gyro::matrix3>& matrices);
 
-    void setFrame(int mote, const gyro::matrix3& rotationMatrix);
+    void setReference(const std::map<int,gyro::matrix3>& matrices);
 
     ~ArmWidget();
 
@@ -72,6 +73,10 @@ protected:
 private:
 
     ArmWidget(AnimationElbowFlexType sign);
+
+    void setReference(int mote, const gyro::matrix3& rotationMatrix);
+
+    void setFrame(int mote, const gyro::matrix3& rotationMatrix);
 
     void reset();
 

@@ -35,9 +35,11 @@
 #include <QHBoxLayout>
 #include <QGridLayout>
 #include <QKeyEvent>
+#include <QMessageBox>
 #include <QPushButton>
 #include "RecWindow.hpp"
 #include "ArmWidget.hpp"
+#include "Globals.hpp"
 
 RecWindow* RecWindow::right() {
 
@@ -57,7 +59,7 @@ RecWindow::RecWindow(ArmWidget* w) : widget(w) {
 
     init();
 
-    setWindowModality(Qt::ApplicationModal);
+    //setWindowModality(Qt::ApplicationModal);
 
     setCapturingState();
 }
@@ -84,7 +86,8 @@ void RecWindow::createButtons() {
 
 void RecWindow::setCapturingState() {
 
-    // TODO Connect updateMatrix
+    globals::connect_Ellipsoid_AccelMagMsgReceiver();
+
     frames.clear();
     frames.reserve(10);
 
@@ -98,10 +101,10 @@ void RecWindow::setCapturingState() {
     clearButton->setDisabled(true);
 }
 
+// TODO Disables finished when frames is empty
 void RecWindow::setEditingState() {
 
-    // TODO Disconnect updateMatrix
-    frameIndex = 0;
+    globals::disconnect_Ellipsoid_AccelMagMsgReceiver();
 
     setReferenceButton->setDisabled(true);
     captureButton->setDisabled(true);
@@ -112,7 +115,8 @@ void RecWindow::setEditingState() {
     saveButton->setEnabled(true);
     clearButton->setEnabled(true);
 
-    // TODO Set frames.at(0) to widget here!
+    frameIndex = 0;
+    displayCurrentFrame();
 }
 
 void RecWindow::setupLayout() {
@@ -140,6 +144,8 @@ void RecWindow::setupConnections() {
     connect(setReferenceButton, SIGNAL(clicked()), SLOT(setReferenceClicked()));
     connect(captureButton,      SIGNAL(clicked()), SLOT(captureClicked()));
     connect(finishedButton,     SIGNAL(clicked()), SLOT(finishedClicked()));
+    connect(nextFrameButton,    SIGNAL(clicked()), SLOT(nextFrameClicked()));
+    connect(dropFrameButton,    SIGNAL(clicked()), SLOT(dropFrameClicked()));
     connect(clearButton,        SIGNAL(clicked()), SLOT(clearClicked()));
 }
 
@@ -155,27 +161,26 @@ void RecWindow::updateMatrix(int mote, const gyro::matrix3 rotMat) {
     // TODO Move all calibration-related stuff here and save raw samples as well
     matrices[mote] = rotMat;
 
-    // TODO Perhaps the map should be passed?
-    widget->setFrame(mote, rotMat);
+    widget->display(matrices);
 }
 
 void RecWindow::displayCurrentFrame() {
+
+    if (frames.empty()) {
+
+        return;
+    }
 
     frameIndex %= frames.size();
 
     matrices = frames.at(frameIndex);
 
-    // TODO widget->display(matrices);
+    widget->display(matrices);
 }
 
 void RecWindow::setReferenceClicked() {
 
-    typedef std::map<int,gyro::matrix3>::const_iterator itr;
-
-    for (itr i=matrices.begin(); i!=matrices.end(); ++i) {
-
-        widget->setReference(i->first, i->second);
-    }
+    widget->setReference(matrices);
 }
 
 void RecWindow::captureClicked() {
@@ -196,13 +201,11 @@ void RecWindow::nextFrameClicked() {
 
         displayCurrentFrame();
     }
-
-
 }
 
 void RecWindow::dropFrameClicked() {
 
-    if (frames.empty()) {
+    if (frames.empty() || !areYouSure("Dropping frame.")) {
 
         return;
     }
@@ -215,7 +218,14 @@ void RecWindow::dropFrameClicked() {
 
     frames.erase(pos);
 
-    displayCurrentFrame();
+    if (!frames.empty()) {
+
+        displayCurrentFrame();
+    }
+    else {
+
+        setCapturingState();
+    }
 }
 
 void RecWindow::saveClicked() {
@@ -224,6 +234,16 @@ void RecWindow::saveClicked() {
 
 void RecWindow::clearClicked() {
 
-    // TODO Clear all other state here or in setCapturingState()
-    setCapturingState();
+    if (frames.empty() || areYouSure("Dropping all frames.")) {
+
+        setCapturingState();
+    }
+}
+
+bool RecWindow::areYouSure(const char* text) {
+
+    const int ret = QMessageBox::warning(this, "Warning", text+QString("\nAre you sure?"),
+                                         QMessageBox::Yes, QMessageBox::Cancel);
+
+    return ret==QMessageBox::Yes;
 }

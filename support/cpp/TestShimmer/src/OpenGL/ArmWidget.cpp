@@ -473,6 +473,26 @@ void ArmWidget::mousePressEvent(QMouseEvent * /* event */)
     emit clicked();
 }
 
+void ArmWidget::display(const std::map<int,gyro::matrix3>& matrices) {
+
+    if (matrices.empty()) { // size == 1, later size should be checked
+
+        return;
+    }
+
+    setFrame(matrices.begin()->first, matrices.begin()->second);
+}
+
+void ArmWidget::setReference(const std::map<int,gyro::matrix3>& matrices) {
+
+    if (matrices.empty()) { // size == 1, later size should be checked
+
+        return;
+    }
+
+    setReference(matrices.begin()->first, matrices.begin()->second);
+}
+
 void ArmWidget::setReference(int mote, const gyro::matrix3& rotMat) {
 
     using namespace std;
