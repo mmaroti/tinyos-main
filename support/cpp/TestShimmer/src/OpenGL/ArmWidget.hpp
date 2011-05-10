@@ -76,7 +76,7 @@ private:
 
     void setReference(int mote, const gyro::matrix3& rotationMatrix);
 
-    void setFrame(int mote, const gyro::matrix3& rotationMatrix);
+    void updateMatrix(GLfloat mat[16], const gyro::matrix3& rotationMatrix);
 
     void reset();
 
@@ -115,11 +115,13 @@ private:
 
     const AnimationElbowFlexType type;
 
-    GLfloat rotmat[16];
+    GLfloat foreArmMat[16];
+    GLfloat upperArmMat[16];
 
     GLuint list;
 
-    double referenceHeading;
+    double foreArmRefHeading;
+    double upperArmRefHeading;
 };
 
 #endif // ARMWIDGET_HPP

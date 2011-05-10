@@ -73,12 +73,15 @@ ArmWidget* ArmWidget::left() {
 
 ArmWidget::ArmWidget(AnimationElbowFlexType sign) : type(sign)
 {
-    for (int i=0;i<16; ++i)
-        rotmat[i] = (GLfloat) 0.0;
+    for (int i=0;i<16; ++i) {
 
-    rotmat[M11] = rotmat[M22] = rotmat[M33] = rotmat[M44] = (GLfloat) 1.0;
+        foreArmMat[i] = upperArmMat[i] = (GLfloat) 0.0;
+    }
 
-    referenceHeading = 0.0;
+     foreArmMat[M11] =  foreArmMat[M22] =  foreArmMat[M33] =  foreArmMat[M44] = (GLfloat) 1.0;
+    upperArmMat[M11] = upperArmMat[M22] = upperArmMat[M33] = upperArmMat[M44] = (GLfloat) 1.0;
+
+    foreArmRefHeading = 0.0;
 }
 
 ArmWidget::~ArmWidget() {
@@ -205,10 +208,20 @@ void ArmWidget::body() {
 
 void ArmWidget::upperArm() {
 
+    glPushMatrix();
+
+    glTranslated(0.0, 2.0, 0.0);
+
+    glMultMatrixf(upperArmMat);
+
     glBegin(GL_LINES);
         glVertex3d(0.0, 0.0, 0.0);
-        glVertex3d(0.0, 2.0, 0.0);
+        glVertex3d(0.0,-2.0, 0.0);
     glEnd();
+
+
+    glPopMatrix();
+
 }
 
 void ArmWidget::elbow() {
@@ -224,7 +237,7 @@ void ArmWidget::elbow() {
 
 void ArmWidget::rotateForeArm() {
 
-    glMultMatrixf(rotmat);
+    glMultMatrixf(foreArmMat);
 }
 
 void ArmWidget::foreArm() {
@@ -475,17 +488,27 @@ void ArmWidget::mousePressEvent(QMouseEvent * /* event */)
 
 void ArmWidget::display(const std::map<int,gyro::matrix3>& matrices) {
 
-    if (matrices.empty()) { // size == 1, later size should be checked
+    if (matrices.size()!=2) {
 
         return;
     }
 
-    setFrame(matrices.begin()->first, matrices.begin()->second);
+    typedef std::map<int,gyro::matrix3>::const_iterator itr;
+
+    itr i = matrices.begin();
+
+    updateMatrix(foreArmMat, i->second);
+
+    ++i;
+
+    updateMatrix(upperArmMat, i->second);
+
+    updateGL();
 }
 
 void ArmWidget::setReference(const std::map<int,gyro::matrix3>& matrices) {
 
-    if (matrices.empty()) { // size == 1, later size should be checked
+    if (matrices.size()!=2) {
 
         return;
     }
@@ -506,31 +529,29 @@ void ArmWidget::setReference(int mote, const gyro::matrix3& rotMat) {
 
     cout << heading << endl << endl;
 
-    referenceHeading = heading;
+    foreArmRefHeading = heading;
 }
 
 void ArmWidget::rotateToReferenceHeading() {
 
-    glRotated(referenceHeading, 0.0, 1.0, 0.0);
+    glRotated(foreArmRefHeading, 0.0, 1.0, 0.0);
 }
 
-void ArmWidget::setFrame(int mote, const gyro::matrix3& rotationMatrix) {
+void ArmWidget::updateMatrix(GLfloat rotMat[16], const gyro::matrix3& rotationMatrix) {
 
     double mat[9];
 
     rotationMatrix.copy_to(mat);
 
-    rotmat[M21] = (GLfloat)-mat[R11];
-    rotmat[M22] = (GLfloat)-mat[R12];
-    rotmat[M23] = (GLfloat)-mat[R13];
+    rotMat[M21] = (GLfloat)-mat[R11];
+    rotMat[M22] = (GLfloat)-mat[R12];
+    rotMat[M23] = (GLfloat)-mat[R13];
 
-    rotmat[M11] = (GLfloat) mat[R21];
-    rotmat[M12] = (GLfloat) mat[R22];
-    rotmat[M13] = (GLfloat) mat[R23];
+    rotMat[M11] = (GLfloat) mat[R21];
+    rotMat[M12] = (GLfloat) mat[R22];
+    rotMat[M13] = (GLfloat) mat[R23];
 
-    rotmat[M31] = (GLfloat)-mat[R31];
-    rotmat[M32] = (GLfloat)-mat[R32];
-    rotmat[M33] = (GLfloat)-mat[R33];
-
-    updateGL();
+    rotMat[M31] = (GLfloat)-mat[R31];
+    rotMat[M32] = (GLfloat)-mat[R32];
+    rotMat[M33] = (GLfloat)-mat[R33];
 }

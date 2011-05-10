@@ -91,6 +91,8 @@ void RecWindow::setCapturingState() {
     frames.clear();
     frames.reserve(10);
 
+    matrices.clear();
+
     setReferenceButton->setEnabled(true);
     captureButton->setEnabled(true);
     finishedButton->setEnabled(true);
