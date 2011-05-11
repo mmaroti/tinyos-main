@@ -114,7 +114,8 @@ SOURCES += src/DataRecorder.cpp \
     src/Solver/MatrixVector.cpp \
     src/Solver/MatrixVectorInstantiation.cpp \
     src/OpenGL/RecWindow.cpp \
-    src/Ellipsoid/Globals.cpp
+    src/Ellipsoid/Globals.cpp \
+    src/OpenGL/ArmAngles.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -208,7 +209,8 @@ HEADERS += src/DataRecorder.h \
     src/Ellipsoid/AccelMagSample.hpp \
     src/OpenGL/ArmWidget.hpp \
     src/OpenGL/RecWindow.hpp \
-    src/Ellipsoid/Globals.hpp
+    src/Ellipsoid/Globals.hpp \
+    src/OpenGL/ArmAngles.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \

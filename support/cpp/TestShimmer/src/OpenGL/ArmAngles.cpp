@@ -31,84 +31,83 @@
 * Author: Ali Baharev
 */
 
-#ifndef RECWINDOW_HPP
-#define RECWINDOW_HPP
-
-#include <map>
-#include <vector>
-#include <QWidget>
+#include <cmath>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
 #include "ArmAngles.hpp"
-#include "MatrixVector.hpp"
 
-class QPushButton;
-class ArmWidget;
+using namespace std;
+using namespace gyro;
 
-class RecWindow : public QWidget
-{
-    Q_OBJECT
+namespace {
 
-public:
+    const double RAD2DEG = 57.2957795131;
+    const double PI_HALF = 1.57079632679;
+}
 
-    static RecWindow* right();
+const ArmAngles ArmAngles::left() {
 
-    static RecWindow* left();
+    return ArmAngles(ElbowFlexSign::left());
+}
 
-    // TODO Display Rec ID, if any, on the title bar
-    // TODO Should reference heading and matrices be cleared on show/close?
-    // TODO Enable/disable buttons on close?
+const ArmAngles ArmAngles::right() {
 
-public slots:
+    return ArmAngles(ElbowFlexSign::right());
+}
 
-    void updateMatrix(int mote, const gyro::matrix3 rotMat);
+double ArmAngles::flexion(const matrix3& m) const {
 
-protected:
+    return (atan2(m[Z][X], m[Y][X])+PI_HALF)*RAD2DEG;
+}
 
-    void keyPressEvent(QKeyEvent * event);
+double ArmAngles::supination(const matrix3& m) const {
 
-private slots:
+    return atan2(m[X][Y], m[X][Z])*RAD2DEG*(sign.sup);
+}
 
-    void setReferenceClicked();
-    void captureClicked();
-    void finishedClicked();
-    void nextFrameClicked();
-    void dropFrameClicked();
-    void saveClicked();
-    void clearClicked();
+double ArmAngles::deviation(const matrix3& m) const {
 
-private:
+    // Sign: to make lateral-medial correct for right arm
+    return (acos(m[X][X])-PI_HALF)*RAD2DEG*(sign.dev);
+}
 
-    Q_DISABLE_COPY(RecWindow)
+std::string ArmAngles::angle2str(double angle, const char* positive, const char* negative) const {
 
-    RecWindow(ArmWidget* w, const ArmAngles& c);
+    ostringstream os;
 
-    void init();
-    void createButtons();
-    void setupLayout();
-    void setupConnections();
+    if (angle >= 0.0) {
 
-    void setCapturingState();
-    void setEditingState();
+        os << positive << ": ";
+    }
+    else {
 
-    void displayCurrentFrame();
+        os << negative << ": ";
+    }
 
-    bool areYouSure(const char* text);
+    os << std::abs(angle) << " deg";
 
-    QPushButton* setReferenceButton;
-    QPushButton* captureButton;
-    QPushButton* finishedButton;
+    return os.str();
+}
 
-    QPushButton* nextFrameButton;
-    QPushButton* dropFrameButton;
-    QPushButton* saveButton;
-    QPushButton* clearButton;
+const std::string ArmAngles::flexStr(const matrix3& m) const {
 
-    ArmWidget* widget;
-    const ArmAngles calculator;
+    return angle2str(flexion(m), "Flex", "Ext");
+}
 
-    typedef std::map<int,gyro::matrix3> Map;
-    Map matrices;
-    std::vector<Map> frames;
-    size_t frameIndex;
-};
+const std::string ArmAngles::supStr(const matrix3& m) const {
 
-#endif // RECWINDOW_HPP
+    return angle2str(supination(m), "Sup", "Pron");
+}
+
+const std::string ArmAngles::devStr(const matrix3& m) const {
+
+    return angle2str(deviation(m), "Lat dev", "Med dev");
+}
+
+void ArmAngles::angles2stdout(const gyro::matrix3& m) const {
+
+    cout << flexStr(m) << endl;
+    cout << supStr(m) << endl;
+    cout << devStr(m) << endl;
+}

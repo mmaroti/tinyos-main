@@ -31,84 +31,37 @@
 * Author: Ali Baharev
 */
 
-#ifndef RECWINDOW_HPP
-#define RECWINDOW_HPP
+#ifndef ARMANGLES_HPP
+#define ARMANGLES_HPP
 
-#include <map>
-#include <vector>
-#include <QWidget>
-#include "ArmAngles.hpp"
+#include <string>
+#include "ElbowFlexSign.hpp"
 #include "MatrixVector.hpp"
 
-class QPushButton;
-class ArmWidget;
-
-class RecWindow : public QWidget
-{
-    Q_OBJECT
+class ArmAngles {
 
 public:
 
-    static RecWindow* right();
+    static const ArmAngles left();
+    static const ArmAngles right();
 
-    static RecWindow* left();
+    void angles2stdout(const gyro::matrix3& m) const;
 
-    // TODO Display Rec ID, if any, on the title bar
-    // TODO Should reference heading and matrices be cleared on show/close?
-    // TODO Enable/disable buttons on close?
+    double flexion(const gyro::matrix3& m) const;
+    double supination(const gyro::matrix3& m) const;
+    double deviation(const gyro::matrix3& m) const;
 
-public slots:
-
-    void updateMatrix(int mote, const gyro::matrix3 rotMat);
-
-protected:
-
-    void keyPressEvent(QKeyEvent * event);
-
-private slots:
-
-    void setReferenceClicked();
-    void captureClicked();
-    void finishedClicked();
-    void nextFrameClicked();
-    void dropFrameClicked();
-    void saveClicked();
-    void clearClicked();
+    const std::string flexStr(const gyro::matrix3& m) const;
+    const std::string supStr(const gyro::matrix3& m) const;
+    const std::string devStr(const gyro::matrix3& m) const;
 
 private:
 
-    Q_DISABLE_COPY(RecWindow)
+    ArmAngles(ElbowFlexSign s) : sign(s) { }
 
-    RecWindow(ArmWidget* w, const ArmAngles& c);
+    std::string angle2str(double angle, const char* positive, const char* negative) const;
 
-    void init();
-    void createButtons();
-    void setupLayout();
-    void setupConnections();
-
-    void setCapturingState();
-    void setEditingState();
-
-    void displayCurrentFrame();
-
-    bool areYouSure(const char* text);
-
-    QPushButton* setReferenceButton;
-    QPushButton* captureButton;
-    QPushButton* finishedButton;
-
-    QPushButton* nextFrameButton;
-    QPushButton* dropFrameButton;
-    QPushButton* saveButton;
-    QPushButton* clearButton;
-
-    ArmWidget* widget;
-    const ArmAngles calculator;
-
-    typedef std::map<int,gyro::matrix3> Map;
-    Map matrices;
-    std::vector<Map> frames;
-    size_t frameIndex;
+    const ElbowFlexSign sign;
 };
 
-#endif // RECWINDOW_HPP
+#endif // ARMANGLES_HPP

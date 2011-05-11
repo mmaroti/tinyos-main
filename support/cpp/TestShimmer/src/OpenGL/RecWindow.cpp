@@ -38,20 +38,21 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include "RecWindow.hpp"
+#include "ArmAngles.hpp"
 #include "ArmWidget.hpp"
 #include "Globals.hpp"
 
 RecWindow* RecWindow::right() {
 
-    return new RecWindow(ArmWidget::right());
+    return new RecWindow(ArmWidget::right(), ArmAngles::right());
 }
 
 RecWindow* RecWindow::left() {
 
-    return new RecWindow(ArmWidget::left());
+    return new RecWindow(ArmWidget::left(), ArmAngles::left());
 }
 
-RecWindow::RecWindow(ArmWidget* w) : widget(w) {
+RecWindow::RecWindow(ArmWidget* w, const ArmAngles& c) : widget(w), calculator(c) {
 
     widget->setParent(this);
 
@@ -167,6 +168,8 @@ void RecWindow::updateMatrix(int mote, const gyro::matrix3 rotMat) {
     matrices[mote] = rotMat;
 
     widget->display(matrices);
+
+    calculator.angles2stdout(rotMat);
 }
 
 void RecWindow::displayCurrentFrame() {
