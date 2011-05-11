@@ -31,8 +31,6 @@
 * Author: Ali Baharev
 */
 
-#include <iostream>
-#include <stdexcept>
 #include <QtGui>
 #include <QtOpenGL>
 #include "ArmWidget.hpp"
@@ -522,41 +520,11 @@ void ArmWidget::display(const std::map<int,gyro::matrix3>& matrices) {
     updateGL();
 }
 
-void ArmWidget::setReference(const std::map<int,gyro::matrix3>& matrices) {
+void ArmWidget::setReference(const std::vector<double>& headings) {
 
-    if (matrices.empty()) {
+    foreArmRefHeading = headings.at(0);
 
-        return;
-    }
-
-    typedef std::map<int,gyro::matrix3>::const_iterator itr;
-
-    itr i = matrices.begin();
-
-    foreArmRefHeading = magneticHeading(i->second) + 90.0;
-
-    ++i;
-
-    if (i!=matrices.end()) {
-
-        upperArmRefHeading = magneticHeading(i->second) + 90.0;
-    }
-}
-
-double ArmWidget::magneticHeading(const gyro::matrix3& rotMat) const {
-
-    using namespace std;
-    using namespace gyro;
-
-    cout << "x: " << rotMat[X] << endl;
-    cout << "y: " << rotMat[Y] << endl;
-    cout << "z: " << rotMat[Z] << endl;
-
-    double heading = atan2(rotMat[Y][Y], rotMat[Y][X])*180.0/M_PI;
-
-    cout << heading << endl << endl;
-
-    return heading;
+    upperArmRefHeading = headings.at(1);
 }
 
 void ArmWidget::rotateToUpperArmRef() {

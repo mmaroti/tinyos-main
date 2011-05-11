@@ -58,6 +58,53 @@ const ArmAngles ArmAngles::right() {
     return ArmAngles(ElbowFlexSign::right());
 }
 
+ArmAngles::ArmAngles(ElbowFlexSign s) : sign(s) {
+
+    heading[FOREARM] = heading[UPPERARM] = 0.0;
+}
+
+// TODO Rotate to reference here? Move rotation from the ArmWidget to here?
+void ArmAngles::dumpAngles(const map<int,matrix3>& matrices) const {
+
+    if (matrices.empty()) {
+
+        return;
+    }
+
+    typedef map<int,matrix3>::const_iterator itr;
+
+    itr i = matrices.begin();
+
+    cout << "Forearm" << endl;
+
+    angles2stdout(i->second);
+
+    ++i;
+
+    if (i==matrices.end()) {
+
+        return;
+    }
+
+    cout << "Upper arm" << endl;
+
+    angles2stdout(i->second);
+}
+
+const vector<double> ArmAngles::setHeading(const map<int,matrix3>& matrices) {
+
+    typedef map<int,matrix3>::const_iterator itr;
+
+    int k=0;
+
+    for (itr i=matrices.begin(); i!=matrices.end() && k<2; ++i, ++k) {
+
+        heading[k] = magneticHeading(i->second) + 90.0;
+    }
+
+    return vector<double>(heading, heading+2);
+}
+
 double ArmAngles::flexion(const matrix3& m) const {
 
     double flex = atan2(m[X][Y], -m[Y][Y])*RAD2DEG + 90.0;
@@ -113,6 +160,19 @@ const std::string ArmAngles::supStr(const matrix3& m) const {
 const std::string ArmAngles::devStr(const matrix3& m) const {
 
     return angle2str(deviation(m), "Lat dev", "Med dev");
+}
+
+double ArmAngles::magneticHeading(const gyro::matrix3& rotMat) const {
+
+    cout << "x: " << rotMat[X] << endl;
+    cout << "y: " << rotMat[Y] << endl;
+    cout << "z: " << rotMat[Z] << endl;
+
+    double heading = atan2(rotMat[Y][Y], rotMat[Y][X])*RAD2DEG;
+
+    cout << heading << endl << endl;
+
+    return heading;
 }
 
 void ArmAngles::angles2stdout(const gyro::matrix3& m) const {

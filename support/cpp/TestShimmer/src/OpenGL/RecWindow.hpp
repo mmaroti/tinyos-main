@@ -103,7 +103,7 @@ private:
     QPushButton* clearButton;
 
     ArmWidget* widget;
-    const ArmAngles calculator;
+    ArmAngles calculator;
 
     typedef std::map<int,gyro::matrix3> Map;
     Map matrices;

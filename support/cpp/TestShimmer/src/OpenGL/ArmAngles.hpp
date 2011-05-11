@@ -34,7 +34,9 @@
 #ifndef ARMANGLES_HPP
 #define ARMANGLES_HPP
 
+#include <map>
 #include <string>
+#include <vector>
 #include "ElbowFlexSign.hpp"
 #include "MatrixVector.hpp"
 
@@ -45,23 +47,34 @@ public:
     static const ArmAngles left();
     static const ArmAngles right();
 
+    const std::vector<double> setHeading(const std::map<int,gyro::matrix3>& matrices);
+
+    void dumpAngles(const std::map<int,gyro::matrix3>& matrices) const;
+
+private:
+
+    ArmAngles(ElbowFlexSign s);
+
     void angles2stdout(const gyro::matrix3& m) const;
 
     double flexion(const gyro::matrix3& m) const;
     double supination(const gyro::matrix3& m) const;
     double deviation(const gyro::matrix3& m) const;
 
+    double magneticHeading(const gyro::matrix3& m) const;
+
     const std::string flexStr(const gyro::matrix3& m) const;
     const std::string supStr(const gyro::matrix3& m) const;
     const std::string devStr(const gyro::matrix3& m) const;
 
-private:
-
-    ArmAngles(ElbowFlexSign s) : sign(s) { }
-
     std::string angle2str(double angle, const char* positive, const char* negative) const;
 
     const ElbowFlexSign sign;
+
+    enum { FOREARM, UPPERARM };
+
+    double heading[2];
+
 };
 
 #endif // ARMANGLES_HPP

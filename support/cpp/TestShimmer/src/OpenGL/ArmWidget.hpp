@@ -35,6 +35,7 @@
 #define ARMWIDGET_HPP
 
 #include <map>
+#include <vector>
 #include <QGLWidget>
 #include "AnimationElbowFlexSign.hpp"
 #include "MatrixVector.hpp"
@@ -51,7 +52,7 @@ public:
 
     void display(const std::map<int,gyro::matrix3>& matrices);
 
-    void setReference(const std::map<int,gyro::matrix3>& matrices);
+    void setReference(const std::vector<double>& headings);
 
     ~ArmWidget();
 
@@ -112,7 +113,6 @@ private:
     void hand();
 
     void updateMatrix(GLfloat mat[16], const gyro::matrix3& rotationMatrix);
-    double magneticHeading(const gyro::matrix3& rotationMatrix) const;
 
     const AnimationElbowFlexType type;
 

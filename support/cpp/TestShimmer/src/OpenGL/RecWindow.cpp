@@ -169,7 +169,7 @@ void RecWindow::updateMatrix(int mote, const gyro::matrix3 rotMat) {
 
     widget->display(matrices);
 
-    calculator.angles2stdout(rotMat);
+    calculator.dumpAngles(matrices);
 }
 
 void RecWindow::displayCurrentFrame() {
@@ -188,7 +188,9 @@ void RecWindow::displayCurrentFrame() {
 
 void RecWindow::setReferenceClicked() {
 
-    widget->setReference(matrices);
+    std::vector<double> headings = calculator.setHeading(matrices);
+
+    widget->setReference(headings);
 }
 
 void RecWindow::captureClicked() {
