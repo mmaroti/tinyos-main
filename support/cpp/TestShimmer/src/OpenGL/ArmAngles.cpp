@@ -46,6 +46,8 @@ namespace {
     const double PI_HALF = 1.57079632679;
 }
 
+// TODO Forearm upper arm ref heading; upper arm matrix in flex and dev
+
 const ArmAngles ArmAngles::left() {
 
     return ArmAngles(ElbowFlexSign::left());
@@ -58,23 +60,31 @@ const ArmAngles ArmAngles::right() {
 
 double ArmAngles::flexion(const matrix3& m) const {
 
-    return (atan2(m[Z][X], m[Y][X])+PI_HALF)*RAD2DEG;
+    double flex = atan2(m[X][Y], -m[Y][Y])*RAD2DEG + 90.0;
+
+    if (flex > 180.0) {
+
+        flex -= 360.0;
+    }
+
+    return flex;
 }
 
 double ArmAngles::supination(const matrix3& m) const {
 
-    return atan2(m[X][Y], m[X][Z])*RAD2DEG*(sign.sup);
+    return -atan2(m[Z][X],m[Z][Z])*RAD2DEG*(sign.sup);
 }
 
 double ArmAngles::deviation(const matrix3& m) const {
 
-    // Sign: to make lateral-medial correct for right arm
-    return (acos(m[X][X])-PI_HALF)*RAD2DEG*(sign.dev);
+    return (acos(m[Z][Y])-PI_HALF)*RAD2DEG*(sign.dev);
 }
 
 std::string ArmAngles::angle2str(double angle, const char* positive, const char* negative) const {
 
     ostringstream os;
+
+    os << setprecision(1) << fixed;
 
     if (angle >= 0.0) {
 
@@ -107,7 +117,14 @@ const std::string ArmAngles::devStr(const matrix3& m) const {
 
 void ArmAngles::angles2stdout(const gyro::matrix3& m) const {
 
+    cout << setprecision(2) << fixed;
+
+    cout << "x: " << m[X] << endl;
+    cout << "y: " << m[Y] << endl;
+    cout << "z: " << m[Z] << endl;
+
     cout << flexStr(m) << endl;
     cout << supStr(m) << endl;
     cout << devStr(m) << endl;
+    cout << endl;
 }
