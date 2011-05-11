@@ -501,7 +501,7 @@ void ArmWidget::mousePressEvent(QMouseEvent * /* event */)
 
 void ArmWidget::display(const std::map<int,gyro::matrix3>& matrices) {
 
-    if (matrices.size()!=2) {
+    if (matrices.empty()) {
 
         return;
     }
@@ -514,14 +514,17 @@ void ArmWidget::display(const std::map<int,gyro::matrix3>& matrices) {
 
     ++i;
 
-    updateMatrix(upperArmMat, i->second);
+    if (i!=matrices.end()) {
+
+        updateMatrix(upperArmMat, i->second);
+    }
 
     updateGL();
 }
 
 void ArmWidget::setReference(const std::map<int,gyro::matrix3>& matrices) {
 
-    if (matrices.size()!=2) {
+    if (matrices.empty()) {
 
         return;
     }
@@ -534,7 +537,10 @@ void ArmWidget::setReference(const std::map<int,gyro::matrix3>& matrices) {
 
     ++i;
 
-    upperArmRefHeading = magneticHeading(i->second) + 90.0;
+    if (i!=matrices.end()) {
+
+        upperArmRefHeading = magneticHeading(i->second) + 90.0;
+    }
 }
 
 double ArmWidget::magneticHeading(const gyro::matrix3& rotMat) const {
