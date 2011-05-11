@@ -8,18 +8,19 @@ configuration HplSi443xC
     interface GeneralIO as IO0;
     interface Resource as SpiResource;
     interface FastSpiByte;
-    interface GpioPCInterrupt as IRQ;
+    interface GpioCapture as IRQ;
 //     interface Alarm<TRadio, uint16_t> as Alarm;
 //     interface LocalTime<TRadio> as LocalTimeRadio;
   }
 }
 implementation
 {
-    components HplAtm128GeneralIOC as IO, HplAtm128InterruptC as AvrIrq;
+    components HplAtm128GeneralIOC as IO, HplAtm128InterruptC as AvrIrq, HplSi443xP;
     components new NoPinC() as NoIO0, new NoPinC() as NoIO1;
     
-    IRQ = AvrIrq.PCInt4;
-    NSEL = IO.PortB0;
+    IRQ = HplSi443xP.IRQ;
+    HplSi443xP.RealIRQ->AvrIrq.PCInt4;
+    NSEL = IO.PortF0;
     IO0 = NoIO0;
     IO1 = NoIO1;
     IO2 = IO.PortD4;
