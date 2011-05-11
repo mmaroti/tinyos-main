@@ -52,12 +52,16 @@
 
 configuration NullAppC{}
 implementation {
-  components MainC, NullC;
-  components HplSi443xC, LedsC;
+  components MainC, NullC, HplAtm128GeneralIOC as IO;
+  components HplSi443xC, LedsC, new TimerMilliC();
   NullC.NSEL->HplSi443xC.NSEL;
   NullC.Resource->HplSi443xC.SpiResource;
   NullC.FastSpiByte->HplSi443xC.FastSpiByte;
   MainC.Boot <- NullC;
+  NullC.Timer->TimerMilliC;
   NullC.Leds->LedsC;
+  NullC.FlashEn->IO.PortB0;
+  NullC.GIO->HplSi443xC.IO2;
+  NullC.IRQ->HplSi443xC.IRQ;
 }
 

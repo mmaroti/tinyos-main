@@ -56,31 +56,78 @@ module NullC @safe()
   uses interface Resource;
   uses interface FastSpiByte;
   uses interface Leds;
+  uses interface Timer<TMilli>;
+  uses interface GeneralIO as FlashEn;
+  uses interface GpioCapture as IRQ;
+  uses interface GeneralIO as GIO;
 }
 implementation
 {
-    inline uint8_t readRegister(uint8_t reg)
-    {
-        call NSEL.clr();
-        call FastSpiByte.splitWrite(reg&0x7f);
-        call FastSpiByte.splitReadWrite(0);
-        reg = call FastSpiByte.splitRead();
-        call NSEL.set();
+  uint8_t count=0;
+  bool intxx = FALSE;
+  
+  inline uint8_t readRegister(uint8_t reg)
+  {
+      call NSEL.clr();
+      call FastSpiByte.splitWrite(reg&0x7f);
+      call FastSpiByte.splitReadWrite(0);
+      reg = call FastSpiByte.splitRead();
+      call NSEL.set();
 
-        return reg;
-    }
-    
+      return reg;
+  }
+  
+  inline void writeRegister(uint8_t reg, uint8_t value)
+  {
+      call NSEL.clr();
+      call FastSpiByte.splitWrite(0x80 + (reg&0x7f));
+      call FastSpiByte.splitReadWrite(value);
+      call FastSpiByte.splitRead();
+      call NSEL.set();
+  }
+  
   event void Boot.booted() {
     call NSEL.makeOutput();
+    call NSEL.set();
+    call FlashEn.makeOutput();
+    call FlashEn.set();
+    
+    call Timer.startPeriodic(1000);
+    call IRQ.captureFallingEdge();
+    //DDRB|=1<<4;
+  }
+  
+  event void Timer.fired(){
     call Resource.request();
   }
   
   event void Resource.granted(){
-    uint8_t r;
-    call Leds.led1On();
-    r=readRegister(1);
-    call Leds.set(r&0x0f);
-    //call Leds.set(r&0xf0);
+    call Leds.set(0);    
+    count++;
+    if(intxx){
+      uint8_t rr=readRegister(4);
+      call Leds.set(rr);
+      intxx = FALSE;
+    }
+      
+    writeRegister(6,0xff);
+    if(count==3){
+      writeRegister(7,0x00);     
+      //writeRegister(0x0d,0x1d);
+    } else if(count==5){
+      writeRegister(7,0x04);     
+      //writeRegister(0x0d,0x1e);
+    }
+//     if(call GIO.get())
+//       call Leds.led0On();
+//     else
+//       call Leds.led0Off();
+    call Resource.release();
+  }
+  
+  async event void IRQ.captured(uint16_t time){
+    //call Leds.set(0xff);
+    intxx = TRUE;
   }
 }
 
