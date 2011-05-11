@@ -82,11 +82,25 @@ void EllipsoidCalibration::onNewSampleReceived(const AccelMagSample sample) {
 
     vector3 x = sample.acceleration();
 
-    x /= x.length();
+    const double x_length = x.length();
+
+    if (x_length > 1.06 || x_length < 0.94) {
+
+        return;
+    }
+
+    x /= x_length;
 
     vector3 y = cross_product(x, sample.magnetometerReading());
 
-    y /= y.length();
+    const double y_length = y.length();
+
+    if (y_length==0.0) {
+
+        return;
+    }
+
+    y /= y_length;
 
     vector3 z = cross_product(x, y);
 
