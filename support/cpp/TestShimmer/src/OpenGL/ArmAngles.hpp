@@ -56,6 +56,7 @@ private:
     ArmAngles(ElbowFlexSign s);
 
     void angles2stdout(const gyro::matrix3& m) const;
+    void anglesForArm(const std::vector<gyro::matrix3>& rotmat) const;
 
     double flexion(const gyro::matrix3& m) const;
     double supination(const gyro::matrix3& m) const;

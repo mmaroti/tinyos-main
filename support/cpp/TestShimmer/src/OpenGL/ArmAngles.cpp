@@ -76,18 +76,28 @@ void ArmAngles::dumpAngles(const map<int,matrix3>& matrices) const {
 
     cout << "Forearm" << endl;
 
-    angles2stdout( heading2rotation(heading[FOREARM])*(i->second) );
+    vector<matrix3> rotmat;
+
+    rotmat.push_back( heading2rotation(heading[FOREARM])*(i->second) );
+
+    //angles2stdout( rotmat.at(0) );
 
     ++i;
 
-    if (i==matrices.end()) {
+    if (i!=matrices.end()) {
 
-        return;
+        cout << "Upper arm" << endl;
+
+        rotmat.push_back( heading2rotation(heading[UPPERARM])*(i->second) );
+    }
+    else {
+
+        rotmat.push_back( matrix3(0, -1, 0, 1, 0, 0, 0, 0, 1) );
     }
 
-    cout << "Upper arm" << endl;
+    //angles2stdout( rotmat.at(1) );
 
-    angles2stdout( heading2rotation(heading[UPPERARM])*(i->second) );
+    anglesForArm(rotmat);
 }
 
 const vector<double> ArmAngles::setHeading(const map<int,matrix3>& matrices) {
@@ -162,7 +172,7 @@ const std::string ArmAngles::devStr(const matrix3& m) const {
 }
 
 double ArmAngles::magneticHeading(const gyro::matrix3& rotMat) const {
-
+    // FIXME Tilt compensation?
     cout << "x: " << rotMat[X] << endl;
     cout << "y: " << rotMat[Y] << endl;
     cout << "z: " << rotMat[Z] << endl;
@@ -197,5 +207,36 @@ void ArmAngles::angles2stdout(const gyro::matrix3& m) const {
     cout << flexStr(m) << endl;
     cout << supStr(m) << endl;
     cout << devStr(m) << endl;
+    cout << endl;
+}
+
+void ArmAngles::anglesForArm(const vector<matrix3>& rotmat) const {
+
+    double upperFlex = flexion(rotmat.at(UPPERARM));
+
+    double foreFlex = flexion(rotmat.at(FOREARM));
+
+    double flex = foreFlex - upperFlex;
+
+    if (flex > 180) {
+
+        flex -= 360;
+    }
+    else if (flex < -180) {
+
+        flex += 360;
+    }
+
+    double sup = supination(rotmat.at(FOREARM));
+
+    double foreDev  = deviation(rotmat.at(FOREARM));
+
+    double upperDev = deviation(rotmat.at(UPPERARM));
+
+    double maxDev = (fabs(foreDev) > fabs(upperDev) ) ? foreDev : upperDev;
+
+    cout << "Flex: " << flex << endl;
+    cout << "Sup:  " << sup << endl;
+    cout << "Dev:  " << maxDev << endl;
     cout << endl;
 }
