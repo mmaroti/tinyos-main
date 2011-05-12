@@ -50,6 +50,22 @@ configuration MicaBusC {
     interface MicaBusAdc as Adc5;
     interface MicaBusAdc as Adc6;
     interface MicaBusAdc as Adc7;
+    
+    /*other pins as GPIO*/
+    interface GeneralIO as UART0_RXD;
+    interface GeneralIO as UART0_TXD;
+    interface GeneralIO as SPI_SCK;
+    interface GeneralIO as SPI_MOSI;
+    interface GeneralIO as SPI_MISO;
+    interface GeneralIO as I2C_CLK;
+    interface GeneralIO as I2C_DATA;
+    interface GeneralIO as Adc1_IO;
+    interface GeneralIO as Adc2_IO;
+    interface GeneralIO as Adc3_IO;
+    interface GeneralIO as Adc4_IO;
+    interface GeneralIO as Adc5_IO;
+    interface GeneralIO as Adc6_IO;
+    interface GeneralIO as Adc7_IO;
   }
 }
 implementation {
@@ -71,9 +87,24 @@ implementation {
   Int2 = Pins.PortE6;
   Int3 = Pins.PortE7;
   
-  USART1_CLK = Pins.PortE2;//TODO: possible hardware bug, this is the clk of usart0
-  USART1_RXD = Pins.PortD2;
-  USART1_TXD = Pins.PortD3;
+  USART1_CLK = Pins.PortE2;//hardware bug, this is the clk of usart0
+  USART1_RXD = Pins.PortD3;
+  USART1_TXD = Pins.PortD2;
+  
+  UART0_RXD = Pins.PortE0;
+  UART0_TXD = Pins.PortE1;
+  SPI_SCK = Pins.PortB1;
+  SPI_MOSI = Pins.PortB2;
+  SPI_MISO = Pins.PortB3;
+  I2C_CLK = Pins.PortD0;
+  I2C_DATA = Pins.PortD1;
+  Adc1_IO = Pins.PortF6;
+  Adc2_IO = Pins.PortF2;
+  Adc3_IO = Pins.PortF3;
+  Adc4_IO = Pins.PortF4;
+  Adc5_IO = Pins.PortF5;
+  Adc6_IO = Pins.PortF6;
+  Adc7_IO = Pins.PortF7;
 
   components new Atm128GpioInterruptC() as Atm128GpioInterrupt0C;
   Atm128GpioInterrupt0C.Atm128Interrupt->HplAtm128InterruptC.Int4;
@@ -91,12 +122,12 @@ implementation {
   Atm128GpioInterrupt3C.Atm128Interrupt->HplAtm128InterruptC.Int7;
   Int3_Interrupt=Atm128GpioInterrupt3C.Interrupt;
 
-  Adc0 = MicaBusP.Adc0;
-  Adc1 = MicaBusP.Adc1;
-  Adc2 = MicaBusP.Adc2;
-  Adc3 = MicaBusP.Adc3;
-  Adc4 = MicaBusP.Adc4;
-  Adc5 = MicaBusP.Adc5;
-  Adc6 = MicaBusP.Adc6;
-  Adc7 = MicaBusP.Adc7;
+  Adc0 = MicaBusP.Adc7;//not connected
+  Adc1 = MicaBusP.Adc6;
+  Adc2 = MicaBusP.Adc5;
+  Adc3 = MicaBusP.Adc4;
+  Adc4 = MicaBusP.Adc3;
+  Adc5 = MicaBusP.Adc2;
+  Adc6 = MicaBusP.Adc1;
+  Adc7 = MicaBusP.Adc0;
 }
