@@ -6,6 +6,7 @@ module SpiImpM {
   uses interface Atm128Spi as Spi;
   uses interface Resource as ResArb[uint8_t id];
   uses interface ArbiterInfo;
+  uses interface McuPowerState;
 
   uses interface DiagMsg;
 }
@@ -30,6 +31,7 @@ implementation {
       call Spi.enableSpi(TRUE);
       call Spi.setClock(8);
     }
+    call McuPowerState.update();
 	}
 
   async command uint8_t SpiByte.write( uint8_t data ) {

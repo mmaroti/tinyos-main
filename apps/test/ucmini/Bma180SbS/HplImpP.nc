@@ -1,11 +1,12 @@
 module HplImpP {
   provides interface Atm128Spi as SPI;
-  
+  provides interface McuPowerOverride;
   uses {
     interface GeneralIO as SS;
     interface GeneralIO as SCK;
     interface GeneralIO as MOSI;
     interface GeneralIO as MISO;
+    interface McuPowerState as Mcu;
   }
 }
 implementation {
@@ -50,11 +51,11 @@ implementation {
   async command void SPI.enableInterrupt(bool enabled) {
     if (enabled) {
       SET_BIT(UCSR0B, UDRIE0);
-     // call Mcu.update();
+      call Mcu.update();
     }
     else {
       CLR_BIT(UCSR0B, UDRIE0);
-      //call Mcu.update();
+      call Mcu.update();
     }
   }
 
@@ -65,11 +66,11 @@ implementation {
   async command void SPI.enableSpi(bool enabled) {
     if (enabled) {
       UCSR0B |= (1 << RXEN0) | (1 << TXEN0) /*| (1<<RXCIE0)*/;
-     // call Mcu.update();
+      call Mcu.update();
     }
     else {
       UCSR0B &= ~((1 << RXEN0) | (1 << TXEN0) /*| (1<<RXCIE0)*/);
-     // call Mcu.update();
+      call Mcu.update();
     }
   }
 
@@ -150,4 +151,12 @@ implementation {
   async command bool SPI.isTransferDone() {
     return UCSR0A & (1<<RXC0);
   }
+
+  async command mcu_power_t McuPowerOverride.lowestState() {
+		if( (UCSR0B & (1 << RXEN0 | 1 << TXEN0)) && (UCSR0C & (1 << UMSEL01 | 1<< UMSEL00)) ) {
+			return ATM128_POWER_IDLE;
+		}
+		else
+			return ATM128_POWER_DOWN;
+	}
 }

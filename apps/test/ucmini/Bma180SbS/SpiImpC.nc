@@ -6,7 +6,7 @@ configuration SpiImpC {
 implementation {
   components SpiImpM, HplImpC;
   components new SimpleFcfsArbiterC("SbS.Resource") as Arbiter;
-
+  components McuSleepC;
 
   SpiByte     = SpiImpM;
   FastSpiByte = SpiImpM;
@@ -15,6 +15,7 @@ implementation {
   SpiImpM.ArbiterInfo -> Arbiter;
   SpiImpM.ResArb -> Arbiter;
   SpiImpM.Spi -> HplImpC;
+  SpiImpM.McuPowerState -> McuSleepC;
 
   components DiagMsgC;
   SpiImpM.DiagMsg -> DiagMsgC;
