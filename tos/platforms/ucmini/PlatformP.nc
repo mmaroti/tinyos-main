@@ -42,7 +42,7 @@ module PlatformP @safe()
 	{
 		interface Init as McuInit;
 		interface Init as LedsInit;
-    interface Init as RadioInit;
+     interface Init as RadioInit;
     interface Init as Stm25pInit;
     #if (UCMINI_REV==52) || (UCMINI_REV==49)
     interface GeneralIO as SpiSSN;
@@ -94,8 +94,8 @@ implementation
 		ok = call McuInit.init();
 		ok = ecombine(ok, call LedsInit.init());
 		ok = ecombine(ok, powerInit());
-    call RadioInit.init();
-    call Stm25pInit.init();
+     call RadioInit.init();
+     call Stm25pInit.init();
 
 		return ok;
 	}

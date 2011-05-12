@@ -38,7 +38,7 @@ configuration Stm25pOffC {
 implementation {
   components Stm25pOffP;
   Stm25pOff = Stm25pOffP;
-
+  
   components HplStm25pSpiC as SpiC;
   Stm25pOffP.SpiResource -> SpiC;
   Stm25pOffP.SpiByte -> SpiC;

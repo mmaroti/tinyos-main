@@ -70,8 +70,8 @@ implementation
 	LedsInit = PlatformP.LedsInit;
 	PlatformP.McuInit -> McuInitC;
 
-  PlatformP.RadioInit -> RFA1RadioOffP.RFA1RadioOff;
-  PlatformP.Stm25pInit -> Stm25pOffC.Stm25pOff;
+   PlatformP.RadioInit -> RFA1RadioOffP.RFA1RadioOff;
+   PlatformP.Stm25pInit -> Stm25pOffC.Stm25pOff;
 
   #ifndef DISABLE_SERIAL_AUTO
     components SerialAutoControlC;

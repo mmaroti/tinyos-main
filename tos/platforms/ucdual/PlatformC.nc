@@ -52,7 +52,7 @@ configuration PlatformC
 implementation
 {
 	components PlatformP, McuInitC, MeasureClockC, RFA1RadioOffP, Stm25pOffC;
-
+    components HplAtm128GeneralIOC as IO;
 
 	Init = PlatformP;
 	Atm128Calibrate = MeasureClockC;
@@ -60,6 +60,8 @@ implementation
 	LedsInit = PlatformP.LedsInit;
     SubInit = PlatformP.SubInit;
 	PlatformP.McuInit -> McuInitC;
+    PlatformP.FlashCS -> IO.PortB0;
+    PlatformP.RadioCS -> IO.PortF0;
 
   PlatformP.RadioInit -> RFA1RadioOffP.RFA1RadioOff;
   PlatformP.Stm25pInit -> Stm25pOffC.Stm25pOff;

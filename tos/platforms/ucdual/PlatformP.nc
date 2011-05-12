@@ -45,6 +45,8 @@ module PlatformP @safe()
     interface Init as RadioInit;
     interface Init as Stm25pInit;
     interface Init as SubInit;
+    interface GeneralIO as FlashCS;
+    interface GeneralIO as RadioCS;
 	}
 }
 
@@ -75,7 +77,10 @@ implementation
         ok = ecombine(ok, call SubInit.init());
     call RadioInit.init();
     call Stm25pInit.init();
-
+        call FlashCS.makeOutput();
+        call RadioCS.makeOutput();
+        call FlashCS.clr();
+        call RadioCS.clr();
 		return ok;
 	}
 	

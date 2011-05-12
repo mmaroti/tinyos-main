@@ -44,8 +44,6 @@ implementation {
   command error_t Stm25pOff.init() {
     call CSN.makeOutput();
     call Hold.makeOutput();
-    call CSN.set();
-    call Hold.set();
     if(!uniqueCount("Stm25pOn")) {
       call SpiResource.request();
     }
@@ -53,9 +51,13 @@ implementation {
   }
 
   event void SpiResource.granted() {
-    call CSN.clr();
-    call SpiByte.write(0xb9);//deep sleep
-    call CSN.set();
-    call SpiResource.release();
+    if(!uniqueCount("Stm25pOn")) {//we got the granted event if the real driver asks for the resource
+      call CSN.clr();
+      call Hold.clr();
+      call SpiByte.write(0xb9);//deep sleep
+      call CSN.set();
+      call Hold.set();
+      call SpiResource.release();
+    }
   }
 }

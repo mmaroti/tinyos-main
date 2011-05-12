@@ -48,7 +48,7 @@ implementation {
 
   components HplAtm128GeneralIOC as IO;
   components new NoPinC();
-  CSN = IO.PortB4;
+  CSN = IO.PortB0;
   Hold = NoPinC;
 
 }
