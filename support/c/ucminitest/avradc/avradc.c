@@ -11,13 +11,14 @@ volatile int Z = 0;
 volatile int Y = 0;
 volatile int X = 0;
  
-void Konfig10bitADC()        // ADC konfiguralas (beallitas)
+void Konfig10bitADC(uint8_t channel, uint8_t ref, uint8_t prescaler)        // ADC konfiguralas (beallitas)
 {
-	ADMUX |= 0x9;
-	ADCSRB |= (1 << MUX5);
-	ADMUX |= (1<<REFS0) | (1<<REFS1);    // 1.6V mint referencia
+	ADMUX |= (channel&0x0f);
+    if(channel&0x10)
+      ADCSRB |= (1 << MUX5);
+	ADMUX |= ref<<6; 
 	ADCSRC = 0;
-	ADCSRA = (1<<ADEN) | (1<<ADPS1) | (1<<ADPS2); // ADC engedelyezese, ADC eloosztas = 64
+	ADCSRA = (1<<ADEN) | (prescaler&0x07); // ADC engedelyezese, ADC eloosztas = 64
 }
  
 unsigned int Beolvas10bitADC()
@@ -61,9 +62,9 @@ void UARTAdatKuld(char data) // Ez a fuggveny a kuldendo adatot beirja az UDR re
  
 int main(void)  // Foprogram
 {
-	char data;   
+	//char data;   
 	KonfigUART();   // UART Konfiguralasa
-	Konfig10bitADC();    // ADC beallitas lefuttatasa
+	Konfig10bitADC(29,3,6);    // ADC beallitas lefuttatasa
  
 	while(1) {
 		X = Beolvas10bitADC();
