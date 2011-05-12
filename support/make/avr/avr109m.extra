@@ -23,5 +23,6 @@ endif
 
 program: FORCE
 	@echo "Please reset the mote, then press enter" ;
+	@read
 	$(PROGRAMMER) $(PROGRAMMER_FLAGS) $(PROGRAMMER_INSTALL_SREC_FLAGS)
 
