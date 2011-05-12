@@ -50,23 +50,13 @@ public:
 
     const std::vector<double> setHeading(const std::map<int,gyro::matrix3>& matrices);
 
-    const std::vector<std::string> labels(const std::map<int,gyro::matrix3>& matrices) const;
+    const std::vector<std::string> labels(const std::map<int,gyro::matrix3>& matrices, size_t frame, size_t size) const;
 
     const std::vector<std::string> table(std::vector<std::map<int,gyro::matrix3> >& frames) const;
 
-    void dumpAngles(const std::map<int,gyro::matrix3>& matrices) const;
-
 private:
 
-    struct Triplet {
-        double flex;
-        double sup;
-        double dev;
-    };
-
     ArmAngles(ElbowFlexSign s);
-
-    void angles2stdout(const gyro::matrix3& m) const;
 
     const std::vector<gyro::matrix3> fillUp(const std::map<int,gyro::matrix3>& matrices) const;
     const std::vector<std::string> angleLabels(const std::vector<gyro::matrix3>& rotmat) const;
@@ -74,11 +64,8 @@ private:
     double armFlex(const std::vector<gyro::matrix3>& rotmat) const;
     double armDev(const std::vector<gyro::matrix3>& rotmat) const;
 
-    const Triplet getAngles(const std::map<int,gyro::matrix3>& matrices) const;
-    std::vector<std::string>& fillTable(std::vector<std::string>& table,
-                                        const AngleRange& flex,
-                                        const AngleRange& sup,
-                                        const AngleRange& dev) const;
+    const ArmTriplet<double> getAngles(const std::map<int,gyro::matrix3>& matrices) const;
+    std::vector<std::string>& fillTable(std::vector<std::string>& table, const ArmTriplet<AngleRange>& range) const;
 
     double flexion(const gyro::matrix3& m) const;
     double supination(const gyro::matrix3& m) const;
@@ -88,13 +75,8 @@ private:
 
     const gyro::matrix3 heading2rotation(double heading) const;
 
-    const std::string flexStr(const gyro::matrix3& m) const;
-    const std::string supStr(const gyro::matrix3& m) const;
-    const std::string devStr(const gyro::matrix3& m) const;
-
-    std::string angle2str(double angle, const char* positive, const char* negative) const;
-
-
+    const std::string angle2str(double angle, const char* positive, const char* negative) const;
+    const std::string frameLabel(int frame, size_t size) const;
 
     const ElbowFlexSign sign;
 

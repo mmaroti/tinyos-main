@@ -35,6 +35,7 @@
 #define ARMWIDGET_HPP
 
 #include <map>
+#include <string>
 #include <vector>
 #include <QGLWidget>
 #include "AnimationElbowFlexSign.hpp"
@@ -50,7 +51,7 @@ public:
 
     static ArmWidget* left();
 
-    void display(const std::map<int,gyro::matrix3>& matrices);
+    void display(const std::map<int,gyro::matrix3>& matrices, const std::vector<std::string>& text);
 
     void setReference(const std::vector<double>& headings);
 
@@ -114,6 +115,22 @@ private:
 
     void updateMatrix(GLfloat mat[16], const gyro::matrix3& rotationMatrix);
 
+    enum TEXT_POSITION {
+        FLEX_LABEL,
+        SUP_LABEL,
+        DEV_LABEL,
+        FRAME_LABEL,
+        FLEX_LINE,
+        EXT_LINE,
+        SUP_LINE,
+        PRON_LINE,
+        LAT_LINE,
+        MED_LINE,
+        SIZE_OF_TEXT
+    };
+
+    const char* text(TEXT_POSITION pos) const;
+
     const AnimationElbowFlexType type;
 
     GLfloat foreArmMat[16];
@@ -123,6 +140,8 @@ private:
 
     double foreArmRefHeading;
     double upperArmRefHeading;
+
+    std::vector<std::string> labelAndTable;
 };
 
 #endif // ARMWIDGET_HPP

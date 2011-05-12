@@ -90,6 +90,7 @@ private:
     void setEditingState();
 
     void displayCurrentFrame();
+    void display();
 
     bool areYouSure(const char* text);
 

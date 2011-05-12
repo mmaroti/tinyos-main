@@ -33,7 +33,6 @@
 
 #include <cmath>
 #include <iomanip>
-#include <iostream>
 #include <sstream>
 #include "ArmAngles.hpp"
 
@@ -45,8 +44,6 @@ namespace {
     const double RAD2DEG = 57.2957795131;
     const double PI_HALF = 1.57079632679;
 }
-
-// TODO upper arm matrix in flex and dev
 
 const ArmAngles ArmAngles::left() {
 
@@ -61,41 +58,6 @@ const ArmAngles ArmAngles::right() {
 ArmAngles::ArmAngles(ElbowFlexSign s) : sign(s) {
 
     heading[FOREARM] = heading[UPPERARM] = 0.0;
-}
-
-void ArmAngles::dumpAngles(const map<int,matrix3>& matrices) const {
-
-    if (matrices.empty()) {
-
-        return;
-    }
-
-    typedef map<int,matrix3>::const_iterator itr;
-
-    itr i = matrices.begin();
-
-    cout << "Forearm" << endl;
-
-    vector<matrix3> rotmat;
-
-    rotmat.push_back( heading2rotation(heading[FOREARM])*(i->second) );
-
-    //angles2stdout( rotmat.at(0) );
-
-    ++i;
-
-    if (i!=matrices.end()) {
-
-        cout << "Upper arm" << endl;
-
-        rotmat.push_back( heading2rotation(heading[UPPERARM])*(i->second) );
-    }
-    else {
-
-        rotmat.push_back( matrix3(0, -1, 0, 1, 0, 0, 0, 0, 1) );
-    }
-
-    angles2stdout( rotmat.at(1) );
 }
 
 const vector<double> ArmAngles::setHeading(const map<int,matrix3>& matrices) {
@@ -134,7 +96,7 @@ double ArmAngles::deviation(const matrix3& m) const {
     return (acos(m[Z][Y])-PI_HALF)*RAD2DEG*(sign.dev);
 }
 
-std::string ArmAngles::angle2str(double angle, const char* positive, const char* negative) const {
+const string ArmAngles::angle2str(double angle, const char* positive, const char* negative) const {
 
     ostringstream os;
 
@@ -149,35 +111,29 @@ std::string ArmAngles::angle2str(double angle, const char* positive, const char*
         os << negative << ": ";
     }
 
-    os << std::abs(angle) << " deg";
+    os << abs(angle) << " deg";
 
     return os.str();
 }
 
-const std::string ArmAngles::flexStr(const matrix3& m) const {
+const string ArmAngles::frameLabel(int frame, size_t size) const {
 
-    return angle2str(flexion(m), "Flex", "Ext");
+    ostringstream os;
+
+    os << "Frame: " << frame << " of " << size;
+
+    return os.str();
 }
 
-const std::string ArmAngles::supStr(const matrix3& m) const {
-
-    return angle2str(supination(m), "Sup", "Pron");
-}
-
-const std::string ArmAngles::devStr(const matrix3& m) const {
-
-    return angle2str(deviation(m), "Lat dev", "Med dev");
-}
-
-double ArmAngles::magneticHeading(const gyro::matrix3& rotMat) const {
-    // FIXME Tilt compensation?
-    cout << "x: " << rotMat[X] << endl;
-    cout << "y: " << rotMat[Y] << endl;
-    cout << "z: " << rotMat[Z] << endl;
+double ArmAngles::magneticHeading(const matrix3& rotMat) const {
+    // TODO Tilt compensation?
+    //cout << "x: " << rotMat[X] << endl;
+    //cout << "y: " << rotMat[Y] << endl;
+    //cout << "z: " << rotMat[Z] << endl;
 
     double heading = atan2(rotMat[Y][Y], rotMat[Y][X])*RAD2DEG;
 
-    cout << heading << endl << endl;
+    //cout << heading << endl << endl;
 
     return heading;
 }
@@ -194,21 +150,7 @@ const matrix3 ArmAngles::heading2rotation(double heading) const {
                     0.0,   s,   c );
 }
 
-void ArmAngles::angles2stdout(const gyro::matrix3& m) const {
-
-    cout << setprecision(2) << fixed;
-
-    cout << "x: " << m[X] << endl;
-    cout << "y: " << m[Y] << endl;
-    cout << "z: " << m[Z] << endl;
-
-    cout << flexStr(m) << endl;
-    cout << supStr(m) << endl;
-    cout << devStr(m) << endl;
-    cout << endl;
-}
-
-double ArmAngles::armFlex(const std::vector<gyro::matrix3>& rotmat) const {
+double ArmAngles::armFlex(const vector<matrix3>& rotmat) const {
 
     double upperFlex = flexion(rotmat.at(UPPERARM));
 
@@ -228,7 +170,7 @@ double ArmAngles::armFlex(const std::vector<gyro::matrix3>& rotmat) const {
     return flex;
 }
 
-double ArmAngles::armDev(const std::vector<gyro::matrix3>& rotmat) const {
+double ArmAngles::armDev(const vector<matrix3>& rotmat) const {
 
     double foreDev  = deviation(rotmat.at(FOREARM));
 
@@ -237,11 +179,11 @@ double ArmAngles::armDev(const std::vector<gyro::matrix3>& rotmat) const {
     return (fabs(foreDev) > fabs(upperDev) ) ? foreDev : upperDev;
 }
 
-const ArmAngles::Triplet ArmAngles::getAngles(const std::map<int,gyro::matrix3>& matrices) const {
+const ArmTriplet<double> ArmAngles::getAngles(const map<int,matrix3>& matrices) const {
 
     vector<matrix3> rotmat = fillUp(matrices);
 
-    Triplet t;
+    ArmTriplet<double> t;
 
     t.flex   = armFlex(rotmat);
 
@@ -267,7 +209,9 @@ const vector<matrix3> ArmAngles::fillUp(const map<int,matrix3>& mat) const {
         matrix3 m;
 
         if (i!=end) {
+
             m = heading2rotation(heading[k])*(i->second);
+
             ++i;
         }
 
@@ -281,9 +225,9 @@ const vector<matrix3> ArmAngles::fillUp(const map<int,matrix3>& mat) const {
     return matrices;
 }
 
-const std::vector<std::string> ArmAngles::labels(const std::map<int,gyro::matrix3>& matrices) const {
+const vector<string> ArmAngles::labels(const map<int,matrix3>& matrices, size_t frame, size_t size) const {
 
-    const Triplet t = getAngles(matrices);
+    const ArmTriplet<double> t = getAngles(matrices);
 
     vector<string> label;
 
@@ -293,19 +237,21 @@ const std::vector<std::string> ArmAngles::labels(const std::map<int,gyro::matrix
 
     label.push_back(angle2str(t.dev, "Lat dev", "Med dev"));
 
+    label.push_back(frameLabel(frame, size));
+
     return label;
 }
 
 const vector<string> ArmAngles::table(vector<map<int,matrix3> >& frames) const {
 
-    vector<string> table(6);
+    vector<string> table(6); // TODO Knows size... program crash if not updated properly
 
     if (frames.empty()) {
 
         return table;
     }
 
-    Triplet t = getAngles(frames.at(0));
+    ArmTriplet<double> t = getAngles(frames.at(0));
 
     AngleRange flex(t.flex), sup(t.sup), dev(t.dev);
 
@@ -314,24 +260,22 @@ const vector<string> ArmAngles::table(vector<map<int,matrix3> >& frames) const {
         t = getAngles(frames.at(i));
 
         flex.next(t.flex);
-        sup.next(t.sup);
-        dev.next(t.dev);
+         sup.next(t.sup);
+         dev.next(t.dev);
     }
 
-    return fillTable(table, flex, sup, dev);
+    return fillTable(table, ArmTriplet<AngleRange>(flex, sup, dev));
 }
 
-vector<std::string>& ArmAngles::fillTable(vector<string>& table,
-                               const AngleRange& flex,
-                               const AngleRange& sup,
-                               const AngleRange& dev) const
+vector<string>& ArmAngles::fillTable(vector<string>& table, const ArmTriplet<AngleRange>& t) const
 {
-    table.at(0) = flex.positive().str("Flex ");
-    table.at(1) = flex.negative().str("Ext ");
-    table.at(2) = sup.positive().str("Sup ");
-    table.at(3) = sup.negative().str("Pron ");
-    table.at(4) = dev.positive().str("Lat dev ");
-    table.at(5) = dev.negative().str("Med dev ");
+
+    table.at(0) = t.flex.toPositiveLine("Flex ");
+    table.at(1) = t.flex.toNegativeLine("Ext ");
+    table.at(2) = t.sup.toPositiveLine("Sup ");
+    table.at(3) = t.sup.toNegativeLine("Pron ");
+    table.at(4) = t.dev.toPositiveLine("Lat dev ");
+    table.at(5) = t.dev.toNegativeLine("Med dev ");
 
     return table;
 }

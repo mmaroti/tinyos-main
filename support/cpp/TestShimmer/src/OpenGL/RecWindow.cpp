@@ -167,9 +167,7 @@ void RecWindow::updateMatrix(int mote, const gyro::matrix3 rotMat) {
     // TODO Move all calibration-related stuff here and save raw samples as well
     matrices[mote] = rotMat;
 
-    widget->display(matrices);
-
-    calculator.dumpAngles(matrices);
+    display();
 }
 
 void RecWindow::displayCurrentFrame() {
@@ -183,7 +181,18 @@ void RecWindow::displayCurrentFrame() {
 
     matrices = frames.at(frameIndex);
 
-    widget->display(matrices);
+    display();
+}
+
+void RecWindow::display() {
+
+    std::vector<std::string> text = calculator.labels(matrices, frameIndex, frames.size());
+
+    std::vector<std::string> table = calculator.table(frames);
+
+    text.insert(text.end(), table.begin(), table.end());
+
+    widget->display(matrices, text);
 }
 
 void RecWindow::setReferenceClicked() {

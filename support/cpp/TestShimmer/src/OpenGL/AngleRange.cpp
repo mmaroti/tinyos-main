@@ -31,6 +31,7 @@
 * Author: Ali Baharev
 */
 
+#include <iomanip>
 #include <sstream>
 #include "AngleRange.hpp"
 
@@ -64,10 +65,14 @@ const AngleRange AngleRange::negative() const {
 
     AngleRange res;
 
-    for (int i=0; i<4; ++i) {
+    for (int i=0; i<2; ++i) {
 
         res.v[i] = (v[i]<0) ? -v[i] : 0.0;
     }
+
+    res.v[2] = (v[3]<0) ? -v[3] : 0.0;
+
+    res.v[3] = (v[2]<0) ? -v[2] : 0.0;
 
     return res;
 }
@@ -75,6 +80,8 @@ const AngleRange AngleRange::negative() const {
 const std::string AngleRange::str(const char* name) const {
 
     std::ostringstream os;
+
+    os << std::setprecision(1) << std::fixed;
 
     os << name << " " << beg() << " / " << end() << " / ";
 

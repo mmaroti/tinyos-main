@@ -31,44 +31,18 @@
 * Author: Ali Baharev
 */
 
-#ifndef ANGLERANGE_HPP
-#define ANGLERANGE_HPP
+#ifndef ARMTRIPLET_HPP
+#define ARMTRIPLET_HPP
 
-#include <string>
-#include "ArmTriplet.hpp"
+template <typename T>
+struct ArmTriplet {
 
-class AngleRange {
+    ArmTriplet() { }
+    ArmTriplet(const T& flex, const T& sup, const T& dev) : flex(flex), sup(sup), dev(dev) { }
 
-public:
-
-    AngleRange() { v[0] = v[1] = v[2] = v[3] = 0.0; }
-
-    explicit AngleRange(double beg) { v[0] = v[1] = v[2] = v[3] = beg; }
-
-    void next(double x);
-
-    const std::string toPositiveLine(const char* lineStart) const { return positive().str(lineStart); }
-    const std::string toNegativeLine(const char* lineStart) const { return negative().str(lineStart); }
-
-    double beg() const { return v[0]; }
-    double end() const { return v[1]; }
-    double min() const { return v[2]; }
-    double max() const { return v[3]; }
-
-    double range() const { return max()-min(); }
-
-private:
-
-    const AngleRange positive() const;
-    const AngleRange negative() const;
-
-    const std::string str(const char* name) const;
-
-    void min(double x) { v[2] = x; }
-    void max(double x) { v[3] = x; }
-    void end(double x) { v[1] = x; }
-
-    double v[4];
+    T flex;
+    T sup;
+    T dev;
 };
 
-#endif // ANGLERANGE_HPP
+#endif // ARMTRIPLET_HPP

@@ -80,6 +80,8 @@ ArmWidget::ArmWidget(AnimationElbowFlexType sign) : type(sign)
     upperArmMat[M11] = upperArmMat[M22] = upperArmMat[M33] = upperArmMat[M44] = (GLfloat) 1.0;
 
     foreArmRefHeading = 0.0;
+
+    labelAndTable.resize(SIZE_OF_TEXT);
 }
 
 ArmWidget::~ArmWidget() {
@@ -348,33 +350,40 @@ void ArmWidget::sideView() {
     glPopMatrix();
 }
 
+const char* ArmWidget::text(TEXT_POSITION pos) const {
+
+    return labelAndTable.at(pos).c_str();
+}
+
 void ArmWidget::writeData() {
 
     glPushMatrix();
 
     //(x, y, z): " << rotmat[M11] << ", " << rotmat[M21] << ", " << rotmat[M31];
     // Flex: -90...270; Sup: -180...180; Dev: -90...90
-/*
-    renderText(-1.0, 3.65, 0.0, data->flex(position).c_str());
 
-    renderText( 2.0, 3.65, 0.0, data->time(position).c_str());
+    renderText(-1.0, 3.65, 0.0, text(FLEX_LABEL));
 
-    renderText( 5.0, 3.65, 0.0, data->sup(position).c_str());
+    renderText( 2.0, 3.65, 0.0, text(FRAME_LABEL));
 
-    renderText(-1.0, -2.85, 0.0, data->dev(position).c_str());
+    renderText( 5.0, 3.65, 0.0, text(SUP_LABEL));
+
+    renderText(-1.0, -2.85, 0.0, text(DEV_LABEL));
 
     renderText(2.5, -2.5, 0.0, "           begin / end / min / max / range  deg");
 
-    renderText(2.5, -3.0, 0.0, data->flex_info());
+    renderText(2.5, -3.0, 0.0, text(FLEX_LINE));
 
-    renderText(2.5, -3.5, 0.0, data->sup_info());
+    renderText(2.5, -3.5, 0.0, text(EXT_LINE));
 
-    renderText(2.5, -4.0, 0.0, data->pron_info());
+    renderText(2.5, -4.0, 0.0, text(SUP_LINE));
 
-    renderText(2.5, -4.5, 0.0, data->med_info());
+    renderText(2.5, -4.5, 0.0, text(PRON_LINE));
 
-    renderText(2.5, -5.0, 0.0, data->lat_info());
-*/
+    renderText(2.5, -5.0, 0.0, text(LAT_LINE));
+
+    renderText(2.5, -5.5, 0.0, text(MED_LINE));
+
     glPopMatrix();
 }
 
@@ -497,7 +506,7 @@ void ArmWidget::mousePressEvent(QMouseEvent * /* event */)
     emit clicked();
 }
 
-void ArmWidget::display(const std::map<int,gyro::matrix3>& matrices) {
+void ArmWidget::display(const std::map<int,gyro::matrix3>& matrices, const std::vector<std::string>& text) {
 
     if (matrices.empty()) {
 
@@ -516,6 +525,8 @@ void ArmWidget::display(const std::map<int,gyro::matrix3>& matrices) {
 
         updateMatrix(upperArmMat, i->second);
     }
+
+    labelAndTable = text;
 
     updateGL();
 }
