@@ -41,42 +41,59 @@
 #include "MatrixVector.hpp"
 #include "AngleRange.hpp"
 
+using gyro::matrix3;
+using std::string;
+using std::vector;
+
+typedef std::map<int,matrix3> Frame;      // Either forearm only or whole arm
+typedef vector<matrix3>       WholeFrame; // Whole arm
+typedef vector<Frame>         FrameVec;
+
+typedef ArmTriplet<double>     AngleTriplet;
+typedef ArmTriplet<AngleRange> RangeTriplet;
+
+
 class ArmAngles {
 
 public:
 
     static const ArmAngles left();
+
     static const ArmAngles right();
 
-    const std::vector<double> setHeading(const std::map<int,gyro::matrix3>& matrices);
+    const vector<double> setHeading(const Frame& matrices);
 
-    const std::vector<std::string> labels(const std::map<int,gyro::matrix3>& matrices, size_t frame, size_t size) const;
+    const vector<string> labels(const Frame& matrices, size_t frameIndex, size_t size) const;
 
-    const std::vector<std::string> table(std::vector<std::map<int,gyro::matrix3> >& frames) const;
+    const vector<string> table(const FrameVec& frames) const;
 
 private:
 
     ArmAngles(ElbowFlexSign s);
 
-    const std::vector<gyro::matrix3> fillUp(const std::map<int,gyro::matrix3>& matrices) const;
-    const std::vector<std::string> angleLabels(const std::vector<gyro::matrix3>& rotmat) const;
+    const AngleTriplet getAngles(const Frame& matrices) const;
 
-    double armFlex(const std::vector<gyro::matrix3>& rotmat) const;
-    double armDev(const std::vector<gyro::matrix3>& rotmat) const;
+    const WholeFrame headingCorrectedWholeFrame(const Frame& matrices) const;
 
-    const ArmTriplet<double> getAngles(const std::map<int,gyro::matrix3>& matrices) const;
-    std::vector<std::string>& fillTable(std::vector<std::string>& table, const ArmTriplet<AngleRange>& range) const;
+    double magneticHeading(const matrix3& m) const;
 
-    double flexion(const gyro::matrix3& m) const;
-    double supination(const gyro::matrix3& m) const;
-    double deviation(const gyro::matrix3& m) const;
+    const matrix3 heading2rotation(double heading) const;
 
-    double magneticHeading(const gyro::matrix3& m) const;
+    double armFlex(const WholeFrame& matrices) const;
 
-    const gyro::matrix3 heading2rotation(double heading) const;
+    double flexion(const matrix3& m) const;
 
-    const std::string angle2str(double angle, const char* positive, const char* negative) const;
-    const std::string frameLabel(int frame, size_t size) const;
+    double supination(const matrix3& m) const;
+
+    double armDev(const WholeFrame& matrices) const;
+
+    double deviation(const matrix3& m) const;
+
+    const string angle2str(double angle, const char* positive, const char* negative) const;
+
+    const string frameLabel(size_t frameIndex, size_t size) const;
+
+    vector<string>& fillTable(vector<string>& table, const RangeTriplet& ranges) const;
 
     const ElbowFlexSign sign;
 

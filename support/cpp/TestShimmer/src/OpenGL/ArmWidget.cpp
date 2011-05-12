@@ -81,7 +81,7 @@ ArmWidget::ArmWidget(AnimationElbowFlexType sign) : type(sign)
 
     foreArmRefHeading = 0.0;
 
-    labelAndTable.resize(SIZE_OF_TEXT);
+    labelsAndTable.resize(SIZE_OF_TEXT);
 }
 
 ArmWidget::~ArmWidget() {
@@ -352,7 +352,7 @@ void ArmWidget::sideView() {
 
 const char* ArmWidget::text(TEXT_POSITION pos) const {
 
-    return labelAndTable.at(pos).c_str();
+    return labelsAndTable.at(pos).c_str();
 }
 
 void ArmWidget::writeData() {
@@ -526,7 +526,7 @@ void ArmWidget::display(const std::map<int,gyro::matrix3>& matrices, const std::
         updateMatrix(upperArmMat, i->second);
     }
 
-    labelAndTable = text;
+    labelsAndTable = text;
 
     updateGL();
 }

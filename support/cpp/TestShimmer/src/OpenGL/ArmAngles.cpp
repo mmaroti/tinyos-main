@@ -60,69 +60,20 @@ ArmAngles::ArmAngles(ElbowFlexSign s) : sign(s) {
     heading[FOREARM] = heading[UPPERARM] = 0.0;
 }
 
-const vector<double> ArmAngles::setHeading(const map<int,matrix3>& matrices) {
+const vector<double> ArmAngles::setHeading(const Frame& matrices) {
 
-    typedef map<int,matrix3>::const_iterator itr;
+    typedef Frame::const_iterator itr;
 
     int k=0;
 
     for (itr i=matrices.begin(); i!=matrices.end() && k<2; ++i, ++k) {
 
-        heading[k] = magneticHeading(i->second) + 90.0;
+        const matrix3& rotMat = i->second;
+
+        heading[k] = magneticHeading(rotMat) + 90.0;
     }
 
     return vector<double>(heading, heading+2);
-}
-
-double ArmAngles::flexion(const matrix3& m) const {
-
-    double flex = atan2(m[X][Y], -m[Y][Y])*RAD2DEG + 90.0;
-
-    if (flex > 180.0) {
-
-        flex -= 360.0;
-    }
-
-    return flex;
-}
-
-double ArmAngles::supination(const matrix3& m) const {
-
-    return -atan2(m[Z][X],m[Z][Z])*RAD2DEG*(sign.sup);
-}
-
-double ArmAngles::deviation(const matrix3& m) const {
-
-    return (acos(m[Z][Y])-PI_HALF)*RAD2DEG*(sign.dev);
-}
-
-const string ArmAngles::angle2str(double angle, const char* positive, const char* negative) const {
-
-    ostringstream os;
-
-    os << setprecision(1) << fixed;
-
-    if (angle >= 0.0) {
-
-        os << positive << ": ";
-    }
-    else {
-
-        os << negative << ": ";
-    }
-
-    os << abs(angle) << " deg";
-
-    return os.str();
-}
-
-const string ArmAngles::frameLabel(int frame, size_t size) const {
-
-    ostringstream os;
-
-    os << "Frame: " << frame << " of " << size;
-
-    return os.str();
 }
 
 double ArmAngles::magneticHeading(const matrix3& rotMat) const {
@@ -150,59 +101,47 @@ const matrix3 ArmAngles::heading2rotation(double heading) const {
                     0.0,   s,   c );
 }
 
-double ArmAngles::armFlex(const vector<matrix3>& rotmat) const {
+const vector<string> ArmAngles::labels(const Frame& matrices, size_t index, size_t size) const {
 
-    double upperFlex = flexion(rotmat.at(UPPERARM));
+    const AngleTriplet t = getAngles(matrices);
 
-    double foreFlex  = flexion(rotmat.at(FOREARM));
+    vector<string> label;
 
-    double flex = foreFlex - upperFlex;
+    label.push_back(angle2str(t.flex, "Flex", "Ext"));
 
-    if (flex > 180) {
+    label.push_back(angle2str(t.sup, "Sup","Pron"));
 
-        flex -= 360;
-    }
-    else if (flex < -180) {
+    label.push_back(angle2str(t.dev, "Lat dev", "Med dev"));
 
-        flex += 360;
-    }
+    label.push_back(frameLabel(index, size));
 
-    return flex;
+    return label;
 }
 
-double ArmAngles::armDev(const vector<matrix3>& rotmat) const {
+const AngleTriplet ArmAngles::getAngles(const Frame& mat) const {
 
-    double foreDev  = deviation(rotmat.at(FOREARM));
+    WholeFrame matrices = headingCorrectedWholeFrame(mat);
 
-    double upperDev = deviation(rotmat.at(UPPERARM));
+    AngleTriplet t;
 
-    return (fabs(foreDev) > fabs(upperDev) ) ? foreDev : upperDev;
-}
+    t.flex   = armFlex(matrices);
 
-const ArmTriplet<double> ArmAngles::getAngles(const map<int,matrix3>& matrices) const {
+    t.sup    = supination(matrices.at(FOREARM));
 
-    vector<matrix3> rotmat = fillUp(matrices);
-
-    ArmTriplet<double> t;
-
-    t.flex   = armFlex(rotmat);
-
-    t.sup    = supination(rotmat.at(FOREARM));
-
-    t.dev = armDev(rotmat);
+    t.dev    = armDev(matrices);
 
     return t;
 }
 
-const vector<matrix3> ArmAngles::fillUp(const map<int,matrix3>& mat) const {
+const WholeFrame ArmAngles::headingCorrectedWholeFrame(const Frame& mat) const {
 
-    typedef map<int,matrix3>::const_iterator itr;
+    typedef Frame::const_iterator itr;
 
     itr i   = mat.begin();
 
     itr end = mat.end();
 
-    vector<matrix3> matrices;
+    WholeFrame matrices;
 
     for (int k=0; k<2; ++k) {
 
@@ -225,24 +164,87 @@ const vector<matrix3> ArmAngles::fillUp(const map<int,matrix3>& mat) const {
     return matrices;
 }
 
-const vector<string> ArmAngles::labels(const map<int,matrix3>& matrices, size_t frame, size_t size) const {
+double ArmAngles::armFlex(const WholeFrame& matrices) const {
 
-    const ArmTriplet<double> t = getAngles(matrices);
+    double upperFlex = flexion(matrices.at(UPPERARM));
 
-    vector<string> label;
+    double foreFlex  = flexion(matrices.at(FOREARM));
 
-    label.push_back(angle2str(t.flex, "Flex", "Ext"));
+    double flex = foreFlex - upperFlex;
 
-    label.push_back(angle2str(t.sup, "Sup","Pron"));
+    if (flex > 180) {
 
-    label.push_back(angle2str(t.dev, "Lat dev", "Med dev"));
+        flex -= 360;
+    }
+    else if (flex < -180) {
 
-    label.push_back(frameLabel(frame, size));
+        flex += 360;
+    }
 
-    return label;
+    return flex;
 }
 
-const vector<string> ArmAngles::table(vector<map<int,matrix3> >& frames) const {
+double ArmAngles::flexion(const matrix3& m) const {
+
+    double flex = atan2(m[X][Y], -m[Y][Y])*RAD2DEG + 90.0;
+
+    if (flex > 180.0) {
+
+        flex -= 360.0;
+    }
+
+    return flex;
+}
+
+double ArmAngles::supination(const matrix3& m) const {
+
+    return -atan2(m[Z][X],m[Z][Z])*RAD2DEG*(sign.sup);
+}
+
+double ArmAngles::armDev(const WholeFrame& matrices) const {
+
+    double foreDev  = deviation(matrices.at(FOREARM));
+
+    double upperDev = deviation(matrices.at(UPPERARM));
+
+    return (fabs(foreDev) > fabs(upperDev) ) ? foreDev : upperDev;
+}
+
+double ArmAngles::deviation(const matrix3& m) const {
+
+    return (acos(m[Z][Y])-PI_HALF)*RAD2DEG*(sign.dev);
+}
+
+const string ArmAngles::angle2str(double angle, const char* positive, const char* negative) const {
+
+    ostringstream os;
+
+    os << setprecision(1) << fixed;
+
+    if (angle >= 0.0) {
+
+        os << positive << ": ";
+    }
+    else {
+
+        os << negative << ": ";
+    }
+
+    os << abs(angle) << " deg";
+
+    return os.str();
+}
+
+const string ArmAngles::frameLabel(size_t frameIndex, size_t size) const {
+
+    ostringstream os;
+
+    os << "Frame: " << ((size==0)?0:frameIndex+1) << " of " << size;
+
+    return os.str();
+}
+
+const vector<string> ArmAngles::table(const FrameVec& frames) const {
 
     vector<string> table(6); // TODO Knows size... program crash if not updated properly
 
@@ -251,7 +253,7 @@ const vector<string> ArmAngles::table(vector<map<int,matrix3> >& frames) const {
         return table;
     }
 
-    ArmTriplet<double> t = getAngles(frames.at(0));
+    AngleTriplet t = getAngles(frames.at(0));
 
     AngleRange flex(t.flex), sup(t.sup), dev(t.dev);
 
@@ -264,10 +266,10 @@ const vector<string> ArmAngles::table(vector<map<int,matrix3> >& frames) const {
          dev.next(t.dev);
     }
 
-    return fillTable(table, ArmTriplet<AngleRange>(flex, sup, dev));
+    return fillTable(table, RangeTriplet(flex, sup, dev));
 }
 
-vector<string>& ArmAngles::fillTable(vector<string>& table, const ArmTriplet<AngleRange>& t) const
+vector<string>& ArmAngles::fillTable(vector<string>& table, const RangeTriplet& t) const
 {
 
     table.at(0) = t.flex.toPositiveLine("Flex ");

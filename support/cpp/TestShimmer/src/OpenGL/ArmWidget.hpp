@@ -141,7 +141,7 @@ private:
     double foreArmRefHeading;
     double upperArmRefHeading;
 
-    std::vector<std::string> labelAndTable;
+    std::vector<std::string> labelsAndTable;
 };
 
 #endif // ARMWIDGET_HPP
