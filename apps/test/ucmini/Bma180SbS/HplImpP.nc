@@ -11,8 +11,8 @@ module HplImpP {
 implementation {
 
   async command void SPI.initMaster() {
-    UBRR0H = 0;
-    UBRR0L = 0;
+    //UBRR0H = 0;
+    //UBRR0L = 0;
 
     call SCK.makeOutput();    
     call SS.makeOutput();
@@ -99,10 +99,12 @@ implementation {
  /* UCPOL bit */
   async command void SPI.setClockPolarity(bool highWhenIdle) {
     if (highWhenIdle) {
-      SET_BIT(UCSR0C, UCPOL0);
+      //SET_BIT(UCSR0C, UCPOL0);
+      UCSR0C |= (1 << UCPOL0) | (1 << UMSEL01) | (1 << UMSEL00);
     }
     else {
-      CLR_BIT(UCSR0C, UCPOL0);
+      //CLR_BIT(UCSR0C, UCPOL0);
+      UCSR0C |= (1 << UMSEL01) | (1 << UMSEL00);
     }
   }
   
@@ -113,10 +115,12 @@ implementation {
    /* UCPHA bit */
   async command void SPI.setClockPhase(bool sampleOnTrailing) {
     if (sampleOnTrailing) {
-      SET_BIT(UCSR0C, UCPHA0);
+      //SET_BIT(UCSR0C, UCPHA0);
+      UCSR0C |= (1 << UCPHA0) | (1 << UMSEL01) | (1 << UMSEL00);
     }
     else {call SCK.makeOutput();
-      CLR_BIT(UCSR0C, UCPHA0);
+      //CLR_BIT(UCSR0C, UCPHA0);
+      UCSR0C |= (1 << UMSEL01) | (1 << UMSEL00);
     }
   }
   async command bool SPI.getClockPhase() {
@@ -124,11 +128,11 @@ implementation {
   }
 
   async command uint8_t SPI.getClock () {                
-    return PLATFORM_MHZ * 1000000 / (2* UBRR0 +1);
+    return PLATFORM_MHZ * 1000 / (2* UBRR0 +1);
   }
   
-  async command void SPI.setClock (uint8_t Mbps) {
-    UBRR0 = (PLATFORM_MHZ * 1000000 / (2 * (uint32_t)Mbps * 1000000)) - 1;
+  async command void SPI.setClock (uint8_t Kbps) {
+    UBRR0 = (((uint32_t)PLATFORM_MHZ * 1000000) / (2 * (uint32_t)Kbps * 1000)) - 1;
   }
 
   async command bool SPI.hasWriteCollided() {
