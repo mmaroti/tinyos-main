@@ -46,7 +46,7 @@ namespace {
     const double PI_HALF = 1.57079632679;
 }
 
-// TODO Forearm upper arm ref heading; upper arm matrix in flex and dev
+// TODO upper arm matrix in flex and dev
 
 const ArmAngles ArmAngles::left() {
 
@@ -63,7 +63,6 @@ ArmAngles::ArmAngles(ElbowFlexSign s) : sign(s) {
     heading[FOREARM] = heading[UPPERARM] = 0.0;
 }
 
-// TODO Rotate to reference here? Move rotation from the ArmWidget to here?
 void ArmAngles::dumpAngles(const map<int,matrix3>& matrices) const {
 
     if (matrices.empty()) {
@@ -77,7 +76,7 @@ void ArmAngles::dumpAngles(const map<int,matrix3>& matrices) const {
 
     cout << "Forearm" << endl;
 
-    angles2stdout(i->second);
+    angles2stdout( heading2rotation(heading[FOREARM])*(i->second) );
 
     ++i;
 
@@ -88,7 +87,7 @@ void ArmAngles::dumpAngles(const map<int,matrix3>& matrices) const {
 
     cout << "Upper arm" << endl;
 
-    angles2stdout(i->second);
+    angles2stdout( heading2rotation(heading[UPPERARM])*(i->second) );
 }
 
 const vector<double> ArmAngles::setHeading(const map<int,matrix3>& matrices) {
@@ -173,6 +172,18 @@ double ArmAngles::magneticHeading(const gyro::matrix3& rotMat) const {
     cout << heading << endl << endl;
 
     return heading;
+}
+
+const matrix3 ArmAngles::heading2rotation(double heading) const {
+
+    const double headingRAD = heading / RAD2DEG;
+
+    const double s = sin(headingRAD); // All trigonometric computations could have been
+    const double c = cos(headingRAD); // avoided here and in magneticHeading()
+
+    return matrix3( 1.0, 0.0, 0.0,
+                    0.0,   c,  -s,
+                    0.0,   s,   c );
 }
 
 void ArmAngles::angles2stdout(const gyro::matrix3& m) const {

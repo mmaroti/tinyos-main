@@ -63,6 +63,8 @@ private:
 
     double magneticHeading(const gyro::matrix3& m) const;
 
+    const gyro::matrix3 heading2rotation(double heading) const;
+
     const std::string flexStr(const gyro::matrix3& m) const;
     const std::string supStr(const gyro::matrix3& m) const;
     const std::string devStr(const gyro::matrix3& m) const;
