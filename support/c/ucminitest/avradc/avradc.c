@@ -10,7 +10,11 @@
 volatile int Z = 0;
 volatile int Y = 0;
 volatile int X = 0;
- 
+/**
+ * channel: see datasheet page 429
+ * ref: 0:AREF, 1: AVDD (1.8V), 2: internal 1.5V (no ext. capacitor), 3: internal 1.6V (no ext. capacitor)
+ * prescaler: 0-1: 2; 2: 4; 3: 8; 4: 16; 5: 32; 6: 64; 7: 128;
+ */
 void Konfig10bitADC(uint8_t channel, uint8_t ref, uint8_t prescaler)        // ADC konfiguralas (beallitas)
 {
 	ADMUX |= (channel&0x0f);
@@ -58,6 +62,28 @@ void UARTAdatKuld(char data) // Ez a fuggveny a kuldendo adatot beirja az UDR re
 	}
 	// Az Ado mar kesz az adatkuldesre, a kuldendo adatot a kimeno pufferjebe irjuk
 	UDR1=data;
+}
+
+void ledset(uint8_t leds)
+{
+  DDRD|=1<<5|1<<6|1<<7;
+  DDRE|=1<<3;
+  if(leds&1)
+    PORTD|=1<<7;
+  else
+    PORTD&=~(1<<7);
+  if(leds&2)
+    PORTD|=1<<6;
+  else
+    PORTD&=~(1<<6);
+  if(leds&4)
+    PORTD|=1<<5;
+  else
+    PORTD&=~(1<<5);
+  if(leds&8)
+    PORTE|=1<<3;
+  else
+    PORTE&=~(1<<3);
 }
  
 int main(void)  // Foprogram
