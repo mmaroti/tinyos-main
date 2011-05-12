@@ -34,6 +34,8 @@
 #ifndef ANGLERANGE_HPP
 #define ANGLERANGE_HPP
 
+#include <string>
+
 class AngleRange {
 
 public:
@@ -41,6 +43,8 @@ public:
     AngleRange() { v[0] = v[1] = v[2] = v[3] = 0.0; }
 
     explicit AngleRange(double beg) { v[0] = v[1] = v[2] = v[3] = beg; }
+
+    const std::string str(const char* name) const;
 
     void next(double x);
 

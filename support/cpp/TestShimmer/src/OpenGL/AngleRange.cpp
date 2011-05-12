@@ -31,6 +31,7 @@
 * Author: Ali Baharev
 */
 
+#include <sstream>
 #include "AngleRange.hpp"
 
 void AngleRange::next(double x) {
@@ -69,4 +70,15 @@ const AngleRange AngleRange::negative() const {
     }
 
     return res;
+}
+
+const std::string AngleRange::str(const char* name) const {
+
+    std::ostringstream os;
+
+    os << name << " " << beg() << " / " << end() << " / ";
+
+    os << min() << " / " << max() << " / " << range();
+
+    return os.str();
 }

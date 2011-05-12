@@ -95,9 +95,7 @@ void ArmAngles::dumpAngles(const map<int,matrix3>& matrices) const {
         rotmat.push_back( matrix3(0, -1, 0, 1, 0, 0, 0, 0, 1) );
     }
 
-    //angles2stdout( rotmat.at(1) );
-
-    anglesForArm(rotmat);
+    angles2stdout( rotmat.at(1) );
 }
 
 const vector<double> ArmAngles::setHeading(const map<int,matrix3>& matrices) {
@@ -210,11 +208,11 @@ void ArmAngles::angles2stdout(const gyro::matrix3& m) const {
     cout << endl;
 }
 
-void ArmAngles::anglesForArm(const vector<matrix3>& rotmat) const {
+double ArmAngles::armFlex(const std::vector<gyro::matrix3>& rotmat) const {
 
     double upperFlex = flexion(rotmat.at(UPPERARM));
 
-    double foreFlex = flexion(rotmat.at(FOREARM));
+    double foreFlex  = flexion(rotmat.at(FOREARM));
 
     double flex = foreFlex - upperFlex;
 
@@ -227,16 +225,113 @@ void ArmAngles::anglesForArm(const vector<matrix3>& rotmat) const {
         flex += 360;
     }
 
-    double sup = supination(rotmat.at(FOREARM));
+    return flex;
+}
+
+double ArmAngles::armDev(const std::vector<gyro::matrix3>& rotmat) const {
 
     double foreDev  = deviation(rotmat.at(FOREARM));
 
     double upperDev = deviation(rotmat.at(UPPERARM));
 
-    double maxDev = (fabs(foreDev) > fabs(upperDev) ) ? foreDev : upperDev;
+    return (fabs(foreDev) > fabs(upperDev) ) ? foreDev : upperDev;
+}
 
-    cout << "Flex: " << flex << endl;
-    cout << "Sup:  " << sup << endl;
-    cout << "Dev:  " << maxDev << endl;
-    cout << endl;
+const ArmAngles::Triplet ArmAngles::getAngles(const std::map<int,gyro::matrix3>& matrices) const {
+
+    vector<matrix3> rotmat = fillUp(matrices);
+
+    Triplet t;
+
+    t.flex   = armFlex(rotmat);
+
+    t.sup    = supination(rotmat.at(FOREARM));
+
+    t.dev = armDev(rotmat);
+
+    return t;
+}
+
+const vector<matrix3> ArmAngles::fillUp(const map<int,matrix3>& mat) const {
+
+    typedef map<int,matrix3>::const_iterator itr;
+
+    itr i   = mat.begin();
+
+    itr end = mat.end();
+
+    vector<matrix3> matrices;
+
+    for (int k=0; k<2; ++k) {
+
+        matrix3 m;
+
+        if (i!=end) {
+            m = heading2rotation(heading[k])*(i->second);
+            ++i;
+        }
+
+        else {
+            m = matrix3(0, -1, 0, 1, 0, 0, 0, 0, 1);
+        }
+
+        matrices.push_back(m);
+    }
+
+    return matrices;
+}
+
+const std::vector<std::string> ArmAngles::labels(const std::map<int,gyro::matrix3>& matrices) const {
+
+    const Triplet t = getAngles(matrices);
+
+    vector<string> label;
+
+    label.push_back(angle2str(t.flex, "Flex", "Ext"));
+
+    label.push_back(angle2str(t.sup, "Sup","Pron"));
+
+    label.push_back(angle2str(t.dev, "Lat dev", "Med dev"));
+
+    return label;
+}
+
+const vector<string> ArmAngles::table(vector<map<int,matrix3> >& frames) const {
+
+    vector<string> table(6);
+
+    if (frames.empty()) {
+
+        return table;
+    }
+
+    Triplet t = getAngles(frames.at(0));
+
+    AngleRange flex(t.flex), sup(t.sup), dev(t.dev);
+
+    for (size_t i=1; i<frames.size(); ++i) {
+
+        t = getAngles(frames.at(i));
+
+        flex.next(t.flex);
+        sup.next(t.sup);
+        dev.next(t.dev);
+    }
+
+    return fillTable(table, flex, sup, dev);
+}
+
+vector<std::string>& ArmAngles::fillTable(vector<string>& table,
+                               const AngleRange& flex,
+                               const AngleRange& sup,
+                               const AngleRange& dev) const
+{
+    table.at(0) = flex.positive().str("Flex ");
+    table.at(1) = flex.negative().str("Ext ");
+    table.at(2) = sup.positive().str("Sup ");
+    table.at(3) = sup.negative().str("Pron ");
+    table.at(4) = dev.positive().str("Lat dev ");
+    table.at(5) = dev.negative().str("Med dev ");
+
+    return table;
 }
