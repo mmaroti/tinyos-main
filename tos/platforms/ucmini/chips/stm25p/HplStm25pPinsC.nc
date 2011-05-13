@@ -48,12 +48,11 @@ implementation {
 
   components HplAtm128GeneralIOC as IO;
   components new NoPinC();
-  CSN = IO.PortB0;
-//   #if UCMINI_REV<100
-//     CSN = IO.PortB4;
-//   #else
-//     CSN = IO.PortB0;
-//   #endif
+  #if (UCMINI_REV==49||UCMINI_REV==52||UCMINI_REV==53)
+    CSN = IO.PortB4;
+  #else
+    CSN = IO.PortB0;
+  #endif
   Hold = NoPinC;
 
 }
