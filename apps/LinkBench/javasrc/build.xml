@@ -53,6 +53,7 @@
 		<echo message="Generating TinyOS message classes (Mig)" />
 		
 		<exec executable="mig" failonerror="true">
+			<arg value="-target=iris" />
 			<arg value="-o" />
 			<arg path="${src-common}/StatT.java" />
 			<arg value="-java-classname=${java-package}.StatT" />
@@ -62,6 +63,7 @@
 		</exec>
 		
 		<exec executable="mig" failonerror="true">
+			<arg value="-target=iris" />
 			<arg value="-o" />
 			<arg path="${src-common}/ProfileT.java" />
 			<arg value="-java-classname=${java-package}.ProfileT" />
@@ -71,6 +73,7 @@
 		</exec>
 		
 		<exec executable="mig" failonerror="true">
+			<arg value="-target=iris" />
 			<arg value="-o" />
 			<arg path="${src-common}/SetupT.java" />
 			<arg value="-java-classname=${java-package}.SetupT" />
@@ -80,6 +83,7 @@
 		</exec>
 		
 		<exec executable="mig" failonerror="true">
+			<arg value="-target=iris" />
 			<arg value="-o" />
 			<arg path="${src-common}/CtrlMsgT.java" />
 			<arg value="-java-classname=${java-package}.CtrlMsgT" />
@@ -89,6 +93,7 @@
 		</exec>
 		
 		<exec executable="mig" failonerror="true">
+			<arg value="-target=iris" />
 			<arg value="-o" />
 			<arg path="${src-common}/SyncMsgT.java" />
 			<arg value="-java-classname=${java-package}.SyncMsgT" />
@@ -98,6 +103,7 @@
 		</exec>
 		
 		<exec executable="mig" failonerror="true">
+			<arg value="-target=iris" />
 			<arg value="-o" />
 			<arg path="${src-common}/SetupMsgT.java" />
 			<arg value="-java-classname=${java-package}.SetupMsgT" />
@@ -107,6 +113,7 @@
 		</exec>
 		
 		<exec executable="mig" failonerror="true">
+			<arg value="-target=iris" />
 			<arg value="-o" />
 			<arg path="${src-common}/DataMsgT.java" />
 			<arg value="-java-classname=${java-package}.DataMsgT" />
@@ -116,7 +123,7 @@
 		</exec>
 
 		<exec executable="ncg" failonerror="true">
-			<arg line="-o ${src-common}/BenchmarkStatic.java -java-classname=${java-package}.BenchmarkStatic java ${basedir}/../Messages.h MAX_TIMER_COUNT SETUP_BASE CTRL_SETUP_SYN SYNC_SETUP_ACK CTRL_START CTRL_RESET CTRL_STAT_REQ DATA_STAT_OK CTRL_PROFILE_REQ DATA_PROFILE_OK GLOBAL_USE_ACK GLOBAL_USE_BCAST GLOBAL_USE_MAC_LPL GLOBAL_USE_MAC_PLINK LPL_WAKEUP_OFFSET PLINK_RETRIES_OFFSET PLINK_DELAY_OFFSET MAC_SETUP_LENGTH" />
+			<arg line="-target=iris -o ${src-common}/BenchmarkStatic.java -java-classname=${java-package}.BenchmarkStatic java ${basedir}/../Messages.h MAX_TIMER_COUNT SETUP_BASE CTRL_SETUP_SYN SYNC_SETUP_ACK CTRL_START CTRL_RESET CTRL_STAT_REQ DATA_STAT_OK CTRL_PROFILE_REQ DATA_PROFILE_OK GLOBAL_USE_ACK GLOBAL_USE_BCAST GLOBAL_USE_MAC_LPL GLOBAL_USE_MAC_PLINK LPL_WAKEUP_OFFSET PLINK_RETRIES_OFFSET PLINK_DELAY_OFFSET MAC_SETUP_LENGTH" />
 		</exec>
 		
 	</target>
