@@ -12,13 +12,13 @@ CFLAGS += -DMAX_EDGE_COUNT=8
 
 # exclude the standard benchmarks (or a part of it) from the problemset
 # for low-memory platforms like telosa it might be necessary
-CFLAGS += -DEXCLUDE_STANDARD
+#CFLAGS += -DEXCLUDE_STANDARD
 #CFLAGS += -DEXCLUDE_STANDARD_THROUGHPUT
 #CFLAGS += -DEXCLUDE_STANDARD_COLLISION
 #CFLAGS += -DEXCLUDE_STANDARD_FORWARDING
 
 # exclude the user defined benchmarks from the problemset
-#CFLAGS += -DEXCLUDE_USERDEFINED
+CFLAGS += -DEXCLUDE_USERDEFINED
 
 # codeprofile, tossim support
 CFLAGS += -Icodeprofile
