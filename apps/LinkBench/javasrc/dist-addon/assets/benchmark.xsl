@@ -85,9 +85,9 @@
         </tr>
         <tr>
           <td class="sub"><strong>Mote</strong></td>
-          <td class="sub">Max Atomic</td>
-          <td class="sub">Max Interrupt</td>
-          <td class="sub">Max Latency</td>
+          <td class="sub">Min/Max Atomic</td>
+          <td class="sub">Min/Max Interrupt</td>
+          <td class="sub">Min/Max Latency</td>
           <td class="sub">RxTx Time</td>
           <td class="sub">Radio Start cnt</td>
           <td class="sub">Total Msg cnt</td>
@@ -296,13 +296,13 @@
 
 <xsl:template match="profile">
  
-          <td class="rt_data cprofile"><xsl:value-of select="MAT"/></td>
-          <td class="rt_data cprofile"><xsl:value-of select="MINT"/></td>
-          <td class="rt_data cprofile"><xsl:value-of select="MLAT"/></td>
+          <td class="rt_data cprofile"><xsl:value-of select="MINAT"/> / <xsl:value-of select="MAT"/></td>
+          <td class="rt_data cprofile"><xsl:value-of select="MININT"/> / <xsl:value-of select="MINT"/></td>
+          <td class="rt_data cprofile"><xsl:value-of select="MINLAT"/> / <xsl:value-of select="MLAT"/></td>
 
           <td class="rt_data rprofile"><xsl:value-of select="RXTX"/></td>
           <td class="rt_data rprofile"><xsl:value-of select="RST"/></td>
-          <td class="rt_data rprofile"><xsl:value-of select="MSGC"/></td>
+          <td class="rt_data rprofile"><xsl:value-of select="RXMSGS"/></td>
           <td class="rt_data rprofile"><xsl:value-of select="RXB"/></td>
           <td class="rt_data rprofile"><xsl:value-of select="TXB"/></td>
           
