@@ -111,6 +111,8 @@ private:
     Map matrices;
     std::vector<Map> frames;
     size_t frameIndex;
+
+    bool saved;
 };
 
 #endif // RECWINDOW_HPP

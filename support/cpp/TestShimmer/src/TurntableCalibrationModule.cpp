@@ -28,8 +28,8 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: MiklÃ³s MarÃ³ti
+* Author: PÃ©ter Ruzicska
 */
 
 #include "TurntableCalibrationModule.h"
@@ -446,10 +446,10 @@ QString TurntableCalibrationModule::LSF() {
 
     QString returnMessage = "";
 
-    if ( solution->getMaximumError() > 0.1 ) {
+    if ( solution->getMaximumError() > 0.2 ) {
         msgBox.setText("Calibration Error! See console for details...");
         msgBox.exec();
-        returnMessage = "Maximum Error is too great! ( > 0.1 )  \n";
+        returnMessage = "Maximum error is larger than threshold! ( > 0.2 )  \n";
         return returnMessage;
     } else {
         for (unsigned int i = 0; i < linearEquations.getVariableCount(); i++) {

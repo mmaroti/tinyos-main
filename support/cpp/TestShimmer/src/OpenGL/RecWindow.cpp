@@ -94,6 +94,8 @@ void RecWindow::setCapturingState() {
 
     matrices.clear();
 
+    saved = false;
+
     setReferenceButton->setEnabled(true);
     captureButton->setEnabled(true);
     finishedButton->setEnabled(true);
@@ -101,9 +103,10 @@ void RecWindow::setCapturingState() {
     nextFrameButton->setDisabled(true);
     dropFrameButton->setDisabled(true);
     saveButton->setDisabled(true);
-    clearButton->setDisabled(true);
 
-    captureButton->setFocus();
+    clearButton->setEnabled(true);
+
+    setReferenceButton->setFocus();
 }
 
 void RecWindow::setEditingState() {
@@ -116,11 +119,13 @@ void RecWindow::setEditingState() {
 
     nextFrameButton->setEnabled(true);
     dropFrameButton->setEnabled(true);
-    saveButton->setEnabled(true);
+    saveButton->setEnabled(true);    
     clearButton->setEnabled(true);
 
     frameIndex = 0;
     displayCurrentFrame();
+
+    saved = false;
 
     nextFrameButton->setFocus();
 }
@@ -152,6 +157,7 @@ void RecWindow::setupConnections() {
     connect(finishedButton,     SIGNAL(clicked()), SLOT(finishedClicked()));
     connect(nextFrameButton,    SIGNAL(clicked()), SLOT(nextFrameClicked()));
     connect(dropFrameButton,    SIGNAL(clicked()), SLOT(dropFrameClicked()));
+    connect(saveButton,         SIGNAL(clicked()), SLOT(saveClicked()));
     connect(clearButton,        SIGNAL(clicked()), SLOT(clearClicked()));
 }
 
@@ -211,12 +217,16 @@ void RecWindow::setReferenceClicked() {
     std::vector<double> headings = calculator.setHeading(matrices);
 
     widget->setReference(headings);
+
+    captureButton->setFocus();
 }
 
 void RecWindow::captureClicked() {
 
     // Check matrices.size()
     frames.push_back(matrices);
+
+    setReferenceButton->setDisabled(true);
 }
 
 void RecWindow::finishedClicked() {
@@ -241,6 +251,8 @@ void RecWindow::dropFrameClicked() {
         return;
     }
 
+    saved = false;
+
     typedef std::vector<Map>::iterator itr;
 
     itr pos = frames.begin()+frameIndex;
@@ -263,11 +275,20 @@ void RecWindow::dropFrameClicked() {
 
 void RecWindow::saveClicked() {
 
+    if (!frames.empty()) {
+
+        // TODO Push to SQLite database
+    }
+    else {
+        // Warning? Nothing to save?
+    }
+
+    saved = true;
 }
 
 void RecWindow::clearClicked() {
 
-    if (frames.empty() || areYouSure("Dropping all frames.")) {
+    if (frames.empty() || saved || areYouSure("Dropping all frames.")) {
 
         setCapturingState();
     }

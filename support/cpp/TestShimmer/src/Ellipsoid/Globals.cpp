@@ -61,11 +61,10 @@ void connect_Ellipsoid_AccelMagMsgReceiver() {
         return;
     }
 
-    bool success = QObject::connect(accelMagMsgReceiver, SIGNAL(newSample(const AccelMagSample )),
-                                    ellipsoid,           SLOT(onNewSampleReceived(const AccelMagSample )),
-                                    Qt::UniqueConnection);
+    QObject::connect(accelMagMsgReceiver, SIGNAL(newSample(const AccelMagSample )),
+                     ellipsoid,           SLOT(onNewSampleReceived(const AccelMagSample )),
+                     Qt::UniqueConnection);
 
-    Q_ASSERT(success);
 }
 
 void disconnect_Ellipsoid_AccelMagMsgReceiver() {
