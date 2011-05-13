@@ -169,7 +169,7 @@ implementation{
 		#endif	
 		if(error==SUCCESS){
 			current_addr=0;
-			//minAddress.valid=FALSE;
+			minAddress.address=0;
 		}
 		if(status==ERASE_PENDING)
 			status=NORMAL;
