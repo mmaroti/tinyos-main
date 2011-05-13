@@ -34,27 +34,23 @@
 
 configuration PlatformC
 {
-	provides
-	{
-		interface Init;
+  provides
+  {
+    interface Init;
+    // TODO: this should be moved to McuInit, but HplAtm128UartC wants it here
+    interface Atm128Calibrate;
+  }
 
-		// TODO: this should be moved to McuInit, but HplAtm128UartC wants it here
-		interface Atm128Calibrate;
-	}
-
-	uses
-	{
-		interface Init as LedsInit;
-	}
+  uses
+  {
+    interface Init as LedsInit;
+  }
 
 }
 implementation
 {
-	components PlatformP, McuInitC, MeasureClockC, RFA1RadioOffP, Stm25pOffC;
+  components PlatformP, McuInitC, MeasureClockC, RFA1RadioOffP, Stm25pOffC;
   components HplAtm128GeneralIOC;
-  #if (UCMINI_REV==49) || (UCMINI_REV==52)
-    PlatformP.SpiSSN -> HplAtm128GeneralIOC.PortB0;
-  #endif
   #if UCMINI_REV==49
     PlatformP.Voltmeter -> HplAtm128GeneralIOC.PortF0;
   #endif  
@@ -64,11 +60,11 @@ implementation
     PlatformP.VMeasureBridge -> HplAtm128GeneralIOC.PortD6;
   #endif
 
-	Init = PlatformP;
-	Atm128Calibrate = MeasureClockC;
+  Init = PlatformP;
+  Atm128Calibrate = MeasureClockC;
 
-	LedsInit = PlatformP.LedsInit;
-	PlatformP.McuInit -> McuInitC;
+  LedsInit = PlatformP.LedsInit;
+  PlatformP.McuInit -> McuInitC;
 
    PlatformP.RadioInit -> RFA1RadioOffP.RFA1RadioOff;
    PlatformP.Stm25pInit -> Stm25pOffC.Stm25pOff;
