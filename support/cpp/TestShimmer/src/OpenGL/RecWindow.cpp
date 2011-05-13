@@ -162,10 +162,21 @@ void RecWindow::keyPressEvent(QKeyEvent * event) {
     }
 }
 
-void RecWindow::updateMatrix(int mote, const gyro::matrix3 rotMat) {
+// TODO Samples should calibrate themselves and save raw samples?
+void RecWindow::updateMatrix(const AccelMagSample sample) {
 
-    // TODO Move all calibration-related stuff here and save raw samples as well
+    if (!sample.isStatic()) {
+
+        return;
+    }
+
+    const int mote = sample.moteID();
+
+    const matrix3 rotMat = sample.toRotationMatrix();
+
     matrices[mote] = rotMat;
+
+    // TODO Save sample!
 
     display();
 }

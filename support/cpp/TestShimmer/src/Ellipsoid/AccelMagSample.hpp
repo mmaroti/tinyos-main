@@ -63,6 +63,10 @@ public:
 
     double temperature() const { return temp; }
 
+    bool isStatic() const;
+
+    const gyro::matrix3 toRotationMatrix() const;
+
     const QString timeStr() const;
 
     const QString accelStr() const;

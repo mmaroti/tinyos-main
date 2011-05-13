@@ -87,3 +87,45 @@ const QString AccelMagSample::tempStr() const {
     return QString::number(temp);
 }
 
+bool AccelMagSample::isStatic() const {
+
+    const double x_length = accel.length();
+
+    if (x_length > 1.06 || x_length < 0.94) {
+
+        return false;
+    }
+
+    const double y_length = cross_product(accel, mag).length();
+
+    if (y_length==0.0) {
+
+        return false;
+    }
+
+    return true;
+}
+
+const gyro::matrix3 AccelMagSample::toRotationMatrix() const {
+
+    if (!isStatic()) {
+
+        Q_ASSERT(false);
+
+        return matrix3();
+    }
+
+    vector3 x = accel;
+
+    x /= x.length();
+
+    vector3 y = cross_product(x, mag);
+
+    y /= y.length();
+
+    vector3 z = cross_product(x, y);
+
+    z /= z.length();
+
+    return matrix3(x, y, z);
+}

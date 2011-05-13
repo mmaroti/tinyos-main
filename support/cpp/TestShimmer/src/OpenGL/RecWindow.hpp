@@ -37,6 +37,7 @@
 #include <map>
 #include <vector>
 #include <QWidget>
+#include "AccelMagSample.hpp"
 #include "ArmAngles.hpp"
 #include "MatrixVector.hpp"
 
@@ -59,7 +60,7 @@ public:
 
 public slots:
 
-    void updateMatrix(int mote, const gyro::matrix3 rotMat);
+    void updateMatrix(const AccelMagSample sample);
 
 protected:
 

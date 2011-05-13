@@ -76,37 +76,7 @@ void EllipsoidCalibration::onNewSampleReceived(const AccelMagSample sample) {
 
     diffLabel->setText("Change:  " + vec2QStr(accelDiff) + "; " + vec2QStr(magnDiff) );
 
-    //================================================================================
-
-    using namespace gyro;
-
-    vector3 x = sample.acceleration();
-
-    const double x_length = x.length();
-
-    if (x_length > 1.06 || x_length < 0.94) {
-
-        return;
-    }
-
-    x /= x_length;
-
-    vector3 y = cross_product(x, sample.magnetometerReading());
-
-    const double y_length = y.length();
-
-    if (y_length==0.0) {
-
-        return;
-    }
-
-    y /= y_length;
-
-    vector3 z = cross_product(x, y);
-
-    z /= z.length();
-
-    recWindow->updateMatrix(sample.moteID(), matrix3(x,y,z));
+    recWindow->updateMatrix(sample);
 }
 
 void EllipsoidCalibration::addItem(Column col, const QString& str) {
