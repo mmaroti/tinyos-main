@@ -67,9 +67,9 @@ MainWindow::MainWindow(QWidget *parent) :
         //Widget3D* widget3d = new Widget3D(ui->openglTab, app);
         //ui->openglTab->layout()->addWidget(widget3d);
         //ui->tabWidget->removeTab(8);    //temporarly hidden
-        ui->tabWidget->removeTab(6);
+        //ui->tabWidget->removeTab(6);
         //ui->tabWidget->removeTab(7);
-        ui->tabWidget->removeTab(3);
+        //ui->tabWidget->removeTab(3);
 
         LogWidget* logWidget = new LogWidget(ui->logTab, app);
         ui->logTab->layout()->addWidget(logWidget);
@@ -130,8 +130,8 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(&app.serialListener,  SIGNAL(disconnected()),
                 &app.connectionState, SLOT(disconnected()));
 
-        connect(&app.solver, SIGNAL(solver_done(bool,QString)),
-                logWidget,       SLOT(solverFinished(bool,QString)));
+//        connect(&app.solver, SIGNAL(solver_done(bool,QString)),
+//                logWidget,       SLOT(solverFinished(bool,QString)));
 
         ui->sdataTab->setFocusPolicy(Qt::StrongFocus);
         ui->sdataTab->installEventFilter(this);
