@@ -12,9 +12,7 @@ module HplImpP {
 implementation {
 
   async command void SPI.initMaster() {
-    //UBRR0H = 0;
-    //UBRR0L = 0;
-
+    call SPI.setClock(0);
     call SCK.makeOutput();    
     call SS.makeOutput();
     call SS.set();
@@ -66,6 +64,7 @@ implementation {
   async command void SPI.enableSpi(bool enabled) {
     if (enabled) {
       UCSR0B |= (1 << RXEN0) | (1 << TXEN0) /*| (1<<RXCIE0)*/;
+      call SPI.setClock(3); 
       call Mcu.update();
     }
     else {
@@ -99,13 +98,16 @@ implementation {
 
  /* UCPOL bit */
   async command void SPI.setClockPolarity(bool highWhenIdle) {
+    uint8_t tail;
+    (UCSR0C & (1 << UCPHA0)?(tail=(1<<UCPHA0)):(tail=(0<<UCPHA0) ));
     if (highWhenIdle) {
       //SET_BIT(UCSR0C, UCPOL0);
       UCSR0C |= (1 << UCPOL0) | (1 << UMSEL01) | (1 << UMSEL00);
     }
     else {
-      CLR_BIT(UCSR0C, UCPOL0);
-      //UCSR0C |= (1 << UMSEL01) | (1 << UMSEL00);
+      //CLR_BIT(UCSR0C, UCPOL0);
+      UCSR0C = 0;
+      UCSR0C |= (1 << UMSEL01) | (1 << UMSEL00) | tail;
     }
   }
   
@@ -115,13 +117,16 @@ implementation {
 
    /* UCPHA bit */
   async command void SPI.setClockPhase(bool sampleOnTrailing) {
+    uint8_t tail;
+    (UCSR0C & (1 << UCPOL0)?(tail=(1<<UCPOL0)):(tail=(0<<UCPOL0) ));
     if (sampleOnTrailing) {
       //SET_BIT(UCSR0C, UCPHA0);
       UCSR0C |= (1 << UCPHA0) | (1 << UMSEL01) | (1 << UMSEL00);
     }
     else {call SCK.makeOutput();
-      CLR_BIT(UCSR0C, UCPHA0);
-      //UCSR0C |= (1 << UMSEL01) | (1 << UMSEL00);
+      //CLR_BIT(UCSR0C, UCPHA0);
+      UCSR0C = 0;
+      UCSR0C |= (1 << UMSEL01) | (1 << UMSEL00) | tail;
     }
   }
   async command bool SPI.getClockPhase() {
@@ -129,7 +134,7 @@ implementation {
   }
 
   async command uint8_t SPI.getClock () {                
-    return PLATFORM_MHZ * 1000 / (2* UBRR0 +1);
+    return PLATFORM_MHZ * 1000000 / (2* UBRR0 +1);
   }
   
   async command void SPI.setClock (uint8_t Kbps) {

@@ -8,6 +8,7 @@ module TestSbSP
   uses interface SpiByte;
   uses interface FastSpiByte;
   uses interface Resource;
+  uses interface GeneralIO as CSN;
 }
 
 implementation
@@ -18,7 +19,7 @@ implementation
 		PORTF |= (1 << PF0);
 	}*/
 
-	void chipSelect()
+	/*void chipSelect()
 	{
 		DDRB |= (1 << PB6);
 		PORTB &= ~(1 << PB6);
@@ -28,7 +29,7 @@ implementation
 	{
 		DDRB |= (1 << PB6);
 		PORTB |= (1 << PB6);
-	}
+	}*/
 
 
 	void setLeds(uint8_t data)
@@ -54,14 +55,16 @@ implementation
 		uint8_t data;
 		call Leds.led3Toggle();
 
-	  chipSelect();
+	  //chipSelect();
+    call CSN.clr();
 
 		// read register 1
 		
     call SpiByte.write(0x80 | 0x01);
     data = call SpiByte.write(0x00);
 
-		chipDeselect();
+    call CSN.set();
+		//chipDeselect();
 
 		setLeds(data);
 	}
@@ -73,6 +76,8 @@ implementation
 	event void Boot.booted()
 	{
     //powerOn();
+    call CSN.set();
+    call CSN.makeOutput();
     call Resource.request();
 	}
 }

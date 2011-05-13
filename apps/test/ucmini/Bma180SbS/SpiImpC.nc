@@ -2,6 +2,7 @@ configuration SpiImpC {
   provides interface Init;
   provides interface SpiByte;
   provides interface FastSpiByte;
+  provides interface SpiPacket;
   provides interface Resource[uint8_t id];
 }
 implementation {
@@ -12,6 +13,7 @@ implementation {
   Init        = SpiImpM;
   SpiByte     = SpiImpM;
   FastSpiByte = SpiImpM;
+  SpiPacket   = SpiImpM;
   Resource    = SpiImpM;
 
   SpiImpM.ArbiterInfo -> Arbiter;
