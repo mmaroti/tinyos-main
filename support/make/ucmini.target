@@ -6,7 +6,7 @@ PROGRAMMER ?= avrdude
 PROGRAMMER_PART ?= -pm128rfa1
 
 VOLUMEFILE = volumes-stm25p.xml
-VOLUME_ALLOCATOR ?= tos-storage-stm25p
+VOLUME_ALLOCATOR ?= tos-storage-stm25p -s32
 
 $(call TOSMake_include_platform,avr)
 
