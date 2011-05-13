@@ -140,6 +140,7 @@ implementation{
     timeData.local=local;
     timeData.localBootCount=call EepromRead.get();
     timeData.remote=remote;
+    timeData.remoteBootCount=remoteBootCount;
     timeData.rssi=call GetLastRSSI.get();
     timeData.lqi=call GetLastLQI.get();
     call TimeStorageWrite.append(&timeData, sizeof(timeData));
