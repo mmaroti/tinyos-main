@@ -265,6 +265,7 @@ public class Programmer implements SerialPortListener
 		String port = null;
 		int baudrate = 0;
 		boolean reset = false;
+		boolean askForReset=false;
 		String srec = null;
 		int sleep = 0;
 
@@ -275,6 +276,7 @@ public class Programmer implements SerialPortListener
 			System.out.println("\t-port <name>\t\tsets the communication port (mandatory)");
 			System.out.println("\t-baudrate <rate>\tsets the baudrate of TinyOS serial (0=auto)");
 			System.out.println("\t-reset\t\t\tsoftware reset through TinyOS serial");
+			System.out.println("\t-askforreset\t\tasks the user to reset the mote if needed");
 			System.out.println("\t-sleep <seconds>\twaits (omitted if a reset fails)");
 			System.out.println("\t-upload <srec file>\tuploads file through ZigBit bootloader");
 			System.exit(0);
@@ -288,6 +290,8 @@ public class Programmer implements SerialPortListener
 				baudrate = Integer.parseInt(args[++i]);
 			else if( args[i].equals("-reset") )
 				reset = true;
+			else if( args[i].equals("-askforreset") )
+				askForReset = true;
 			else if( args[i].equals("-sleep") )
 				sleep = Integer.parseInt(args[++i]);
 			else if( args[i].equals("-upload") )
@@ -306,18 +310,23 @@ public class Programmer implements SerialPortListener
 		}
 		
 		Programmer programmer = new Programmer();
-
+		
 		if( reset )
 		{
 			programmer.openPort(port);
-			if( programmer.resetTinyOS(baudrate) == false )
-				sleep = 0;
+			if ( programmer.resetTinyOS(baudrate) == false ){
+				sleep=0;
+			} else
+				askForReset=false;
 			programmer.closePort();
 		}
-
-		if( sleep > 0 )
+		if( askForReset )
+		{
+			System.out.println("Please reset the mote, than press enter");
+			System.in.read();
+		}
+		else if( sleep > 0 )
 			Thread.sleep(1000 * sleep);
-		
 		if( srec != null )
 		{
 			programmer.openPort(port);
