@@ -41,7 +41,7 @@ implementation {
   }
 
    async command bool SPI.isInterruptPending() {
-    return READ_BIT(UCSR0A, UDRE0);
+    return READ_BIT(UCSR0C, RXC0);
   }
 
   async command bool SPI.isInterruptEnabled () {                
@@ -104,8 +104,8 @@ implementation {
       UCSR0C |= (1 << UCPOL0) | (1 << UMSEL01) | (1 << UMSEL00);
     }
     else {
-      //CLR_BIT(UCSR0C, UCPOL0);
-      UCSR0C |= (1 << UMSEL01) | (1 << UMSEL00);
+      CLR_BIT(UCSR0C, UCPOL0);
+      //UCSR0C |= (1 << UMSEL01) | (1 << UMSEL00);
     }
   }
   
@@ -120,8 +120,8 @@ implementation {
       UCSR0C |= (1 << UCPHA0) | (1 << UMSEL01) | (1 << UMSEL00);
     }
     else {call SCK.makeOutput();
-      //CLR_BIT(UCSR0C, UCPHA0);
-      UCSR0C |= (1 << UMSEL01) | (1 << UMSEL00);
+      CLR_BIT(UCSR0C, UCPHA0);
+      //UCSR0C |= (1 << UMSEL01) | (1 << UMSEL00);
     }
   }
   async command bool SPI.getClockPhase() {
@@ -133,6 +133,7 @@ implementation {
   }
   
   async command void SPI.setClock (uint8_t Kbps) {
+    if(Kbps == 0) UBRR0 = 0; else
     UBRR0 = (((uint32_t)PLATFORM_MHZ * 1000000) / (2 * (uint32_t)Kbps * 1000)) - 1;
   }
 
@@ -146,10 +147,6 @@ implementation {
 
   async command void SPI.setMasterDoubleSpeed(bool on) {
    //dummy
-  }
-
-  async command bool SPI.isTransferDone() {
-    return UCSR0A & (1<<RXC0);
   }
 
   async command mcu_power_t McuPowerOverride.lowestState() {

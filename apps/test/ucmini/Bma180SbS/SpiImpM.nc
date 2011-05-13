@@ -21,8 +21,7 @@ implementation {
 		UBRR0 = ((PLATFORM_MHZ*1000000) / (2* 0xFFF))-1;//100;	// baudrate*/
     call Spi.enableSpi(FALSE);
     atomic {
-      //call Spi.setClock(0);
-      UBRR0 = 0;
+      call Spi.setClock(0);
       call Spi.initMaster();
       call Spi.enableInterrupt(FALSE);
       call Spi.setMasterDoubleSpeed(TRUE);  
@@ -60,7 +59,7 @@ implementation {
   }
 
   inline async command uint8_t FastSpiByte.splitRead() {
-    while( !( call Spi.isTransferDone() ) )
+    while( !( call Spi.isInterruptPending() ) )
       ;
     return call Spi.read();
   }
@@ -68,7 +67,7 @@ implementation {
   inline async command uint8_t FastSpiByte.splitReadWrite(uint8_t data) {
     uint8_t b;
 
-    while( !( call Spi.isTransferDone() ) )
+    while( !( call Spi.isInterruptPending() ) )
 	;
     b = call Spi.read();
     call Spi.write(data);
@@ -78,7 +77,7 @@ implementation {
 
   inline async command uint8_t FastSpiByte.write(uint8_t data) {
     call Spi.write(data);
-    while( !( call Spi.isTransferDone() ) )
+    while( !( call Spi.isInterruptPending() ) )
       ;
     return call Spi.read();
   }

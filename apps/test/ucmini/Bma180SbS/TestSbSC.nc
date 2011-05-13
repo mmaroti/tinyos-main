@@ -11,5 +11,6 @@ implementation
 	TestSbSP.Timer -> TimerMilliC;
   TestSbSP.DiagMsg -> DiagMsgC;
   TestSbSP.SpiByte -> SpiImpC;
+  TestSbSP.FastSpiByte -> SpiImpC;
   TestSbSP.Resource -> SpiImpC.Resource[unique("SbS.Resource")];
 }

@@ -6,6 +6,7 @@ module TestSbSP
 	uses interface Timer<TMilli>;
   uses interface DiagMsg;
   uses interface SpiByte;
+  uses interface FastSpiByte;
   uses interface Resource;
 }
 
@@ -57,7 +58,7 @@ implementation
 
 		// read register 1
 		
-    call SpiByte.write(0x80 | 0x00);
+    call SpiByte.write(0x80 | 0x01);
     data = call SpiByte.write(0x00);
 
 		chipDeselect();
