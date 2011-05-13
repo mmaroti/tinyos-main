@@ -1,4 +1,5 @@
 module SpiImpM {
+  provides interface Init;
   provides interface SpiByte;
   provides interface FastSpiByte;
   provides interface Resource[uint8_t id];
@@ -11,6 +12,10 @@ module SpiImpM {
   uses interface DiagMsg;
 }
 implementation {
+
+  command error_t Init.init() {
+    return SUCCESS;
+  }
 
   void startSpi()
 	{

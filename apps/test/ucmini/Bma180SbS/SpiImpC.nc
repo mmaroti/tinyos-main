@@ -1,4 +1,5 @@
 configuration SpiImpC {
+  provides interface Init;
   provides interface SpiByte;
   provides interface FastSpiByte;
   provides interface Resource[uint8_t id];
@@ -8,6 +9,7 @@ implementation {
   components new SimpleFcfsArbiterC("SbS.Resource") as Arbiter;
   components McuSleepC;
 
+  Init        = SpiImpM;
   SpiByte     = SpiImpM;
   FastSpiByte = SpiImpM;
   Resource    = SpiImpM;
