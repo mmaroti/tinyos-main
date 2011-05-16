@@ -38,13 +38,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeMap;
 
 import org.szte.wsn.TimeSyncPoint.LinearEquations;
-import org.szte.wsn.TimeSyncPoint.LinearFunction;
-import org.szte.wsn.TimeSyncPoint.TSParser;
 
 /**
  * The CSVProcess class 
@@ -53,7 +50,6 @@ public class CSVProcess{
 
 	private static String separator=";";
 	private static String nodeIdSeparator=":";
-	private static int maxError=120;	
 	private static String timeFormat="yyyy.MM.dd/HH:mm:ss.SSS";	
 	private static String confFile="structs.ini";	
 	private static String csvExt=".csv";		
@@ -127,8 +123,6 @@ public class CSVProcess{
 								separator=value;
 							if(keyWord.equalsIgnoreCase("nodeIdSeparator"))
 								nodeIdSeparator=value;
-							if(keyWord.equalsIgnoreCase("maxError")) 
-								maxError=Integer.parseInt(value);
 							if(keyWord.equalsIgnoreCase("timeFormat")) 
 								timeFormat=value;						
 							if(keyWord.equalsIgnoreCase("confFile")) 
