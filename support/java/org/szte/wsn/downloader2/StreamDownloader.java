@@ -50,7 +50,8 @@ public class StreamDownloader{
 	private ArrayList<DataWriter> writers = new ArrayList<DataWriter>();
 	private Pong currently_handled;
 	private int currentMote;
-	private static int ALL=0xffff;
+	private static final int ALL=0xffff;
+	private static final String REFID="99999"; 
 	private boolean welcomePrinted=false;
 	
 		
@@ -61,14 +62,15 @@ public class StreamDownloader{
 		comm=new Communication(this, source);
 		console=new ConsoleHandler("StreamDownloader shell", ">", "help");
 		console.addCommand("motelist", "Display the id of all known motes");
-		console.addCommand("discover", "Discover the network for new motes");
+		console.addCommand("discover", "Discover the network for motes (motes from earlier discoveries will be removed)");
+		console.addCommand("rediscover", "Discover the network for new motes (motes from earlier discoveries will be remained)");
 		console.addCommand("erase", "erase <nodeid>: Erases mote with <nodeid>.\r\n" +
 							"if <nodeid>=all erases all motes");
 		console.addCommand("download", "downdload <nodeid>: Downloads mote with <nodeid>.\r\n" +
 							"if <nodeid>=all erases all motes");
 		console.addCommand("quit", "Quits from the program");
 		try {
-			this.timeSync=new CSVHandler(new File("00000time.csv"), true, ";", 2, new Integer[]{1,3,4,5,6,7});
+			this.timeSync=new CSVHandler(new File(REFID+"_time.csv"), true, ";", 2, new Integer[]{1,3,4,5,6,7});
 		} catch (IOException e) {
 			System.err.println("Error: Can't open or parse the timesync file");
 			System.exit(1);
@@ -98,8 +100,9 @@ public class StreamDownloader{
 				try{
 					if(current==null)
 						new DataWriter(i).erase();
-					else
+					else{
 						current.erase();
+					}
 				} catch(IOException e){
 					System.err.println("Can't erase file(s) of mote #"+i);
 				}
@@ -171,7 +174,7 @@ public class StreamDownloader{
 			} else if(!repairOnly){
 				long minaddress;
 				try {
-					minaddress = (maxdownloadPong.getMinAddress()>maxdownloadWriter.getMaxAddress())?maxdownloadPong.getMinAddress():maxdownloadWriter.getMaxAddress();
+					minaddress = (maxdownloadPong.getMinAddress()>maxdownloadWriter.getMaxAddress())?maxdownloadPong.getMinAddress():maxdownloadWriter.getMaxAddress()+1;
 					System.out.println("Download from #"+maxdownloadWriter.getNodeid()+" ("+minaddress+"-"+maxdownloadPong.getMaxAddress()+")");
 
 					comm.download(maxdownloadWriter.getNodeid(), minaddress, maxdownloadPong.getMaxAddress());
@@ -224,7 +227,7 @@ public class StreamDownloader{
 	
 	
 	private void waitForCommands() {
-		
+		boolean shutdown=false;
 		if(!welcomePrinted){
 			welcomePrinted=true;
 			console.printWelcome();
@@ -245,6 +248,13 @@ public class StreamDownloader{
 				}
 				System.out.println();
 			}else if(command.equals("discover")){
+				for(DataWriter wr:writers){
+					wr.close();
+				}
+				writers.clear();
+				comm.discover(null);
+				exitCommandLoop=true;
+			}else if(command.equals("rediscover")){
 				comm.discover(comm.getMotes());
 				exitCommandLoop=true;
 			}else if(command.startsWith("erase")){
@@ -283,18 +293,17 @@ public class StreamDownloader{
 				String chr=console.readChar(new String[]{"y", "n"});
 				if(chr.equals("y")){
 					for(DataWriter writer:writers)
-						try {
-							writer.close();
-						} catch (IOException e) {
-							System.err.println("Can't close file of nodeid: "+writer.getNodeid());
-						}
+						writer.close();
 					comm.stop();
 					exitCommandLoop=true;
+					shutdown=true;
 				}
 			} else {
 				System.out.println("Unimplemented command.");
 			}
 		}
+		if(shutdown)
+			System.exit(0);//ugly, but it's a tinyos.jar bug
 	}
 
 	private static DataWriter getWriter(int nodeid, ArrayList<DataWriter> datawriters ){
@@ -350,7 +359,8 @@ public class StreamDownloader{
 			new StreamDownloader("sf@localhost:9002");
 		else
 			new StreamDownloader(args[0]);
-		System.exit(0);//this is ugly, but the serial jni seems unstoppable on windows
+
+			
 	}
 	
 }
