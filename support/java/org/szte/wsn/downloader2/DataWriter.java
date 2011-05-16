@@ -209,17 +209,26 @@ public class DataWriter {
 		return gapbyte;
 	}
 	
-	public void close() throws IOException{
-		dataFile.close();
+	public void close(){
+		boolean delete=false;
+		try{
+			if(dataFile.length()==0)
+				delete=true;
+		}catch(IOException e){
+			System.err.println("Can't write file: "+nodeidToPath(nodeid,".bin"));
+		}
+		try{
+			dataFile.close();
+		} catch(IOException e){
+			System.err.println("Can't close file: "+nodeidToPath(nodeid,".bin"));
+		}
+		if(delete)
+			if(!new File(nodeidToPath(nodeid,".bin")).delete())
+				System.err.println("Can't delete file: "+nodeidToPath(nodeid,".bin"));
 	}
 	
 	public void finalize(){
-		try {
-			close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		close();
 	}
 
 	public int getNodeid() {
@@ -242,8 +251,7 @@ public class DataWriter {
 		gapFile.delete();
 		timestamps.delete();
 		try {
-			dataFile.close();
-			new File(nodeidToPath(nodeid, ".bin")).delete();
+			dataFile.setLength(0);
 		} catch (IOException e) {
 			throw e;
 		}
