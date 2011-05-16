@@ -84,18 +84,25 @@ private:
     void setupLayout();
     void setupConnections();
 
+    void clearContainers();
     void setCapturingState();
     void setEditingState();
     void setTitle();
-
-	// TODO Move to its own class
-    void writeRecord() const;
-    void writeData(QTextStream& out) const;
 
     void displayCurrentFrame();
     void display();
 
     bool areYouSure(const char* text);
+
+    // TODO Move to its own class
+    void writeRecord() const;
+    void writeData(QTextStream& out) const;
+    void readRecord();
+
+    void readData(QTextStream& in);
+    void readFrameLine(const QString& buffer);
+    void readSampleLine(const QString& buffer);
+    const QString filename() const;
 
     QPushButton* setReferenceButton;
     QPushButton* captureButton;

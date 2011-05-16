@@ -39,6 +39,7 @@
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QStringList>
 #include <QTextStream>
 #include "RecWindow.hpp"
 #include "ArmAngles.hpp"
@@ -73,6 +74,7 @@ RecWindow::RecWindow(ArmWidget* w, const ArmAngles& c)
     //setWindowModality(Qt::ApplicationModal);
 
     setCapturingState();
+    //readRecord();
 }
 
 void RecWindow::init() {
@@ -95,9 +97,7 @@ void RecWindow::createButtons() {
     clearButton        = new QPushButton("Clear", this);
 }
 
-void RecWindow::setCapturingState() {
-
-    globals::connect_Ellipsoid_AccelMagMsgReceiver();
+void RecWindow::clearContainers() {
 
     frames.clear();
     origSamp.clear();
@@ -108,9 +108,19 @@ void RecWindow::setCapturingState() {
     matrices.clear();
     samples.clear();
 
+    headings.clear();
+}
+
+void RecWindow::setCapturingState() {
+
+    globals::connect_Ellipsoid_AccelMagMsgReceiver();
+
+    clearContainers();
+
+    frameIndex = 0;
     recID = INVALID_REC_ID;
-    setTitle();
     saved = false;
+    setTitle();
 
     setReferenceButton->setEnabled(true);
     captureButton->setEnabled(true);
@@ -232,6 +242,11 @@ void RecWindow::display() {
 
 void RecWindow::setReferenceClicked() {
 
+    if (matrices.empty()) {
+
+        return;
+    }
+
     headings = calculator.setHeading(matrices);
 
     widget->setReference(headings);
@@ -241,7 +256,11 @@ void RecWindow::setReferenceClicked() {
 
 void RecWindow::captureClicked() {
 
-    // Check matrices.size()
+    if (matrices.empty()) {
+
+        return;
+    }
+
     frames.push_back(matrices);
     origSamp.push_back(samples);
 
@@ -325,11 +344,7 @@ bool RecWindow::areYouSure(const char* text) {
 
 void RecWindow::writeRecord() const {
 
-    const QString REC_DIR = "../rec/";
-
-    QString fileName = "s"+QString::number(recID)+".csv";
-
-    QFile file(REC_DIR+fileName);
+    QFile file(filename());
 
     if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
 
@@ -341,6 +356,15 @@ void RecWindow::writeRecord() const {
 
         Q_ASSERT(false);
     }
+}
+
+const QString RecWindow::filename() const {
+
+    const QString REC_DIR = "../rec/";
+
+    QString fileName = "s"+QString::number(recID)+".csv";
+
+    return REC_DIR+fileName;
 }
 
 template <typename Value>
@@ -398,7 +422,15 @@ const QString toCSV(const gyro::vector3& v) {
 
 const QString toCSV(const AccelMagSample& s) {
 
-    return toCSV(s.acceleration())+';'+toCSV(s.magnetometerReading());
+    QString moteTime = QString::number(s.moteTime());
+
+    QString acc = toCSV(s.acceleration());
+
+    QString magn = toCSV(s.magnetometerReading());
+
+    QString temp = QString::number(s.temperature(),'e',16);
+
+    return moteTime+';'+acc+';'+magn+';'+temp;
 }
 
 template <typename Key, typename Value>
@@ -427,30 +459,175 @@ public:
     void operator()(const std::map<Key,Value>& map) {
 
         std::for_each(map.begin(), map.end(), STLMapWriter<Key,Value>(out));
+
+        out << '\n';
     }
 };
+
+namespace {
+
+    const char MOTES[] = "# Motes";
+
+    const char HEADINGS[] = "# Headings";
+
+    const char FRAMES[] = "# Frames";
+
+    const char SAMPLES[] = "# Samples";
+
+    const char END[] = "# End of file";
+}
 
 void RecWindow::writeData(QTextStream& out) const {
 
     Q_ASSERT(!frames.empty() && (frames.size()==origSamp.size()));
 
-    out << "# Motes\n";
+    out << MOTES << '\n';
 
     const MatMap& m = *frames.begin();
 
     std::for_each(m.begin(), m.end(), IntKeyWriter<gyro::matrix3>(out));
 
-    out << "# Headings\n";
+    out << HEADINGS << '\n';
 
     std::for_each(headings.begin(), headings.end(), STLVecWriter<double>(out));
 
-    out << "# Frames\n";
+    out << FRAMES << '\n';
 
     std::for_each(frames.begin(), frames.end(), MapVecWriter<int,gyro::matrix3>(out));
 
-    out << "# Samples\n";
+    out << SAMPLES << '\n';
 
     std::for_each(origSamp.begin(), origSamp.end(), MapVecWriter<int,AccelMagSample>(out));
 
-    out << '\n' << flush;
+    out << END << "\n\n" << flush;
+}
+
+void RecWindow::readRecord() {
+
+    QFile file(filename());
+
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+
+        clearContainers();
+
+        QTextStream in(&file);
+
+        readData(in);
+    }
+    else {
+
+        Q_ASSERT(false);
+    }
+
+    calculator.setHeading(headings);
+
+    widget->setReference(headings);
+
+    setEditingState();
+
+    saved = true;
+}
+
+const gyro::matrix3 toMatrix(const QStringList& list) {
+
+    double r[9];
+
+    for (int i=1; i<=9; ++i) {
+
+        r[i-1] = list.at(i).toDouble();
+    }
+
+    return matrix3(r);
+}
+
+const AccelMagSample toSample(const QStringList& list) {
+
+    int mote = list.at(0).toInt();
+
+    unsigned int moteTime = list.at(1).toUInt();
+
+    double accel[3];
+
+    for (int i=2; i<=4; ++i) {
+
+        accel[i-2] = list.at(i).toDouble();
+    }
+
+    double magn[3];
+
+    for (int i=5; i<=7; ++i) {
+
+        magn[i-5] = list.at(i).toDouble();
+    }
+
+    double temp = list.at(8).toDouble();
+
+    return AccelMagSample(mote, moteTime, gyro::vector3(accel), gyro::vector3(magn), temp);
+}
+
+void RecWindow::readFrameLine(const QString& buffer) {
+
+    if (buffer.isEmpty()) {
+
+        Q_ASSERT(!matrices.empty());
+
+        frames.push_back(matrices);
+
+        matrices.clear();
+    }
+    else {
+
+        QStringList list = buffer.split(";");
+
+        int mote = list.at(0).toInt();
+
+        matrices[mote] = toMatrix(list);
+    }
+}
+
+void RecWindow::readSampleLine(const QString& buffer) {
+
+    if (buffer.isEmpty()) {
+
+        Q_ASSERT(!samples.empty());
+
+        origSamp.push_back(samples);
+
+        samples.clear();
+    }
+    else {
+
+        QStringList list = buffer.split(";");
+
+        int mote = list.at(0).toInt();
+
+        samples[mote] = toSample(list);
+    }
+}
+
+void RecWindow::readData(QTextStream& in) {
+
+    QString buffer;
+
+    while (in.status()==QTextStream::Ok && buffer!=HEADINGS) {
+
+        buffer = in.readLine();
+    }
+
+    while (in.status()==QTextStream::Ok && (buffer=in.readLine())!=FRAMES) {
+
+        headings.push_back(buffer.toDouble());
+    }
+
+    while (in.status()==QTextStream::Ok && (buffer=in.readLine())!=SAMPLES) {
+
+        readFrameLine(buffer);
+    }
+
+    while (in.status()==QTextStream::Ok && (buffer=in.readLine())!=END) {
+
+        readSampleLine(buffer);
+    }
+
+    Q_ASSERT(!frames.empty() && frames.size()==origSamp.size());
 }

@@ -76,6 +76,14 @@ const vector<double> ArmAngles::setHeading(const Frame& matrices) {
     return vector<double>(heading, heading+2);
 }
 
+void ArmAngles::setHeading(const vector<double>& h) {
+
+    for (int i=0; i<2; ++i) {
+
+        heading[i] = h.at(i);
+    }
+}
+
 double ArmAngles::magneticHeading(const matrix3& rotMat) const {
     // TODO Tilt compensation?
     //cout << "x: " << rotMat[X] << endl;
