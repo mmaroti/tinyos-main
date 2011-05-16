@@ -200,11 +200,6 @@ void RecWindow::setupConnections() {
 // TODO Samples should calibrate themselves and save raw samples!
 void RecWindow::updateMatrix(const AccelMagSample sample) {
 
-    if (!sample.isStatic()) {
-
-        return;
-    }
-
     const int mote = sample.moteID();
 
     const matrix3 rotMat = sample.toRotationMatrix();
@@ -318,12 +313,12 @@ void RecWindow::saveClicked() {
 
         // TODO Push to SQLite database
         writeRecord();
+
+        saved = true;
     }
     else {
         // Warning? Nothing to save?
     }
-
-    saved = true;
 }
 
 void RecWindow::clearClicked() {
