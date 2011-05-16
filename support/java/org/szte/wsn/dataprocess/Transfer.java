@@ -194,8 +194,12 @@ public class Transfer extends Thread  {
 		}	
 
 	}
-
-
+	
+	/**
+	 * Main function read parameters from args[] parse them using argparser, 
+	 * start Transfer threads for every input source according to the parameters
+	 * @param args
+	 */
 	public static void main(String[] args) {	
 
 		StringHolder structFileh=new StringHolder("structs.ini");
@@ -314,6 +318,7 @@ public class Transfer extends Thread  {
 			}
 
 	}
+	
 	public static void usageThanExit(){
 		System.out.println(parser.getHelpMessage());
 		System.exit(0);

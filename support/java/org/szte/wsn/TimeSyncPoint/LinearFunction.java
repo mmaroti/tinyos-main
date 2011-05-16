@@ -34,18 +34,36 @@
 package org.szte.wsn.TimeSyncPoint;
 
 public class LinearFunction {
-	private double slope, offset;
-	
-	public double getSlope() {
-		return slope;
+	private double skew, offset;
+	private int baseId, oppId;
+	public double getSkew() {
+		return skew;
 	}
 
 	public double getOffset() {
 		return offset;
 	}
 
-	public LinearFunction(double offset, double slope){
+	public LinearFunction(double offset, double skew){
 		this.offset=offset;
-		this.slope=slope;
+		this.skew=skew;
 	}
+
+	public void setBaseId(int baseId) {
+		this.baseId = baseId;
+	}
+
+	public int getBaseId() {
+		return baseId;
+	}
+
+	public void setOppId(int oppId) {
+		this.oppId = oppId;
+	}
+
+	public int getOppId() {
+		return oppId;
+	}
+
+	
 }

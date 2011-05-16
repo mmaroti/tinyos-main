@@ -43,6 +43,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import org.szte.wsn.TimeSyncPoint.LinearEquations;
 import org.szte.wsn.TimeSyncPoint.LinearFunction;
 /**
  * CSV table file processor for data(time) functions.
@@ -106,6 +107,7 @@ public class CSVHandler {
 			line=input.readLine();
 		}
 		input.close();
+		
 	}
 	
 	/**
@@ -301,6 +303,7 @@ public class CSVHandler {
 			return null;
 		if(column>=data.get(line).length)
 			return "";
+		//System.out.println(data.get(line)[column]);
 		return data.get(line)[column];
 	}
 	
@@ -559,7 +562,7 @@ public class CSVHandler {
 			int currentfunction=breaks.size()-currentrun;
 			String currenttstring;
 			if(currentfunction>=0){
-				currenttime=(long) (functions.get(currentfunction).getOffset()+functions.get(currentfunction).getSlope()*currenttime);
+				currenttime=(long) (functions.get(currentfunction).getOffset()+functions.get(currentfunction).getSkew()*currenttime);
 				currenttstring=currenttime.toString();
 			} else 
 				currenttstring="";
@@ -568,6 +571,38 @@ public class CSVHandler {
 		addDataColumn(timeColumn);
 		setTimeColumn(global);
 	}
+	
+	public void calculateNewGlobal(LinearEquations.Solution solution, int global, boolean insert){
+		
+		int bootcount=0;
+		if(insert)
+			addColumn("globaltime", global);	
+		for(int currentline=1;currentline<=getLineNumber();currentline++){
+			Long currentTime=null;
+			try{
+				currentTime=Long.parseLong(getCell(timeColumn, currentline));
+				bootcount=Integer.parseInt(getCell(timeColumn+1, currentline));
+			} catch(NumberFormatException e){
+				System.err.println("Warning: Unparsable line in file: "+getFile().getName());
+				System.err.println(getLine(currentline));
+				continue;
+			}
+
+			String skewString="s_"+getFile().getName().split("_")[0];
+			String offsetString="o_"+getFile().getName().split("_")[0]+"_"+bootcount;
+			double skew=solution.getValue(skewString);
+			double offset=solution.getValue(offsetString);
+			if((skew==Double.NaN)||(offset==Double.NaN))
+				System.out.println("Missing variable from solutions");
+						
+			String currentString=""+((long)(skew*currentTime+offset));
+		
+			setCell(global, currentline, currentString);
+		}
+		addDataColumn(timeColumn);
+		setTimeColumn(global);
+	}
+
 
 	//TODO: these two method makes unparseble columns
 	/*

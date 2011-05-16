@@ -28,7 +28,7 @@ timeformat
 	String value, determines the time display format, default is "yyyy.MM.dd/HH:mm:ss.SSS"
 
 confFile
-	String value, path of the used structure's configuration file, default is "convert.conf"
+	String value, path of the used structure's configuration file, default is "structs.ini"
 
 csvExt
 	String value, extension of output files, when there are more files, default is ".csv" 

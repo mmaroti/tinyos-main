@@ -38,17 +38,24 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.TreeMap;
 
+import org.szte.wsn.TimeSyncPoint.LinearEquations;
 import org.szte.wsn.TimeSyncPoint.LinearFunction;
 import org.szte.wsn.TimeSyncPoint.TSParser;
 
+/**
+ * The CSVProcess class 
+ */
 public class CSVProcess{
 
 	private static String separator=";";
 	private static String nodeIdSeparator=":";
 	private static int maxError=120;	
 	private static String timeFormat="yyyy.MM.dd/HH:mm:ss.SSS";	
-	private static String confFile="convert.conf";	
+	private static String confFile="structs.ini";	
 	private static String csvExt=".csv";		
 	private static long startTime=Long.MIN_VALUE;
 	private static long endTime=Long.MAX_VALUE;	
@@ -56,12 +63,12 @@ public class CSVProcess{
 	private static byte timeType=CSVHandler.TIMETYPE_START;
 
 	private ArrayList<StructParams> structures;
-	//TODO local variables
+
 
 	private File avgOutputFileName;
 
 	private int runningConversions;
-	public ArrayList<CSVHandler> filesPerNode[]=null;	
+	public ArrayList<CSVHandler> filesPerNode[];	
 
 
 	public CSVProcess(ArrayList<String> inputFiles, ArrayList<StructParams> structs){
@@ -224,12 +231,188 @@ public class CSVProcess{
 		}
 		return structs;
 	}
-/**
- * Searches the name of the structure in the structs ArrayList and returns the id of it
- * @param name 
- * @param structs
- * @return
- */
+	/**
+	 * calculates offset and skew values for every mote
+	 * detects and repairs timeStamp overflows
+	 * @param timeFiles time csv files to process
+	 */
+	private LinearEquations.Solution calculateTime(ArrayList<CSVHandler> timeFiles){
+		//setting column identifiers of time file
+		final int NODE_ID=1;
+		final int LOCAL_TIME=2;
+		final int LOCAL_BOOT_COUNT=3;
+		final int REMOTE_TIME=4;
+		final int REMOTE_BOOT_COUNT=5;
+		//overflow detection and handling
+		for(CSVHandler time:timeFiles){
+			long timeMAX=4294967296L;
+			TreeMap<String, Integer> overflowCount= new TreeMap<String, Integer>();
+			overflowCount.put("local", 0);
+			TreeMap<String, Long> previousTime= new TreeMap<String, Long>();
+			previousTime.put("local", new Long(-1));
+			TreeMap<String, Integer> previousLine= new TreeMap<String, Integer>();
+			previousLine.put("local", 1);
+			for(int cLine=1;cLine<=time.getLineNumber();cLine++){
+				//check local time overflow				
+				Long currentTime=Long.parseLong(time.getCell(LOCAL_TIME, cLine)); 
+				if((currentTime<previousTime.get("local"))&&
+						(time.getCell(LOCAL_BOOT_COUNT, cLine).equals(time.getCell(LOCAL_BOOT_COUNT, previousLine.get("local"))))){ //same bootCounter
+					overflowCount.put("local", overflowCount.get("local")+1);
+					previousTime.put("local", new Long(-1));
+					previousLine.put("local", cLine);
+					time.setCell(LOCAL_TIME, cLine, ""+(currentTime+overflowCount.get("local")*timeMAX));
+					System.out.println("Time counter in "+time.getFile().getName()+ " overflow, time line repaired." );
+				}
+				else{
+					time.setCell(LOCAL_TIME, cLine, ""+(currentTime+overflowCount.get("local")*timeMAX));
+					previousTime.put("local",currentTime);
+					previousLine.put("local",cLine);					
+				}
+				//check remote time overflow
+				currentTime=Long.parseLong(time.getCell(REMOTE_TIME, cLine)); 
+				String remoteId=time.getCell(NODE_ID, cLine);
+				if(previousTime.get(remoteId)==null){
+
+					previousTime.put(remoteId, new Long(-1));
+					overflowCount.put(remoteId,0);
+					previousLine.put(remoteId, 1);
+				}
+				if((currentTime<previousTime.get(remoteId))&&
+						(time.getCell(REMOTE_BOOT_COUNT, cLine).equals(time.getCell(REMOTE_BOOT_COUNT, previousLine.get(remoteId))))){ //same bootCounter
+					overflowCount.put(remoteId, overflowCount.get(remoteId)+1);
+					previousTime.put(remoteId, new Long(-1));
+					previousLine.put(remoteId, cLine);
+					time.setCell(REMOTE_TIME, cLine, ""+(currentTime+overflowCount.get(remoteId)*timeMAX));
+					System.out.println("Time counter in "+time.getFile().getName()+ " file at "+cLine+". line  "+remoteId+" remoteId overflow, time line repaired." );
+				}
+				else{
+					time.setCell(REMOTE_TIME, cLine, ""+(currentTime+overflowCount.get(remoteId)*timeMAX));
+					previousTime.put(remoteId,currentTime);
+					previousLine.put(remoteId,cLine);					
+				}
+			}			
+		}
+		//building up the equation system
+		LinearEquations equations=new LinearEquations();
+		HashSet<String> skews=new HashSet<String>();
+		String skew;
+		for(CSVHandler time:timeFiles){
+			String fileId=getFileId(time.getFile().getName());
+			for(int cLine=1;cLine<=time.getLineNumber();cLine++){
+				LinearEquations.Equation eq=equations.createEquation();
+				eq.setCoefficient("o_"+fileId+"_"+time.getCell(LOCAL_BOOT_COUNT, cLine),(double)1);  //coe of offset local
+				eq.setCoefficient("o_"+expId(time.getCell(NODE_ID, cLine))+"_"+time.getCell(REMOTE_BOOT_COUNT, cLine),(double)-1);  //coe of offset remote
+				skew="s_"+fileId;
+				eq.setCoefficient(skew,Double.parseDouble(time.getCell(LOCAL_TIME, cLine))); //coe of skew local
+				skews.add(skew);				
+
+				skew="s_"+expId(time.getCell(NODE_ID, cLine));
+				eq.setCoefficient(skew,-Double.parseDouble(time.getCell(REMOTE_TIME, cLine))); //coe of skew remote
+				skews.add(skew);
+
+				eq.setConstant(0);				
+				equations.addEquation(eq);
+			}
+		}
+
+		//adding summa skew
+		LinearEquations.Equation ske=equations.createEquation();
+		for(String sk:skews)
+			ske.setCoefficient(sk, 1);
+		ske.setConstant(skews.size()*0.9765625);
+		ske.multiply(10000);
+		equations.addEquation(ske);
+
+		try {
+			File refTimeFile=new File("99999_time.csv").exists()?new File("99999_time.csv"):new File("00000time.csv");
+			if(!refTimeFile.exists()){
+				System.err.println("Missing PC reference time file: 99999_time.csv. Could not reconstruct time. Program will exit.");
+				System.exit(1);
+			}
+			CSVHandler reference=new CSVHandler(refTimeFile, true, ";", 1, new ArrayList<Integer>());
+
+			//for(int cLine=1;cLine<=reference.getLineNumber();cLine++){
+			for(int cLine=1;cLine<=1;cLine++){
+				LinearEquations.Equation eq=equations.createEquation();
+
+				eq.setCoefficient("o_"+expId(reference.getCell(NODE_ID, cLine))+"_"+reference.getCell(REMOTE_BOOT_COUNT, cLine),(double)1);  //coe of offset remote
+
+				eq.setCoefficient("s_"+expId(reference.getCell(NODE_ID, cLine)),Double.parseDouble(reference.getCell(REMOTE_TIME, cLine))); //coe of skew remote
+
+				eq.setConstant(Double.parseDouble(reference.getCell(LOCAL_TIME, cLine)));
+				eq.multiply(1);
+				equations.addEquation(eq);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+		equations.printEquations();
+		try{
+			LinearEquations.Solution solution=equations.solveLeastSquares();
+			solution.print();
+			CSVHandler reference=new CSVHandler(new File("99999_time.csv"), true, ";", 1, new ArrayList<Integer>());
+			double sum=0;
+			for(int cLine=1;cLine<=reference.getLineNumber();cLine++){
+				double res=solution.getValue("s_"+expId(reference.getCell(1, cLine)))*Double.parseDouble(reference.getCell(4, cLine));
+				res+=solution.getValue("o_"+expId(reference.getCell(1, cLine))+"_"+reference.getCell(5, cLine));
+				res-=Double.parseDouble(reference.getCell(2, cLine));
+				System.out.println(cLine+" error of "+reference.getCell(1, cLine)+": "+res);
+				sum+=Math.abs(res);
+			}			
+			System.out.println("Summa abs error: "+sum);
+			sum=0;
+			for(CSVHandler time:timeFiles){
+				String fileId=getFileId(time.getFile().getName());
+				for(int cLine=1;cLine<=time.getLineNumber();cLine++){
+					double res=solution.getValue("s_"+expId(time.getCell(1, cLine)))*Double.parseDouble(time.getCell(4, cLine));
+					res+=solution.getValue("o_"+expId(time.getCell(1, cLine))+"_"+time.getCell(5, cLine));
+					res-=solution.getValue("s_"+fileId)*Double.parseDouble(time.getCell(2, cLine));
+					res-=solution.getValue("o_"+fileId+"_"+time.getCell(3, cLine));
+					 if (Math.abs(res)>10)
+						 System.out.println(cLine+" error of "+reference.getCell(1, cLine)+": "+res);
+					sum+=Math.abs(res);
+					
+				}
+			}
+			System.out.println("Summa abs error in moteFiles: "+sum);
+			equations.printStatistics();
+			return solution;
+		}
+		catch(IOException e){
+			System.err.println("Could not reconstruct time. The number of equations is insufficient.  Possibly too short dataset, or two or more distinct datasets. Program will exit.");
+			System.exit(1);
+		}
+		return null;
+	}
+
+
+	/**
+	 * return the 5 character long id for fileNames
+	 * @param fileName
+	 * @return
+	 */
+	private String getFileId(String fileName){
+		return fileName.split("_")[0];
+	}
+
+	/**
+	 * returns the id in expanded with zeros
+	 * @return 5 char long String
+	 */
+	private String expId(String id){
+		String ret="";
+		for(int i=0;i<5-id.length();i++)
+			ret+="0";
+		return ret+id;
+	}
+
+	/**
+	 * Searches the name of the structure in the structs ArrayList and returns the id of it
+	 * @param name 
+	 * @param structs
+	 * @return
+	 */
 	static int findIdForName(String name, ArrayList<StructParams> structs){		
 		int ret=-1;	
 
@@ -244,7 +427,7 @@ public class CSVProcess{
 		}
 		return ret; 
 	}
-	
+
 	/**
 	 * 
 	 * @param fileGroup
@@ -289,6 +472,8 @@ public class CSVProcess{
 
 	}
 
+
+
 	public class PerConversion implements ParsingReady {
 
 		/**
@@ -309,31 +494,50 @@ public class CSVProcess{
 					for(int i=0;i<filesPerNode.length;i++)
 						filesPerNode[i]=new ArrayList<CSVHandler>();
 				}
+				//TODO
+				/*
 				File tsFile=TSParser.searchTSFile(ready[0].getFile());
 				TSParser parser=new TSParser(tsFile, maxError);
 				ArrayList<LinearFunction> func=parser.parseTimeSyncFile();
+				 */
 
 				for(int i=0;i<ready.length;i++){
-					String fileName=ready[i].getFile().getName();
-					int count=findIdForName(fileName,structures);
-					ready[i].calculateGlobal (func, structures.get(count).getGlobalColumn(), structures.get(count).isInsertGlobal()) ; //for every struct
+					//String fileName=ready[i].getFile().getName();
+					//int count=findIdForName(fileName,structures);
+					//ready[i].calculateGlobal (func, structures.get(count).getGlobalColumn(), structures.get(count).isInsertGlobal()) ; //for every struct
 					filesPerNode[i].add(ready[i]);
 				}
 			}
 			runningConversions--;
 			if(runningConversions==0){
-				for(ArrayList<CSVHandler> fpn:filesPerNode)
-					mergeConversion(fpn);
+				int timeIndex=0;
+				for(int i=0;i<filesPerNode.length;i++)
+					if(filesPerNode[i].get(0).getName().endsWith("_time.csv"))
+						timeIndex=i;
+				LinearEquations.Solution solution=calculateTime(filesPerNode[timeIndex]);
+
+				for(int i=0;i<filesPerNode.length;i++)
+					if(i!=timeIndex)
+						for(CSVHandler handler:filesPerNode[i]){
+							String fileName=ready[i].getFile().getName();
+							int count=findIdForName(fileName,structures);
+							handler.calculateNewGlobal(solution,structures.get(count).getGlobalColumn(),true);
+						}
+				for(int i=0;i<filesPerNode.length;i++){
+					if(i!=timeIndex)
+						mergeConversion(filesPerNode[i]);
+				}
+
 			}
 
 		}
 
 	}
 
-/**
- * 
- * @param args path of configuration file
- */
+	/**
+	 * 
+	 * @param args path of configuration file
+	 */
 	public static void main(String[] args){
 		String[] fileNames=new File(".").list();
 		ArrayList<String> inputfiles=new ArrayList<String>();

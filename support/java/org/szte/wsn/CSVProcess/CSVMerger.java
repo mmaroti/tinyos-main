@@ -85,7 +85,7 @@ public class CSVMerger {
 	 */
 	public CSVHandler createGlobalFile(File outfile, String nodeIdSepString, long startTime, long endTime) throws IOException {
 		ArrayList<String> newHeader=createHeader(csvfiles, dataColumns, nodeIdSepString);
-		ArrayList<Integer> newDC=new ArrayList<Integer>();
+		ArrayList<Integer> newDC=new ArrayList<Integer>(); //new DataColumnSet
 		for(int i=1;i<newHeader.size();i++)
 			newDC.add(i+1);
 		outfile.delete();
