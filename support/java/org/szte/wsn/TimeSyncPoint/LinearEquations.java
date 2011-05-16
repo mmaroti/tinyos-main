@@ -34,6 +34,7 @@
 
 package org.szte.wsn.TimeSyncPoint;
 import java.util.*;
+
 import Jama.*;
 
 /**
@@ -45,7 +46,7 @@ public class LinearEquations
 	/**
 	 * Holds a map from variable names to variable indices
 	 */
-	protected TreeMap variables = new TreeMap();
+	protected TreeMap<String, Integer> variables = new TreeMap<String, Integer>();
 
 	/**
 	 * Get the index of a variable with this method.
@@ -72,7 +73,7 @@ public class LinearEquations
 	/**
 	 * Returns the set of variable names in the system. 
 	 */
-	public Set getVariables()
+	public Set<String> getVariables()
 	{
 		return variables.keySet();
 	}
@@ -207,12 +208,12 @@ public class LinearEquations
 	/**
 	 * Holds the list of equations.
 	 */
-	protected List equations = new ArrayList();
+	protected List<Equation> equations = new ArrayList<Equation>();
 
 	/**
 	 * Returns the list of equations in the system.
 	 */
-	public List getEquations()
+	public List<Equation> getEquations()
 	{
 		return equations;
 	}
@@ -302,7 +303,7 @@ public class LinearEquations
 		 */		
 		public void print()
 		{
-			Iterator iter = variables.keySet().iterator();
+			Iterator<String> iter = variables.keySet().iterator();
 			while( iter.hasNext() )
 			{
 				String name = (String)iter.next();
@@ -320,7 +321,7 @@ public class LinearEquations
 		{
 			double d = 0.0;
 		
-			Iterator iter = equations.iterator();
+			Iterator<Equation> iter = equations.iterator();
 			while( iter.hasNext() )
 			{
 				Equation equation = (Equation)iter.next();
@@ -337,7 +338,7 @@ public class LinearEquations
 		{
 			double d = 0.0;
 		
-			Iterator iter = equations.iterator();
+			Iterator<Equation> iter = equations.iterator();
 			while( iter.hasNext() )
 			{
 				Equation equation = (Equation)iter.next();
@@ -354,7 +355,7 @@ public class LinearEquations
 			double d = -1.0;
 			Equation a = null;
 		
-			Iterator iter = equations.iterator();
+			Iterator<Equation> iter = equations.iterator();
 			while( iter.hasNext() )
 			{
 				Equation equation = (Equation)iter.next();
