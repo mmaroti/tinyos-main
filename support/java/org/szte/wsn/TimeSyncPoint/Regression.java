@@ -118,7 +118,7 @@ public class Regression {
 			if(functionNeedsUpdate){
 				calculateFunction();
 			}
-			double ret=pt.getY()-function.getOffset()-function.getSlope()*pt.getX();
+			double ret=pt.getY()-function.getOffset()-function.getSkew()*pt.getX();
 			if(ret<0)
 				return -1*ret;
 			else	

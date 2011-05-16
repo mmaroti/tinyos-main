@@ -101,7 +101,7 @@ public class TSParser {
 					}
 					if(!regr.addPoint(motetime, pctime)){//end of running: save the function, then read the next running
 						functions.add(regr.getFunction());
-						System.out.println("pc="+regr.getFunction().getOffset()+"+"+regr.getFunction().getSlope()+"*mote ("+tsFile.getName()+"); points:"+regr.getNumPoints());
+						System.out.println("pc="+regr.getFunction().getOffset()+"+"+regr.getFunction().getSkew()+"*mote ("+tsFile.getName()+"); points:"+regr.getNumPoints());
 					}
 				}
 			} catch (IOException e) {
@@ -109,7 +109,7 @@ public class TSParser {
 				return null;
 			}
 			functions.add(regr.getFunction());
-			System.out.println("pc="+regr.getFunction().getOffset()+"+"+regr.getFunction().getSlope()+"*mote ("+tsFile.getName()+"); points:"+regr.getNumPoints());
+			System.out.println("pc="+regr.getFunction().getOffset()+"+"+regr.getFunction().getSkew()+"*mote ("+tsFile.getName()+"); points:"+regr.getNumPoints());
 			return functions;
 		} else {
 			System.err.println("Error: Can't read timestamp file: "+tsFile.getName());
