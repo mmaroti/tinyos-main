@@ -342,6 +342,9 @@ bool RecWindow::areYouSure(const char* text) {
     return ret==QMessageBox::Yes;
 }
 
+//=======================================================================================
+// FIXME Move these to a seperate class, perhaps ArmRecIO ?
+
 void RecWindow::writeRecord() const {
 
     QFile file(filename());
@@ -464,6 +467,23 @@ public:
     }
 };
 
+class AngleWriter {
+
+    QTextStream& out;
+
+    const ArmAngles& calculator;
+
+public:
+
+    AngleWriter(QTextStream& out, const ArmAngles& calculator)
+        : out(out), calculator(calculator) { }
+
+    void operator()(const Frame& matrices) {
+
+        out << calculator.anglesCSV(matrices).c_str() << '\n';
+    }
+};
+
 namespace {
 
     const char MOTES[] = "# Motes";
@@ -471,6 +491,10 @@ namespace {
     const char HEADINGS[] = "# Headings";
 
     const char FRAMES[] = "# Frames";
+
+    const char ANGLES[] = "# Angles";
+
+    const char TABLE[] = "# Table";
 
     const char SAMPLES[] = "# Samples";
 
@@ -494,6 +518,14 @@ void RecWindow::writeData(QTextStream& out) const {
     out << FRAMES << '\n';
 
     std::for_each(frames.begin(), frames.end(), MapVecWriter<int,gyro::matrix3>(out));
+
+    out << ANGLES << '\n';
+
+    std::for_each(frames.begin(), frames.end(), AngleWriter(out, calculator));
+
+    out << TABLE << '\n';
+
+    out << calculator.tableCSV(frames).c_str() << '\n';
 
     out << SAMPLES << '\n';
 
@@ -605,24 +637,30 @@ void RecWindow::readSampleLine(const QString& buffer) {
     }
 }
 
+void skipUntil(QTextStream& in, const char text[]) {
+
+
+    while (in.status()==QTextStream::Ok && in.readLine()!=text)
+        ;
+}
+
 void RecWindow::readData(QTextStream& in) {
 
     QString buffer;
 
-    while (in.status()==QTextStream::Ok && buffer!=HEADINGS) {
-
-        buffer = in.readLine();
-    }
+    skipUntil(in, HEADINGS);
 
     while (in.status()==QTextStream::Ok && (buffer=in.readLine())!=FRAMES) {
 
         headings.push_back(buffer.toDouble());
     }
 
-    while (in.status()==QTextStream::Ok && (buffer=in.readLine())!=SAMPLES) {
+    while (in.status()==QTextStream::Ok && (buffer=in.readLine())!=ANGLES) {
 
         readFrameLine(buffer);
     }
+
+    skipUntil(in, SAMPLES);
 
     while (in.status()==QTextStream::Ok && (buffer=in.readLine())!=END) {
 

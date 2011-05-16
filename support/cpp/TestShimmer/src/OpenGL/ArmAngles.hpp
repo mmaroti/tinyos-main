@@ -69,6 +69,10 @@ public:
 
     const vector<string> table(const FrameVec& frames) const;
 
+    const string anglesCSV(const Frame& matrices) const;
+
+    const string tableCSV(const FrameVec& frames) const;
+
 private:
 
     ArmAngles(ElbowFlexSign s);
@@ -94,6 +98,8 @@ private:
     const string angle2str(double angle, const char* positive, const char* negative) const;
 
     const string frameLabel(size_t frameIndex, size_t size) const;
+
+    const RangeTriplet getRanges(const FrameVec& frames) const;
 
     vector<string>& fillTable(vector<string>& table, const RangeTriplet& ranges) const;
 

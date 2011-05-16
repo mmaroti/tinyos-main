@@ -261,6 +261,11 @@ const vector<string> ArmAngles::table(const FrameVec& frames) const {
         return table;
     }
 
+    return fillTable(table, getRanges(frames));
+}
+
+const RangeTriplet ArmAngles::getRanges(const FrameVec& frames) const {
+
     AngleTriplet t = getAngles(frames.at(0));
 
     AngleRange flex(t.flex), sup(t.sup), dev(t.dev);
@@ -274,7 +279,7 @@ const vector<string> ArmAngles::table(const FrameVec& frames) const {
          dev.next(t.dev);
     }
 
-    return fillTable(table, RangeTriplet(flex, sup, dev));
+    return RangeTriplet(flex, sup, dev);
 }
 
 vector<string>& ArmAngles::fillTable(vector<string>& table, const RangeTriplet& t) const
@@ -288,4 +293,37 @@ vector<string>& ArmAngles::fillTable(vector<string>& table, const RangeTriplet& 
     table.at(5) = t.dev.toNegativeLine("Med dev ");
 
     return table;
+}
+
+const string ArmAngles::anglesCSV(const Frame& matrices) const {
+
+    AngleTriplet t = getAngles(matrices);
+
+    ostringstream os;
+
+    os << setprecision(16) << scientific;
+
+    os << t.flex << ";" << t.sup << ";" << t.dev;
+
+    return os.str();
+}
+
+const string ArmAngles::tableCSV(const FrameVec& frames) const {
+
+    RangeTriplet t = getRanges(frames);
+
+    std::ostringstream os;
+
+    os << t.flex.toPosCSV() << ";";
+    os << t.flex.toNegCSV() << ";";
+
+    os << t.sup.toPosCSV() << ";";
+    os << t.sup.toNegCSV() << ";";
+
+    os << t.dev.toPosCSV() << ";";
+    os << t.dev.toNegCSV() << ";";
+
+    os << t.flex.toCSV() << ";" << t.sup.toCSV() << ";" << t.dev.toCSV();
+
+    return os.str();
 }

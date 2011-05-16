@@ -89,3 +89,14 @@ const std::string AngleRange::str(const char* name) const {
 
     return os.str();
 }
+
+const std::string AngleRange::toCSV() const {
+
+    std::ostringstream os;
+
+    os << std::setprecision(1) << std::fixed;
+
+    os << beg() << ";" << end() << ";" << min() << ";" << max();
+
+    return os.str();
+}

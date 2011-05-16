@@ -50,6 +50,11 @@ public:
     const std::string toPositiveLine(const char* lineStart) const { return positive().str(lineStart); }
     const std::string toNegativeLine(const char* lineStart) const { return negative().str(lineStart); }
 
+    const std::string toPosCSV() const { return positive().toCSV(); }
+    const std::string toNegCSV() const { return negative().toCSV(); }
+
+    const std::string toCSV() const;
+
     double beg() const { return v[0]; }
     double end() const { return v[1]; }
     double min() const { return v[2]; }
