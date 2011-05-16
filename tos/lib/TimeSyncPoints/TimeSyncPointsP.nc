@@ -105,17 +105,24 @@ implementation
   command void SetSavePoints.set(uint8_t value){  
     pointsToSave=value;
   }
+  
+  inline void sendPoint(){
+    timeSyncPointsMsg_t* packet = (timeSyncPointsMsg_t*)(call TimeSyncAMSendMilli.getPayload(&syncMessage, sizeof(timeSyncPointsMsg_t)));
+    packet->timeStamp = call LocalTime.get();
+    packet->bootCount = call getBootCount.get();
+    call TimeSyncAMSendMilli.send(AM_BROADCAST_ADDR, &syncMessage, sizeof(timeSyncPointsMsg_t),packet->timeStamp);
+    pointSaveOffset+=pointsToSave;
+    if(pointSaveOffset>=pointsReceived)
+      pointSaveOffset=0;
+    if(pointSaveOffset>(pointsReceived-pointsToSave)){
+      pointSaveOffset=pointsReceived-pointsToSave;
+    }
+    pointsReceived=0;    
+  }
 
   event void Timer.fired()
   {
-      timeSyncPointsMsg_t* packet = (timeSyncPointsMsg_t*)(call TimeSyncAMSendMilli.getPayload(&syncMessage, sizeof(timeSyncPointsMsg_t)));
-      packet->timeStamp = call LocalTime.get();
-      packet->bootCount = call getBootCount.get();
-      call TimeSyncAMSendMilli.send(AM_BROADCAST_ADDR, &syncMessage, sizeof(timeSyncPointsMsg_t),packet->timeStamp);
-      pointSaveOffset+=pointsToSave;
-      if(pointSaveOffset>(pointsReceived+pointsToSave))
-        pointSaveOffset=pointsReceived-pointsToSave;
-      pointsReceived=0;
+    sendPoint();
   }
   
   event message_t* TimeSyncReceive.receive(message_t* msg,void* payload, uint8_t len)
@@ -140,5 +147,9 @@ implementation
   
   event void TimeSyncAMSendMilli.sendDone(message_t* Bufptr, error_t err){}
   default event void TimeSyncPoints.syncPoint(uint32_t local, am_addr_t nodeId, uint32_t remote, uint16_t bootCount){}
+  
+  command void TimeSyncPoints.sendNow(){
+    sendPoint();
+  }
 }
 
