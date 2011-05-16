@@ -130,6 +130,19 @@ public class Communication  implements MessageListener {
 						if(verbose)
 							System.out.println("Node #"+nodeid+" erased.");
 						pongsReceived.add(new Pong(nodeid, min_address, max_address));
+						if(pongsReceived.size()>=motes.size()){
+							boolean eraseDone=true;
+							HashSet<Integer> pongIds=getNodeIds(pongsReceived);
+							for(Integer moteid:motes){
+								if(!pongIds.contains(moteid)){
+									eraseDone=false;
+									break;
+								}
+							}
+							if(eraseDone){
+								sd.eraseComplete(pongIds,E_SUCCESS);
+							}
+						}
 					}
 				}break;
 				
@@ -158,7 +171,7 @@ public class Communication  implements MessageListener {
 				int nodeid=rec.getSerialPacket().get_header_src();
 				if(verbose)
 					System.out.println("Unwanted data from node #"+nodeid+". Sending stop download command.");
-					//stopSending(nodeid);
+					stopSending(nodeid);
 				
 			} else {
 				lastData=new Date().getTime();
@@ -269,7 +282,7 @@ public class Communication  implements MessageListener {
 
 	
 	public void stopSending(int nodeid) {
-		sendCommnad(CommandMsg.COMMAND_STOPSEND, 0);
+		sendCommnad(nodeid,CommandMsg.COMMAND_STOPSEND, 0);
 	}
 	
 	public final class PongWaiter extends TimerTask {
