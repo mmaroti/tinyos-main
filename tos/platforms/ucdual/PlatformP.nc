@@ -65,23 +65,42 @@ implementation
 
 	command error_t Init.init()
 	{
-		error_t ok;
+      error_t ok;
 
 
-    MCUCR |= 1<<JTD;
-    MCUCR |= 1<<JTD; 
+      MCUCR |= 1<<JTD;
+      MCUCR |= 1<<JTD; 
+      
+          // set the clock prescaler
+      atomic {
+        // enable changing the prescaler
+              CLKPR = 0x80;
+        #if PLATFORM_MHZ == 16
+              CLKPR=0x0F;
+        #elif PLATFORM_MHZ == 8
+              CLKPR = 0x00;
+        #elif PLATFORM_MHZ == 4
+              CLKPR = 0x01;
+        #elif PLATFORM_MHZ == 2
+              CLKPR = 0x02;
+        #elif PLATFORM_MHZ == 1
+              CLKPR = 0x03;
+        #else
+            #error "Unsupported MHZ"
+        #endif
+      }
 
-		ok = call McuInit.init();
-		ok = ecombine(ok, call LedsInit.init());
-		ok = ecombine(ok, powerInit());
-        ok = ecombine(ok, call SubInit.init());
-    call RadioInit.init();
-    call Stm25pInit.init();
-        call FlashCS.makeOutput();
-        call RadioCS.makeOutput();
-        call FlashCS.clr();
-        call RadioCS.clr();
-		return ok;
+      ok = call McuInit.init();
+      ok = ecombine(ok, call LedsInit.init());
+      ok = ecombine(ok, powerInit());
+      ok = ecombine(ok, call SubInit.init());
+      call RadioInit.init();
+      call Stm25pInit.init();
+      call FlashCS.makeOutput();
+      call RadioCS.makeOutput();
+      call FlashCS.clr();
+      call RadioCS.clr();
+      return ok;
 	}
 	
 	default command error_t SubInit.init()
