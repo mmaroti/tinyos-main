@@ -31,16 +31,24 @@
 * Author: Ali Baharev
 */
 
+#include <algorithm>
 #include <iostream>
 #include <QHBoxLayout>
 #include <QGridLayout>
+#include <QFile>
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QTextStream>
 #include "RecWindow.hpp"
 #include "ArmAngles.hpp"
 #include "ArmWidget.hpp"
 #include "Globals.hpp"
+
+namespace {
+
+    const qint64 INVALID_REC_ID = -1;
+}
 
 RecWindow* RecWindow::right() {
 
@@ -52,7 +60,9 @@ RecWindow* RecWindow::left() {
     return new RecWindow(ArmWidget::left(), ArmAngles::left());
 }
 
-RecWindow::RecWindow(ArmWidget* w, const ArmAngles& c) : widget(w), calculator(c) {
+RecWindow::RecWindow(ArmWidget* w, const ArmAngles& c)
+    : widget(w), calculator(c), recID(INVALID_REC_ID)
+{
 
     widget->setParent(this);
 
@@ -90,10 +100,16 @@ void RecWindow::setCapturingState() {
     globals::connect_Ellipsoid_AccelMagMsgReceiver();
 
     frames.clear();
+    origSamp.clear();
+
     frames.reserve(10);
+    origSamp.reserve(10);
 
     matrices.clear();
+    samples.clear();
 
+    recID = INVALID_REC_ID;
+    setTitle();
     saved = false;
 
     setReferenceButton->setEnabled(true);
@@ -125,9 +141,19 @@ void RecWindow::setEditingState() {
     frameIndex = 0;
     displayCurrentFrame();
 
+    setTitle();
     saved = false;
 
     nextFrameButton->setFocus();
+}
+
+void RecWindow::setTitle() {
+
+    QString recIDStr = (recID==INVALID_REC_ID) ? QString() : (" #"+QString::number(recID));
+
+    QString birthDay = person.birth().toString(Qt::ISODate);
+
+    setWindowTitle(person.name()+"  "+birthDay+recIDStr);
 }
 
 void RecWindow::setupLayout() {
@@ -168,7 +194,7 @@ void RecWindow::keyPressEvent(QKeyEvent * event) {
     }
 }
 
-// TODO Samples should calibrate themselves and save raw samples?
+// TODO Samples should calibrate themselves and save raw samples!
 void RecWindow::updateMatrix(const AccelMagSample sample) {
 
     if (!sample.isStatic()) {
@@ -181,8 +207,7 @@ void RecWindow::updateMatrix(const AccelMagSample sample) {
     const matrix3 rotMat = sample.toRotationMatrix();
 
     matrices[mote] = rotMat;
-
-    // TODO Save sample!
+    samples[mote]  = sample;
 
     display();
 }
@@ -214,7 +239,7 @@ void RecWindow::display() {
 
 void RecWindow::setReferenceClicked() {
 
-    std::vector<double> headings = calculator.setHeading(matrices);
+    headings = calculator.setHeading(matrices);
 
     widget->setReference(headings);
 
@@ -225,6 +250,7 @@ void RecWindow::captureClicked() {
 
     // Check matrices.size()
     frames.push_back(matrices);
+    origSamp.push_back(samples);
 
     setReferenceButton->setDisabled(true);
 }
@@ -253,13 +279,14 @@ void RecWindow::dropFrameClicked() {
 
     saved = false;
 
-    typedef std::vector<Map>::iterator itr;
+    typedef std::vector<MatMap>::iterator itr;
 
     itr pos = frames.begin()+frameIndex;
 
     Q_ASSERT(pos<frames.end());
 
     frames.erase(pos);
+    origSamp.erase(origSamp.begin()+frameIndex);
 
     if (!frames.empty()) {
 
@@ -278,6 +305,7 @@ void RecWindow::saveClicked() {
     if (!frames.empty()) {
 
         // TODO Push to SQLite database
+        writeRecord();
     }
     else {
         // Warning? Nothing to save?
@@ -300,4 +328,136 @@ bool RecWindow::areYouSure(const char* text) {
                                          QMessageBox::Yes, QMessageBox::Cancel);
 
     return ret==QMessageBox::Yes;
+}
+
+void RecWindow::writeRecord() const {
+
+    const QString REC_DIR = "../rec/";
+
+    QString fileName = "s"+QString::number(recID)+".csv";
+
+    QFile file(REC_DIR+fileName);
+
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+
+        QTextStream out(&file);
+
+        writeData(out);
+    }
+    else {
+
+        Q_ASSERT(false);
+    }
+}
+
+template <typename Value>
+class IntKeyWriter {
+
+    QTextStream& out;
+
+public:
+
+    IntKeyWriter(QTextStream& out) : out(out) { }
+
+    void operator()(const std::pair<int,Value>& p) { out << p.first << '\n'; }
+};
+
+template <typename T>
+class STLVecWriter {
+
+    QTextStream& out;
+
+public:
+
+    STLVecWriter(QTextStream& out) : out(out) { }
+
+    void operator()(const T& elem) { out << elem << '\n'; }
+};
+
+template <typename T>
+const QString toCSV(const T& mv, const int length) {
+
+    double r[length];
+
+    mv.copy_to(r);
+
+    QString result;
+
+    for (int i=0; i<length; ++i) {
+
+        result += (QString::number(r[i],'e',16)+';');
+    }
+
+    result.chop(1);
+
+    return result;
+}
+
+const QString toCSV(const gyro::matrix3& m) {
+
+    return toCSV(m, 9);
+}
+
+const QString toCSV(const gyro::vector3& v) {
+
+    return toCSV(v, 3);
+}
+
+const QString toCSV(const AccelMagSample& s) {
+
+    return toCSV(s.acceleration())+';'+toCSV(s.magnetometerReading());
+}
+
+template <typename Key, typename Value>
+class STLMapWriter {
+
+    QTextStream& out;
+
+public:
+
+    STLMapWriter(QTextStream& out) : out(out) { }
+
+    void operator()(const std::pair<Key,Value>& p) {
+        out << p.first << ';' << toCSV(p.second) << '\n';
+    }
+};
+
+template <typename Key, typename Value>
+class MapVecWriter {
+
+    QTextStream& out;
+
+public:
+
+    MapVecWriter(QTextStream& out) : out(out) { }
+
+    void operator()(const std::map<Key,Value>& map) {
+
+        std::for_each(map.begin(), map.end(), STLMapWriter<Key,Value>(out));
+    }
+};
+
+void RecWindow::writeData(QTextStream& out) const {
+
+    Q_ASSERT(!frames.empty() && (frames.size()==origSamp.size()));
+
+    out << "# Motes\n";
+
+    const MatMap& m = *frames.begin();
+
+    std::for_each(m.begin(), m.end(), IntKeyWriter<gyro::matrix3>(out));
+
+    out << "# Headings\n";
+
+    std::for_each(headings.begin(), headings.end(), STLVecWriter<double>(out));
+
+    out << "# Frames\n";
+
+    std::for_each(frames.begin(), frames.end(), MapVecWriter<int,gyro::matrix3>(out));
+
+    out << "# Samples\n";
+
+    std::for_each(origSamp.begin(), origSamp.end(), MapVecWriter<int,AccelMagSample>(out));
+
+    out << '\n' << flush;
 }

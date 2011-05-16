@@ -40,8 +40,10 @@
 #include "AccelMagSample.hpp"
 #include "ArmAngles.hpp"
 #include "MatrixVector.hpp"
+#include "Person.hpp"
 
 class QPushButton;
+class QTextStream;
 class ArmWidget;
 
 class RecWindow : public QWidget
@@ -89,6 +91,11 @@ private:
 
     void setCapturingState();
     void setEditingState();
+    void setTitle();
+
+	// TODO Move to its own class
+    void writeRecord() const;
+    void writeData(QTextStream& out) const;
 
     void displayCurrentFrame();
     void display();
@@ -107,9 +114,20 @@ private:
     ArmWidget* widget;
     ArmAngles calculator;
 
-    typedef std::map<int,gyro::matrix3> Map;
-    Map matrices;
-    std::vector<Map> frames;
+    qint64 recID;
+    Person person;
+
+    // TODO All these containers should be moved to their own class
+    typedef std::map<int,gyro::matrix3> MatMap;
+    typedef std::map<int,AccelMagSample> SampMap;
+
+    MatMap  matrices;
+    SampMap samples;
+
+    std::vector<MatMap>  frames;
+    std::vector<SampMap> origSamp;
+    std::vector<double> headings;
+
     size_t frameIndex;
 
     bool saved;
