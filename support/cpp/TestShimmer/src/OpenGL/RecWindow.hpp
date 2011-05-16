@@ -56,17 +56,12 @@ public:
 
     static RecWindow* left();
 
-    // TODO Display Rec ID, if any, on the title bar
     // TODO Should reference heading and matrices be cleared on show/close?
     // TODO Enable/disable buttons on close?
 
 public slots:
 
     void updateMatrix(const AccelMagSample sample);
-
-protected:
-
-    void keyPressEvent(QKeyEvent * event);
 
 private slots:
 

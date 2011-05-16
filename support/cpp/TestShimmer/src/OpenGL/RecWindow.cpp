@@ -187,13 +187,6 @@ void RecWindow::setupConnections() {
     connect(clearButton,        SIGNAL(clicked()), SLOT(clearClicked()));
 }
 
-void RecWindow::keyPressEvent(QKeyEvent * event) {
-
-    if (event->key() == Qt::Key_Space) {
-
-    }
-}
-
 // TODO Samples should calibrate themselves and save raw samples!
 void RecWindow::updateMatrix(const AccelMagSample sample) {
 
