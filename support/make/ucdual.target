@@ -5,6 +5,9 @@ PROGRAMMER ?= avrdude
 
 PROGRAMMER_PART ?= -pm128rfa1
 
+AVR_FUSE_H ?= 0x99
+AVR_FUSE_L ?= 0xe2
+
 VOLUMEFILE = volumes-stm25p.xml
 VOLUME_ALLOCATOR ?= tos-storage-stm25p
 
