@@ -33,6 +33,11 @@
 
 #include <QObject>
 
+class RecordHandler;
+class SQLDialog;
+
+// FIXME A rather messy workaround, the singleton pattern should be used
+
 namespace globals {
 
 void connect_Ellipsoid_AccelMagMsgReceiver();
@@ -42,5 +47,13 @@ void disconnect_Ellipsoid_AccelMagMsgReceiver();
 void set_Ellipsoid(QObject* ellipsoid);
 
 void set_AccelMagMsgReceiver(QObject* accelMagMsgReceiver);
+
+void createRecordSelector();
+
+RecordHandler* recordSelector();
+
+void createPersonSelector();
+
+SQLDialog* personSelector();
 
 }

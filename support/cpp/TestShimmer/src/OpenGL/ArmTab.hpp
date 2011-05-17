@@ -36,6 +36,9 @@
 
 #include "ui_Arm.h"
 
+class RecordHandler;
+class SQLDialog;
+
 class ArmTab : public QWidget, private Ui::Arm {
 
     Q_OBJECT
@@ -52,6 +55,11 @@ private slots:
     void on_Motion_Type_currentIndexChanged(QString );
     void on_Select_Person_clicked();
     void on_Open_Existing_clicked();
+
+private:
+
+    RecordHandler* const recordSelector;
+    SQLDialog* const personSelector;
 };
 
 #endif // ARMTAB_HPP

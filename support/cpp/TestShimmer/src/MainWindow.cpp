@@ -72,6 +72,9 @@ MainWindow::MainWindow(QWidget *parent) :
         //ui->tabWidget->removeTab(7);
         //ui->tabWidget->removeTab(3);
 
+        globals::createPersonSelector();
+        globals::createRecordSelector();
+
         LogWidget* logWidget = new LogWidget(ui->logTab, app);
         ui->logTab->layout()->addWidget(logWidget);
 

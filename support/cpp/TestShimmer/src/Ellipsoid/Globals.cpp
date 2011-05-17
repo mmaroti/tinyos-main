@@ -34,6 +34,8 @@
 #include <QtGlobal>
 #include "Globals.hpp"
 #include "AccelMagSample.hpp"
+#include "RecordHandler.hpp"
+#include "SQLDialog.hpp"
 
 // TODO Move extern DataRecorder and rootDirPath here!
 // TODO Return bool from connect/disconnect
@@ -77,6 +79,51 @@ void disconnect_Ellipsoid_AccelMagMsgReceiver() {
     QObject::disconnect(accelMagMsgReceiver, SIGNAL(newSample(const AccelMagSample )),
                         ellipsoid,           SLOT(onNewSampleReceived(const AccelMagSample )));
 
+}
+
+RecordHandler* recordHandler(0);
+
+void createRecordSelector() {
+
+    if (recordHandler) {
+
+        return;
+    }
+
+    recordHandler = new RecordHandler;
+
+    recordHandler->setWindowTitle("Select a record");
+
+    recordHandler->resize(950, 850);
+}
+
+RecordHandler* recordSelector() {
+
+    Q_ASSERT(recordHandler);
+
+    return recordHandler;
+}
+
+
+SQLDialog* sqlDialog(0);
+
+void createPersonSelector() {
+
+    if (sqlDialog) {
+
+        return;
+    }
+
+    sqlDialog = new SQLDialog;
+
+    sqlDialog->setWindowTitle("Add or select a person");
+}
+
+SQLDialog* personSelector() {
+
+    Q_ASSERT(sqlDialog);
+
+    return sqlDialog;
 }
 
 }

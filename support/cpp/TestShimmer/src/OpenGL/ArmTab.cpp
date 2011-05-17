@@ -32,21 +32,32 @@
 */
 
 #include "ArmTab.hpp"
+#include "Globals.hpp"
+#include "RecordHandler.hpp"
+#include "SQLDialog.hpp"
 
-ArmTab::ArmTab(QWidget *parent) : QWidget(parent) {
+ArmTab::ArmTab(QWidget *parent)
+
+: QWidget(parent),
+  recordSelector(globals::recordSelector()),
+  personSelector(globals::personSelector())
+
+{
 
     setupUi(this);
 
 }
 
-void ArmTab::on_Open_Existing_clicked()
-{
+void ArmTab::on_Open_Existing_clicked() {
 
+    recordSelector->show();
+    recordSelector->activateWindow();
 }
 
-void ArmTab::on_Select_Person_clicked()
-{
+void ArmTab::on_Select_Person_clicked() {
 
+    personSelector->show();
+    personSelector->activateWindow();
 }
 
 void ArmTab::on_Motion_Type_currentIndexChanged(QString )

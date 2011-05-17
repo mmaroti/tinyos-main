@@ -53,6 +53,7 @@
 #include "GLWindow.hpp"
 #include "SQLDialog.hpp"
 #include "RecordHandler.hpp"
+#include "Globals.hpp"
 
 namespace {
 
@@ -76,8 +77,8 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
         ui(new Ui::LogWidget),
         application(app),
         blockingBox(0),
-        dial(new SQLDialog),
-        recSelect(new RecordHandler),
+        dial(globals::personSelector()),
+        recSelect(globals::recordSelector()),
         recordID(INVALID_RECORD_ID),
         extrema(new double[SIZE_OF_ARRAY])
 {
@@ -118,13 +119,9 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
     blockingBox->setModal(true);
     blockingBox->setStandardButtons(QMessageBox::NoButton);
 
-    dial->setWindowTitle("Add or select a person");
+    //connect(dial, SIGNAL(personSelected(Person)), SLOT(onPersonSelected(Person)));
 
-    recSelect->setWindowTitle("Select a record");
-
-    connect(dial, SIGNAL(personSelected(Person)), SLOT(onPersonSelected(Person)));
-
-    connect(recSelect, SIGNAL(recordSelected(qint64,Person)), SLOT(onRecordSelected(qint64,Person)));
+    //connect(recSelect, SIGNAL(recordSelected(qint64,Person)), SLOT(onRecordSelected(qint64,Person)));
 }
 
 LogWidget::~LogWidget()
@@ -510,7 +507,6 @@ void LogWidget::on_loadButton_clicked()
 {
     qDebug() << "Load";
 
-    recSelect->resize(950, 850);
     //recSelect->showMaximized();
     recSelect->show();
     recSelect->activateWindow();
