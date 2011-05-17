@@ -126,6 +126,7 @@ void ArmTab::onRecordSelected(qint64 recID, const Person& p, qint64 motionType) 
     person = p;
 
     Q_ASSERT(false);
+
     //loadRecord();
 
     Q_ASSERT(motionType==1 || motionType==2);
@@ -150,7 +151,6 @@ void ArmTab::onPersonSelected(const Person& p) {
 
     Q_ASSERT(!p.isNull());
 
-    // Pass both to recWindow and eliminate these members
     person = p;
 
     recordID = INVALID_RECORD_ID;
@@ -185,6 +185,26 @@ void ArmTab::on_Start_clicked()
     RecWindow* rw = RecWindow::createRecWindow(recordID, person, getMotionType());
 
     rw->showMaximized();
+
+    connect(rw, SIGNAL(saveAngles(QString)), SLOT(saveAngles(QString)));
+
+    connect(this, SIGNAL(anglesSaved(qint64)), rw, SLOT(anglesSaved(qint64)));
+}
+
+void ArmTab::saveAngles(QString table) {
+
+    Q_ASSERT(!person.isNull());
+
+    if (recordID==INVALID_RECORD_ID) {
+
+        recordID = recordSelector->insertRecord(person.id(), getMotionType(), table);
+    }
+    else {
+
+        recordSelector->updateRecord(recordID, table);
+    }
+
+    emit anglesSaved(recordID);
 }
 
 void ArmTab::on_New_With_Person_clicked() {
@@ -269,5 +289,4 @@ MotionType ArmTab::getMotionType() const {
 
         return RIGHT_ELBOW_FLEX;
     }
-
 }

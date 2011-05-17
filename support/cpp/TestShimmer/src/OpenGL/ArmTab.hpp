@@ -49,6 +49,13 @@ public:
 
     ArmTab(QWidget* parent);
 
+public slots:
+
+    void saveAngles(QString table);
+
+signals:
+
+    void anglesSaved(qint64 recordID);
 
 private slots:
 

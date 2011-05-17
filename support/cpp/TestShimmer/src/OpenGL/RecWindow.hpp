@@ -62,6 +62,16 @@ public slots:
 
     void updateMatrix(const AccelMagSample sample);
 
+    void anglesSaved(qint64 recordID);
+
+signals:
+
+    void saveAngles(QString table);
+
+protected:
+
+    void closeEvent(QCloseEvent * event);
+
 private slots:
 
     void setReferenceClicked();
@@ -90,10 +100,10 @@ private:
 
     void displayCurrentFrame();
     void display();
-
     bool areYouSure(const char* text);
 
     // TODO Move to its own class
+    //===============================
     void writeRecord() const;
     void writeData(QTextStream& out) const;
     void readRecord();
@@ -102,6 +112,8 @@ private:
     void readFrameLine(const QString& buffer);
     void readSampleLine(const QString& buffer);
     const QString filename() const;
+    void dbgRecordExistence() const;
+    //===============================
 
     QPushButton* setReferenceButton;
     QPushButton* captureButton;

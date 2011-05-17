@@ -333,15 +333,38 @@ void RecWindow::dropFrameClicked() {
 
 void RecWindow::saveClicked() {
 
-    if (!frames.empty()) {
+    if (frames.empty()) {
 
-        // TODO Push to SQLite database
-        writeRecord();
+        return; // Warning? Nothing to save?
+    }
 
-        saved = true;
+    clearButton->setDisabled(true);
+
+    dbgRecordExistence();
+
+    QString table = calculator.tableCSV(frames).c_str();
+
+    emit saveAngles(table);
+}
+
+void RecWindow::anglesSaved(qint64 recordID) {
+
+    recID = recordID;
+
+    writeRecord();
+
+    saved = true;
+}
+
+void RecWindow::closeEvent(QCloseEvent * event) {
+
+    if (frames.empty() || saved || areYouSure("Record is not saved and will be lost.")) {
+
+        event->accept();
     }
     else {
-        // Warning? Nothing to save?
+
+        event->ignore();
     }
 }
 
@@ -366,6 +389,8 @@ bool RecWindow::areYouSure(const char* text) {
 
 void RecWindow::writeRecord() const {
 
+    Q_ASSERT(recID!=INVALID_REC_ID);
+
     QFile file(filename());
 
     if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -382,9 +407,11 @@ void RecWindow::writeRecord() const {
 
 const QString RecWindow::filename() const {
 
+    Q_ASSERT(recID!=INVALID_REC_ID);
+
     const QString REC_DIR = "../rec/";
 
-    QString fileName = "s"+QString::number(recID)+".csv";
+    QString fileName = QString::number(recID)+".csv";
 
     return REC_DIR+fileName;
 }
@@ -524,7 +551,8 @@ namespace {
 
 void RecWindow::writeData(QTextStream& out) const {
 
-    Q_ASSERT(!frames.empty() && (frames.size()==origSamp.size()));
+    Q_ASSERT(!frames.empty());
+    Q_ASSERT(frames.size()==origSamp.size());
 
     out << MOTES << '\n';
 
@@ -583,6 +611,8 @@ void RecWindow::readRecord() {
     widget->setReference(headings);
 
     setEditingState();
+
+    clearButton->setDisabled(true);
 
     saved = true;
 }
@@ -666,7 +696,6 @@ void RecWindow::readSampleLine(const QString& buffer) {
 
 void skipUntil(QTextStream& in, const char text[]) {
 
-
     while (in.status()==QTextStream::Ok && in.readLine()!=text)
         ;
 }
@@ -694,5 +723,12 @@ void RecWindow::readData(QTextStream& in) {
         readSampleLine(buffer);
     }
 
-    Q_ASSERT(!frames.empty() && frames.size()==origSamp.size());
+    Q_ASSERT(!frames.empty());
+    Q_ASSERT(frames.size()==origSamp.size());
 }
+
+void RecWindow::dbgRecordExistence() const {
+
+    Q_ASSERT(recID==INVALID_REC_ID || QFile::exists(filename()));
+}
+
