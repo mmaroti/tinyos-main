@@ -346,18 +346,19 @@ public class CSVProcess{
 			LinearEquations.Solution solution=equations.solveLeastSquares();
 			//solution.print();
 			double sum=0;			
-			/*
+			
 			 //Error of reference mote and calculated mote time
 			CSVHandler reference=new CSVHandler(new File("99999_time.csv"), true, ";", 1, new ArrayList<Integer>());
 			for(int cLine=1;cLine<=reference.getLineNumber();cLine++){
 				double res=solution.getValue("s_"+expId(reference.getCell(1, cLine)))*Double.parseDouble(reference.getCell(4, cLine));
 				res+=solution.getValue("o_"+expId(reference.getCell(1, cLine))+"_"+reference.getCell(5, cLine));
 				res-=Double.parseDouble(reference.getCell(2, cLine));
-				System.out.println(cLine+" error of "+reference.getCell(1, cLine)+": "+res);
+				//System.out.println(cLine+" error of "+reference.getCell(1, cLine)+": "+res);
 				sum+=Math.abs(res);
 			}			
-			System.out.println("Avarege error of timesync in millisecundum: "+sum/+reference.getLineNumber()+".");
-			*/
+			System.out.print("Avarege error to UTC in ms: ");
+			System.out.format("%.3f%n",sum/+reference.getLineNumber());
+			
 			sum=0;
 			int countEquations=0;
 			for(CSVHandler time:timeFiles){
@@ -377,12 +378,12 @@ public class CSVProcess{
 			}
 			if(sum/+countEquations<100){
 				System.out.print("Timesyncronisation finished successfully. ");
-			System.out.print("Avarege error in ms: ");
+			System.out.print("Avarege error between motes in ms: ");
 			System.out.format("%.3f%n",sum/+countEquations);
 			}
 			else{
 				System.out.print("Timesyncronisation finished with high error: ");
-				System.out.print("Avarege error in ms: ");
+				System.out.print("Avarege error between motes in ms: ");
 				System.out.format("%.3f%n",sum/+countEquations);
 			}
 			//equations.printStatistics();
