@@ -11,7 +11,8 @@ module ApplicationP{
   uses{
     interface Boot;
     interface Leds;
-    interface Timer<TMilli>;
+    interface Timer<TMilli> as SensorTimer;
+    interface Timer<TMilli> as SystemTimer;
     interface Read<uint8_t> as VLight;
     interface Read<uint8_t> as IRLight;
     interface Read<uint16_t> as Temp;
@@ -36,6 +37,7 @@ module ApplicationP{
     interface Debug as DataDebug;
     interface Debug as TimeDebug;
     interface Debug as UplDebug;
+    interface Receive;
   }
 }
 implementation{
@@ -61,6 +63,7 @@ implementation{
   } timeData;
   
   bool running=FALSE;
+  bool shutdown=FALSE;
 
   event void Boot.booted(){
     call EepromWrite.set(call EepromRead.get()+1);
@@ -79,12 +82,12 @@ implementation{
       call SetSavePoints.set(TIMESYNC_SAVEPOINT);
       call TimeSync.start();
 
-      call Timer.startPeriodicAt(((uint32_t)MEASURE_INTERVAL)<<9,(uint32_t)MEASURE_INTERVAL<<10);
+      call SensorTimer.startPeriodicAt(((uint32_t)MEASURE_INTERVAL)<<9,(uint32_t)MEASURE_INTERVAL<<10);
       running=TRUE;
     }
   }	
 
-  event void Timer.fired(){
+  event void SensorTimer.fired(){
     call Humidity.read();
   }
 
@@ -148,36 +151,55 @@ implementation{
   
   event void Command.newCommand(uint32_t cmd){
     switch(cmd&0xff){
-      case 0x11:{
+      case 0x11:{//sync
         call DataStorageWrite.sync();
+        call Command.sendData(0x1100);       
       }break;
-      case 0x22:{
+      case 0x22:{//start/stop
         if(running){
-          call Timer.stop();
+          call SensorTimer.stop();
           call TimeSync.stop();
           running=FALSE;
           call Command.sendData(0x2201);
         } else {
           call TimeSync.start();
-          call Timer.startPeriodicAt(((uint32_t)MEASURE_INTERVAL)<<9,(uint32_t)MEASURE_INTERVAL<<10);
+          call SensorTimer.startPeriodicAt(((uint32_t)MEASURE_INTERVAL)<<9,(uint32_t)MEASURE_INTERVAL<<10);
           running=TRUE;
+          shutdown=FALSE;
           call Command.sendData(0x2200);          
         }
       }break;
-      case 0x33:{
+      case 0x33:{//timesync interval setup
         uint16_t interval=cmd>>16;
-        call SetInterval.set(TIMESYNC_INTERVAL);
+        call SetInterval.set(interval);
         call Command.sendData(((uint32_t)interval<<16)+0x3300);
       }break;
-      case 0x44:{
+      case 0x44:{//measure interval setup
         uint16_t interval=cmd>>16;
-        call Timer.startPeriodic((uint32_t)interval<<10);
+        call SensorTimer.startPeriodic((uint32_t)interval<<10);
         call Command.sendData(((uint32_t)interval<<16)+0x4400);
       }break;
-      case 0x55:{
+      case 0x55:{//savepoints setup
         uint8_t value=cmd>>16;
         call SetSavePoints.set(value);
         call Command.sendData(((uint32_t)value<<16)+0x5500);
+      }break;
+      case 0xa0:{//ledson
+        call Leds.led0On();
+        call SystemTimer.startOneShot(10000);
+      }break;
+      case 0xa1:{//shutdown
+        if(!shutdown){
+          call SensorTimer.stop();
+          call SystemTimer.stop();
+          call TimeSync.stop();
+          running=FALSE;
+          shutdown=TRUE;
+          call DataStorageWrite.sync();
+        }
+      }break;
+      case 0xa2:{//send timesync
+        call TimeSyncPoints.sendNow();
       }break;
       //debug
       case 0xF0:{
@@ -219,11 +241,30 @@ implementation{
     }
   }
   
+  event message_t* Receive.receive(message_t *msg, void *payload, uint8_t len){
+    nx_uint8_t *rec;
+    if(len!=1)
+      return msg;
+    rec=(nx_uint8_t*)payload;
+    signal Command.newCommand(*rec);
+    return msg;
+  }
+  
+  event void SystemTimer.fired(){
+    call Leds.set(0);
+  }
+  
   event void DataStorageWrite.syncDone(error_t error){
-    if(error==SUCCESS)
-      call Command.sendData(0x1100);
-    else
-      call Command.sendData(0x1101);
+    if(error==SUCCESS){
+      if(shutdown){
+        call Leds.set(0xff);
+      } else {
+        call Command.sendData(0x1100);
+      } 
+    } else {
+      if(!shutdown)
+        call Command.sendData(0x1101);
+    }
   }
 
 

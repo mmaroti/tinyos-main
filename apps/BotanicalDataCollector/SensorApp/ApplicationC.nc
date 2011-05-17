@@ -1,10 +1,10 @@
 configuration ApplicationC{
 }
 implementation{
-	components new TimerMilliC(), new EepromVariableUint16P(0);
+	components new TimerMilliC() as SensorTimer, new TimerMilliC() as SystemTimer, new EepromVariableUint16P(0);
 	components new StorageFrameC() as DataStor, new StorageFrameC() as TimeStor, MainC, ApplicationP, LedsC, LocalTimeMilliC;
 	components StreamUploaderC, ActiveMessageC, TimeSyncPointsC;
-	components new SensirionSht11C(), new Taos2550C(), new VoltageC();
+	components new SensirionSht11C(), new Taos2550C(), new VoltageC(), new AMReceiverC(20);
 	
 	ApplicationP.Boot->MainC;
 	ApplicationP.Temp->SensirionSht11C.Temperature;
@@ -15,7 +15,8 @@ implementation{
 	ApplicationP.DataStorageWrite->DataStor;
     ApplicationP.TimeStorageWrite->TimeStor;
 	ApplicationP.Leds->LedsC;	
-	ApplicationP.Timer->TimerMilliC;
+	ApplicationP.SystemTimer->SensorTimer;
+    ApplicationP.SensorTimer->SystemTimer;
 	ApplicationP.LocalTime->LocalTimeMilliC;
 	ApplicationP.RadioControl->ActiveMessageC;
     ApplicationP.SetInterval->TimeSyncPointsC;
@@ -27,6 +28,7 @@ implementation{
     ApplicationP.Command->StreamUploaderC;
     ApplicationP.EepromWrite->EepromVariableUint16P;
     ApplicationP.EepromRead->EepromVariableUint16P;
+    ApplicationP.Receive->AMReceiverC;
     
     components StreamStorageC;
     ApplicationP.StorDebug->StreamStorageC;
