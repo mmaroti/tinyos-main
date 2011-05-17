@@ -41,6 +41,7 @@
 #include "ArmAngles.hpp"
 #include "MatrixVector.hpp"
 #include "Person.hpp"
+#include "MotionTypes.hpp"
 
 class QPushButton;
 class QTextStream;
@@ -52,9 +53,7 @@ class RecWindow : public QWidget
 
 public:
 
-    static RecWindow* right();
-
-    static RecWindow* left();
+    static RecWindow* createRecWindow(const qint64 recordID, const Person& p, const MotionType type);
 
     // TODO Should reference heading and matrices be cleared on show/close?
     // TODO Enable/disable buttons on close?

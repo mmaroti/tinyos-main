@@ -306,7 +306,7 @@ void RecordHandler::itemActivated(const QModelIndex& item) {
 
     const int row = item.row();
 
-    emit recordSelected(getRecordID(row), getPerson(row));
+    emit recordSelected(getRecordID(row), getPerson(row), getMotionType(row));
 
     close();
 }
@@ -315,7 +315,7 @@ void RecordHandler::probablyDone() {
 
     if (model->rowCount()==1) {
 
-        emit recordSelected(getRecordID(0), getPerson(0));
+        emit recordSelected(getRecordID(0), getPerson(0), getMotionType(0));
 
         close();
     }
@@ -400,6 +400,11 @@ const QString RecordHandler::getName(int row) const {
     QModelIndex nameCol = model->index(row, NAME);
 
     return model->data(nameCol).toString();
+}
+
+qint64 RecordHandler::getMotionType(const int row) const {
+
+    return getID(row, TYPE);
 }
 
 const Person RecordHandler::getPerson(const int row) const {

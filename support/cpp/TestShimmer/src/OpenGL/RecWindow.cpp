@@ -51,14 +51,36 @@ namespace {
     const qint64 INVALID_REC_ID = -1;
 }
 
-RecWindow* RecWindow::right() {
+RecWindow* RecWindow::createRecWindow(const qint64 recordID, const Person& p, const MotionType type) {
 
-    return new RecWindow(ArmWidget::right(), ArmAngles::right());
-}
+    RecWindow* rw;
 
-RecWindow* RecWindow::left() {
+    if (type==RIGHT_ELBOW_FLEX) {
 
-    return new RecWindow(ArmWidget::left(), ArmAngles::left());
+        rw = new RecWindow(ArmWidget::right(), ArmAngles::right());
+    }
+    else if (type==LEFT_ELBOW_FLEX) {
+
+        rw = new RecWindow(ArmWidget::left(), ArmAngles::left());
+    }
+    else {
+        Q_ASSERT(false);
+    }
+
+    rw->person = p;
+
+    if (recordID == INVALID_REC_ID) {
+
+        rw->setCapturingState();
+    }
+    else {
+
+        rw->recID = recordID;
+
+        rw->readRecord();
+    }
+
+    return rw;
 }
 
 RecWindow::RecWindow(ArmWidget* w, const ArmAngles& c)
@@ -67,14 +89,11 @@ RecWindow::RecWindow(ArmWidget* w, const ArmAngles& c)
 
     widget->setParent(this);
 
+    init();    
+
+    setWindowModality(Qt::ApplicationModal);
+
     widget->show();
-
-    init();
-
-    //setWindowModality(Qt::ApplicationModal);
-
-    setCapturingState();
-    //readRecord();
 }
 
 void RecWindow::init() {

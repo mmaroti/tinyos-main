@@ -35,6 +35,8 @@
 #define ARMTAB_HPP
 
 #include "ui_Arm.h"
+#include "MotionTypes.hpp"
+#include "Person.hpp"
 
 class RecordHandler;
 class SQLDialog;
@@ -49,17 +51,36 @@ public:
 
 
 private slots:
+
     void on_New_Record_clicked();
     void on_New_With_Person_clicked();
     void on_Start_clicked();
-    void on_Motion_Type_currentIndexChanged(QString );
+    void on_Motion_Type_currentIndexChanged(int index);
     void on_Select_Person_clicked();
     void on_Open_Existing_clicked();
 
+    void onPersonSelected(const Person& p);
+    void onRecordSelected(qint64 recID, const Person& p, qint64 motionType);
+
 private:
+
+    void init();
+
+    void setRecordingState();
+
+    void checkConsistency() const;
+
+    bool nameIsConsistent() const;
+
+    void applicationCrash(const QString& msg) const;
+
+    MotionType getMotionType() const;
 
     RecordHandler* const recordSelector;
     SQLDialog* const personSelector;
+
+    qint64 recordID;
+    Person person;
 };
 
 #endif // ARMTAB_HPP

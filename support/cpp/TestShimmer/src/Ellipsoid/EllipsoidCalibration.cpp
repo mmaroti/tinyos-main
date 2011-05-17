@@ -55,8 +55,6 @@ EllipsoidCalibration::EllipsoidCalibration(QWidget* parent) : QWidget(parent) {
     tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 
     tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-
-    recWindow = 0;
 }
 
 void EllipsoidCalibration::onNewSampleReceived(const AccelMagSample sample) {
@@ -74,16 +72,6 @@ void EllipsoidCalibration::onNewSampleReceived(const AccelMagSample sample) {
 
     diffLabel->setText("Change:  " + vec2QStr(accelDiff) + "; " + vec2QStr(magnDiff) );
 
-    if (recWindow==0) {
-
-        recWindow = RecWindow::right();
-
-        recWindow->showMaximized();
-    }
-    else {
-
-        recWindow->updateMatrix(sample);
-    }
 }
 
 void EllipsoidCalibration::addItem(Column col, const QString& str) {
@@ -177,8 +165,6 @@ void EllipsoidCalibration::on_clearButton_clicked() {
     if (ret==QMessageBox::Yes) {
 
         clearAll();
-
-        recWindow->showMaximized();
     }
 }
 

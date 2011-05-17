@@ -330,5 +330,5 @@ const string ArmAngles::tableCSV(const FrameVec& frames) const {
 
 const string ArmAngles::type() const {
 
-    return (sign.sup==1)?"right arm":"left arm";
+    return (sign.sup==1)?"Right elbow flex":"Left elbow flex";
 }

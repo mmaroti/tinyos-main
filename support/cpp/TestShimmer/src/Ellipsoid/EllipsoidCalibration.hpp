@@ -77,7 +77,6 @@ private:
     AccelMagSample previous;
     AccelMagSample current;
 
-    RecWindow* recWindow;
 };
 
 #endif // ELLIPSOIDCALIBRATION_HPP

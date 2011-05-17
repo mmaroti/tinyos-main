@@ -31,10 +31,19 @@
 * Author: Ali Baharev
 */
 
+#include <QMessageBox>
 #include "ArmTab.hpp"
 #include "Globals.hpp"
 #include "RecordHandler.hpp"
 #include "SQLDialog.hpp"
+#include "RecWindow.hpp"
+
+namespace {
+
+    const qint64 INVALID_RECORD_ID = -1;
+
+    const char DATE_FORMAT[] = "yyyy-MM-dd";
+}
 
 ArmTab::ArmTab(QWidget *parent)
 
@@ -46,36 +55,219 @@ ArmTab::ArmTab(QWidget *parent)
 
     setupUi(this);
 
+    QFont defaultBoldFont = QFont();
+
+    defaultBoldFont.setBold(true);
+
+    Person_Label->setFont(defaultBoldFont);
+
+    init();
+
+    connect(recordSelector, SIGNAL(recordSelected(qint64,Person,qint64)),
+                            SLOT(onRecordSelected(qint64,Person,qint64)));
+
+    connect(personSelector, SIGNAL(personSelected(Person)),
+                            SLOT(onPersonSelected(Person)));
+}
+
+void ArmTab::init() {
+
+    person = Person();
+
+    recordID = INVALID_RECORD_ID;
+
+    Person_Label->clear();
+
+    Open_Existing->setEnabled(true);
+
+    Select_Person->setEnabled(true);
+
+    Select_Person->setFocus();
+
+    Motion_Type->setCurrentIndex(0);
+
+    Motion_Type->setDisabled(true);
+
+    Start->setDisabled(true);
+
+    New_With_Person->setDisabled(true);
+
+    New_Record->setEnabled(true);
+}
+
+void ArmTab::setRecordingState() {
+
+    Open_Existing->setDisabled(true);
+
+    Select_Person->setDisabled(true);
+
+    Motion_Type->setDisabled(true);
+
+    Start->setDisabled(true);
+
+    New_With_Person->setEnabled(true);
+
+    New_Record->setEnabled(true);
+
+    New_Record->setFocus();
 }
 
 void ArmTab::on_Open_Existing_clicked() {
 
     recordSelector->show();
+
     recordSelector->activateWindow();
+}
+
+void ArmTab::onRecordSelected(qint64 recID, const Person& p, qint64 motionType) {
+
+    recordID = recID;
+
+    person = p;
+
+    Q_ASSERT(false);
+    //loadRecord();
+
+    Q_ASSERT(motionType==1 || motionType==2);
+
+    Motion_Type->setCurrentIndex(motionType);
+
+    Motion_Type->setDisabled(true);
+
+    Start->setDisabled(true);
+
+    New_With_Person->setFocus();
 }
 
 void ArmTab::on_Select_Person_clicked() {
 
     personSelector->show();
+
     personSelector->activateWindow();
 }
 
-void ArmTab::on_Motion_Type_currentIndexChanged(QString )
-{
+void ArmTab::onPersonSelected(const Person& p) {
 
+    Q_ASSERT(!p.isNull());
+
+    // Pass both to recWindow and eliminate these members
+    person = p;
+
+    recordID = INVALID_RECORD_ID;
+
+    Person_Label->setText(person.name()+"   "+person.birth().toString(DATE_FORMAT));
+
+    Motion_Type->setEnabled(true);
+
+    Motion_Type->setFocus();
+}
+
+void ArmTab::on_Motion_Type_currentIndexChanged(int index) {
+
+    if (index==0) {
+
+        Start->setDisabled(true);
+    }
+    else {
+
+        Start->setEnabled(true);
+
+        Start->setFocus();
+    }
 }
 
 void ArmTab::on_Start_clicked()
 {
+    checkConsistency();
 
+    setRecordingState();
+
+    RecWindow* rw = RecWindow::createRecWindow(recordID, person, getMotionType());
+
+    rw->showMaximized();
 }
 
-void ArmTab::on_New_With_Person_clicked()
-{
+void ArmTab::on_New_With_Person_clicked() {
 
+    Person p = person;
+
+    init();
+
+    onPersonSelected(p);
 }
 
-void ArmTab::on_New_Record_clicked()
-{
+void ArmTab::on_New_Record_clicked() {
+
+    init();
+}
+
+void ArmTab::applicationCrash(const QString& msg) const {
+
+    QMessageBox::critical(0, "Application crash", "Exiting, fatal error: "+msg);
+
+    exit(EXIT_FAILURE);
+}
+
+void ArmTab::checkConsistency() const {
+
+    QString errorMsg;
+
+    if (person.isNull()) {
+
+        errorMsg = "person is not set; ";
+    }
+
+
+    if (!nameIsConsistent()) {
+
+        errorMsg += "person label not updated; ";
+    }
+
+    const QDate birth = person.birth();
+
+    if (!birth.isValid()) {
+
+        errorMsg += "invalid date of birth; ";
+    }
+
+    if (recordID != INVALID_RECORD_ID) {
+
+        errorMsg += "record ID not cleared; ";
+    }
+
+    if (Motion_Type->currentIndex() == 0) {
+
+        errorMsg += "motion type not set; ";
+    }
+
+    if (!errorMsg.isEmpty()) {
+
+        applicationCrash(errorMsg);
+    }
+}
+
+bool ArmTab::nameIsConsistent() const {
+
+    return Person_Label->text().startsWith(person.name(), Qt::CaseInsensitive);
+}
+
+MotionType ArmTab::getMotionType() const {
+
+    const QString motionType = Motion_Type->currentText();
+
+    if (motionType == "Right elbow flex") {
+
+        return RIGHT_ELBOW_FLEX;
+    }
+    else if (motionType == "Left elbow flex") {
+
+        return LEFT_ELBOW_FLEX;
+    }
+    else {
+
+        applicationCrash("motion type should have been set");
+
+        return RIGHT_ELBOW_FLEX;
+    }
 
 }
