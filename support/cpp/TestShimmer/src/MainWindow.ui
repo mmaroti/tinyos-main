@@ -50,6 +50,12 @@
         </property>
        </layout>
       </widget>
+      <widget class="QWidget" name="armTab">
+       <attribute name="title">
+        <string>Arm</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_11"/>
+      </widget>
       <widget class="QWidget" name="plotTab">
        <attribute name="title">
         <string>Plot</string>

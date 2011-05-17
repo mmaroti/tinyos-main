@@ -48,6 +48,7 @@
 #include <QLabel>
 #include "EllipsoidCalibration.hpp"
 #include "Globals.hpp"
+#include "ArmTab.hpp"
 
 extern DataRecorder* dr; // FIXME Eliminate this hideous workaround
 
@@ -93,6 +94,8 @@ MainWindow::MainWindow(QWidget *parent) :
         EllipsoidCalibration* ellipsoid = new EllipsoidCalibration(ui->ellipsoidTab);
         ui->ellipsoidTab->layout()->addWidget(ellipsoid);
 
+        ArmTab* armTab = new ArmTab(ui->armTab);
+        ui->armTab->layout()->addWidget(armTab);
 
         statusBar()->showMessage("Started.");
 

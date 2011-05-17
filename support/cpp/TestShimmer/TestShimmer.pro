@@ -116,7 +116,8 @@ SOURCES += src/DataRecorder.cpp \
     src/OpenGL/RecWindow.cpp \
     src/Ellipsoid/Globals.cpp \
     src/OpenGL/ArmAngles.cpp \
-    src/OpenGL/AngleRange.cpp
+    src/OpenGL/AngleRange.cpp \
+    src/OpenGL/ArmTab.cpp
 HEADERS += src/DataRecorder.h \
     src/MainWindow.h \
     src/ConnectWidget.h \
@@ -213,7 +214,8 @@ HEADERS += src/DataRecorder.h \
     src/Ellipsoid/Globals.hpp \
     src/OpenGL/ArmAngles.hpp \
     src/OpenGL/AngleRange.hpp \
-    src/OpenGL/ArmTriplet.hpp
+    src/OpenGL/ArmTriplet.hpp \
+    src/OpenGL/ArmTab.hpp
 FORMS += src/MainWindow.ui \
     src/ConnectWidget.ui \
     src/CalibrationWidget.ui \
@@ -225,6 +227,7 @@ FORMS += src/MainWindow.ui \
     src/LogWidgetBasic.ui \
     src/LogDialog.ui \
     src/DriveSelectorDialog.ui \
-    src/EllipsoidCalibration.ui
+    src/EllipsoidCalibration.ui \
+    src/Arm.ui
 RESOURCES += src/Resources.qrc \
     src/textures.qrc
