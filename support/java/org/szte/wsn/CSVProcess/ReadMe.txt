@@ -1,7 +1,7 @@
 CSVProcess ReadMe
 The CVSProcess reads the parameters from a configuration file.
 The only argument we have to provide is the path of that configuration file.
-If we run CVSProcess without any given argument, then it will looking for "ini.conf" at the running directory.
+If we run CVSProcess without any given argument, then it will looking for "csv.ini" at the running directory.
 
 Form of the parameters:
 Only one parameters per lines are allowed.

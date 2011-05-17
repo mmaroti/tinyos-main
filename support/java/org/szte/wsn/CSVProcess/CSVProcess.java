@@ -341,12 +341,14 @@ public class CSVProcess{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}		
-		equations.printEquations();
+		//equations.printEquations();
 		try{
 			LinearEquations.Solution solution=equations.solveLeastSquares();
-			solution.print();
+			//solution.print();
+			double sum=0;			
+			/*
+			 //Error of reference mote and calculated mote time
 			CSVHandler reference=new CSVHandler(new File("99999_time.csv"), true, ";", 1, new ArrayList<Integer>());
-			double sum=0;
 			for(int cLine=1;cLine<=reference.getLineNumber();cLine++){
 				double res=solution.getValue("s_"+expId(reference.getCell(1, cLine)))*Double.parseDouble(reference.getCell(4, cLine));
 				res+=solution.getValue("o_"+expId(reference.getCell(1, cLine))+"_"+reference.getCell(5, cLine));
@@ -354,8 +356,10 @@ public class CSVProcess{
 				System.out.println(cLine+" error of "+reference.getCell(1, cLine)+": "+res);
 				sum+=Math.abs(res);
 			}			
-			System.out.println("Summa abs error: "+sum);
+			System.out.println("Avarege error of timesync in millisecundum: "+sum/+reference.getLineNumber()+".");
+			*/
 			sum=0;
+			int countEquations=0;
 			for(CSVHandler time:timeFiles){
 				String fileId=getFileId(time.getFile().getName());
 				for(int cLine=1;cLine<=time.getLineNumber();cLine++){
@@ -363,17 +367,28 @@ public class CSVProcess{
 					res+=solution.getValue("o_"+expId(time.getCell(1, cLine))+"_"+time.getCell(5, cLine));
 					res-=solution.getValue("s_"+fileId)*Double.parseDouble(time.getCell(2, cLine));
 					res-=solution.getValue("o_"+fileId+"_"+time.getCell(3, cLine));
-					 if (Math.abs(res)>10)
-						 System.out.println(cLine+" error of "+reference.getCell(1, cLine)+": "+res);
+					/* 
+					if (Math.abs(res)>10)
+						 System.out.println(cLine+" error of "+time.getCell(1, cLine)+": "+res);
+					*/
 					sum+=Math.abs(res);
-					
+					countEquations++;
 				}
 			}
-			System.out.println("Summa abs error in moteFiles: "+sum);
-			equations.printStatistics();
+			if(sum/+countEquations<100){
+				System.out.print("Timesyncronisation finished successfully. ");
+			System.out.print("Avarege error in ms: ");
+			System.out.format("%.3f%n",sum/+countEquations);
+			}
+			else{
+				System.out.print("Timesyncronisation finished with high error: ");
+				System.out.print("Avarege error in ms: ");
+				System.out.format("%.3f%n",sum/+countEquations);
+			}
+			//equations.printStatistics();
 			return solution;
 		}
-		catch(IOException e){
+		catch(Exception e){
 			System.err.println("Could not reconstruct time. The number of equations is insufficient.  Possibly too short dataset, or two or more distinct datasets. Program will exit.");
 			System.exit(1);
 		}
@@ -515,7 +530,7 @@ public class CSVProcess{
 						for(CSVHandler handler:filesPerNode[i]){
 							String fileName=ready[i].getFile().getName();
 							int count=findIdForName(fileName,structures);
-							handler.calculateNewGlobal(solution,structures.get(count).getGlobalColumn(),true);
+							handler.calculateNewGlobal(solution,structures.get(count).getGlobalColumn(),structures.get(count).isInsertGlobal());
 						}
 				for(int i=0;i<filesPerNode.length;i++){
 					if(i!=timeIndex)
@@ -540,7 +555,7 @@ public class CSVProcess{
 				inputfiles.add(file);
 			}
 		}
-		String initFileName=(args.length>0)?args[0]:"ini.conf";
+		String initFileName=(args.length>0)?args[0]:"csv.ini";
 		ArrayList<StructParams> structs= initParams(initFileName);		
 
 		for(int i=0;i<structs.size();i++)

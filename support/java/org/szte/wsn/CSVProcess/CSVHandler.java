@@ -599,7 +599,8 @@ public class CSVHandler {
 		
 			setCell(global, currentline, currentString);
 		}
-		addDataColumn(timeColumn);
+		if(insert)
+			addDataColumn(timeColumn);
 		setTimeColumn(global);
 	}
 
