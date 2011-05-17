@@ -74,10 +74,9 @@ void disconnect_Ellipsoid_AccelMagMsgReceiver() {
         return;
     }
 
-    bool success = QObject::disconnect(accelMagMsgReceiver, SIGNAL(newSample(const AccelMagSample )),
-                                       ellipsoid,           SLOT(onNewSampleReceived(const AccelMagSample )));
+    QObject::disconnect(accelMagMsgReceiver, SIGNAL(newSample(const AccelMagSample )),
+                        ellipsoid,           SLOT(onNewSampleReceived(const AccelMagSample )));
 
-    Q_ASSERT(success);
 }
 
 }

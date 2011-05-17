@@ -200,6 +200,11 @@ void RecWindow::setupConnections() {
 // TODO Samples should calibrate themselves and save raw samples!
 void RecWindow::updateMatrix(const AccelMagSample sample) {
 
+    if (!sample.isStatic()) {
+
+        return;
+    }
+
     const int mote = sample.moteID();
 
     const matrix3 rotMat = sample.toRotationMatrix();
@@ -483,6 +488,8 @@ namespace {
 
     const char MOTES[] = "# Motes";
 
+    const char TYPE[] = "# Type";
+
     const char HEADINGS[] = "# Headings";
 
     const char FRAMES[] = "# Frames";
@@ -505,6 +512,10 @@ void RecWindow::writeData(QTextStream& out) const {
     const MatMap& m = *frames.begin();
 
     std::for_each(m.begin(), m.end(), IntKeyWriter<gyro::matrix3>(out));
+
+    out << TYPE << '\n';
+
+    out << calculator.type().c_str() << '\n';
 
     out << HEADINGS << '\n';
 
@@ -530,6 +541,8 @@ void RecWindow::writeData(QTextStream& out) const {
 }
 
 void RecWindow::readRecord() {
+
+    globals::disconnect_Ellipsoid_AccelMagMsgReceiver();
 
     QFile file(filename());
 

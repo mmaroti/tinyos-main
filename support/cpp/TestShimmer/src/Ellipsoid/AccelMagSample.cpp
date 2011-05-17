@@ -91,7 +91,7 @@ bool AccelMagSample::isStatic() const {
 
     const double x_length = accel.length();
 
-    if (x_length > 1.06 || x_length < 0.94) {
+    if (x_length > 1.20 || x_length < 0.80) {
 
         return false;
     }

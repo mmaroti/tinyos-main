@@ -327,3 +327,8 @@ const string ArmAngles::tableCSV(const FrameVec& frames) const {
 
     return os.str();
 }
+
+const string ArmAngles::type() const {
+
+    return (sign.sup==1)?"right arm":"left arm";
+}

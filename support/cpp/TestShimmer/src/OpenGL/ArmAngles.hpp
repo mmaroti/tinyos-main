@@ -73,6 +73,8 @@ public:
 
     const string tableCSV(const FrameVec& frames) const;
 
+    const string type() const;
+
 private:
 
     ArmAngles(ElbowFlexSign s);
