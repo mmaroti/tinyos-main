@@ -12,6 +12,15 @@ public class CommandMsg extends net.tinyos.message.Message {
 	public static final short COMMAND_ERASE=0x01;
 	public static final short COMMAND_STOPSEND=0x02;
 	
+	public static final short COMMAND_SYNC=0x11;
+	public static final short COMMAND_STARTSTOP=0x22;
+	public static final short COMMAND_SETTIMESYNCINTERVAL=0x33;
+	public static final short COMMAND_SETMEASUREINTERVAL=0x44;
+	public static final short COMMAND_SETTIMESYNCSAVEPOINTS=0x55;
+	public static final short COMMAND_SENDTIMESYNC=0x66;
+	public static final short COMMAND_LEDSON=0x77;
+	public static final short COMMAND_SHUTDOWN=0x88;
+	
 	
     /** The default size of this message type in bytes. */
     public static final int DEFAULT_MESSAGE_SIZE = 1;
