@@ -69,6 +69,7 @@ public class StreamDownloader{
 		console.addCommand("download", "downdload <nodeid>: Downloads mote with <nodeid>.\r\n" +
 							"if <nodeid>=all erases all motes");
 		console.addCommand("quit", "Quits from the program");
+		console.addCommand("command", "command <nodeid> <command> [argument]: Sends a user command");
 		try {
 			this.timeSync=new CSVHandler(new File(REFID+"_time.csv"), true, ";", 2, new Integer[]{1,3,4,5,6,7});
 		} catch (IOException e) {
@@ -76,6 +77,14 @@ public class StreamDownloader{
 			System.exit(1);
 		}	
 		comm.discover(null);
+	}
+	
+	//a-b
+	private HashSet<Integer> subtract(HashSet<Integer> a, HashSet<Integer> b){
+		HashSet<Integer> ret = new HashSet<Integer>();
+		ret.addAll(a);
+		ret.removeAll(b);
+		return ret;
 	}
 	
 	public void discoveryComplete(HashSet<Integer> motes) {
@@ -109,13 +118,11 @@ public class StreamDownloader{
 			}
 			if(currentMote==-1*ALL){
 				HashSet<Integer> allNodeIds=comm.getMotes();
-				for(Integer i:nodeIds){
-					if(!allNodeIds.contains(i))
-						System.out.println("Erase complete on unknown mote: "+i+". Discover adviced.");
+				for(Integer i:subtract(nodeIds, allNodeIds)){
+					System.out.println("Erase complete on unknown mote: "+i+". Discover adviced.");
 				}
-				for(Integer i:allNodeIds){
-					if(!nodeIds.contains(i))
-						System.out.println("Probably unerased mote: "+i+".");
+				for(Integer i:subtract(allNodeIds, nodeIds)){
+					System.out.println("Probably unerased mote: "+i+".");
 				}
 			} else if(nodeIds.contains(currentMote)){
 				System.out.println("Erase complete on mote #"+currentMote);
@@ -124,6 +131,26 @@ public class StreamDownloader{
 			System.out.println("Erase failed on mote #"+currentMote+". Mote didn't answer.");
 		}
 		waitForCommands();
+	}
+	
+	public void userComplete(HashSet<Integer> nodeIds, int error) {
+		if(error==Communication.E_SUCCESS){
+			if(currentMote==ALL){
+				HashSet<Integer> allNodeIds=comm.getMotes();
+				for(Integer i:subtract(nodeIds, allNodeIds)){
+					System.out.println("User complete on unknown mote: "+i+". Discover adviced.");
+				}
+				for(Integer i:subtract(allNodeIds, nodeIds)){
+					System.out.println("Mote didn't answer: "+i+".");
+				}
+			} else if(nodeIds.contains(currentMote)){
+				System.out.println("User complete on mote #"+currentMote);
+			}
+		} else{
+			System.out.println("User failed on mote #"+currentMote+". Mote didn't answer.");
+		}
+		waitForCommands();
+		
 	}
 
 	public void getAddressesComplete(ArrayList<Pong> pongs, boolean repairOnly) {
@@ -285,6 +312,33 @@ public class StreamDownloader{
 					comm.getAddresses();
 					exitCommandLoop=true;
 				}
+			}else if(command.startsWith("command")){
+				String[] splitted=command.split(" ");
+				if(splitted.length<3|| !splitted[1].toLowerCase().matches("all|[0-9]*")|| !splitted[2].toLowerCase().matches("0x[0-9]*|[0-9]*")){
+					console.printHelp("command");
+				} else if((splitted.length==4)&& !splitted[3].toLowerCase().matches("0x[0-9]*|[0-9]*")){
+					console.printHelp("command");
+				}else {
+					if(splitted[1].toLowerCase().equals("all")){
+						currentMote=ALL;
+					} else {
+						currentMote=Integer.parseInt(splitted[1]);						
+					}
+					short cmd;
+					if(splitted[2].toLowerCase().startsWith("0x"))
+						cmd=Short.parseShort(splitted[2].substring(2),16);
+					else
+						cmd=Short.parseShort(splitted[2]);
+					int argument=0;
+					if(splitted.length==4){
+						if(splitted[3].toLowerCase().startsWith("0x"))
+							argument=Short.parseShort(splitted[3].substring(2),16);
+						else
+							argument=Short.parseShort(splitted[3]);
+					}
+					comm.sendUser(currentMote, cmd, argument);
+					exitCommandLoop=true;
+				}
 			}else if(command.equals("quit")){
 				if(timeSync.getLineNumber()==0){
 					System.out.println("No timesync reference received yet! For correct timesync you need at least one!");
@@ -298,6 +352,7 @@ public class StreamDownloader{
 					exitCommandLoop=true;
 					shutdown=true;
 				}
+
 			} else {
 				System.out.println("Unimplemented command.");
 			}
@@ -362,5 +417,7 @@ public class StreamDownloader{
 
 			
 	}
+
+
 	
 }

@@ -60,10 +60,13 @@ public class Communication  implements MessageListener {
 	private static final int M_ERASE = 3;
 	private static final int M_DOWNLOAD = 4;
 	private static final int M_DOWNLOAD_PING = 5;
+	private static final int M_USER = 6;
+	private static final int M_USER_ALL = 7;
 	private static final int M_AUTODOWNLOAD=99;
 	
 	public static final int E_SUCCESS = 0;
 	public static final int E_TIMEOUT = 1;
+
 
 	private int mode=M_AUTODOWNLOAD;
 	private int currentMote;
@@ -106,6 +109,18 @@ public class Communication  implements MessageListener {
 		return ret;		
 	}
 	
+	private boolean everyMoteAnswerd(HashSet<Integer> motes, ArrayList<Pong> pongs){
+		if(pongsReceived.size()<motes.size())
+			return false;
+		HashSet<Integer> pongIds=getNodeIds(pongsReceived);
+		for(Integer moteid:motes){
+			if(!pongIds.contains(moteid)){
+				return false;
+			}
+		}
+		return true;
+	}
+	
 	@Override
 	public void messageReceived(int to, Message m) {
 		if(m instanceof CtrlMsg){
@@ -130,19 +145,8 @@ public class Communication  implements MessageListener {
 						if(verbose)
 							System.out.println("Node #"+nodeid+" erased.");
 						pongsReceived.add(new Pong(nodeid, min_address, max_address));
-						if(pongsReceived.size()>=motes.size()){
-							boolean eraseDone=true;
-							HashSet<Integer> pongIds=getNodeIds(pongsReceived);
-							for(Integer moteid:motes){
-								if(!pongIds.contains(moteid)){
-									eraseDone=false;
-									break;
-								}
-							}
-							if(eraseDone){
-								sd.eraseComplete(pongIds,E_SUCCESS);
-							}
-						}
+						if(everyMoteAnswerd(motes, pongsReceived))
+							sd.eraseComplete(motes,E_SUCCESS);
 					}
 				}break;
 				
@@ -157,6 +161,27 @@ public class Communication  implements MessageListener {
 						}
 					}
 				}break;
+				case M_USER_ALL:{
+					if(min_address==max_address&&min_address==0){
+						if(verbose)
+							System.out.println("Node #"+nodeid+" command done.");
+						pongsReceived.add(new Pong(nodeid, min_address, max_address));
+						if(everyMoteAnswerd(motes, pongsReceived))
+							sd.userComplete(motes,E_SUCCESS);
+					}
+				}break;
+				
+				case M_USER:{
+					if(min_address==max_address&&min_address==0){
+						if(verbose)
+							System.out.println("Node #"+nodeid+" command done.");
+						if(currentMote==nodeid){
+							pingtask.cancel();
+							mode=M_NOTHING;
+							sd.userComplete(oneElementHashSet(nodeid),E_SUCCESS);
+						}
+					}
+				}break;				
 				case M_DOWNLOAD:{
 					if(currentMote==nodeid){
 						downloadtask.cancel();
@@ -216,10 +241,15 @@ public class Communication  implements MessageListener {
 		}
 	}
 	
-	private void sendCommnad(int nodeid, short command, int waitForAnswer){
+	private void sendCommnad(int nodeid, short command, int waitForAnswer, int argument){
 		if(waitForAnswer>0)
 			timer.schedule(new PongWaiter(), waitForAnswer);
-		sendGet(nodeid, command, command, GET_TIMEOUT, false);
+		long realcommand=(argument<<16)+command;
+		sendGet(nodeid, realcommand, realcommand, GET_TIMEOUT, false);
+	}
+	
+	private void sendCommnad(int nodeid, short command, int waitForAnswer){
+		sendCommnad(nodeid, command, waitForAnswer, 0);
 	}
 	
 	public Communication(StreamDownloader sd,String source){
@@ -262,6 +292,22 @@ public class Communication  implements MessageListener {
 		pongsReceived.clear();
 		sendCommnad(CommandMsg.COMMAND_PING, WAIT_COMMAND);
 	}
+	
+	public void sendUser(short cmd){
+		mode=M_USER_ALL;
+		pongsReceived.clear();
+		sendCommnad(cmd, WAIT_COMMAND);
+	}
+	
+	public void sendUser(int nodeid, short cmd, int argument){
+		if(nodeid==0xffff)
+			sendUser(cmd);
+		else{
+			currentMote=nodeid;
+			mode=M_USER;
+			sendCommnad(nodeid,cmd,argument);
+		}
+	}
 
 	public void sendErase(int nodeid){
 		if(nodeid==0xffff)
@@ -303,7 +349,13 @@ public class Communication  implements MessageListener {
 				}break;
 				case M_ERASE:{
 					sd.eraseComplete(oneElementHashSet(currentMote),E_TIMEOUT);;
-				}
+				}break;
+				case M_USER:{
+					sd.userComplete(oneElementHashSet(currentMote),E_TIMEOUT);;
+				}break;
+				case M_USER_ALL:{
+					sd.userComplete(getNodeIds(pongsReceived),E_SUCCESS);;
+				}break;
 			}
 		}
 	
