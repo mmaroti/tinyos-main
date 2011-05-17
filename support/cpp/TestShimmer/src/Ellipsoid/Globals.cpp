@@ -31,29 +31,56 @@
 *      Author: Ali Baharev
 */
 
+#include <QObject>
 #include <QtGlobal>
 #include "Globals.hpp"
 #include "AccelMagSample.hpp"
+#include "AccelMagMsgReceiver.hpp"
+#include "EllipsoidCalibration.hpp"
+#include "RecWindow.hpp"
 #include "RecordHandler.hpp"
 #include "SQLDialog.hpp"
 
 // TODO Move extern DataRecorder and rootDirPath here!
-// TODO Return bool from connect/disconnect
+// TODO Return bool from connect/disconnect or write an error message to the console
 
 namespace globals {
 
-QObject* ellipsoid(0);
+EllipsoidCalibration* ellipsoid(0);
 
-QObject* accelMagMsgReceiver(0);
+AccelMagMsgReceiver* accelMagMsgReceiver(0);
 
-void set_Ellipsoid(QObject* obj) {
+void set_Ellipsoid(EllipsoidCalibration* e) {
 
-    ellipsoid = obj;
+    ellipsoid = e;
 }
 
-void set_AccelMagMsgReceiver(QObject* obj) {
+void set_AccelMagMsgReceiver(AccelMagMsgReceiver* a) {
 
-    accelMagMsgReceiver = obj;
+    accelMagMsgReceiver = a;
+}
+
+void connect_RecWindow_AccelMagMsgReceiver(RecWindow* recWindow) {
+
+    if (accelMagMsgReceiver==0 || recWindow==0) {
+
+        return;
+    }
+
+    QObject::connect(accelMagMsgReceiver, SIGNAL(newSample(AccelMagSample)),
+                     recWindow,           SLOT(   updateMatrix(AccelMagSample)),
+                     Qt::UniqueConnection);
+}
+
+void disconnect_RecWindow_AccelMagMsgReceiver(RecWindow* recWindow) {
+
+    if (accelMagMsgReceiver==0 || recWindow==0) {
+
+        return;
+    }
+
+    QObject::disconnect(accelMagMsgReceiver, SIGNAL(newSample(AccelMagSample)),
+                        recWindow,           SLOT(   updateMatrix(AccelMagSample)));
 }
 
 void connect_Ellipsoid_AccelMagMsgReceiver() {

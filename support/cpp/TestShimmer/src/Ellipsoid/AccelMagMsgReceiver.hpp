@@ -57,8 +57,6 @@ signals:
 
     void newSample(const AccelMagSample sample);
 
-    void sampleReceived(const AccelMagSample sample);
-
 public slots:
 
     void onReceiveMessage(const ActiveMessage& msg);

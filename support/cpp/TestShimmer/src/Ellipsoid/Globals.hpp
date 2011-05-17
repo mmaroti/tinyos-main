@@ -31,8 +31,9 @@
 *      Author: Ali Baharev
 */
 
-#include <QObject>
-
+class EllipsoidCalibration;
+class AccelMagMsgReceiver;
+class RecWindow;
 class RecordHandler;
 class SQLDialog;
 
@@ -44,9 +45,13 @@ void connect_Ellipsoid_AccelMagMsgReceiver();
 
 void disconnect_Ellipsoid_AccelMagMsgReceiver();
 
-void set_Ellipsoid(QObject* ellipsoid);
+void set_Ellipsoid(EllipsoidCalibration* ellipsoid);
 
-void set_AccelMagMsgReceiver(QObject* accelMagMsgReceiver);
+void set_AccelMagMsgReceiver(AccelMagMsgReceiver* accelMagMsgReceiver);
+
+void connect_RecWindow_AccelMagMsgReceiver(RecWindow* recWindow);
+
+void disconnect_RecWindow_AccelMagMsgReceiver(RecWindow* recWindow);
 
 void createRecordSelector();
 

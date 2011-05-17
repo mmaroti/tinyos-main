@@ -132,8 +132,6 @@ void RecWindow::clearContainers() {
 
 void RecWindow::setCapturingState() {
 
-    globals::connect_Ellipsoid_AccelMagMsgReceiver();
-
     clearContainers();
 
     frameIndex = 0;
@@ -152,11 +150,13 @@ void RecWindow::setCapturingState() {
     clearButton->setEnabled(true);
 
     setReferenceButton->setFocus();
+
+    globals::connect_RecWindow_AccelMagMsgReceiver(this);
 }
 
 void RecWindow::setEditingState() {
 
-    globals::disconnect_Ellipsoid_AccelMagMsgReceiver();
+    globals::disconnect_RecWindow_AccelMagMsgReceiver(this);
 
     setReferenceButton->setDisabled(true);
     captureButton->setDisabled(true);
@@ -561,7 +561,7 @@ void RecWindow::writeData(QTextStream& out) const {
 
 void RecWindow::readRecord() {
 
-    globals::disconnect_Ellipsoid_AccelMagMsgReceiver();
+    globals::disconnect_RecWindow_AccelMagMsgReceiver(this);
 
     QFile file(filename());
 
