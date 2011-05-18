@@ -305,7 +305,7 @@ public class Communication  implements MessageListener {
 		else{
 			currentMote=nodeid;
 			mode=M_USER;
-			sendCommnad(nodeid,cmd,argument);
+			sendCommnad(nodeid,cmd, WAIT_COMMAND,argument);
 		}
 	}
 
