@@ -67,7 +67,7 @@ private slots:
     void on_Open_Existing_clicked();
 
     void onPersonSelected(const Person& p);
-    void onRecordSelected(qint64 recID, const Person& p, qint64 motionType);
+    void onRecordSelected(qint64 recID, const Person& p, MotionType type);
 
 private:
 

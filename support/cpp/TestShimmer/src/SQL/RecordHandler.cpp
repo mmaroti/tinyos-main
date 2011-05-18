@@ -402,9 +402,29 @@ const QString RecordHandler::getName(int row) const {
     return model->data(nameCol).toString();
 }
 
-qint64 RecordHandler::getMotionType(const int row) const {
+// FIXME Hideous workaround
+MotionType RecordHandler::getMotionType(const int row) const {
 
-    return getID(row, TYPE);
+    QModelIndex item = model->index(row, TYPE);
+
+    const QString type = model->data(item).toString();
+
+    MotionType result;
+
+    if (type=="RIGHT_ELBOW_FLEX") {
+
+        result = RIGHT_ELBOW_FLEX;
+    }
+    else if (type=="LEFT_ELBOW_FLEX") {
+
+        result = LEFT_ELBOW_FLEX;
+    }
+    else {
+
+        displayError("Unknown motion type "+type);
+    }
+
+    return result;
 }
 
 const Person RecordHandler::getPerson(const int row) const {

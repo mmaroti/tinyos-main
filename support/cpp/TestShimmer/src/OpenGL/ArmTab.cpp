@@ -63,8 +63,8 @@ ArmTab::ArmTab(QWidget *parent)
 
     init();
 
-    connect(recordSelector, SIGNAL(recordSelected(qint64,Person,qint64)),
-                            SLOT(onRecordSelected(qint64,Person,qint64)));
+    connect(recordSelector, SIGNAL(recordSelected(qint64,Person,MotionType)),
+                            SLOT(onRecordSelected(qint64,Person,MotionType)));
 
     connect(personSelector, SIGNAL(personSelected(Person)),
                             SLOT(onPersonSelected(Person)));
@@ -119,19 +119,19 @@ void ArmTab::on_Open_Existing_clicked() {
     recordSelector->activateWindow();
 }
 
-void ArmTab::onRecordSelected(qint64 recID, const Person& p, qint64 motionType) {
+void ArmTab::onRecordSelected(qint64 recID, const Person& p, MotionType type) {
 
     recordID = recID;
 
     person = p;
 
-    Q_ASSERT(false);
+    //Q_ASSERT(false);
 
     //loadRecord();
 
-    Q_ASSERT(motionType==1 || motionType==2);
+    Q_ASSERT(type==RIGHT_ELBOW_FLEX || type==LEFT_ELBOW_FLEX);
 
-    Motion_Type->setCurrentIndex(motionType);
+    Motion_Type->setCurrentIndex(type);
 
     Motion_Type->setDisabled(true);
 
@@ -156,6 +156,8 @@ void ArmTab::onPersonSelected(const Person& p) {
     recordID = INVALID_RECORD_ID;
 
     Person_Label->setText(person.name()+"   "+person.birth().toString(DATE_FORMAT));
+
+    Motion_Type->setCurrentIndex(0);
 
     Motion_Type->setEnabled(true);
 

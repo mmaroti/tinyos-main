@@ -72,7 +72,7 @@ public:
 
 signals:
 
-    void recordSelected(qint64 recordID, const Person& person, qint64 motionType);
+    void recordSelected(qint64 recordID, const Person& person, MotionType type);
 
 private slots:
 
@@ -116,7 +116,7 @@ private:
     qint64 getID(int row, int col) const;
     qint64 getPersonID(int row) const;
     qint64 getRecordID(int row) const;
-    qint64 getMotionType(const int row) const;
+    MotionType getMotionType(const int row) const;
     int pixelWidth(const char text[]) const;
     const QString name() const;
     qint64 toInt64(const QVariant& var) const;
