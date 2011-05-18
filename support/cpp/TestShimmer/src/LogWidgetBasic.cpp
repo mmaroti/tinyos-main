@@ -76,8 +76,8 @@ LogWidgetBasic::LogWidgetBasic(QWidget *parent, Application &app) :
         ui(new Ui::LogWidgetBasic),
         application(app),
         blockingBox(0),
-        dial(new SQLDialog),
-        recSelect(new RecordHandler),
+        dial(0),
+        recSelect(0),
         recordID(INVALID_RECORD_ID),
         extrema(new double[SIZE_OF_ARRAY])
 {
@@ -113,13 +113,13 @@ LogWidgetBasic::LogWidgetBasic(QWidget *parent, Application &app) :
     blockingBox->setModal(true);
     blockingBox->setStandardButtons(QMessageBox::NoButton);
 
-    dial->setWindowTitle("Add or select a person");
+    //dial->setWindowTitle("Add or select a person");
 
-    recSelect->setWindowTitle("Select a record");
+    //recSelect->setWindowTitle("Select a record");
 
-    connect(dial, SIGNAL(personSelected(Person)), SLOT(onPersonSelected(Person)));
+    //connect(dial, SIGNAL(personSelected(Person)), SLOT(onPersonSelected(Person)));
 
-    connect(recSelect, SIGNAL(recordSelected(qint64,Person)), SLOT(onRecordSelected(qint64,Person)));
+    //connect(recSelect, SIGNAL(recordSelected(qint64,Person)), SLOT(onRecordSelected(qint64,Person)));
 }
 
 LogWidgetBasic::~LogWidgetBasic()

@@ -51,6 +51,11 @@ public:
 
     AccelMagMsgReceiver();
 
+    bool resetScaleOffset(int moteID);
+
+    bool updateScaleOffset(int moteID, const gyro::vector3& accScl,  const gyro::vector3& accOff,
+                                       const gyro::vector3& magnScl, const gyro::vector3& magnOff);
+
     ~AccelMagMsgReceiver();
 
 signals:

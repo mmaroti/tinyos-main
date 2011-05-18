@@ -61,9 +61,6 @@ signals:
 
     void anglesSaved(qint64 recordID);
 
-    void updateScalesOffsets(int mote, gyro::vector3 accScl, gyro::vector3 accOff,
-                                       gyro::vector3 magScl, gyro::vector3 magOff);
-
 private slots:
 
     void on_Reset_Button_clicked();

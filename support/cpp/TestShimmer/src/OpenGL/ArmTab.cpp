@@ -496,10 +496,13 @@ void ArmTab::computeScalesOffSets(std::vector<std::vector<double> >& values) {
     }
 
     using gyro::vector3;
-    std::cout << "Acc scale:   " << vector3(acc_scale) << std::endl;
-    std::cout << "Acc offset:  " << vector3(acc_offset) << std::endl;
-    std::cout << "Magn scale:  " << vector3(magn_scale) << std::endl;
-    std::cout << "Magn offset: " << vector3(magn_offset) << std::endl;
+    //std::cout << "Acc scale:   " << vector3(acc_scale) << std::endl;
+    //std::cout << "Acc offset:  " << vector3(acc_offset) << std::endl;
+    //std::cout << "Magn scale:  " << vector3(magn_scale) << std::endl;
+    //std::cout << "Magn offset: " << vector3(magn_offset) << std::endl;
+
+    globals::updateScaleOffset(sample.moteID(), vector3(acc_scale),  vector3(acc_offset),
+                                                vector3(magn_scale), vector3(magn_offset));
 }
 
 void ArmTab::on_Reset_Button_clicked() {
@@ -511,7 +514,7 @@ void ArmTab::on_Reset_Button_clicked() {
 
     if (areYouSure("This will drop calibration data of mote "+QString::number(sample.moteID()).toAscii())) {
 
-        // TODO Drop data
+        globals::resetScaleOffset(sample.moteID());
     }
 }
 

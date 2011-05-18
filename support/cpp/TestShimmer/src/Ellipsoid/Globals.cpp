@@ -173,5 +173,26 @@ SQLDialog* personSelector() {
     return sqlDialog;
 }
 
+bool resetScaleOffset(int mote) {
+
+    if (accelMagMsgReceiver==0) {
+
+        return false;
+    }
+
+    return accelMagMsgReceiver->resetScaleOffset(mote);
+}
+
+bool updateScaleOffset(int mote, const gyro::vector3& accScl,  const gyro::vector3& accOff,
+                                 const gyro::vector3& magnScl, const gyro::vector3& magnOff)
+{
+    if (accelMagMsgReceiver==0) {
+
+        return false;
+    }
+
+    return accelMagMsgReceiver->updateScaleOffset(mote, accScl, accOff, magnScl, magnOff);
+}
+
 }
 

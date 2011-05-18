@@ -31,6 +31,8 @@
 *      Author: Ali Baharev
 */
 
+#include "MatrixVector.hpp"
+
 class ArmTab;
 class EllipsoidCalibration;
 class AccelMagMsgReceiver;
@@ -65,5 +67,10 @@ RecordHandler* recordSelector();
 void createPersonSelector();
 
 SQLDialog* personSelector();
+
+bool resetScaleOffset(int mote);
+
+bool updateScaleOffset(int mote, const gyro::vector3& accScl,  const gyro::vector3& accOff,
+                                 const gyro::vector3& magnScl, const gyro::vector3& magnOff);
 
 }
