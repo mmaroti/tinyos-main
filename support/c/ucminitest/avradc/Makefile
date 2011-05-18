@@ -68,6 +68,12 @@ size: ${TARGET}
 
 prog:
 	avrdude -pm128rfa1 -cavr109 -b57600 -P/dev/ttyUSB0 -Uflash:w:avradc.hex:a
+	
+progjtag:
+	avrdude -pm128rfa1 -cdragon_jtag -Pusb -Uflash:w:avradc.hex:a
+	
+progmib:
+	avrdude -pm128rfa1 -cmib510 -P/dev/ttyUSB0 -Uflash:w:avradc.hex:a
 
 ## Clean target
 .PHONY: clean
