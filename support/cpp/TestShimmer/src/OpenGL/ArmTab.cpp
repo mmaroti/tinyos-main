@@ -109,7 +109,7 @@ void ArmTab::setRecordingState() {
 
     New_Record->setEnabled(true);
 
-    New_Record->setFocus();
+    New_With_Person->setFocus();
 }
 
 void ArmTab::on_Open_Existing_clicked() {
@@ -125,19 +125,33 @@ void ArmTab::onRecordSelected(qint64 recID, const Person& p, MotionType type) {
 
     person = p;
 
-    //Q_ASSERT(false);
+    if (type!=RIGHT_ELBOW_FLEX && type!=LEFT_ELBOW_FLEX) {
 
-    //loadRecord();
-
-    Q_ASSERT(type==RIGHT_ELBOW_FLEX || type==LEFT_ELBOW_FLEX);
+        applicationCrash("invalid motion type: "+QString::number(type));
+    }
 
     Motion_Type->setCurrentIndex(type);
 
-    Motion_Type->setDisabled(true);
+    setPersonLabel();
 
-    Start->setDisabled(true);
+    setRecordingState();
 
-    New_With_Person->setFocus();
+    checkConsistency();
+
+    RecWindow* rw = getRecWindow();
+
+    rw->showMaximized();
+}
+
+RecWindow* ArmTab::getRecWindow() {
+
+    RecWindow* rw = RecWindow::createRecWindow(recordID, person, getMotionType());
+
+    connect(rw, SIGNAL(saveAngles(QString)), SLOT(saveAngles(QString)));
+
+    connect(this, SIGNAL(anglesSaved(qint64)), rw, SLOT(anglesSaved(qint64)));
+
+    return rw;
 }
 
 void ArmTab::on_Select_Person_clicked() {
@@ -149,19 +163,24 @@ void ArmTab::on_Select_Person_clicked() {
 
 void ArmTab::onPersonSelected(const Person& p) {
 
-    Q_ASSERT(!p.isNull());
-
     person = p;
 
     recordID = INVALID_RECORD_ID;
 
-    Person_Label->setText(person.name()+"   "+person.birth().toString(DATE_FORMAT));
+    checkPersonValidity();
+
+    setPersonLabel();
 
     Motion_Type->setCurrentIndex(0);
 
     Motion_Type->setEnabled(true);
 
     Motion_Type->setFocus();
+}
+
+void ArmTab::setPersonLabel() {
+
+    Person_Label->setText(person.name()+"   "+person.birth().toString(DATE_FORMAT));
 }
 
 void ArmTab::on_Motion_Type_currentIndexChanged(int index) {
@@ -182,20 +201,21 @@ void ArmTab::on_Start_clicked()
 {
     checkConsistency();
 
+    if (recordID != INVALID_RECORD_ID) {
+
+        applicationCrash("record ID not cleared");
+    }
+
     setRecordingState();
 
-    RecWindow* rw = RecWindow::createRecWindow(recordID, person, getMotionType());
+    RecWindow* rw = getRecWindow();
 
     rw->showMaximized();
-
-    connect(rw, SIGNAL(saveAngles(QString)), SLOT(saveAngles(QString)));
-
-    connect(this, SIGNAL(anglesSaved(qint64)), rw, SLOT(anglesSaved(qint64)));
 }
 
 void ArmTab::saveAngles(QString table) {
 
-    Q_ASSERT(!person.isNull());
+    checkPersonValidity();
 
     if (recordID==INVALID_RECORD_ID) {
 
@@ -230,6 +250,14 @@ void ArmTab::applicationCrash(const QString& msg) const {
     exit(EXIT_FAILURE);
 }
 
+void ArmTab::checkPersonValidity() const {
+
+    if (person.isNull()) {
+
+        applicationCrash("person is NULL");;
+    }
+}
+
 void ArmTab::checkConsistency() const {
 
     QString errorMsg;
@@ -238,7 +266,6 @@ void ArmTab::checkConsistency() const {
 
         errorMsg = "person is not set; ";
     }
-
 
     if (!nameIsConsistent()) {
 
@@ -250,11 +277,6 @@ void ArmTab::checkConsistency() const {
     if (!birth.isValid()) {
 
         errorMsg += "invalid date of birth; ";
-    }
-
-    if (recordID != INVALID_RECORD_ID) {
-
-        errorMsg += "record ID not cleared; ";
     }
 
     if (Motion_Type->currentIndex() == 0) {

@@ -38,6 +38,7 @@
 #include "MotionTypes.hpp"
 #include "Person.hpp"
 
+class RecWindow;
 class RecordHandler;
 class SQLDialog;
 
@@ -74,6 +75,12 @@ private:
     void init();
 
     void setRecordingState();
+
+    RecWindow* getRecWindow();
+
+    void setPersonLabel();
+
+    void checkPersonValidity() const;
 
     void checkConsistency() const;
 

@@ -471,7 +471,10 @@ qint64 RecordHandler::toInt64(const QVariant& var) const {
         displayError("Failed to convert the ID to int64");
     }
 
-    Q_ASSERT(int64Value > 0);
+    if (int64Value <= 0) {
+
+        displayError("Invalid ID"+QString::number(int64Value));
+    }
 
     return int64Value;
 }
