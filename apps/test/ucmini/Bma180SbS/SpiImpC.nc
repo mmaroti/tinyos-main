@@ -7,7 +7,7 @@ configuration SpiImpC {
 }
 implementation {
   components SpiImpM, HplImpC;
-  components new SimpleFcfsArbiterC("SbS.Resource") as Arbiter;
+  components new SimpleFcfsArbiterC("Atm128SpiC.Resource") as Arbiter;
   components McuSleepC;
 
   Init        = SpiImpM;
