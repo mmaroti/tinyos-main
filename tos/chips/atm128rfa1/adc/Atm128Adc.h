@@ -64,6 +64,7 @@ enum {
     ATM128_ADC_VREF_AVDD = 1,//!< VR+ = AVDD(1.8V)   and VR- = GND
     ATM128_ADC_VREF_1_5 = 2, //!< VR+ = 1.5V         and VR- = GND
     ATM128_ADC_VREF_1_6 = 3, //!< VR+ = 1.6V         and VR- = GND
+    ATM128_ADC_VREF_AVCC = ATM128_ADC_VREF_AVDD,	//backward compatibility		
 };
 
 /* Voltage Reference Settings */
