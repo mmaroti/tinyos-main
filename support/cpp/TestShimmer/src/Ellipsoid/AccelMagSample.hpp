@@ -67,7 +67,12 @@ public:
 
     const gyro::matrix3 toRotationMatrix() const;
 
-    double acceleration(gyro::coordinate c) const { return accel[c]; }
+    // FIXME Clean up these hacks!
+    double acceleration(int i) const { return accel[static_cast<gyro::coordinate>(i)]; }
+    
+    double magnetometer(int i) const { return mag[static_cast<gyro::coordinate>(i)]; }
+
+    const QString moteStr() const;
 
     const QString timeStr() const;
 

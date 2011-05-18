@@ -40,6 +40,7 @@
 #include "RecWindow.hpp"
 #include "RecordHandler.hpp"
 #include "SQLDialog.hpp"
+#include "ArmTab.hpp"
 
 // TODO Move extern DataRecorder and rootDirPath here!
 // TODO Return bool from connect/disconnect or write an error message to the console
@@ -81,6 +82,25 @@ void disconnect_RecWindow_AccelMagMsgReceiver(RecWindow* recWindow) {
 
     QObject::disconnect(accelMagMsgReceiver, SIGNAL(newSample(AccelMagSample)),
                         recWindow,           SLOT(   updateMatrix(AccelMagSample)));
+}
+
+bool connect_ArmTab_AccelMagMsgReceiver(ArmTab* armTab) {
+
+    if (accelMagMsgReceiver==0) {
+
+        return false;
+    }
+
+    return QObject::connect(accelMagMsgReceiver, SIGNAL(newSample(AccelMagSample)),
+                            armTab,              SLOT(onNewSample(AccelMagSample)),
+                            Qt::UniqueConnection);
+
+}
+
+void disconnect_ArmTab_AccelMagMsgReceiver(ArmTab* armTab) {
+
+    QObject::disconnect(accelMagMsgReceiver, SIGNAL(newSample(AccelMagSample)),
+                        armTab,              SLOT(onNewSample(AccelMagSample)));
 }
 
 void connect_Ellipsoid_AccelMagMsgReceiver() {

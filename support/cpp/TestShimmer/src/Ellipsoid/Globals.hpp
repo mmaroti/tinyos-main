@@ -31,6 +31,7 @@
 *      Author: Ali Baharev
 */
 
+class ArmTab;
 class EllipsoidCalibration;
 class AccelMagMsgReceiver;
 class RecWindow;
@@ -48,6 +49,10 @@ void disconnect_Ellipsoid_AccelMagMsgReceiver();
 void set_Ellipsoid(EllipsoidCalibration* ellipsoid);
 
 void set_AccelMagMsgReceiver(AccelMagMsgReceiver* accelMagMsgReceiver);
+
+bool connect_ArmTab_AccelMagMsgReceiver(ArmTab* armTab);
+
+void disconnect_ArmTab_AccelMagMsgReceiver(ArmTab* armTab);
 
 void connect_RecWindow_AccelMagMsgReceiver(RecWindow* recWindow);
 

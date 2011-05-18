@@ -35,6 +35,7 @@
 #define ARMTAB_HPP
 
 #include "ui_Arm.h"
+#include "AccelMagSample.hpp"
 #include "MotionTypes.hpp"
 #include "Person.hpp"
 
@@ -54,12 +55,22 @@ public slots:
 
     void saveAngles(QString table);
 
+    void onNewSample(AccelMagSample sample);
+
 signals:
 
     void anglesSaved(qint64 recordID);
 
+    void updateScalesOffsets(int mote, gyro::vector3 accScl, gyro::vector3 accOff,
+                                       gyro::vector3 magScl, gyro::vector3 magOff);
+
 private slots:
 
+    void on_Reset_Button_clicked();
+    void on_Done_Button_clicked();
+    void on_Clear_Button_clicked();
+    void on_Capture_Button_clicked();
+    void on_Connect_Button_clicked();
     void on_New_Record_clicked();
     void on_New_With_Person_clicked();
     void on_Start_clicked();
@@ -88,6 +99,18 @@ private:
 
     void applicationCrash(const QString& msg) const;
 
+    bool checkCoordinate(const int coordinate);
+
+    void updatePositive(const int coordinate);
+
+    void updateNegative(const int coordinate);
+
+    bool fillWithTableValues(std::vector<std::vector<double> >& values);
+
+    void computeScalesOffSets(std::vector<std::vector<double> >& values);
+
+    bool areYouSure(const char* text);
+
     MotionType getMotionType() const;
 
     RecordHandler* const recordSelector;
@@ -95,6 +118,9 @@ private:
 
     qint64 recordID;
     Person person;
+
+    AccelMagSample sample;
+    bool warningIsShown;
 };
 
 #endif // ARMTAB_HPP

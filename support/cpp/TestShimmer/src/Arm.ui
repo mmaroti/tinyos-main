@@ -178,14 +178,35 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="Capture">
+        <widget class="QPushButton" name="Connect_Button">
+         <property name="text">
+          <string>Connect</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="Reset_Button">
+         <property name="text">
+          <string>Reset</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="Capture_Button">
          <property name="text">
           <string>Capture</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="Clear">
+        <widget class="QPushButton" name="Done_Button">
+         <property name="text">
+          <string>Done</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="Clear_Button">
          <property name="text">
           <string>Clear</string>
          </property>

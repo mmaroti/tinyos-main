@@ -54,6 +54,11 @@ AccelMagSample::AccelMagSample(int mote_id,
 
 }
 
+const QString AccelMagSample::moteStr() const {
+
+    return QString::number(mote_id);
+}
+
 const QString AccelMagSample::timeStr() const {
 
     return QString::number(time);

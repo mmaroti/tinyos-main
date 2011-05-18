@@ -31,6 +31,7 @@
 * Author: Ali Baharev
 */
 
+#include <iostream>
 #include <QMessageBox>
 #include "ArmTab.hpp"
 #include "Globals.hpp"
@@ -68,6 +69,8 @@ ArmTab::ArmTab(QWidget *parent)
 
     connect(personSelector, SIGNAL(personSelected(Person)),
                             SLOT(onPersonSelected(Person)));
+
+    warningIsShown = false;
 }
 
 void ArmTab::init() {
@@ -313,4 +316,239 @@ MotionType ArmTab::getMotionType() const {
 
         return RIGHT_ELBOW_FLEX;
     }
+}
+
+//======================================================================
+// FIXME These should go to a separate class
+// TODO Clean up code after deadline!!!
+
+void ArmTab::on_Connect_Button_clicked() {
+
+    QString text = Connect_Button->text();
+
+    if (text=="Connect") {
+
+        bool success = globals::connect_ArmTab_AccelMagMsgReceiver(this);
+
+        if (success) {
+
+            Connect_Button->setText("Disconnect");
+        }
+    }
+    else {
+
+        globals::disconnect_ArmTab_AccelMagMsgReceiver(this);
+
+        Connect_Button->setText("Connect");
+    }
+}
+
+void ArmTab::onNewSample(AccelMagSample s) {
+
+    if (warningIsShown) {
+
+        return;
+    }
+
+    if (!sample.isNull() && sample.moteID()!=s.moteID()) {
+
+        warningIsShown = true;
+
+        QMessageBox::warning(this, "Warning", "Either another mote is on or the table is not cleared!");
+
+        warningIsShown = false;
+
+        return;
+    }
+
+    sample = s;
+
+    SampleLabel->setText("Mote "+sample.moteStr()+":  "+sample.accelStr()+";  "+sample.magStr()+";  "+sample.tempStr());
+}
+
+void ArmTab::on_Capture_Button_clicked() {
+
+    if (sample.isNull()) {
+
+        return;
+    }
+
+    for (int i=0; i<3; ++i) {
+
+        bool updated = checkCoordinate(i);
+
+        if (updated) {
+
+            break;
+        }
+    }
+}
+
+bool ArmTab::checkCoordinate(const int i) {
+
+    double acc = sample.acceleration(i);
+
+    if (acc > 0.7) {
+
+        updatePositive(i);
+
+        return true;
+    }
+    else if (acc < -0.7) {
+
+        updateNegative(i);
+
+        return true;
+    }
+
+    return false;
+}
+
+void ArmTab::updatePositive(const int i) {
+
+    QTableWidgetItem* acc_item = new QTableWidgetItem;
+    acc_item->setData(Qt::DisplayRole, sample.acceleration(i));
+
+    QTableWidgetItem* magn_item = new QTableWidgetItem;
+    magn_item->setData(Qt::DisplayRole, sample.magnetometer(i));
+
+    tableWidget->setItem(i+1, 1, acc_item);
+    tableWidget->setItem(i+1, 4, magn_item);
+}
+
+void ArmTab::updateNegative(const int i) {
+
+    QTableWidgetItem* acc_item = new QTableWidgetItem;
+    acc_item->setData(Qt::DisplayRole, sample.acceleration(i));
+
+    QTableWidgetItem* magn_item = new QTableWidgetItem;
+    magn_item->setData(Qt::DisplayRole, sample.magnetometer(i));
+
+    tableWidget->setItem(i+1, 2, acc_item);
+    tableWidget->setItem(i+1, 3, magn_item);
+}
+
+void ArmTab::on_Clear_Button_clicked() {
+
+    if (areYouSure("Dropping all data.")) {
+
+        for (int i=1; i<=3; ++i) {
+            for (int j=1; j<=4; ++j) {
+                tableWidget->setItem(i, j, new QTableWidgetItem);
+            }
+        }
+
+        sample = AccelMagSample();
+
+        SampleLabel->clear();
+    }
+}
+
+void ArmTab::on_Done_Button_clicked() {
+
+    std::vector<std::vector<double> > values;
+
+    values.resize(3);
+
+    for (int i=0; i<3; ++i) {
+
+        values.at(i).resize(4);
+    }
+
+    bool isOK = fillWithTableValues(values);
+
+    if (!isOK) {
+
+        QMessageBox::warning(this, "Warning", "Missing or corrupt values!");
+
+        return;
+    }
+
+    computeScalesOffSets(values);
+
+}
+
+void ArmTab::computeScalesOffSets(std::vector<std::vector<double> >& values) {
+
+    enum { ACC_POS, ACC_NEG, MAGN_POS, MAGN_NEG };
+
+    double acc_scale[3];
+    double acc_offset[3];
+    double magn_scale[3];
+    double magn_offset[3];
+
+    for (int i=0; i<3; ++i) {
+
+        double pos = values.at(i).at(ACC_POS);
+        double neg = values.at(i).at(ACC_NEG);
+
+        acc_scale[i]  = 2.0/(pos-neg);
+        acc_offset[i] = (pos+neg)/2.0;
+    }
+
+    for (int i=0; i<3; ++i) {
+
+        double pos = values.at(i).at(MAGN_POS);
+        double neg = values.at(i).at(MAGN_NEG);
+
+        magn_scale[i]  = 2.0/(pos-neg);
+        magn_offset[i] = (pos+neg)/2.0;
+    }
+
+    using gyro::vector3;
+    std::cout << "Acc scale:   " << vector3(acc_scale) << std::endl;
+    std::cout << "Acc offset:  " << vector3(acc_offset) << std::endl;
+    std::cout << "Magn scale:  " << vector3(magn_scale) << std::endl;
+    std::cout << "Magn offset: " << vector3(magn_offset) << std::endl;
+}
+
+void ArmTab::on_Reset_Button_clicked() {
+
+    if (sample.isNull()) {
+
+        return;
+    }
+
+    if (areYouSure("This will drop calibration data of mote "+QString::number(sample.moteID()).toAscii())) {
+
+        // TODO Drop data
+    }
+}
+
+bool ArmTab::fillWithTableValues(std::vector<std::vector<double> >& values) {
+
+    for (int i=1; i<=3; ++i) {
+
+        for (int j=1; j<=4; ++j) {
+
+            QTableWidgetItem* item = tableWidget->item(i, j);
+
+            if (item==0) {
+
+                return false;
+            }
+
+            QVariant data = item->data(Qt::DisplayRole);
+
+            bool isOK = false;
+
+            values.at(i-1).at(j-1) = data.toDouble(&isOK);
+
+            if (!isOK) {
+
+                return false;
+            }
+
+        }
+    }
+
+    return true;
+}
+
+bool ArmTab::areYouSure(const char* text) {
+
+    const int ret = QMessageBox::warning(this, "Warning", text+QString("\nAre you sure?"),
+                                         QMessageBox::Yes, QMessageBox::Cancel);
+
+    return ret==QMessageBox::Yes;
 }
