@@ -67,6 +67,8 @@ public:
 
     const gyro::matrix3 toRotationMatrix() const;
 
+    double acceleration(gyro::coordinate c) const { return accel[c]; }
+
     const QString timeStr() const;
 
     const QString accelStr() const;

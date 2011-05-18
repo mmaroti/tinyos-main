@@ -55,9 +55,6 @@ public:
 
     static RecWindow* createRecWindow(const qint64 recordID, const Person& p, const MotionType type);
 
-    // TODO Should reference heading and matrices be cleared on show/close?
-    // TODO Enable/disable buttons on close?
-
 public slots:
 
     void updateMatrix(const AccelMagSample sample);
@@ -102,8 +99,8 @@ private:
     void display();
     bool areYouSure(const char* text);
 
-    // TODO Move to its own class
     //===============================
+    // TODO Move IO to its own class
     void writeRecord() const;
     void writeData(QTextStream& out) const;
     void readRecord();
@@ -115,6 +112,7 @@ private:
     void dbgRecordExistence() const;
     //===============================
 
+    QPushButton* calibrateButton;
     QPushButton* setReferenceButton;
     QPushButton* captureButton;
     QPushButton* finishedButton;
@@ -130,6 +128,7 @@ private:
     qint64 recID;
     Person person;
 
+    //=========================================
     // TODO All these containers should be moved to their own class
     typedef std::map<int,gyro::matrix3> MatMap;
     typedef std::map<int,AccelMagSample> SampMap;
