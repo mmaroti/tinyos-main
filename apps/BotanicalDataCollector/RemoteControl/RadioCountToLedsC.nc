@@ -71,9 +71,9 @@ implementation {
     call LPL.setLocalWakeupInterval(512);
     call SysLPL.setDefaultRemoteWakeupInterval(512);
     call SysLPL.setDelayAfterReceive(3072);
-    if(TOS_NODE_ID&0x0f==0)
+    if((TOS_NODE_ID&0x0f)==0)
       cmd=0xa0;
-    else if(TOS_NODE_ID0x0f==1)
+    else if((TOS_NODE_ID&0x0f)==1)
       cmd=0xa1;
     call AMControl.start();
   }
