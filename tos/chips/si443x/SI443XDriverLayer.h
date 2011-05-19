@@ -1,0 +1,194 @@
+/*
+ * Copyright (c) 2007, Vanderbilt University
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ * - Redistributions in binary form must reproduce the above copyright
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ * - Neither the name of the copyright holder nor the names of
+ *   its contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Author: Miklos Maroti
+ * Author: Krisztian Veress
+ */
+
+#ifndef __SI443XDRIVERLAYER_H__
+#define __SI443XDRIVERLAYER_H__
+
+typedef nx_struct si443x_header_t
+{
+	nxle_uint8_t length;
+} si443x_header_t;
+
+typedef struct si443x_metadata_t
+{
+	uint8_t lqi;
+	union
+	{
+		uint8_t power;
+		uint8_t rssi;
+	};
+} si443x_metadata_t;
+
+enum si443x_registers_enum
+{
+    SI443X_DEVICE_TYPE_R = 0x00,
+    SI443X_DEVICE_VERSION_R = 0x01,
+    SI443X_DEVICE_STATUS_R = 0x02,
+    SI443X_INTERRUPT_STATUS_1_R = 0x03,
+    SI443X_INTERRUPT_STATUS_2_R = 0x04,
+    SI443X_INTERRUPT_ENABLE_1_RW = 0x05,
+    SI443X_INTERRUPT_ENABLE_2_RW = 0x06,
+    SI443X_OPFCN_CTRL_1_RW = 0x07,
+    SI443X_OPFCN_CTRL_2_RW = 0x08,
+    SI443X_XTAL_LOAD_RW = 0x09,
+    SI443X_MCU_OUTPUT_CLK_RW = 0x0A,
+    SI443X_GPIO0_CONFIG_RW = 0x0B,
+    SI443X_GPIO1_CONFIG_RW = 0x0C,
+    SI443X_GPIO2_CONFIG_RW = 0x0D,
+    SI443X_IOPORT_CONFIG_RW = 0x0E,
+    SI443X_ADC_CONFIG_RW = 0x0F,
+    SI443X_ADC_SENSOR_AMP_OFFSET_RW = 0x10,
+    SI443X_ADC_VALUE_R = 0x11,
+    SI443X_TEMP_SENSOR_CTRL_RW = 0x12,
+    SI443X_TEMP_VALUE_OFFSET_RW = 0x13,
+    SI443X_WAKEUP_PERIOD_1_RW = 0x14,
+    SI443X_WAKEUP_PERIOD_2_RW = 0x15,
+    SI443X_WAKEUP_PERIOD_3_RW = 0x16,
+    SI443X_WAKEUP_VALUE_1_R = 0x17,
+    SI443X_WAKEUP_VALUE_2_R = 0x18,
+    SI443X_LOW_DUTYCYCLE_DURATION_RW = 0x19,
+    SI443X_LOWBAT_THRESHOLD_RW = 0x1A,
+    SI443X_BATTERY_VOLTAGE_LEVEL_R = 0x1B,
+    SI443X_IF_FILTER_BW_RW = 0x1C,
+    SI443X_AFC_OVERRIDE_RW = 0x1D,
+    SI443X_AFC_TIMING_CTRL_RW = 0x1E,
+    SI443X_CLK_RECOVERY_OVERRIDE_RW = 0x1F,
+    SI443X_CLK_RECOVERY_OSRATIO_RW = 0x20,
+    SI443X_CLK_RECOVERY_OFFSET_2_RW = 0x21,
+    SI443X_CLK_RECOVERY_OFFSET_1_RW = 0x22,
+    SI443X_CLK_RECOVERY_OFFSET_0_RW = 0x23,
+    SI443X_CLK_RECOVERY_TLGAIN_1_RW = 0x24,
+    SI443X_CLK_RECOVERY_TLGAIN_0_RW = 0x25,
+    SI443X_RSSI_R = 0x26,
+    SI443X_RSSI_THRESHOLD_RW = 0x27,
+    SI443X_ANT_DIV_REG_1_R = 0x28,
+    SI443X_ANT_DIV_REG_2_R = 0x29,
+    SI443X_AFC_LIMITER_RW = 0x2A,
+    SI443X_AFC_CORRECTION_R = 0x2B,
+    SI443X_OOK_COUNTER_1_RW = 0x2C,
+    SI443X_OOK_COUNTER_2_RW = 0x2D,
+    SI443X_SLICER_PEAK_HOLD_RW = 0x2E,
+    // 0x2F is reserved
+    SI443X_DATA_ACCESS_CTRL_RW = 0x30,
+    SI443X_EZMAC_STATUS_R = 0x31,
+    SI443X_HDR_CTRL_1_RW = 0x32,
+    SI443X_HDR_CTRL_2_RW = 0x33,
+    SI443X_PREAMBLE_LENGTH_RW = 0x34,
+    SI443X_PREAMBLE_DETECT_CTRL_RW = 0x35,
+    SI443X_SYNC_WORD_3_RW = 0x36,
+    SI443X_SYNC_WORD_2_RW = 0x37,
+    SI443X_SYNC_WORD_1_RW = 0x38,
+    SI443X_SYNC_WORD_0_RW = 0x39,
+    SI443X_TX_HDR_3_RW = 0x3A,
+    SI443X_TX_HDR_2_RW = 0x3B,
+    SI443X_TX_HDR_1_RW = 0x3C,
+    SI443X_TX_HDR_0_RW = 0x3D,
+    SI443X_TX_PKT_LENGTH_RW = 0x3E,
+    SI443X_CHK_HDR_3_RW = 0x3F,
+    SI443X_CHK_HDR_2_RW = 0x40,
+    SI443X_CHK_HDR_1_RW = 0x41,
+    SI443X_CHK_HDR_0_RW = 0x42,
+    SI443X_HDR_ENABLE_3_RW = 0x43,
+    SI443X_HDR_ENABLE_2_RW = 0x44,
+    SI443X_HDR_ENABLE_1_RW = 0x45,
+    SI443X_HDR_ENABLE_0_RW = 0x46,
+    SI443X_RX_HDR_3_R = 0x47,
+    SI443X_RX_HDR_2_R = 0x48,
+    SI443X_RX_HDR_1_R = 0x49,
+    SI443X_RX_HDR_0_R = 0x4A,
+    SI443X_RX_PKT_LENGTH_R = 0x4B,
+    // 0x4C-0x4E are reserved
+    SI443X_ADC8_CTRL_RW = 0x4F,
+    // 0x50-0x5F are reserved
+    SI443X_CFC_ADDRESS_RW = 0x60,
+    // 0x61 is reserved
+    SI443X_XTAL_POR_RW = 0x62,
+    // 0x63-0x68 are reserved
+    SI443X_AGC_OVERRIDE_1_RW = 0x69,
+    // 0x6A-0x6C are reserved
+    SI443X_TX_POWER_RW = 0x6D,
+    SI443X_TX_DATARATE_1_RW = 0x6E,
+    SI443X_TX_DATARATE_0_RW = 0x6F,
+    SI443X_MOD_CTRL_1_RW = 0x70,
+    SI443X_MOD_CTRL_2_RW = 0x71,
+    SI443X_FREQ_DEVIATION_RW = 0x72,
+    SI443X_FREQ_OFFSET_1_RW = 0x73,
+    SI443X_FREQ_OFFSET_2_RW = 0x74,
+    SI443X_FREQ_BAND_SEL_RW = 0x75,
+    SI443X_CARRIER_FREQ_1_RW = 0x76,
+    SI443X_CARRIER_FREQ_0_RW = 0x77,
+    // 0x78 is reserved
+    SI443X_FREQ_HOP_CHANNEL_SEL_RW = 0x79,
+    SI443X_FREQ_HOP_STEP_SIZE_RW = 0x7A,
+    // 0x7B is reserved
+    SI443X_TX_FIFO_CTRL_1_RW = 0x7C,
+    SI443X_TX_FIFO_CTRL_2_RW = 0x7D,
+    SI443X_RX_FIFO_CTRL_RW = 0x7E,
+    SI443X_FIFO_ACCESS_RW = 0x7F,
+};
+
+enum si443x_spi_command_enums
+{
+    SI443X_CMD_REGISTER_READ = 0x00,
+    SI443X_CMD_REGISTER_WRITE = 0x80,
+    SI443X_CMD_REGISTER_MASK = 0x7F,
+};
+
+enum si443x_device_status_register_enums // 0x02h
+{
+    SI443X_DEVSTAT_CHIP_POWER_STATE_MASK = 0x3,
+};
+
+enum si443x_opfcn1_register_enums // 0x07h
+{
+    SI443X_OPFCN1_SWRESET = 1 << 7,
+    SI443X_OPFCN1_LOWBAT = 1 << 6,
+    SI443X_OPFCN1_WAKEUP_TIMER = 1 << 5,
+    SI443X_OPFCN1_X32KSEL = 1 << 4,
+    SI443X_OPFCN1_TXON = 1 << 3,
+    SI443X_OPFCN1_RXON = 1 << 2,
+    SI443X_OPFCN1_PLLON = 1 << 1,
+    SI443X_OPFCN1_XTON = 1 << 0,
+    SI443X_OPFCN1_STANDBY = 0x00,
+};
+
+enum si443x_xtal_por_register_enums // 0x62h
+{
+    SI443X_XTALPOR_BUFFER_MASK = 0x3,
+    SI443X_XTALPOR_BUFFER_ENABLE = 0x0,
+    SI443X_XTALPOR_BUFFER_DISABLE = 0x2,
+};
+
+#endif//__SI443XDRIVERLAYER_H__
