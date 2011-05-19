@@ -96,6 +96,8 @@ private:
 
     void applicationCrash(const QString& msg) const;
 
+    void disconnectCalibration();
+
     bool checkCoordinate(const int coordinate);
 
     void updatePositive(const int coordinate);
@@ -105,6 +107,8 @@ private:
     bool fillWithTableValues(std::vector<std::vector<double> >& values);
 
     void computeScalesOffSets(std::vector<std::vector<double> >& values);
+
+    void clearCalibrationContents();
 
     bool areYouSure(const char* text);
 

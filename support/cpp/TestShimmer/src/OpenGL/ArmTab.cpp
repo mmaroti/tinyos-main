@@ -75,6 +75,8 @@ ArmTab::ArmTab(QWidget *parent)
 
 void ArmTab::init() {
 
+    disconnectCalibration();
+
     person = Person();
 
     recordID = INVALID_RECORD_ID;
@@ -124,6 +126,8 @@ void ArmTab::on_Open_Existing_clicked() {
 
 void ArmTab::onRecordSelected(qint64 recID, const Person& p, MotionType type) {
 
+    disconnectCalibration();
+
     recordID = recID;
 
     person = p;
@@ -166,6 +170,8 @@ void ArmTab::on_Select_Person_clicked() {
 
 void ArmTab::onPersonSelected(const Person& p) {
 
+    disconnectCalibration();
+
     person = p;
 
     recordID = INVALID_RECORD_ID;
@@ -202,6 +208,9 @@ void ArmTab::on_Motion_Type_currentIndexChanged(int index) {
 
 void ArmTab::on_Start_clicked()
 {
+
+    disconnectCalibration();
+
     checkConsistency();
 
     if (recordID != INVALID_RECORD_ID) {
@@ -337,9 +346,7 @@ void ArmTab::on_Connect_Button_clicked() {
     }
     else {
 
-        globals::disconnect_ArmTab_AccelMagMsgReceiver(this);
-
-        Connect_Button->setText("Connect");
+        disconnectCalibration();
     }
 }
 
@@ -432,16 +439,24 @@ void ArmTab::on_Clear_Button_clicked() {
 
     if (areYouSure("Dropping all data.")) {
 
-        for (int i=1; i<=3; ++i) {
-            for (int j=1; j<=4; ++j) {
-                tableWidget->setItem(i, j, new QTableWidgetItem);
-            }
-        }
+        clearCalibrationContents();
 
         sample = AccelMagSample();
-
-        SampleLabel->clear();
     }
+}
+
+void ArmTab::clearCalibrationContents() {
+
+    for (int i=1; i<=3; ++i) {
+
+        for (int j=1; j<=4; ++j) {
+
+            tableWidget->setItem(i, j, new QTableWidgetItem);
+
+        }
+    }
+
+    SampleLabel->clear();
 }
 
 void ArmTab::on_Done_Button_clicked() {
@@ -459,7 +474,7 @@ void ArmTab::on_Done_Button_clicked() {
 
     if (!isOK) {
 
-        QMessageBox::warning(this, "Warning", "Missing or corrupt values!");
+        QMessageBox::critical(this, "Error", "Missing or corrupt values!");
 
         return;
     }
@@ -496,13 +511,18 @@ void ArmTab::computeScalesOffSets(std::vector<std::vector<double> >& values) {
     }
 
     using gyro::vector3;
-    //std::cout << "Acc scale:   " << vector3(acc_scale) << std::endl;
-    //std::cout << "Acc offset:  " << vector3(acc_offset) << std::endl;
-    //std::cout << "Magn scale:  " << vector3(magn_scale) << std::endl;
-    //std::cout << "Magn offset: " << vector3(magn_offset) << std::endl;
+    std::cout << "Acc scale:   " << vector3(acc_scale) << std::endl;
+    std::cout << "Acc offset:  " << vector3(acc_offset) << std::endl;
+    std::cout << "Magn scale:  " << vector3(magn_scale) << std::endl;
+    std::cout << "Magn offset: " << vector3(magn_offset) << std::endl;
 
-    globals::updateScaleOffset(sample.moteID(), vector3(acc_scale),  vector3(acc_offset),
-                                                vector3(magn_scale), vector3(magn_offset));
+    bool success = globals::updateScaleOffset(sample.moteID(), vector3(acc_scale),  vector3(acc_offset),
+                                                               vector3(magn_scale), vector3(magn_offset));
+
+    if (success) {
+
+        QMessageBox::information(this, "", "Calibration data of mote "+sample.moteStr()+" successfully updated!");
+    }
 }
 
 void ArmTab::on_Reset_Button_clicked() {
@@ -515,6 +535,8 @@ void ArmTab::on_Reset_Button_clicked() {
     if (areYouSure("This will drop calibration data of mote "+QString::number(sample.moteID()).toAscii())) {
 
         globals::resetScaleOffset(sample.moteID());
+
+        clearCalibrationContents();
     }
 }
 
@@ -554,4 +576,11 @@ bool ArmTab::areYouSure(const char* text) {
                                          QMessageBox::Yes, QMessageBox::Cancel);
 
     return ret==QMessageBox::Yes;
+}
+
+void ArmTab::disconnectCalibration() {
+
+    globals::disconnect_ArmTab_AccelMagMsgReceiver(this);
+
+    Connect_Button->setText("Connect");
 }
