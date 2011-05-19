@@ -341,8 +341,8 @@ void LogWidgetBasic::on_recStartButton_clicked()
 
     entryLineInit();
 
-    connect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)),
-            &application.dataRecorder,   SLOT(onReceiveMessage(ActiveMessage)), Qt::DirectConnection);
+    //connect(&application.serialListener, SIGNAL(receiveMessage(ActiveMessage)),
+    //        &application.dataRecorder,   SLOT(onReceiveMessage(ActiveMessage)), Qt::DirectConnection);
 
 }
 

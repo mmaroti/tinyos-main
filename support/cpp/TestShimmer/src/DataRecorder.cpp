@@ -624,7 +624,7 @@ void DataRecorder::loadResults(const ipo::Results& res, const int begin, const i
             s.rotmat[k] = m[k];
         }
     }
-
+    /*
     if (n==samples.size()) {
 
         update_gyro_calib(res.var());
@@ -633,6 +633,7 @@ void DataRecorder::loadResults(const ipo::Results& res, const int begin, const i
 
         corrected_angles();
     }
+    */
 }
 
 const Range DataRecorder::rangeInSample(const Range& rangeInSec, const double length) const {

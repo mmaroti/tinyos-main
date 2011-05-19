@@ -119,9 +119,9 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
     blockingBox->setModal(true);
     blockingBox->setStandardButtons(QMessageBox::NoButton);
 
-    //connect(dial, SIGNAL(personSelected(Person)), SLOT(onPersonSelected(Person)));
+    connect(dial, SIGNAL(personSelected(Person)), SLOT(onPersonSelected(Person)));
 
-    //connect(recSelect, SIGNAL(recordSelected(qint64,Person)), SLOT(onRecordSelected(qint64,Person)));
+    connect(recSelect, SIGNAL(recordSelected(qint64,Person,MotionType)), SLOT(onRecordSelected(qint64,Person,MotionType)));
 }
 
 LogWidget::~LogWidget()
@@ -512,8 +512,8 @@ void LogWidget::on_loadButton_clicked()
     recSelect->activateWindow();
 }
 
-void LogWidget::onRecordSelected(qint64 recID, const Person& p) {
-
+void LogWidget::onRecordSelected(qint64 recID, const Person& p, MotionType ) {
+    // TODO MotionType could be checked
     recordID = recID;
     person = p;
 

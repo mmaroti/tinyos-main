@@ -76,7 +76,7 @@ private slots:
     void on_selectPersonButton_clicked();
     void on_permaDeleteButton_clicked();
     void onPersonSelected(const Person& p);
-    void onRecordSelected(qint64 recID, const Person& p);
+    void onRecordSelected(qint64 recID, const Person& p, MotionType type);
     void on_motionTypeCBox_currentIndexChanged(int);
     void on_noWarncBox_clicked();
     void on_autoCheckcB_clicked();
