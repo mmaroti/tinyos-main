@@ -49,6 +49,15 @@
 namespace {
 
     const qint64 INVALID_REC_ID = -1;
+
+
+void applicationCrash(const QString& msg) {
+
+    QMessageBox::critical(0, "Application crash", "Exiting, fatal error: "+msg);
+
+    exit(EXIT_FAILURE);
+}
+
 }
 
 RecWindow* RecWindow::createRecWindow(const qint64 recordID, const Person& p, const MotionType type) {
@@ -64,7 +73,8 @@ RecWindow* RecWindow::createRecWindow(const qint64 recordID, const Person& p, co
         rw = new RecWindow(ArmWidget::left(), ArmAngles::left());
     }
     else {
-        Q_ASSERT(false);
+
+        applicationCrash("unknown type ID "+QString::number(type));
     }
 
     rw->person = p;
@@ -92,6 +102,8 @@ RecWindow::RecWindow(ArmWidget* w, const ArmAngles& c)
     init();    
 
     setWindowModality(Qt::ApplicationModal);
+
+    setAttribute(Qt::WA_DeleteOnClose);
 
     widget->show();
 }
@@ -275,6 +287,13 @@ void RecWindow::setReferenceClicked() {
 
 void RecWindow::captureClicked() {
 
+    if (headings.empty()) {
+
+        QMessageBox::warning(this, "Warning", "Set reference first!");
+
+        return;
+    }
+
     if (matrices.empty()) {
 
         return;
@@ -334,8 +353,8 @@ void RecWindow::dropFrameClicked() {
 void RecWindow::saveClicked() {
 
     if (frames.empty()) {
-
-        return; // Warning? Nothing to save?
+        QMessageBox::warning(this, "Warning", "Nothing to save!");
+        return;
     }
 
     clearButton->setDisabled(true);
@@ -354,6 +373,8 @@ void RecWindow::anglesSaved(qint64 recordID) {
     writeRecord();
 
     saved = true;
+
+    QMessageBox::information(this,"", "Successfully saved!");
 }
 
 void RecWindow::closeEvent(QCloseEvent * event) {
@@ -361,6 +382,8 @@ void RecWindow::closeEvent(QCloseEvent * event) {
     if (frames.empty() || saved || areYouSure("Record is not saved and will be lost.")) {
 
         event->accept();
+
+        disconnect(); // TODO Is it necessary?
     }
     else {
 
@@ -389,7 +412,9 @@ bool RecWindow::areYouSure(const char* text) {
 
 void RecWindow::writeRecord() const {
 
-    Q_ASSERT(recID!=INVALID_REC_ID);
+    if (recID==INVALID_REC_ID) {
+        applicationCrash("record ID should have been set, writeRecord()");
+    }
 
     QFile file(filename());
 
@@ -401,13 +426,16 @@ void RecWindow::writeRecord() const {
     }
     else {
 
-        Q_ASSERT(false);
+        applicationCrash("failed to create file");
     }
 }
 
 const QString RecWindow::filename() const {
 
-    Q_ASSERT(recID!=INVALID_REC_ID);
+    if (recID==INVALID_REC_ID) {
+
+        applicationCrash("record ID should have been set, filename()");
+    }
 
     const QString REC_DIR = "../rec/";
 
@@ -551,8 +579,7 @@ namespace {
 
 void RecWindow::writeData(QTextStream& out) const {
 
-    Q_ASSERT(!frames.empty());
-    Q_ASSERT(frames.size()==origSamp.size());
+    checkFrameConsistency();
 
     out << MOTES << '\n';
 
@@ -587,6 +614,32 @@ void RecWindow::writeData(QTextStream& out) const {
     out << END << "\n\n" << flush;
 }
 
+void RecWindow::checkFrameConsistency() const {
+
+    QString errorMsg;
+
+    if (headings.empty()) {
+
+        errorMsg = "headings not set; ";
+    }
+
+    if (frames.empty()) {
+
+        errorMsg += "frames cannot be empty;";
+    }
+
+    if (frames.size()!=origSamp.size()) {
+
+        errorMsg += ("frame/origSamp size: "+QString::number(frames.size())+", "+QString::number(origSamp.size()));
+    }
+
+    if (!errorMsg.isEmpty()) {
+
+        applicationCrash(errorMsg);
+    }
+
+}
+
 void RecWindow::readRecord() {
 
     globals::disconnect_RecWindow_AccelMagMsgReceiver(this);
@@ -603,10 +656,10 @@ void RecWindow::readRecord() {
     }
     else {
 
-        Q_ASSERT(false);
+        applicationCrash("failed to open "+filename());
     }
 
-    calculator.setHeading(headings);
+    headings = calculator.setHeading(headings);
 
     widget->setReference(headings);
 
@@ -723,8 +776,7 @@ void RecWindow::readData(QTextStream& in) {
         readSampleLine(buffer);
     }
 
-    Q_ASSERT(!frames.empty());
-    Q_ASSERT(frames.size()==origSamp.size());
+    checkFrameConsistency();
 }
 
 void RecWindow::dbgRecordExistence() const {

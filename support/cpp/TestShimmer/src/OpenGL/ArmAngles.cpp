@@ -76,12 +76,19 @@ const vector<double> ArmAngles::setHeading(const Frame& matrices) {
     return vector<double>(heading, heading+2);
 }
 
-void ArmAngles::setHeading(const vector<double>& h) {
+const vector<double> ArmAngles::setHeading(const vector<double>& h) {
 
-    for (int i=0; i<2; ++i) {
+    heading[FOREARM]  = 0.0;
+    heading[UPPERARM] = 0.0;
+
+    const size_t n = min<size_t>(2,h.size());
+
+    for (size_t i=0; i<n; ++i) {
 
         heading[i] = h.at(i);
     }
+
+    return vector<double>(heading, heading+2);
 }
 
 double ArmAngles::magneticHeading(const matrix3& rotMat) const {

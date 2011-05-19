@@ -63,7 +63,7 @@ public:
 
     const vector<double> setHeading(const Frame& matrices);
 
-    void setHeading(const vector<double>& headings);
+    const vector<double> setHeading(const vector<double>& headings);
 
     const vector<string> labels(const Frame& matrices, size_t frameIndex, size_t size) const;
 

@@ -110,6 +110,7 @@ private:
     void readSampleLine(const QString& buffer);
     const QString filename() const;
     void dbgRecordExistence() const;
+    void checkFrameConsistency() const;
     //===============================
 
     QPushButton* calibrateButton;
