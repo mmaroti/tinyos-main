@@ -45,6 +45,8 @@ configuration RFA1TimeSyncMessageC
 		interface Receive as Snoop[am_id_t id];
 		interface Packet;
 		interface AMPacket;
+		interface PacketAcknowledgements;
+		interface LowPowerListening;
 
 		interface PacketTimeStamp<TRadio, uint32_t> as PacketTimeStampRadio;
 		interface TimeSyncAMSend<TRadio, uint32_t> as TimeSyncAMSendRadio[am_id_t id];
@@ -66,46 +68,48 @@ configuration RFA1TimeSyncMessageC
 
 implementation
 {
-	components RFA1ActiveMessageC, new TimeSyncMessageLayerC();
+	components RFA1ActiveMessageC as ActiveMessageC, new TimeSyncMessageLayerC();
   
-	SplitControl	= RFA1ActiveMessageC;
+	SplitControl	= ActiveMessageC;
 	AMPacket	= TimeSyncMessageLayerC;
   	Receive		= TimeSyncMessageLayerC.Receive;
 	Snoop		= TimeSyncMessageLayerC.Snoop;
 	Packet		= TimeSyncMessageLayerC;
+	PacketAcknowledgements	= ActiveMessageC;
+	LowPowerListening	= ActiveMessageC;
 
-	PacketTimeStampRadio	= RFA1ActiveMessageC;
+	PacketTimeStampRadio	= ActiveMessageC;
 	TimeSyncAMSendRadio	= TimeSyncMessageLayerC;
 	TimeSyncPacketRadio	= TimeSyncMessageLayerC;
 
-	PacketTimeStampMilli	= RFA1ActiveMessageC;
+	PacketTimeStampMilli	= ActiveMessageC;
 	TimeSyncAMSendMilli	= TimeSyncMessageLayerC;
 	TimeSyncPacketMilli	= TimeSyncMessageLayerC;
 
-	TimeSyncMessageLayerC.PacketTimeStampRadio -> RFA1ActiveMessageC;
-	TimeSyncMessageLayerC.PacketTimeStampMilli -> RFA1ActiveMessageC;
+	TimeSyncMessageLayerC.PacketTimeStampRadio -> ActiveMessageC;
+	TimeSyncMessageLayerC.PacketTimeStampMilli -> ActiveMessageC;
 
-	components RFA1DriverLayerC;
-	TimeSyncMessageLayerC.LocalTimeRadio -> RFA1DriverLayerC;
-	TimeSyncMessageLayerC.PacketTimeSyncOffset -> RFA1DriverLayerC.PacketTimeSyncOffset;
+	components RFA1DriverLayerC as DriverLayerC;
+	TimeSyncMessageLayerC.LocalTimeRadio -> DriverLayerC;
+	TimeSyncMessageLayerC.PacketTimeSyncOffset -> DriverLayerC.PacketTimeSyncOffset;
 
 	components new TimeConverterLayerC(T62khz, RADIO_ALARM_MILLI_EXP-6) as TimeConverter62khzC, LocalTime62khzC;
 	PacketTimeStamp62khz = TimeConverter62khzC;
 	TimeSyncAMSend62khz = TimeConverter62khzC;
 	TimeSyncPacket62khz = TimeConverter62khzC;
-	TimeConverter62khzC.PacketTimeStampRadio -> RFA1ActiveMessageC;
+	TimeConverter62khzC.PacketTimeStampRadio -> ActiveMessageC;
 	TimeConverter62khzC.TimeSyncAMSendRadio -> TimeSyncMessageLayerC;
 	TimeConverter62khzC.TimeSyncPacketRadio -> TimeSyncMessageLayerC;
-	TimeConverter62khzC.LocalTimeRadio -> RFA1ActiveMessageC;
+	TimeConverter62khzC.LocalTimeRadio -> ActiveMessageC;
 	TimeConverter62khzC.LocalTimeOther -> LocalTime62khzC;
 
 	components new TimeConverterLayerC(TMilli, RADIO_ALARM_MILLI_EXP) as TimeConverterMilliC, LocalTimeMilliC;
 	PacketTimeStampMilli2 = TimeConverterMilliC;
 	TimeSyncAMSendMilli2 = TimeConverterMilliC;
 	TimeSyncPacketMilli2 = TimeConverterMilliC;
-	TimeConverterMilliC.PacketTimeStampRadio -> RFA1ActiveMessageC;
+	TimeConverterMilliC.PacketTimeStampRadio -> ActiveMessageC;
 	TimeConverterMilliC.TimeSyncAMSendRadio -> TimeSyncMessageLayerC;
 	TimeConverterMilliC.TimeSyncPacketRadio -> TimeSyncMessageLayerC;
-	TimeConverterMilliC.LocalTimeRadio -> RFA1ActiveMessageC;
+	TimeConverterMilliC.LocalTimeRadio -> ActiveMessageC;
 	TimeConverterMilliC.LocalTimeOther -> LocalTimeMilliC;
 }
