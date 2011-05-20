@@ -375,13 +375,15 @@ void GLElbowFlexWidget::writeData() {
 
     renderText(2.5, -3.0, 0.0, data->flex_info());
 
-    renderText(2.5, -3.5, 0.0, data->sup_info());
+    renderText(2.5, -3.5, 0.0, data->ext_info());
 
-    renderText(2.5, -4.0, 0.0, data->pron_info());
+    renderText(2.5, -4.0, 0.0, data->sup_info());
 
-    renderText(2.5, -4.5, 0.0, data->med_info());
+    renderText(2.5, -4.5, 0.0, data->pron_info());
 
     renderText(2.5, -5.0, 0.0, data->lat_info());
+
+    renderText(2.5, -5.5, 0.0, data->med_info());
 
     glPopMatrix();
 }

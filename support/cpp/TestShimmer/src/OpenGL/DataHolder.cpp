@@ -63,12 +63,14 @@ DataHolder::DataHolder(ElbowFlexSign s, double* rotmat, const int length)
     extrema = new double[SIZE_OF_ARRAY];
 
     flex_range = "Flex  ";
+    ext_range  = "Ext  ";
     sup_range  = "Sup  ";
     pron_range = "Pron  ";
     lat_range  = "Lat Dev  ";
     med_range  = "Med Dev  ";
 
     make_dev_zero_at_horizontal_crossing();
+
     find_min_max();
 }
 
@@ -160,9 +162,42 @@ void DataHolder::find_min_max() {
     extrema[LAT_MIN] = *min_element(deviation, deviation+size);
     extrema[LAT_MAX] = *max_element(deviation, deviation+size);
 
+    extrema[SIGNED_FLEX_MIN] = extrema[FLEX_MIN];
+    extrema[SIGNED_FLEX_MAX] = extrema[FLEX_MAX];
+
+    extrema[SIGNED_SUP_MIN] = extrema[SUP_MIN];
+    extrema[SIGNED_SUP_MAX] = extrema[SUP_MAX];
+
+    extrema[SIGNED_LAT_MIN] = extrema[LAT_MIN];
+    extrema[SIGNED_LAT_MAX] = extrema[LAT_MAX];
+
+    set_extension();
     set_pronation();
     set_med_dev();
+
     save_ranges();
+}
+
+// TODO Eliminate duplication -- would be more obscure?
+void DataHolder::set_extension() {
+
+    if (extrema[FLEX_MAX] < 0) {
+
+        extrema[EXT_MIN] = -extrema[FLEX_MAX];
+        extrema[EXT_MAX] = -extrema[FLEX_MIN];
+
+        extrema[FLEX_MIN]  = extrema[FLEX_MAX] = 0.0;
+    }
+    else if (extrema[FLEX_MIN] < 0) {
+
+        extrema[EXT_MAX] = -extrema[FLEX_MIN];
+
+        extrema[FLEX_MIN] = extrema[EXT_MIN] = 0.0;
+    }
+    else {
+
+        extrema[EXT_MIN] = extrema[EXT_MAX] = 0.0;
+    }
 }
 
 void DataHolder::set_pronation() {
@@ -186,7 +221,6 @@ void DataHolder::set_pronation() {
     }
 }
 
-// TODO Eliminate duplication -- would make the code more difficult to understand
 void DataHolder::set_med_dev() {
 
     if (extrema[LAT_MAX] < 0) {
@@ -213,6 +247,8 @@ void DataHolder::save_ranges() {
 
     save_flex();
 
+    save_ext();
+
     save_sup();
 
     save_pron();
@@ -224,7 +260,12 @@ void DataHolder::save_ranges() {
 
 void DataHolder::save_flex() {
 
-    flex_range += range(flexion[0], flexion[last], FLEX_MIN, FLEX_MAX);
+    flex_range += range(flex_at(0), flex_at(last), FLEX_MIN, FLEX_MAX);
+}
+
+void DataHolder::save_ext() {
+
+    ext_range += range(ext_at(0), ext_at(last), EXT_MIN, EXT_MAX);
 }
 
 void DataHolder::save_sup() {
@@ -245,6 +286,16 @@ void DataHolder::save_lat_dev() {
 void DataHolder::save_med_dev() {
 
     med_range += range(med_at(0), med_at(last), MED_MIN, MED_MAX);
+}
+
+double DataHolder::flex_at(int i) const {
+
+    return flexion[i] >= 0 ? flexion[i] : 0.0;
+}
+
+double DataHolder::ext_at(int i) const {
+
+    return flexion[i] < 0 ? -flexion[i] : 0.0;
 }
 
 double DataHolder::sup_at(int i) const {
@@ -288,12 +339,24 @@ const string DataHolder::angles_in_csv() const {
 
     const char sep = ';';
 
-    os << flexion[0] << sep << flexion[last] << sep << extrema[FLEX_MIN] << sep << extrema[FLEX_MAX] << sep;
+    os << flex_at(0) << sep << flex_at(last) << sep << extrema[FLEX_MIN] << sep << extrema[FLEX_MAX] << sep;
+    os <<  ext_at(0) << sep <<  ext_at(last) << sep << extrema[ EXT_MIN] << sep << extrema[ EXT_MAX] << sep;
     os <<  sup_at(0) << sep <<  sup_at(last) << sep << extrema[ SUP_MIN] << sep << extrema[ SUP_MAX] << sep;
     os << pron_at(0) << sep << pron_at(last) << sep << extrema[PRON_MIN] << sep << extrema[PRON_MAX] << sep;
+    os <<  lat_at(0) << sep <<  lat_at(last) << sep << extrema[ LAT_MIN] << sep << extrema[ LAT_MAX] << sep;
     os <<  med_at(0) << sep <<  med_at(last) << sep << extrema[ MED_MIN] << sep << extrema[ MED_MAX] << sep;
-    os <<  lat_at(0) << sep <<  lat_at(last) << sep << extrema[ LAT_MIN] << sep << extrema[ LAT_MAX] << flush;
 
+    os << flexion[0] << sep << flexion[last] << sep;
+
+    os << extrema[SIGNED_FLEX_MIN] << sep << extrema[SIGNED_FLEX_MAX] << sep;
+
+    os << supination[0] << sep << supination[last] << sep;
+
+    os << extrema[SIGNED_SUP_MIN ] << sep << extrema[SIGNED_SUP_MAX ] << sep;
+
+    os << deviation[0] << sep << deviation[last] << sep;
+
+    os << extrema[SIGNED_LAT_MIN ] << sep << extrema[SIGNED_LAT_MAX ] << flush;
 
     return os.str();
 }
@@ -415,7 +478,14 @@ const string DataHolder::flex(int i) const {
 
     oss os = get_out();
 
-    os << "Flex " << flexion[i] << " deg";
+    if (flexion[i] >= 0) {
+
+        os << "Flex " << flexion[i] << " deg";
+    }
+    else {
+
+        os << "Ext " << -flexion[i] << " deg";
+    }
 
     return os.str();
 }
@@ -472,6 +542,11 @@ const string DataHolder::time(int i) const {
 const char* DataHolder::flex_info() const {
 
     return flex_range.c_str();
+}
+
+const char* DataHolder::ext_info() const {
+
+    return ext_range.c_str();
 }
 
 const char* DataHolder::sup_info()  const {

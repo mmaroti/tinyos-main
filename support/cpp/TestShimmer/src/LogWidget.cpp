@@ -80,7 +80,7 @@ LogWidget::LogWidget(QWidget *parent, Application &app) :
         dial(globals::personSelector()),
         recSelect(globals::recordSelector()),
         recordID(INVALID_RECORD_ID),
-        extrema(new double[SIZE_OF_ARRAY])
+        extrema(new double[SIZE_OF_ARRAY]) // FIXME Why is it unused?
 {
     ui->setupUi(this);
 

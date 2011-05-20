@@ -39,16 +39,34 @@
 #include "ElbowFlexSign.hpp"
 
 enum {
+
     FLEX_MIN,
     FLEX_MAX,
+
+    EXT_MIN,
+    EXT_MAX,
+
     SUP_MIN,
     SUP_MAX,
+
     PRON_MIN,
     PRON_MAX,
+
     LAT_MIN,
     LAT_MAX,
+
     MED_MIN,
     MED_MAX,
+
+    SIGNED_FLEX_MIN,
+    SIGNED_FLEX_MAX,
+
+    SIGNED_SUP_MIN,
+    SIGNED_SUP_MAX,
+
+    SIGNED_LAT_MIN,
+    SIGNED_LAT_MAX,
+
     SIZE_OF_ARRAY
 };
 
@@ -63,6 +81,7 @@ public:
     int number_of_samples() const;
 
     const char* flex_info() const;
+    const char* ext_info() const;
     const char* sup_info()  const;
     const char* pron_info() const;
     const char* lat_info()  const;
@@ -97,10 +116,12 @@ private:
     double angle_making_deviation_zero(int i) const;
     void rotate_all_around_y_axis(const double dev);
 
+    void set_extension();
     void set_pronation();
     void set_med_dev();
     void save_ranges();
     void save_flex();
+    void save_ext();
     void save_sup();
     void save_pron();
     void save_lat_dev();
@@ -114,6 +135,8 @@ private:
     double supination_deg(int i) const;
     double deviation_deg(int i) const;
 
+    double flex_at(int i) const;
+    double  ext_at(int i) const;
     double  sup_at(int i) const;
     double pron_at(int i) const;
     double  lat_at(int i) const;
@@ -137,6 +160,7 @@ private:
     double* extrema;
 
     std::string flex_range;
+    std::string ext_range;
     std::string sup_range;
     std::string pron_range;
     std::string lat_range;
