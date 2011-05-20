@@ -49,8 +49,8 @@ namespace {
 ArmTab::ArmTab(QWidget *parent)
 
 : QWidget(parent),
-  recordSelector(0),
-  personSelector(0)
+recordSelector(globals::recordSelector()),
+personSelector(globals::personSelector())
 
 {
 
@@ -64,11 +64,11 @@ ArmTab::ArmTab(QWidget *parent)
 
     init();
 
-    //connect(recordSelector, SIGNAL(recordSelected(qint64,Person,MotionType)),
-    //                        SLOT(onRecordSelected(qint64,Person,MotionType)));
+    connect(recordSelector, SIGNAL(recordSelected(qint64,Person,MotionType)),
+                            SLOT(onRecordSelected(qint64,Person,MotionType)));
 
-    //connect(personSelector, SIGNAL(personSelected(Person)),
-    //                        SLOT(onPersonSelected(Person)));
+    connect(personSelector, SIGNAL(personSelected(Person)),
+                            SLOT(onPersonSelected(Person)));
 
     warningIsShown = false;
 }

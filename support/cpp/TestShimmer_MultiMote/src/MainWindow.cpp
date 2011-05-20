@@ -68,15 +68,6 @@ MainWindow::MainWindow(QWidget *parent) :
         //Widget3D* widget3d = new Widget3D(ui->openglTab, app);
         //ui->openglTab->layout()->addWidget(widget3d);
         //ui->tabWidget->removeTab(8);    //temporarly hidden
-        //ui->tabWidget->removeTab(6);
-        //ui->tabWidget->removeTab(7);
-        //ui->tabWidget->removeTab(3);
-        ui->tabWidget->removeTab(1);
-        ui->tabWidget->removeTab(2);
-        ui->tabWidget->removeTab(3);
-        ui->tabWidget->removeTab(5);
-        ui->tabWidget->removeTab(6);
-        //ui->tabWidget->removeTab(10);
 
         globals::createPersonSelector();
         globals::createRecordSelector();
@@ -129,12 +120,12 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(&app.serialListener,  SIGNAL(receiveMessage(const ActiveMessage& )),
                 &app.connectionState, SLOT(msgReceived(const ActiveMessage& )));
 
-       //connect(&app.serialListener,  SIGNAL(receiveMessage(const ActiveMessage& )),
-       //        &app.accelMagMsgReceiver, SLOT(onReceiveMessage(const ActiveMessage& )));
+       connect(&app.serialListener,  SIGNAL(receiveMessage(const ActiveMessage& )),
+               &app.accelMagMsgReceiver, SLOT(onReceiveMessage(const ActiveMessage& )));
 
-        //globals::set_Ellipsoid(ellipsoid);
-        //globals::set_AccelMagMsgReceiver(&app.accelMagMsgReceiver);
-        //globals::connect_Ellipsoid_AccelMagMsgReceiver();
+        globals::set_Ellipsoid(ellipsoid);
+        globals::set_AccelMagMsgReceiver(&app.accelMagMsgReceiver);
+        globals::connect_Ellipsoid_AccelMagMsgReceiver();
 
         connect(&app.serialListener,  SIGNAL(connected()),
                 &app.connectionState, SLOT(connectedToPort()));
@@ -142,8 +133,8 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(&app.serialListener,  SIGNAL(disconnected()),
                 &app.connectionState, SLOT(disconnected()));
 
-        connect(&app.solver, SIGNAL(solver_done(bool,QString)),
-                logWidget,       SLOT(solverFinished(bool,QString)));
+        //connect(&app.solver, SIGNAL(solver_done(bool,QString)),
+        //        logWidget,       SLOT(solverFinished(bool,QString)));
 
         ui->sdataTab->setFocusPolicy(Qt::StrongFocus);
         ui->sdataTab->installEventFilter(this);
