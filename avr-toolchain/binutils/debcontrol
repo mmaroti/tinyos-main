@@ -1,6 +1,6 @@
 Package: avr-binutils-tinyos
-Version: DEB_VERSION
-Architecture: DEB_ARCHITECTURE
+Version: PKG_VERSION
+Architecture: PKG_ARCHITECTURE
 Depends: avr-tinyos-base
 Recommends: avr-tinyos, avr-optional-tinyos
 Maintainer: klueska <klueska@cs.stanford.edu>
