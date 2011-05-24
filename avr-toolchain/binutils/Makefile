@@ -5,12 +5,8 @@ DOWNLOAD_URL="http://ftp.gnu.org/gnu/$(SRCNAME)/$(SRCNAME)-$(VERSION).tar.bz2"
 PATCHDIR=patch
 
 #confiure and compile options
-HOSTMACHINE=$(shell uname -m)
 PREFIX=/usr
-INFODIR=$(PREFIX)/share/info
-LIBDIR=$(PREFIX)/lib
-MANDIR=$(PREFIX)/share/man
-CONFIGURE_OPTS=--prefix=$(PREFIX) --disable-nls --infodir=$(INFODIR) --libdir=$(LIBDIR) --mandir=$(MANDIR) --disable-werror --target=avr
+CONFIGURE_OPTS=--prefix=$(PREFIX) --disable-nls --infodir=$(PREFIX)/share/info --libdir=$(PREFIX)/lib --mandir=$(PREFIX)/share/man --disable-werror --target=avr
 
 #package options
 PKG_NAME=avr-binutils-tinyos

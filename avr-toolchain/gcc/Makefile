@@ -5,13 +5,8 @@ DOWNLOAD_URL="ftp://ftp.gnu.org/gnu/$(SRCNAME)/$(SRCNAME)-$(VERSION)/$(SRCNAME)-
 PATCHDIR=patch
 
 #confiure and compile options
-HOSTMACHINE=$(shell uname -m)
 PREFIX=/usr
-INFODIR=$(PREFIX)/share/info
-LIBDIR=$(PREFIX)/lib
-LIBEXECDIR=$(LIBDIR)
-MANDIR=$(PREFIX)/share/man
-CONFIGURE_OPTS=--prefix=$(PREFIX) --disable-libssp --disable-nls --enable-languages=c --infodir=$(INFODIR) --libdir=$(LIBDIR) --libexecdir=$(LIBEXECDIR) --mandir=$(MANDIR) --target=avr
+CONFIGURE_OPTS=--prefix=$(PREFIX) --disable-libssp --disable-nls --enable-languages=c --infodir=$(PREFIX)/share/info --libdir=$(PREFIX)/lib --libexecdir=$(PREFIX)/lib --mandir=$(PREFIX)/share/man --target=avr
 
 #package options
 PKG_NAME=avr-gcc-tinyos

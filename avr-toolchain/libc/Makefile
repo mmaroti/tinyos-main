@@ -5,7 +5,6 @@ DOWNLOAD_URL="http://download.savannah.gnu.org/releases/$(SRCNAME)/$(SRCNAME)-$(
 PATCHDIR=patch
 
 #confiure and compile options
-HOSTMACHINE=$(shell uname -m)
 PREFIX=/usr
 CONFIGURE_OPTS=--prefix=$(PREFIX) --host=avr
 
