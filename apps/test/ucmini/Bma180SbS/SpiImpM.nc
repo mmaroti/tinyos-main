@@ -62,12 +62,14 @@ implementation {
 			;
     //rcvd = UDR0;
     rcvd = call Spi.read();
+    #ifdef DEBUG_BMA
     if(call DiagMsg.record()) {
       call DiagMsg.str("write");
       call DiagMsg.hex8(data);
       call DiagMsg.hex8(rcvd);
       call DiagMsg.send();
     }
+    #endif
 		return rcvd;
   }
 

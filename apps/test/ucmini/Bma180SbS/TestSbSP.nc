@@ -2,6 +2,7 @@
 module TestSbSP
 {
   provides interface Read<bma180_data_t>;
+  provides interface SplitControl as BmaControl;
 	uses interface Leds;
 	//uses interface Boot;
 	uses interface Timer<TMilli>;
@@ -11,33 +12,44 @@ module TestSbSP
   uses interface SpiPacket;
   uses interface Resource;
   uses interface GeneralIO as CSN;
+  uses interface GeneralIO as PWR;
 }
 
 implementation
 {
-  uint8_t rxBuf[2] = {0,0};
-  uint8_t txBuf[2] = {0x81, 0};
+  enum{
+    S_OFF = 0,
+    S_STARTING,
+    S_CONFIG,
+    S_IDLE,
+  };
+
   bma180_data_t s_res;
   uint16_t x,y,z;
-  uint8_t temp;
-	/*void powerOn()
-	{
-		DDRF |= (1 << PF0);
-		PORTF |= (1 << PF0);
-	}*/
+  uint8_t temp, state=S_OFF;
+	
+  command error_t BmaControl.start() {
+    if(state == S_STARTING) return EBUSY;
+    if(state != S_OFF) return EALREADY;
 
-	/*void chipSelect()
-	{
-		DDRB |= (1 << PB6);
-		PORTB &= ~(1 << PB6);
-	}
+    state = S_STARTING;
+    call PWR.makeOutput();
+    call PWR.set();
+    if(call DiagMsg.record()) {
+        call DiagMsg.str("start");
+        call DiagMsg.uint8(state);
+        call DiagMsg.send();
+      }
+     state = S_CONFIG;
+    signal BmaControl.startDone(SUCCESS);
+    return SUCCESS;
+  }
 
-	void chipDeselect()
-	{
-		DDRB |= (1 << PB6);
-		PORTB |= (1 << PB6);
-	}*/
-
+  command error_t BmaControl.stop() {
+    call PWR.makeOutput();
+    call PWR.clr();
+    return SUCCESS;
+  }
 
 	void setLeds(uint8_t data)
 	{
@@ -66,6 +78,45 @@ implementation
   
 	event void Timer.fired()
 	{
+    if(state==S_CONFIG){
+      call CSN.clr();
+      call SpiByte.write(0x80 | 0xD);
+      temp = call SpiByte.write(0);  // ctrl_reg0
+      call CSN.set();
+      temp |= 0x10;                  // enable ee_write
+      call CSN.clr();
+      call SpiByte.write(0x7F | 0xD);
+      call SpiByte.write(temp);      // ctrl_reg0 altered
+      call CSN.set();
+
+      call CSN.clr();
+      call SpiByte.write(0x80 | 0x35); //offset_lsb1
+      temp = call SpiByte.write(0);
+      call CSN.set();
+      temp &= 0xF1;                  // clear range bits
+      temp |= (BMA_RANGE<<1);
+      call CSN.clr();
+      call SpiByte.write(0x7F | 0x35);
+      call SpiByte.write(temp);
+      call CSN.set();
+
+      call CSN.clr();
+      call SpiByte.write(0x80 | 0x30); //tco_z
+      temp = call SpiByte.write(0);
+      call CSN.set();
+      temp &= 0xFC;                 // clear mode bits
+      temp |= BMA_MODE;
+      call CSN.clr();
+      call SpiByte.write(0x7F | 0x30);
+      call SpiByte.write(temp);
+      call CSN.set();
+      state = S_IDLE;
+      if(call DiagMsg.record()) {
+        call DiagMsg.str("CONFIG");
+        call DiagMsg.send();
+      }
+    }
+
 		//uint8_t data;
 		call Leds.led3Toggle();
 
@@ -74,22 +125,23 @@ implementation
 
 		// read register 1
 		
-    call SpiByte.write(0x80 | 0x02);
+    call SpiByte.write(0x80 | 0x00);
+    s_res.chip_id = call SpiByte.write(0);
+    call SpiByte.write(0);
     x = call SpiByte.write(0x00);//x
     x |= (call SpiByte.write(0) << 8);
     y = call SpiByte.write(0);//y
     y |= (call SpiByte.write(0) << 8);
     z = call SpiByte.write(0);//z
     z |= (call SpiByte.write(0) << 8);
-    temp = call SpiByte.write(0);
-    //call SpiPacket.send(txBuf, rxBuf, 2);
+    s_res.bma180_temperature = call SpiByte.write(0);
 
     call CSN.set();
 		//chipDeselect();
     s_res.bma180_accel_x = x;
     s_res.bma180_accel_y = y;
     s_res.bma180_accel_z = z;
-    s_res.bma180_temperature = temp;
+    //s_res.bma180_temperature = 0;//temp;
     call Resource.release();
     signal Read.readDone(SUCCESS, s_res);
 		setLeds(/*rxBuf[1]*/x);
@@ -98,14 +150,7 @@ implementation
   async event void SpiPacket.sendDone(uint8_t* txcBuf, uint8_t* rxcBuf, uint16_t len, error_t error) {} 
 
   event void Resource.granted() {
-    call Timer.startOneShot(576);
+    call Timer.startOneShot(BMA_SAMPLING_TIME_MS);
   }
 
-	/*event void Boot.booted()
-	{
-    //powerOn();
-    //call CSN.set();
-    //call CSN.makeOutput();
-    //call Resource.request();
-	}*/
 }

@@ -15,7 +15,9 @@ implementation
   ReaderC.AMSend -> Send;
   ReaderC.AMControl -> AMC;
   ReaderC.Read -> Sensor;
+  //ReaderC.ReadStream -> Sensor;
   //OscilloscopeC.Read -> Sensor.VisibleLight;
+  ReaderC.BmaControl -> Sensor;
   ReaderC.Leds -> LedsC;
   ReaderC.DiagMsg -> DiagMsgC;
 
