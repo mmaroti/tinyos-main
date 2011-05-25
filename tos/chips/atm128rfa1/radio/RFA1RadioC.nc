@@ -278,9 +278,19 @@ implementation
 	components new DummyLayerC() as TrafficMonitorLayerC;
 #endif
 	TrafficMonitorLayerC.Config -> RadioP;
-	TrafficMonitorLayerC -> RadioDriverLayerC.RadioSend;
+	TrafficMonitorLayerC -> RadioDriverDebugLayerC.RadioSend;
 	TrafficMonitorLayerC -> RadioDriverLayerC.RadioReceive;
-	TrafficMonitorLayerC -> RadioDriverLayerC.RadioState;
+	TrafficMonitorLayerC -> RadioDriverDebugLayerC.RadioState;
+
+// -------- Debug
+
+#ifdef RADIO_DEBUG
+	components new DebugLayerC("driver") as RadioDriverDebugLayerC;
+#else
+	components new DummyLayerC() as RadioDriverDebugLayerC;
+#endif
+	RadioDriverDebugLayerC.SubState -> RadioDriverLayerC;
+	RadioDriverDebugLayerC.SubSend -> RadioDriverLayerC;
 
 // -------- Driver
 
