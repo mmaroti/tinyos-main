@@ -110,6 +110,13 @@ implementation
       call SpiByte.write(0x7F | 0x30);
       call SpiByte.write(temp);
       call CSN.set();
+
+      call CSN.clr();
+      call SpiByte.write(0x80 | 0x20); // bw_tcs
+      temp = call SpiByte.write(0);
+      call CSN.set();
+      temp &= 0x0F;
+      temp |= (BMA_BW<<4); 
       state = S_IDLE;
       if(call DiagMsg.record()) {
         call DiagMsg.str("CONFIG");
@@ -144,7 +151,7 @@ implementation
     //s_res.bma180_temperature = 0;//temp;
     call Resource.release();
     signal Read.readDone(SUCCESS, s_res);
-		setLeds(/*rxBuf[1]*/x);
+		setLeds(x);
 	}
 
   async event void SpiPacket.sendDone(uint8_t* txcBuf, uint8_t* rxcBuf, uint16_t len, error_t error) {} 

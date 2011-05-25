@@ -19,7 +19,7 @@ enum {
    3: Low power mode, lowest current, higher noise than other modes
 */
 enum {
-  BMA_MODE = 2,  
+  BMA_MODE = 3,  
 };
 
 /*
@@ -29,5 +29,18 @@ enum {
 */
 enum {
   BMA_RANGE = 2,
+};
+
+
+/*
+  0: 10Hz      1: 20Hz     2: 40Hz
+  3: 75Hz      4:150Hz     5:300Hz
+  7:600Hz      7:1200Hz
+  8: High pass 1Hz
+  9: band pass 0.2 .. 300Hz
+  10 .. 15:  NA
+*/
+enum {
+  BMA_BW = 4,
 };
 #endif

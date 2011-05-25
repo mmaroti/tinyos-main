@@ -61,11 +61,11 @@ implementation
     if(call DiagMsg.record()) {
       call DiagMsg.str("Id: "); call DiagMsg.hex8(data.chip_id);
       call DiagMsg.str("X: ");
-      call DiagMsg.int16( ((data.bma180_accel_x>>2) & 0x2000)?( -((~(data.bma180_accel_x-1))>>2) ):data.bma180_accel_x>>2);
+      call DiagMsg.int16( ((data.bma180_accel_x>>2) & 0x2000)?( -0.25*((~(data.bma180_accel_x-1))>>2) ):(data.bma180_accel_x>>2)*0.25);
       call DiagMsg.str("Y: ");
-      call DiagMsg.int16( ((data.bma180_accel_y>>2) & 0x2000)?( -((~(data.bma180_accel_y-1))>>2) ):data.bma180_accel_y>>2);
+      call DiagMsg.int16( ((data.bma180_accel_y>>2) & 0x2000)?( -0.25*((~(data.bma180_accel_y-1))>>2) ):(data.bma180_accel_y>>2)*0.25);
       call DiagMsg.str("Z: ");
-      call DiagMsg.int16( ((data.bma180_accel_z>>2) & 0x2000)?( -((~(data.bma180_accel_z-1))>>2) ):data.bma180_accel_z>>2);
+      call DiagMsg.int16( ((data.bma180_accel_z>>2) & 0x2000)?( -0.25*((~(data.bma180_accel_z-1))>>2) ):(data.bma180_accel_z>>2)*0.25);
       call DiagMsg.str("Temp: ");
       call DiagMsg.uint8(data.bma180_temperature);
       call DiagMsg.send();
