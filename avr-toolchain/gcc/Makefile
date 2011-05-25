@@ -82,10 +82,8 @@ $(PKG_DIR).deb:
 realrpm: package make_pkg_rpmdone
 make_pkg_rpmdone:
 	sed 's/PKG_VERSION/$(PKG_VERSION)/g' rpm.spec | \
-		sed 's/PKG_DIRECTORY/$(ABS_PKG_DIR)/g' | \
 		sed 's/PKG_RELEASE/$(PKG_RELEASE)/g'> realrpm.spec && \
-		$(RPMBUILD) -bb realrpm.spec&&rm realrpm.spec&&touch make_pkg_rpmdone
-
+		$(RPMBUILD) --buildroot=$(ABS_PKG_DIR) -bb realrpm.spec&&rm realrpm.spec&&touch make_pkg_rpmdone
 cleanpackage:
 	rm -rf $(PKG_DIR)
 	rm -f *.rpm *.deb

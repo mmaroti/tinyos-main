@@ -10,10 +10,6 @@ URL: http://www.nongnu.org/avr-libc/3/
 %description
 C library for the AVR platform.
 
-%install
-rm -rf $RPM_BUILD_ROOT
-cp -a PKG_DIRECTORY $RPM_BUILD_ROOT
-
 %files
 %defattr(-,root,root)
 /usr
