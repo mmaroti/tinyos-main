@@ -21,6 +21,7 @@ implementation
     S_OFF = 0,
     S_STARTING,
     S_CONFIG,
+    S_RESTART,
     S_IDLE,
   };
 
@@ -75,15 +76,13 @@ implementation
     call Resource.request();
     return SUCCESS;
   }
-  
-	event void Timer.fired()
-	{
-    if(state==S_CONFIG){
-      call CSN.clr();
+
+  void setup_params(){
+    call CSN.clr();
       call SpiByte.write(0x80 | 0xD);
       temp = call SpiByte.write(0);  // ctrl_reg0
       call CSN.set();
-      temp |= 0x10;                  // enable ee_write
+      temp |= 0x10;                  // enable ee_w; needed for writing to addresses 0x20 .. 0x3B
       call CSN.clr();
       call SpiByte.write(0x7F | 0xD);
       call SpiByte.write(temp);      // ctrl_reg0 altered
@@ -121,6 +120,12 @@ implementation
       call SpiByte.write(0x7F & 0x20);
       call SpiByte.write(temp);
       call CSN.set(); 
+  }
+  
+	event void Timer.fired()
+	{
+    if(state==S_CONFIG){
+      setup_params();
 
       call CSN.clr();
       call SpiByte.write(0x80 | 0x0D); // ctrl_reg0
@@ -132,19 +137,6 @@ implementation
       call SpiByte.write(0x7F & 0x0D);
       call SpiByte.write(temp);
       call CSN.set();
-
-      /*
-      call CSN.clr();
-      call SpiByte.write(0x80 | 0x0D); // ctrl_reg0
-      temp = call SpiByte.write(0);
-      call CSN.set();
-      temp &= 0x02;
-      temp &= ~(1<<1);   //sleep control;  1:enable sleep   
-      call CSN.clr();
-      call SpiByte.write(0x7F & 0x0D);
-      call SpiByte.write(temp);
-      call CSN.set();
-      */
 
       state = S_IDLE;
       if(call DiagMsg.record()) {
@@ -169,6 +161,15 @@ implementation
       call SpiByte.write(0x7F & 0x0D);
       call SpiByte.write(temp);
       call CSN.set();
+      
+      //setup_params();
+      state = S_RESTART;
+      return call Timer.startOneShot(10);
+    }
+
+    if(state == S_RESTART) {
+      setup_params();
+      state = S_IDLE;
     }
 
 	  //chipSelect();
