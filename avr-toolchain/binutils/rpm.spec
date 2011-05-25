@@ -6,6 +6,7 @@ Packager: Janos Sallai, Vanderbilt University <janos.sallai@vanderbilt.edu>
 URL: http://ftp.gnu.org/gnu/binutils/binutils-2.17.tar.bz2
 
 License: GNU GPL
+Group: Development/Tools
 
 %description
 The GNU Binutils are a collection of binary tools. The main tools are 
