@@ -122,6 +122,30 @@ implementation
       call SpiByte.write(temp);
       call CSN.set(); 
 
+      call CSN.clr();
+      call SpiByte.write(0x80 | 0x0D); // ctrl_reg0
+      temp = call SpiByte.write(0);
+      call CSN.set();
+      temp &= 0x02;
+      temp |= (1<<1);   //sleep control;  1:enable sleep   
+      call CSN.clr();
+      call SpiByte.write(0x7F & 0x0D);
+      call SpiByte.write(temp);
+      call CSN.set();
+
+      /*
+      call CSN.clr();
+      call SpiByte.write(0x80 | 0x0D); // ctrl_reg0
+      temp = call SpiByte.write(0);
+      call CSN.set();
+      temp &= 0x02;
+      temp &= ~(1<<1);   //sleep control;  1:enable sleep   
+      call CSN.clr();
+      call SpiByte.write(0x7F & 0x0D);
+      call SpiByte.write(temp);
+      call CSN.set();
+      */
+
       state = S_IDLE;
       if(call DiagMsg.record()) {
         call DiagMsg.str("CONFIG");
@@ -131,6 +155,21 @@ implementation
 
 		//uint8_t data;
 		call Leds.led3Toggle();
+
+    //check if the sensor is in sleep mode
+    call CSN.clr();
+    call SpiByte.write(0x80 | 0x0D); // ctrl_reg0
+    temp = call SpiByte.write(0);
+    call CSN.set();
+    temp &= 0x02;
+    //if so, then wake it up
+    if(temp){
+      temp &=~ (1<<1);   //sleep control;  1:enable sleep   
+      call CSN.clr();
+      call SpiByte.write(0x7F & 0x0D);
+      call SpiByte.write(temp);
+      call CSN.set();
+    }
 
 	  //chipSelect();
     call CSN.clr();
