@@ -19,7 +19,6 @@ PKG_HOST=$(shell uname -m|sed 's/.*64/amd64/'|sed 's/.*86/i386/')
 PKG_DIR=$(PKG_NAME)_$(PKG_VERSION)-$(PKG_RELEASE)_$(PKG_HOST)
 ABS_PKG_DIR=$(shell echo $(PWD)/$(PKG_DIR)|sed 's/\//\\\//g')
 
-
 #check package builders: these variables are the absolute path to the packager, or empty if the packager is not present
 RPMBUILD=$(shell whereis rpmbuild|sed 's/.*: //'|sed 's/ .*//'|sed 's/.*:.*//g')
 DPKG=$(shell whereis dpkg|sed 's/.*: //'|sed 's/ .*//'|sed 's/.*:.*//g')
@@ -34,6 +33,14 @@ ifeq ($(DPKG),)
  DEBTARGET=dummydeb
 else
  DEBTARGET=realdeb
+endif
+
+#check if there's any patch
+PATCHNUM=$(shell ls -1 $(PATCHDIR)/*.patch|wc -l)
+ifeq ($(PATCHNUM),0)
+ PATCHTARGET=dummypatch
+else
+ PATCHTARGET=realpatch
 endif
 
 all: $(DEBTARGET) $(RPMTARGET)
@@ -55,8 +62,9 @@ unpack: get $(SRCNAME)-$(VERSION)/configure
 $(SRCNAME)-$(VERSION)/configure:
 	tar -jxf $(SRCNAME)-$(VERSION).tar.bz2
 
-#TODO: if there's no patch, it crashes
-patch: unpack make_patchdone
+patch: $(PATCHTARGET)
+dummypatch: unpack
+realpatch: unpack make_patchdone
 make_patchdone:
 	cd $(SRCNAME)-$(VERSION)&&patch -p0 -i ../$(PATCHDIR)/*.patch && cd .. && touch make_patchdone #just for the makefile
 
@@ -83,6 +91,7 @@ make_pkg_rpmdone:
 	sed 's/PKG_VERSION/$(PKG_VERSION)/g' rpm.spec | \
 		sed 's/PKG_RELEASE/$(PKG_RELEASE)/g'> realrpm.spec && \
 		$(RPMBUILD) --buildroot=$(ABS_PKG_DIR) -bb realrpm.spec&&rm realrpm.spec&&touch make_pkg_rpmdone
+
 cleanpackage:
 	rm -rf $(PKG_DIR)
 	rm -f *.rpm *.deb
@@ -101,6 +110,7 @@ package: compile make_pkg_packagedone
 make_pkg_packagedone:
 	install -d $(PKG_DIR)
 ###END OF PACKAGE INDEPENDENT PART###
+
 	cd $(SRCNAME)-$(VERSION)/build&&make -j1 DESTDIR=$(PWD)/$(PKG_DIR) install
 	#remove confliciting and/or unnecesary files
 	rm -rf $(PKG_DIR)/usr/lib/libiberty.a \

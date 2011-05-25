@@ -33,6 +33,14 @@ else
  DEBTARGET=realdeb
 endif
 
+#check if there's any patch
+PATCHNUM=$(shell ls -1 $(PATCHDIR)/*.patch|wc -l)
+ifeq ($(PATCHNUM),0)
+ PATCHTARGET=dummypatch
+else
+ PATCHTARGET=realpatch
+endif
+
 all: $(DEBTARGET) $(RPMTARGET)
 
 dummyrpm:
@@ -52,8 +60,9 @@ unpack: get $(SRCNAME)-$(VERSION)/configure
 $(SRCNAME)-$(VERSION)/configure:
 	tar -jxf $(SRCNAME)-$(VERSION).tar.bz2
 
-#TODO: if there's no patch, it crashes
-patch: unpack make_patchdone
+patch: $(PATCHTARGET)
+dummypatch: unpack
+realpatch: unpack make_patchdone
 make_patchdone:
 	cd $(SRCNAME)-$(VERSION)&&patch -p0 -i ../$(PATCHDIR)/*.patch && cd .. && touch make_patchdone #just for the makefile
 
