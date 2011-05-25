@@ -116,7 +116,12 @@ implementation
       temp = call SpiByte.write(0);
       call CSN.set();
       temp &= 0x0F;
-      temp |= (BMA_BW<<4); 
+      temp |= (BMA_BW<<4);
+      call CSN.clr();
+      call SpiByte.write(0x7F & 0x20);
+      call SpiByte.write(temp);
+      call CSN.set(); 
+
       state = S_IDLE;
       if(call DiagMsg.record()) {
         call DiagMsg.str("CONFIG");
