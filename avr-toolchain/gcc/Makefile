@@ -6,7 +6,9 @@ PATCHDIR=patch
 
 #confiure and compile options
 PREFIX=/usr
-CONFIGURE_OPTS=--prefix=$(PREFIX) --disable-libssp --disable-nls --enable-languages=c --infodir=$(PREFIX)/share/info --libdir=$(PREFIX)/lib --libexecdir=$(PREFIX)/lib --mandir=$(PREFIX)/share/man --target=avr
+#TODO some of these needed for ubuntu, but I don't know which
+CONFIGURE_UBI=--with-gnu-as --with-gnu-ld --with-as=/usr/bin/avr-as --with-ld=/usr/bin/avr-ld
+CONFIGURE_OPTS=$(CONFIGURE_UBI) --prefix=$(PREFIX) --disable-libssp --disable-nls --enable-languages=c --infodir=$(PREFIX)/share/info --libdir=$(PREFIX)/lib --libexecdir=$(PREFIX)/lib --mandir=$(PREFIX)/share/man --target=avr
 
 #package options
 PKG_NAME=avr-gcc-tinyos
