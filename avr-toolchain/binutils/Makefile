@@ -104,20 +104,20 @@ make_pkg_packagedone:
 	#remove confliciting and/or unnecesary files
 	rm -f $(PKG_DIR)/usr/lib/libiberty.a \
 		$(PKG_DIR)/usr/share/info/dir \
-		$(PKG_DIR)/usr/bin/addr2line \
-		$(PKG_DIR)/usr/bin/ar \
-		$(PKG_DIR)/usr/bin/as \
-		$(PKG_DIR)/usr/bin/c++filt \
-		$(PKG_DIR)/usr/bin/gprof \
-		$(PKG_DIR)/usr/bin/ld \
-		$(PKG_DIR)/usr/bin/nm \
-		$(PKG_DIR)/usr/bin/objcopy \
-		$(PKG_DIR)/usr/bin/objdump \
-		$(PKG_DIR)/usr/bin/ranlib \
-		$(PKG_DIR)/usr/bin/readelf \
-		$(PKG_DIR)/usr/bin/size \
-		$(PKG_DIR)/usr/bin/strings \
-		$(PKG_DIR)/usr/bin/strip
+		$(PKG_DIR)/usr/bin/addr2line* \
+		$(PKG_DIR)/usr/bin/ar* \
+		$(PKG_DIR)/usr/bin/as* \
+		$(PKG_DIR)/usr/bin/c++filt* \
+		$(PKG_DIR)/usr/bin/gprof* \
+		$(PKG_DIR)/usr/bin/ld* \
+		$(PKG_DIR)/usr/bin/nm* \
+		$(PKG_DIR)/usr/bin/objcopy* \
+		$(PKG_DIR)/usr/bin/objdump* \
+		$(PKG_DIR)/usr/bin/ranlib* \
+		$(PKG_DIR)/usr/bin/readelf* \
+		$(PKG_DIR)/usr/bin/size* \
+		$(PKG_DIR)/usr/bin/strings* \
+		$(PKG_DIR)/usr/bin/strip*
 	#rename info files to avr-*
 	-mv $(PKG_DIR)/usr/share/info/in.info $(PKG_DIR)/usr/share/info/avr-in.info
 	-mv $(PKG_DIR)/usr/share/info/as.info $(PKG_DIR)/usr/share/info/avr-as.info
