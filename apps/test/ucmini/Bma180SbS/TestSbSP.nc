@@ -2,7 +2,7 @@
 module TestSbSP
 {
   provides interface Read<bma180_data_t>;
-  provides interface SplitControl as BmaControl;
+  provides interface StdControl as BmaControl;
 	uses interface Leds;
 	//uses interface Boot;
 	uses interface Timer<TMilli>;
@@ -42,7 +42,6 @@ implementation
         call DiagMsg.send();
       }
      state = S_CONFIG;
-    signal BmaControl.startDone(SUCCESS);
     return SUCCESS;
   }
 

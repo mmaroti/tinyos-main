@@ -1,7 +1,7 @@
 #include "Bma180.h"
 configuration TestSbSC
 {
-  provides interface SplitControl;
+  provides interface StdControl;
   provides interface Read<bma180_data_t>;
   //provides interface ReadStream<bma180_data_t>;
 }
@@ -11,7 +11,7 @@ implementation
 	components /*MainC,*/ TestSbSP, /*new Bma180ReadStreamClientC(),*/ LedsC, new TimerMilliC(), DiagMsgC, SerialActiveMessageC, SpiImpC, HplAtm128GeneralIOC;
 
 	//TestSbSP.Boot -> MainC;
-  SplitControl = TestSbSP.BmaControl;
+  StdControl = TestSbSP.BmaControl;
   Read = TestSbSP;
   //ReadStream = Bma180ReadStreamClientC;
 	TestSbSP.Leds -> LedsC;
