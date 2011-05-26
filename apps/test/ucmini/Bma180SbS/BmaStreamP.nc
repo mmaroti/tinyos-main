@@ -43,181 +43,182 @@
 */
 module BmaStreamP
 {
-	provides
-	{
-		interface ReadStream<bma180_data_t>[uint8_t stream];
-	}
+  provides
+  {
+    interface ReadStream<bma180_data_t>;
+  }
 
-	uses
-	{
-		interface Read<bma180_data_t>;
-		interface Atm128Calibrate;
+  uses
+  {
+    interface Read<bma180_data_t>;
+    interface Atm128Calibrate;
     interface DiagMsg;
-	}
+  }
 }
 
 implementation 
 {
-	enum
-	{
-		STATE_READY = 0,
+  enum
+  {
+    STATE_READY = 0,
 
-		STATE_20 = 1,		// 2 buffers to be filled, 0 to be reported
-		STATE_11 = 2,		// 1 buffer to be filled, 1 to be reported
-		STATE_02 = 3,		// 0 buffer to be filled, 2 to be reported
-		STATE_10 = 4,		// 1 buffer to be filled, 0 to be reported
-		STATE_01 = 5,		// 0 buffer to be filled, 1 to be reported
-		STATE_00 = 7,		// error reporting
+    STATE_20 = 1,		// 2 buffers to be filled, 0 to be reported
+    STATE_11 = 2,		// 1 buffer to be filled, 1 to be reported
+    STATE_02 = 3,		// 0 buffer to be filled, 2 to be reported
+    STATE_10 = 4,		// 1 buffer to be filled, 0 to be reported
+    STATE_01 = 5,		// 0 buffer to be filled, 1 to be reported
+    STATE_00 = 7,		// error reporting
 
-		SAMPLING_STEP = 1,	// state increment after sampling
-		REPORTING_STEP = 2,	// state increment after reporting
-	};
+    SAMPLING_STEP = 1,	// state increment after sampling
+    REPORTING_STEP = 2,	// state increment after reporting
+  };
 
-	norace uint8_t state;
+  norace uint8_t state;
 
-	bma180_data_t * firstStart;
-	uint16_t firstLength;
+  bma180_data_t * firstStart;
+  uint16_t firstLength;
 
-	norace bma180_data_t * secondStart;
-	norace uint16_t secondLength;
+  norace bma180_data_t * secondStart;
+  norace uint16_t secondLength;
 
-	// ------- Fast path
+  // ------- Fast path
 
-	norace bma180_data_t * currentPtr;
-	norace bma180_data_t * currentEnd;
+  norace bma180_data_t * currentPtr;
+  norace bma180_data_t * currentEnd;
 
-	task void bufferDone();
+  task void bufferDone();
 
-	event void Read.readDone(error_t err, bma180_data_t data)
-	{
-		//ADC_ASSERT( currentPtr != NULL && currentPtr < currentEnd );
-		//ADC_ASSERT( state == STATE_20 || state == STATE_11 || state == STATE_10 );
+  event void Read.readDone(error_t err, bma180_data_t data)
+  {
+    //ADC_ASSERT( currentPtr != NULL && currentPtr < currentEnd );
+    //ADC_ASSERT( state == STATE_20 || state == STATE_11 || state == STATE_10 );
     if(call DiagMsg.record()) {
       call DiagMsg.str("P_stream.readDone");
       call DiagMsg.send();
     }   
-		*(currentPtr++) = data;
+    *(currentPtr++) = data;
 
-		if( currentPtr != currentEnd )
-			return;
+    if( currentPtr != currentEnd )
+      return;
 
-		currentPtr = secondStart;
-		currentEnd = currentPtr + secondLength;
+    currentPtr = secondStart;
+    currentEnd = currentPtr + secondLength;
 
-		if( (state += SAMPLING_STEP) != STATE_11 ) ;
-			//call Atm128Adc.cancel();
+    if( (state += SAMPLING_STEP) != STATE_11 ) ;
+      //call Atm128Adc.cancel();
 
-		post bufferDone();
-	}
+    post bufferDone();
+  }
 
 	// ------- Slow path
 
-	enum {
-		ADC_STREAMS = uniqueCount("BMA180_READSTREAM"),
-	};
 
-	uint8_t stream;
-	uint16_t actualPeriod;
+  uint16_t actualPeriod;
 
-	typedef struct free_buffer_t
-	{
-		uint16_t count;
-		struct free_buffer_t * next;
-	} free_buffer_t;
+  typedef struct free_buffer_t
+  {
+    uint16_t count;
+    struct free_buffer_t * next;
+  } free_buffer_t;
 
-	free_buffer_t * freeBuffers[ADC_STREAMS];
+  free_buffer_t * freeBuffers;
 
-	task void bufferDone()
-	{
-		uint8_t s;
+  task void bufferDone()
+  {
+    uint8_t s;
 
-		bma180_data_t * reportStart = firstStart;
-		uint16_t reportLength = firstLength;
+    bma180_data_t * reportStart = firstStart;
+    uint16_t reportLength = firstLength;
     if(call DiagMsg.record()) {
       call DiagMsg.str("P_bufferdonetask");
       call DiagMsg.send();
     }
 
-		//ADC_ASSERT( state == STATE_11 || state == STATE_02 || state == STATE_01 || state == STATE_00 );
+    //ADC_ASSERT( state == STATE_11 || state == STATE_02 || state == STATE_01 || state == STATE_00 );
 
-		firstStart = secondStart;
-		firstLength = secondLength;
+    firstStart = secondStart;
+    firstLength = secondLength;
 
-		atomic
-		{
-			s = state;
+    atomic
+    {
+      s = state;
 
-			if( s == STATE_11 && freeBuffers[stream] != NULL )
-			{
-				secondStart = (bma180_data_t *)freeBuffers[stream];
-				secondLength = freeBuffers[stream]->count;
-				freeBuffers[stream] = freeBuffers[stream]->next;
+      if( s == STATE_11 && freeBuffers != NULL )
+      {
+        secondStart = (bma180_data_t *)freeBuffers;
+        secondLength = freeBuffers->count;
+        freeBuffers = freeBuffers->next;
 
-				state = STATE_20;
-			}
-			else if( s != STATE_00 )
-				state = s + REPORTING_STEP;
-		}
+        state = STATE_20;
+      }
+      else if( s != STATE_00 )
+        state = s + REPORTING_STEP;
+    }
 
-		if( s != STATE_00 || freeBuffers[stream] != NULL )
-		{
-			if( s == STATE_00 )
-			{
-				reportStart = (bma180_data_t *)freeBuffers[stream];
-				reportLength = freeBuffers[stream]->count;
-				freeBuffers[stream] = freeBuffers[stream]->next;
-			}
+    if( s != STATE_00 || freeBuffers != NULL )
+    {
+      if( s == STATE_00 )
+      {
+        reportStart = (bma180_data_t *)freeBuffers;
+        reportLength = freeBuffers->count;
+        freeBuffers = freeBuffers->next;
+      }
+      if(call DiagMsg.record()) {
+        call DiagMsg.str("sig_buffdone");
+        call DiagMsg.str(s!=STATE_00?"SUCCESS":"FAIL");
+        call DiagMsg.send();
+      }
+      signal ReadStream.bufferDone(s != STATE_00 ? SUCCESS : FAIL, reportStart, reportLength);
+    }
 
-			signal ReadStream.bufferDone[stream](s != STATE_00 ? SUCCESS : FAIL, reportStart, reportLength);
-		}
+    if( freeBuffers == NULL && (s == STATE_00 || s == STATE_01) )
+    {
+      if(call DiagMsg.record()) {
+        call DiagMsg.str("sig_readdone");
+        call DiagMsg.send();
+      }
+      signal ReadStream.readDone(s == STATE_01 ? SUCCESS : FAIL, actualPeriod); 
+      state = STATE_READY;
+    }
+    else if( s != STATE_11 )
+      post bufferDone();
+  }
 
-		if( freeBuffers[stream] == NULL && (s == STATE_00 || s == STATE_01) )
-		{
-			signal ReadStream.readDone[stream](s == STATE_01 ? SUCCESS : FAIL, actualPeriod); 
-			state = STATE_READY;
-		}
-		else if( s != STATE_11 )
-			post bufferDone();
-	}
+  command error_t ReadStream.postBuffer(bma180_data_t *buffer, uint16_t count)
+  {
+    free_buffer_t * * last;
 
-	command error_t ReadStream.postBuffer[uint8_t s](bma180_data_t *buffer, uint16_t count)
-	{
-		free_buffer_t * * last;
-
-    
-
-		if( count < (sizeof(free_buffer_t) + 1) >> 1 )
-			return ESIZE;
+    if( count < (sizeof(free_buffer_t) + 1) >> 1 )
+      return ESIZE;
 
     if(call DiagMsg.record()) {
       call DiagMsg.str("P_postbuff");
-      call DiagMsg.uint8(s);
       call DiagMsg.send();
     }
 
-		atomic
-		{
-			if( state == STATE_10 )
-			{
-				secondStart = buffer;
-				secondLength = count;
+    atomic
+    {
+      if( state == STATE_10 )
+      {
+        secondStart = buffer;
+        secondLength = count;
 
-				state = STATE_20;
-				return SUCCESS;
-			}
-		}
+        state = STATE_20;
+        return SUCCESS;
+      }
+    }
 
-		last = & freeBuffers[s];
+    last = & freeBuffers;
 
-		while( *last != NULL )
-			last = &((*last)->next);
+    while( *last != NULL )
+      last = &((*last)->next);
 	
-		*last = (free_buffer_t *)buffer;
-		(*last)->count = count;
-		(*last)->next = NULL;
+    *last = (free_buffer_t *)buffer;
+    (*last)->count = count;
+    (*last)->next = NULL;
 
-		return SUCCESS;
-	}
+    return SUCCESS;
+  }
 
 // TODO: define these next to PLATFORM_MHZ
 #if defined(PLATFORM_IRIS) || defined(PLATFORM_MICAZ) || defined(PLATFORM_MICA2)
@@ -230,49 +231,43 @@ implementation
 
 //#define PERIOD(prescaler) (uint16_t)(1000000.0 * 13 * prescaler / PLATFORM_HZ)
 
-	command error_t ReadStream.read[uint8_t s](uint32_t period)
-	{
-		uint8_t prescaler;
-     
+  command error_t ReadStream.read(uint32_t period)
+  {
+    if( state != STATE_READY )
+      return EBUSY;
 
-		if( state != STATE_READY )
-			return EBUSY;
+    if( freeBuffers == NULL )
+      return FAIL;
 
-		if( freeBuffers[s] == NULL )
-			return FAIL;
+    // do it early
+    //call Read.read();
 
-		// do it early
-		//call Read.read();
+    firstStart = (bma180_data_t *)freeBuffers;
+    firstLength = freeBuffers->count;
+    freeBuffers = freeBuffers->next;
 
-		firstStart = (bma180_data_t *)freeBuffers[s];
-		firstLength = freeBuffers[s]->count;
-		freeBuffers[s] = freeBuffers[s]->next;
+    currentPtr = firstStart;
+    currentEnd = firstStart + firstLength;
 
-		currentPtr = firstStart;
-		currentEnd = firstStart + firstLength;
+    if( freeBuffers == NULL )
+      state = STATE_10;
+    else
+    {
+      secondStart = (bma180_data_t *)freeBuffers;
+      secondLength = freeBuffers->count;
+      freeBuffers = freeBuffers->next;
 
-		if( freeBuffers[s] == NULL )
-			state = STATE_10;
-		else
-		{
-			secondStart = (bma180_data_t *)freeBuffers[s];
-			secondLength = freeBuffers[s]->count;
-			freeBuffers[s] = freeBuffers[s]->next;
+      state = STATE_20;
+    }
 
-			state = STATE_20;
-		}
-
-		
-
-		stream = s;
-		actualPeriod = period;	// TODO: correct for MHZ differences
+    actualPeriod = period;	// TODO: correct for MHZ differences
 
 		call Read.read();
-if(call DiagMsg.record()) {
+    if(call DiagMsg.record()) {
       call DiagMsg.str("P_stream.Read");
       call DiagMsg.send();
     }   
-		return SUCCESS;
-	}
+    return SUCCESS;
+  }
 
 }
