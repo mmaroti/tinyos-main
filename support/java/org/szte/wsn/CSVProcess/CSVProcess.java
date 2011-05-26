@@ -60,20 +60,13 @@ public class CSVProcess{
 
 	private ArrayList<StructParams> structures;
 
-
-	private File avgOutputFileName;
-
 	private int runningConversions;
 	public ArrayList<CSVHandler> filesPerNode[];	
 
 
 	public CSVProcess(ArrayList<String> inputFiles, ArrayList<StructParams> structs){
 		this.structures=structs;
-
-
-		//outputFile=structs.get(0).getOutputFile();
-		avgOutputFileName=structs.get(0).getAvgOutputFile();
-
+		/*
 		for(int i=0;i<structures.size();i++){
 			try {			
 				structures.get(i).getOutputFile().createNewFile();
@@ -82,6 +75,7 @@ public class CSVProcess{
 				System.exit(1);
 			}
 		}
+		*/
 		runningConversions=inputFiles.size();
 		for(String file:inputFiles)
 			new Converter(file, confFile, csvExt, separator, new PerConversion());
@@ -230,8 +224,10 @@ public class CSVProcess{
 	 * detects and repairs timeStamp overflows
 	 * @param timeFiles time csv files to process
 	 */
+	@SuppressWarnings("unused")
 	private LinearEquations.Solution calculateTime(ArrayList<CSVHandler> timeFiles){
 		//setting column identifiers of time file
+		final boolean DEBUG=false;
 		final int NODE_ID=1;
 		final int LOCAL_TIME=2;
 		final int LOCAL_BOOT_COUNT=3;
@@ -249,13 +245,15 @@ public class CSVProcess{
 			for(int cLine=1;cLine<=time.getLineNumber();cLine++){
 				//check local time overflow				
 				Long currentTime=Long.parseLong(time.getCell(LOCAL_TIME, cLine)); 
-				if((currentTime<previousTime.get("local"))&&
+				if(((currentTime+10000)<previousTime.get("local"))&&   //10 s gap
 						(time.getCell(LOCAL_BOOT_COUNT, cLine).equals(time.getCell(LOCAL_BOOT_COUNT, previousLine.get("local"))))){ //same bootCounter
 					overflowCount.put("local", overflowCount.get("local")+1);
 					previousTime.put("local", new Long(-1));
 					previousLine.put("local", cLine);
 					time.setCell(LOCAL_TIME, cLine, ""+(currentTime+overflowCount.get("local")*timeMAX));
-					System.out.println("Time counter in "+time.getFile().getName()+ " overflow, time line repaired." );
+
+					System.out.println("Time counter in "+time.getFile().getName()+" at: "+cLine+ " overflow, time line repaired." );
+
 				}
 				else{
 					time.setCell(LOCAL_TIME, cLine, ""+(currentTime+overflowCount.get("local")*timeMAX));
@@ -314,7 +312,7 @@ public class CSVProcess{
 		for(String sk:skews)
 			ske.setCoefficient(sk, 1);
 		ske.setConstant(skews.size()*0.9765625);
-		ske.multiply(10000);
+		ske.multiply(equations.getEquations().size()*6);
 		equations.addEquation(ske);
 
 		try {
@@ -326,7 +324,7 @@ public class CSVProcess{
 			CSVHandler reference=new CSVHandler(refTimeFile, true, ";", 1, new ArrayList<Integer>());
 
 			//for(int cLine=1;cLine<=reference.getLineNumber();cLine++){
-			for(int cLine=1;cLine<=1;cLine++){
+			for(int cLine=reference.getLineNumber();cLine<=reference.getLineNumber();cLine++){
 				LinearEquations.Equation eq=equations.createEquation();
 
 				eq.setCoefficient("o_"+expId(reference.getCell(NODE_ID, cLine))+"_"+reference.getCell(REMOTE_BOOT_COUNT, cLine),(double)1);  //coe of offset remote
@@ -344,21 +342,23 @@ public class CSVProcess{
 		//equations.printEquations();
 		try{
 			LinearEquations.Solution solution=equations.solveLeastSquares();
-			//solution.print();
+			if(DEBUG)
+				solution.print();
 			double sum=0;			
-			
-			 //Error of reference mote and calculated mote time
+
+			//Error of reference mote and calculated mote time
 			CSVHandler reference=new CSVHandler(new File("99999_time.csv"), true, ";", 1, new ArrayList<Integer>());
 			for(int cLine=1;cLine<=reference.getLineNumber();cLine++){
 				double res=solution.getValue("s_"+expId(reference.getCell(1, cLine)))*Double.parseDouble(reference.getCell(4, cLine));
 				res+=solution.getValue("o_"+expId(reference.getCell(1, cLine))+"_"+reference.getCell(5, cLine));
 				res-=Double.parseDouble(reference.getCell(2, cLine));
-				//System.out.println(cLine+" error of "+reference.getCell(1, cLine)+": "+res);
+				if ((Math.abs(res)>1000)&&(DEBUG))
+					System.out.println(cLine+" error of "+reference.getCell(1, cLine)+": "+res);
 				sum+=Math.abs(res);
 			}			
 			System.out.print("Avarege error to UTC in ms: ");
 			System.out.format("%.3f%n",sum/+reference.getLineNumber());
-			
+
 			sum=0;
 			int countEquations=0;
 			for(CSVHandler time:timeFiles){
@@ -368,25 +368,26 @@ public class CSVProcess{
 					res+=solution.getValue("o_"+expId(time.getCell(1, cLine))+"_"+time.getCell(5, cLine));
 					res-=solution.getValue("s_"+fileId)*Double.parseDouble(time.getCell(2, cLine));
 					res-=solution.getValue("o_"+fileId+"_"+time.getCell(3, cLine));
-					/* 
-					if (Math.abs(res)>10)
-						 System.out.println(cLine+" error of "+time.getCell(1, cLine)+": "+res);
-					*/
+
+					if ((Math.abs(res)>600)&&(DEBUG))
+						System.out.println("Error between "+time.getCell(1, cLine)+" and "+fileId+" at "+cLine+": "+res);
 					sum+=Math.abs(res);
 					countEquations++;
 				}
 			}
 			if(sum/+countEquations<100){
 				System.out.print("Timesyncronisation finished successfully. ");
-			System.out.print("Avarege error between motes in ms: ");
-			System.out.format("%.3f%n",sum/+countEquations);
+				System.out.print("Avarege error between motes in ms: ");
+				System.out.format("%.3f%n",sum/+countEquations);
 			}
 			else{
 				System.out.print("Timesyncronisation finished with high error: ");
 				System.out.print("Avarege error between motes in ms: ");
 				System.out.format("%.3f%n",sum/+countEquations);
 			}
-			//equations.printStatistics();
+			if (DEBUG)
+				equations.printStatistics();
+
 			return solution;
 		}
 		catch(Exception e){
@@ -444,32 +445,16 @@ public class CSVProcess{
 	 */
 	private void mergeConversion(ArrayList<CSVHandler> fileGroup) {
 		CSVMerger merger=null;
-		CSVHandler globalFile=null;
+		CSVHandler avgFile=null;
 		merger=new CSVMerger(fileGroup);
 		String fileName=fileGroup.get(0).getFile().getName();
 
 		int count=findIdForName(fileName,structures);
 		try {
-			globalFile=merger.createGlobalFile(structures.get(count).getOutputFile(), nodeIdSeparator, startTime, endTime);
+			avgFile=merger.createAverageFile(structures.get(count).getAvgOutputFile(), nodeIdSeparator, startTime, endTime, timeWindow, timeType);
 
 		} catch (IOException e) {
-			System.err.println("E: Can't merge inputfiles");
-		}
-		if(globalFile==null)
-			System.exit(1);
-		CSVHandler avgFile=null;
-		try {
-			globalFile.flush();
-		} catch (IOException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		}
-		globalFile.fillGaps();
-		try {
-			avgFile=globalFile.averageInTime(timeWindow, avgOutputFileName ,timeType); 
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			System.err.println("E: Can't create average file");
 		}
 		avgFile.formatTime(timeFormat);
 		avgFile.formatDecimalSeparator(",");
@@ -532,11 +517,24 @@ public class CSVProcess{
 							String fileName=ready[i].getFile().getName();
 							int count=findIdForName(fileName,structures);
 							handler.calculateNewGlobal(solution,structures.get(count).getGlobalColumn(),structures.get(count).isInsertGlobal());
+
 						}
+
 				for(int i=0;i<filesPerNode.length;i++){
 					if(i!=timeIndex)
 						mergeConversion(filesPerNode[i]);
+						for(CSVHandler handler:filesPerNode[i]){
+							handler.formatTime(timeFormat);
+							try {								
+								if(!handler.flush())									
+									System.out.println("Could not write: "+handler.getFile().getName());
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
 				}
+
 
 			}
 
@@ -559,8 +557,6 @@ public class CSVProcess{
 		String initFileName=(args.length>0)?args[0]:"csv.ini";
 		ArrayList<StructParams> structs= initParams(initFileName);		
 
-		for(int i=0;i<structs.size();i++)
-			structs.get(i).getOutputFile().delete(); 
 
 
 		new CSVProcess(inputfiles,structs);

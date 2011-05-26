@@ -1,36 +1,36 @@
 /*
-* Copyright (c) 2010, University of Szeged
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions
-* are met:
-*
-* - Redistributions of source code must retain the above copyright
-* notice, this list of conditions and the following disclaimer.
-* - Redistributions in binary form must reproduce the above
-* copyright notice, this list of conditions and the following
-* disclaimer in the documentation and/or other materials provided
-* with the distribution.
-* - Neither the name of University of Szeged nor the names of its
-* contributors may be used to endorse or promote products derived
-* from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-* COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-* OF THE POSSIBILITY OF SUCH DAMAGE.
-*
-* Author:Andras Biro
-*/
+ * Copyright (c) 2010, University of Szeged
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * - Redistributions in binary form must reproduce the above
+ * copyright notice, this list of conditions and the following
+ * disclaimer in the documentation and/or other materials provided
+ * with the distribution.
+ * - Neither the name of University of Szeged nor the names of its
+ * contributors may be used to endorse or promote products derived
+ * from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Author:Andras Biro
+ */
 
 package org.szte.wsn.CSVProcess;
 
@@ -48,7 +48,7 @@ public class CSVMerger {
 	int globalColumn;
 	ArrayList<CSVHandler> csvfiles;
 	ArrayList<Integer> dataColumns=new ArrayList<Integer>();
-	
+
 	/**
 	 * Default constructor
 	 * @param inputFiles CSVHandlers to merge
@@ -66,14 +66,14 @@ public class CSVMerger {
 		for(int id:datacolumns){
 			String stringid=csvfiles.get(0).getHeaderId(id);
 			for(CSVHandler file:csvfiles){
-				String filename=file.getName().substring(0, file.getName().lastIndexOf('.'));
+				String filename=file.getName().substring(file.getName().indexOf('0'), file.getName().lastIndexOf('_'));
 				ret.add(stringid+nodeIdSeparator+filename);
 			}
 		}
-		
+
 		return ret;		
 	}
-	
+
 	/**
 	 * Creates global file.
 	 * @param outfile File to create
@@ -135,10 +135,91 @@ public class CSVMerger {
 				currenttimes[mintimefile]=Long.parseLong(time);
 			else
 				currenttimes[mintimefile]=Long.MAX_VALUE;
-			
+
 		}while(currenttime<endTime);		
 		return globalFile;
 	}
 
 	//TODO main method; priority: low
+
+	/**
+	 * Creates average file.
+	 * @param outfile File to create
+	 * @param nodeIdSepString separates header id from nodeid in header (eg @: temp@12)
+	 * @param startTime Merge the files from this time
+	 * @param endTime Merge the files to this time
+	 * @return Averaged file
+	 * @throws IOException if can't create output file
+	 */
+	public CSVHandler createAverageFile(File outfile, String nodeIdSepString, long startTime, long endTime, long timeWindow, byte timeType) throws IOException {
+
+		ArrayList<CSVHandler> avgFiles=new ArrayList<CSVHandler>();
+
+		if(startTime==Long.MIN_VALUE){
+			long currentTime;
+			for(int i=0;i<csvfiles.size();i++){				
+				currentTime=Long.parseLong(csvfiles.get(i).getCell(globalColumn, 1));
+				if(currentTime>startTime)
+					startTime=currentTime;
+			}
+		}				
+		for(CSVHandler csvFile:csvfiles){
+			//System.out.println("Calculating average of:"+csvFile.getName());
+			CSVHandler avg=csvFile.averageInTime(timeWindow, new File("avg"+csvFile.getName()), timeType,startTime);
+			avgFiles.add(avg);
+			//avg.formatTime(timeformat);
+			//avg.flush();
+		}
+		System.out.println("Calculating average of files finished");
+		ArrayList<String> newHeader=createHeader(avgFiles, dataColumns, nodeIdSepString);
+		ArrayList<Integer> newDC=new ArrayList<Integer>(); //new DataColumnSet
+		for(int i=1;i<newHeader.size();i++)
+			newDC.add(i+1);
+		outfile.delete();
+		CSVHandler averageFile=new CSVHandler(outfile, true, separator, 1, newDC);
+		averageFile.setHeader(newHeader);
+
+		long currentTime=startTime;
+		if(timeType==CSVHandler.TIMETYPE_END)
+			currentTime+=timeWindow;
+		else if(timeType==CSVHandler.TIMETYPE_MIDDLE)
+			currentTime+=timeWindow/2;
+		int[] currentline= new int[avgFiles.size()];
+		for(int i=0;i<currentline.length;i++)
+			currentline[i]=1;
+		//get the next timestamp from all files
+		
+		boolean finished;
+		do{
+			finished=true;
+			ArrayList<String> newline=new ArrayList<String>();
+			newline.add(""+currentTime);
+			Long actTime;
+
+			for(int column:dataColumns){
+				for(int i=0;i<avgFiles.size();i++){
+					CSVHandler thisFile=avgFiles.get(i);
+					if(thisFile.getLineNumber()>=currentline[i])
+						actTime=Long.parseLong(thisFile.getCell(globalColumn, currentline[i]));
+					else
+						actTime=new Long(-1);
+					if(actTime.equals(currentTime)){
+						newline.add(thisFile.getCell(column, currentline[i]));
+						if(column==dataColumns.get(dataColumns.size()-1))
+							currentline[i]++;
+						finished=false;
+					}
+					else
+						newline.add("");
+				}
+			}	
+
+			if(!finished){
+				averageFile.addLine(newline);
+				currentTime+=timeWindow;
+			}
+		}while((currentTime<endTime)&&(!finished));	
+		System.out.println("Merging finished.");
+		return averageFile;
+	}
 }

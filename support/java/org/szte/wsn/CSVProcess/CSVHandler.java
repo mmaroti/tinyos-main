@@ -250,14 +250,15 @@ public class CSVHandler {
 //		}
 //	}
 	
+	
 	/**
 	 * Writes the current changes to the disk (rewrites the whole file)
 	 * @return false if can't overwrite earlier file, true otherwise
 	 * @throws IOException if can't open/write/close the file
 	 */
 	public boolean flush() throws IOException{
-		File tempfile=new File(changeExtension(csvfile.getName(), ".tmp"));
-		BufferedWriter output=new BufferedWriter(new FileWriter(tempfile));
+		File csvFile=new File(csvfile.getName());
+		BufferedWriter output=new BufferedWriter(new FileWriter(csvFile,false));
 		if(header!=null){
 			for(int i=0;i<header.size()-1;i++)
 				output.append(header.get(i)+separator);
@@ -271,10 +272,6 @@ public class CSVHandler {
 			output.newLine();
 		}
 		output.close();
-		if(csvfile.exists()&&!csvfile.delete())
-			return false;
-		if(!tempfile.renameTo(csvfile))
-			return false;
 		return true;
 	}
 	
@@ -594,8 +591,8 @@ public class CSVHandler {
 			double offset=solution.getValue(offsetString);
 			if((skew==Double.NaN)||(offset==Double.NaN))
 				System.out.println("Missing variable from solutions");
-						
-			String currentString=""+((long)(skew*currentTime+offset));
+			currentTime=(long)(skew*currentTime+offset);	
+			String currentString=currentTime.toString();
 		
 			setCell(global, currentline, currentString);
 		}
@@ -736,7 +733,14 @@ public class CSVHandler {
 			return ret;
 		}
 	}
-	
+	/**calculates the integral between from and to
+	 * 
+	 * @param from
+	 * @param to
+	 * @param afterLine
+	 * @return
+	 * @throws NumberFormatException
+	 */
 	private Integral getIntegral(long from, long to, int afterLine) throws NumberFormatException{
 		while(Long.parseLong(getCell(timeColumn, afterLine))<from){
 			afterLine++;
@@ -807,31 +811,33 @@ public class CSVHandler {
 	 * @return a new CSVHandler calculated from this instance
 	 * @throws IOException if can't create a new file
 	 */
-	public CSVHandler averageInTime(long timeWindow, File newFile, byte timeType) throws IOException{
+	public CSVHandler averageInTime(long timeWindow, File newFile, byte timeType, long startTime) throws IOException{
 		newFile.delete();
 		CSVHandler ret=new CSVHandler(newFile, header==null?false:true , separator, getTimeColumn(), getDataColumns());
 		ret.setHeader(getHeader());
-		int currentLine=1;
+		int currentLine=0;
 		long currentTime=-1;
-		while(currentTime<0){
+		while(currentTime<startTime){
 			try{
+				currentLine++;
 				currentTime=Long.parseLong(getCell(timeColumn,currentLine));
+				
 			}catch(NumberFormatException e){
-				currentLine++;	//don't care these lines, probably no globaltime
+				//currentLine++;	//search for the first line which is greater than startTime
 			}
 		}
 		while(currentLine<getLineNumber()){
 			try{
-				Integral avg=getIntegral(currentTime, currentTime+timeWindow, currentLine);
+				Integral avg=getIntegral(startTime, startTime+timeWindow, currentLine);
 				if(timeType==TIMETYPE_END)
-					ret.addLine(avg.createLine(currentTime+timeWindow));
+					ret.addLine(avg.createLine(startTime+timeWindow));
 				else if(timeType==TIMETYPE_MIDDLE)
-					ret.addLine(avg.createLine(currentTime+timeWindow/2));
+					ret.addLine(avg.createLine(startTime+timeWindow/2));
 				else
-					ret.addLine(avg.createLine(currentTime));
+					ret.addLine(avg.createLine(startTime));
 				
 				currentLine=avg.getLastLine();
-				currentTime=currentTime+timeWindow;
+				startTime=startTime+timeWindow;
 			}catch(NumberFormatException e){
 				currentTime=Long.parseLong(getCell(timeColumn,++currentLine)); //don't care these lines, probably no globaltime
 			}
@@ -840,8 +846,9 @@ public class CSVHandler {
 		return ret;
 	}
 	
-	//TODO: transpose method. This creates unpareble data. Possible solution: see the previous TODO; priority: medium
+	//TODO: transpose method. This creates unparseble data. Possible solution: see the previous TODO; priority: medium
 	//TODO: main method. Open file, make one change (selected in arg), save;  priority: medium
+	
 	
 	
 
