@@ -1,15 +1,15 @@
 #download and patch options
-SRCNAME=avr-libc
-VERSION=1.6.7
-DOWNLOAD_URL="http://download.savannah.gnu.org/releases/$(SRCNAME)/$(SRCNAME)-$(VERSION).tar.bz2"
+SRCNAME=nesc
+VERSION=1.3.1
+DOWNLOAD_URL="http://sourceforge.net/projects/nescc/files/nescc/v$(VERSION)/$(SRCNAME)-$(VERSION).tar.gz"
 PATCHDIR=patch
 
 #confiure and compile options
 PREFIX=/usr
-CONFIGURE_OPTS=--prefix=$(PREFIX) --host=avr
+CONFIGURE_OPTS=--prefix=$(PREFIX)
 
 #package options
-PKG_NAME=avr-libc-tinyos
+PKG_NAME=$(SRCNAME)
 ###START OF PACKAGE INDEPENDENT PART###
 PKG_VERSION=$(VERSION)
 PKG_RELEASE=$(shell date +%Y%m%d)
@@ -52,13 +52,13 @@ dummydeb:
 rpm: $(RPMTARGET)
 deb: $(DEBTARGET)
 
-get: $(SRCNAME)-$(VERSION).tar.bz2
-$(SRCNAME)-$(VERSION).tar.bz2:
+get: $(SRCNAME)-$(VERSION).tar.gz
+$(SRCNAME)-$(VERSION).tar.gz:
 	wget $(DOWNLOAD_URL)	
 
 unpack: get $(SRCNAME)-$(VERSION)/configure
 $(SRCNAME)-$(VERSION)/configure:
-	tar -jxf $(SRCNAME)-$(VERSION).tar.bz2
+	tar -zxf $(SRCNAME)-$(VERSION).tar.gz
 
 patch: $(PATCHTARGET)
 dummypatch: unpack
@@ -67,13 +67,12 @@ make_patchdone:
 	cd $(SRCNAME)-$(VERSION)&&patch -p0 -i ../$(PATCHDIR)/*.patch && cd .. && touch make_patchdone #just for the makefile
 
 configure: patch $(SRCNAME)-$(VERSION)/Makefile
-$(SRCNAME)-$(VERSION)/build/Makefile:
-	install -d $(SRCNAME)-$(VERSION)
-	cd $(SRCNAME)-$(VERSION)&&../configure $(CONFIGURE_OPTS)
+$(SRCNAME)-$(VERSION)/Makefile:
+	cd $(SRCNAME)-$(VERSION)/&&./configure $(CONFIGURE_OPTS)
 
 compile: configure make_compiledone
 make_compiledone:
-	cd $(SRCNAME)-$(VERSION)&&make&&cd ../..&&touch make_compiledone #just for the makefile
+	cd $(SRCNAME)-$(VERSION)&&make&&cd ..&&touch make_compiledone #just for the makefile
 
 realdeb: package $(PKG_DIR).deb
 $(PKG_DIR).deb:

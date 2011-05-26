@@ -68,14 +68,14 @@ realpatch: unpack make_patchdone
 make_patchdone:
 	cd $(SRCNAME)-$(VERSION)&&patch -p0 -i ../$(PATCHDIR)/*.patch && cd .. && touch make_patchdone #just for the makefile
 
-configure: patch $(SRCNAME)-$(VERSION)/build/Makefile
-$(SRCNAME)-$(VERSION)/build/Makefile:
-	install -d $(SRCNAME)-$(VERSION)/build
-	cd $(SRCNAME)-$(VERSION)/build&&../configure $(CONFIGURE_OPTS)
+configure: patch $(SRCNAME)-$(VERSION)/Makefile
+$(SRCNAME)-$(VERSION)/Makefile:
+	install -d $(SRCNAME)-$(VERSION)
+	cd $(SRCNAME)-$(VERSION)&&../configure $(CONFIGURE_OPTS)
 
 compile: configure make_compiledone
 make_compiledone:
-	cd $(SRCNAME)-$(VERSION)/build&&make&&cd ../..&&touch make_compiledone #just for the makefile
+	cd $(SRCNAME)-$(VERSION)&&make&&cd ../..&&touch make_compiledone #just for the makefile
 
 realdeb: package $(PKG_DIR).deb
 $(PKG_DIR).deb:
@@ -111,7 +111,7 @@ make_pkg_packagedone:
 	install -d $(PKG_DIR)
 ###END OF PACKAGE INDEPENDENT PART###
 
-	cd $(SRCNAME)-$(VERSION)/build&&make -j1 DESTDIR=$(PWD)/$(PKG_DIR) install
+	cd $(SRCNAME)-$(VERSION)&&make -j1 DESTDIR=$(PWD)/$(PKG_DIR) install
 	#remove confliciting and/or unnecesary files
 	rm -rf $(PKG_DIR)/usr/lib/libiberty.a \
 		$(PKG_DIR)/usr/share/man/man7 \
