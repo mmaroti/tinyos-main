@@ -69,11 +69,11 @@ make_patchdone:
 configure: patch $(SRCNAME)-$(VERSION)/Makefile
 $(SRCNAME)-$(VERSION)/build/Makefile:
 	install -d $(SRCNAME)-$(VERSION)
-	cd $(SRCNAME)-$(VERSION)&&../configure $(CONFIGURE_OPTS)
+	cd $(SRCNAME)-$(VERSION)&&./configure $(CONFIGURE_OPTS)
 
 compile: configure make_compiledone
 make_compiledone:
-	cd $(SRCNAME)-$(VERSION)&&make&&cd ../..&&touch make_compiledone #just for the makefile
+	cd $(SRCNAME)-$(VERSION)&&make&&cd ..&&touch make_compiledone #just for the makefile
 
 realdeb: package $(PKG_DIR).deb
 $(PKG_DIR).deb:
