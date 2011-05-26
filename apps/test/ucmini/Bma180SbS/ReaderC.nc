@@ -4,8 +4,8 @@ module ReaderC @safe()
   uses {
     interface Boot;
     interface Read<bma180_data_t>;
-//    interface ReadStream<bma180_data_t>;
-    interface SplitControl as BmaControl;
+    interface ReadStream<bma180_data_t>;
+    interface StdControl as BmaControl;
     interface Leds;
     interface AMSend;
     interface SplitControl as AMControl;
@@ -23,17 +23,12 @@ implementation
 
   bma180_data_t buffers[BUFFER_COUNT][BUFFER_SIZE];
  
-  event void BmaControl.startDone(error_t error) {
-    call Read.read();
-  }
-
-  event void BmaControl.stopDone(error_t error) {
-  }
 
   event void AMControl.startDone(error_t error) {
+    uint8_t i;
     call BmaControl.start();
-    //call Read.read();
-    /*uint8_t i;
+//    call Read.read();
+    
 
 //		ASSERT( error == SUCCESS );
 
@@ -45,7 +40,7 @@ implementation
 
 		error = call ReadStream.read(SAMPLING);
 //		ASSERT( error == SUCCESS );
-*/
+
   }
 
   event void Boot.booted() {
@@ -72,13 +67,13 @@ implementation
     } call Read.read();
   }
 
-  /*event void ReadStream.bufferDone(error_t result, bma180_data_t* buf, uint16_t count) {
+  event void ReadStream.bufferDone(error_t result, bma180_data_t* buf, uint16_t count) {
     //uint8_t i;
 		//uint8_t *p;
 
 		if( result == SUCCESS )
 		{
-			sampleCount += BUFFER_SIZE;
+			/*sampleCount += BUFFER_SIZE;
 
 			p = call AMSend.getPayload(&dataMsg, BUFFER_SIZE);
 			if( p != NULL )
@@ -89,13 +84,13 @@ implementation
 				result = call AMSend.send(AM_BROADCAST_ADDR, &dataMsg, BUFFER_SIZE);
 				if( result != SUCCESS )
 					call Leds.led0Toggle();
-			}
+			}*/
 
-			call ReadStream.postBuffer(buf, count);
+			//call ReadStream.postBuffer(buf, count);
 		}
-  }*/
+  }
 
 
-  /*event void ReadStream.readDone(error_t err, uint32_t usperiod) {
-  }*/
+  event void ReadStream.readDone(error_t err, uint32_t usperiod) {
+  }
 }
