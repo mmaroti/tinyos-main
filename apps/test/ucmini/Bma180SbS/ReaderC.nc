@@ -17,7 +17,7 @@ implementation
   enum
 	{
 		BUFFER_COUNT = 3,
-		BUFFER_SIZE = 100,
+		BUFFER_SIZE = 10,
 		SAMPLING = 56,
 	};
 
@@ -64,7 +64,7 @@ implementation
       call DiagMsg.str("Temp: ");
       call DiagMsg.uint8(data.bma180_temperature);
       call DiagMsg.send();
-    } call Read.read();
+    } //call Read.read();
   }
 
   event void ReadStream.bufferDone(error_t result, bma180_data_t* buf, uint16_t count) {
@@ -92,5 +92,9 @@ implementation
 
 
   event void ReadStream.readDone(error_t err, uint32_t usperiod) {
+    if(call DiagMsg.record()) {
+      call DiagMsg.uint16(((buffers[2][9]).bma180_accel_z>>2)*0.25);
+      call DiagMsg.send();
+    }
   }
 }

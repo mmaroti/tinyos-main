@@ -85,27 +85,26 @@ implementation
 
   norace bma180_data_t * currentPtr;
   norace bma180_data_t * currentEnd;
-
+  uint8_t needStop=0;
   task void bufferDone();
 
   event void Read.readDone(error_t err, bma180_data_t data)
   {
-    //ADC_ASSERT( currentPtr != NULL && currentPtr < currentEnd );
-    //ADC_ASSERT( state == STATE_20 || state == STATE_11 || state == STATE_10 );
     if(call DiagMsg.record()) {
       call DiagMsg.str("P_stream.readDone");
       call DiagMsg.send();
     }   
     *(currentPtr++) = data;
 
-    if( currentPtr != currentEnd )
+    if( currentPtr != currentEnd ) {
+      call Read.read();
       return;
+    }
 
     currentPtr = secondStart;
     currentEnd = currentPtr + secondLength;
 
-    if( (state += SAMPLING_STEP) != STATE_11 ) ;
-      //call Atm128Adc.cancel();
+    if( (state += SAMPLING_STEP) != STATE_11 ) needStop=1;
 
     post bufferDone();
   }
@@ -125,7 +124,7 @@ implementation
 
   task void bufferDone()
   {
-    uint8_t s;
+    uint8_t s,readMore=0;
 
     bma180_data_t * reportStart = firstStart;
     uint16_t reportLength = firstLength;
@@ -133,8 +132,6 @@ implementation
       call DiagMsg.str("P_bufferdonetask");
       call DiagMsg.send();
     }
-
-    //ADC_ASSERT( state == STATE_11 || state == STATE_02 || state == STATE_01 || state == STATE_00 );
 
     firstStart = secondStart;
     firstLength = secondLength;
@@ -148,11 +145,19 @@ implementation
         secondStart = (bma180_data_t *)freeBuffers;
         secondLength = freeBuffers->count;
         freeBuffers = freeBuffers->next;
-
+          if(call DiagMsg.record()) {
+            call DiagMsg.str("1");
+            call DiagMsg.send();
+          } readMore=1;
         state = STATE_20;
       }
-      else if( s != STATE_00 )
+      else if( s != STATE_00 ) {
+        if(call DiagMsg.record()) {
+            call DiagMsg.str("2");
+            call DiagMsg.send();
+          } readMore=1;
         state = s + REPORTING_STEP;
+        }
     }
 
     if( s != STATE_00 || freeBuffers != NULL )
@@ -162,19 +167,27 @@ implementation
         reportStart = (bma180_data_t *)freeBuffers;
         reportLength = freeBuffers->count;
         freeBuffers = freeBuffers->next;
+        if(call DiagMsg.record()) {
+          call DiagMsg.str("s00");
+          call DiagMsg.send();
+        }
       }
       if(call DiagMsg.record()) {
-        call DiagMsg.str("sig_buffdone");
+        call DiagMsg.str("sig_buffdone");call DiagMsg.uint8(needStop);
         call DiagMsg.str(s!=STATE_00?"SUCCESS":"FAIL");
+        call DiagMsg.str(freeBuffers!=NULL?"hasmore":"full");
+        
         call DiagMsg.send();
       }
-      signal ReadStream.bufferDone(s != STATE_00 ? SUCCESS : FAIL, reportStart, reportLength);
+      signal ReadStream.bufferDone(s != STATE_00 ? SUCCESS : FAIL, reportStart, reportLength); if(readMore && !needStop) call Read.read();
+      needStop=0;
     }
 
     if( freeBuffers == NULL && (s == STATE_00 || s == STATE_01) )
     {
       if(call DiagMsg.record()) {
         call DiagMsg.str("sig_readdone");
+        call DiagMsg.str(s==STATE_01?"SUCCESS":"FAIL");
         call DiagMsg.send();
       }
       signal ReadStream.readDone(s == STATE_01 ? SUCCESS : FAIL, actualPeriod); 
@@ -220,16 +233,6 @@ implementation
     return SUCCESS;
   }
 
-// TODO: define these next to PLATFORM_MHZ
-#if defined(PLATFORM_IRIS) || defined(PLATFORM_MICAZ) || defined(PLATFORM_MICA2)
-#define PLATFORM_HZ 7372800
-#endif
-
-#ifndef PLATFORM_HZ
-#define PLATFORM_HZ (1000000 * PLATFORM_MHZ)
-#endif
-
-//#define PERIOD(prescaler) (uint16_t)(1000000.0 * 13 * prescaler / PLATFORM_HZ)
 
   command error_t ReadStream.read(uint32_t period)
   {
