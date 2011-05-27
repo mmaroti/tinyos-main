@@ -33,22 +33,22 @@
  * Author: Krisztian Veress
  */
 
-#ifndef __SI443XDRIVERLAYER_H__
-#define __SI443XDRIVERLAYER_H__
+#ifndef __Si443xDRIVERLAYER_H__
+#define __Si443xDRIVERLAYER_H__
 
 typedef nx_struct si443x_header_t
 {
-	nxle_uint8_t length;
+    nxle_uint8_t length;
 } si443x_header_t;
 
 typedef struct si443x_metadata_t
 {
-	uint8_t lqi;
-	union
-	{
-		uint8_t power;
-		uint8_t rssi;
-	};
+    uint8_t lqi;
+    union
+    {
+        uint8_t power;
+        uint8_t rssi;
+    };
 } si443x_metadata_t;
 
 enum si443x_registers_enum
@@ -186,9 +186,10 @@ enum si443x_opfcn1_register_enums // 0x07h
 
 enum si443x_xtal_por_register_enums // 0x62h
 {
+    SI443X_XTALPOR_PWRST_MASK = 0xE0,
     SI443X_XTALPOR_BUFFER_MASK = 0x3,
     SI443X_XTALPOR_BUFFER_ENABLE = 0x0,
     SI443X_XTALPOR_BUFFER_DISABLE = 0x2,
 };
 
-#endif//__SI443XDRIVERLAYER_H__
+#endif//__Si443xDRIVERLAYER_H__

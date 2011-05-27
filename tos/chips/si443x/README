@@ -1,6 +1,6 @@
 
 The SI443X radio driver has the following configuration options. Some of 
-these are set in the platforms/xxx/chips/si443x/RadioConfig.h header file, 
+these are set in the platforms/xxx/chips/SI443X/Si443xRadioConfig.h header file, 
 others can be set in your Makefile.
 
 SI443X_TRX_CTRL_0_VALUE:

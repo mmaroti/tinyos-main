@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2007, Vanderbilt University
- * Copyright (c) 2010, Univeristy of Szeged
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,41 +33,48 @@
  * Author: Krisztian Veress
  */
 
-#ifndef __RADIOCONFIG_H__
-#define __RADIOCONFIG_H__
+#ifndef __SI443X_RADIO_H__
+#define __SI443X_RADIO_H__
 
-#include <SI443XDriverLayer.h>
-#include "TimerConfig.h"
+#include <Si443xRadioConfig.h>
+#include <TinyosNetworkLayer.h>
+#include <Ieee154PacketLayer.h>
+#include <ActiveMessageLayer.h>
+#include <MetadataFlagsLayer.h>
+#include <Si443xDriverLayer.h>
+#include <TimeStampingLayer.h>
+#include <LowPowerListeningLayer.h>
+#include <PacketLinkLayer.h>
 
-/* This is the default value of the TX_PWR field of the PHY_TX_PWR register. */
-#ifndef SI443X_DEF_RFPOWER
-#define SI443X_DEF_RFPOWER	0
+typedef nx_struct si443xpacket_header_t
+{
+    si443x_header_t si443x;
+    ieee154_header_t ieee154;
+#ifndef TFRAMES_ENABLED
+    network_header_t network;
 #endif
-
-/* This is the default value of the CHANNEL field of the PHY_CC_CCA register. */
-#ifndef SI443X_DEF_CHANNEL
-#define SI443X_DEF_CHANNEL	11
+#ifndef IEEE154FRAMES_ENABLED
+    activemessage_header_t am;
 #endif
+} si443xpacket_header_t;
 
-/* The number of microseconds a sending IRIS mote will wait for an acknowledgement */
-#ifndef SOFTWAREACK_TIMEOUT
-#define SOFTWAREACK_TIMEOUT	1000
+typedef nx_struct si443xpacket_footer_t
+{
+    // the time stamp is not recorded here, time stamped messages cannot have max length
+} si443xpacket_footer_t;
+
+typedef struct si443xpacket_metadata_t
+{
+#ifdef LOW_POWER_LISTENING
+    lpl_metadata_t lpl;
 #endif
+#ifdef PACKET_LINK
+    link_metadata_t link;
+#endif
+    timestamp_metadata_t timestamp;
+    flags_metadata_t flags;
+    si443x_metadata_t si443x;
+} si443xpacket_metadata_t;
 
-/**
- * This is the timer type of the radio alarm interface
- */
-typedef TMcu TRadio;
-typedef uint16_t tradio_size;
 
-/**
- * The number of radio alarm ticks per one microsecond
- */
-#define RADIO_ALARM_MICROSEC	MCU_TIMER_MHZ
-
-/**
- * The base two logarithm of the number of radio alarm ticks per one millisecond
- */
-#define RADIO_ALARM_MILLI_EXP	(10 + MCU_TIMER_MHZ_LOG2)
-
-#endif//__RADIOCONFIG_H__
+#endif//__SI443X_RADIO_H__
