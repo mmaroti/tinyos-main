@@ -2,9 +2,12 @@ Package: avr-libc-tinyos
 Version: PKG_VERSION
 Architecture: PKG_ARCHITECTURE
 Depends: avr-gcc-tinyos, avr-tinyos-base
+Conflicts: avr-libc
 Recommends: avr-tinyos, avr-optional-tinyos
 Maintainer: klueska <klueska@cs.stanford.edu>
 Priority: optional
 Section: devel
-Description: C library for the AVR platform.
-
+Description: Standard library used to the development of C (TinyOS version)
+  programs for the Atmel AVR micro controllers. This package 
+  contains static libraries as well as the header files needed. 
+  This version is patched and tested with TinyOS.

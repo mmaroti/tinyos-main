@@ -6,14 +6,15 @@ PATCHDIR=patch
 
 #confiure and compile options
 PREFIX=/usr
-CONFIGURE_OPTS=--prefix=$(PREFIX) --disable-nls --infodir=$(PREFIX)/share/info --libdir=$(PREFIX)/lib --mandir=$(PREFIX)/share/man --disable-werror --target=avr
+HOST=$(shell uname -m)
+CONFIGURE_OPTS=--host=$(HOST) --prefix=$(PREFIX) --disable-nls --infodir=$(PREFIX)/share/info --libdir=$(PREFIX)/lib --mandir=$(PREFIX)/share/man --disable-werror --target=avr
 
 #package options
 PKG_NAME=avr-binutils-tinyos
 ###START OF PACKAGE INDEPENDENT PART###
 PKG_VERSION=$(VERSION)
 PKG_RELEASE=$(shell date +%Y%m%d)
-PKG_HOST=$(shell uname -m|sed 's/.*64/amd64/'|sed 's/.*86/i386/')
+PKG_HOST=$(shell echo $(HOST)|sed 's/.*64/amd64/'|sed 's/.*86/i386/')
 PKG_DIR=$(PKG_NAME)_$(PKG_VERSION)-$(PKG_RELEASE)_$(PKG_HOST)
 ABS_PKG_DIR=$(shell echo $(PWD)/$(PKG_DIR)|sed 's/\//\\\//g')
 
@@ -87,7 +88,7 @@ realrpm: package make_pkg_rpmdone
 make_pkg_rpmdone:
 	sed 's/PKG_VERSION/$(PKG_VERSION)/g' rpm.spec | \
 		sed 's/PKG_RELEASE/$(PKG_RELEASE)/g'> realrpm.spec && \
-		$(RPMBUILD) --buildroot=$(ABS_PKG_DIR) -bb realrpm.spec&&rm realrpm.spec&&touch make_pkg_rpmdone
+		$(RPMBUILD) --target=$(HOST) --buildroot=$(ABS_PKG_DIR) -bb realrpm.spec&&rm realrpm.spec&&touch make_pkg_rpmdone
 
 cleanpackage:
 	rm -rf $(PKG_DIR)
@@ -134,3 +135,6 @@ make_pkg_packagedone:
 	-mv $(PKG_DIR)/usr/share/info/ld.info $(PKG_DIR)/usr/share/info/avr-ld.info
 	-mv $(PKG_DIR)/usr/share/info/standards.info $(PKG_DIR)/usr/share/info/avr-standards.info
 	touch make_pkg_packagedone #just for the makefile
+debug:
+	echo $(HOST)
+	echo $(PKG_HOST)
