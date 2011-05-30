@@ -38,9 +38,8 @@ PATCHDIR=patch
 
 #confiure and compile options
 PREFIX=/usr
-PREFIX=/usr
 HOST=$(shell uname -m)
-CONFIGURE_OPTS=--host=$(HOST)--prefix=$(PREFIX) --host=avr
+CONFIGURE_OPTS=--host=$(HOST) --prefix=$(PREFIX) --host=avr
 
 #package options
 PKG_NAME=avr-libc-tinyos
