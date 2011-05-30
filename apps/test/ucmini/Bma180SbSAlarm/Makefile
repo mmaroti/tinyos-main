@@ -1,0 +1,3 @@
+COMPONENT=ReaderAppC
+CFLAGS += -DUSART_SPI
+include $(MAKERULES)
