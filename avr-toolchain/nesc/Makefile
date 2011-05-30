@@ -66,13 +66,13 @@ dummydeb:
 rpm: $(RPMTARGET)
 deb: $(DEBTARGET)
 
-get: $(SRCNAME)-$(VERSION).tar.bz2
-$(SRCNAME)-$(VERSION).tar.bz2:
+get: $(SRCNAME)-$(VERSION).tar.gz
+$(SRCNAME)-$(VERSION).tar.gz:
 	wget $(DOWNLOAD_URL)	
 
 unpack: get $(SRCNAME)-$(VERSION)/configure
 $(SRCNAME)-$(VERSION)/configure:
-	tar -jxf $(SRCNAME)-$(VERSION).tar.bz2
+	tar -zxf $(SRCNAME)-$(VERSION).tar.gz
 
 patch: $(PATCHTARGET)
 dummypatch: unpack
@@ -101,7 +101,7 @@ realrpm: package make_pkg_rpmdone
 make_pkg_rpmdone:
 	sed 's/PKG_VERSION/$(PKG_VERSION)/g' rpm.spec | \
 		sed 's/PKG_RELEASE/$(PKG_RELEASE)/g'> realrpm.spec && \
-		$(RPMBUILD) --target=$(HOST) --buildroot=$(ABS_PKG_DIR) -bb realrpm.spec&&rm realrpm.spec&&touch make_pkg_rpmdone
+		$(RPMBUILD) --target=$(HOST) --buildroot=$(ABS_PKG_DIR) -bb realrpm.spec&&rm realrpm.spec&&touch make_pkg_rpmdone&&rm -f make_pkg_packagedone
 
 cleanpackage:
 	rm -rf $(PKG_DIR)
