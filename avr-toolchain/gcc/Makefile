@@ -8,7 +8,7 @@ PATCHDIR=patch
 PREFIX=/usr
 AS=/usr/bin/avr-as
 LD=/usr/bin/avr-ld
-CONFIGURE_OPTS=$(CONFIGURE_UBI) --prefix=$(PREFIX) --disable-libssp --disable-nls --enable-languages=c --infodir=$(PREFIX)/share/info --libdir=$(PREFIX)/lib --libexecdir=$(PREFIX)/lib --mandir=$(PREFIX)/share/man --target=avr --with-ld=$(LD) --with-as=$(AS)
+CONFIGURE_OPTS=$(CONFIGURE_UBI) --prefix=$(PREFIX) --disable-libssp --disable-nls --enable-languages=c,c++ --infodir=$(PREFIX)/share/info --libdir=$(PREFIX)/lib --libexecdir=$(PREFIX)/lib --mandir=$(PREFIX)/share/man --target=avr --with-ld=$(LD) --with-as=$(AS)
 
 #package options
 PKG_NAME=avr-gcc-tinyos
@@ -21,7 +21,7 @@ ABS_PKG_DIR=$(shell echo $(PWD)/$(PKG_DIR)|sed 's/\//\\\//g')
 
 #check package builders: these variables are the absolute path to the packager, or empty if the packager is not present
 RPMBUILD=$(shell whereis rpmbuild|sed 's/.*: //'|sed 's/ .*//'|sed 's/.*:.*//g')
-DPKG=$(shell whereis dpkg|sed 's/.*: //'|sed 's/ .*//'|sed 's/.*:.*//g')
+DPKG=$(shell whereis dpkg-deb|sed 's/.*: //'|sed 's/ .*//'|sed 's/.*:.*//g')
 
 ifeq ($(RPMBUILD),)
  RPMTARGET=dummyrpm
@@ -66,7 +66,7 @@ patch: $(PATCHTARGET)
 dummypatch: unpack
 realpatch: unpack make_patchdone
 make_patchdone:
-	cd $(SRCNAME)-$(VERSION)&&patch -p0 -i ../$(PATCHDIR)/*.patch && cd .. && touch make_patchdone #just for the makefile
+	cd $(SRCNAME)-$(VERSION)&&cat ../$(PATCHDIR)/*.patch|patch -p0 && cd .. && touch make_patchdone #just for the makefile
 
 configure: patch $(SRCNAME)-$(VERSION)/Makefile
 $(SRCNAME)-$(VERSION)/Makefile:
@@ -83,7 +83,7 @@ $(PKG_DIR).deb:
 	cp debcontrol $(PKG_DIR)/DEBIAN/control
 	sed 's/PKG_VERSION/$(PKG_VERSION)-$(PKG_RELEASE)/g' debcontrol | \
 		sed 's/PKG_ARCHITECTURE/$(PKG_HOST)/g' > $(PKG_DIR)/DEBIAN/control&& \
-		$(DPKG) --build $(PKG_DIR)&& \
+		fakeroot $(DPKG) --build $(PKG_DIR)&& \
 		rm -rf $(PKG_DIR)/DEBIAN
 
 realrpm: package make_pkg_rpmdone

@@ -19,7 +19,7 @@ ABS_PKG_DIR=$(shell echo $(PWD)/$(PKG_DIR)|sed 's/\//\\\//g')
 
 #check package builders: these variables are the absolute path to the packager, or empty if the packager is not present
 RPMBUILD=$(shell whereis rpmbuild|sed 's/.*: //'|sed 's/ .*//'|sed 's/.*:.*//g')
-DPKG=$(shell whereis dpkg|sed 's/.*: //'|sed 's/ .*//'|sed 's/.*:.*//g')
+DPKG=$(shell whereis dpkg-deb|sed 's/.*: //'|sed 's/ .*//'|sed 's/.*:.*//g')
 
 ifeq ($(RPMBUILD),)
  RPMTARGET=dummyrpm
@@ -64,7 +64,7 @@ patch: $(PATCHTARGET)
 dummypatch: unpack
 realpatch: unpack make_patchdone
 make_patchdone:
-	cd $(SRCNAME)-$(VERSION)&&patch -p0 -i ../$(PATCHDIR)/*.patch && cd .. && touch make_patchdone #just for the makefile
+	cd $(SRCNAME)-$(VERSION)&&cat ../$(PATCHDIR)/*.patch|patch -p0 && cd .. && touch make_patchdone #just for the makefile
 
 configure: patch $(SRCNAME)-$(VERSION)/Makefile
 $(SRCNAME)-$(VERSION)/build/Makefile:
@@ -81,7 +81,7 @@ $(PKG_DIR).deb:
 	cp debcontrol $(PKG_DIR)/DEBIAN/control
 	sed 's/PKG_VERSION/$(PKG_VERSION)-$(PKG_RELEASE)/g' debcontrol | \
 		sed 's/PKG_ARCHITECTURE/$(PKG_HOST)/g' > $(PKG_DIR)/DEBIAN/control&& \
-		$(DPKG) --build $(PKG_DIR)&& \
+		fakeroot $(DPKG) --build $(PKG_DIR)&& \
 		rm -rf $(PKG_DIR)/DEBIAN
 
 realrpm: package make_pkg_rpmdone
