@@ -6,8 +6,7 @@ PATCHDIR=patch
 
 #confiure and compile options
 PREFIX=/usr
-HOST=i386
-#$(shell uname -m)
+HOST=$(shell uname -m)
 CONFIGURE_OPTS=--host=$(HOST) --prefix=$(PREFIX) --disable-nls --infodir=$(PREFIX)/share/info --libdir=$(PREFIX)/lib --mandir=$(PREFIX)/share/man --disable-werror --target=avr
 
 #package options
