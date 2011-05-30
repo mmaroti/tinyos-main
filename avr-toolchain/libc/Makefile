@@ -67,8 +67,7 @@ make_patchdone:
 	cd $(SRCNAME)-$(VERSION)&&cat ../$(PATCHDIR)/*.patch|patch -p0 && cd .. && touch make_patchdone #just for the makefile
 
 configure: patch $(SRCNAME)-$(VERSION)/Makefile
-$(SRCNAME)-$(VERSION)/build/Makefile:
-	install -d $(SRCNAME)-$(VERSION)
+$(SRCNAME)-$(VERSION)/Makefile:
 	cd $(SRCNAME)-$(VERSION)&&./configure $(CONFIGURE_OPTS)
 
 compile: configure make_compiledone

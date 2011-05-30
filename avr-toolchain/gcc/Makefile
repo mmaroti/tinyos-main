@@ -70,7 +70,6 @@ make_patchdone:
 
 configure: patch $(SRCNAME)-$(VERSION)/Makefile
 $(SRCNAME)-$(VERSION)/Makefile:
-	install -d $(SRCNAME)-$(VERSION)
 	cd $(SRCNAME)-$(VERSION)&&./configure $(CONFIGURE_OPTS)
 
 compile: configure make_compiledone
