@@ -45,6 +45,20 @@ endif
 
 all: $(DEBTARGET) $(RPMTARGET)
 
+help:
+	@echo "default target: all"
+	@echo "all: creates rpm (if rpmbuild is available) and deb (if dpkg-deb is available) packages"
+	@echo "get: downloads the source from $(DOWNLOAD_URL)"
+	@echo "unpack: uncopresses the source"
+	@echo "patch: applying all patches from directory $(PATCHDIR)"
+	@echo "configure: configure package with options: $(CONFIGURE_OPTS)"
+	@echo "compile: compiles package"
+	@echo "pacakge: install the package to $(PKG_DIR)"
+	@echo "deb: creates deb package from $(PKG_DIR) if dpkg-deb is available"
+	@echo "rpm: creates rpm package from $(PKG_DIR) if rpmbuild is available"
+
+
+
 dummyrpm:
 	@echo "Can't found rpmbuild. Rpm package will not be created"
 
