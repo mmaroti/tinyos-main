@@ -6,7 +6,8 @@ PATCHDIR=patch
 
 #confiure and compile options
 PREFIX=/usr
-HOST=$(shell uname -m)
+HOST=i386
+#$(shell uname -m)
 CONFIGURE_OPTS=--host=$(HOST) --prefix=$(PREFIX) --disable-nls --infodir=$(PREFIX)/share/info --libdir=$(PREFIX)/lib --mandir=$(PREFIX)/share/man --disable-werror --target=avr
 
 #package options
@@ -43,6 +44,19 @@ else
 endif
 
 all: $(DEBTARGET) $(RPMTARGET)
+
+help:
+	@echo "default target: all"
+	@echo "all: creates rpm (if rpmbuild is available) and deb (if dpkg-deb is available) packages"
+	@echo "get: downloads the source from $(DOWNLOAD_URL)"
+	@echo "unpack: uncopresses the source"
+	@echo "patch: applying all patches from directory $(PATCHDIR)"
+	@echo "configure: configure package with options: $(CONFIGURE_OPTS)"
+	@echo "compile: compiles package"
+	@echo "pacakge: install the package to $(PKG_DIR)"
+	@echo "deb: creates deb package from $(PKG_DIR) if dpkg-deb is available"
+	@echo "rpm: creates rpm package from $(PKG_DIR) if rpmbuild is available"
+
 
 dummyrpm:
 	@echo "Can't found rpmbuild. Rpm package will not be created"
@@ -135,6 +149,3 @@ make_pkg_packagedone:
 	-mv $(PKG_DIR)/usr/share/info/ld.info $(PKG_DIR)/usr/share/info/avr-ld.info
 	-mv $(PKG_DIR)/usr/share/info/standards.info $(PKG_DIR)/usr/share/info/avr-standards.info
 	touch make_pkg_packagedone #just for the makefile
-debug:
-	echo $(HOST)
-	echo $(PKG_HOST)
