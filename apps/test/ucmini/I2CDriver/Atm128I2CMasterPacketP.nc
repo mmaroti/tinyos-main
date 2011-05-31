@@ -72,7 +72,7 @@
   *
   */
 
-generic module Atm128I2CMasterPacketP() {
+module Atm128I2CMasterPacketP {
   provides interface AsyncStdControl;
   provides interface I2CPacket<TI2CBasicAddr>;
   provides interface Atm128I2C;
@@ -80,6 +80,7 @@ generic module Atm128I2CMasterPacketP() {
   uses interface HplAtm128I2CBus as I2C;
   uses interface Leds as ReadDebugLeds;
   uses interface Leds as WriteDebugLeds;
+  uses interface DiagMsg;
 }
 implementation {
 
@@ -295,8 +296,8 @@ implementation {
         state = I2C_STARTING;
       }
       else if (len > 0) {
-        state = I2C_SLAVE_ACK;
-        call I2C.write(((packetAddr & 0x7f) << 1) | ATM128_I2C_SLA_WRITE);
+        state = I2C_DATA;
+        writeNextByte();
       }
       else if (flags & I2C_STOP) {
         state = I2C_STOPPING;
@@ -342,23 +343,32 @@ implementation {
     call I2C.readCurrent();
     atomic {
       switch(state){
-        case I2C_SLAVE_ACK:{  //check for slave addr ack      
+        case I2C_SLAVE_ACK:{  //check for slave addr ack     
           uint8_t i2c_status=call I2C.status();
+          if(call DiagMsg.record()){
+            if(reading)
+              call DiagMsg.str("SLAR");
+            else
+              call DiagMsg.str("SLAW");
+            call DiagMsg.hex8(i2c_status);
+            call DiagMsg.send();
+          }
           if (reading == TRUE) {     
-//                if(i2c_status==0x40){
+              if(i2c_status==0x40){
                 state = I2C_DATA;
                 readNextByte();
-//                } else {
-//                  i2c_abort(FAIL);
-//                  return;
-//                }
+              } else {
+                i2c_abort(FAIL);
+                return;
+              }
           } else{
-//             if(i2c_status==0x18){
+            if(i2c_status==0x18){
               state = I2C_DATA;
               writeNextByte();
-//             } else {
-//              i2c_abort(FAIL);
-//             }
+            } else {
+              i2c_abort(FAIL);
+              return;
+            }
           }
         }break;
 

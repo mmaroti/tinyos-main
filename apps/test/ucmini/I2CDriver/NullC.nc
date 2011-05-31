@@ -55,16 +55,39 @@ module NullC @safe()
   uses interface Read<uint8_t>;
   //uses interface Intersema as Read;
   uses interface Leds;
+  uses interface SplitControl;
+//  uses interface SplitControl as SensorControl;
+  uses interface GeneralIO;
+  
 }
 implementation
 {
   event void Read.readDone(error_t result, uint8_t data){
-    call Leds.set(data>>6);
-    call Read.read();
+    if(result==SUCCESS)
+      call Leds.led0Toggle();
+    else
+      call Leds.led1Toggle();
+    //call Read.read();
   }
   
   event void Boot.booted() {
+//    call GeneralIO.makeOutput();
+//    call GeneralIO.set();
+//    call GeneralIO.clr();
+//    call SensorControl.start();
+    call SplitControl.start();
+  }
+  
+/*  event void SensorControl.startDone(error_t e){
+    call SplitControl.start();
+  }*/
+  
+  event void SplitControl.startDone(error_t e){
     call Read.read();
   }
+  
+//   event void SensorControl.stopDone(error_t e){}
+  event void SplitControl.stopDone(error_t e){}
+
 }
 
