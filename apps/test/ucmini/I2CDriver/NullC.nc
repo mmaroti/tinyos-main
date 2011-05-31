@@ -67,7 +67,7 @@ implementation
       call Leds.led0Toggle();
     else
       call Leds.led1Toggle();
-    //call Read.read();
+    call Read.read();
   }
   
   event void Boot.booted() {

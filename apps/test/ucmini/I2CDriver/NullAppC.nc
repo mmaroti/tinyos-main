@@ -52,7 +52,7 @@
 
 configuration NullAppC{}
 implementation {
-  components HplAtm128GeneralIOC as IO;
+  components HplAtm128GeneralIOC as IO, DiagMsgC;
   components MainC, NullC, LedsC, ActiveMessageC,
         new Taos2550C() as Sensor;
 //          Sht21C as Sensor;
@@ -64,8 +64,6 @@ implementation {
   NullC.SplitControl->ActiveMessageC;
 //  NullC.SensorControl->Sensor;
   NullC.GeneralIO->IO.PortF1;
-  
-  components Atm128I2CMasterPacketP, DiagMsgC;
-  Atm128I2CMasterPacketP.DiagMsg->DiagMsgC;
+
 }
 

@@ -80,7 +80,6 @@ module Atm128I2CMasterPacketP {
   uses interface HplAtm128I2CBus as I2C;
   uses interface Leds as ReadDebugLeds;
   uses interface Leds as WriteDebugLeds;
-  uses interface DiagMsg;
 }
 implementation {
 
@@ -159,16 +158,16 @@ implementation {
   }
   
   
-  inline void readNextByte(){
-    packetPtr[index] = call I2C.read();
-    if (index < packetLen-1) {
+  inline void readNextByte(bool startRead){
+    if(!startRead){
+      packetPtr[index] = call I2C.read();
       index++;
+    }
+    if (index < packetLen) {
       if (index == packetLen - 1 && !(packetFlags & I2C_ACK_END)) { 
         call I2C.enableAck(FALSE);
       }
-      //state = I2C_SLAVE_ACK;
-    }
-    else {
+    } else {
       call I2C.enableInterrupt(FALSE);
       if (packetFlags & I2C_STOP) {
         packetFlags &= ~I2C_STOP;
@@ -345,18 +344,10 @@ implementation {
       switch(state){
         case I2C_SLAVE_ACK:{  //check for slave addr ack     
           uint8_t i2c_status=call I2C.status();
-          if(call DiagMsg.record()){
-            if(reading)
-              call DiagMsg.str("SLAR");
-            else
-              call DiagMsg.str("SLAW");
-            call DiagMsg.hex8(i2c_status);
-            call DiagMsg.send();
-          }
           if (reading == TRUE) {     
               if(i2c_status==0x40){
                 state = I2C_DATA;
-                readNextByte();
+                readNextByte(TRUE);
               } else {
                 i2c_abort(FAIL);
                 return;
@@ -374,7 +365,7 @@ implementation {
 
         case I2C_DATA: 
           if (reading == TRUE) {
-            readNextByte();
+            readNextByte(FALSE);
           } else { // Writing
             writeNextByte();
           }
