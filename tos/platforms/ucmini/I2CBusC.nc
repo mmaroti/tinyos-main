@@ -40,7 +40,7 @@ implementation {
 
   BusControl = I2CBusP.SplitControl;
 
-#if UCMINI_REV == 49 || UCMINI_REV == 50 || UCMINI_REV == 52 
+#if UCMINI_REV == 49
   I2CBusP.Power -> IO.PortF2;
 #else
   I2CBusP.Power -> IO.PortF1;
