@@ -37,16 +37,16 @@
 configuration Bma180C {
   provides {
     interface Read<bma180_data_t>;
-    //interface ReadStream<bma180_data_t>;
+    interface ReadStream<bma180_data_t>;
     interface StdControl as BmaControl;
     interface Init;
   }
 }
 implementation {
-  components BmaReadC/*, BmaStreamP*/, PlatformC, DiagMsgC;
+  components BmaReadC, BmaStreamC, PlatformC, DiagMsgC;
 
   Read       = BmaReadC;
-  //ReadStream = BmaStreamP;
+  ReadStream = BmaStreamC;
   BmaControl = BmaReadC;
   Init       = BmaReadC;
 

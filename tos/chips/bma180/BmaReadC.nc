@@ -57,5 +57,4 @@ implementation
   BmaReadP.Resource -> SpiImpC.Resource[unique("Atm128SpiC.Resource")];
   BmaReadP.CSN -> HplBma180C.CSN;
   BmaReadP.PWR -> HplBma180C.PWR;
-  BmaReadP.PCINT -> HplBma180C.ACCINT;
 }

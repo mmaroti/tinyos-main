@@ -49,7 +49,6 @@ module BmaReadP
     interface Resource;
     interface GeneralIO as CSN;
     interface GeneralIO as PWR;
-    interface GpioPCInterrupt as PCINT;
   }
 }
 
@@ -69,15 +68,6 @@ implementation
 
   void writeRegister(uint8_t, uint8_t);
   uint8_t readRegister(uint8_t);
-
-  async event void PCINT.fired(bool toHigh) {
-    if(toHigh) {
-      call Leds.led0Toggle();
-      temp = readRegister(0xD);
-      temp &= ~(1<<6);
-      writeRegister(0xD, temp);
-    }
-  }
 
   command error_t Init.init() {
     call CSN.set();
@@ -126,8 +116,6 @@ implementation
   }
 
   command error_t Read.read() {
-    //call CSN.set();
-    //call CSN.makeOutput();
     call Resource.request();
     return SUCCESS;
   }
