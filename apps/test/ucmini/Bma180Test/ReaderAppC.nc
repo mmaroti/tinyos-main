@@ -48,7 +48,7 @@ implementation
   ReaderC.Init -> Sensor;
 
   ReaderC.Read -> Sensor;
-  //ReaderC.ReadStream -> Sensor;
+  ReaderC.ReadStream -> Sensor;
   ReaderC.BmaControl -> Sensor;
 
   ReaderC.Leds -> LedsC;

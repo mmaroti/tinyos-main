@@ -39,7 +39,7 @@ module ReaderC @safe()
   uses {
     interface Boot;
     interface Read<bma180_data_t>;
-    //interface ReadStream<bma180_data_t>;
+    interface ReadStream<bma180_data_t>;
     interface StdControl as BmaControl;
     interface Leds;
     interface AMSend;
@@ -61,23 +61,19 @@ implementation
  
 
   event void AMControl.startDone(error_t error) {
-    //uint8_t i;
+    uint8_t i;
     call BmaControl.start();
     call Init.init();
-    call Read.read();
+//    call Read.read();
     
-/*
-//		ASSERT( error == SUCCESS );
 
 		for(i = 0; i < BUFFER_COUNT; ++i)
 		{
 			error = call ReadStream.postBuffer(buffers[i], BUFFER_SIZE);
-//			ASSERT( error == SUCCESS );
 		}
 
 		error = call ReadStream.read(SAMPLING);
-//		ASSERT( error == SUCCESS );
-*/
+
   }
 
   event void Boot.booted() {
@@ -101,10 +97,10 @@ implementation
       call DiagMsg.str("Temp: ");
       call DiagMsg.uint8( (int8_t)data.bma180_temperature);
       call DiagMsg.send();
-    } call Read.read();
+    } //call Read.read();
   }
 
-/*  event void ReadStream.bufferDone(error_t result, bma180_data_t* buf, uint16_t count) {
+  event void ReadStream.bufferDone(error_t result, bma180_data_t* buf, uint16_t count) {
     //uint8_t i;
 		//uint8_t *p;
 
@@ -128,10 +124,11 @@ implementation
   }
 
 
-  event void ReadStream.readDone(error_t err, uint32_t usperiod) {
+  event void ReadStream.readDone(error_t err, uint32_t usperiod) { int i;
     if(call DiagMsg.record()) {
-      call DiagMsg.uint16(((buffers[2][9]).bma180_accel_z>>2)*0.25);
+      for(i=0; i<10; ++i)
+      call DiagMsg.int16((buffers[2][i]).bma180_accel_z);
       call DiagMsg.send();
     }
-  }*/
+  }
 }
