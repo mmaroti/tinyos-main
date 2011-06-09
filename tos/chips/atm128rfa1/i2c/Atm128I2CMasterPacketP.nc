@@ -297,6 +297,7 @@ implementation {
       else if (len > 0) {
         state = I2C_DATA;
         writeNextByte();
+        return SUCCESS;
       }
       else if (flags & I2C_STOP) {
         state = I2C_STOPPING;
@@ -349,7 +350,7 @@ implementation {
                 state = I2C_DATA;
                 readNextByte(TRUE);
               } else {
-                i2c_abort(FAIL);
+                i2c_abort(EOFF);
                 return;
               }
           } else{
@@ -357,7 +358,7 @@ implementation {
               state = I2C_DATA;
               writeNextByte();
             } else {
-              i2c_abort(FAIL);
+              i2c_abort(EOFF);
               return;
             }
           }
