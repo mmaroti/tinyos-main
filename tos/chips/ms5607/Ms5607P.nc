@@ -104,7 +104,7 @@ implementation {
     c5 = calibration[5];
     c6 = calibration[6];
 
-    signal SplitControl.startDone(SUCCESS);
+    signal SplitControl.startDone(error);
   }
 
   command error_t Pressure.read() {
@@ -152,24 +152,24 @@ implementation {
      /* dT = val - (c5 << 8);
       TEMP = 2000 + (dT * (uint32_t)c6 >> 23);
     */
-   tmpt= c5;
-   tmpt <<= 8;
-   dT = val - tmpt; 
+     tmpt= c5;
+     tmpt <<= 8;
+     dT = val - tmpt; 
    
-   tmp= c6;
-   mul= dT;
-   mul *= tmp;
-   mul >>= 23;
+      tmp= c6;
+      mul= dT;
+      mul *= tmp;
+      mul >>= 23;
    
    
-   TEMP = 2000;
-   TEMP += mul;
-    }
-    if(TEMP<2000) {
-      int32_t T2 = ((int64_t)dT * dT) >> 31;
-      TEMP -= T2;
-    }
+      TEMP = 2000;
+      TEMP += mul;
     
+      if(TEMP<2000) {
+        int32_t T2 = ((int64_t)dT * dT) >> 31;
+        TEMP -= T2;
+      }
+    }
     state = S_ON;
     signal Temperature.readDone(error, TEMP);
   }
