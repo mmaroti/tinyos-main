@@ -35,7 +35,7 @@
 
 #include "Storage.h"
 
-generic configuration DirectStorageC(volume_id_t volume_id) {
+generic configuration At45dbDirectStorageC(volume_id_t volume_id) {
   provides {
     interface DirectStorage;
     interface DirectModify;
@@ -51,20 +51,20 @@ implementation {
     RESOURCE_ID = unique(UQ_AT45DB),
   };
     
-  components DirectStorageP,
+  components At45dbDirectStorageP,
       new At45dbVolumeSettingsP() as SettingsP, 
       At45dbStorageManagerC as StorageC, 
       At45dbC,
       WireDirectStorageC;
 
-  DirectStorage = DirectStorageP.DirectStorage[DIRECT_ID];
-  DirectModify = DirectStorageP.DirectModify[DIRECT_ID];
+  DirectStorage = At45dbDirectStorageP.DirectStorage[DIRECT_ID];
+  DirectModify = At45dbDirectStorageP.DirectModify[DIRECT_ID];
   DirectStorageSettings = SettingsP.VolumeSettings;
   DirectModifySettings = SettingsP.VolumeSettings;
 
-  DirectStorageP.At45dbVolume[DIRECT_ID] -> StorageC.At45dbVolume[volume_id];  
-  DirectStorageP.Resource[DIRECT_ID] -> At45dbC.Resource[RESOURCE_ID];
-  DirectStorageP.VolumeSettings -> SettingsP.VolumeSettings;
+  At45dbDirectStorageP.At45dbVolume[DIRECT_ID] -> StorageC.At45dbVolume[volume_id];  
+  At45dbDirectStorageP.Resource[DIRECT_ID] -> At45dbC.Resource[RESOURCE_ID];
+  At45dbDirectStorageP.VolumeSettings -> SettingsP.VolumeSettings;
   
   SettingsP.At45dbVolume -> StorageC.At45dbVolume[volume_id];
   

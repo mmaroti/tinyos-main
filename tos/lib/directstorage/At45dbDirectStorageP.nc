@@ -35,7 +35,7 @@
 
 #include "Storage.h"
 
-module DirectStorageP {
+module At45dbDirectStorageP {
   provides {
     interface DirectStorage[uint8_t id];
     interface DirectModify[uint8_t id];

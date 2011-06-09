@@ -36,7 +36,7 @@
  */
 #include "Stm25p.h"
 
-generic configuration DirectStorageC(volume_id_t volume_id) {
+generic configuration Stm25pDirectStorageC(volume_id_t volume_id) {
   provides {
     interface DirectStorage;
     interface DirectModify;
@@ -52,19 +52,19 @@ implementation {
     VOLUME_ID = unique( "Stm25p.Volume" ),
   };
 
-  components Stm25pDirectP,
+  components Stm25pDirectStorageP,
       Stm25pSectorC,
       Stm25pVolumeSettingsP,
       new Stm25pBinderP(volume_id);
       
-  DirectStorage = Stm25pDirectP.DirectStorage[DIRECT_ID];
-  DirectModify = Stm25pDirectP.DirectModify[DIRECT_ID];
+  DirectStorage = Stm25pDirectStorageP.DirectStorage[DIRECT_ID];
+  DirectModify = Stm25pDirectStorageP.DirectModify[DIRECT_ID];
   DirectStorageSettings = Stm25pVolumeSettingsP.VolumeSettings[DIRECT_ID];
   DirectModifySettings = Stm25pVolumeSettingsP.VolumeSettings[DIRECT_ID];
   
-  Stm25pDirectP.ClientResource[DIRECT_ID] -> Stm25pSectorC.ClientResource[VOLUME_ID];
-  Stm25pDirectP.Sector[DIRECT_ID] -> Stm25pSectorC.Sector[VOLUME_ID];
-  Stm25pDirectP.VolumeSettings -> Stm25pVolumeSettingsP.VolumeSettings[DIRECT_ID];
+  Stm25pDirectStorageP.ClientResource[DIRECT_ID] -> Stm25pSectorC.ClientResource[VOLUME_ID];
+  Stm25pDirectStorageP.Sector[DIRECT_ID] -> Stm25pSectorC.Sector[VOLUME_ID];
+  Stm25pDirectStorageP.VolumeSettings -> Stm25pVolumeSettingsP.VolumeSettings[DIRECT_ID];
   
   Stm25pVolumeSettingsP.Sector[DIRECT_ID] -> Stm25pSectorC.Sector[VOLUME_ID];
   

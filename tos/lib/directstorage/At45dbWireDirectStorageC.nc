@@ -6,7 +6,7 @@
  * @author David Moss
  */
  
-configuration WireDirectStorageC {
+configuration At45dbWireDirectStorageC {
 }
 
 implementation {
