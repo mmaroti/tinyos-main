@@ -167,6 +167,7 @@ implementation {
       if (index == packetLen - 1 && !(packetFlags & I2C_ACK_END)) { 
         call I2C.enableAck(FALSE);
       }
+      call I2C.sendCommand();
     } else {
       call I2C.enableInterrupt(FALSE);
       if (packetFlags & I2C_STOP) {
@@ -182,7 +183,6 @@ implementation {
       signal I2CPacket.readDone(SUCCESS, packetAddr, packetLen, packetPtr);
       return;
     }
-    call I2C.sendCommand();
   }
   
   inline void writeNextByte(){
