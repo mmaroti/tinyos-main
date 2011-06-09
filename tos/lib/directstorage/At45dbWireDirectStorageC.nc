@@ -10,10 +10,10 @@ configuration At45dbWireDirectStorageC {
 }
 
 implementation {
-  components DirectStorageP,
+  components At45dbDirectStorageP,
       At45dbC;
       
-  DirectStorageP.At45db -> At45dbC;
+  At45dbDirectStorageP.At45db -> At45dbC;
   
 }
 

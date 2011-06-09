@@ -55,7 +55,7 @@ implementation {
       new At45dbVolumeSettingsP() as SettingsP, 
       At45dbStorageManagerC as StorageC, 
       At45dbC,
-      WireDirectStorageC;
+      At45dbWireDirectStorageC;
 
   DirectStorage = At45dbDirectStorageP.DirectStorage[DIRECT_ID];
   DirectModify = At45dbDirectStorageP.DirectModify[DIRECT_ID];

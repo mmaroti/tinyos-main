@@ -34,7 +34,7 @@
  * @author Jonathan Hui
  */
 
-module Stm25pDirectP {
+module Stm25pDirectStorageP {
   provides {
     interface DirectStorage[uint8_t id];
     interface DirectModify[uint8_t id];
