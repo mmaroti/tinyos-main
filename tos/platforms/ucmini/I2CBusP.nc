@@ -119,7 +119,7 @@ cnt bits:
     if(cnt == 63){
       cnt|=64;
       signal SplitControl.startDone(SUCCESS);
-    }
+    } else signal SplitControl.startDone(FAIL);
   }
   
   event void LightSplit.startDone(error_t error) {
@@ -137,7 +137,7 @@ cnt bits:
     if(cnt == 63){
       cnt|=64;
       signal SplitControl.startDone(SUCCESS);
-    }
+    } else signal SplitControl.startDone(FAIL);
   }
   
   event void PressureSplit.startDone(error_t error) {
@@ -155,7 +155,7 @@ cnt bits:
     if(cnt == 63){
       cnt|=64;
       signal SplitControl.startDone(SUCCESS);
-    }
+    } else signal SplitControl.startDone(FAIL);
   }
   
   
