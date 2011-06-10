@@ -11,7 +11,7 @@ configuration HplSi443xC
     interface Resource as SpiResource;
     interface FastSpiByte;
     interface GpioCapture as IRQ;
-    interface Alarm<TRadio, uint16_t> as Alarm;
+    interface Alarm<TRadio, tradio_size> as Alarm;
     interface LocalTime<TRadio> as LocalTimeRadio;
   }
 }
@@ -35,9 +35,9 @@ implementation
     SpiResource = SpiC.Resource[unique("Atm128SpiC.Resource")];
     FastSpiByte = SpiC;
 
-     components new AlarmMcu16C() as AlarmC;
-     Alarm = AlarmC;
-// 
-     components LocalTimeMicroC;
-     LocalTimeRadio = LocalTimeMicroC;
+    components new AlarmMcu16C() as AlarmC;
+    Alarm = AlarmC;
+ 
+    components LocalTimeMcuC;
+    LocalTimeRadio = LocalTimeMcuC;
 }
