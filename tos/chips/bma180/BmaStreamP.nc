@@ -116,6 +116,10 @@ implementation
   void readAccel() {
     if(call Resource.immediateRequest()==SUCCESS) {
       call CSN.clr();
+      call FastSpiByte.write(0x88);
+      currentPtr->bma180_temperature = (int8_t)call FastSpiByte.write(0);
+      call CSN.set();
+      call CSN.clr();
       call FastSpiByte.write(0x82);
       currentPtr->bma180_accel_x = call FastSpiByte.write(0);
       currentPtr->bma180_accel_x |= (call FastSpiByte.write(0) << 8);
@@ -126,6 +130,7 @@ implementation
       currentPtr->bma180_accel_z = call FastSpiByte.write(0);
       currentPtr->bma180_accel_z |= (call FastSpiByte.write(0) << 8);
       currentPtr->bma180_accel_z >>=2;
+      currentPtr->bma180_short_timestamp = (uint8_t)(call LocalTime.get());
       call CSN.set();
       call Resource.release();
     }
