@@ -50,8 +50,11 @@ configuration ActiveMessageC
 
 implementation
 {
+#ifdef UCDUAL_SI443X
+	components Si443xActiveMessageC as MessageC;
+#else
 	components RFA1ActiveMessageC as MessageC;
-
+#endif
 	SplitControl = MessageC;
 
 	AMSend = MessageC;
