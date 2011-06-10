@@ -73,9 +73,6 @@ implementation
   };
 
   norace uint8_t state, temp;
-
-  norace bma180_data_t s_res;
-  norace uint16_t x, y, z;
   bool newData=FALSE;
 
   bma180_data_t * firstStart;
@@ -118,37 +115,20 @@ implementation
 
   void readAccel() {
     if(call Resource.immediateRequest()==SUCCESS) {
-        call CSN.clr();
-        call FastSpiByte.write(0x80 | 0x02);
-        x = call FastSpiByte.write(0x00);//x
-        x |= (call FastSpiByte.write(0) << 8);
-        y = call FastSpiByte.write(0);//y
-        y |= (call FastSpiByte.write(0) << 8);
-        z = call FastSpiByte.write(0);//z
-        z |= (call FastSpiByte.write(0) << 8);
-        s_res.bma180_temperature = (int8_t)(call FastSpiByte.write(0));
-        s_res.bma180_short_timestamp = (uint8_t)(call LocalTime.get());
-        call CSN.set();
-        
-        s_res.bma180_accel_x = ( ((int16_t)x)>>2)*convRatio[BMA_RANGE];
-        s_res.bma180_accel_y = ( ((int16_t)y)>>2)*convRatio[BMA_RANGE];
-        s_res.bma180_accel_z = ( ((int16_t)z)>>2)*convRatio[BMA_RANGE];
+      call CSN.clr();
+      call FastSpiByte.write(0x82);
+      currentPtr->bma180_accel_x = call FastSpiByte.write(0);
+      currentPtr->bma180_accel_x |= (call FastSpiByte.write(0) << 8);
+      currentPtr->bma180_accel_x >>= 2;
+      currentPtr->bma180_accel_y = call FastSpiByte.write(0);
+      currentPtr->bma180_accel_y |= (call FastSpiByte.write(0) << 8);
+      currentPtr->bma180_accel_y >>=2;
+      currentPtr->bma180_accel_z = call FastSpiByte.write(0);
+      currentPtr->bma180_accel_z |= (call FastSpiByte.write(0) << 8);
+      currentPtr->bma180_accel_z >>=2;
+      call CSN.set();
       call Resource.release();
     }
-  }
-
-  task void workTask() {
-    readAccel();
-    //call Leds.led2Toggle();
-    /*if(call DiagMsg.record()) {
-          call DiagMsg.uint8(s_res.bma180_short_timestamp);
-          call DiagMsg.int16(s_res.bma180_accel_x);
-          call DiagMsg.int16(s_res.bma180_accel_y);
-          call DiagMsg.int16(s_res.bma180_accel_z);
-          call DiagMsg.send();
-        }*/
-    if(state != STATE_READY)
-    post workTask();
   }
 
   async event void PCINT.fired(bool toHigh)
@@ -163,9 +143,8 @@ implementation
 
     if(newData) {
       newData = FALSE;
-      post workTask();
       readAccel();
-      *(currentPtr++) = s_res;
+      currentPtr++;
       if( currentPtr != currentEnd ) {
         return;
       }
