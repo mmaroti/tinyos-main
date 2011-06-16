@@ -5,7 +5,7 @@
 //SERIAL
 // number of CPU cycles per 1/512 sec
 uint16_t cycles;
-
+uint8_t count=0;
 /* Measure clock cycles per Jiffy (1/32768s) */
 void init(void) {
 	uint8_t wraps_ok=0;
@@ -203,6 +203,31 @@ void ledSet(uint8_t val){
   else {
 	led3Off();
   }
+}
+
+void status(uint16_t time_out)
+
+{
+//     ledSet((++count)/1000);
+  #if PLATFORM == IRIS
+  if(time_out>2*TIMEOUT/3){
+    ledSet(7);
+  }else if(time_out>TIMEOUT/3){
+    ledSet(3);
+  }else{
+    ledSet(1);
+  }
+  #else
+  if(time_out>3*TIMEOUT/4){
+    ledSet(15);
+  }else if(time_out>2*TIMEOUT/4){
+    ledSet(7);
+  }else if(time_out>TIMEOUT/4){
+    ledSet(3);
+  }else{
+    ledSet(1);
+  }
+  #endif
 }
 
 

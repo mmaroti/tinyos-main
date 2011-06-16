@@ -57,14 +57,13 @@
 #ifndef REMOVE_BLOCK_SUPPORT
 unsigned char BlockLoad(unsigned int size, unsigned char mem, ADDR_T *address);
 void BlockRead(unsigned int size, unsigned char mem, ADDR_T *address);
-void status(int);
 
 /* BLOCKSIZE should be chosen so that the following holds: BLOCKSIZE*n = PAGESIZE,  where n=1,2,3... */
 #define BLOCKSIZE PAGESIZE
 
 #endif /* REMOVE_BLOCK_SUPPORT */
 
-int timeout=TIMEOUT;
+uint16_t timeout=TIMEOUT;
 
 //INITIALIZATION
 void initialize(void){ 
@@ -417,8 +416,8 @@ int main(void)
               else
               {
                 timeout--;
-		if((timeout&0x03)==0)
-		  sendchar('?');
+                if((timeout&0x03)==0)
+                  sendchar('?');
               }
             }
 
@@ -430,30 +429,6 @@ int main(void)
         } // end: for(;;)
 } // end: main
 
-
-void status(int time_out)
-
-{
-	#if PLATFORM == IRIS
-	if(time_out>2*TIMEOUT/3){
-	  ledSet(7);
-	}else if(time_out>TIMEOUT/3){
-	  ledSet(3);
-	}else{
-	  ledSet(1);
-	}
-	#else
-	if(time_out>3*TIMEOUT/4){
-	  ledSet(15);
-	}else if(time_out>2*TIMEOUT/4){
-	  ledSet(7);
-	}else if(time_out>TIMEOUT/4){
-	  ledSet(3);
-	}else{
-	  ledSet(1);
-	}
-	#endif
-}
 
 #ifndef REMOVE_BLOCK_SUPPORT
 unsigned char BlockLoad(unsigned int size, unsigned char mem, ADDR_T *address)

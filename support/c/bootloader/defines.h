@@ -5,8 +5,8 @@
 #define	_B4096	// boot size select: _Bxxxx (words), powers of two only
 #include	<avr/io.h>
 
-#define TIMEOUT 50
-#define SERIAL_TRY 100000
+#define TIMEOUT 1000   //*10ms
+#define SERIAL_TRY 7500 //this takes about 10 ms
 
 #ifdef _ATMEGA1281
   #define F_CPU 8000000
@@ -91,3 +91,5 @@ void led2Toggle(void);
 void led3Toggle(void);
 
 void ledSet(uint8_t val);
+
+void status(uint16_t time_out);
