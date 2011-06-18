@@ -65,7 +65,8 @@ int main(int argc, char *argv[])
     serv_addr[i].sin_family = AF_INET;
     serv_addr[i].sin_addr.s_addr = INADDR_ANY;
     serv_addr[i].sin_port = htons(portno[i]);
-     
+    int yes=1;
+    setsockopt(sockfd[i],SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int));
     if (bind(sockfd[i], (struct sockaddr *) &serv_addr[i], sizeof(serv_addr[i])) < 0){
       fprintf(stderr, "Can't bind on port %d\n", portno[i]);
       exit(1);
