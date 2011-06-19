@@ -49,7 +49,7 @@
 typedef nx_struct rfa1packet_header_t
 {
 	rfa1_header_t rfa1;
-	ieee154_header_t ieee154;
+	ieee154_simple_header_t ieee154;
 #ifndef TFRAMES_ENABLED
 	network_header_t network;
 #endif
