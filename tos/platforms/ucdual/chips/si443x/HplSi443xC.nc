@@ -1,3 +1,4 @@
+#include <RadioConfig.h>
 configuration HplSi443xC
 {
   provides
