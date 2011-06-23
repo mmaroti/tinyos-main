@@ -96,10 +96,11 @@ implementation
       ok = ecombine(ok, call SubInit.init());
       call RadioInit.init();
       call Stm25pInit.init();
+      //TODO these should be in their init
       call FlashCS.makeOutput();
       call RadioCS.makeOutput();
-      call FlashCS.clr();
-      call RadioCS.clr();
+      call FlashCS.set();
+      call RadioCS.set();
       return ok;
 	}
 	
