@@ -34,7 +34,6 @@
  */
 
 #include <Si443xRadio.h>
-#include <Si443xRadioConfig.h>
 #include <Tasklet.h>
 
 module Si443xRadioP

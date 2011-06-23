@@ -36,7 +36,7 @@
 #ifndef __SI443X_RADIO_H__
 #define __SI443X_RADIO_H__
 
-#include <Si443xRadioConfig.h>
+#include <RadioConfig.h>
 #include <TinyosNetworkLayer.h>
 #include <Ieee154PacketLayer.h>
 #include <ActiveMessageLayer.h>
@@ -46,7 +46,7 @@
 #include <LowPowerListeningLayer.h>
 #include <PacketLinkLayer.h>
 
-typedef nx_struct si443xpacket_header_t
+typedef nx_struct
 {
     si443x_header_t si443x;
     ieee154_simple_header_t ieee154;
@@ -58,12 +58,12 @@ typedef nx_struct si443xpacket_header_t
 #endif
 } si443xpacket_header_t;
 
-typedef nx_struct si443xpacket_footer_t
+typedef nx_struct
 {
     // the time stamp is not recorded here, time stamped messages cannot have max length
 } si443xpacket_footer_t;
 
-typedef struct si443xpacket_metadata_t
+typedef struct
 {
 #ifdef LOW_POWER_LISTENING
     lpl_metadata_t lpl;
@@ -75,6 +75,5 @@ typedef struct si443xpacket_metadata_t
     flags_metadata_t flags;
     si443x_metadata_t si443x;
 } si443xpacket_metadata_t;
-
 
 #endif//__SI443X_RADIO_H__

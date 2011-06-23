@@ -33,7 +33,7 @@
  * Author: Krisztian Veress
  */
 
-#include <Si443xRadioConfig.h>
+#include <RadioConfig.h>
 
 configuration Si443xRadioC
 {

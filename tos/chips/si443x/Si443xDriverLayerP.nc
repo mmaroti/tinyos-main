@@ -38,7 +38,7 @@
 #include <Tasklet.h>
 #include <RadioAssert.h>
 #include <TimeSyncMessageLayer.h>
-#include <Si443xRadioConfig.h>
+#include <RadioConfig.h>
 
 #define DIAGMSG_STM(PSTR)         \
         if( call DiagMsg.record() ) { \
@@ -252,10 +252,10 @@ implementation
         call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_READ | reg);
         call FastSpiByte.splitReadWrite(0);
         reg = call FastSpiByte.splitRead();
+        call NSEL.set();
         
         DIAGMSG_VAR(".readR",reg);
-        
-        call NSEL.set();
+                
         return reg;
     }
     

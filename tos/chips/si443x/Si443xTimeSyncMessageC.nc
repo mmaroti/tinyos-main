@@ -32,7 +32,7 @@
  * Author: Miklos Maroti
  */
 
-#include <Si443xRadioConfig.h>
+#include <RadioConfig.h>
 #include <TimerConfig.h>
 
 configuration Si443xTimeSyncMessageC

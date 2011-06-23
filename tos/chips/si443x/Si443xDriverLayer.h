@@ -33,13 +33,15 @@
  * Author: Krisztian Veress
  */
 
-#ifndef __Si443xDRIVERLAYER_H__
-#define __Si443xDRIVERLAYER_H__
+#ifndef __SI443X_DRIVERLAYER_H__
+#define __SI443X_DRIVERLAYER_H__
 
 typedef nx_struct si443x_header_t
 {
     nxle_uint8_t length;
 } si443x_header_t;
+
+typedef nx_struct si443x_footer_t {} si443x_footer_t;
 
 typedef struct si443x_metadata_t
 {

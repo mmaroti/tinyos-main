@@ -33,8 +33,7 @@
  * Author: Krisztian Veress
  */
 
-#include <Si443xRadioConfig.h>
-#include <Si443xDriverLayer.h>
+#include <RadioConfig.h>
 
 configuration Si443xDriverLayerC
 {

@@ -33,13 +33,11 @@
  * Author: Krisztian Veress
  */
 
-#include <Si443xRadioConfig.h>
+#include <RadioConfig.h>
 
 #ifdef IEEE154FRAMES_ENABLED
 #error "You cannot use ActiveMessageC with IEEE154FRAMES_ENABLED defined"
 #endif
-
-#warning " ------ USING Si443x DRIVER ------ "
 
 configuration Si443xActiveMessageC
 {
