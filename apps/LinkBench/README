@@ -18,6 +18,8 @@ LinkBench application README
    ----------------------------
    To use the framework, one needs 
     - a BaseStation mote with TOS_NODE_ID = 0.
+      WARNING! When programming the BaseStation TOSH_DATA_LENGTH must be set to 110!
+      
     - multiple 'test motes' with TOS_NODE_IDs 1,2,3, ... based on the required mote 
       count of the benchmark to be run
    
