@@ -3,7 +3,7 @@
 #include "RadioTest.h"
 #include "message.h"
 
-#define DIAGMSG_STR(p) if( call DiagMsg.record() ) { call DiagMsg.str(p); call DiagMsg.send(); }
+#define DIAGMSG_RSTR(p) if( call DiagMsg.record() ) { call DiagMsg.str(p); call DiagMsg.send(); }
 #define DIAGMSG_UINT(p) if( call DiagMsg.record() ) { call DiagMsg.uint8(p); call DiagMsg.send();}
 
 module RadioTestC @safe() {
@@ -18,17 +18,17 @@ module RadioTestC @safe() {
 implementation {
 
   event void Boot.booted() {  
-    DIAGMSG_STR("booted");
+    DIAGMSG_RSTR("booted");
     call MilliTimer.startPeriodic(1000);
   }
 
  
   event void MilliTimer.fired() {
-    DIAGMSG_STR("MT fired");
+    DIAGMSG_RSTR("MT fired");
   }
 
   async event void RadioState.done() {
-    DIAGMSG_STR("RadioState done");
+    DIAGMSG_RSTR("RadioState done");
   }
 
 }
