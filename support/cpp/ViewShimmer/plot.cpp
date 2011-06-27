@@ -24,16 +24,23 @@
 
 const unsigned int c_rangeMax = 10000;
 
-class Zoomer: public ScrollZoomer
+/*class Zoomer: public ScrollZoomer
 {
 public:
-    Zoomer(QwtPlotCanvas *canvas):
-        ScrollZoomer(canvas)
+    Zoomer(QwtPlotCanvas *canvas, Application &app):
+        ScrollZoomer(canvas),
+        application(app)
     {
     }
 
     virtual void rescale()
     {
+        double zoomRatio = (zoomRect().bottomRight().x() - zoomRect().bottomLeft().x()) / zoomBase().width();
+
+        qDebug() << "ZoomRatio: " << zoomRatio;
+
+        //application.window.calculateCurveDatas(zoomRatio);
+
         QwtScaleWidget *scaleWidget = plot()->axisWidget(yAxis());
         QwtScaleDraw *sd = scaleWidget->scaleDraw();
 
@@ -53,7 +60,10 @@ public:
 
         ScrollZoomer::rescale();
     }
-};
+
+
+    Application &application;
+};*/
 
 
 
@@ -121,6 +131,7 @@ Plot::Plot(QWidget *parent, Application& app):
 
     setAxisTitle(QwtPlot::xBottom, "Time [s]");
 
+
     connect(this, SIGNAL(legendChecked(QwtPlotItem *, bool)),
         SLOT(showCurve(QwtPlotItem *, bool)));
 }
@@ -132,7 +143,7 @@ Plot::~Plot()
 
 void Plot::setMoteCurve(int mote)
 {
-    MoteCurve* curve = new MoteCurve("Mote: "+QString::number(mote));
+    MoteCurve* curve = new MoteCurve("Mote: "+QString::number(application.moteDataHolder.mote(mote)->getMoteID()));
 
     curve->setStyle(QwtPlotCurve::Lines);
 
@@ -195,7 +206,7 @@ void Plot::showCurve(QwtPlotItem *item, bool on)
 
 void Plot::createZoomer()
 {
-    d_zoomer = new Zoomer(canvas());
+    d_zoomer = new ScrollZoomer(canvas(), application);
     d_zoomer->setRubberBandPen(QColor(Qt::red));
     d_zoomer->setTrackerPen(QColor(Qt::red));
 
@@ -206,7 +217,7 @@ void Plot::enableZoomMode(bool on)
 {
     if(d_zoomer != NULL){
         d_zoomer->setEnabled(on);
-        d_zoomer->zoom(0);
+        //d_zoomer->zoom(0);
     }
 
 }

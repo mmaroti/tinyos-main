@@ -7,7 +7,7 @@
 #include <qwt_series_data.h>
 #include "constants.h"
 
-class MoteData::PrivateData
+/*class MoteData::PrivateData
 {
 public:
     PrivateData():
@@ -42,7 +42,7 @@ public:
     QVector<QPointF> values;
     QRectF boundingRect;
 
-};
+};*/
 
 Sample::Sample()
 {
@@ -60,13 +60,13 @@ Sample::Sample()
 MoteData::MoteData()
 {
     //samples.reserve(RESERVED_SAMPLES);
-    d_data = new PrivateData();
+    //d_data = new PrivateData();
 }
 
 MoteData::~MoteData()
 {
     //samples.clear();
-    delete d_data;
+    //delete d_data;
 }
 
 void MoteData::setParam(Params param, int value)
@@ -91,7 +91,7 @@ void MoteData::setParam(Params param, double value)
     }
 }
 
-int MoteData::size() const
+/*int MoteData::size() const
 {
     return d_data->values.size();
 }
@@ -118,4 +118,33 @@ MoteData &MoteData::instance()
 {
     static MoteData valueVector;
     return valueVector;
+}*/
+
+QString Sample::toCsvString() const
+{
+    QString s = "";
+
+    s += QString::number(unix_time) + ",";
+    s += QString::number(mote_time) + ",";
+    s += QString::number(counter) + ",";
+
+    if( xAccel >= 0 || yAccel >= 0 || zAccel >= 0 )
+            s += QString::number(xAccel)
+                    + "," + QString::number(yAccel)
+                    + "," + QString::number(zAccel)
+                    + ",";
+
+    if( xGyro >= 0 || yGyro >= 0 || zGyro >= 0 )
+            s += QString::number(xGyro)
+                    + "," + QString::number(yGyro)
+                    + "," + QString::number(zGyro)
+                    + ",";;
+
+    if( voltage >= 0 )
+            s += QString::number(voltage) + ",";
+
+    if( temp >= 0 )
+            s += QString::number(temp) + ",";
+
+    return s;
 }

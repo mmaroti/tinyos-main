@@ -3,12 +3,13 @@
 #include <qwt_system_clock.h>
 #include <QVarLengthArray>
 
+class QwtPlotMarker;
 class QwtPlotCurve;
 class QwtPlotMarker;
 class QwtPlotDirectPainter;
 class MoteCurve;
 class Application;
-class Zoomer;
+class ScrollZoomer;
 
 class Plot: public QwtPlot
 {
@@ -23,11 +24,10 @@ public:
     void clearCurves();
 
     void createZoomer();
+    void enableZoomMode(bool);
 
 public Q_SLOTS:
     void showCurve(QwtPlotItem *item, bool on);
-
-    void enableZoomMode(bool);
 
 protected:
     virtual void resizeEvent(QResizeEvent *);
@@ -44,7 +44,8 @@ private:
 
     QwtPlotDirectPainter *d_directPainter;
 
-    Zoomer *d_zoomer;
+    ScrollZoomer *d_zoomer;
+    QwtPlotMarker *d_marker1;
 
     QwtInterval d_interval;
 

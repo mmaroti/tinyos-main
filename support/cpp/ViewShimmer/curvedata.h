@@ -13,6 +13,7 @@ class CurveData: public QwtArraySeriesData<QPointF>
 {
 public:
     CurveData();
+    ~CurveData();
 
     void append(const QPointF&);
     virtual QRectF boundingRect() const;

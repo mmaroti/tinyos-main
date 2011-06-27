@@ -6,6 +6,7 @@
 
 class ScrollData;
 class ScrollBar;
+class Application;
 
 class ScrollZoomer: public QwtPlotZoomer
 {
@@ -17,7 +18,7 @@ public:
         OppositeToScale
     };
 
-    ScrollZoomer(QwtPlotCanvas *);
+    ScrollZoomer(QwtPlotCanvas *, Application& app);
     virtual ~ScrollZoomer();
 
     ScrollBar *horizontalScrollBar() const;
@@ -46,11 +47,16 @@ protected:
     virtual ScrollBar *scrollBar(Qt::Orientation);
     virtual void updateScrollBars();
     virtual void layoutScrollBars(const QRect &);
+    void widgetMouseReleaseEvent( QMouseEvent * );
+    void zoom( const QRectF &rect );
 
 private Q_SLOTS:
     void scrollBarMoved(Qt::Orientation o, double min, double max);
 
 private:
+
+    Application &application;
+
     bool needScrollBar(Qt::Orientation) const;
     int oppositeAxis(int) const;
 

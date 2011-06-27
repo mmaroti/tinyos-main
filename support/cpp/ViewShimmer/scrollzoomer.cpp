@@ -5,6 +5,8 @@
 #include <qwt_scale_widget.h>
 #include "scrollbar.h"
 #include "scrollzoomer.h"
+#include "Application.h"
+#include "curvedata.h"
 
 class ScrollData
 {
@@ -26,13 +28,14 @@ public:
     Qt::ScrollBarPolicy mode;
 };
 
-ScrollZoomer::ScrollZoomer(QwtPlotCanvas *canvas):
+ScrollZoomer::ScrollZoomer(QwtPlotCanvas *canvas, Application &app):
     QwtPlotZoomer(canvas),
     d_cornerWidget(NULL),
     d_hScrollData(NULL),
     d_vScrollData(NULL),
     d_inZoom(false),
-    d_alignCanvasToScales(false)
+    d_alignCanvasToScales(false),
+    application(app)
 {
     if ( !canvas )
         return;
@@ -46,6 +49,23 @@ ScrollZoomer::~ScrollZoomer()
     delete d_cornerWidget;
     delete d_vScrollData;
     delete d_hScrollData;
+}
+
+void ScrollZoomer::widgetMouseReleaseEvent(QMouseEvent *me)
+{
+
+    if ( mouseMatch( MouseSelect2, me ) ){
+
+        application.window.calculateCurveDatas(1.0);
+        QwtPlotZoomer::zoom(0);
+        //QwtPlotPicker::widgetMouseReleaseEvent( me );
+    } else if ( mouseMatch( MouseSelect3, me ) ){
+        //zoom( -1 );
+    } else if ( mouseMatch( MouseSelect6, me ) ){
+        //zoom( +1 );
+    } else
+        QwtPlotPicker::widgetMouseReleaseEvent( me );
+
 }
 
 void ScrollZoomer::rescale()
@@ -451,7 +471,7 @@ void ScrollZoomer::scrollBarMoved(Qt::Orientation o, double min, double)
     else
         moveTo( QPointF( zoomRect().left(), min ) );
 
-    Q_EMIT zoomed(zoomRect());
+    //Q_EMIT zoomed(zoomRect());
 }
 
 int ScrollZoomer::oppositeAxis(int axis) const
@@ -471,4 +491,19 @@ int ScrollZoomer::oppositeAxis(int axis) const
     }
 
     return axis;
+}
+
+void ScrollZoomer::zoom(const QRectF &rect)
+{
+    qDebug() << rect.bottomRight().x() <<  " - " << rect.bottomLeft().x() << " / " << zoomBase().width();
+    double zoomRatio = (rect.bottomRight().x() - rect.bottomLeft().x()) / zoomBase().width();
+
+
+    qDebug() << "ZoomRatio: " << zoomRatio;
+
+    application.window.calculateCurveDatas(zoomRatio);
+
+    qDebug() << "Number of curve points: " << application.window.curve_data_at(0)->size();
+
+    QwtPlotZoomer::zoom(rect);
 }

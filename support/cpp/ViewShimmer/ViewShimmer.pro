@@ -3,12 +3,17 @@
 # -------------------------------------------------
 TARGET = ViewShimmer
 TEMPLATE = app
-INCLUDEPATH += c:\temp\qwt-6.0.0-rc5\src
-QMAKE_LIBDIR += c:\temp\qwt-6.0.0-rc5\lib
+
+INCLUDEPATH += c:/temp/qwt-6.0.0-rc5\src
+
+QMAKE_LIBDIR += c:/temp/qwt-6.0.0-rc5/lib
+
 LIBS += -lqwtd
 win32:LIBS += -lsetupapi
+
 DEFINES += QT_DLL \
-    QWT_DLL
+    QWTD_DLL
+
 SOURCES += main.cpp \
     Application.cpp \
     plot.cpp \
@@ -16,7 +21,8 @@ SOURCES += main.cpp \
     mainwindow.cpp \
     MoteData.cpp \
     MoteDataHolder.cpp \
-    scrollzoomer.cpp
+    scrollzoomer.cpp \
+    scrollbar.cpp
 HEADERS += Application.h \
     constants.h \
     plot.h \
@@ -24,5 +30,6 @@ HEADERS += Application.h \
     mainwindow.h \
     MoteData.h \
     MoteDataHolder.h \
-    scrollzoomer.h
+    scrollzoomer.h \
+    scrollbar.h
 FORMS += mainwindow.ui

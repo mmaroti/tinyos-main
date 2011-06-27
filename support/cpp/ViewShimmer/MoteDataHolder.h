@@ -19,6 +19,7 @@ public:
     MoteData* findMoteID(int id);
 
     int motesCount() { return motes.size(); }
+
     MoteData* mote(int i){
             return motes[i];
     }
@@ -27,6 +28,7 @@ public:
         motes.clear();
     }
 
+    int findNearestSample(double time, int mote);
 
     void printMoteData(int id);
     void printMotesHeader();

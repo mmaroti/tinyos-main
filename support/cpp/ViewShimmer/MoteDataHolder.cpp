@@ -5,6 +5,7 @@
 #include <QStringList>
 #include <QStringListIterator>
 #include <QtDebug>
+#include <math.h>
 #include "Application.h"
 
 MoteDataHolder::MoteDataHolder(Application &app) : application(app)
@@ -42,7 +43,7 @@ void MoteDataHolder::loadCSVData(QString filename)
                 line = ts.readLine();         // line of text excluding '\n'
             }
 
-            printMotesHeader();
+            //printMotesHeader();
 
             //progressBar->show();
 
@@ -57,7 +58,7 @@ void MoteDataHolder::loadCSVData(QString filename)
 
             while ( !line.isEmpty() && line != "#valami ?" )
             {
-                createSample(line);            //convert line string to sample
+                createSample(line);          //convert line string to sample
                 line = ts.readLine();         // line of text excluding '\n'
             }
 
@@ -102,8 +103,10 @@ void MoteDataHolder::createSample(const QString& str)
 {
     QStringList list = str.split(",");
     QStringListIterator csvIterator(list);
-    Sample sample;
+
+    Sample sample;    
     MoteData* mote;
+
     int moteID;
     int counter;
 
@@ -153,7 +156,7 @@ void MoteDataHolder::printMoteData(int id)
 {
     MoteData* mote = findMoteID(id);
 
-    for(int i = 0; i < mote->size(); i++){
+    for(int i = 0; i < mote->samplesSize(); i++){
         qDebug() << QString::number(mote->getSampleAt(i).xAccel);
     }
 
@@ -175,4 +178,30 @@ void MoteDataHolder::printMotesHeader()
 
     text.append("===============================================\n");
 
+}
+
+int MoteDataHolder::findNearestSample(double time, int mote)
+{
+    int pos = time / 0.005;
+
+    if(pos < 0) pos = 0;
+    if(pos > motes[mote]->samplesSize()) pos = motes[mote]->samplesSize()-1;
+
+    double unix_time = motes[mote]->sampleAt(pos).unix_time;
+    double diff = fabs(time - unix_time);
+
+    while(diff > 0.005){
+        if( unix_time > time){
+            pos--;
+        } else {
+            pos++;
+        }
+
+        if( pos <= 0 ) return 0;
+        if( pos >= motes[mote]->samplesSize() ) return motes[mote]->samplesSize()-1;
+
+        unix_time = motes[mote]->sampleAt(pos).unix_time;
+        diff = fabs(time - unix_time);
+    }
+    return pos;
 }

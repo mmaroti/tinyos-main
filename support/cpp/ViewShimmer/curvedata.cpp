@@ -5,6 +5,11 @@
 CurveData::CurveData(): boundingRectData(1.0, 1.0, -2.0, -2.0) // invalid
 {}
 
+CurveData::~CurveData()
+{
+    values.clear();
+}
+
 void CurveData::append(const QPointF &sample)
 {
     values.append(sample);
