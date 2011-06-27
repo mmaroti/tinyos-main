@@ -1,4 +1,6 @@
 COMPONENT=NullAppC
 CFLAGS += -I$(SZTETOSDIR)/lib/directstorage
+CFLAGS += -I$(TOSDIR)/lib/diagmsg
+CFLAGS += -DDIAGMSG_RECORDED_MSGS=100
 include $(MAKERULES)
 

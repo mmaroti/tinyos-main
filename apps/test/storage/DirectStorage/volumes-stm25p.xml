@@ -1,3 +1,4 @@
 <volume_table>
-  <volume name="STOR" size="524288"/>
+	<volume name="DUMMY" size="65536"/>
+  <volume name="STOR" size="196608"/>
 </volume_table>

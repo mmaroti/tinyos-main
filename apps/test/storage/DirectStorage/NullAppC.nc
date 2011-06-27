@@ -53,9 +53,15 @@
 #include "StorageVolumes.h"
 configuration NullAppC{}
 implementation {
-  components MainC, NullC;
+  components MainC, NullC, DiagMsgC, LedsC, new TimerMilliC(), SerialActiveMessageC;
   components new DirectStorageC(VOLUME_STOR);
-
+  
   MainC.Boot <- NullC;
+  NullC.DirectStorage->DirectStorageC.DirectStorage;
+  NullC.VolumeSettings->DirectStorageC.DirectStorageSettings;
+  NullC.DiagMsg->DiagMsgC;
+  NullC.Leds->LedsC;
+  NullC.Timer->TimerMilliC;
+  NullC.SplitControl->SerialActiveMessageC;
 }
 
