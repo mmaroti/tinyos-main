@@ -1,0 +1,6 @@
+COMPONENT=NullAppC
+CFLAGS += -I$(SZTETOSDIR)/lib/pagestorage
+CFLAGS += -I$(TOSDIR)/lib/diagmsg
+CFLAGS += -DDIAGMSG_RECORDED_MSGS=100
+include $(MAKERULES)
+
