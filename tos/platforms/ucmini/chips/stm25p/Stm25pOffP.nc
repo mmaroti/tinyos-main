@@ -34,22 +34,32 @@
 
 module Stm25pOffP {
   provides interface Init as Stm25pOff;
+  #if UCMINI_REV > 100
+  uses interface GeneralIO as Toggle;
+  #else
   uses interface Resource as SpiResource;
   uses interface GeneralIO as CSN;
   uses interface GeneralIO as Hold;
   uses interface SpiByte;
+  #endif 
 }
 implementation {
 
   command error_t Stm25pOff.init() {
+    #if UCMINI_REV > 100
+    call Toggle.makeOutput();
+    call Toggle.set();
+    #else
     call CSN.makeOutput();
     call Hold.makeOutput();
     if(!uniqueCount("Stm25pOn")) {
       call SpiResource.request();
     }
+    #endif
     return SUCCESS;
   }
 
+  #if UCMINI_REV <=100
   event void SpiResource.granted() {
     if(!uniqueCount("Stm25pOn")) {//we got the granted event if the real driver asks for the resource
       call CSN.clr();
@@ -60,4 +70,5 @@ implementation {
       call SpiResource.release();
     }
   }
+  #endif
 }

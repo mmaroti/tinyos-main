@@ -39,6 +39,10 @@ implementation {
   components Stm25pOffP;
   Stm25pOff = Stm25pOffP;
   
+  #if UCMINI_REV > 100
+  components HplAtm128GeneralIOC;
+  Stm25pOffP.Toggle -> HplAtm128GeneralIOC.PortD6;
+  #else
   components HplStm25pSpiC as SpiC;
   Stm25pOffP.SpiResource -> SpiC;
   Stm25pOffP.SpiByte -> SpiC;
@@ -47,6 +51,6 @@ implementation {
   components HplStm25pPinsC as PinsC;
   Stm25pOffP.CSN -> PinsC.CSN;
   Stm25pOffP.Hold -> PinsC.Hold;
-
-    
+  #endif
+     
 }
