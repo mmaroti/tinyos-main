@@ -6,7 +6,7 @@
 #include	<avr/io.h>
 
 #define TIMEOUT 1000   //*10ms
-#define SERIAL_TRY 7500 //this takes about 10 ms
+#define SERIAL_TRY 10000 //this takes about 10 ms
 
 #ifdef _ATMEGA1281
   #define F_CPU 8000000
