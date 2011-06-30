@@ -7,7 +7,7 @@
 #include <qwt_series_data.h>
 #include "constants.h"
 
-/*class MoteData::PrivateData
+class MoteData::PrivateData
 {
 public:
     PrivateData():
@@ -42,7 +42,7 @@ public:
     QVector<QPointF> values;
     QRectF boundingRect;
 
-};*/
+};
 
 Sample::Sample()
 {
@@ -60,13 +60,13 @@ Sample::Sample()
 MoteData::MoteData()
 {
     //samples.reserve(RESERVED_SAMPLES);
-    //d_data = new PrivateData();
+    d_data = new PrivateData();
 }
 
 MoteData::~MoteData()
 {
     //samples.clear();
-    //delete d_data;
+    delete d_data;
 }
 
 void MoteData::setParam(Params param, int value)
@@ -91,7 +91,7 @@ void MoteData::setParam(Params param, double value)
     }
 }
 
-/*int MoteData::size() const
+int MoteData::size() const
 {
     return d_data->values.size();
 }
@@ -118,7 +118,7 @@ MoteData &MoteData::instance()
 {
     static MoteData valueVector;
     return valueVector;
-}*/
+}
 
 QString Sample::toCsvString() const
 {

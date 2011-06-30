@@ -75,8 +75,10 @@ MainWindow::MainWindow(QWidget *parent, Application &app):
     connect(btnCopy, SIGNAL(toggled(bool)), SLOT(enableCopyMode(bool)));
 
     btnPaste = new QToolButton(this);
-    btnPaste->setText("Paste");
+    btnPaste->setText("Paste");    
+    btnPaste->setCheckable(true);
     toolBar->addWidget(btnPaste);
+    connect(btnPaste, SIGNAL(toggled(bool)), SLOT(enablePasteMode(bool)));
 
     toolBar->addSeparator();
 
@@ -87,7 +89,7 @@ MainWindow::MainWindow(QWidget *parent, Application &app):
     d_picker->setTrackerPen(QColor(Qt::white));
 
     copyPositions.clear();
-    copySamples.clear();
+
 
     //connect(d_loadButton, SIGNAL(clicked()), this, SLOT(onLoadButtonPressed()));
     //connect(d_clearButton, SIGNAL(clicked()), this, SLOT(onClearButtonPressed()));
@@ -138,18 +140,20 @@ void MainWindow::clearCurveDatas()
     curve_datas.clear();
 }
 
+void MainWindow::clearCopyDatas()
+{
+    copyPositions.clear();
+
+}
+
 
 
 void MainWindow::onLoadFinished()
 {
 
+    calculateCurveDatas(1.0);
     d_plot->createZoomer();
 
-    calculateCurveDatas(1.0);
-
-    qDebug() << "PLOT DEBUG:";
-    qDebug() << "Canvas width: " << d_plot->canvas()->width() << ";";
-    qDebug() << "Number of curve points: " << curve_datas[0]->size();
 }
 
 void MainWindow::enableZoomMode(bool on)
@@ -233,9 +237,32 @@ void MainWindow::enableCutMode(bool on)
     }
 }
 
+void MainWindow::enablePasteMode(bool on)
+{
+    if(on == true){
+        btnZoom->setChecked(false);
+        btnMarker->setChecked(false);
+        btnCopy->setChecked(false);
+        btnCut->setChecked(false);
+
+        d_picker->setRubberBand(QwtPlotPicker::NoRubberBand);
+        d_picker->setRubberBandPen(QColor(Qt::green));
+        d_picker->setStateMachine(new QwtPickerDragPointMachine());
+
+        connect(d_picker, SIGNAL(selected(QPointF)), this, SLOT(paste(QPointF)));
+    } else {
+        d_picker->setRubberBand(QwtPlotPicker::NoRubberBand);
+
+        disconnect(d_picker, SIGNAL(selected(QPointF)), this, SLOT(paste(QPointF)));
+    }
+}
+
 void MainWindow::calculateCurveDatas(double zoomRatio)
 {
     clearCurveDatas();
+
+    qDebug() << "PLOT DEBUG:";
+    qDebug() << "Zoom ratio: " << zoomRatio;
 
     long int longestID = -1;
     int maxLength = 0;
@@ -252,7 +279,7 @@ void MainWindow::calculateCurveDatas(double zoomRatio)
 
     for(int i=0; i<application.moteDataHolder.motesCount(); i++){
 
-        long int samplesSize = application.moteDataHolder.mote(i)->samplesSize();
+        int samplesSize = application.moteDataHolder.mote(i)->samplesSize();
 
         int interval = (samplesSize/d_plot->canvas()->width()*zoomRatio) + 1;
         qDebug() << "Point interval: " << interval;
@@ -285,6 +312,10 @@ void MainWindow::calculateCurveDatas(double zoomRatio)
     d_plot->replot();
 
     //d_plot->createZoomer();
+
+
+    qDebug() << "Canvas width: " << d_plot->canvas()->width() << ";";
+    qDebug() << "Number of curve points: " << curve_datas[0]->size();
 }
 
 void MainWindow::createMarker(const QPointF &pos)
@@ -306,8 +337,7 @@ void MainWindow::copy(QRectF rect)
     double from = rect.bottomLeft().x();
     double to = rect.bottomRight().x();
 
-    copyPositions.clear();
-    copySamples.clear();
+    clearCopyDatas();
 
     qDebug() << "================";
     qDebug() << "Copy Positions";
@@ -316,19 +346,18 @@ void MainWindow::copy(QRectF rect)
 
         int begining = application.moteDataHolder.findNearestSample(from, i);
         qDebug() << begining << " , " << application.moteDataHolder.mote(i)->sampleAt(begining).unix_time << "; real time: " << from;
-        copyPositions.append(application.moteDataHolder.findNearestSample(from, i));
-
+        copyPositions.append(begining);
 
         int end = application.moteDataHolder.findNearestSample(to, i);
         qDebug() << end << " , " << application.moteDataHolder.mote(i)->sampleAt(end).unix_time << "; real time: " << to;
-        copyPositions.append(application.moteDataHolder.findNearestSample(to, i));
+        copyPositions.append(end);
     }
 
     QClipboard *clipboard = QApplication::clipboard();
     QString clipboardText;
     for(int j = 0; j < application.moteDataHolder.motesCount(); j++){
         for(int i = copyPositions.at(2*j); i < copyPositions.at(2*j+1); i++ ){
-            QString row = application.moteDataHolder.mote(j)->sampleAt(i).toCsvString()+"\n";
+            QString row = QString::number(j)+","+application.moteDataHolder.mote(j)->sampleAt(i).toCsvString()+"\n";
             clipboardText.append(row);
         }
     }
@@ -342,8 +371,7 @@ void MainWindow::cut(QRectF rect)
     double to = rect.bottomRight().x();
 
     int begining, end;
-    copyPositions.clear();
-    copySamples.clear();
+    clearCopyDatas();
 
     qDebug() << "================";
     qDebug() << "Copy Positions";
@@ -362,7 +390,7 @@ void MainWindow::cut(QRectF rect)
     QString clipboardText;
     for(int j = 0; j < application.moteDataHolder.motesCount(); j++){
         for(int i = copyPositions.at(2*j); i < copyPositions.at(2*j+1); i++ ){
-            QString row = application.moteDataHolder.mote(j)->sampleAt(i).toCsvString()+"\n";
+            QString row = QString::number(j)+","+application.moteDataHolder.mote(j)->sampleAt(i).toCsvString()+"\n";
             clipboardText.append(row);
         }
 
@@ -370,9 +398,25 @@ void MainWindow::cut(QRectF rect)
     }
     clipboard->setText(clipboardText);
     calculateCurveDatas(1.0);
+
 }
 
 void MainWindow::paste(QPointF pos)
 {
+    int from = pos.x();
+    int begining;
 
+    for(int j = 0; j < application.moteDataHolder.motesCount(); j++){
+        QVector<Sample> samples;
+        for(int i = copyPositions.at(2*j); i < copyPositions.at(2*j+1); i++ ){            
+            samples.append(application.moteDataHolder.mote(j)->sampleAt(i));
+        }
+        begining = application.moteDataHolder.findNearestSample(from, j);
+
+        for(int k = 0; k < samples.size(); k++){
+            application.moteDataHolder.mote(j)->insertSampleAt(begining++, samples.at(k));
+        }
+    }    
+
+    calculateCurveDatas(1.0);
 }

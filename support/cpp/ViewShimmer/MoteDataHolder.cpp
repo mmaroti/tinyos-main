@@ -58,7 +58,7 @@ void MoteDataHolder::loadCSVData(QString filename)
 
             while ( !line.isEmpty() && line != "#valami ?" )
             {
-                createSample(line);          //convert line string to sample
+                createSample(line, true);          //convert line string to sample
                 line = ts.readLine();         // line of text excluding '\n'
             }
 
@@ -99,7 +99,7 @@ void MoteDataHolder::createMoteData(const QString& line)
 }
 //#mote,reboot_ID,unix_time,mote_time,counter,accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z,volt,temp
 
-void MoteDataHolder::createSample(const QString& str)
+Sample& MoteDataHolder::createSample(const QString& str, bool load)
 {
     QStringList list = str.split(",");
     QStringListIterator csvIterator(list);
@@ -131,7 +131,9 @@ void MoteDataHolder::createSample(const QString& str)
         sample.temp = csvIterator.next().toInt();
     }
 
-    mote->appendSample(sample);
+    if(load) mote->appendSample(sample);
+
+    return sample;
 
 //    double time = sample.unix_time;
 //    double value = (sample.xAccel-2300)/12;

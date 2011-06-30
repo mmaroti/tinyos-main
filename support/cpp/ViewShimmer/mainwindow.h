@@ -39,6 +39,7 @@ public:
 
     void calculateCurveDatas(double zoomRatio);
     void clearCurveDatas();
+    void clearCopyDatas();
 
 
 Q_SIGNALS:
@@ -51,7 +52,7 @@ public Q_SLOTS:
     void enableZoomMode(bool);
     void enableMarkerMode(bool);
     void enableCopyMode(bool);
-    //void enablePasteMode(bool);
+    void enablePasteMode(bool);
     void enableCutMode(bool);
     void createMarker(const QPointF &  pos );
     void copy(QRectF);
@@ -78,7 +79,6 @@ private:
     QVector<QwtPlotMarker*> markers;
 
     QVector<int> copyPositions;
-    QVector<Sample> copySamples;
 };
 
 #endif

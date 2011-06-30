@@ -8,4 +8,8 @@
 #define C_TICKS 2       //constant hz and ticks values to use later
 #define RESERVED_SAMPLES 100000
 
+// ---===SD card downloader ===---
+#define SHORTREC 100
+#define NUMOFRECS 10 
+
 #endif // CONSTANTS_H

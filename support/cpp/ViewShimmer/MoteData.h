@@ -41,7 +41,7 @@ struct Sample
 class MoteData
 {
 public:
-    //static MoteData &instance();
+    static MoteData &instance();
     MoteData();
     ~MoteData();
 
@@ -77,20 +77,20 @@ public:
         samples.insert(i, sample);
     }
 
-    //int size() const;
+    int size() const;
 
     //MoteData *instance();
 
-    //QPointF value(int index) const;
+    QPointF value(int index) const;
 
-    //void append(const QPointF &pos);
+    void append(const QPointF &pos);
 
-    //QRectF boundingRect() const;
+    QRectF boundingRect() const;
 
 private:
 
-    //MoteData(const MoteData &);
-    //MoteData &operator=( const MoteData & );
+    MoteData(const MoteData &);
+    MoteData &operator=( const MoteData & );
 
     //virtual ~MoteData();
 
@@ -103,8 +103,8 @@ private:
     double skew_1;
     double offset;
 
-    //class PrivateData;
-    //PrivateData *d_data;
+    class PrivateData;
+    PrivateData *d_data;
 };
 
 
