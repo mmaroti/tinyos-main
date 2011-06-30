@@ -74,22 +74,7 @@ void initialize(void){
 	CLKPR=0xf;
 	#endif
 	//every GPIO is input, except  the leds
-    #if PLATFORM == IRIS
-    DDRA |= _BV(2);
-    DDRA |= _BV(1);
-    DDRA |= _BV(0);
-    PORTA = 7;//inverted logic
-    #elif PLATFORM == UCMINI049
-    DDRE |= _BV(3);
-    DDRE |= _BV(5);
-    DDRE |= _BV(6);
-    DDRE |= _BV(7);
-	#else
-	DDRE |= _BV(4);
-    DDRE |= _BV(5);
-    DDRE |= _BV(6);
-    DDRE |= _BV(7);
-    #endif
+    ledInit();
 	//turn on the the two farest leds
 	#if PLATFORM == IRIS
 	led0On();

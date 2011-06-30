@@ -62,81 +62,135 @@ int baudrateRegister(uint32_t baudrate) {
 
 //LEDS
 
+#if PLATFORM == IRIS
+  #define INVERTPOWER
+  #define LED0PORT PORTA
+  #define LED0DDR DDRA
+  #define LED0NUM 0
+  #define LED1PORT PORTA
+  #define LED1DDR DDRA
+  #define LED1NUM 1
+  #define LED2PORT PORTA
+  #define LED2DDR DDRA
+  #define LED2NUM 2
+#elif PLATFORM==UCDUAL
+  #define INVERTPOWER
+  #define LED0PORT PORTD
+  #define LED0DDR DDRD
+  #define LED0NUM 7
+  #define LED1PORT PORTD
+  #define LED1DDR DDRD
+  #define LED1NUM 6
+  #define LED2PORT PORTE
+  #define LED2DDR DDRE
+  #define LED2NUM 2
+  #define LED3PORT PORTE
+  #define LED3DDR DDRE
+  #define LED3NUM 3
+#elif PLATFORM==UCMINI049
+  #define LED0PORT PORTE
+  #define LED0DDR DDRE
+  #define LED0NUM 3
+  #define LED1PORT PORTE
+  #define LED1DDR DDRE
+  #define LED1NUM 5
+  #define LED2PORT PORTE
+  #define LED2DDR DDRE
+  #define LED2NUM 6
+  #define LED3PORT PORTE
+  #define LED3DDR DDRE
+  #define LED3NUM 7
+//other ucmini
+#else
+  #define LED0PORT PORTE
+  #define LED0DDR DDRE
+  #define LED0NUM 4
+  #define LED1PORT PORTE
+  #define LED1DDR DDRE
+  #define LED1NUM 5
+  #define LED2PORT PORTE
+  #define LED2DDR DDRE
+  #define LED2NUM 6
+  #define LED3PORT PORTE
+  #define LED3DDR DDRE
+  #define LED3NUM 7
+#endif
+
 void led0On(void) {
-  #if PLATFORM == IRIS
-  PORTA&=~_BV(PA0);
-  #elif PLATFORM == UCMINI049
-  PORTE|=_BV(PE3);
+  #ifdef INVERTPOWER
+    LED0PORT&=~_BV(LED0NUM);
   #else
-  PORTE|=_BV(PE4);
+    LED0PORT|=_BV(LED0NUM);
   #endif
 }
 
 void led1On(void) {
-  #if PLATFORM == IRIS
-  PORTA&=~_BV(PA1);
+  #ifdef INVERTPOWER
+    LED1PORT&=~_BV(LED1NUM);
   #else
-  PORTE|=_BV(PE5);
+    LED1PORT|=_BV(LED1NUM);
   #endif
 }
 
 void led2On(void) {
-  #if PLATFORM == IRIS
-  PORTA&=~_BV(PA2);
+  #ifdef INVERTPOWER
+    LED2PORT&=~_BV(LED2NUM);
   #else
-  PORTE|=_BV(PE6);
+    LED2PORT|=_BV(LED2NUM);
   #endif
 }
 
 void led3On(void) {
-  #if PLATFORM == IRIS
-  return;
+  #ifndef LED3PORT
+    return;
+  #endif
+  #ifdef INVERTPOWER
+    LED3PORT&=~_BV(LED3NUM);
   #else
-  PORTE|=_BV(PE7);
+    LED3PORT|=_BV(LED3NUM);
   #endif
 }
 
 void led0Off(void) {
-  #if PLATFORM == IRIS
-  PORTA|=_BV(PA0);
-  #elif PLATFORM == UCMINI049
-  PORTE&=~_BV(PE3);
+  #ifdef INVERTPOWER
+    LED0PORT|=_BV(LED0NUM);
   #else
-  PORTE&=~_BV(PE4);
+    LED0PORT&=~_BV(LED0NUM);
   #endif
 }
 
 void led1Off(void) {
-  #if PLATFORM == IRIS
-  PORTA|=_BV(PA1);
+  #ifdef INVERTPOWER
+    LED1PORT|=_BV(LED1NUM);
   #else
-  PORTE&=~_BV(PE5);
+    LED1PORT&=~_BV(LED1NUM);
   #endif
 }
 
 void led2Off(void) {
-  #if PLATFORM == IRIS
-  PORTA|=_BV(PA2);
+  #ifdef INVERTPOWER
+    LED2PORT|=_BV(LED2NUM);
   #else
-  PORTE&=~_BV(PE6);
+    LED2PORT&=~_BV(LED2NUM);
   #endif
 }
 
 void led3Off(void) {
-  #if PLATFORM == IRIS
-  return;
+  #ifndef LED3PORT
+    return;
+  #endif
+  #ifdef INVERTPOWER
+    LED3PORT|=_BV(LED3NUM);
   #else
-  PORTE&=~_BV(PE7);
+    LED3PORT&=~_BV(LED3NUM);
   #endif
 }
 
 void led0Toggle(void){
-  #if PLATFORM == IRIS
-  if( ~(PORTA&_BV(PA0)) )
-  #elif PLATFORM == UCMINI049
-  if( PORTE&_BV(PE3) )
+  #ifdef INVERTPOWER
+  if(~(LED0PORT&_BV(LED0NUM)))
   #else
-  if( PORTE&_BV(PE4) )
+  if(LED0PORT&_BV(LED0NUM))
   #endif
   {
 	led0Off();
@@ -145,10 +199,10 @@ void led0Toggle(void){
 }
 
 void led1Toggle(void){
-  #if PLATFORM == IRIS
-  if( ~(PORTA&_BV(PA1)) )
+  #ifdef INVERTPOWER
+  if(~(LED1PORT&_BV(LED1NUM)))
   #else
-  if( PORTE&_BV(PE5) )
+  if(LED1PORT&_BV(LED1NUM))
   #endif
   {
 	led1Off();
@@ -157,10 +211,10 @@ void led1Toggle(void){
 }
 
 void led2Toggle(void){
-  #if PLATFORM == IRIS
-  if( ~(PORTA&_BV(PA2)) )
+  #ifdef INVERTPOWER
+  if(~(LED2PORT&_BV(LED2NUM)))
   #else
-  if( PORTE&_BV(PE6) )
+  if(LED2PORT&_BV(LED2NUM))
   #endif
   {
 	led2Off();
@@ -169,14 +223,17 @@ void led2Toggle(void){
 }
 
 void led3Toggle(void){
-  #if PLATFORM == IRIS
+  #ifndef LED3PORT
   return;
+  #endif
+  #ifdef INVERTPOWER
+  if(~(LED3PORT&_BV(LED3NUM)))
   #else
-  if( PORTE&_BV(PE7) )
+  if(LED3PORT&_BV(LED3NUM))
+  #endif
   	led3Off();
   else 
 	led3On();
-  #endif
 }
 
 void ledSet(uint8_t val){
@@ -205,11 +262,21 @@ void ledSet(uint8_t val){
   }
 }
 
+void ledInit(void){
+  LED0DDR|=_BV(LED0NUM);
+  LED1DDR|=_BV(LED1NUM);
+  LED2DDR|=_BV(LED2NUM);
+  #ifdef LED3DDR
+  LED3DDR|=_BV(LED3NUM);
+  #endif
+  ledSet(0);
+}
+
 void status(uint16_t time_out)
 
 {
 //     ledSet((++count)/1000);
-  #if PLATFORM == IRIS
+  #ifndef LED3PORT
   if(time_out>2*TIMEOUT/3){
     ledSet(7);
   }else if(time_out>TIMEOUT/3){
