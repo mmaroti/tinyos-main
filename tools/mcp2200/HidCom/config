@@ -1,0 +1,8 @@
+#!/bin/sh
+while [ 1 ]
+do
+read
+./HidCom -s 16 10 0 0 0 2e 8c 0 0 04 e1
+read
+./mcp2200gpio -d /dev/usb/hiddev0 -n 4 -m spike
+done
