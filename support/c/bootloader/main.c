@@ -63,7 +63,7 @@ void BlockRead(unsigned int size, unsigned char mem, ADDR_T *address);
 
 #endif /* REMOVE_BLOCK_SUPPORT */
 
-uint16_t timeout=TIMEOUT;
+uint16_t timeout=TIMEOUT_CYCLES;
 
 //INITIALIZATION
 void initialize(void){ 
@@ -76,7 +76,7 @@ void initialize(void){
 	//every GPIO is input, except  the leds
     ledInit();
 	//turn on the the two farest leds
-	#if PLATFORM == IRIS
+	#ifndef LED3PORT
 	led0On();
 	led2On();
 	#else
@@ -151,7 +151,7 @@ int main(void)
             else if(val=='e')
             {  
 				ledSet(0);
-				#if PLATFORM == IRIS
+				#ifndef LED3PORT
 				led2On();
 				#else
 				led3On();

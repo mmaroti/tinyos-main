@@ -4,9 +4,15 @@
 //#define	_ATMEGA1281	// device select: _ATMEGAxxxx
 #define	_B4096	// boot size select: _Bxxxx (words), powers of two only
 #include	<avr/io.h>
+#ifndef TIMEOUT
+#define TIMEOUT 10 //in seconds (error: -1/128s..0)
+#endif
+#ifndef SERIAL_WAIT
+#define SERIAL_WAIT 255 // must be less then 256. 1 = 1/128 s
+#endif
 
-#define TIMEOUT 1000   //*10ms
-#define SERIAL_TRY 10000 //this takes about 10 ms
+//timeout in seconds=TIMEOUT*SERIAL_WAIT/128 (error: -1/128s..0)
+#define TIMEOUT_CYCLES TIMEOUT*128/SERIAL_WAIT
 
 #ifdef _ATMEGA1281
   #define F_CPU 8000000
@@ -62,9 +68,60 @@
 #define	PPINC
 #endif
 
-#ifndef __COUNTER_
-#define __COUNTER_
-uint32_t counter;
+//LEDS
+
+#if PLATFORM == IRIS
+  #define INVERTPOWER
+  #define LED0PORT PORTA
+  #define LED0DDR DDRA
+  #define LED0NUM 0
+  #define LED1PORT PORTA
+  #define LED1DDR DDRA
+  #define LED1NUM 1
+  #define LED2PORT PORTA
+  #define LED2DDR DDRA
+  #define LED2NUM 2
+#elif PLATFORM==UCDUAL
+  #define INVERTPOWER
+  #define LED0PORT PORTD
+  #define LED0DDR DDRD
+  #define LED0NUM 7
+  #define LED1PORT PORTD
+  #define LED1DDR DDRD
+  #define LED1NUM 6
+  #define LED2PORT PORTE
+  #define LED2DDR DDRE
+  #define LED2NUM 2
+  #define LED3PORT PORTE
+  #define LED3DDR DDRE
+  #define LED3NUM 3
+#elif PLATFORM==UCMINI049
+  #define LED0PORT PORTE
+  #define LED0DDR DDRE
+  #define LED0NUM 3
+  #define LED1PORT PORTE
+  #define LED1DDR DDRE
+  #define LED1NUM 5
+  #define LED2PORT PORTE
+  #define LED2DDR DDRE
+  #define LED2NUM 6
+  #define LED3PORT PORTE
+  #define LED3DDR DDRE
+  #define LED3NUM 7
+//other ucmini
+#else
+  #define LED0PORT PORTE
+  #define LED0DDR DDRE
+  #define LED0NUM 4
+  #define LED1PORT PORTE
+  #define LED1DDR DDRE
+  #define LED1NUM 5
+  #define LED2PORT PORTE
+  #define LED2DDR DDRE
+  #define LED2NUM 6
+  #define LED3PORT PORTE
+  #define LED3DDR DDRE
+  #define LED3NUM 7
 #endif
 
 int BRREG_VALUE;

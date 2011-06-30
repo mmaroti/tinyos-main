@@ -51,6 +51,12 @@ CDEFS += -DUCMINI=2
 CDEFS += -DUCDUAL=3
 CDEFS += -DPLATFORM=2
 
+#TIMEOUT options
+#timeout in seconds (error: -1/128s..0)
+#CDEFS += -DTIMEOUT=10
+#serial wait time for charachter before sending '?', in 1/128 s
+#CDEFS += -DSERIAL_WAIT=64
+
 # Place -I options here
 CINCS =
 
@@ -246,4 +252,6 @@ depend:
 
 prog: bootloader.hex
 	avrdude -cdragon_jtag -pm128rfa1 -Pusb -Uflash:w:bootloader.hex:a
+progmib: bootloader.hex
+	avrdude -cmib510 -pm128rfa1 -P/dev/ttyUSB0 -Uflash:w:bootloader.hex:a
 

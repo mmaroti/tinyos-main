@@ -45,6 +45,7 @@ void sendchar(unsigned char c)
 
 unsigned char recchar(void)
 {
+  uint8_t serial_wait;
   if (blinker){
 	ledSet(0);
     #if PLATFORM == IRIS
@@ -56,12 +57,19 @@ unsigned char recchar(void)
 		led1On();
     #endif
   }
-  counter=SERIAL_TRY;
-  while( (!(UART_STATUS_REG & (1 << RECEIVE_COMPLETE_BIT))) && (counter>0))
-  {
-    counter--;
-  }// wait for data
-  if (counter==0)
+  //counter=SERIAL_TRY;
+  ASSR = 1 << AS2;
+  TCCR2B = 1 << CS20;
+  serial_wait=0;
+  while( (!(UART_STATUS_REG & (1 << RECEIVE_COMPLETE_BIT))) && (serial_wait<SERIAL_WAIT)){// wait for data
+    if(TIFR2&(1<<TOV2)){
+      serial_wait++;
+      TIFR2=1<<TOV2;
+    }
+  }
+  ASSR = 0;
+  TCCR2B = 0;
+  if (serial_wait>=SERIAL_WAIT)
   {
     //sendchar('Q');
     return 255;

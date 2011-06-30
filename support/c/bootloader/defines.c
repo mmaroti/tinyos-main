@@ -1,7 +1,7 @@
 //#include "util/delay.h"
 #include "defines.h"
 #define MATCHES 50
-#define MAXERROR 1
+#define MAXERROR 2
 //SERIAL
 // number of CPU cycles per 1/512 sec
 uint16_t cycles;
@@ -60,62 +60,6 @@ int baudrateRegister(uint32_t baudrate) {
 	return cycles / (baudrate >> 6) - 1;
 }
 
-//LEDS
-
-#if PLATFORM == IRIS
-  #define INVERTPOWER
-  #define LED0PORT PORTA
-  #define LED0DDR DDRA
-  #define LED0NUM 0
-  #define LED1PORT PORTA
-  #define LED1DDR DDRA
-  #define LED1NUM 1
-  #define LED2PORT PORTA
-  #define LED2DDR DDRA
-  #define LED2NUM 2
-#elif PLATFORM==UCDUAL
-  #define INVERTPOWER
-  #define LED0PORT PORTD
-  #define LED0DDR DDRD
-  #define LED0NUM 7
-  #define LED1PORT PORTD
-  #define LED1DDR DDRD
-  #define LED1NUM 6
-  #define LED2PORT PORTE
-  #define LED2DDR DDRE
-  #define LED2NUM 2
-  #define LED3PORT PORTE
-  #define LED3DDR DDRE
-  #define LED3NUM 3
-#elif PLATFORM==UCMINI049
-  #define LED0PORT PORTE
-  #define LED0DDR DDRE
-  #define LED0NUM 3
-  #define LED1PORT PORTE
-  #define LED1DDR DDRE
-  #define LED1NUM 5
-  #define LED2PORT PORTE
-  #define LED2DDR DDRE
-  #define LED2NUM 6
-  #define LED3PORT PORTE
-  #define LED3DDR DDRE
-  #define LED3NUM 7
-//other ucmini
-#else
-  #define LED0PORT PORTE
-  #define LED0DDR DDRE
-  #define LED0NUM 4
-  #define LED1PORT PORTE
-  #define LED1DDR DDRE
-  #define LED1NUM 5
-  #define LED2PORT PORTE
-  #define LED2DDR DDRE
-  #define LED2NUM 6
-  #define LED3PORT PORTE
-  #define LED3DDR DDRE
-  #define LED3NUM 7
-#endif
-
 void led0On(void) {
   #ifdef INVERTPOWER
     LED0PORT&=~_BV(LED0NUM);
@@ -141,13 +85,12 @@ void led2On(void) {
 }
 
 void led3On(void) {
-  #ifndef LED3PORT
-    return;
-  #endif
-  #ifdef INVERTPOWER
-    LED3PORT&=~_BV(LED3NUM);
-  #else
-    LED3PORT|=_BV(LED3NUM);
+  #ifdef LED3PORT
+    #ifdef INVERTPOWER
+      LED3PORT&=~_BV(LED3NUM);
+    #else
+      LED3PORT|=_BV(LED3NUM);
+    #endif
   #endif
 }
 
@@ -176,13 +119,12 @@ void led2Off(void) {
 }
 
 void led3Off(void) {
-  #ifndef LED3PORT
-    return;
-  #endif
-  #ifdef INVERTPOWER
-    LED3PORT|=_BV(LED3NUM);
-  #else
-    LED3PORT&=~_BV(LED3NUM);
+  #ifdef LED3PORT
+    #ifdef INVERTPOWER
+      LED3PORT|=_BV(LED3NUM);
+    #else
+      LED3PORT&=~_BV(LED3NUM);
+    #endif
   #endif
 }
 
@@ -223,17 +165,16 @@ void led2Toggle(void){
 }
 
 void led3Toggle(void){
-  #ifndef LED3PORT
-  return;
+  #ifdef LED3PORT
+    #ifdef INVERTPOWER
+    if(~(LED3PORT&_BV(LED3NUM)))
+    #else
+    if(LED3PORT&_BV(LED3NUM))
+    #endif
+      led3Off();
+    else 
+      led3On();
   #endif
-  #ifdef INVERTPOWER
-  if(~(LED3PORT&_BV(LED3NUM)))
-  #else
-  if(LED3PORT&_BV(LED3NUM))
-  #endif
-  	led3Off();
-  else 
-	led3On();
 }
 
 void ledSet(uint8_t val){
@@ -277,19 +218,19 @@ void status(uint16_t time_out)
 {
 //     ledSet((++count)/1000);
   #ifndef LED3PORT
-  if(time_out>2*TIMEOUT/3){
+  if(time_out>2*TIMEOUT_CYCLES/3){
     ledSet(7);
-  }else if(time_out>TIMEOUT/3){
+  }else if(time_out>TIMEOUT_CYCLES/3){
     ledSet(3);
   }else{
     ledSet(1);
   }
   #else
-  if(time_out>3*TIMEOUT/4){
+  if(time_out>3*TIMEOUT_CYCLES/4){
     ledSet(15);
-  }else if(time_out>2*TIMEOUT/4){
+  }else if(time_out>2*TIMEOUT_CYCLES/4){
     ledSet(7);
-  }else if(time_out>TIMEOUT/4){
+  }else if(time_out>TIMEOUT_CYCLES/4){
     ledSet(3);
   }else{
     ledSet(1);
