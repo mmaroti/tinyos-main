@@ -42,7 +42,13 @@ configuration LedsC {
   provides interface Leds;
 }
 implementation {
-  components LedsP, PlatformLedsC;
+  components PlatformLedsC;
+  #if UCDUAL_REV==1
+    components Leds01P as LedsP;
+  #else
+    components LedsP;
+  #endif
+  
 
   Leds = LedsP;
 
