@@ -15,7 +15,7 @@ public:
 
     void loadCSVData( QString filename );
     void createMoteData( const QString& line );
-    Sample& createSample(const QString& str, bool load);
+    const Sample createSample(const QString& str, bool load);
     MoteData* findMoteID(int id);
 
     int motesCount() { return motes.size(); }

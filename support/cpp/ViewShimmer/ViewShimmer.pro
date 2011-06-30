@@ -4,7 +4,7 @@
 TARGET = ViewShimmer
 TEMPLATE = app
 
-INCLUDEPATH += ../qwt-6.0.0-rc5\src
+INCLUDEPATH += ../qwt-6.0.0-rc5/src
 
 QMAKE_LIBDIR += ../qwt-6.0.0-rc5/lib
 

@@ -99,7 +99,8 @@ void MoteDataHolder::createMoteData(const QString& line)
 }
 //#mote,reboot_ID,unix_time,mote_time,counter,accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z,volt,temp
 
-Sample& MoteDataHolder::createSample(const QString& str, bool load)
+
+const Sample MoteDataHolder::createSample(const QString& str, bool load)
 {
     QStringList list = str.split(",");
     QStringListIterator csvIterator(list);

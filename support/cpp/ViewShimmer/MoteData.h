@@ -65,7 +65,7 @@ public:
         return samples[i];
     }
 
-    const long int samplesSize() const {
+    long int samplesSize() const {
         return samples.size();
     }
 
