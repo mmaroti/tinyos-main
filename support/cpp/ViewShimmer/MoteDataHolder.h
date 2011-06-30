@@ -21,7 +21,7 @@ public:
     int motesCount() { return motes.size(); }
 
     MoteData* mote(int i){
-            return motes[i];
+            return motes[i]; // BUG Segmentation fault
     }
 
     void clearMotes() {

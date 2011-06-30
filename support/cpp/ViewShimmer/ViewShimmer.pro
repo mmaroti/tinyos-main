@@ -4,16 +4,13 @@
 TARGET = ViewShimmer
 TEMPLATE = app
 
-INCLUDEPATH += ../qwt-6.0.0-rc5/src
+# See http://doc.qt.nokia.com/4.7/qmake-advanced-usage.html#adding-new-configuration-features
+# and qwt-6.0.0/INSTALL, last section "Using Qwt"
+CONFIG += qwt
 
-QMAKE_LIBDIR += ../qwt-6.0.0-rc5/lib
-
-LIBS += -lqwtd
 win32:LIBS += -lsetupapi
 
-
-DEFINES += QT_DLL \
-    QWTD_DLL
+DEFINES += QT_DLL
 
 SOURCES += main.cpp \
     Application.cpp \

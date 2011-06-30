@@ -97,7 +97,8 @@ Plot::Plot(QWidget *parent, Application& app):
 
     setAutoReplot(false);
     // We don't need the cache here
-    canvas()->setPaintAttribute(QwtPlotCanvas::PaintCached, false);
+    // API Change?
+    //canvas()->setPaintAttribute(QwtPlotCanvas::PaintCached, false);
     //canvas()->setPaintAttribute(QwtPlotCanvas::PaintPacked, false);
 
 
@@ -216,7 +217,7 @@ void Plot::createZoomer()
 void Plot::enableZoomMode(bool on)
 {
     if(d_zoomer != NULL){
-        d_zoomer->setEnabled(on);
+        d_zoomer->setEnabled(on); // BUG Segmentation fault
         //d_zoomer->zoom(0);
     }
 
