@@ -53,14 +53,10 @@ implementation
   components HplAtm128GeneralIOC;
   #if UCMINI_REV==49
     PlatformP.Voltmeter -> HplAtm128GeneralIOC.PortF0;
-  #endif  
-
-  #if (UCMINI_REV >=50) && (UCMINI_REV<=53)
+  #elif (UCMINI_REV >=50) && (UCMINI_REV<=53)
     PlatformP.VBattAdc -> HplAtm128GeneralIOC.PortF2;
     PlatformP.VMeasureBridge -> HplAtm128GeneralIOC.PortD6;
-  #endif
-
-  #if (UCMINI_REV>=100)
+  #else
     PlatformP.VBattADC -> HplAtm128GeneralIOC.PortF2;
     PlatformP.VMeasureBridge -> HplAtm128GeneralIOC.PortF0;
   #endif
