@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,48 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef RECORDID_HPP_
+#define RECORDID_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <iosfwd>
+#include <string>
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class RecordID {
+
+public:
+
+	RecordID();
+
+	RecordID(int mote_id, int reboot);
+
+	const std::string str() const;
+
+	const std::string toFilenameString() const;
+
+	friend bool operator<(const RecordID& lhs, const RecordID& rhs);
+
+	friend bool operator==(const RecordID& lhs, const RecordID& rhs);
+
+	friend std::ostream& operator<<(std::ostream& , const RecordID& );
+
+	friend class MoteInfo; // These could have been avoided by using SQLite
+
+	friend class RecordInfo;
+
+private:
+
+	int mote_ID;
+
+	int reboot_ID;
+};
+
+bool operator!=(const RecordID& lhs, const RecordID& rhs);
 
 }
 
+#endif /* RECORDID_HPP_ */

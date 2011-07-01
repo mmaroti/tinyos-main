@@ -28,23 +28,39 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include "Application.h"
+#include <stdexcept>
+#include "BlockIterator.hpp"
+#include "BlockRelatedConsts.hpp"
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
+namespace sdc {
+
+BlockIterator::BlockIterator(const char* block)
+	: end(block+BLOCK_SIZE), itr(block)
 {
-    window.resize(800,400);
-    window.show();
-
-    //sdataWidget.show();
-
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
 
 }
 
+// TODO Runtime check for header and sample length?
+void BlockIterator::check_range() {
+	// TODO Also out of range if itr==end-1
+	if (itr >= end) {
+		throw std::out_of_range("block iterator");
+	}
+}
+
+uint16 BlockIterator::next_uint16() {
+	uint16 x = *reinterpret_cast<const uint16*> (itr);
+	itr += 2;
+	return x;
+}
+
+uint32 BlockIterator::next_uint32() {
+	uint32 x = *reinterpret_cast<const uint32*> (itr);
+	itr += 4;
+	return x;
+}
+
+}

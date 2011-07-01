@@ -28,23 +28,79 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef SAMPLECHECKER_HPP_
+#define SAMPLECHECKER_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include "Header.hpp"
+#include "Sample.hpp"
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class BlockIterator;
+
+class BlockChecker {
+
+public:
+
+	explicit BlockChecker(int mote_id);
+
+	void set_current_header(BlockIterator& i, int block_offset);
+
+	void mote_id() const;
+
+	bool finished() const;
+
+	bool datalength() const;
+
+	bool reboot() const;
+
+	unsigned int length_in_ticks() const;
+
+	void set_current(const Sample& s);
+
+	void shift_timestamp(Sample& s) const;
+
+	bool time_sync_info_is_new() const;
+
+	const Header& get_timesync() const;
+
+private:
+
+	BlockChecker(const BlockChecker& );
+
+	BlockChecker& operator=(const BlockChecker& );
+
+	void reset(int first_block);
+	void check_for_new_reboot();
+	void check_for_new_timesync();
+	void check_first_block() const;
+	void check_counter_equals_one() const;
+	void check_counter() const;
+	void check_timestamp() const;
+	void assert_positive_time_start() const;
+
+	const int mote_ID;
+
+	int local_start;
+	unsigned int time_start;
+	bool set_time_start;
+	bool new_record;
+	bool new_time_sync_info;
+
+	int block_offset;
+	int samples_processed;
+
+	Header timesync;
+	Header header;
+
+	Sample previous;
+	Sample current;
+
+};
 
 }
 
+#endif

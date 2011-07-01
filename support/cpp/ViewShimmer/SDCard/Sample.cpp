@@ -28,23 +28,47 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include "Application.h"
+#include <ostream>
+#include "Sample.hpp"
+#include "BlockIterator.hpp"
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+using namespace std;
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+const char SEPARATOR    = ',';
 
+Sample::Sample(BlockIterator& itr) {
+
+	time_stamp = itr.next_uint32();
+	seq_num    = itr.next_uint16();
+	acc_x      = itr.next_uint16();
+	acc_y      = itr.next_uint16();
+	acc_z      = itr.next_uint16();
+	gyro_x     = itr.next_uint16();
+	gyro_y     = itr.next_uint16();
+	gyro_z     = itr.next_uint16();
+	volt       = itr.next_uint16();
+	temp       = itr.next_uint16();
 }
 
+ostream& operator<<(ostream& out, const Sample& s) {
+
+	out << s.time_stamp << SEPARATOR;
+	out << s.seq_num    << SEPARATOR;
+	out << s.acc_x      << SEPARATOR;
+	out << s.acc_y      << SEPARATOR;
+	out << s.acc_z      << SEPARATOR;
+	out << s.gyro_x     << SEPARATOR;
+	out << s.gyro_y     << SEPARATOR;
+	out << s.gyro_z     << SEPARATOR;
+	out << s.volt       << SEPARATOR;
+	out << s.temp       << '\n';
+
+	return out;
+}
+
+}

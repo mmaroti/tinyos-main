@@ -28,23 +28,32 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifdef _WIN32
+#ifndef WINBLOCKDEVICE_H_
+#define WINBLOCKDEVICE_H_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <stdint.h>
+#include <windows.h>
 
-    //sdataWidget.show();
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+const char* read_device_block(PHANDLE pHandle, int i, char* buffer, const unsigned int BLOCK_SIZE);
 
+int64_t card_size_in_bytes(const wchar_t* drive, PHANDLE pHandle);
+
+void close_device(PHANDLE pHandle);
+
+unsigned long error_code();
+
+#ifdef __cplusplus
 }
+#endif
 
+#endif
+
+#endif

@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,63 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#include "Application.h"
+#include <ostream>
+#include <string>
+#include <stdexcept>
+#include "RecordPairID.hpp"
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+using namespace std;
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+RecordPairID::RecordPairID(const RecordID& rid1, const RecordID& rid2) {
 
+	if (rid1 == rid2) {
+
+		string msg("record cannot be in pair with itself, ");
+
+		msg.append(rid1.str());
+
+		throw logic_error(msg);
+	}
+
+	if (rid1 < rid2) {
+
+		id1 = rid1, id2 = rid2;
+	}
+	else {
+
+		id1 = rid2, id2 = rid1;
+	}
 }
 
+bool RecordPairID::isFirst(const RecordID& rid) const {
+
+    return id1 == rid;
+}
+
+bool operator<(const RecordPairID& lhs, const RecordPairID& rhs) {
+
+	return lhs.id1!=rhs.id1 ? lhs.id1 < rhs.id1 : lhs.id2 < rhs.id2;
+}
+
+ostream& operator<<(ostream& out, const RecordPairID& id) {
+
+	out << "record pair: " << id.id1 << " and " << id.id2;
+
+	return out;
+}
+
+const string RecordPairID::toFilenameString() const {
+
+	string s(id1.toFilenameString());
+	s.append(1, '_');
+	s.append(id2.toFilenameString());
+
+	return s;
+}
+
+}

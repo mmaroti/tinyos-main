@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,50 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef LINE_HPP_
+#define LINE_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <iosfwd>
+#include <string>
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class Line {
+
+public:
+
+	explicit Line(const std::string& line);
+
+	Line(int first, int last, int reboot_id, unsigned int time_len);
+
+	void consistent_with(const Line& previous) const;
+
+	int start_at_block() const;
+
+	int finished_at_block() const;
+
+	int reboot_id() const;
+
+	const std::string& record_length() const;
+
+	const std::string& download_date() const;
+
+	friend std::ostream& operator<<(std::ostream& , const Line& );
+
+private:
+
+	int first_block;
+	int last_block;
+	int reboot;
+	std::string time_length;
+	std::string computed_length;
+	std::string date;
+
+};
 
 }
 
+#endif /* LINE_HPP_ */

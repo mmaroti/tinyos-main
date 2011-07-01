@@ -28,23 +28,55 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef SDCARDIMPL_HPP_
+#define SDCARDIMPL_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <memory>
+#include "TypeDefs.hpp"
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class BlockDevice;
+class BlockChecker;
+class BlockIterator;
+class Writer;
+class Tracker;
+
+class SDCardImpl {
+
+public:
+
+	explicit SDCardImpl(BlockDevice* source);
+
+	void process_new_measurements();
+
+	double size_GB() const;
+
+	~SDCardImpl();
+
+private:
+
+	SDCardImpl(const SDCardImpl& );
+	SDCardImpl& operator=(const SDCardImpl& );
+
+	void close_out_if_open();
+	void check_for_reboot();
+	void write_samples(BlockIterator& itr);
+	void write_time_sync_info();
+	bool process_block(const char* block);
+	void init_tracker();
+
+	const std::auto_ptr<BlockDevice> device;
+	const std::auto_ptr<Writer> out;
+	std::auto_ptr<Tracker> tracker;
+	std::auto_ptr<BlockChecker> check;
+	int block_offset;
+	int reboot_seq_num;
+};
 
 }
 
+#endif

@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,37 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef RECORDPAIRID_HPP_
+#define RECORDPAIRID_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <iosfwd>
+#include "RecordID.hpp"
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class RecordPairID {
+
+public:
+
+	RecordPairID(const RecordID& rid1, const RecordID& rid2);
+
+	bool isFirst(const RecordID& rid) const;
+
+	friend bool operator<(const RecordPairID& lhs, const RecordPairID& rhs);
+
+	friend std::ostream& operator<<(std::ostream& , const RecordPairID& );
+
+	const std::string toFilenameString() const;
+
+private:
+
+	RecordID id1;
+	RecordID id2;
+};
 
 }
 
+#endif /* RECORDPAIRID_HPP_ */

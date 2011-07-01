@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,55 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef TIMESYNCDB_HPP_
+#define TIMESYNCDB_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <string>
+#include "VirtualMoteID.hpp"
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class TimeSyncDB {
+
+typedef std::map<VirtualMoteID, std::string> Map;
+typedef std::pair<Map::iterator, bool> Pair;
+
+public:
+
+	TimeSyncDB() { }
+
+	void read_all();
+
+	const std::string date(const VirtualMoteID& vmote_id) const;
+
+	~TimeSyncDB();
+
+private:
+
+	TimeSyncDB(const TimeSyncDB& );
+	TimeSyncDB& operator=(const TimeSyncDB& );
+
+	void grab_line();
+
+	void parse_line();
+
+	void parse();
+
+	void push();
+
+	std::auto_ptr<std::ifstream> in;
+	Map motes;
+	VirtualMoteID vmote_id;
+	std::string date_seen;
+	std::string line;
+};
 
 }
 
+#endif /* TIMESYNCDB_HPP_ */

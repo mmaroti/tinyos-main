@@ -38,6 +38,7 @@
 #include <QObject>
 #include "MoteDataHolder.h"
 #include "mainwindow.h"
+#include "SDataWidget.h"
 
 class Application : public QObject
 {
@@ -50,6 +51,7 @@ public:
 public:
         MoteDataHolder moteDataHolder;
         MainWindow window;
+        SDataWidget sdataWidget;
 };
 
 #endif // APPLICATION_H

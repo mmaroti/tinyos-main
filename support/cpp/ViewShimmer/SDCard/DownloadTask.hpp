@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,45 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef DOWNLOADTASK_HPP
+#define DOWNLOADTASK_HPP
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <memory>
+#include <QObject>
+#include <QRunnable>
 
-    //sdataWidget.show();
+class QString;
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+namespace sdc {
+
+class SDCardCreator;
+
+class DownloadTask : public QObject, public QRunnable {
+
+    Q_OBJECT
+
+public:
+
+    DownloadTask(const SDCardCreator* source);
+
+    ~DownloadTask();
+
+signals:
+
+    void downloadFinished(bool error, const QString& error_msg);
+
+private:
+
+    virtual void run();
+
+    void processMeasurements();
+
+    const std::auto_ptr<const SDCardCreator> source;
+};
 
 }
 
+#endif // DOWNLOADTASK_HPP

@@ -28,23 +28,49 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef SAMPLE_HPP_
+#define SAMPLE_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <iosfwd>
+#include "TypeDefs.hpp"
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class BlockIterator;
+
+class Sample {
+
+public:
+
+	Sample() { }
+
+	explicit Sample(BlockIterator& itr);
+
+	void shift_timestamp(uint32 time_start) { time_stamp -= time_start; }
+
+	uint32 timestamp() const { return time_stamp; }
+
+	uint16 counter() const { return seq_num; }
+
+	friend std::ostream& operator<<(std::ostream& , const Sample& );
+
+private:
+
+	uint32 time_stamp;
+	uint16 seq_num;
+	uint16 acc_x;
+	uint16 acc_y;
+	uint16 acc_z;
+	uint16 gyro_x;
+	uint16 gyro_y;
+	uint16 gyro_z;
+	uint16 volt;
+	uint16 temp;
+};
 
 }
 
+#endif

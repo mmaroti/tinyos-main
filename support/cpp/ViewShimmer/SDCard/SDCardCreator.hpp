@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,62 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef SDCARDCREATOR_HPP_
+#define SDCARDCREATOR_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <string>
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class SDCard;
+
+class SDCardCreator {
+
+public:
+
+	SDCardCreator(const std::string& path) : source(path) {	}
+
+	virtual SDCard* create() const = 0;
+
+	virtual ~SDCardCreator() { }
+
+protected:
+
+	const std::string source;
+
+private:
+
+	SDCardCreator& operator=(const SDCardCreator& );
+
+};
+
+class FileAsSDCard : public SDCardCreator {
+
+public:
+
+	FileAsSDCard(const std::string& path) : SDCardCreator(path) { }
+
+private:
+
+	SDCard* create() const;
+
+};
+
+class RealSDCard : public SDCardCreator {
+
+public:
+
+	RealSDCard(const std::string& path) : SDCardCreator(path) { }
+
+private:
+
+	SDCard* create() const;
+
+};
 
 }
 
+#endif /* SDCARDCREATOR_HPP_ */

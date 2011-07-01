@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,41 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef MOTEHEADER_HPP
+#define MOTEHEADER_HPP
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <QDateTime>
+#include <QString>
 
-    //sdataWidget.show();
+class MoteHeader {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+public:
 
-}
+    MoteHeader();
 
+    MoteHeader(int mote_id,
+               const QDateTime& last_download,
+               const char* remaining_hours,
+               int number_of_records);
+
+    int mote_id() const;
+
+    const QDateTime& last_download() const;
+
+    const QString& remaining_hours() const;
+
+    int number_of_records() const;
+
+private:
+
+    int mote;
+    QDateTime date_of_last_download;
+    QString hours_remaining;
+    int num_of_records;
+
+};
+
+#endif // MOTEHEADER_HPP

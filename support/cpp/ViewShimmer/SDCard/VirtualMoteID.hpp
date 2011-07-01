@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,49 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef VIRTUALMOTEID_HPP_
+#define VIRTUALMOTEID_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <iosfwd>
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class TimeSyncInfo;
+
+class VirtualMoteID {
+
+public:
+
+	VirtualMoteID();
+
+	VirtualMoteID(int mote_id, int first_block);
+
+	VirtualMoteID(const TimeSyncInfo& msg);
+
+	int mote_id() const;
+
+	int first_block() const;
+
+	friend std::ostream& operator<<(std::ostream& , const VirtualMoteID& );
+
+	friend std::istream& operator>>(std::istream& , VirtualMoteID& );
+
+	friend bool operator==(const VirtualMoteID& lhs, const VirtualMoteID& rhs);
+
+private:
+
+	int mote_ID;
+
+	int start_at_block;
+};
+
+bool operator!=(const VirtualMoteID& lhs, const VirtualMoteID& rhs);
+
+bool operator<(const VirtualMoteID& lhs, const VirtualMoteID& rhs);
 
 }
 
+#endif /* VIRTUALMOTEID_HPP_ */

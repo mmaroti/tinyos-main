@@ -28,23 +28,22 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef CONSTANTS_HPP_
+#define CONSTANTS_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+namespace sdc {
 
-    //sdataWidget.show();
+const char MOTE_ID_DB[]   = "motes.mdb";
+const char MOTE_DATE_DB[] = "motes.ddb";
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+const unsigned int TICKS_PER_SEC = 32768;
+const unsigned int SAMPLING_RATE = 160;
+const int TOLERANCE = 22;
 
 }
+
+#endif
 

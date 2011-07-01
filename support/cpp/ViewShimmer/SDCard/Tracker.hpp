@@ -28,23 +28,63 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef TRACKER_HPP_
+#define TRACKER_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <iosfwd>
+#include <memory>
+#include <string>
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class BlockIterator;
+
+class Tracker {
+
+public:
+
+	explicit Tracker(BlockIterator& zeroth_block);
+
+	int start_from_here() const;
+
+	int reboot() const;
+
+	int mote_id() const;
+
+	void mark_beginning(int block_beg, int reboot);
+
+	void append_to_db(int block_end, unsigned int time_len);
+
+	~Tracker();
+
+private:
+
+	Tracker(const Tracker& );
+
+	Tracker& operator=(const Tracker& );
+
+	void set_filename(int mote_ID);
+
+	void set_first_block_reboot_id();
+
+	void find_last_line(std::ifstream& in);
+
+	void process_last_line(const std::string& line);
+
+	const std::auto_ptr<std::ofstream> db;
+
+	std::string filename;
+
+	int first_block;
+
+	int reboot_id;
+
+	int mote_ID;
+};
 
 }
 
+#endif

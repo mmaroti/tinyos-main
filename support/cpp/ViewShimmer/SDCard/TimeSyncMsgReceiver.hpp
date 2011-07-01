@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,39 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef TIMESYNCMSGRECEIVER_HPP
+#define TIMESYNCMSGRECEIVER_HPP
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <set>
+#include <QMutex>
+#include <QObject>
+#include "VirtualMoteID.hpp"
 
-    //sdataWidget.show();
+class ActiveMessage;
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class TimeSyncMsgReceiver : public QObject {
 
-}
+    Q_OBJECT
 
+public:
+
+    TimeSyncMsgReceiver() { }
+
+public slots:
+
+    void onReceiveMessage(const ActiveMessage& msg);
+
+private:
+
+    TimeSyncMsgReceiver(const TimeSyncMsgReceiver& );
+    TimeSyncMsgReceiver& operator=(const TimeSyncMsgReceiver& );
+
+    QMutex setLock;
+
+    std::set<sdc::VirtualMoteID> motes;
+};
+
+#endif // TIMESYNCMSGRECEIVER_HPP

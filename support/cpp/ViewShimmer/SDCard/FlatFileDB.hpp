@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,47 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef FLATFILEDB_HPP_
+#define FLATFILEDB_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <string>
+#include <vector>
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class Line;
+
+class FlatFileDB {
+
+public:
+
+	FlatFileDB(int mote_id);
+
+	int reboot(int first_block) const;
+
+	int first_block(int reboot) const;
+
+	int length_in_ms(int reboot) const;
+
+	int number_of_records() const;
+
+private:
+
+	FlatFileDB(const FlatFileDB& );
+	FlatFileDB& operator=(const FlatFileDB& );
+
+	int read_file(std::ifstream& in);
+	void push_back(const std::string& line, Line& previous);
+	void throw_not_downloaded_error() const;
+
+	const int mote_id;
+	std::vector<int> record;
+	int size;
+};
 
 }
 
+#endif /* FLATFILEDB_HPP_ */

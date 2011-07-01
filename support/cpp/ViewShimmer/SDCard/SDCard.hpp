@@ -28,23 +28,45 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef SDCARD_HPP_
+#define SDCARD_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <memory>
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class SDCardImpl;
+
+class BlockDevice;
+
+class SDCard {
+
+public:
+
+	static SDCard* from_file(const char* filename);
+
+	static SDCard* from_win32_drive(const char* drive);
+
+	double size_GB() const;
+
+	void process_new_measurements();
+
+	~SDCard();
+
+private:
+
+	explicit SDCard(BlockDevice* source);
+
+	SDCard(const SDCard& );
+
+	SDCard& operator=(const SDCard& );
+
+	const std::auto_ptr<SDCardImpl> impl;
+};
 
 }
 
+#endif

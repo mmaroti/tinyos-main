@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,34 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef DOWNLOADMANAGER_HPP
+#define DOWNLOADMANAGER_HPP
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+class QString;
 
-    //sdataWidget.show();
+class SDataWidget;
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+namespace sdc {
+
+class SDCardCreator;
+
+class DownloadManager {
+
+public:
+
+    void startDownloading(const QString& path, const SDataWidget* call_me_back) const;
+
+    void startProcessingFile(const QString& path, const SDataWidget* call_me_back) const;
+
+private:
+
+    void start(SDCardCreator* source, const SDataWidget* widget) const;
+
+};
 
 }
 
+#endif // DOWNLOADMANAGER_HPP

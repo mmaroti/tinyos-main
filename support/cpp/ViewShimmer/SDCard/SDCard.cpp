@@ -28,23 +28,46 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include "Application.h"
+#include "SDCard.hpp"
+#include "SDCardImpl.hpp"
+#include "FileAsBlockDevice.hpp"
+#include "Win32BlockDevice.hpp"
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+namespace sdc {
 
-    //sdataWidget.show();
+SDCard* SDCard::from_file(const char* filename) {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+	BlockDevice* source = new FileAsBlockDevice(filename);
+
+	return new SDCard(source);
+}
+
+SDCard* SDCard::from_win32_drive(const char* drive) {
+
+	BlockDevice* source = new Win32BlockDevice(drive);
+
+	return new SDCard(source);
+}
+
+SDCard::SDCard(BlockDevice* source) : impl(new SDCardImpl(source)) {
 
 }
 
+void SDCard::process_new_measurements() {
+
+	impl->process_new_measurements();
+}
+
+double SDCard::size_GB() const {
+
+	return impl->size_GB();
+}
+
+SDCard::~SDCard() {
+	// Do NOT remove this empty dtor: required to generate the dtor of auto_ptr
+}
+
+}

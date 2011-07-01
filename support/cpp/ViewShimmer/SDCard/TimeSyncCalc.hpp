@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, 2011 University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,39 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef TIMESYNCCALC_HPP_
+#define TIMESYNCCALC_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <vector>
+#include "TimeSyncData.hpp"
 
-    //sdataWidget.show();
+class LinearEquations;
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+namespace sdc {
+
+class RecordID;
+class TimeSyncMerger;
+
+typedef std::pair<unsigned int, unsigned int> Pair;
+
+class TimeSyncCalc {
+
+public:
+
+    TimeSyncCalc(const TimeSyncMerger& merger, const RecordID& rid, TimeSyncData* data, int length);
+
+private:
+
+    const TimeSyncData compute_skew_offset(const std::vector<Pair>& sync_points) const;
+
+    void add_equation(LinearEquations& lin_eq, const Pair& pair) const;
+
+    bool swap_pairs;
+};
 
 }
 
+#endif // TIMESYNCCALC_HPP_

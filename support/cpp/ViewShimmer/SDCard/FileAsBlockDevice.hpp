@@ -28,23 +28,48 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef FILEASBLOCKDEVICE_HPP_
+#define FILEASBLOCKDEVICE_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <iosfwd>
+#include <memory>
+#include "BlockDevice.hpp"
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class FileAsBlockDevice : public BlockDevice {
+
+public:
+
+	explicit FileAsBlockDevice(const char* source);
+
+private:
+
+	virtual const char* read_block(int i);
+
+	virtual int end() const;
+
+	virtual double size_GB() const;
+
+	virtual unsigned long error_code() const;
+
+	virtual ~FileAsBlockDevice();
+
+	void setBlockOffsetMax();
+
+	const std::auto_ptr<std::ifstream> in;
+
+	const std::auto_ptr<char> buffer;
+
+	int BLOCK_OFFSET_MAX;
+
+	double card_size;
+
+};
 
 }
 
+#endif

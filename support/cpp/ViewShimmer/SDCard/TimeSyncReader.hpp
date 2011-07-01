@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,45 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef TIMESYNCREADER_HPP_
+#define TIMESYNCREADER_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <iosfwd>
+#include <list>
+#include <memory>
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class TimeSyncInfo;
+
+class TimeSyncReader {
+
+public:
+
+	TimeSyncReader(int mote_id, int reboot_id, int first_block);
+
+	 const std::list<TimeSyncInfo>& messages_as_list() const;
+
+	~TimeSyncReader();
+
+private:
+
+	TimeSyncReader(const TimeSyncReader& );
+	TimeSyncReader& operator=(const TimeSyncReader& );
+
+	void open();
+	void read_all();
+
+	const int mote;
+	const int reboot;
+	const int block;
+	const std::auto_ptr<std::ifstream> in;
+	std::list<TimeSyncInfo> messages;
+};
 
 }
 
+#endif /* TIMESYNCREADER_HPP_ */

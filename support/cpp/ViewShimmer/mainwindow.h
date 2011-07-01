@@ -54,6 +54,7 @@ public Q_SLOTS:
     void enableCopyMode(bool);
     void enablePasteMode(bool);
     void enableCutMode(bool);
+    void enableSDownloader();
     void createMarker(const QPointF &  pos );
     void copy(QRectF);
     void cut(QRectF);
@@ -74,6 +75,7 @@ private:
     QToolButton *btnCopy;
     QToolButton *btnPaste;
     QToolButton *btnCut;
+    QToolButton *btnSData;
 
     QVector<CurveData*> curve_datas;
     QVector<QwtPlotMarker*> markers;

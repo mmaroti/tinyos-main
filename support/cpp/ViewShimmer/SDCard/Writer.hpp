@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,50 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*   Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef WRITER_HPP_
+#define WRITER_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <memory>
+#include <iosfwd>
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class Header;
+class Sample;
+
+class Writer {
+
+public:
+
+	Writer();
+
+	void start_new_record(int mote_id, int reboot_id, int first_block);
+
+	bool is_open() const;
+
+	void write_time_sync_info(const Header& h);
+
+	void write(const Sample& s);
+
+	void flush();
+
+	void close();
+
+	~Writer();
+
+private:
+
+	Writer(const Writer& );
+	Writer& operator=(const Writer& );
+
+	const std::auto_ptr<std::ofstream> samples;
+	const std::auto_ptr<std::ofstream> timesync;
+
+};
 
 }
 
+#endif /* WRITER_HPP_ */

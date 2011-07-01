@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,52 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#include "Application.h"
+#include "RecordLine.hpp"
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
+RecordLine::RecordLine() {
+
+    mote = record = -1;
+}
+
+RecordLine::RecordLine(int mote_id,
+                       int rec_id,
+                       const char* length,
+                       const QDateTime& downloaded,
+                       const QDateTime& recorded)
+
+: mote(mote_id),
+  record(rec_id),
+  computed_length(length),
+  download(downloaded),
+  date_recorded(recorded)
 {
-    window.resize(800,400);
-    window.show();
-
-    //sdataWidget.show();
-
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
 
 }
 
+int RecordLine::mote_id() const {
+
+    return mote;
+}
+
+int RecordLine::record_id() const {
+
+    return record;
+}
+
+const QString& RecordLine::length() const {
+
+    return computed_length;
+}
+
+const QDateTime& RecordLine::downloaded() const {
+
+    return download;
+}
+
+const QDateTime& RecordLine::recorded() const {
+
+    return date_recorded;
+}

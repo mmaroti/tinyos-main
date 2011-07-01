@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,49 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef TIMESYNCINFO_HPP_
+#define TIMESYNCINFO_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <iosfwd>
+#include <utility>
+#include <string>
+#include "TypeDefs.hpp"
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+typedef std::pair<uint32, uint32> Pair;
+
+class TimeSyncInfo {
+
+public:
+
+	TimeSyncInfo();
+
+	bool consistent() const;
+
+	TimeSyncInfo(const std::string& line_from_tsm_file);
+
+	int lost_messages_since(const TimeSyncInfo& other) const;
+
+	const Pair time_pair() const;
+
+	const Pair reversed_time_pair() const;
+
+	friend class VirtualMoteID;
+
+	friend std::ostream& operator<<(std::ostream& , const TimeSyncInfo& );
+
+private:
+
+	uint32 local_time;
+	uint32 remote_time;
+	int remote_id;
+	int remote_start;
+};
 
 }
 
+#endif /* TIMESYNCINFO_HPP_ */

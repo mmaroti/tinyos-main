@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,58 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef MOTEINFO_HPP_
+#define MOTEINFO_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <iosfwd>
+#include <string>
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class RecordID;
+
+class MoteInfo {
+
+public:
+
+	MoteInfo();
+
+	MoteInfo(int    mote,
+			double card_size_in_blocks,
+			int    last_block,
+			const  std::string& last_download,
+			int    number_of_records);
+
+	explicit MoteInfo(const RecordID& rid);
+
+	int mote_id() const;
+
+	const std::string& last_download() const;
+
+	const std::string& remaining_hours() const;
+
+	int number_of_records() const;
+
+private:
+
+	int mote_ID;
+
+	std::string hours_remaining;
+
+	std::string last_seen;
+
+	int num_of_records;
+};
+
+std::ostream& operator<<(std::ostream& , const MoteInfo& );
+
+bool operator<(const MoteInfo& lhs, const MoteInfo& rhs);
+
+bool id_equals(const MoteInfo& info1, const MoteInfo& info2);
 
 }
 
+#endif /* MOTEINFO_HPP_ */

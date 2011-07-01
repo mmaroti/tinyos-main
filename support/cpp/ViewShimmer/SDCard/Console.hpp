@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,40 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef CONSOLE_HPP_
+#define CONSOLE_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include "TypeDefs.hpp"
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class Console {
+
+public:
+
+	static void start(double card_size, int mote_id, int first_block, int reboot);
+
+	static void finished(double card_size, int last_block);
+
+	static void record_start(int reboot_id, int first_offset);
+
+	static void record_end(int last_block, uint32 length_in_ticks);
+
+	static void error_impossible_state();
+
+	static void creating_moteid_database();
+
+	static void reading_moteid_database();
+
+	static void moteid_already_in_db(int mote_id);
+
+	static void registering_moteid_in_db(int mote_id);
+
+};
 
 }
 
+#endif /* CONSOLE_HPP_ */

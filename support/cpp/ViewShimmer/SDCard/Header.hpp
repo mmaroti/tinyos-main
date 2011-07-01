@@ -28,23 +28,53 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef HEADER_HPP_
+#define HEADER_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <iosfwd>
+#include "TypeDefs.hpp"
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class BlockIterator;
+
+class Header {
+
+public:
+
+	Header() { }
+
+	explicit Header(BlockIterator& itr);
+
+	uint16 data_length() const { return length; }
+
+	uint16 mote() const { return mote_id; }
+
+	uint32 first_block() const { return local_start; }
+
+	void set_timesync_zero();
+
+	bool timesync_differs_from(const Header& other) const;
+
+	void write_timesync_info(std::ostream& ) const;
+
+	friend std::ostream& operator<<(std::ostream& , const Header& );
+
+private:
+
+	uint16 format_id;
+	uint16 mote_id;
+	uint16 length;
+	uint16 remote_id;
+	uint32 local_time;
+	uint32 remote_time;
+	uint32 local_start;
+	uint32 remote_start;
+};
 
 }
 
+#endif

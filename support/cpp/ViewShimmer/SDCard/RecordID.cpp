@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,90 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#include "Application.h"
+#include <iomanip>
+#include <ostream>
+#include <sstream>
+#include <stdexcept>
+#include "RecordID.hpp"
+#include "Utility.hpp"
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+using namespace std;
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+RecordID::RecordID() {
 
+	mote_ID = reboot_ID = -1;
 }
 
+RecordID::RecordID(int mote_id, int reboot) {
+
+	if (mote_id <=0 || reboot < 0) {
+
+		string msg("incorrect record ID: mote id ");
+		msg.append(int2str(mote_id));
+		msg.append(" reboot ");
+		msg.append(int2str(reboot));
+
+		throw logic_error(msg);
+	}
+
+	mote_ID = mote_id, reboot_ID = reboot;
+}
+
+const string RecordID::str() const {
+
+	ostringstream os;
+
+	os << *this << flush;
+
+	return os.str();
+}
+
+const string RecordID::toFilenameString() const {
+
+	ostringstream os;
+
+	os << 'm' << setw(2) << setfill('0') << mote_ID;
+	os << 'r' << setw(3) << setfill('0') << reboot_ID << flush;
+
+	return os.str();
+}
+
+bool operator<(const RecordID& lhs, const RecordID& rhs) {
+
+	bool ret_val;
+
+	if (lhs.mote_ID!=rhs.mote_ID) {
+
+		ret_val = lhs.mote_ID < rhs.mote_ID;
+	}
+	else {
+
+		ret_val = lhs.reboot_ID < rhs.reboot_ID;
+	}
+
+	return ret_val;
+}
+
+ostream& operator<<(ostream& out, const RecordID& id) {
+
+	out << "mote id " << id.mote_ID << ", reboot " << id.reboot_ID;
+
+	return out;
+}
+
+bool operator==(const RecordID& lhs, const RecordID& rhs) {
+
+	return lhs.mote_ID == rhs.mote_ID && lhs.reboot_ID == rhs.reboot_ID;
+}
+
+bool operator!=(const RecordID& lhs, const RecordID& rhs) {
+
+	return !(lhs==rhs);
+}
+
+}

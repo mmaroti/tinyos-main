@@ -28,23 +28,20 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef BLOCKRELATEDCONSTS_HPP_
+#define BLOCKRELATEDCONSTS_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+namespace sdc {
 
-    //sdataWidget.show();
-
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+const int BLOCK_SIZE = 512;
+const int HEADER_LENGTH = 24;
+const int SAMPLE_LENGTH = 22;
+const int MAX_SAMPLES   = (BLOCK_SIZE-HEADER_LENGTH)/SAMPLE_LENGTH;
+const int MAX_BLOCK_INDEX = (1 << 23) - 1;
 
 }
 
+#endif

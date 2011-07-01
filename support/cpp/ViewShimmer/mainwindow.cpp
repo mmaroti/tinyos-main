@@ -80,6 +80,11 @@ MainWindow::MainWindow(QWidget *parent, Application &app):
     toolBar->addWidget(btnPaste);
     connect(btnPaste, SIGNAL(toggled(bool)), SLOT(enablePasteMode(bool)));
 
+    btnSData = new QToolButton(this);
+    btnSData->setText("SData Downloader");
+    toolBar->addWidget(btnSData);
+    connect(btnSData, SIGNAL(clicked()), SLOT(enableSDownloader()));
+
     toolBar->addSeparator();
 
     this->addToolBar(toolBar);
@@ -255,6 +260,11 @@ void MainWindow::enablePasteMode(bool on)
 
         disconnect(d_picker, SIGNAL(selected(QPointF)), this, SLOT(paste(QPointF)));
     }
+}
+
+void MainWindow::enableSDownloader()
+{
+    application.sdataWidget.show();
 }
 
 void MainWindow::calculateCurveDatas(double zoomRatio)

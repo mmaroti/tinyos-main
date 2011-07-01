@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,57 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include "Application.h"
+#include <exception>
+#include <typeinfo>
+#include <QDebug>
+#include <QString>
+#include "DownloadTask.hpp"
+#include "SDCardCreator.hpp"
+#include "SDCard.hpp"
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+namespace sdc {
 
-    //sdataWidget.show();
-
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+DownloadTask::DownloadTask(const SDCardCreator* src) : source(src) {
 
 }
 
+DownloadTask::~DownloadTask() {
+    // Do NOT remove this empty dtor: required to generate the dtor of auto_ptr
+}
+
+void DownloadTask::processMeasurements() {
+
+    std::auto_ptr<SDCard> sdcard(source->create());
+
+    sdcard->process_new_measurements();
+}
+
+void DownloadTask::run() {
+
+    qDebug() << "DownloadTask started";
+
+    bool failed = false;
+
+    QString msg;
+
+    try {
+
+        processMeasurements();
+    }
+    catch (std::exception& e) {
+
+        QTextStream ts(&msg, QIODevice::WriteOnly);
+        ts << "Error: " << e.what() << " (" << typeid(e).name() << ")";
+
+        failed = true;
+    }
+
+    emit downloadFinished(failed, msg);
+
+    qDebug() << "Resources deleted";
+}
+
+}

@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,40 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include "Application.h"
+#include <QDebug>
+#include <QString>
+#include <QThreadPool>
+#include "DownloadManager.hpp"
+#include "DownloadTask.hpp"
+#include "SDCardCreator.hpp"
+//#include "SDataWidget.h"
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+namespace sdc {
 
-    //sdataWidget.show();
+void DownloadManager::startDownloading(const QString& path, const SDataWidget* widget) const {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
-
+    start(new RealSDCard(path.toStdString()), widget);
 }
 
+void DownloadManager::startProcessingFile(const QString& path, const SDataWidget* widget) const {
+
+    start(new FileAsSDCard(path.toStdString()), widget);
+}
+
+void DownloadManager::start(SDCardCreator* source, const SDataWidget* widget) const {
+
+    DownloadTask* task = new DownloadTask(source);
+
+    qDebug() << "Connecting download slots";
+
+    /*QObject::connect(task, SIGNAL(downloadFinished(  bool , const QString& )),
+                     widget, SLOT(onDownloadFinished(bool , const QString& )),
+                     Qt::DirectConnection);*/
+
+    QThreadPool::globalInstance()->start(task);
+}
+
+}

@@ -28,23 +28,39 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef BLOCKITERATOR_HPP_
+#define BLOCKITERATOR_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include "TypeDefs.hpp"
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class BlockIterator {
+
+public:
+
+	explicit BlockIterator(const char* block);
+
+	uint16 next_uint16();
+
+	uint32 next_uint32();
+
+private:
+
+	BlockIterator(const BlockIterator& );
+
+	BlockIterator& operator=(const BlockIterator& );
+
+	void check_range();
+
+	const char* const end;
+
+	const char* itr;
+};
 
 }
 
+#endif

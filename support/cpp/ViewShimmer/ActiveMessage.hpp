@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/** Copyright (c) 2010, 2011 University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -32,19 +32,31 @@
 * Author: Péter Ruzicska
 */
 
-#include "Application.h"
+#ifndef ACTIVEMESSAGE_HPP
+#define ACTIVEMESSAGE_HPP
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
+#include <QString>
+#include <QByteArray>
+
+class ActiveMessage
 {
-    window.resize(800,400);
-    window.show();
+public: // FIXME Why are these public?
+        int dest;
+        int source;
+        int group;
+        int type;
 
-    //sdataWidget.show();
+        QByteArray payload;
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+public:
+        // TODO Could use the same concept as in BlockIterator
+        unsigned char getByte(int index) const;
+        unsigned short getShort(int index) const;
+        unsigned int getUInt(int index) const;
+        int getSignedInt(int index) const;
+        unsigned int getID() const;
 
-}
+        QString toString() const;
+};
 
+#endif // ACTIVEMESSAGE_HPP

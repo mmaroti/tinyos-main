@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,75 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#include "Application.h"
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <stdexcept>
+#include "TimeSyncReader.hpp"
+#include "TimeSyncInfo.hpp"
+#include "Utility.hpp"
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
+using namespace std;
+
+namespace sdc {
+
+TimeSyncReader::TimeSyncReader(int mote_id, int reboot_id, int first_block)
+	: mote(mote_id), reboot(reboot_id), block(first_block), in(new ifstream)
 {
-    window.resize(800,400);
-    window.show();
+	open();
 
-    //sdataWidget.show();
+	read_all();
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
-
+	in->close();
 }
 
+void TimeSyncReader::open() {
+
+	string filename = get_filename(mote, reboot, block);
+
+	filename.append(".tsm"); // TODO Move extensions to Constants.hpp
+
+	in->open(filename.c_str());
+
+	if (!in->is_open()) {
+
+		string msg("failed to open file ");
+
+		msg.append(filename);
+
+		throw logic_error(msg);
+	}
+
+	cout << "Processing file " << filename << endl;
+}
+
+void TimeSyncReader::read_all() {
+
+	string line("dummy");
+
+	while (in->good() && line.size()) {
+
+		getline(*in, line);
+
+		if (line.size()) {
+
+			messages.push_back(TimeSyncInfo(line));
+		}
+	}
+
+	cout << messages.size() << " messages read" << endl;
+}
+
+const std::list<TimeSyncInfo>& TimeSyncReader::messages_as_list() const {
+
+	return messages;
+}
+
+TimeSyncReader::~TimeSyncReader() {
+	// Do NOT remove this empty dtor: required to generate the dtor of auto_ptr
+}
+
+}

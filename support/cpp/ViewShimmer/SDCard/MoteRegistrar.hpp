@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,79 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef MOTEREGISTRAR_HPP_
+#define MOTEREGISTRAR_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <iosfwd>
+#include <memory>
+#include <vector>
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class MoteID_Size {
+
+public:
+
+	MoteID_Size();
+
+	MoteID_Size(int mote_id, int size_in_blocks);
+
+	int mote_id() const;
+
+	int size_in_blocks() const;
+
+	friend std::istream& operator>>(std::istream& , MoteID_Size& );
+
+private:
+
+	int id;
+
+	int end;
+};
+
+std::ostream& operator<<(std::ostream& , const MoteID_Size& );
+
+class MoteRegistrar {
+
+public:
+
+	MoteRegistrar(int mote_id, int size_in_blocks);
+
+	~MoteRegistrar();
+
+	static const std::vector<MoteID_Size> existing_ids();
+
+private:
+
+	MoteRegistrar(const MoteRegistrar& );
+	MoteRegistrar& operator=(const MoteRegistrar& );
+
+	void push_back();
+
+	void read_all_existing_ids();
+
+	void read_file_content();
+
+	void check_size(const MoteID_Size& current) const;
+
+	void process(MoteID_Size& previous, const MoteID_Size& current);
+
+	void register_id();
+
+	const int mote_ID;
+
+	const int size_in_blocks;
+
+	const std::auto_ptr<std::fstream> db;
+
+	std::vector<MoteID_Size> motes;
+
+	bool new_id;
+};
 
 }
 
+#endif /* MOTEREGISTRAR_HPP_ */

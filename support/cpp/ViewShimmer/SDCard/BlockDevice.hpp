@@ -28,23 +28,38 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef BLOCKDEVICE_HPP_
+#define BLOCKDEVICE_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+namespace sdc {
 
-    //sdataWidget.show();
+class BlockDevice {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+public:
+
+	BlockDevice() { }
+
+	virtual const char* read_block(int i) = 0;
+
+	virtual int end() const = 0;
+
+	virtual double size_GB() const = 0;
+
+	virtual unsigned long error_code() const = 0;
+
+	virtual ~BlockDevice() { }
+
+private:
+
+	BlockDevice(const BlockDevice& );
+
+	BlockDevice& operator=(const BlockDevice& );
+
+};
 
 }
 
+#endif

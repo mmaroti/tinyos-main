@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2011 University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,31 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+* Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef TIMESYNCDATA_HPP
+#define TIMESYNCDATA_HPP
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+class TimeSyncData {
 
-    //sdataWidget.show();
+public:
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+    TimeSyncData() : skew_1(0), offset(0) { }
 
-}
+    TimeSyncData(double skew_1, double offset)
+        : skew_1(skew_1), offset(offset)
+    { }
 
+    double get_skew_1() const { return skew_1; }
+
+    double get_offset() const { return offset; }
+
+private:
+
+    double skew_1;
+
+    double offset;
+};
+
+#endif // TIMESYNCDATA_HPP

@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/** Copyright (c) 2010, 2011 University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -32,19 +32,51 @@
 * Author: Péter Ruzicska
 */
 
-#include "Application.h"
+#ifndef SERIALLISTENER_H
+#define SERIALLISTENER_H
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
+#include <QObject>
+#include <QString>
+
+class ActiveMessage;
+class QextSerialPort;
+
+class SerialListener :
+	public QObject
 {
-    window.resize(800,400);
-    window.show();
+	Q_OBJECT
 
-    //sdataWidget.show();
+public:
+	SerialListener();
+	virtual ~SerialListener();
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+signals:
+	void receiveMessage(const ActiveMessage & msg);
+        void showNotification(const QString & message);
 
-}
+        void connected();
+        void disconnected();
 
+public slots:
+	void onPortChanged(const QString & portName, int baudRate);
+
+private slots:
+	void onReadyRead();
+	virtual void timerEvent(QTimerEvent *event);
+
+private:
+	QextSerialPort *port;
+	void disconnectPort(const char * message);
+
+	bool escaped;
+	QByteArray partialPacket;
+
+	int badPacketCount;
+	void receiveRawPacket(const QByteArray & packet);
+	void receiveTosPacket(const QByteArray & packet);
+
+	int timerId;
+	int moteTime;
+};
+
+#endif // SERIALLISTENER_H

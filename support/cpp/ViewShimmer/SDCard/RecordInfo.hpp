@@ -1,4 +1,4 @@
-/** Copyright (c) 2010, University of Szeged
+/* Copyright (c) 2010, University of Szeged
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,50 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Miklós Maróti
-* Author: Péter Ruzicska
+*      Author: Ali Baharev
 */
 
-#include "Application.h"
+#ifndef RECORDINFO_HPP_
+#define RECORDINFO_HPP_
 
-Application::Application() :
-    moteDataHolder(*this),
-    window(NULL, *this),
-    sdataWidget(NULL, *this)
-{
-    window.resize(800,400);
-    window.show();
+#include <iosfwd>
+#include <string>
 
-    //sdataWidget.show();
+namespace sdc {
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+class Line;
+class RecordID;
+
+class RecordInfo {
+
+public:
+
+	RecordInfo(int mote, const Line& line, const std::string& date_of_record);
+
+	explicit RecordInfo(const RecordID& rid);
+
+	int mote_id() const;
+	int record_id() const;
+	const std::string& length() const;
+	const std::string& date_downloaded() const;
+	const std::string& date_recorded() const;
+
+private:
+
+	int mote;
+	int record;
+	std::string len;
+	std::string date_of_download;
+	std::string date_of_record;
+
+};
+
+std::ostream& operator<<(std::ostream& , const RecordInfo& );
+
+bool operator<(const RecordInfo& info1, const RecordInfo& info2);
+
+bool id_equals(const RecordInfo& info1, const RecordInfo& info2);
 
 }
 
+#endif /* RECORDINFO_HPP_ */
