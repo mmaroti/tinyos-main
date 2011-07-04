@@ -6,8 +6,6 @@ endif
 
 PROGRAM = avr109
 AVR109_BAUDRATE ?= 115200
-BOOTLOADER_BAUDRATE ?= 115200
-AVR109_SLEEP ?= 0
 
 ifeq ($(PROGRAMMER),avrdude)
     ifeq ($(shell [ -f /bin/cygwin1.dll ] && echo cygwin),cygwin)
@@ -24,6 +22,6 @@ ifeq ($(PROGRAMMER),avrdude)
 endif
 
 program: FORCE
-	java org.szte.wsn.zigbit.Programmer -port $(AVR109) -baudrate $(BOOTLOADER_BAUDRATE) -reset -askforreset -sleep $(AVR109_SLEEP)
+	$(RESET_LINE)
 	$(PROGRAMMER) $(PROGRAMMER_FLAGS) $(PROGRAMMER_INSTALL_SREC_FLAGS)
 
