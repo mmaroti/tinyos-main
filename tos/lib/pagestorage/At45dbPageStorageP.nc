@@ -1,6 +1,6 @@
 #include "Storage.h"
 
-module At45dbDirectStorageP {
+module At45dbPageStorageP {
   provides interface PageStorage[uint8_t id];
   
   uses {
@@ -31,7 +31,7 @@ implementation {
   
   client_data clients[N];
   
-  uint8_t currentClient=N;
+  uint8_t currentClient;
   error_t currentError;  
   
   uint16_t physicalAddr(uint8_t id, uint16_t pageNum){
@@ -88,7 +88,7 @@ implementation {
     else if(clients[id].status!=S_IDLE)
       return EBUSY;
     if(!realErase){
-      //TODO signal event
+      signal PageStorage.eraseDone[id](pageNum, FALSE, SUCCESS);//FIXME possible infinite loop 
       return SUCCESS;
     }
     newRequest(id, S_REAL_ERASE, physicalAddr(id, pageNum), NULL);
@@ -96,16 +96,53 @@ implementation {
   }
   
   event void Resource.granted[uint8_t id](){
-    error_t ret=SUCCESS;
+    currentClient=id;
     switch(clients[currentClient].status){
       case S_READ:{
+        call At45db.read(clients[currentClient].pageNum, 0, clients[currentClient].buffer, AT45_PAGE_SIZE);
       }break;
       case S_WRITE:{
+        call At45db.read(clients[currentClient].pageNum, 0, clients[currentClient].buffer, AT45_PAGE_SIZE);
       }break;
       case S_REAL_ERASE:{
+        call At45db.erase(clients[currentClient].pageNum, AT45_ERASE);
       }break;
     }
-    if(ret!=SUCCESS)
-      //TODO signal
   }
+  
+  event void At45db.readDone(error_t error){
+    call Resource.release[currentClient]();
+    currentError=error;
+    post signalEvents();
+  }
+  
+  event void At45db.writeDone(error_t error){
+    if(error!=SUCCESS){
+      call Resource.release[currentClient]();
+      currentError=error;
+      post signalEvents(); 
+    } else
+      call At45db.flush(clients[currentClient].pageNum);
+  }
+  
+  event void At45db.flushDone(error_t error){
+    call Resource.release[currentClient]();
+    currentError=error;
+    post signalEvents();
+  }
+  
+  event void At45db.eraseDone(error_t error){
+    call Resource.release[currentClient]();
+    currentError=error;
+    post signalEvents();
+  }
+  
+  event void At45db.syncDone(error_t error){}
+  event void At45db.copyPageDone(error_t error){}
+  event void At45db.computeCrcDone(error_t error, uint16_t crc){}
+  
+  default async command error_t Resource.release[uint8_t id](){return SUCCESS;}
+  default event void PageStorage.readDone[uint8_t id](uint16_t pageNum, void *buffer, error_t error){}
+  default event void PageStorage.writeDone[uint8_t id](uint16_t pageNum, void *buffer, error_t error){}
+  default event void PageStorage.eraseDone[uint8_t id](uint16_t pageNum, bool realErase, error_t error){}
 }

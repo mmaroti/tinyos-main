@@ -18,6 +18,7 @@ implementation{
   };
   enum{
     N=uniqueCount("Stm25p.Page"),
+    NOCLIENT=0xff,
   };
   
   typedef struct client_data{
@@ -28,7 +29,7 @@ implementation{
   
   client_data clients[N];
   
-  norace uint8_t currentClient=N;
+  norace uint8_t currentClient=NOCLIENT;
   norace error_t currentError;
   
   uint8_t getVolumeId( uint8_t client ) {
@@ -40,14 +41,14 @@ implementation{
   }
 
   task void runRequests(){
-    if(currentClient==N){
+    if(currentClient==NOCLIENT){
       uint8_t i;
       for(i=0;i<N;i++){
         if(clients[i].status!=S_IDLE)
           break;
       }
       if(clients[i].status==S_IDLE){//nothing to do
-        currentClient=N;
+        currentClient=NOCLIENT;
       } else {
         currentClient=i;
       }
@@ -84,7 +85,7 @@ implementation{
     clients[id].status=S_READ;
     clients[id].pageNum=physicalAddr(id, pageNum);
     clients[id].buffer=buffer;
-    if(currentClient==N){
+    if(currentClient==NOCLIENT){
       currentClient=id;
       post runRequests();
     }
@@ -98,7 +99,7 @@ implementation{
     clients[id].status=S_WRITE;
     clients[id].pageNum=physicalAddr(id, pageNum);
     clients[id].buffer=buffer;
-    if(currentClient==N){
+    if(currentClient==NOCLIENT){
       currentClient=id;
       post runRequests();
     }
@@ -116,7 +117,7 @@ implementation{
       clients[id].status=S_REAL_ERASE;
     else
       clients[id].status=S_ERASE;
-    if(currentClient==N){
+    if(currentClient==NOCLIENT){
       currentClient=id;
       post runRequests();
     }
@@ -125,7 +126,7 @@ implementation{
   inline void SpiDone(error_t err){
     call Resource.release();
     currentError=err;
-    currentClient=N;
+    currentClient=NOCLIENT;
     post signalEvents();
   }
   
