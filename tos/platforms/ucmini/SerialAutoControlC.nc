@@ -46,6 +46,6 @@ implementation{
   MainC.SoftwareInit -> SerialAutoControlP;
   #ifdef SERIAL_AUTO_DEBUG
     components LedsC;
-    SerialAutoControlC.Leds->LedsC;
+    SerialAutoControlP.Leds->LedsC;
   #endif
 }
