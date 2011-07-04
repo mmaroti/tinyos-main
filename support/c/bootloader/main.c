@@ -69,37 +69,37 @@ uint16_t timeout=TIMEOUT_CYCLES;
 void initialize(void){ 
     MCUSR = 0;
     wdt_disable();
-	#if PLATFORM != IRIS
-	CLKPR=1<<CLKPCE;
-	CLKPR=0xf;
-	#endif
-	//every GPIO is input, except  the leds
+    #if PLATFORM != IRIS
+    CLKPR=1<<CLKPCE;
+    CLKPR=0xf;
+    #endif
+    //every GPIO is input, except  the leds
     ledInit();
-	//turn on the the two farest leds
-	#ifndef LED3PORT
-	led0On();
-	led2On();
-	#else
-	led0On();
-	led3On();
-	#endif
+    //turn on the the two farest leds
+    #ifndef LED3PORT
+    led0On();
+    led2On();
+    #else
+    led0On();
+    led3On();
+    #endif
     initbootuart(); // Initialize UART.
     blinker = 0;
 }
 
 void exitbl(void){
-	void (*funcptr)( void ) = 0x0000; // Set up function pointer to RESET vector.
-	int i;
-	ledSet(255);
-	for(i=0;i<3;i++){
-	  _delay_ms(100);
-	  ledSet(0);
-	  _delay_ms(100);
-	  ledSet(255);
-	}
-	_delay_ms(100);
-	ledSet(0);
-	funcptr();
+    void (*funcptr)( void ) = 0x0000; // Set up function pointer to RESET vector.
+    int i;
+    ledSet(255);
+    for(i=0;i<3;i++){
+      _delay_ms(100);
+      ledSet(0);
+      _delay_ms(100);
+      ledSet(255);
+    }
+    _delay_ms(100);
+    ledSet(0);
+    funcptr();
 }
 
 
@@ -150,12 +150,12 @@ int main(void)
             // Chip erase.
             else if(val=='e')
             {  
-				ledSet(0);
-				#ifndef LED3PORT
-				led2On();
-				#else
-				led3On();
-				#endif
+                ledSet(0);
+                #ifndef LED3PORT
+                led2On();
+                #else
+                led3On();
+                #endif
 
                 for(address = 0; address < APP_END;address += PAGESIZE)
                 { // NOTE: Here we use address as a byte-address, not word-address, for convenience.
@@ -164,36 +164,36 @@ int main(void)
                 }
                 _delay_ms(5);//if write the program just after we erased the flash, sometimes the first few byte is wrong
                 sendchar('\r'); // Send OK back.
-				ledSet(0);
-				blinker = 1;
+                ledSet(0);
+                blinker = 1;
             }
             
 #ifndef REMOVE_BLOCK_SUPPORT
             // Check block load support.
             else if(val=='b')
-		    {
-    			sendchar('Y'); // Report block load supported.
-    			sendchar((BLOCKSIZE>>8) & 0xFF); // MSB first.
-    			sendchar(BLOCKSIZE&0xFF); // Report BLOCKSIZE (bytes).
-    		}
+            {
+                sendchar('Y'); // Report block load supported.
+                sendchar((BLOCKSIZE>>8) & 0xFF); // MSB first.
+                sendchar(BLOCKSIZE&0xFF); // Report BLOCKSIZE (bytes).
+            }
 
 
             // Start block load.
-    		else if(val=='B')
-    		{isWriting=1;
-	    	    temp_int = (recchar()<<8) | recchar(); // Get block size.
-		    	val = recchar(); // Get memtype.
-			    sendchar( BlockLoad(temp_int,val,&address) ); // Block load.
-		    }
-		
-		    
-		    // Start block read.
-    		else if(val=='g')
-    		{isWriting=0;
-	    	    temp_int = (recchar()<<8) | recchar(); // Get block size.
-    			val = recchar(); // Get memtype
-	    		BlockRead(temp_int,val,&address); // Block read
-    		}		
+            else if(val=='B')
+            {isWriting=1;
+                temp_int = (recchar()<<8) | recchar(); // Get block size.
+                val = recchar(); // Get memtype.
+                sendchar( BlockLoad(temp_int,val,&address) ); // Block load.
+            }
+        
+            
+            // Start block read.
+            else if(val=='g')
+            {isWriting=0;
+                temp_int = (recchar()<<8) | recchar(); // Get block size.
+                val = recchar(); // Get memtype
+                BlockRead(temp_int,val,&address); // Block read
+            }		
 #endif /* REMOVE_BLOCK_SUPPORT */
 
 #ifndef REMOVE_FLASH_BYTE_SUPPORT            

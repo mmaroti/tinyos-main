@@ -13,6 +13,8 @@ ASRC =
 OPT = s
 BASEADDR = 0x1E000
 
+#PLATFORMS: IRIS USCMINI049 UCMINI UCDUAL
+PLATFORM=UCMINI
 
 # Name of this Makefile (used for "make depend").
 MAKEFILE = Makefile
@@ -31,6 +33,24 @@ CSTANDARD = -std=gnu99
 
 # Place -D or -U options here
 CDEFS =
+CDEFS += -DIRIS=0
+CDEFS += -DUCMINI049=1
+CDEFS += -DUCMINI=2
+CDEFS += -DUCDUAL=3
+
+ifeq ($(PLATFORM),IRIS)
+  CDEFS += -DPLATFORM=0
+endif
+ifeq ($(PLATFORM),UCMINI049)
+  CDEFS += -DPLATFORM=1
+endif
+ifeq ($(PLATFORM),UCMINI)
+  CDEFS += -DPLATFORM=2
+endif
+ifeq ($(PLATFORM),UCDUAL)
+  CDEFS += -DPLATFORM=3
+endif
+
 #CDEFS += -DREMOVE_FLASH_BYTE_SUPPORT
 #CDEFS += -DREMOVE_EEPROM_BYTE_SUPPORT
 #CDEFS += -DREMOVE_FUSE_AND_LOCK_BIT_SUPPORT
@@ -41,15 +61,18 @@ CDEFS =
 #CDEFS += -DBAUD_RATE=19200
 #CDEFS += -DBAUD_RATE=38400
 #CDEFS += -DBAUD_RATE=57600
-CDEFS += -DBAUD_RATE=115200
+#CDEFS += -DBAUD_RATE=115200
 #CDEFS += -DBAUD_RATE=230400
 
-#PLATFORMS: IRIS USCMINI049 UCMINI UCDUAL
-CDEFS += -DIRIS=0
-CDEFS += -DUCMINI049=1
-CDEFS += -DUCMINI=2
-CDEFS += -DUCDUAL=3
-CDEFS += -DPLATFORM=2
+ifeq ($(PLATFORM),UCMINI)
+   CDEFS += -DBAUD_RATE=115200  
+else 
+   ifeq ($(PLATFORM),UCMINI049)
+     CDEFS += -DBAUD_RATE=115200 
+   else
+     CDEFS += -DBAUD_RATE=57600
+   endif
+endif
 
 #TIMEOUT options
 #timeout in seconds (error: -1/128s..0)
@@ -253,5 +276,6 @@ depend:
 prog: bootloader.hex
 	avrdude -cdragon_jtag -pm128rfa1 -Pusb -Uflash:w:bootloader.hex:a
 progmib: bootloader.hex
-	avrdude -cmib510 -pm128rfa1 -P/dev/ttyUSB0 -Uflash:w:bootloader.hex:a
-
+	avrdude -cmib510 -pm128rfa1 -P/dev/ttyUSB0 -Uflash:w:bootloader.hex:a -Uhfuse:w:0x98:m
+progmibclear:
+	avrdude -cmib510 -pm128rfa1 -P/dev/ttyUSB0 -Uhfuse:w:0x99:m -e
