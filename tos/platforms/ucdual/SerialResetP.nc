@@ -43,11 +43,18 @@ module SerialResetP
 		interface Send;
 		interface Receive;
 		interface Leds;
+		interface StdControl;
+		interface Boot;
 	}
 }
 
 implementation
 {
+	event void Boot.booted()
+	{
+		call StdControl.start();
+	}
+
 	// this is dirty, but we do to save ram
 	message_t* sendMsg;
 
@@ -69,10 +76,10 @@ implementation
 			post sendAck();
 		else
 		{
-			//void (*bootloader)( void ) = (void*) BOOTLOADER_ADDRESS;
+			call Leds.set(7);
+
 			atomic
 			{
-				//bootloader();
 				wdt_enable(1);
 				while(1);
 			}

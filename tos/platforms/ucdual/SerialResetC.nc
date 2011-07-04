@@ -31,8 +31,7 @@
 * Author: Miklos Maroti
 */
 
-// just to make sure that fastserial can get its include file
-#include "Serial.h"
+#include "message.h"
 
 configuration SerialResetC
 {
@@ -42,8 +41,14 @@ implementation
 { 
 	components SerialResetP, LedsC, SerialDispatcherC, MainC, PlatformSerialC;
 
+#ifdef SERIAL_AUTOSTART
+	MainC.SoftwareInit -> SerialDispatcherC;
+	MainC.Boot <- SerialResetP;
+#endif
+
 	SerialResetP.Leds -> LedsC;
 	SerialResetP.Send -> SerialDispatcherC.Send[0x72];
 	SerialResetP.Receive -> SerialDispatcherC.Receive[0x72];
 	SerialDispatcherC.SerialPacketInfo[0x72] -> SerialResetP;
+	SerialResetP.StdControl -> PlatformSerialC;
 }
