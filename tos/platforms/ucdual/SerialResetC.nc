@@ -42,13 +42,11 @@ implementation
 	components SerialResetP, LedsC, SerialDispatcherC, MainC, PlatformSerialC;
 
 #ifdef SERIAL_AUTOSTART
-	MainC.SoftwareInit -> SerialDispatcherC;
-	MainC.Boot <- SerialResetP;
+	components SerialStartC;
 #endif
 
 	SerialResetP.Leds -> LedsC;
 	SerialResetP.Send -> SerialDispatcherC.Send[0x72];
 	SerialResetP.Receive -> SerialDispatcherC.Receive[0x72];
 	SerialDispatcherC.SerialPacketInfo[0x72] -> SerialResetP;
-	SerialResetP.StdControl -> PlatformSerialC;
 }
