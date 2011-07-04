@@ -1,0 +1,9 @@
+The ucdual platform has the following configuration options:
+DISABLE_SERIAL_RESET
+You can disable the automatic serial reset by defining this
+MIB_SERIAL
+The default serial (PlatformSerial) will be on the 51 pin connector (you can use it on pc with a mib bridge) instead of the USB
+UCDUAL_REV
+The ucdual revison you use, multiplied by 10. Known revisions (default is the highest):
+1
+2
