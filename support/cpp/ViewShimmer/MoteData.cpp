@@ -148,3 +148,18 @@ QString Sample::toCsvString() const
 
     return s;
 }
+
+QString MoteData::getMoteHeader()
+{
+    QString header;
+
+    header.append(QString::number(moteID)+",");
+    header.append(QString::number(rebootID)+",");
+    header.append(QString::number(length)+",");
+    header.append(QString::number(boot_unix_time)+",");
+    header.append(QString::number(skew_1)+",");
+    header.append(QString::number(offset)+",");
+
+    return header;
+
+}

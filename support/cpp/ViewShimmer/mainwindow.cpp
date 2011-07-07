@@ -12,6 +12,7 @@
 #include <QToolBar>
 #include <QToolButton>
 #include <QClipboard>
+#include <QDockWidget>
 
 #include <qwt_picker_machine.h>
 #include <qwt_plot_zoomer.h>
@@ -58,8 +59,8 @@ MainWindow::MainWindow(QWidget *parent, Application &app):
 
     btnSave = new QToolButton(this);
     btnSave->setText("Save");
-    btnSave->setCheckable(true);
     toolBar->addWidget(btnSave);
+    connect(btnSave, SIGNAL(clicked()), SLOT(onSaveButtonPressed()));
 
     btnCut = new QToolButton(this);
     btnCut->setText("Cut");
@@ -95,6 +96,14 @@ MainWindow::MainWindow(QWidget *parent, Application &app):
 
     copyPositions.clear();
 
+    markerText = new QLineEdit(this);
+    markerText->hide();
+    dockWidget = new QDockWidget(tr("Marker Notes"), this);
+    dockWidget->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea | Qt::TopDockWidgetArea);
+    dockWidget->setWidget(markerText);
+    addDockWidget(Qt::LeftDockWidgetArea, dockWidget);
+
+    dockWidget->hide();
 
     //connect(d_loadButton, SIGNAL(clicked()), this, SLOT(onLoadButtonPressed()));
     //connect(d_clearButton, SIGNAL(clicked()), this, SLOT(onClearButtonPressed()));
@@ -117,10 +126,77 @@ void MainWindow::onLoadButtonPressed()
     if ( !file.isEmpty() ) {
         application.moteDataHolder.loadCSVData( file );
 
+        QFile f( file );
+        QString line;
+
+        if( f.open( QIODevice::ReadOnly | QIODevice::Text ) ) //file opened successfully
+        {
+            QTextStream ts( &f );
+            line = ts.readLine();
+
+            while(line != "#marker_id,marker_text,marker_x_pos"){
+                line = ts.readLine();
+            }
+
+            line = ts.readLine();
+
+            while ( !line.isEmpty() )
+            {
+                QStringList list = line.split(",");
+                QStringListIterator csvIterator(list);
+
+                QString text;
+                QPointF pos;
+                if(csvIterator.hasNext()){
+                    int id = csvIterator.next().toInt();
+                    text = csvIterator.next();
+                    double xPos = csvIterator.next().toDouble();
+                    double yPos = csvIterator.next().toDouble();
+
+                    pos.setX(xPos);
+                    pos.setY(yPos);
+                }
+
+                createMarker(pos, text);
+                line = ts.readLine();
+            }
+        }
+
+
         btnZoom->setEnabled(true);
         btnMarker->setEnabled(true);
         btnClear->setEnabled(true);
     }
+}
+
+void MainWindow::onSaveButtonPressed()
+{
+    QString file = QFileDialog::getSaveFileName(this,"Select a file to save to!", "c:/", "CSV (*.csv);;Any File (*.*)");
+    if ( !file.isEmpty() ) {
+        application.moteDataHolder.saveData( file );
+
+        QFile f( file );
+
+        if( !f.open( QIODevice::Append) )
+          {
+              return;
+          }
+
+        QTextStream ts( &f );
+
+        ts << "#marker_id,marker_text,marker_x_pos" << endl;
+        for (int i = 0; i < markers.size(); i++){
+          ts << i << "," << markers[i]->label().text() << "," << markers[i]->xValue() << "," << markers[i]->yValue() << endl;
+        }
+
+        ts.flush();
+        f.close();
+
+        btnZoom->setEnabled(true);
+        btnMarker->setEnabled(true);
+        btnClear->setEnabled(true);
+    }
+
 }
 
 void MainWindow::onClearButtonPressed()
@@ -179,6 +255,8 @@ void MainWindow::enableMarkerMode(bool on)
 
     if(on == true){
 
+        dockWidget->show();
+
         btnZoom->setChecked(false);
         btnCopy->setChecked(false);
         btnCut->setChecked(false);
@@ -190,6 +268,7 @@ void MainWindow::enableMarkerMode(bool on)
 
         connect(d_picker, SIGNAL(selected(QPointF)), this, SLOT(createMarker(QPointF)));
     } else {
+        dockWidget->hide();
         d_picker->setRubberBand(QwtPlotPicker::NoRubberBand);
 
         disconnect(d_picker, SIGNAL(selected(QPointF)), this, SLOT(createMarker(QPointF)));
@@ -330,15 +409,39 @@ void MainWindow::calculateCurveDatas(double zoomRatio)
 
 void MainWindow::createMarker(const QPointF &pos)
 {
+    QString label = markerText->text()+"; ";
     QwtPlotMarker *marker = new QwtPlotMarker();
     marker->setValue(pos);
     marker->setLineStyle(QwtPlotMarker::VLine);
     marker->setLabelAlignment(Qt::AlignRight | Qt::AlignBottom);
     marker->setLinePen(QPen(Qt::green, 0, Qt::DashDotLine));
-    marker->setLabel(QwtText(QString::number(pos.x())+","+QString::number(pos.y())));
+
+    label.append(QString::number(pos.x()));
+    marker->setLabel(label);
     marker->attach(d_plot);
 
+    d_plot->replot();
+
     markers.append(marker);
+    markerText->clear();
+}
+
+void MainWindow::createMarker(const QPointF &pos, QString text)
+{
+    QString label = text;
+    QwtPlotMarker *marker = new QwtPlotMarker();
+    marker->setValue(pos);
+    marker->setLineStyle(QwtPlotMarker::VLine);
+    marker->setLabelAlignment(Qt::AlignRight | Qt::AlignBottom);
+    marker->setLinePen(QPen(Qt::green, 0, Qt::DashDotLine));
+
+    marker->setLabel(label);
+    marker->attach(d_plot);
+
+    d_plot->replot();
+
+    markers.append(marker);
+    markerText->clear();
 }
 
 

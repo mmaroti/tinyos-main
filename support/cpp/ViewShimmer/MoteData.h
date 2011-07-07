@@ -59,6 +59,7 @@ public:
     double getSkew1(){ return skew_1; }
     double getOffset(){ return offset; }
 
+    QString getMoteHeader();
     Sample getSampleAt(int i){ return samples[i];  }
 
     const Sample & sampleAt(int i) const {

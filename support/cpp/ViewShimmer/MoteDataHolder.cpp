@@ -56,7 +56,7 @@ void MoteDataHolder::loadCSVData(QString filename)
 
             line = ts.readLine();
 
-            while ( !line.isEmpty() && line != "#valami ?" )
+            while ( !line.isEmpty() && line != "#marker_id,marker_text,marker_x_pos" )
             {
                 createSample(line, true);          //convert line string to sample
                 line = ts.readLine();         // line of text excluding '\n'
@@ -70,6 +70,37 @@ void MoteDataHolder::loadCSVData(QString filename)
     //printMoteData(4);
     qDebug()  << "load finished";
     emit loadFinished();
+}
+
+void MoteDataHolder::saveData(const QString& filename) const {
+
+    QFile f( filename );
+
+    if( !f.open( QIODevice::WriteOnly ) )
+      {
+          return;
+      }
+
+    QTextStream ts( &f );
+
+    ts << "#mote,reboot_ID,length,boot_unix_time,skew_1,offset" << endl;
+    for (int i=0; i<motes.size(); i++){
+      ts << motes[i]->getMoteHeader() << endl;
+    }
+
+    ts << endl;
+
+    ts << "#mote,reboot_ID,unix_time,mote_time,counter,accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z,volt,temp" << endl;
+
+    for(int i = 0; i < motes.size(); i++){
+        for(int j = 0; j < motes[i]->samplesSize(); j++){
+            ts << motes[i]->getMoteID() << "," << motes[i]->getRebootID() << "," << motes[i]->sampleAt(j).toCsvString() << endl;
+        }
+    }
+
+    ts.flush();
+    f.close();
+
 }
 
 void MoteDataHolder::createMoteData(const QString& line)
@@ -119,7 +150,7 @@ const Sample MoteDataHolder::createSample(const QString& str, bool load)
 
         sample.unix_time = csvIterator.next().toDouble();
 
-        int mote_time = csvIterator.next().toLong();
+        int mote_time = csvIterator.next().toInt();
         counter = csvIterator.next().toInt();
 
         sample.xAccel = csvIterator.next().toInt();

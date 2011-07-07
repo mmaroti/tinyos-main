@@ -14,6 +14,8 @@ public:
     ~MoteDataHolder();
 
     void loadCSVData( QString filename );
+    void saveData( const QString& ) const;
+
     void createMoteData( const QString& line );
     const Sample createSample(const QString& str, bool load);
     MoteData* findMoteID(int id);

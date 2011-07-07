@@ -6,6 +6,7 @@
 #include <QVector>
 #include <QMainWindow>
 #include <QToolButton>
+#include <QLineEdit>
 #include "MoteData.h"
 
 class CurveData;
@@ -15,6 +16,7 @@ class QwtPlotPicker;
 class QwtPlotPanner;
 class QwtPlotMarker;
 class Application;
+class QDockWidget;
 
 enum CursorMode{
     ZOOM,
@@ -47,6 +49,7 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     void onLoadButtonPressed();
+    void onSaveButtonPressed();
     void onClearButtonPressed();
     void onLoadFinished();
     void enableZoomMode(bool);
@@ -56,6 +59,7 @@ public Q_SLOTS:
     void enableCutMode(bool);
     void enableSDownloader();
     void createMarker(const QPointF &  pos );
+    void createMarker(const QPointF & pos, QString text);
     void copy(QRectF);
     void cut(QRectF);
     void paste(QPointF);
@@ -76,6 +80,9 @@ private:
     QToolButton *btnPaste;
     QToolButton *btnCut;
     QToolButton *btnSData;
+
+    QDockWidget *dockWidget;
+    QLineEdit *markerText;
 
     QVector<CurveData*> curve_datas;
     QVector<QwtPlotMarker*> markers;
