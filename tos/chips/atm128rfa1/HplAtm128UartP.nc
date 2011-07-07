@@ -157,6 +157,7 @@ implementation {
 
   command error_t Uart0TxControl.stop() {
     CLR_BIT(UCSR0B, TXEN0);
+    CLR_BIT(UCSR0B, TXCIE0);
     call McuPowerState.update();
     return SUCCESS;
   }
@@ -169,6 +170,7 @@ implementation {
 
   command error_t Uart0RxControl.stop() {
     CLR_BIT(UCSR0B, RXEN0);
+    CLR_BIT(UCSR0B, RXCIE0);
     call McuPowerState.update();
     return SUCCESS;
   }
@@ -245,12 +247,14 @@ implementation {
 
   command error_t Uart1TxControl.start() {
     SET_BIT(UCSR1B, TXEN1);
+    CLR_BIT(UCSR1B, TXCIE1);
     call McuPowerState.update();
     return SUCCESS;
   }
 
   command error_t Uart1TxControl.stop() {
     CLR_BIT(UCSR1B, TXEN1);
+    CLR_BIT(UCSR1B, TXCIE1);
     call McuPowerState.update();
     return SUCCESS;
   }
@@ -263,6 +267,7 @@ implementation {
 
   command error_t Uart1RxControl.stop() {
     CLR_BIT(UCSR1B, RXEN1);
+    CLR_BIT(UCSR1B, RXCIE1);
     call McuPowerState.update();
     return SUCCESS;
   }
