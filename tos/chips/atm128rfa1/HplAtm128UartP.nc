@@ -157,7 +157,7 @@ implementation {
 
   command error_t Uart0TxControl.stop() {
     CLR_BIT(UCSR0B, TXEN0);
-    CLR_BIT(UCSR0B, TXCIE0);
+    call HplUart0.disableTxIntr();
     call McuPowerState.update();
     return SUCCESS;
   }
@@ -170,7 +170,7 @@ implementation {
 
   command error_t Uart0RxControl.stop() {
     CLR_BIT(UCSR0B, RXEN0);
-    CLR_BIT(UCSR0B, RXCIE0);
+    call HplUart0.disableRxIntr();
     call McuPowerState.update();
     return SUCCESS;
   }
@@ -254,7 +254,7 @@ implementation {
 
   command error_t Uart1TxControl.stop() {
     CLR_BIT(UCSR1B, TXEN1);
-    CLR_BIT(UCSR1B, TXCIE1);
+    call HplUart1.disableTxIntr();
     call McuPowerState.update();
     return SUCCESS;
   }
@@ -267,7 +267,7 @@ implementation {
 
   command error_t Uart1RxControl.stop() {
     CLR_BIT(UCSR1B, RXEN1);
-    CLR_BIT(UCSR1B, RXCIE1);
+    call HplUart1.disableRxIntr();
     call McuPowerState.update();
     return SUCCESS;
   }
@@ -323,12 +323,15 @@ implementation {
     signal HplUart1.txDone();
   }
  
-	async command mcu_power_t McuPowerOverride.lowestState() {
-		if ((UCSR0B & (1 << TXCIE0 | 1 << RXCIE0 | 1 << UDRIE0)) || (UCSR1B & (1 << TXCIE1 | 1 << RXCIE1 | 1 << UDRIE1))) {
-			return ATM128_POWER_IDLE;
-		} else
-			return ATM128_POWER_DOWN;
-	}
+  async command mcu_power_t McuPowerOverride.lowestState() {
+    if (((UCSR0B & (1<<TXEN0)) && (UCSR0B & (1 << TXCIE0 | 1 << UDRIE0))) || //uart0 tx
+        ((UCSR0B & (1<<RXEN0)) && (UCSR0B & (1 << RXCIE0))) ||               //uart0 rx
+        ((UCSR1B & (1<<TXEN1)) && (UCSR1B & (1 << TXCIE1 | 1 << UDRIE1))) || //uart1 tx
+        ((UCSR1B & (1<<RXEN1)) && (UCSR1B & (1 << RXCIE1))))                 //uart0 rx 
+      return ATM128_POWER_IDLE;
+    else
+      return ATM128_POWER_DOWN;
+  }
  
   default async event void HplUart0.txDone() {} 
   default async event void HplUart0.rxDone(uint8_t data) {}
