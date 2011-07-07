@@ -157,7 +157,6 @@ implementation {
 
   command error_t Uart0TxControl.stop() {
     CLR_BIT(UCSR0B, TXEN0);
-    call HplUart0.disableTxIntr();
     call McuPowerState.update();
     return SUCCESS;
   }
@@ -170,7 +169,6 @@ implementation {
 
   command error_t Uart0RxControl.stop() {
     CLR_BIT(UCSR0B, RXEN0);
-    call HplUart0.disableRxIntr();
     call McuPowerState.update();
     return SUCCESS;
   }
@@ -254,7 +252,6 @@ implementation {
 
   command error_t Uart1TxControl.stop() {
     CLR_BIT(UCSR1B, TXEN1);
-    call HplUart1.disableTxIntr();
     call McuPowerState.update();
     return SUCCESS;
   }
@@ -267,7 +264,6 @@ implementation {
 
   command error_t Uart1RxControl.stop() {
     CLR_BIT(UCSR1B, RXEN1);
-    call HplUart1.disableRxIntr();
     call McuPowerState.update();
     return SUCCESS;
   }
