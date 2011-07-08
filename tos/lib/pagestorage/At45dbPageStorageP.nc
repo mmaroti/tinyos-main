@@ -32,10 +32,11 @@ implementation {
   client_data clients[N];
   
   uint8_t currentClient;
+  uint8_t fakeEraseClient;
   error_t currentError;  
   
   uint16_t physicalAddr(uint8_t id, uint16_t pageNum){
-    call At45dbVolume.remap[id](pageNum);
+    return call At45dbVolume.remap[id](pageNum);
   }
 
   task void signalEvents(){
@@ -82,13 +83,21 @@ implementation {
     return SUCCESS;
   }
   
+  task void signalFakeErase(){
+    clients[fakeEraseClient].status=S_IDLE;
+    signal PageStorage.eraseDone[fakeEraseClient](clients[fakeEraseClient].pageNum, FALSE, SUCCESS);
+  }
+  
   command error_t PageStorage.erase[uint8_t id](uint16_t pageNum, bool realErase){
     if(clients[id].status==S_ERASE||clients[id].status==S_REAL_ERASE)
       return EALREADY;
     else if(clients[id].status!=S_IDLE)
       return EBUSY;
     if(!realErase){
-      signal PageStorage.eraseDone[id](pageNum, FALSE, SUCCESS);//FIXME possible infinite loop 
+      clients[id].status=S_ERASE;
+      clients[id].pageNum=pageNum;
+      fakeEraseClient=id;
+      post signalFakeErase();
       return SUCCESS;
     }
     newRequest(id, S_REAL_ERASE, physicalAddr(id, pageNum), NULL);
@@ -141,8 +150,11 @@ implementation {
   event void At45db.copyPageDone(error_t error){}
   event void At45db.computeCrcDone(error_t error, uint16_t crc){}
   
-  default async command error_t Resource.release[uint8_t id](){return SUCCESS;}
   default event void PageStorage.readDone[uint8_t id](uint16_t pageNum, void *buffer, error_t error){}
   default event void PageStorage.writeDone[uint8_t id](uint16_t pageNum, void *buffer, error_t error){}
   default event void PageStorage.eraseDone[uint8_t id](uint16_t pageNum, bool realErase, error_t error){}
+  default command at45page_t At45dbVolume.remap[uint8_t id](at45page_t volumePage) {return 0;}
+  default command at45page_t At45dbVolume.volumeSize[uint8_t id]() { return 0; }
+  default async command error_t Resource.request[uint8_t id]() { return FAIL; }
+  default async command error_t Resource.release[uint8_t id]() { return FAIL; }
 }

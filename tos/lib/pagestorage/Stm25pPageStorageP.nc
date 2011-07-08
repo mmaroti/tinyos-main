@@ -89,6 +89,7 @@ implementation{
       currentClient=id;
       post runRequests();
     }
+    return SUCCESS;
   }
   
   command error_t PageStorage.write[uint8_t id](uint16_t pageNum, void *buffer){
@@ -103,6 +104,7 @@ implementation{
       currentClient=id;
       post runRequests();
     }
+    return SUCCESS;
   }
   
   command error_t PageStorage.erase[uint8_t id](uint16_t pageNum, bool realErase){
@@ -121,6 +123,7 @@ implementation{
       currentClient=id;
       post runRequests();
     }
+    return SUCCESS;
   }
   
   inline void SpiDone(error_t err){
