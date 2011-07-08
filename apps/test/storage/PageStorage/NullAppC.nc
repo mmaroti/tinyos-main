@@ -61,5 +61,6 @@ implementation {
   NullC.Leds->LedsC;
   NullC.Timer->TimerMilliC;
   NullC.SplitControl->SerialActiveMessageC;
+  NullC.PageStorage->PageStorageC;
 }
 

@@ -56,6 +56,7 @@ module NullC @safe()
   uses interface Leds;
   uses interface Timer<TMilli>;
   uses interface SplitControl;
+  uses interface PageStorage;
 }
 implementation
 {
@@ -63,7 +64,8 @@ implementation
     buflen=1024,
   };
   uint8_t buffer[buflen];
-    uint8_t currentPage=0;
+  uint8_t currentPage=0;
+  error_t err;
   
   inline void printbuffer(void *buf, uint16_t len){
     uint16_t i;
@@ -97,16 +99,59 @@ implementation
     call SplitControl.start();
   }
   
-  event void SplitControl.startDone(error_t err){
+  event void SplitControl.startDone(error_t error){
     call Timer.startOneShot(5000);
   }
   
   event void Timer.fired(){
+    if(call DiagMsg.record()){
+      call DiagMsg.chr('S');
+      call DiagMsg.send();
+    }
     call Leds.set(0);
+    err=call PageStorage.erase(0, FALSE);
+    if(call DiagMsg.record()){
+      call DiagMsg.chr('e');
+      call DiagMsg.uint8(err);
+      call DiagMsg.send();
+    }
   }
   
- 
+  event void PageStorage.eraseDone(uint16_t pageNum, bool realErase, error_t error){
+    if(call DiagMsg.record()){
+      call DiagMsg.chr('E');
+      call DiagMsg.send();
+    }
+    err=call PageStorage.write(0, buffer);
+    if(call DiagMsg.record()){
+      call DiagMsg.chr('w');
+      call DiagMsg.uint8(err);
+      call DiagMsg.send();
+    }
+  }
   
-  event void SplitControl.stopDone(error_t err){}
+  event void PageStorage.writeDone(uint16_t pageNum, void *buff, error_t error){
+    if(call DiagMsg.record()){
+      call DiagMsg.chr('W');
+      call DiagMsg.send();
+    }
+    fillbuffer2(buffer,0);
+    err=call PageStorage.read(0, buffer);
+    if(call DiagMsg.record()){
+      call DiagMsg.chr('r');
+      call DiagMsg.uint8(err);
+      call DiagMsg.send();
+    }    
+  }
+  
+  event void PageStorage.readDone(uint16_t pageNum, void *buff, error_t error){
+    if(call DiagMsg.record()){
+      call DiagMsg.chr('R');
+      call DiagMsg.send();
+    }
+    printbuffer(buffer, 300);
+  }
+  
+  event void SplitControl.stopDone(error_t error){}
 }
 
