@@ -30,34 +30,51 @@
  */
 
 /**
- * HPL implementation of general-purpose I/O for a ST M25P chip
- * connected to a TI MSP430.
+ * Implementation of the sector storage absraction for the ST M25P
+ * serial code flash.
  *
  * @author Jonathan Hui <jhui@archrock.com>
- * @version $Revision: 1.1 $ $Date: 2010-11-18 23:16:35 $
+ * @version $Revision: 1.5 $ $Date: 2007-02-04 19:55:17 $
  */
 
-configuration HplStm25pPinsC {
+configuration Stm25pSectorC {
 
-  provides interface GeneralIO as CSN;
-  provides interface GeneralIO as Hold;
-  #if (UCMINI_REV>100 || !defined(UCMINI_REV))
-  provides interface GeneralIO as Power;
-  #endif
+  provides interface Resource as ClientResource[ uint8_t id ];
+  provides interface Stm25pSector as Sector[ uint8_t id ];
+  provides interface Stm25pVolume as Volume[ uint8_t id ];
+
 }
 
 implementation {
 
-  components HplAtm128GeneralIOC as IO;
-  components new NoPinC();
-  #if (UCMINI_REV==49||UCMINI_REV==52||UCMINI_REV==53)
-    CSN = IO.PortB4;
+  components MainC;
+
+  components Stm25pSectorP as SectorP;
+  ClientResource = SectorP;
+  Sector = SectorP;
+  Volume = SectorP;
+  
+  components new FcfsArbiterC( "Stm25p.Volume" ) as ArbiterC;
+  SectorP.Stm25pResource -> ArbiterC;
+
+  components new SplitControlDeferredPowerManagerC( 1024 ) as PowerManagerC;
+  PowerManagerC.ResourceDefaultOwner -> ArbiterC;
+  PowerManagerC.ArbiterInfo -> ArbiterC;
+  #if (defined(UCMINI_REV) && UCMINI_REV<101)
+  PowerManagerC.SplitControl -> SectorP;
   #else
-    CSN = IO.PortB0;
+  components Stm25pPowerC;
+  Stm25pPowerC.SpiControl -> SectorP;
+  PowerManagerC.SplitControl -> Stm25pPowerC;
   #endif
-  #if (UCMINI_REV>100 || !defined(UCMINI_REV))
-    Power=IO.PortD6;
-  #endif
-  Hold = NoPinC;
+
+  components Stm25pSpiC as SpiC;
+  SectorP.SpiResource -> SpiC;
+  SectorP.Spi -> SpiC;
+  MainC.SoftwareInit -> SpiC;
+
+  components LedsC as Leds;
+  SectorP.Leds -> Leds;
 
 }
+
