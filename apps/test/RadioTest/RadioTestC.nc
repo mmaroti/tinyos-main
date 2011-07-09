@@ -3,9 +3,6 @@
 #include "RadioTest.h"
 #include "message.h"
 
-#define DIAGMSG_RSTR(p) if( call DiagMsg.record() ) { call DiagMsg.str(p); call DiagMsg.send(); }
-#define DIAGMSG_UINT(p) if( call DiagMsg.record() ) { call DiagMsg.uint8(p); call DiagMsg.send();}
-
 module RadioTestC @safe() {
   uses {
     interface Leds;
@@ -17,18 +14,22 @@ module RadioTestC @safe() {
 }
 implementation {
 
-  event void Boot.booted() {  
-    DIAGMSG_RSTR("booted");
+  bool sw = FALSE;
+
+  event void Boot.booted() {
+    call Leds.led0On();
     call MilliTimer.startPeriodic(1000);
   }
 
- 
   event void MilliTimer.fired() {
-    DIAGMSG_RSTR("MT fired");
+    if (sw)
+        call RadioState.turnOn();
+    else
+        call RadioState.standby();
+    sw = !sw;
   }
 
   async event void RadioState.done() {
-    DIAGMSG_RSTR("RadioState done");
   }
 
 }
