@@ -39,56 +39,7 @@
 #include <RadioAssert.h>
 #include <TimeSyncMessageLayer.h>
 #include <RadioConfig.h>
-
-#define DIAGMSG_STM(PSTR)         \
-        if( call DiagMsg.record() ) { \
-            call DiagMsg.str(PSTR);\
-            call DiagMsg.str("smachine");\
-            call DiagMsg.uint8(smachine.state); \
-            call DiagMsg.uint8(smachine.next); \
-            call DiagMsg.uint8(smachine.cmd);\
-            call DiagMsg.uint8(smachine.emit);\
-            call DiagMsg.send(); \
-        }
-
-#define DIAGMSG_VAR(PSTR,VAR) \
-        if( call DiagMsg.record() ) { \
-            call DiagMsg.str(PSTR);\
-            call DiagMsg.uint8(VAR); \
-            call DiagMsg.send(); \
-        }
-        
-#define DIAGMSG_STR(PSTR,STR) \
-        if( call DiagMsg.record() ) { \
-            call DiagMsg.str(PSTR);\
-            call DiagMsg.str(STR); \
-            call DiagMsg.send(); \
-        }        
-
-
-#define DIAGMSG_REG(PSTR,PREG)       \
-        if( call DiagMsg.record() ) { \
-            call DiagMsg.str(PSTR);\
-            call DiagMsg.hex8(PREG);\
-            if ( isSpiAcquired() ) \
-                call DiagMsg.hex8(readRegister(PREG));\
-            else \
-                call DiagMsg.str("nospi");\
-            call DiagMsg.send(); \
-        }
-        
-#define DIAGMSG_DEV(PSTR) \
-        if( call DiagMsg.record() ) { \
-            if ( isSpiAcquired() ) {\
-                call DiagMsg.str(PSTR);\
-                call DiagMsg.hex8(readRegister(SI443X_OPFCN_CTRL_1_RW)); \
-                call DiagMsg.hex8(readRegister(SI443X_DEVICE_STATUS_R)); \
-                call DiagMsg.hex8(readRegister(SI443X_XTAL_POR_RW));\
-                call DiagMsg.send(); \
-            } else \
-                call DiagMsg.str("nospi");\
-        }
-        
+   
 module Si443xDriverLayerP
 {
     provides
@@ -113,9 +64,8 @@ module Si443xDriverLayerP
 
         interface GeneralIO as SDN;
         interface GeneralIO as NSEL;
-    
-//    interface GpioCapture as GPIO0;
-//    interface GpioInterrupt as NIRQ;
+        
+        interface GpioCapture as IRQ;
             
         interface FastSpiByte;
         interface Resource as SpiResource;
@@ -142,87 +92,176 @@ module Si443xDriverLayerP
 
 implementation
 {
+
+/* ----------------- DEBUGGER FUNCTIONS AND HELPERS  -----------------*/
+#ifdef RADIO_DEBUG
+    
+#define DIAGMSG_STM(PSTR)         \
+        if( call DiagMsg.record() ) { \
+            call DiagMsg.str(PSTR);\
+            call DiagMsg.str("sm");\
+            call DiagMsg.hex8(sm.state); \
+            call DiagMsg.hex8(sm.next); \
+            call DiagMsg.uint8(sm.cmd);\
+            call DiagMsg.send(); \
+        }
+
+#define DIAGMSG_VAR(PSTR,VAR) \
+        if( call DiagMsg.record() ) { \
+            call DiagMsg.str(PSTR);\
+            call DiagMsg.uint8(VAR); \
+            call DiagMsg.hex8(VAR); \
+            call DiagMsg.send(); \
+        }
+        
+#define DIAGMSG_STR(PSTR,STR) \
+        if( call DiagMsg.record() ) { \
+            call DiagMsg.str(PSTR);\
+            call DiagMsg.str(STR); \
+            call DiagMsg.send(); \
+        }        
+
+
+#define DIAGMSG_REG(PSTR,PREG)       \
+        if( call DiagMsg.record() ) { \
+            uint8_t reg; \
+            call DiagMsg.str(PSTR);\
+            call DiagMsg.hex8(PREG);\
+            if ( isSpiAcquired() ) \
+                reg = readRegister(PREG); \
+                call DiagMsg.hex8(reg); \
+            else \
+                call DiagMsg.str("nospi");\
+            call DiagMsg.send(); \
+        }
+        
+#define DIAGMSG_DEV(PSTR) \
+        if( call DiagMsg.record() ) { \
+            if ( isSpiAcquired() ) {\
+                call DiagMsg.str(PSTR);\
+                call DiagMsg.hex8(readRegister(SI443X_OPFCN_CTRL_1_RW)); \
+                call DiagMsg.hex8(readRegister(SI443X_DEVICE_STATUS_R)); \
+                call DiagMsg.hex8(readRegister(SI443X_XTAL_POR_RW));\
+                call DiagMsg.hex8(readRegister(SI443X_INTERRUPT_ENABLE_1_RW));\
+                call DiagMsg.hex8(readRegister(SI443X_INTERRUPT_ENABLE_2_RW));\
+            } else\
+                call DiagMsg.str("nospi");\
+            call DiagMsg.send(); \
+        }
+    
+ /*    uint8_t deviceState() {
+        uint8_t r1 = 0,r2 = 0,r3 = 0;
+        if ( !isSpiAcquired() )
+            return 0;
+        
+        r1 = readRegister(SI443X_OPFCN_CTRL_1_RW);
+        r2 = readRegister(SI443X_DEVICE_STATUS_R) & 0x03;
+        r3 = readRegister(SI443X_XTAL_POR_RW) & 0xE0;
+        
+        // Ready
+        if ( (r1 & 0x01) == 1 && r2 == 0 && r3 == 0x20 )
+            return STATE_READY;
+        else if ( r1 == 0 && r2 == 0 && r3 == 0)
+            return STATE_STANDBY;
+        else if ( (r1 & 0x08) == 0x08 && r2 == 2 && r3 == 0x40)
+            return STATE_TX;
+        else if ( (r1 & 0x04) == 0x04 && r2 == 1 && r3 == 0xE0)
+            return STATE_RX;        
+        else
+            return 255;
+    }
+    #define SMACHINE_CHECK() { uint8_t ds = deviceState(); if( ds == 0 || sm.state == ds ) RADIO_ASSERT(0); } 
+   */ 
+    
+    
+    
+ /*               // check if state is in the IDLE group
+                RADIO_ASSERT( checkStateFor(STATE)0 == (readRegister(SI443X_DEVICE_STATUS_R) & SI443X_DEVSTAT_CHIP_POWER_STATE_MASK) );
+                // check if stat is low-power
+                RADIO_ASSERT( 0x00 == (readRegister(SI443X_XTAL_POR_RW) & SI443X_XTALPOR_PWRST_MASK) );
+                // check the oscillator buffer - ENABLED is the right value
+                RADIO_ASSERT( SI443X_XTALPOR_BUFFER_ENABLE == (readRegister(SI443X_XTAL_POR_RW) & SI443X_XTALPOR_BUFFER_MASK) );
+   */ 
+#endif
+/* ----------------- END DEBUGGER FUNCTIONS AND HELPERS  -----------------*/    
+    
+    
+    
+    
     bool isSpiAcquired();
+    void serviceRadio();
   
-    si443x_header_t* getHeader(message_t* msg)
-    {
-        return ((void*)msg) + call Config.headerLength(msg);
-    }
-
-    void* getPayload(message_t* msg)
-    {
-        return ((void*)msg) + call RadioPacket.headerLength(msg);
-    }
-
-    si443x_metadata_t* getMeta(message_t* msg)
-    {
-        return ((void*)msg) + sizeof(message_t) - call RadioPacket.metadataLength(msg);
-    }
-
     /*----------------- STATE -----------------*/
 
     enum
     {
         // Low Idle states  000000xx
-        STATE_STANDBY       = 1,    // 00000001
-        STATE_SLEEP         = 2,    // 00000010
-        STATE_SENSOR        = 3,    // 00000011
-        STATE_LOW_IDLE_MASK = 0x3,  // 00000011
+        STATE_STANDBY       = 0x01,   // 00000001
+        STATE_SLEEP         = 0x02,   // 00000010
+        STATE_SENSOR        = 0x03,   // 00000011
+        STATE_LOW_IDLE_MASK = 0x03,   // 00000011
         
         // High Idle states 0000xx00
-        STATE_READY         = 4,    // 00000100
-        STATE_TUNE          = 8,    // 00001000
-        STATE_HIGH_IDLE_MASK = 0xC, // 00001100
+        STATE_READY         = 0x04,   // 00000100
+        STATE_TUNE          = 0x08,   // 00001000
+        STATE_HIGH_IDLE_MASK = 0xC,   // 00001100
         
-        STATE_IDLE_MASK     = 0xF,  // 00001111
+        STATE_IDLE_MASK     = 0xF,    // 00001111
         
         // Other static states  00xx0000
-        STATE_TX            = 16,   // 00010000
-        STATE_RX            = 32,   // 00100000
-        STATE_SHUTDOWN      = 64,   // 01000000
+        STATE_TX            = 0x10,   // 00010000
+        STATE_RX            = 0x20,   // 00100000
+        STATE_TXRX_MASK     = 0x30,   // 00110000
         
-        // Dynamic state - between 2 real SM states        
-        STATE_TRANSITION    = 128,  // 10000000
-    };
+        STATE_SHUTDOWN      = 0x40,   // 01000000
+        
+        // Transition Flag to signal that the current state has not yet been reached.
+        TRANS_FLAG          = 0x80,   // 10000000
+    } state_enum;
     
     enum
     {
         CMD_NONE        = 0,
         CMD_IGNORE      = 1,
+        CMD_EMIT        = 2,
         
-        CMD_CCA         = 10, // performing clear channel assesment
+        CMD_INIT_RADIO  = 10,
+
         CMD_CHANNEL     = 11, // changing the channel
         CMD_DOWNLOAD    = 12, // download the received message
         CMD_POWERUP     = 13, // initiate a power-up sequence
         CMD_SWRESET     = 14, // initiate a software reset sequence
-    };
+        CMD_CCA         = 15, // performing clear channel assesment
+                
+    } cmd_enum;
     
     typedef struct {
         uint8_t state;
         uint8_t next;
         uint8_t cmd;
-        bool emit;
     } stm_t;
     
-    tasklet_norace stm_t smachine;
+    tasklet_norace stm_t sm;
 
     enum
     {
-        POWER_ON_RESET_TIME = 16383 * RADIO_ALARM_MICROSEC,
-        LOW_IDLE_2_TXRX_TIME = 800 * RADIO_ALARM_MICROSEC,
-        HIGH_IDLE_2_TXRX_TIME = 200 * RADIO_ALARM_MICROSEC,
-        LOW_IDLE_2_HIGH_IDLE_TIME = 600 * RADIO_ALARM_MICROSEC,
+        // If SDN pin is not connected, 10 is enough. Else 16000 is the right value.!
+        // FIXME
+        POWER_ON_RESET_TIME         = 10    * RADIO_ALARM_MICROSEC,
+
+        LOW_IDLE_2_TXRX_TIME        = 800   * RADIO_ALARM_MICROSEC,
+        LOW_IDLE_2_HIGH_IDLE_TIME   = 600   * RADIO_ALARM_MICROSEC,
+        HIGH_IDLE_2_TXRX_TIME       = 200   * RADIO_ALARM_MICROSEC,
     };
 
     norace bool radioIrq;
-    
+    uint16_t capturedTime;	// the current time when the last interrupt has occured
+        
     tasklet_norace uint8_t txPower;
     tasklet_norace uint8_t channel;
 
     tasklet_norace message_t* rxMsg;
     message_t rxMsgBuffer;
-
-    uint16_t capturedTime;	// the current time when the last interrupt has occured
 
     tasklet_norace uint8_t rssiClear;
     tasklet_norace uint8_t rssiBusy;
@@ -240,13 +279,11 @@ implementation
         call FastSpiByte.splitRead();
         call NSEL.set();
     }
-    
+
     inline uint8_t readRegister(uint8_t reg)
     {
         RADIO_ASSERT( call SpiResource.isOwner() );
         RADIO_ASSERT( reg == (reg & SI443X_CMD_REGISTER_MASK) );
-
-        DIAGMSG_VAR(".readR",reg);
         
         call NSEL.clr();
         call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_READ | reg);
@@ -254,8 +291,6 @@ implementation
         reg = call FastSpiByte.splitRead();
         call NSEL.set();
         
-        DIAGMSG_VAR(".readR",reg);
-                
         return reg;
     }
     
@@ -265,7 +300,6 @@ implementation
         return old ^ ((old ^ next) & mask);
     }
 
-    // SI443X_TODO: burst register read/write implementation
 
 /*----------------- INIT -----------------*/
 
@@ -273,51 +307,35 @@ implementation
     {
         call NSEL.makeOutput();
         call NSEL.set();
-
-        rxMsg = &rxMsgBuffer;
-
-        // these are just good approximates
-        rssiClear = 0;
-        rssiBusy = 90;
-        
-        return SUCCESS;        
+        call IRQ.captureFallingEdge();
+            
+        return SUCCESS;
     }
 
     command error_t SoftwareInit.init()
     {
-#ifdef SI443X_SDN_PIN_CONNECTED
-        smachine.state = STATE_SHUTDOWN;
-#else   
-        smachine.state = STATE_TRANSITION;
-#endif
-        smachine.next = STATE_READY;
-        smachine.emit = FALSE;
-        smachine.cmd = CMD_IGNORE;
+        rxMsg = &rxMsgBuffer;
+        rssiClear = 0;
+        rssiBusy = 90;
+        
+        // Waiting for POR to finish, then go to low-power state
+        sm.state = STATE_READY | TRANS_FLAG;
+        sm.next  = STATE_STANDBY;
+        sm.cmd   = CMD_NONE;
         
         call RadioAlarm.wait(POWER_ON_RESET_TIME);
-        return call SpiResource.request();
+        return SUCCESS;
     }
 
 /*----------------- ALARM -----------------*/
 
     tasklet_async event void RadioAlarm.fired()
     {
-        DIAGMSG_STM(".fired")
-        
-        RADIO_ASSERT( smachine.state == STATE_TRANSITION );
-        RADIO_ASSERT( smachine.next == STATE_READY || smachine.next == STATE_TX || smachine.next == STATE_RX );
-                
-        smachine.state = smachine.next;
-        smachine.cmd = CMD_NONE;
-        
-        if (smachine.emit) {
-            smachine.emit = FALSE;
-            signal RadioState.done();
-        }
-        
-        DIAGMSG_DEV(".fired")
-         
-        call Tasklet.schedule();
+        DIAGMSG_STM("+A")
+        DIAGMSG_DEV(".A")
+/*        
+        serviceRadio();        
+        call Tasklet.schedule();*/
     }
     
 /*----------------- SPI -----------------*/
@@ -329,227 +347,159 @@ implementation
 
     bool isSpiAcquired()
     {
-        if( call SpiResource.isOwner() )
+        if( call SpiResource.isOwner() || SUCCESS == call SpiResource.immediateRequest() )
             return TRUE;
-
-        if( call SpiResource.immediateRequest() == SUCCESS )
-        {
-            call NSEL.makeOutput();
-            call NSEL.set();
-            return TRUE;
-        }
-
-        call SpiResource.request();
-        return FALSE;
-    }
-
-/*----------------- TURN ON/OFF -----------------*/
-
-    inline void enterReadyState() {
-        // disable the oscillator buffer
-        uint8_t oldvalue = readRegister(SI443X_XTAL_POR_RW);
-        
-        RADIO_ASSERT( smachine.state != STATE_READY );
-        RADIO_ASSERT( smachine.state != STATE_SHUTDOWN );
-        
-        DIAGMSG_DEV(".erdy");        
-        writeRegister(SI443X_XTAL_POR_RW, maskedUpdate(oldvalue, SI443X_XTALPOR_BUFFER_DISABLE, SI443X_XTALPOR_BUFFER_MASK));
-        
-        // enter ready state
-        writeRegister(SI443X_OPFCN_CTRL_1_RW, SI443X_OPFCN1_XTON );
-        
-        DIAGMSG_DEV(".erdy");
-        
-        if ( smachine.state & STATE_LOW_IDLE_MASK ) {
-            smachine.state = STATE_TRANSITION;
-            smachine.cmd = CMD_IGNORE;
-            call RadioAlarm.wait(LOW_IDLE_2_HIGH_IDLE_TIME); // OR wait for IRQ?
-        }
-        else if ( smachine.state & STATE_HIGH_IDLE_MASK ) {
-            smachine.state = STATE_READY;
-            smachine.cmd = CMD_NONE;
-        } 
         else {
-            RADIO_ASSERT(FALSE);
+            call SpiResource.request();
+            return FALSE;
         }
     }
     
-    inline void exitReadyState() {
-        // re-enable the oscillator buffer
-        uint8_t oldvalue = readRegister(SI443X_XTAL_POR_RW);
-        
-        RADIO_ASSERT( smachine.state == STATE_READY );
-                
-        DIAGMSG_DEV(".exrdy");
-        writeRegister(SI443X_XTAL_POR_RW, maskedUpdate(oldvalue, SI443X_XTALPOR_BUFFER_ENABLE, SI443X_XTALPOR_BUFFER_MASK));
-        DIAGMSG_DEV(".exrdy");
-    }
-    
-    inline void enterStandbyState() {
-        RADIO_ASSERT( smachine.state != STATE_STANDBY );
-  
-        DIAGMSG_DEV(".esby");
-        // enter standby state
-        writeRegister(SI443X_OPFCN_CTRL_1_RW, SI443X_OPFCN1_STANDBY);
-        DIAGMSG_DEV(".esby");
-        
-        smachine.state = STATE_STANDBY;
-        smachine.cmd = CMD_NONE;
-        
-        // check if state is in the IDLE group
-        RADIO_ASSERT( 0 == (readRegister(SI443X_DEVICE_STATUS_R) & SI443X_DEVSTAT_CHIP_POWER_STATE_MASK) );
-        // check if stat is low-power
-        RADIO_ASSERT( 0x00 == (readRegister(SI443X_XTAL_POR_RW) & SI443X_XTALPOR_PWRST_MASK) );
-        // check the oscillator buffer - ENABLED is the right value
-        RADIO_ASSERT( SI443X_XTALPOR_BUFFER_ENABLE == (readRegister(SI443X_XTAL_POR_RW) & SI443X_XTALPOR_BUFFER_MASK) );
-    }
-
-    inline void enterRxState() {
-        RADIO_ASSERT( smachine.state & STATE_IDLE_MASK );
-        RADIO_ASSERT( smachine.state != STATE_RX );
-        RADIO_ASSERT( smachine.next == STATE_RX );
-        
-        DIAGMSG_DEV(".erx");        
-        writeRegister(SI443X_OPFCN_CTRL_1_RW, SI443X_OPFCN1_RXON );
-        DIAGMSG_DEV(".erx");
-                
-        smachine.cmd = CMD_IGNORE;
-        
-        if ( smachine.state & STATE_LOW_IDLE_MASK ) {
-            smachine.state = STATE_TRANSITION;
-            call RadioAlarm.wait(LOW_IDLE_2_TXRX_TIME); // OR wait for IRQ?
-        }
-        else if ( smachine.state & STATE_HIGH_IDLE_MASK ) {
-            smachine.state = STATE_TRANSITION;
-            call RadioAlarm.wait(HIGH_IDLE_2_TXRX_TIME); // OR wait for IRQ?
-        } 
-        else {
-            RADIO_ASSERT(FALSE);
-        }
-        
-    }
-
-    inline void enterTxState() {
-        RADIO_ASSERT( smachine.state & STATE_IDLE_MASK );
-        RADIO_ASSERT( smachine.state != STATE_TX );
-        RADIO_ASSERT( smachine.next == STATE_TX );
-        
-        DIAGMSG_DEV(".etx");
-        writeRegister(SI443X_OPFCN_CTRL_1_RW, SI443X_OPFCN1_TXON );
-        DIAGMSG_DEV(".etx");
-                
-        smachine.cmd = CMD_IGNORE;
-        
-        if ( smachine.state & STATE_LOW_IDLE_MASK ) {
-            smachine.state = STATE_TRANSITION;
-            call RadioAlarm.wait(LOW_IDLE_2_TXRX_TIME); // OR wait for IRQ?
-        }
-        else if (smachine.state & STATE_HIGH_IDLE_MASK ) {
-            smachine.state = STATE_TRANSITION;
-            call RadioAlarm.wait(HIGH_IDLE_2_TXRX_TIME); // OR wait for IRQ?
-        }
-        else {
-            RADIO_ASSERT(FALSE);
-        }
-    }
-
-    inline void enterPoweredUpState() {
-        RADIO_ASSERT( smachine.state == STATE_SHUTDOWN );
-#ifdef SI443X_SDN_PIN_CONNECTED
-        call SDN.makeOutput();
-        call SDN.clr();
-#endif
-        smachine.state = STATE_TRANSITION;
-        smachine.cmd = CMD_IGNORE;
-        call RadioAlarm.wait(POWER_ON_RESET_TIME); // OR wait for IRQ ?
-    }
-    
-    inline void resetRadio() {
-        writeRegister(SI443X_OPFCN_CTRL_1_RW, SI443X_OPFCN1_SWRESET | SI443X_OPFCN1_XTON);
-    }
-
-    /*----------------- TASKLET -----------------*/
-
     task void releaseSpi()
     {
         call SpiResource.release();
     }
 
+/*----------------- TURN ON/OFF -----------------*/
+
+    void enterState(uint8_t newstate) {
+        uint8_t oldregvalue;
+        
+        RADIO_ASSERT( sm.state != newstate );
+        
+        DIAGMSG_STM("+E");        
+        DIAGMSG_DEV(" E");
+
+        switch ( newstate ) {
+            case STATE_STANDBY:
+                DIAGMSG_STR("  E","SBY");
+                writeRegister(SI443X_OPFCN_CTRL_1_RW, SI443X_OPFCN1_STANDBY);
+                break;    
+                
+            case STATE_READY:
+                DIAGMSG_STR("  E","RDY");
+                // disable oscillator buffer
+                oldregvalue = readRegister(SI443X_XTAL_POR_RW);
+                writeRegister(SI443X_XTAL_POR_RW, maskedUpdate(oldregvalue, SI443X_XTALPOR_BUFFER_DISABLE, SI443X_XTALPOR_BUFFER_MASK));
+                // enter       
+                writeRegister(SI443X_OPFCN_CTRL_1_RW, SI443X_OPFCN1_XTON );
+                break;
+                
+            case STATE_TX:
+                DIAGMSG_STR("  E","TX");
+                writeRegister(SI443X_OPFCN_CTRL_1_RW, SI443X_OPFCN1_TXON );
+                break;
+                
+            case STATE_RX:
+                DIAGMSG_STR("  E","RX");
+                writeRegister(SI443X_OPFCN_CTRL_1_RW, SI443X_OPFCN1_RXON );
+                break;
+                
+            case STATE_TUNE:
+                DIAGMSG_STR("  E","TUN");
+                writeRegister(SI443X_OPFCN_CTRL_1_RW, SI443X_OPFCN1_PLLON | SI443X_OPFCN1_XTON );
+                break;
+                
+            default:
+                RADIO_ASSERT(0);
+        }
+        
+        sm.state = newstate;
+        if ( newstate & STATE_TXRX_MASK || newstate == STATE_READY )
+            sm.state |= TRANS_FLAG;
+        
+        DIAGMSG_STM(" E");
+        DIAGMSG_DEV("-E");
+    }
+
+
+    inline void exitReadyState() {
+        // re-enable the oscillator buffer
+        uint8_t oldvalue = readRegister(SI443X_XTAL_POR_RW);
+        writeRegister(SI443X_XTAL_POR_RW, maskedUpdate(oldvalue, SI443X_XTALPOR_BUFFER_ENABLE, SI443X_XTALPOR_BUFFER_MASK));
+    }
+
+    inline void resetRadio() {
+        writeRegister(SI443X_OPFCN_CTRL_1_RW, SI443X_OPFCN1_SWRESET);
+        // wait for TSWRST - see Manual Page 50.
+        call BusyWait.wait(70);
+    }
+
+/*----------------- TASKLET -----------------*/
+
+
+
     tasklet_async event void Tasklet.run()
     {
+        uint8_t lstate;
+        bool spi;
+        DIAGMSG_STM("+r");
+        DIAGMSG_DEV(" r");
+        
+        spi = isSpiAcquired();
+        
+        if( radioIrq && spi)
+		    serviceRadio();
 
-        uint8_t localcmd;
-    
-        DIAGMSG_STM(".run")
-        
-        atomic {
-            localcmd = smachine.cmd;
-            smachine.cmd = CMD_IGNORE;
-        }
-                
-        
-        DIAGMSG_VAR("localcmd",localcmd)
-        
-        if ( localcmd != CMD_IGNORE && smachine.state != STATE_TRANSITION && isSpiAcquired() ) {
+        lstate = sm.state & ~TRANS_FLAG;
+              
+        // If not in transition AND current state differs from next state
+        // -> Initiate a state change
+        if ( !(sm.state & TRANS_FLAG) && lstate != sm.next && spi ) {
             
-            DIAGMSG_STR(".run","if1")
-            // if state transition is needed
-            if ( smachine.state != smachine.next ) {
-
-                DIAGMSG_STR(".run","if2")
-                // only one state needs to be exited properly : STATE_READY                
-                if ( smachine.state == STATE_READY ) {
-                    DIAGMSG_STR(".run","if3")
-                    exitReadyState();
-                }
+            // READY state must be exited properly
+            if ( lstate == STATE_READY )
+                exitReadyState();
+            
+            // switch between RX and TX needs to go back to TUNE|READY mode
+            if ( lstate & STATE_TXRX_MASK && sm.next & STATE_TXRX_MASK ) {
+                DIAGMSG_STR(" r","RTX")
                 
-                switch (smachine.next) {
-                    case STATE_STANDBY:       enterStandbyState(); break;
-      	            case STATE_READY:         enterReadyState();   break;
-                    case STATE_RX:            enterRxState();      break;
-                    case STATE_TX:            enterTxState();      break;
-                    default:
-                        RADIO_ASSERT(FALSE);
-                }  
-            } else {
-                smachine.cmd = CMD_NONE;
+                enterState(STATE_TUNE);
+                lstate = STATE_TUNE;
             }
             
-            DIAGMSG_STR(".run","if4")
-            if ( smachine.emit ) {
-                DIAGMSG_STR(".run","if5")
-                signal RadioState.done();
-                smachine.emit = FALSE;
+            // enter the new state
+            enterState(sm.next);
+        }
+                
+        if ( sm.cmd == CMD_EMIT && sm.state == sm.next ) {
+            DIAGMSG_STR(" r","emit")
+            signal RadioState.done();
+            sm.cmd = CMD_NONE;
+        }
+                        
+        if ( sm.cmd == CMD_NONE ) {
+        
+            if ( sm.state == STATE_TX && ! radioIrq ) {
+                DIAGMSG_STR(" r","RSrdy")
+                signal RadioSend.ready();
             }
-        }
-        
-        if ( smachine.cmd == CMD_NONE && smachine.state == STATE_TX && ! radioIrq ) {
-            DIAGMSG_STR(".run","if6")
-            signal RadioSend.ready();
-        }
             
-        if ( smachine.cmd == CMD_NONE ) {
-            DIAGMSG_STR(".run","if7")
-            post releaseSpi();
-        }
-        
+            if ( sm.state == sm.next) {
+                DIAGMSG_STR(" r","rlsSpi")
+                post releaseSpi();
+            }            
+        } 
+               
+        DIAGMSG_STM(" r");
+        DIAGMSG_DEV("-r");
     }
 
     tasklet_async command error_t RadioState.turnOff()
     {
-        DIAGMSG_DEV(".tOff")
-        DIAGMSG_STM(".tOff")
+        DIAGMSG_DEV("+tOff")
+        DIAGMSG_STM(" tOff")
     
-        if( smachine.cmd != CMD_NONE || smachine.state == STATE_TRANSITION )
+        if( sm.cmd != CMD_NONE || sm.state & TRANS_FLAG )
             return EBUSY;            
-        else if( smachine.state == STATE_STANDBY )
+        else if( sm.state == STATE_STANDBY )
             return EALREADY;
         
-        smachine.next = STATE_STANDBY;
-        smachine.emit = TRUE;
-        smachine.cmd = CMD_NONE;
+        sm.next = STATE_STANDBY;
+        sm.cmd = CMD_EMIT;
         
-        DIAGMSG_STM(".tOff2")
+        DIAGMSG_STM("-tOff")
         
         call Tasklet.schedule();
         return SUCCESS;
@@ -557,19 +507,18 @@ implementation
     
     tasklet_async command error_t RadioState.standby()
     {
-        DIAGMSG_DEV(".sby")
-        DIAGMSG_STM(".sby")
+        DIAGMSG_DEV("+sby")
+        DIAGMSG_STM(" sby")
         
-        if( smachine.cmd != CMD_NONE || smachine.state == STATE_TRANSITION )
+        if( sm.cmd != CMD_NONE || sm.state & TRANS_FLAG || ! call RadioAlarm.isFree() )
             return EBUSY;
-        else if( smachine.state == STATE_READY )
+        else if( sm.state == STATE_READY )
             return EALREADY;
             
-        smachine.next = STATE_READY;
-        smachine.emit = TRUE;
-        smachine.cmd = CMD_NONE;
+        sm.next = STATE_READY;
+        sm.cmd = CMD_EMIT;
         
-        DIAGMSG_STM(".sby2")
+        DIAGMSG_STM("-sby")
       
         call Tasklet.schedule();
         return SUCCESS;
@@ -578,25 +527,44 @@ implementation
     tasklet_async command error_t RadioState.turnOn()
     {
     
-        DIAGMSG_DEV(".tOn")
-        DIAGMSG_STM(".tOn")
+        DIAGMSG_DEV("+tOn")
+        DIAGMSG_STM(" tOn")
         
-        if( smachine.cmd != CMD_NONE || smachine.state == STATE_TRANSITION || ! call RadioAlarm.isFree() )
+        if( sm.cmd != CMD_NONE || sm.state & TRANS_FLAG || ! call RadioAlarm.isFree() )
             return EBUSY;
-        else if( smachine.state == STATE_RX )
+        else if( sm.state == STATE_RX )
             return EALREADY;
 
-        smachine.next = STATE_RX;
-        smachine.emit = TRUE;
-        smachine.cmd = CMD_NONE;
+        sm.next = STATE_RX;
+        sm.cmd = CMD_EMIT;
         
-        DIAGMSG_STM(".tOn2")
+        DIAGMSG_STM("-tOn")
         
         call Tasklet.schedule();
         return SUCCESS;
     }
 
     //default tasklet_async event void RadioState.done() { }
+
+
+
+    si443x_header_t* getHeader(message_t* msg)
+    {
+        return ((void*)msg) + call Config.headerLength(msg);
+    }
+
+    void* getPayload(message_t* msg)
+    {
+        return ((void*)msg) + call RadioPacket.headerLength(msg);
+    }
+
+    si443x_metadata_t* getMeta(message_t* msg)
+    {
+        return ((void*)msg) + sizeof(message_t) - call RadioPacket.metadataLength(msg);
+    }
+
+
+
 
 /*----------------- TRANSMIT -----------------*/
 
@@ -621,13 +589,55 @@ implementation
 
 /*----------------- IRQ -----------------*/
 
-/*	async event void GPIO0.captured(uint16_t time)
-    {
+    void serviceRadio() {
         
-    }
-    */
-//	async event void NIRQ.fired() {}
+	    uint16_t time;
+		//uint32_t time32;
+		uint8_t irq1,irq2;
+		//uint8_t temp;
+       
+        DIAGMSG_STM("+s")
+        DIAGMSG_DEV(" s")
 
+		atomic time = capturedTime;
+		radioIrq = FALSE;
+		irq1 = readRegister(SI443X_INTERRUPT_STATUS_1_R);
+		irq2 = readRegister(SI443X_INTERRUPT_STATUS_2_R);
+		
+		DIAGMSG_VAR(" s irq1",irq1)
+		DIAGMSG_VAR(" s irq2",irq2)
+		
+		if ( irq2 ) {
+		    // Power on sequence - init radio
+		    if ( irq2 & SI443X_INTERRUPT_2_IPOR ) {
+		        DIAGMSG_STR(" s","init")
+		        //writeRegister(SI443X_INTERRUPT_ENABLE_1_RW, 0x20);
+		        //readRegister(SI443X_INTERRUPT_STATUS_1_R);
+		    }
+			    
+		    if ( irq2 & SI443X_INTERRUPT_2_ICHIPRDY ) {
+		        DIAGMSG_STR(" s","chprdy")
+	            // remove the transition flag to validate the current state
+                sm.state &= ~TRANS_FLAG;
+ 		    }
+	    }
+        DIAGMSG_STM(" s")
+        DIAGMSG_DEV("-s")
+    }
+
+
+	async event void IRQ.captured(uint16_t time)
+    {
+        RADIO_ASSERT( ! radioIrq );
+        DIAGMSG_STR(".irq","!");
+		atomic
+		{
+			capturedTime = time;
+			radioIrq = TRUE;
+		}
+		call Tasklet.schedule();
+    }
+    
     default tasklet_async event bool RadioReceive.header(message_t* msg)
     {
         return TRUE;

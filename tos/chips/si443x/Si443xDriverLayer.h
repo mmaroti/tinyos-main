@@ -194,4 +194,11 @@ enum si443x_xtal_por_register_enums // 0x62h
     SI443X_XTALPOR_BUFFER_DISABLE = 0x2,
 };
 
+
+enum si443x_interrupt_2_enums // 0x04
+{
+    SI443X_INTERRUPT_2_ICHIPRDY = 0x02,
+    SI443X_INTERRUPT_2_IPOR = 0x01,
+};
+
 #endif//__Si443xDRIVERLAYER_H__
