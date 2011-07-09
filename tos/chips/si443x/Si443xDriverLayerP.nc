@@ -103,6 +103,7 @@ implementation
             call DiagMsg.hex8(sm.state); \
             call DiagMsg.hex8(sm.next); \
             call DiagMsg.uint8(sm.cmd);\
+            call DiagMsg.hex8(sm.debug);\
             call DiagMsg.send(); \
         }
 
@@ -142,8 +143,6 @@ implementation
                 call DiagMsg.hex8(readRegister(SI443X_OPFCN_CTRL_1_RW)); \
                 call DiagMsg.hex8(readRegister(SI443X_DEVICE_STATUS_R)); \
                 call DiagMsg.hex8(readRegister(SI443X_XTAL_POR_RW));\
-                call DiagMsg.hex8(readRegister(SI443X_INTERRUPT_ENABLE_1_RW));\
-                call DiagMsg.hex8(readRegister(SI443X_INTERRUPT_ENABLE_2_RW));\
             } else\
                 call DiagMsg.str("nospi");\
             call DiagMsg.send(); \
@@ -173,15 +172,7 @@ implementation
     #define SMACHINE_CHECK() { uint8_t ds = deviceState(); if( ds == 0 || sm.state == ds ) RADIO_ASSERT(0); } 
    */ 
     
-    
-    
- /*               // check if state is in the IDLE group
-                RADIO_ASSERT( checkStateFor(STATE)0 == (readRegister(SI443X_DEVICE_STATUS_R) & SI443X_DEVSTAT_CHIP_POWER_STATE_MASK) );
-                // check if stat is low-power
-                RADIO_ASSERT( 0x00 == (readRegister(SI443X_XTAL_POR_RW) & SI443X_XTALPOR_PWRST_MASK) );
-                // check the oscillator buffer - ENABLED is the right value
-                RADIO_ASSERT( SI443X_XTALPOR_BUFFER_ENABLE == (readRegister(SI443X_XTAL_POR_RW) & SI443X_XTALPOR_BUFFER_MASK) );
-   */ 
+
 #endif
 /* ----------------- END DEBUGGER FUNCTIONS AND HELPERS  -----------------*/    
     
@@ -221,11 +212,12 @@ implementation
     
     enum
     {
+        CMD_IGNORE_FLAG = 1<<7,
+    
         CMD_NONE        = 0,
-        CMD_IGNORE      = 1,
-        CMD_EMIT        = 2,
+        CMD_INIT_RADIO  = 1,
         
-        CMD_INIT_RADIO  = 10,
+        CMD_EMIT        = 2,
 
         CMD_CHANNEL     = 11, // changing the channel
         CMD_DOWNLOAD    = 12, // download the received message
@@ -239,16 +231,14 @@ implementation
         uint8_t state;
         uint8_t next;
         uint8_t cmd;
+        uint8_t debug;
     } stm_t;
     
     tasklet_norace stm_t sm;
 
     enum
     {
-        // If SDN pin is not connected, 10 is enough. Else 16000 is the right value.!
-        // FIXME
-        POWER_ON_RESET_TIME         = 10    * RADIO_ALARM_MICROSEC,
-
+        POWER_ON_RESET_TIME         = 15000 * RADIO_ALARM_MICROSEC,
         LOW_IDLE_2_TXRX_TIME        = 800   * RADIO_ALARM_MICROSEC,
         LOW_IDLE_2_HIGH_IDLE_TIME   = 600   * RADIO_ALARM_MICROSEC,
         HIGH_IDLE_2_TXRX_TIME       = 200   * RADIO_ALARM_MICROSEC,
@@ -321,10 +311,11 @@ implementation
         // Waiting for POR to finish, then go to low-power state
         sm.state = STATE_READY | TRANS_FLAG;
         sm.next  = STATE_STANDBY;
-        sm.cmd   = CMD_NONE;
-        
+        sm.cmd   = CMD_INIT_RADIO | CMD_IGNORE_FLAG;
+   
         call RadioAlarm.wait(POWER_ON_RESET_TIME);
-        return SUCCESS;
+        
+        return call SpiResource.request();
     }
 
 /*----------------- ALARM -----------------*/
@@ -332,10 +323,12 @@ implementation
     tasklet_async event void RadioAlarm.fired()
     {
         DIAGMSG_STM("+A")
-        DIAGMSG_DEV(".A")
-/*        
-        serviceRadio();        
-        call Tasklet.schedule();*/
+        DIAGMSG_DEV(" A")
+        
+        // remove ignorance flag;
+        sm.cmd &= ~CMD_IGNORE_FLAG;
+                
+        call Tasklet.schedule();
     }
     
 /*----------------- SPI -----------------*/
@@ -374,8 +367,8 @@ implementation
             case STATE_STANDBY:
                 DIAGMSG_STR("  E","SBY");
                 writeRegister(SI443X_OPFCN_CTRL_1_RW, SI443X_OPFCN1_STANDBY);
-                break;    
-                
+                break;
+
             case STATE_READY:
                 DIAGMSG_STR("  E","RDY");
                 // disable oscillator buffer
@@ -427,19 +420,25 @@ implementation
 
 /*----------------- TASKLET -----------------*/
 
-
-
     tasklet_async event void Tasklet.run()
     {
         uint8_t lstate;
         bool spi;
+
         DIAGMSG_STM("+r");
         DIAGMSG_DEV(" r");
-        
+
+        if ( sm.cmd & CMD_IGNORE_FLAG )
+            return;
+
+        DIAGMSG_STR(" r","...");
+         
         spi = isSpiAcquired();
-        
-        if( radioIrq && spi)
+        if( (radioIrq || (sm.cmd == CMD_INIT_RADIO)) && spi ) {
 		    serviceRadio();
+		    if (sm.cmd == CMD_INIT_RADIO)
+		        sm.cmd = CMD_NONE;
+		}
 
         lstate = sm.state & ~TRANS_FLAG;
               
@@ -621,6 +620,13 @@ implementation
                 sm.state &= ~TRANS_FLAG;
  		    }
 	    }
+	    
+	    irq1 = readRegister(SI443X_INTERRUPT_STATUS_1_R);
+		irq2 = readRegister(SI443X_INTERRUPT_STATUS_2_R);
+		
+		DIAGMSG_VAR(" s irq1",irq1)
+		DIAGMSG_VAR(" s irq2",irq2)
+	    
         DIAGMSG_STM(" s")
         DIAGMSG_DEV("-s")
     }
