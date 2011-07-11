@@ -2,10 +2,9 @@
 module Stm25pPageStorageP {
   provides interface PageStorage[uint8_t id];
   provides interface Stm25pVolume as Volume[ uint8_t id ];
-  uses {
-    interface Stm25pSpi;
-    interface Resource;
-  }
+  uses interface Stm25pSpi;
+  uses interface Resource;
+  uses interface DiagMsg;
 }
 
 implementation{
@@ -47,13 +46,15 @@ implementation{
         if(clients[i].status!=S_IDLE)
           break;
       }
-      if(clients[i].status==S_IDLE){//nothing to do
+      if(i>=N){//nothing to do
         currentClient=NOCLIENT;
       } else {
         currentClient=i;
       }
     }
-    call Resource.request();
+    if(currentClient!=NOCLIENT){
+      call Resource.request();
+    }
   }
 
   task void signalEvents(){
@@ -73,6 +74,7 @@ implementation{
         signal PageStorage.eraseDone[currentClient](clients[currentClient].pageNum, FALSE, currentError);
       }break;
     }
+    currentClient=NOCLIENT;
     post runRequests();
   }
   
@@ -127,14 +129,16 @@ implementation{
   }
   
   inline void SpiDone(error_t err){
+    call Stm25pSpi.powerDown();
     call Resource.release();
     currentError=err;
-    currentClient=NOCLIENT;
     post signalEvents();
   }
   
   event void Resource.granted(){
-    error_t ret=SUCCESS;
+    error_t ret=call Stm25pSpi.powerUp();
+    if(ret!=SUCCESS)
+      SpiDone(ret);
     switch(clients[currentClient].status){
       case S_READ:{
         ret=call Stm25pSpi.read(((uint32_t)clients[currentClient].pageNum<<STM25P_PAGE_SIZE_LOG2),clients[currentClient].buffer,STM25P_PAGE_SIZE);
