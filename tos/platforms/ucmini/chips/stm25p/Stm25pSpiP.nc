@@ -37,42 +37,43 @@
 #include "crc.h"
 
 module Stm25pSpiP {
-
+  
   provides interface Init;
   provides interface Resource as ClientResource;
   provides interface Stm25pSpi as Spi;
-
+  
   uses interface Resource as SpiResource;
   uses interface GeneralIO as CSN;
   uses interface GeneralIO as Hold;
   uses interface SpiByte;
   uses interface SpiPacket;
   uses interface Leds;
-
+  
 }
 
 implementation {
-
+  
   enum {
     CRC_BUF_SIZE = 16,
   };
-
+  
   typedef enum {
-    S_READ = 0x3,
-    S_PAGE_PROGRAM = 0x2,
+    S_READ = 0x03,
+    S_PAGE_PROGRAM = 0x02,
     S_SECTOR_ERASE = 0xd8,
     S_BULK_ERASE = 0xc7,
     S_WRITE_ENABLE = 0x6,
     S_POWER_ON = 0xab,
     S_DEEP_SLEEP = 0xb9,
+    S_READ_STATUS = 0x05,
   } stm25p_cmd_t;
-
+  
   norace uint8_t m_cmd[ 4 ];
-
+  
   norace bool m_is_writing = FALSE;
   norace bool m_computing_crc = FALSE;
   bool m_init=FALSE;
-
+  
   norace stm25p_addr_t m_addr;
   norace uint8_t* m_buf;
   norace stm25p_len_t m_len;
@@ -80,24 +81,24 @@ implementation {
   norace stm25p_len_t m_cur_len;
   norace uint8_t m_crc_buf[ CRC_BUF_SIZE ];
   norace uint16_t m_crc=unique("Stm25pOn");// placeholder for unique id
-
+  
   error_t newRequest( bool write, stm25p_len_t cmd_len );
   void signalDone( error_t error );
-
+  
   uint8_t sendCmd( uint8_t cmd, uint8_t len ) {
-
+    
     uint8_t tmp = 0;
     int i;
-
+    
     call CSN.clr();
     for ( i = 0; i < len; i++ )
       tmp = call SpiByte.write( cmd );
     call CSN.set();
-
+    
     return tmp;
-
+    
   }
-
+  
   command error_t Init.init() {
     call CSN.makeOutput();
     call Hold.makeOutput();
@@ -108,13 +109,13 @@ implementation {
       call SpiResource.release();
     } else if(call SpiResource.request()==SUCCESS)
       m_init=TRUE;//otherwise we can't put the chip to deep sleep
-    return SUCCESS;
+      return SUCCESS;
   }
-
+  
   async command error_t ClientResource.request() {
     return call SpiResource.request();
   }
-
+  
   async command error_t ClientResource.immediateRequest() {
     return call SpiResource.immediateRequest();
   }
@@ -122,36 +123,34 @@ implementation {
   async command error_t ClientResource.release() {
     return call SpiResource.release();
   }
-
+  
   async command bool ClientResource.isOwner() {
     return call SpiResource.isOwner();
   }
-
+  
   stm25p_len_t calcReadLen() {
     return ( m_cur_len < CRC_BUF_SIZE ) ? m_cur_len : CRC_BUF_SIZE;
   }  
-
+  
   async command error_t Spi.powerDown() {
     sendCmd( S_DEEP_SLEEP, 1 );
     return SUCCESS;
   }
-
+  
   async command error_t Spi.powerUp() {
     sendCmd( S_POWER_ON, 5 );
     return SUCCESS;
   }
-
-  async command error_t Spi.read( stm25p_addr_t addr, uint8_t* buf, 
-				  stm25p_len_t len ) {
+  
+  async command error_t Spi.read( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len ) {
     m_cmd[ 0 ] = S_READ;
     m_addr = addr;
     m_buf = buf;
     m_len = len;
     return newRequest( FALSE, 4 );
   }
-
-  async command error_t Spi.computeCrc( uint16_t crc, stm25p_addr_t addr,
-					stm25p_len_t len ) {
+  
+  async command error_t Spi.computeCrc( uint16_t crc, stm25p_addr_t addr, stm25p_len_t len ) {
     m_computing_crc = TRUE;
     m_crc = crc;
     m_addr = m_cur_addr = addr;
@@ -159,26 +158,25 @@ implementation {
     return call Spi.read( addr, m_crc_buf, calcReadLen() );
   }
   
-  async command error_t Spi.pageProgram( stm25p_addr_t addr, uint8_t* buf, 
-					 stm25p_len_t len ) {
+  async command error_t Spi.pageProgram( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len ) {
     m_cmd[ 0 ] = S_PAGE_PROGRAM;
     m_addr = addr;
     m_buf = buf;
     m_len = len;
     return newRequest( TRUE, 4 );
   }
-
+  
   async command error_t Spi.sectorErase( uint8_t sector ) {
     m_cmd[ 0 ] = S_SECTOR_ERASE;
     m_addr = (stm25p_addr_t)sector << STM25P_SECTOR_SIZE_LOG2;
     return newRequest( TRUE, 4 );
   }
-
+  
   async command error_t Spi.bulkErase() {
     m_cmd[ 0 ] = S_BULK_ERASE;
     return newRequest( TRUE, 1 );
   }
-
+  
   error_t newRequest( bool write, stm25p_len_t cmd_len ) {
     m_cmd[ 1 ] = m_addr >> 16;
     m_cmd[ 2 ] = m_addr >> 8;
@@ -189,58 +187,57 @@ implementation {
     call SpiPacket.send( m_cmd, NULL, cmd_len );
     return SUCCESS;
   }
-
+  
   void releaseAndRequest() {
     call SpiResource.release();
     call SpiResource.request();
   }
-
-  async event void SpiPacket.sendDone( uint8_t* tx_buf, uint8_t* rx_buf,
-				       uint16_t len, error_t error ) {
-
+  
+  async event void SpiPacket.sendDone( uint8_t* tx_buf, uint8_t* rx_buf,  uint16_t len, error_t error ) {
+    
     int i;
-
+    
     switch( m_cmd[ 0 ] ) {
-
-    case S_READ:
-      if ( tx_buf == m_cmd ) {
-	call SpiPacket.send( NULL, m_buf, m_len );
-	break;
-      }
-      else if ( m_computing_crc ) {
-	for ( i = 0; i < len; i++ )
-	  m_crc = crcByte( m_crc, m_crc_buf[ i ] );
-	m_cur_addr += len;
-	m_cur_len -= len;
-	if ( m_cur_len ) {
-	  call SpiPacket.send( NULL, m_crc_buf, calcReadLen() );
-	  break;
-	}
-      }
-      call CSN.set();
-      signalDone( SUCCESS );
-      break;
-
-    case S_PAGE_PROGRAM:
-      if ( tx_buf == m_cmd ) {
-	call SpiPacket.send( m_buf, NULL, m_len );
-	break;
-      }
-      // fall through
       
-    case S_SECTOR_ERASE: case S_BULK_ERASE:
-      call CSN.set();
-      m_is_writing = TRUE;
-      releaseAndRequest();
-      break;
-
-    default:
-      break;
-
+      case S_READ:
+        if ( tx_buf == m_cmd ) {
+          call SpiPacket.send( NULL, m_buf, m_len );
+          break;
+        }
+        else if ( m_computing_crc ) {
+          for ( i = 0; i < len; i++ )
+            m_crc = crcByte( m_crc, m_crc_buf[ i ] );
+          m_cur_addr += len;
+          m_cur_len -= len;
+          if ( m_cur_len ) {
+            call SpiPacket.send( NULL, m_crc_buf, calcReadLen() );
+            break;
+          }
+        }
+        call CSN.set();
+        signalDone( SUCCESS );
+        break;
+        
+      case S_PAGE_PROGRAM:
+        if ( tx_buf == m_cmd ) {
+          call SpiPacket.send( m_buf, NULL, m_len );
+          break;
+        }
+        // fall through
+        
+      case S_SECTOR_ERASE: case S_BULK_ERASE:
+        call CSN.set();
+        m_is_writing = TRUE;
+        releaseAndRequest();
+        break;
+        
+      default:
+        break;
+        
     }
-
+    
   }
-
+  
   event void SpiResource.granted() {
     if (m_init){
       m_init=FALSE;
@@ -249,43 +246,43 @@ implementation {
     }
     else if ( !m_is_writing )
       signal ClientResource.granted();
-    else if ( sendCmd( 0x5, 2 ) & 0x1 )
+    else if ( sendCmd( S_READ_STATUS, 2 ) & 0x1 )
       releaseAndRequest();
     else
       signalDone( SUCCESS );
-
+    
   }
-
+  
   void signalDone( error_t error ) {
     m_is_writing = FALSE;
     switch( m_cmd[ 0 ] ) {
-    case S_READ:
-      if ( m_computing_crc ) {
-	m_computing_crc = FALSE;
-	signal Spi.computeCrcDone( m_crc, m_addr, m_len, error );
-      }
-      else {
-	signal Spi.readDone( m_addr, m_buf, m_len, error );
-      }
-      break;
-    case S_PAGE_PROGRAM:
-      signal Spi.pageProgramDone( m_addr, m_buf, m_len, error );
-      break;
-    case S_SECTOR_ERASE:
-      signal Spi.sectorEraseDone( m_addr >> STM25P_SECTOR_SIZE_LOG2, error );
-      break;
-    case S_BULK_ERASE:
-      signal Spi.bulkEraseDone( error );
-      break;
+      case S_READ:
+        if ( m_computing_crc ) {
+          m_computing_crc = FALSE;
+          signal Spi.computeCrcDone( m_crc, m_addr, m_len, error );
+        }
+        else {
+          signal Spi.readDone( m_addr, m_buf, m_len, error );
+        }
+        break;
+      case S_PAGE_PROGRAM:
+        signal Spi.pageProgramDone( m_addr, m_buf, m_len, error );
+        break;
+      case S_SECTOR_ERASE:
+        signal Spi.sectorEraseDone( m_addr >> STM25P_SECTOR_SIZE_LOG2, error );
+        break;
+      case S_BULK_ERASE:
+        signal Spi.bulkEraseDone( error );
+        break;
     }
   }
   
-  	
+  
   default async event void Spi.bulkEraseDone( error_t error ) {}
   default async event void Spi.sectorEraseDone( uint8_t sector, error_t error ) {}
   default async event void Spi.pageProgramDone( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len, error_t error ) {}
   default async event void Spi.computeCrcDone( uint16_t crc, stm25p_addr_t addr, stm25p_len_t len, error_t error ) {}
   default async event void Spi.readDone( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len, error_t error ) {}
   default event void ClientResource.granted(){}
-
+  
 }
