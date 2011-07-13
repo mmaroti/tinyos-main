@@ -1,0 +1,16 @@
+#!/usr/bin/python
+import sys
+if sys.platform.startswith("cygwin"):
+  from getdevicescygwin import getAllDevices
+elif sys.platform.startswith("linux"):
+  from getdeviceslinux import getAllDevices
+else:
+  print("Unknown platform: "+sys.platform)
+  sys.exit(0)
+devices=getAllDevices()
+if len(devices)==0:
+  print("No devices found.")
+else:
+  import pprint
+  pp = pprint.PrettyPrinter()
+  pp.pprint(getAllDevices())
