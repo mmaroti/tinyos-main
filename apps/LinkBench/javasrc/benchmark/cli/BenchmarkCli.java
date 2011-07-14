@@ -196,6 +196,14 @@ public class BenchmarkCli {
             .create("mc");
 
 
+    Option reset = OptionBuilder
+            .withArgName("moteid")
+            .hasArg()
+            .withDescription("Reset the mote. If moteid set to 0, all motes are reset.")
+            .withLongOpt("reset")
+            .create("r");
+
+
     opt.addOption(problem);
     opt.addOption(randomstart);
     opt.addOption(runtime);
@@ -206,9 +214,9 @@ public class BenchmarkCli {
     opt.addOption(trtimers);
     opt.addOption(batchfile);
     opt.addOption(batchoutput);
+    opt.addOption(reset);
 
     opt.addOption("h", "help", false, "Print help for this application");
-    opt.addOption("r", "reset", false, "Reset all motes");
     opt.addOption("ack", false, "Force acknowledgements. [default : false]");
     opt.addOption("bcast", "broadcast", false, "Force broadcasting. [default : false]");
     opt.addOption("dload", "download", false, "Only download data from motes.");
@@ -217,10 +225,18 @@ public class BenchmarkCli {
 
   }
 
-  public boolean doReset(final boolean is_tossim) {
-    System.out.print("> Reset all motes ...     ");
+  public boolean doReset(final boolean is_tossim, final int moteid) {
+    if ( moteid == 0 )
+        System.out.print("> Reset all motes ...     ");
+    else
+        System.out.print(String.format("> Reset mote %2d ...       ",moteid));
+        
     try {
-      ctrl.reset(!is_tossim);
+      if ( moteid == 0 )
+          ctrl.reset(!is_tossim);
+      else
+          ctrl.resetMote(moteid);
+          
       System.out.println("OK");
       return true;
     } catch (BenchmarkController.MessageSendException ex) {
@@ -329,10 +345,10 @@ public class BenchmarkCli {
       // -----------------------------------------------------------------------
       else if ( cl. hasOption('r') ) {
         BenchmarkCli cli = new BenchmarkCli();
-        if ( cli.doReset( cl.hasOption("tossim") ) )
-          System.exit(0);
+        if ( cli.doReset( cl.hasOption("tossim"), Integer.parseInt(cl.getOptionValue("r")) ) )
+            System.exit(0);
         else
-          System.exit(1);
+            System.exit(1);
       }
       // Download request
       // -----------------------------------------------------------------------
@@ -442,7 +458,7 @@ public class BenchmarkCli {
         // Do what needs to be done
         boolean tossim = cl.hasOption("tossim");
         BenchmarkCli cli = new BenchmarkCli();
-        if (cli.doReset(tossim)              &&
+        if (cli.doReset(tossim,0)            &&
             cli.doSetup(st,tossim)           &&
             cli.doSync()                     &&
             cli.doRun(tossim)                &&

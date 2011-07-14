@@ -113,11 +113,10 @@ public class BenchmarkController implements MessageListener {
    * Send a RESET control message to the network.
    * It is a broadcast message, so every mote should receive it.
    *
-   * @param moteId The mote to be resetted
    * @param use_bcast Whether send one broadcast message or iterate through the motes
    * @throws MessageSendException if an error occured (message is failed to send)
    */
-	public boolean reset(final boolean use_bcast) throws MessageSendException
+  public boolean reset(final boolean use_bcast) throws MessageSendException
   {
     CtrlMsgT cmsg = new CtrlMsgT();
     cmsg.set_type(BenchmarkStatic.CTRL_RESET);
@@ -136,6 +135,26 @@ public class BenchmarkController implements MessageListener {
     }
     return true;
 	}
+	
+  /**
+   * Send a RESET control message to only one mote.
+   *
+   * @param moteId The mote to be resetted
+   * @param use_bcast Whether send one broadcast message or iterate through the motes
+   * @throws MessageSendException if an error occured (message is failed to send)
+   */
+  public boolean resetMote(final int moteId) throws MessageSendException
+  {
+    CtrlMsgT cmsg = new CtrlMsgT();
+    cmsg.set_type(BenchmarkStatic.CTRL_RESET);
+    try {
+        mif.send(moteId,cmsg);
+        Thread.sleep((int)(500));
+	} catch(Exception e) {
+      throw new MessageSendException();
+    }
+    return true;
+  }	
   
   /**
    * Send a SETUP control message to the network.
