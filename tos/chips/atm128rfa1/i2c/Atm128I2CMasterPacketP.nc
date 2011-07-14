@@ -72,7 +72,7 @@
   *
   */
 
-module Atm128I2CMasterPacketP {
+generic module Atm128I2CMasterPacketP() {
   provides interface AsyncStdControl;
   provides interface I2CPacket<TI2CBasicAddr>;
   provides interface Atm128I2C;
