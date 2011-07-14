@@ -58,8 +58,8 @@ implementation {
   };
   
   typedef enum {
-    S_READ = 0x03,
-    S_PAGE_PROGRAM = 0x02,
+    S_READ = 0x3,
+    S_PAGE_PROGRAM = 0x2,
     S_SECTOR_ERASE = 0xd8,
     S_BULK_ERASE = 0xc7,
     S_WRITE_ENABLE = 0x6,
@@ -80,7 +80,7 @@ implementation {
   norace stm25p_addr_t m_cur_addr;
   norace stm25p_len_t m_cur_len;
   norace uint8_t m_crc_buf[ CRC_BUF_SIZE ];
-  norace uint16_t m_crc=unique("Stm25pOn");// placeholder for unique id
+  norace uint16_t m_crc = unique("Stm25pOn");// placeholder for unique id
   
   error_t newRequest( bool write, stm25p_len_t cmd_len );
   void signalDone( error_t error );
@@ -109,7 +109,7 @@ implementation {
       call SpiResource.release();
     } else if(call SpiResource.request()==SUCCESS)
       m_init=TRUE;//otherwise we can't put the chip to deep sleep
-      return SUCCESS;
+    return SUCCESS;
   }
   
   async command error_t ClientResource.request() {
