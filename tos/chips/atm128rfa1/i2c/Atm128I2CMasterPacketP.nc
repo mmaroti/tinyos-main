@@ -69,6 +69,7 @@
   * @author Thomas Fahrni, ETH Zurich, tfahrni@ee.ethz.ch
   * @author Richard Huber, ETH Zurich, rihuber@ee.ethz.ch
   * @author Lars Schor, ETH Zurich, lschor@ee.ethz.ch
+  * @author Andras Biro
   *
   */
 
