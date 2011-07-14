@@ -42,16 +42,15 @@ module Stm25pOffP {
 implementation {
 
   command error_t Stm25pOff.init() {
-    call CSN.makeOutput();
-    call Hold.makeOutput();
-    if(!uniqueCount("Stm25pOn")) {
+    if(!uniqueCount("Stm25pOn"))
       call SpiResource.request();
-    }
     return SUCCESS;
   }
 
   event void SpiResource.granted() {
     if(!uniqueCount("Stm25pOn")) {//we got the granted event if the real driver asks for the resource
+      call CSN.makeOutput();
+      call Hold.makeOutput();
       call CSN.clr();
       call Hold.clr();
       call SpiByte.write(0xb9);//deep sleep

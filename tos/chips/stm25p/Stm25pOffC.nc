@@ -42,11 +42,8 @@ implementation {
   components HplStm25pSpiC as SpiC;
   Stm25pOffP.SpiResource -> SpiC;
   Stm25pOffP.SpiByte -> SpiC;
-  //SpiP.SpiPacket -> SpiC;
 
   components HplStm25pPinsC as PinsC;
   Stm25pOffP.CSN -> PinsC.CSN;
   Stm25pOffP.Hold -> PinsC.Hold;
-
-    
 }
