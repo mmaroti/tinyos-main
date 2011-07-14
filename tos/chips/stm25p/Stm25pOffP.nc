@@ -48,7 +48,8 @@ implementation {
   }
 
   event void SpiResource.granted() {
-    if(!uniqueCount("Stm25pOn")) {//we got the granted event if the real driver asks for the resource
+    //we get the granted event if the real driver asks for the resource
+    if(!uniqueCount("Stm25pOn")) {
       call CSN.makeOutput();
       call Hold.makeOutput();
       call CSN.clr();

@@ -58,15 +58,20 @@ implementation {
   };
 
   typedef enum {
-    S_READ = 0x3,
-    S_PAGE_PROGRAM = 0x2,
+    S_READ = 0x03,
+    S_PAGE_PROGRAM = 0x02,
     S_SECTOR_ERASE = 0xd8,
     S_BULK_ERASE = 0xc7,
-    S_WRITE_ENABLE = 0x6,
+    S_WRITE_ENABLE = 0x06,
     S_POWER_ON = 0xab,
     S_DEEP_SLEEP = 0xb9,
     S_READ_STATUS = 0x05,
   } stm25p_cmd_t;
+
+  enum {
+    // this disables the Stm25pOff component
+    STM25PON = unique("Stm25pOn");
+  };
 
   norace uint8_t m_cmd[ 4 ];
 
@@ -80,7 +85,7 @@ implementation {
   norace stm25p_addr_t m_cur_addr;
   norace stm25p_len_t m_cur_len;
   norace uint8_t m_crc_buf[ CRC_BUF_SIZE ];
-  norace uint16_t m_crc = unique("Stm25pOn");// placeholder for unique id
+  norace uint16_t m_crc;
 
   error_t newRequest( bool write, stm25p_len_t cmd_len );
   void signalDone( error_t error );
@@ -273,12 +278,4 @@ implementation {
       break;
     }
   }
-/*
-  default async event void Spi.bulkEraseDone( error_t error ) {}
-  default async event void Spi.sectorEraseDone( uint8_t sector, error_t error ) {}
-  default async event void Spi.pageProgramDone( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len, error_t error ) {}
-  default async event void Spi.computeCrcDone( uint16_t crc, stm25p_addr_t addr, stm25p_len_t len, error_t error ) {}
-  default async event void Spi.readDone( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len, error_t error ) {}
-  default event void ClientResource.granted(){}
-*/
 }
