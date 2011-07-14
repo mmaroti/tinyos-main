@@ -87,6 +87,6 @@ implementation
   HplSpi.SCK  -> IO.PortB1;  // SPI clock line
   HplSpi.MOSI -> IO.PortB2;  // Master out, slave in
   HplSpi.MISO -> IO.PortB3;  // Master in, slave out
-	
-	HplSpi.McuPowerOverride <- McuSleepC;
+  
+  HplSpi.McuPowerOverride <- McuSleepC;
 }

@@ -237,11 +237,11 @@ implementation {
     }
   }
 
-	async command mcu_power_t McuPowerOverride.lowestState() {
-		if(bit_is_set(SPCR,SPE)) {
-			return ATM128_POWER_IDLE;
-		}
-		else
-			return ATM128_POWER_DOWN;
-	}
+  async command mcu_power_t McuPowerOverride.lowestState() {
+    if(bit_is_set(SPCR,SPE)) {
+      return ATM128_POWER_IDLE;
+    }
+    else
+      return ATM128_POWER_DOWN;
+  }
 }
