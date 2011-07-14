@@ -238,31 +238,31 @@ implementation
 
 #ifndef LOW_POWER_LISTENING
 
-#ifndef RF230_BACKOFF_MIN
-#define RF230_BACKOFF_MIN 320
+#ifndef RFA1_BACKOFF_MIN
+#define RFA1_BACKOFF_MIN 320
 #endif
 
 	async command uint16_t RandomCollisionConfig.getMinimumBackoff()
 	{
-		return (uint16_t)(RF230_BACKOFF_MIN * RADIO_ALARM_MICROSEC);
+		return (uint16_t)(RFA1_BACKOFF_MIN * RADIO_ALARM_MICROSEC);
 	}
 
-#ifndef RF230_BACKOFF_INIT
-#define RF230_BACKOFF_INIT 4960		// instead of 9920
+#ifndef RFA1_BACKOFF_INIT
+#define RFA1_BACKOFF_INIT 4960		// instead of 9920
 #endif
 
 	async command uint16_t RandomCollisionConfig.getInitialBackoff(message_t* msg)
 	{
-		return (uint16_t)(RF230_BACKOFF_INIT * RADIO_ALARM_MICROSEC);
+		return (uint16_t)(RFA1_BACKOFF_INIT * RADIO_ALARM_MICROSEC);
 	}
 
-#ifndef RF230_BACKOFF_CONG
-#define RF230_BACKOFF_CONG 2240
+#ifndef RFA1_BACKOFF_CONG
+#define RFA1_BACKOFF_CONG 2240
 #endif
 
 	async command uint16_t RandomCollisionConfig.getCongestionBackoff(message_t* msg)
 	{
-		return (uint16_t)(RF230_BACKOFF_CONG * RADIO_ALARM_MICROSEC);
+		return (uint16_t)(RFA1_BACKOFF_CONG * RADIO_ALARM_MICROSEC);
 	}
 
 #endif
