@@ -39,21 +39,51 @@
 #include "hardware.h"
 #include "Timer.h"
 
+// ------ MCU platform clock ------
+
+#ifndef PLATFORM_MHZ
+#define PLATFORM_MHZ  16
+#endif
+
+#if PLATFORM_MHZ == 16
+#define PLATFORM_MHZ_LOG2   4
+#elif PLATFORM_MHZ == 8
+#define PLATFORM_MHZ_LOG2   3
+#elif PLATFORM_MHZ == 4
+#define PLATFORM_MHZ_LOG2   2
+#elif PLATFORM_MHZ == 2
+#define PLATFORM_MHZ_LOG2   1
+#elif PLATFORM_MHZ == 1
+#define PLATFORM_MHZ_LOG2   0
+#else
+#error "PLATFORM_MHZ must be 1, 2, 4, 8 or 16"
+#endif
+
 // ------ MCU timer parameters ------
+
+#define MCU_TIMER_MODE		(ATMRFA1_CLK16_DIVIDE_8 | ATMRFA1_WGM16_NORMAL)
+#define MCU_TIMER_MHZ_LOG2	(PLATFORM_MHZ_LOG2-3)
+#define MCU_TIMER_MHZ		(1 << MCU_TIMER_MHZ_LOG2)
+#define MCU_TIMER_HZ		(16000000ul / 16 * (1 << MCU_TIMER_MHZ_LOG2))
 
 typedef struct T16mhz { } T16mhz;
 typedef struct T8mhz { } T8mhz;
 typedef struct T4mhz { } T4mhz;
 typedef struct T2mhz { } T2mhz;
 
-#define PLATFORM_MHZ	16
-
+#if MCU_TIMER_MHZ_LOG2 == 4
+typedef T16mhz TMcu;
+#elif MCU_TIMER_MHZ_LOG2 == 3
+typedef T8mhz TMcu;
+#elif MCU_TIMER_MHZ_LOG2 == 2
+typedef T4mhz TMcu;
+#elif MCU_TIMER_MHZ_LOG2 == 1
 typedef T2mhz TMcu;
-
-#define MCU_TIMER_MODE		(ATMRFA1_CLK16_DIVIDE_8 | ATMRFA1_WGM16_NORMAL)
-#define MCU_TIMER_MHZ_LOG2	1
-#define MCU_TIMER_MHZ		(1 << MCU_TIMER_MHZ_LOG2)
-#define MCU_TIMER_HZ		(16000000ul / 16 * (1 << MCU_TIMER_MHZ_LOG2))
+#elif MCU_TIMER_MHZ_LOG2 == 0
+typedef TMicro TMcu;
+#else
+#error "MCU clock must run at at least 1 MHz"
+#endif
 
 // selects which 16-bit TimerCounter should be used (1 or 3)
 #define MCU_TIMER_NO		1
