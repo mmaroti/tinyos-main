@@ -32,6 +32,7 @@
  * Author: Miklos Maroti
  */
 
+#include "TimerConfig.h"
 module McuInitP @safe()
 {
 	provides interface Init;
