@@ -76,6 +76,7 @@ implementation
     while(irq_flag!=0){
       uint8_t i;
       bool toHigh;
+      __nesc_enable_interrupt();
       for(i=0;i<8;i++)
         if(irq_flag & (1<<i) )
           break;
@@ -109,6 +110,7 @@ implementation
           signal GpioPCInterrupt7.fired(toHigh);
         break;
       }
+      __nesc_disable_interrupt();
     }
   }
 
@@ -133,12 +135,9 @@ implementation
       __nesc_enable_interrupt();
       signaling=TRUE;
       signalfired();
-      //TODO: if we got an irq here, we'll only signal it when the next one arrives
       signaling=FALSE;
     }
   }
-
-
 
   inline bool pinget(uint8_t pin){
     switch(pin){
