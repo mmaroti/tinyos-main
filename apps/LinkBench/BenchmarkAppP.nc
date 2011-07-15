@@ -130,6 +130,7 @@ implementation {
       case CTRL_RESET :
           dbg("Benchmark","RxCtrl.receive RESET %d\n",TOS_NODE_ID);
           call BenchmarkCore.reset();
+          call Control.stop();
           break;
           
       case CTRL_SETUP_SYN :
