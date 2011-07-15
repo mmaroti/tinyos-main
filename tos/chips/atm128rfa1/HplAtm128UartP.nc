@@ -320,7 +320,7 @@ implementation {
   }
  
   async command mcu_power_t McuPowerOverride.lowestState() {
-    if ( (UCSR0B & (1<<TXEN0)) || (UCSR0B & (1<<RXEN0)))
+    if ( (UCSR0B & (1<<TXEN0)) || (UCSR0B & (1<<RXEN0)) || (UCSR1B & (1<<TXEN1)) || (UCSR1B & (1<<RXEN1)) )
       return ATM128_POWER_IDLE;
     else
       return ATM128_POWER_DOWN;
