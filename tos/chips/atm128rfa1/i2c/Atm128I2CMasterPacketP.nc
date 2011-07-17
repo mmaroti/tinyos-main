@@ -69,7 +69,7 @@
   * @author Thomas Fahrni, ETH Zurich, tfahrni@ee.ethz.ch
   * @author Richard Huber, ETH Zurich, rihuber@ee.ethz.ch
   * @author Lars Schor, ETH Zurich, lschor@ee.ethz.ch
-  * @author Andras Biro
+  * @author Andras Biro, University of Szeged
   *
   */
 
@@ -157,8 +157,7 @@ implementation {
       }
     }
   }
-  
-  
+
   inline void readNextByte(bool startRead){
     if(!startRead){
       packetPtr[index] = call I2C.read();
@@ -185,7 +184,7 @@ implementation {
       return;
     }
   }
-  
+
   inline void writeNextByte(){
     if (index < packetLen) {
       call I2C.write(packetPtr[index]);
@@ -207,7 +206,7 @@ implementation {
       call WriteDebugLeds.led2On();
       signal I2CPacket.writeDone(SUCCESS, packetAddr, packetLen, packetPtr);
     }
-  }  
+  }
 
   async command error_t I2CPacket.read(i2c_flags_t flags, uint16_t addr, uint8_t len, uint8_t* data) {
     atomic {
@@ -313,8 +312,6 @@ implementation {
     }
     return SUCCESS;
   }
-  
-
 
   /**
     * A command has been sent over the I2C.
@@ -344,7 +341,7 @@ implementation {
     call I2C.readCurrent();
     atomic {
       switch(state){
-        case I2C_SLAVE_ACK:{  //check for slave addr ack     
+        case I2C_SLAVE_ACK: {  //check for slave addr ack     
           uint8_t i2c_status=call I2C.status();
           if (reading == TRUE) {     
               if(i2c_status==0x40){
@@ -363,14 +360,14 @@ implementation {
               return;
             }
           }
-        }break;
+        }
+	break;
 
         case I2C_DATA: 
-          if (reading == TRUE) {
+          if (reading == TRUE)
             readNextByte(FALSE);
-          } else { // Writing
+          else // Writing
             writeNextByte();
-          }
         break;
 
         case I2C_STARTING: 
@@ -380,14 +377,10 @@ implementation {
             i2c_abort(FAIL);
             return;
           }
-      //after the START condition, we write the address
+          //after the START condition, we write the address
           call I2C.enableAck(TRUE);
-          if (reading == TRUE) {
-            call I2C.write(((packetAddr & 0x7f) << 1) | ATM128_I2C_SLA_READ);
-          }
-          else {
-            call I2C.write(((packetAddr & 0x7f) << 1) | ATM128_I2C_SLA_WRITE);
-          }
+          call I2C.write(((packetAddr & 0x7f) << 1) | 
+            ((reading == TRUE) ? ATM128_I2C_SLA_READ : ATM128_I2C_SLA_WRITE));
           state = I2C_SLAVE_ACK;
           call I2C.sendCommand();
         break;
