@@ -121,9 +121,9 @@ implementation
     radioBusy = FALSE;
     radioFull = TRUE;
 
-    if(call RadioControl.start()==EALREADY)
+    if (call RadioControl.start() == EALREADY)
       radioFull = FALSE;
-    if(call SerialControl.start()==EALREADY)
+    if (call SerialControl.start() == EALREADY)
       uartFull = FALSE;
   }
 
