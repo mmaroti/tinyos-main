@@ -699,45 +699,23 @@ implementation
 	  }
   }
   
-  //TODO change to NONATOMIC if it's enough
-  /**
-   * Indicates radio transceiver reached TRX_OFF state RESET, or SLEEP states
-   */
-  AVR_ATOMIC_HANDLER(TRX24_AWAKE_vect){}
-  
   /**
    * Indicates the completion of a frame transmission
    */
-  AVR_ATOMIC_HANDLER(TRX24_TX_END_vect){
+  AVR_NONATOMIC_HANDLER(TRX24_TX_END_vect){
     RADIO_ASSERT( ! radioIrq );
-    atomic
-    {
-      capturedTime = call LocalTime.get();
-      radioIrq |= IRQ_TX_END;
-    }
+
+    atomic radioIrq |= IRQ_TX_END;
     call Tasklet.schedule();
   }
   
   /**
-   * Indicates address matching
-   */
-  AVR_ATOMIC_HANDLER(TRX24_XAH_AMI_vect){}
-  
-  /**
-   * Indicates the end of a CCA or ED measurement 
-   */
-  AVR_ATOMIC_HANDLER(TRX24_CCA_ED_DONE_vect){}
-  
-  /**
    * Indicates the completion of a frame reception
    */
-  AVR_ATOMIC_HANDLER(TRX24_RX_END_vect){
+  AVR_NONATOMIC_HANDLER(TRX24_RX_END_vect){
     RADIO_ASSERT( ! radioIrq );
-    atomic
-    {
-      capturedTime = call LocalTime.get();
-      radioIrq |= IRQ_RX_END;
-    }
+
+    atomic radioIrq |= IRQ_RX_END;
     call Tasklet.schedule();
   }
   
@@ -745,8 +723,9 @@ implementation
    * Indicates the start of a PSDU reception. The TRX_STATE changes
    * to BUSY_RX, the PHR is ready to be read from Frame Buffer
    */
-  AVR_ATOMIC_HANDLER(TRX24_RX_START_vect){
+  AVR_NONATOMIC_HANDLER(TRX24_RX_START_vect){
     RADIO_ASSERT( ! radioIrq );
+
     atomic
     {
       capturedTime = call LocalTime.get();
@@ -756,24 +735,14 @@ implementation
   }
   
   /**
-   * Indicates PLL unlock. If the radio transceiver is in
-   * BUSY_TX / BUSY_TX_ARET state, the PA is turned off immediately
-   */
-  AVR_ATOMIC_HANDLER(TRX24_PLL_UNLOCK_vect){}
-  
-  /**
    * Indicates PLL lock
    */
-  AVR_ATOMIC_HANDLER(TRX24_PLL_LOCK_vect){
+  AVR_NONATOMIC_HANDLER(TRX24_PLL_LOCK_vect){
     RADIO_ASSERT( ! radioIrq );
-    atomic
-    {
-      capturedTime = call LocalTime.get();
-      radioIrq |= IRQ_PLL_LOCK;
-    }
+
+    atomic radioIrq |= IRQ_PLL_LOCK;
     call Tasklet.schedule();
   }
-
 
   /*----------------- TASKLET -----------------*/
 
