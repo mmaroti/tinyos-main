@@ -43,7 +43,6 @@ module HplAtmRfa1TimerMacP @safe()
 		interface AtmegaCompare<uint32_t> as CompareB;
 		interface AtmegaCompare<uint32_t> as CompareC;
 		interface AtmegaCapture<uint32_t> as SfdCapture;
-		interface AtmegaCapture<uint32_t> as BeaconCapture;
 		interface McuPowerOverride;
 	}
 
@@ -429,63 +428,6 @@ implementation
 	}
 
 	async command uint8_t SfdCapture.getMode()
-	{
-		return (SCCR0 >> SCTSE) & 0x1;
-	}
-
-
-// ----- BEACON CAPTURE: symbol counter time stamp register (SCTSR)
-
-	async command uint32_t BeaconCapture.get()
-	{
-		reg32_t time;
-
-		atomic
-		{
-			time.ll = SCBTSRLL;
-			time.lh = SCBTSRLH;
-			time.hl = SCBTSRHL;
-			time.hh	= SCBTSRHH;
-		}
-
-		return time.full;
-	}
-
-	async command void BeaconCapture.set(uint32_t value) 
-	{ 
-		reg32_t time;
-		
-		time.full = value;
-
-		atomic
-		{
-			SCBTSRHH = time.hh;
-			SCBTSRHL = time.hl;
-			SCBTSRLH = time.lh;
-			SCBTSRLL = time.ll;
-		}
-	}
-
-// ----- BEACON CAPTURE: has no interrupt (use RX_START instead)
-
-	async command bool BeaconCapture.test() { return FALSE; }
-	async command void BeaconCapture.reset() { }
-	async command void BeaconCapture.start() { }
-	async command void BeaconCapture.stop() { }
-	async command bool BeaconCapture.isOn() { return FALSE; }
-
-// ----- BEACON CAPTURE: symbol counter control register (SCCR), timestamping enable (SCTES)
-
-	async command void BeaconCapture.setMode(uint8_t mode)
-	{
-		atomic
-		{
-			SCCR0 = (SCCR0 & ~(1 << SCTSE))
-				| (mode & 0x1) << SCTSE;
-		}
-	}
-
-	async command uint8_t BeaconCapture.getMode()
 	{
 		return (SCCR0 >> SCTSE) & 0x1;
 	}

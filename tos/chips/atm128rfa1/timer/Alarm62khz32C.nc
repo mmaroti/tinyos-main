@@ -32,7 +32,7 @@
  * Author: Miklos Maroti
  */
 
-#include "HplAtmRfa1Timer.h"
+#include "TimerConfig.h"
 
 generic configuration Alarm62khz32C()
 {
@@ -41,7 +41,7 @@ generic configuration Alarm62khz32C()
 
 implementation
 {
-	components new AtmegaCompareP(T62khz, uint32_t, 0, 2);
+	components new AtmegaCompareP(T62khz, uint32_t, 0, SYM_ALARM_MINDT);
 	Alarm = AtmegaCompareP;
 
 	components McuInitC;

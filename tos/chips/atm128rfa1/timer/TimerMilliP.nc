@@ -32,7 +32,7 @@
  * Author: Miklos Maroti
  */
 
-#include "HplAtmRfa1Timer.h"
+#include "TimerConfig.h"
 
 configuration TimerMilliP
 {

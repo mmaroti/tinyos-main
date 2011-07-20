@@ -32,7 +32,7 @@
  * Author: Miklos Maroti
  */
 
-#include "HplAtmRfa1Timer.h"
+#include "TimerConfig.h"
 
 configuration Counter62khz32C
 {
@@ -41,7 +41,7 @@ configuration Counter62khz32C
 
 implementation
 {
-	components new AtmegaCounterP(T62khz, uint32_t, ATMRFA1_CLKSC_RTC);
+	components new AtmegaCounterP(T62khz, uint32_t, SYM_TIMER_MODE);
 	Counter = AtmegaCounterP;
 
 	components McuInitC;

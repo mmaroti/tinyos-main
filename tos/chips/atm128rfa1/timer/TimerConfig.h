@@ -117,4 +117,13 @@ typedef TMilli TRtc;
 #define RTC_ALARM_MINDT		4
 #define UQ_RTC_ALARM		"UQ_RTC_ALARM"
 
+// ------ Symbol counter patarmeters ------
+
+typedef struct T62khz { } T62khz;
+
+#define UQ_T62KHZ_ALARM "T62KHZ_ALARM"
+
+#define SYM_TIMER_MODE	ATMRFA1_CLKSC_RTC
+#define SYM_ALARM_MINDT	2
+
 #endif//__TIMERCONFIG_H__

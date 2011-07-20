@@ -33,7 +33,7 @@
  * Author: Philipp Sommer
  */
 
-#include "HplAtmRfa1Timer.h"
+#include "TimerConfig.h"
 
 configuration LocalTime62khzC
 {

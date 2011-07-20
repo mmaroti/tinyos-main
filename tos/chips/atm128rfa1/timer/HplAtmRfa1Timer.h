@@ -35,12 +35,6 @@
 #ifndef __HPLATMRFA1TIMER_H__
 #define __HPLATMRFA1TIMER_H__
 
-// async symbol counter
-typedef struct T62khz { } T62khz;
-
-#define UQ_T62KHZ_ALARM "T62KHZ_ALARM"
-
-
 // ------- 8-bit timers -------
 
 // constants for AtmegaTimer.setMode
