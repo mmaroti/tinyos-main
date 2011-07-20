@@ -63,6 +63,7 @@ module RFA1DriverLayerP
   {
     interface BusyWait<TMicro, uint16_t>;
     interface LocalTime<TRadio>;
+    interface AtmegaCapture<uint32_t> as SfdCapture;
 
     interface RFA1DriverConfig as Config;
 
@@ -129,7 +130,7 @@ implementation
     CMD_DOWNLOAD = 9,		// download the received message
   };
   
-  enum{
+  enum {
     IRQ_NONE=0,
     IRQ_AWAKE=1,
     IRQ_TX_END=2,
@@ -141,7 +142,12 @@ implementation
     IRQ_PLL_LOCK=128,
   };
 
-  norace uint8_t radioIrq = unique("RFA1RadioOn"); //placeholder for unique id
+  enum {
+    // this disables the RFA1RadioOffP component
+    RFA1RADIOON = unique("RFA1RadioOn"),
+  };
+
+  norace uint8_t radioIrq;
 
   tasklet_norace uint8_t txPower;
   tasklet_norace uint8_t channel;
@@ -149,7 +155,7 @@ implementation
   tasklet_norace message_t* rxMsg;
   message_t rxMsgBuffer;
 
-  uint16_t capturedTime;	// the current time when the last interrupt has occured
+  uint32_t capturedTime;	// for the SFD
 
   tasklet_norace uint8_t rssiClear;
   tasklet_norace uint8_t rssiBusy;
@@ -171,9 +177,8 @@ implementation
       state = STATE_TRX_OFF;
     else if( cmd == CMD_CCA )
     {
-      // see Errata 38.5.5 datasheet
+      // workaround, see Errata 38.5.5 datasheet
       CLR_BIT(RX_SYN,RX_PDT_DIS);
-      //end of workaround
 
       RADIO_ASSERT( state == STATE_RX_ON );
 
@@ -194,20 +199,19 @@ implementation
 
   command error_t PlatformInit.init()
   {
-    
-    RADIO_ASSERT(FALSE);
     rxMsg = &rxMsgBuffer;
 
     // these are just good approximates
     rssiClear = 0;
     rssiBusy = 90;
-    
+
     return SUCCESS;
   }
 
   command error_t SoftwareInit.init()
   {
     CCA_THRES=RFA1_CCA_THRES_VALUE;
+
     //TODO PA_EXT settings with defines
     PHY_TX_PWR=RFA1_PA_BUF_LT | RFA1_PA_LT | (RFA1_DEF_RFPOWER&RFA1_TX_PWR_MASK)<<TX_PWR0;
 
@@ -217,6 +221,8 @@ implementation
     PHY_CC_CCA=RFA1_CCA_MODE_VALUE|channel;
 	
     SET_BIT(TRXPR,SLPTR);
+
+    call SfdCapture.setMode(ATMRFA1_CAPSC_ON);
 
     state = STATE_SLEEP;
     return SUCCESS;
@@ -274,11 +280,10 @@ implementation
     }
     else if( cmd == CMD_TURNON && state == STATE_TRX_OFF )
     {
-      uint8_t irq;
       RADIO_ASSERT( ! radioIrq );
 
-      irq=IRQ_STATUS; // clear the interrupt register
-      IRQ_MASK=(1<<PLL_LOCK_EN | 1<<TX_END_EN | 1<<RX_END_EN | 1<< RX_START_EN);
+      IRQ_STATUS = 0xFF; // clear the interrupt register
+      IRQ_MASK = 1<<PLL_LOCK_EN | 1<<TX_END_EN | 1<<RX_END_EN | 1<< RX_START_EN;
 
       // setChannel was ignored in SLEEP because the SPI was not working, so do it here
       //TODO: is it necessary for rfa1? - probably not
@@ -292,7 +297,7 @@ implementation
     {
       TRX_STATE = CMD_FORCE_TRX_OFF;
 
-      IRQ_MASK=0;
+      IRQ_MASK = 0;
       radioIrq = IRQ_NONE;
 
       state = STATE_TRX_OFF;
@@ -352,11 +357,9 @@ implementation
 
   tasklet_async command error_t RadioSend.send(message_t* msg)
   {
-    uint16_t time;
+    uint32_t time;
     uint8_t length;
     uint8_t* data;
-    uint8_t header;
-    uint32_t time32;
     void* timesync;
 
     if( cmd != CMD_NONE || state != STATE_RX_ON || radioIrq )
@@ -376,9 +379,18 @@ implementation
       return EBUSY;
 
     TRX_STATE=CMD_PLL_ON;
+
     // do something useful, just to wait a little
-    time32 = call LocalTime.get();
     timesync = call PacketTimeSyncOffset.isSet(msg) ? ((void*)msg) + call PacketTimeSyncOffset.get(msg) : 0;
+
+    data = getPayload(msg);
+    length = getHeader(msg)->length;
+
+    // length | data[0] ... data[length-3] | automatically generated FCS
+    TRXFBST = length;
+
+    // the FCS is atomatically generated (2 bytes) (TX_AUTO_CRC_ON==1 by default)
+    length -= 2;
 
     // we have missed an incoming message in this short amount of time
     if( (TRX_STATUS & RFA1_TRX_STATUS_MASK) != PLL_ON )
@@ -388,6 +400,7 @@ implementation
       state = STATE_PLL_ON_2_RX_ON;
       return EBUSY;
     }
+
     atomic
     {
         TRX_STATE=CMD_TX_START;
@@ -396,55 +409,20 @@ implementation
 
     RADIO_ASSERT( ! radioIrq );
 
-    data = getPayload(msg);
-    length = getHeader(msg)->length;
-
-    // length | data[0] ... data[length-3] | automatically generated FCS
-    
-    TRXFBST = length;
-
-    // the FCS is atomatically generated (2 bytes) (TX_AUTO_CRC_ON==1 by default)
-    length -= 2;
-
-    header = call Config.headerPreloadLength();
-    if( header > length )
-      header = length;
-
-    length -= header;
-       
-    // first upload the header to gain some time
-    //TODO: kérdés ez a timesync miatt van ketté bontva?
-    
-    memcpy((void*)(&TRXFBST+1),data,header);
-    data+=header;
-    time32 += (int16_t)(time + TX_SFD_DELAY) - (int16_t)(time32);
-
+    // fix the time stamp
     if( timesync != 0 )
-      *(timesync_relative_t*)timesync = (*(timesync_absolute_t*)timesync) - time32;
+      *(timesync_relative_t*)timesync = (*(timesync_absolute_t*)timesync) - time;
 
-    memcpy((void*)(&TRXFBST+1+header),data,length);
-
-    /*
-     * There is a very small window (~1 microsecond) when the RF230 went 
-     * into PLL_ON state but was somehow not properly initialized because 
-     * of an incoming message and could not go into BUSY_TX. I think the
-     * radio can even receive a message, and generate a TRX_UR interrupt
-     * because of concurrent access, but that message probably cannot be
-     * recovered.
-     *
-     * TODO: this needs to be verified, and make sure that the chip is 
-     * not locked up in this case.
-     * 
-     * TODO: this needs to be verified if this problem is present on the rfa1
-     */
+    // then upload the whole payload
+    memcpy((void*)(&TRXFBST+1), data, length);
 
     // go back to RX_ON state when finished
     TRX_STATE=CMD_RX_ON;
 
     if( timesync != 0 )
-      *(timesync_absolute_t*)timesync = (*(timesync_relative_t*)timesync) + time32;
+      *(timesync_absolute_t*)timesync = (*(timesync_relative_t*)timesync) + time;
 
-    call PacketTimeStamp.set(msg, time32);
+    call PacketTimeStamp.set(msg, time);
 
 #ifdef RADIO_DEBUG_MESSAGES
     if( call DiagMsg.record() )
@@ -498,17 +476,17 @@ implementation
   default tasklet_async event void RadioCCA.done(error_t error) { }
 
   /*----------------- RECEIVE -----------------*/
-//TODO RX_SAFE_MODE with define
+
+  //TODO: RX_SAFE_MODE with define
   inline void downloadMessage()
   {
     uint8_t length;
-    bool sendSignal=TRUE;
+    bool sendSignal = FALSE;
 
     length = TST_RX_LENGTH;
-    // if correct length
-    if( length >= 3 && length <= call RadioPacket.maxPayloadLength() + 2 )
+
+    if( (PHY_RSSI & (1<<RX_CRC_VALID)) && length >= 3 && length <= call RadioPacket.maxPayloadLength() + 2 )
     {
-      uint8_t read;
       uint8_t* data;
 
       data = getPayload(rxMsg);
@@ -517,30 +495,15 @@ implementation
       // we do not store the CRC field
       length -= 2;
 
-      read = call Config.headerPreloadLength();
-      if( length < read )
-        read = length;
-
-      length -= read;
-
-      memcpy(data,(void*)(&TRXFBST),read);
-      data+=read;
+      // memory is fast, no point optimizing header check
+      memcpy(data,(void*)&TRXFBST,length);
       
       if( signal RadioReceive.header(rxMsg) )
       {
-        memcpy(data,(void*)(&TRXFBST+read),length);
-        
         call PacketLinkQuality.set(rxMsg, (uint8_t)*(&TRXFBST+TST_RX_LENGTH));
- 
+        sendSignal = TRUE;
       }
-      else
-        sendSignal = FALSE;
     }
-    else
-      sendSignal=FALSE;
-    
-    if(!(PHY_RSSI&(1<<RX_CRC_VALID)))
-        sendSignal=FALSE;
     
     state = STATE_RX_ON;
 
@@ -582,25 +545,13 @@ implementation
 
   void serviceRadio()
   {
-	  uint16_t time;
-	  uint32_t time32;
+	  uint32_t time;
 	  uint8_t irq;
 	  uint8_t temp;
 	
 	  atomic time = capturedTime;
-	  irq=radioIrq;
-	  radioIrq=0;
-	
-	
-#ifdef RF230_RSSI_ENERGY
-	  if( irq & IRQ_RX_END )
-	  {
-	    if( irq == IRQ_RX_END || (irq == (IRQ_RX_START | IRQ_RX_END) && cmd == CMD_NONE) )
-	      call PacketRSSI.set(rxMsg, PHY_ED_LEVEL);
-	    else
-	      call PacketRSSI.clear(rxMsg);
-	  }
-#endif
+	  irq = radioIrq;
+	  radioIrq = IRQ_NONE;
 	
 	  if( irq & IRQ_PLL_LOCK )
 	  {
@@ -612,9 +563,7 @@ implementation
 	      cmd = CMD_SIGNAL_DONE;
 	    }
 	    else if( cmd == CMD_TRANSMIT )
-	    {
 	      RADIO_ASSERT( state == STATE_BUSY_TX_2_RX_ON );
-	    }
 	    else
 	      RADIO_ASSERT(FALSE);
 	  }
@@ -645,20 +594,8 @@ implementation
 #endif
 	      }
 	
-	      /*
-	       * The timestamp corresponds to the first event which could not
-	       * have been a PLL_LOCK because then cmd != CMD_NONE, so we must
-	       * have received a message (and could also have received the 
-	       * TRX_END interrupt in the mean time, but that is fine. Also,
-	       * we could not be after a transmission, because then cmd = 
-	       * CMD_TRANSMIT.
-	       */
 	      if( irq == IRQ_RX_START ) // just to be cautious
-	      {
-	        time32 = call LocalTime.get();
-	        time32 += (int16_t)(time - RX_SFD_DELAY) - (int16_t)(time32);
-	        call PacketTimeStamp.set(rxMsg, time32);
-	      }
+	        call PacketTimeStamp.set(rxMsg, time);
 	      else
 	        call PacketTimeStamp.clear(rxMsg);
 	
@@ -679,8 +616,16 @@ implementation
 		  // TODO: we could have missed a received message
 		  RADIO_ASSERT( ! (irq & IRQ_RX_START) );
 	  }
+
 	  if( irq & IRQ_RX_END )
 	  {
+#ifdef RF230_RSSI_ENERGY
+		  if( irq == IRQ_RX_END && cmd == CMD_NONE )
+	            call PacketRSSI.set(rxMsg, PHY_ED_LEVEL);
+	          else
+	            call PacketRSSI.clear(rxMsg);
+#endif
+	
 		  RADIO_ASSERT( state == STATE_RX_ON || state == STATE_PLL_ON_2_RX_ON );
 		
 		  if( state == STATE_PLL_ON_2_RX_ON )
@@ -695,6 +640,7 @@ implementation
 		    // the most likely place for clear channel (hope to avoid acks)
 		    rssiClear += (PHY_RSSI & RFA1_RSSI_MASK) - (rssiClear >> 2);
 		  }
+
 		  cmd = CMD_DOWNLOAD;
 	  }
   }
@@ -728,9 +674,9 @@ implementation
 
     atomic
     {
-      capturedTime = call LocalTime.get();
+      capturedTime = call SfdCapture.get();
       radioIrq |= IRQ_RX_START;
-    }  
+    }
     call Tasklet.schedule();
   }
   
@@ -744,11 +690,14 @@ implementation
     call Tasklet.schedule();
   }
 
+  // never called, we have the RX_START interrupt instead
+  async event void SfdCapture.fired() { }
+
   /*----------------- TASKLET -----------------*/
 
   tasklet_async event void Tasklet.run()
   {
-    if( radioIrq != IRQ_NONE)
+    if( radioIrq != IRQ_NONE )
       serviceRadio();
 
     if( cmd != CMD_NONE )

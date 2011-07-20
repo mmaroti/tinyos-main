@@ -86,12 +86,6 @@ implementation
 		return 0;
 	}
 
-	async command uint8_t RFA1DriverConfig.headerPreloadLength()
-	{
-		// we need the fcf, dsn, destpan and dest
-		return 7;
-	}
-
 	async command bool RFA1DriverConfig.requiresRssiCca(message_t* msg)
 	{
 		return call Ieee154PacketLayer.isDataFrame(msg);

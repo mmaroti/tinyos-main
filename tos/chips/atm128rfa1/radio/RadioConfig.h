@@ -42,7 +42,6 @@
 
 enum
 {
-
 	/**
 	 * This is the default value of the CCA_MODE field in the PHY_CC_CCA register
 	 * which is used to configure the default mode of the clear channel assesment
@@ -53,11 +52,10 @@ enum
 	 * This is the value of the CCA_THRES register that controls the
 	 * energy levels used for clear channel assesment
 	 */
-	RFA1_CCA_THRES_VALUE = 0xC7,//TODO to avr-libc values
+	RFA1_CCA_THRES_VALUE = 0xC7,	//TODO to avr-libc values
 	
 	RFA1_PA_BUF_LT=3<<PA_BUF_LT0,
 	RFA1_PA_LT=0<<PA_LT0,
-  
 };
 
 /* This is the default value of the TX_PWR field of the PHY_TX_PWR register. */
@@ -70,7 +68,7 @@ enum
 #define RFA1_DEF_CHANNEL	11
 #endif
 
-/* The number of microseconds a sending IRIS mote will wait for an acknowledgement */
+/* The number of microseconds a sending mote will wait for an acknowledgement */
 #ifndef SOFTWAREACK_TIMEOUT
 #define SOFTWAREACK_TIMEOUT	1000
 #endif
@@ -78,17 +76,17 @@ enum
 /**
  * This is the timer type of the radio alarm interface
  */
-typedef TMcu TRadio;
-typedef uint16_t tradio_size;
+typedef T62khz TRadio;
+typedef uint32_t tradio_size;
 
 /**
  * The number of radio alarm ticks per one microsecond
  */
-#define RADIO_ALARM_MICROSEC	MCU_TIMER_MHZ
+#define RADIO_ALARM_MICROSEC	0.0625
 
 /**
  * The base two logarithm of the number of radio alarm ticks per one millisecond
  */
-#define RADIO_ALARM_MILLI_EXP	(10 + MCU_TIMER_MHZ_LOG2)
+#define RADIO_ALARM_MILLI_EXP	6
 
 #endif//__RADIOCONFIG_H__

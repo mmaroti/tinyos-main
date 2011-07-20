@@ -69,7 +69,8 @@ configuration RFA1DriverLayerC
 
 implementation
 {
-	components RFA1DriverLayerP, LocalTimeMcuC, BusyWaitMicroC, TaskletC, MainC, new AlarmMcu16C() as AlarmC;
+	components RFA1DriverLayerP, BusyWaitMicroC, TaskletC, MainC, 
+		LocalTime62khzC, new Alarm62khz32C(), HplAtmRfa1TimerMacC;
 
 	RadioState = RFA1DriverLayerP;
 	RadioSend = RFA1DriverLayerP;
@@ -77,7 +78,7 @@ implementation
 	RadioCCA = RFA1DriverLayerP;
 	RadioPacket = RFA1DriverLayerP;
 
-	LocalTimeRadio = LocalTimeMcuC;
+	LocalTimeRadio = LocalTime62khzC;
 
 	Config = RFA1DriverLayerP;
 
@@ -93,9 +94,10 @@ implementation
 	PacketLinkQuality = RFA1DriverLayerP.PacketLinkQuality;
 	PacketTimeStamp = RFA1DriverLayerP.PacketTimeStamp;
 
-	RFA1DriverLayerP.LocalTime -> LocalTimeMcuC;
+	RFA1DriverLayerP.LocalTime -> LocalTime62khzC;
+	RFA1DriverLayerP.SfdCapture -> HplAtmRfa1TimerMacC.SfdCapture;
 
-	Alarm = AlarmC;
+	Alarm = Alarm62khz32C;
 	RadioAlarm = RFA1DriverLayerP.RadioAlarm;
 	
 	RFA1DriverLayerP.Tasklet -> TaskletC;

@@ -53,13 +53,6 @@ interface RFA1DriverConfig
 	async command uint8_t metadataLength(message_t* msg);
 
 	/**
-	 * Gets the number of bytes we should read before the RadioReceive.header
-	 * event is fired. If the length of the packet is less than this amount, 
-	 * then that event is fired earlier. The header length must be at least one.
-	 */
-	async command uint8_t headerPreloadLength();
-
-	/**
 	 * Returns TRUE if before sending this message we should make sure that
 	 * the channel is clear via a very basic (and quick) RSSI check.
 	 */
