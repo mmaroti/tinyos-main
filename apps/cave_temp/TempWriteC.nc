@@ -70,7 +70,7 @@ implementation {
 
 	event void Boot.booted() {
 		call RadioControl.start();
-		//call LPL.setLocalDutyCycle(50);
+		call LPL.setLocalSleepInterval(2048);
 	}
 
 	event void RadioControl.startDone(error_t err){
@@ -132,6 +132,7 @@ implementation {
 			btrpkt->temperature = m_entry.temp;
 			btrpkt->time = m_entry.time;
 			btrpkt->nodeID=m_entry.nodeID;
+			call LPL.setRxSleepInterval(&pkt, 2048); 
 			if (call AMSend.send(AM_BROADCAST_ADDR, &pkt, sizeof(BlinkToRadioMsg)) == SUCCESS) {
 				busy = TRUE;
 				}

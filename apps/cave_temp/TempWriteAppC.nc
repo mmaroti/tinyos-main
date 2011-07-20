@@ -43,7 +43,7 @@ implementation {
 	MainC.SoftwareInit -> TimeSyncC;
   	TimeSyncC.Boot -> MainC;
 	
-	components NoLedsC;
+	components LedsC;
 	components TempWriteC as App;
 	components new TimerMilliC() as Timer0;
 	components new TemperatureC() as Sensor;
@@ -57,7 +57,7 @@ implementation {
 
 
 	App.Boot -> MainC;
-	App.Leds -> NoLedsC;
+	App.Leds -> LedsC;
 	App.Timer0 -> Timer0;
 	App.Read -> Sensor;
 	App.LogWrite -> LogStorageC;
