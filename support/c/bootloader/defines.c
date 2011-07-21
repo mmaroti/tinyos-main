@@ -239,4 +239,25 @@ void status(uint16_t time_out)
 }
 
 
+//these functions returns 0, if the bootloader should be started
+int checkBattery(void){
+  #if PLATFORM==UCMINI049 || PLATFORM==UCMINI
+    return 0;//TODO
+  #else
+    return 0;
+  #endif
+}
+
+int checkUsb(void){
+  #if PLATFORM==UCMINI049 || PLATFORM==UCMINI
+    DDRB&=~(1<<7);
+    if (PINB&(1<<7))
+      return 0;
+    else
+      return 1;
+  #else
+    return 0;
+  #endif
+}
+
 

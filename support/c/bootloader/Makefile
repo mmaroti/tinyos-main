@@ -274,7 +274,7 @@ depend:
 .PHONY:	all build elf hex eep lss sym program coff extcoff clean depend
 
 prog: bootloader.hex
-	avrdude -cdragon_jtag -pm128rfa1 -Pusb -Uflash:w:bootloader.hex:a
+	avrdude -cdragon_jtag -pm128rfa1 -Pusb -Uflash:w:bootloader.hex:a -Uhfuse:w:0x98:m
 progmib: bootloader.hex
 	avrdude -cmib510 -pm128rfa1 -P/dev/ttyUSB0 -Uflash:w:bootloader.hex:a -Uhfuse:w:0x98:m
 progmibclear:

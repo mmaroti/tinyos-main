@@ -152,3 +152,6 @@ void ledSet(uint8_t val);
 void ledInit(void);
 
 void status(uint16_t time_out);
+
+int checkBattery(void);
+int checkUsb(void);

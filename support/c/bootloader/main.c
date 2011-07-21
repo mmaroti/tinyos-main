@@ -65,28 +65,6 @@ void BlockRead(unsigned int size, unsigned char mem, ADDR_T *address);
 
 uint16_t timeout=TIMEOUT_CYCLES;
 
-//INITIALIZATION
-void initialize(void){ 
-    MCUSR = 0;
-    wdt_disable();
-    #if PLATFORM != IRIS
-    CLKPR=1<<CLKPCE;
-    CLKPR=0xf;
-    #endif
-    //every GPIO is input, except  the leds
-    ledInit();
-    //turn on the the two farest leds
-    #ifndef LED3PORT
-    led0On();
-    led2On();
-    #else
-    led0On();
-    led3On();
-    #endif
-    initbootuart(); // Initialize UART.
-    blinker = 0;
-}
-
 void exitbl(void){
     void (*funcptr)( void ) = 0x0000; // Set up function pointer to RESET vector.
     int i;
@@ -100,6 +78,36 @@ void exitbl(void){
     _delay_ms(100);
     ledSet(0);
     funcptr();
+}
+
+//INITIALIZATION
+void initialize(void){ 
+    MCUSR = 0;
+    wdt_disable();
+    #if PLATFORM != IRIS
+    CLKPR=1<<CLKPCE;
+    CLKPR=0xf;
+    #endif
+    //every GPIO is input, except  the leds
+    ledInit();
+    //check battery, usb
+    if(checkBattery()){
+      //TODO
+    }
+    if(checkUsb()){
+      exitbl();
+    }
+    
+    //turn on the the two farest leds
+    #ifndef LED3PORT
+    led0On();
+    led2On();
+    #else
+    led0On();
+    led3On();
+    #endif
+    initbootuart(); // Initialize UART.
+    blinker = 0;
 }
 
 
