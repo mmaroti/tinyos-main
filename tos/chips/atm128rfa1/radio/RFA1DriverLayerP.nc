@@ -162,38 +162,7 @@ implementation
 
   /*----------------- ALARM -----------------*/
 
-  enum
-  {
-    SLEEP_WAKEUP_TIME = (uint16_t)(880 * RADIO_ALARM_MICROSEC),
-    CCA_REQUEST_TIME = (uint16_t)(140 * RADIO_ALARM_MICROSEC),
-
-    TX_SFD_DELAY = (uint16_t)(176 * RADIO_ALARM_MICROSEC),
-    RX_SFD_DELAY = (uint16_t)(8 * RADIO_ALARM_MICROSEC),
-  };
-
-  tasklet_async event void RadioAlarm.fired()
-  {
-    if( state == STATE_SLEEP_2_TRX_OFF )
-      state = STATE_TRX_OFF;
-    else if( cmd == CMD_CCA )
-    {
-      // workaround, see Errata 38.5.5 datasheet
-      CLR_BIT(RX_SYN,RX_PDT_DIS);
-
-      RADIO_ASSERT( state == STATE_RX_ON );
-
-      cmd = CMD_NONE;
-
-      RADIO_ASSERT( (TRX_STATUS & RFA1_TRX_STATUS_MASK) == RX_ON );
-
-      signal RadioCCA.done( (TRX_STATUS & CCA_DONE) ? ((TRX_STATUS & CCA_STATUS) ? SUCCESS : EBUSY) : FAIL );
-    }
-    else
-      RADIO_ASSERT(FALSE);
-
-    // make sure the rest of the command processing is called
-    call Tasklet.schedule();
-  }
+  tasklet_async event void RadioAlarm.fired(){}//we only use the get() method
 
   /*----------------- INIT -----------------*/
 
@@ -269,13 +238,12 @@ implementation
 
   inline void changeState()
   {
-    if( (cmd == CMD_STANDBY || cmd == CMD_TURNON)
-          && state == STATE_SLEEP && call RadioAlarm.isFree() )
+    if( (cmd == CMD_STANDBY || cmd == CMD_TURNON) && state == STATE_SLEEP )
     {
+			RADIO_ASSERT( ! radioIrq );
+      IRQ_STATUS = 0xFF;
+      IRQ_MASK = 1<<AWAKE_EN;
       CLR_BIT(TRXPR,SLPTR);
-
-      call RadioAlarm.wait(SLEEP_WAKEUP_TIME);
-      //TODO: modify with TRX24_AWAKE IRQ
       state = STATE_SLEEP_2_TRX_OFF;
     }
     else if( cmd == CMD_TURNON && state == STATE_TRX_OFF )
@@ -283,7 +251,7 @@ implementation
       RADIO_ASSERT( ! radioIrq );
 
       IRQ_STATUS = 0xFF; // clear the interrupt register
-      IRQ_MASK = 1<<PLL_LOCK_EN | 1<<TX_END_EN | 1<<RX_END_EN | 1<< RX_START_EN;
+      IRQ_MASK = 1<<PLL_LOCK_EN | 1<<TX_END_EN | 1<<RX_END_EN | 1<< RX_START_EN | 1<<CCA_ED_DONE_EN;
 
       // setChannel was ignored in SLEEP because the SPI was not working, so do it here
       //TODO: is it necessary for rfa1? - probably not
@@ -292,8 +260,7 @@ implementation
       TRX_STATE=CMD_RX_ON;
       state = STATE_TRX_OFF_2_RX_ON;
     }
-    else if( (cmd == CMD_TURNOFF || cmd == CMD_STANDBY) 
-          && state == STATE_RX_ON )
+    else if( (cmd == CMD_TURNOFF || cmd == CMD_STANDBY) && state == STATE_RX_ON )
     {
       TRX_STATE = CMD_FORCE_TRX_OFF;
 
@@ -328,7 +295,7 @@ implementation
 	
   tasklet_async command error_t RadioState.standby()
   {
-    if( cmd != CMD_NONE || (state == STATE_SLEEP && ! call RadioAlarm.isFree()) )
+    if( cmd != CMD_NONE  )
       return EBUSY;
     else if( state == STATE_TRX_OFF )
       return EALREADY;
@@ -341,7 +308,7 @@ implementation
 
   tasklet_async command error_t RadioState.turnOn()
   {
-    if( cmd != CMD_NONE || (state == STATE_SLEEP && ! call RadioAlarm.isFree()) )
+    if( cmd != CMD_NONE )
       return EBUSY;
     else if( state == STATE_RX_ON )
       return EALREADY;
@@ -452,23 +419,21 @@ implementation
 
   tasklet_async command error_t RadioCCA.request()
   {
-    if( cmd != CMD_NONE || state != STATE_RX_ON || ! call RadioAlarm.isFree() )
+    if( cmd != CMD_NONE || state != STATE_RX_ON )
       return EBUSY;
 
     // see Errata 38.5.5 datasheet
     TRX_STATE=CMD_PLL_ON;
     //TODO: test&optimize this
-    call RadioAlarm.wait(1);
+    call BusyWait.wait(1);
     if( (TRX_STATUS & RFA1_TRX_STATUS_MASK) != PLL_ON )
         return EBUSY;
     SET_BIT(RX_SYN,RX_PDT_DIS);
     TRX_STATE=CMD_RX_ON;
     //end of workaround
     
+		cmd = CMD_CCA;
     PHY_CC_CCA = 1 << CCA_REQUEST | RFA1_CCA_MODE_VALUE | channel;
-    //modify it with TRX24_CCA_ED_DONE IRQ
-    call RadioAlarm.wait(CCA_REQUEST_TIME);
-    cmd = CMD_CCA;
 	
     return SUCCESS;
   }
@@ -552,7 +517,30 @@ implementation
 	  atomic time = capturedTime;
 	  irq = radioIrq;
 	  radioIrq = IRQ_NONE;
-	
+    
+		if( irq & IRQ_AWAKE ){
+			if( state == STATE_SLEEP_2_TRX_OFF && (cmd==CMD_STANDBY || cmd==CMD_TURNON) )
+				state = STATE_TRX_OFF;
+			else
+				RADIO_ASSERT(FALSE);
+		}
+		if ( irq & IRQ_CCA_ED_DONE ){
+			if( cmd == CMD_CCA )
+			{
+				// workaround, see Errata 38.5.5 datasheet
+				CLR_BIT(RX_SYN,RX_PDT_DIS);
+
+
+				cmd = CMD_NONE;
+				
+				RADIO_ASSERT( state == STATE_RX_ON );
+				RADIO_ASSERT( (TRX_STATUS & RFA1_TRX_STATUS_MASK) == RX_ON );
+
+				signal RadioCCA.done( (TRX_STATUS & CCA_DONE) ? ((TRX_STATUS & CCA_STATUS) ? SUCCESS : EBUSY) : FAIL );
+			} else
+				RADIO_ASSERT(FALSE);
+		}
+		
 	  if( irq & IRQ_PLL_LOCK )
 	  {
 	    if( cmd == CMD_TURNON || cmd == CMD_CHANNEL )
@@ -619,7 +607,7 @@ implementation
 
 	  if( irq & IRQ_RX_END )
 	  {
-#ifdef RF230_RSSI_ENERGY
+#ifdef RFA1_RSSI_ENERGY
 		  if( irq == IRQ_RX_END && cmd == CMD_NONE )
 	            call PacketRSSI.set(rxMsg, PHY_ED_LEVEL);
 	          else
@@ -689,6 +677,26 @@ implementation
     atomic radioIrq |= IRQ_PLL_LOCK;
     call Tasklet.schedule();
   }
+  
+  /**
+   * indicates sleep/reset->trx_off mode change
+   */
+  AVR_NONATOMIC_HANDLER(TRX24_AWAKE_vect){
+    RADIO_ASSERT( ! radioIrq );
+
+    atomic radioIrq |= IRQ_AWAKE;
+    call Tasklet.schedule();
+  }
+  
+  /**
+   * indicates CCA ED done
+   */
+  AVR_NONATOMIC_HANDLER(TRX24_CCA_ED_DONE_vect){
+    RADIO_ASSERT( ! radioIrq );
+
+    atomic radioIrq |= IRQ_CCA_ED_DONE;
+    call Tasklet.schedule();
+  }  
 
   // never called, we have the RX_START interrupt instead
   async event void SfdCapture.fired() { }
