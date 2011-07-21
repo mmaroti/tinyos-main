@@ -34,8 +34,10 @@
 #This is the "engine" of the engine of the package building system, y
 #
 ##
+PKG_NAME?=$(SRC_NAME)
 PKG_VERSION ?= $(VERSION)
 PKG_RELEASE ?= $(shell date +%Y%m%d)
+HOST ?= $(shell uname -m)
 PKG_HOST ?= $(shell echo $(HOST)|sed 's/.*64/amd64/'|sed 's/.*86/i386/')
 PKG_DIR = $(PKG_NAME)_$(PKG_VERSION)-$(PKG_RELEASE)_$(PKG_HOST)
 ABS_PKG_DIR=$(shell echo $(PWD)/$(PKG_DIR)|sed 's/\//\\\//g')

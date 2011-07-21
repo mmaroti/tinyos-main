@@ -2,7 +2,7 @@ Summary: C library for the AVR platform
 Name: avr-libc
 Version: PKG_VERSION
 Release: PKG_RELEASE
-Packager: Janos Sallai, Vanderbilt University
+Packager: Andras Biro, Janos Sallai
 License: GNU GPL-compatible
 Group: Development/Tools
 URL: http://www.nongnu.org/avr-libc/3/

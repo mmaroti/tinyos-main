@@ -4,7 +4,7 @@ Architecture: PKG_ARCHITECTURE
 Depends: avr-gcc-tinyos, avr-tinyos-base
 Conflicts: avr-libc
 Recommends: avr-tinyos, avr-optional-tinyos
-Maintainer: klueska <klueska@cs.stanford.edu>
+Maintainer: Andras Biro, Janos Sallai
 Priority: optional
 Section: devel
 Description: Standard library used to the development of C (TinyOS version)

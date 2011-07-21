@@ -4,7 +4,7 @@ Architecture: PKG_ARCHITECTURE
 Depends: avr-binutils-tinyos, avr-tinyos-base
 Conflicts: gcc-avr
 Recommends: avr-tinyos, avr-optional-tinyos
-Maintainer: klueska <klueska@cs.stanford.edu>
+Maintainer: Andras Biro, Janos Sallai
 Priority: optional
 Section: devel
 Description: The GNU C compiler (cross compiler for avr) (TinyOS version)

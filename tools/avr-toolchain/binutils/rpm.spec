@@ -2,7 +2,7 @@ Summary: GNU binutils for the AVR platform
 Name: avr-binutils
 Version: PKG_VERSION
 Release: PKG_RELEASE
-Packager: Janos Sallai, Vanderbilt University <janos.sallai@vanderbilt.edu>
+Packager: Andras Biro, Janos Sallai
 URL: http://ftp.gnu.org/gnu/binutils/binutils-2.17.tar.bz2
 
 License: GNU GPL

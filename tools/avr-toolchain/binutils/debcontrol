@@ -4,7 +4,7 @@ Architecture: PKG_ARCHITECTURE
 Depends: avr-tinyos-base
 Conflicts: binutils-avr
 Recommends: avr-tinyos, avr-optional-tinyos
-Maintainer: klueska <klueska@cs.stanford.edu>
+Maintainer: Andras Biro, Janos Sallai
 Priority: optional
 Section: devel
 Description: Binary utilities supporting Atmel's AVR targets (TinyOS version)
