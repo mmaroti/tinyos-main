@@ -255,7 +255,7 @@ implementation
 
       // setChannel was ignored in SLEEP because the SPI was not working, so do it here
       //TODO: is it necessary for rfa1? - probably not
-      //PHY_CC_CCA=RFA1_CCA_MODE_VALUE | channel;
+      PHY_CC_CCA=RFA1_CCA_MODE_VALUE | channel;
 
       TRX_STATE=CMD_RX_ON;
       state = STATE_TRX_OFF_2_RX_ON;
