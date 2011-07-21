@@ -186,7 +186,7 @@ implementation
 
     txPower = RFA1_DEF_RFPOWER & RFA1_TX_PWR_MASK;
     channel = RFA1_DEF_CHANNEL & RFA1_CHANNEL_MASK;
-	TRX_CTRL_1 |= 1<<TX_AUTO_CRC_ON;
+		TRX_CTRL_1 |= 1<<TX_AUTO_CRC_ON;
     PHY_CC_CCA=RFA1_CCA_MODE_VALUE|channel;
 	
     SET_BIT(TRXPR,SLPTR);
@@ -255,7 +255,7 @@ implementation
 
       // setChannel was ignored in SLEEP because the SPI was not working, so do it here
       //TODO: is it necessary for rfa1? - probably not
-      PHY_CC_CCA=RFA1_CCA_MODE_VALUE | channel;
+      //PHY_CC_CCA=RFA1_CCA_MODE_VALUE | channel;
 
       TRX_STATE=CMD_RX_ON;
       state = STATE_TRX_OFF_2_RX_ON;
@@ -573,7 +573,7 @@ implementation
 	      {
 	        temp = PHY_RSSI & RFA1_RSSI_MASK;
 	        rssiBusy += temp - (rssiBusy >> 2);
-#ifndef RF230_RSSI_ENERGY
+#ifndef RFA1_RSSI_ENERGY
 	        call PacketRSSI.set(rxMsg, temp);
 	      }
 	      else
