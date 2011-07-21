@@ -56,10 +56,6 @@ configuration RFA1TimeSyncMessageC
 		interface TimeSyncAMSend<TMilli, uint32_t> as TimeSyncAMSendMilli[am_id_t id];
 		interface TimeSyncPacket<TMilli, uint32_t> as TimeSyncPacketMilli;
 
-		interface PacketTimeStamp<T62khz, uint32_t> as PacketTimeStamp62khz;
-		interface TimeSyncAMSend<T62khz, uint32_t> as TimeSyncAMSend62khz[am_id_t id];
-		interface TimeSyncPacket<T62khz, uint32_t> as TimeSyncPacket62khz;
-
 		interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli2;
 		interface TimeSyncAMSend<TMilli, uint32_t> as TimeSyncAMSendMilli2[am_id_t id];
 		interface TimeSyncPacket<TMilli, uint32_t> as TimeSyncPacketMilli2;
@@ -92,16 +88,6 @@ implementation
 	components RFA1DriverLayerC as DriverLayerC;
 	TimeSyncMessageLayerC.LocalTimeRadio -> DriverLayerC;
 	TimeSyncMessageLayerC.PacketTimeSyncOffset -> DriverLayerC.PacketTimeSyncOffset;
-
-	components new TimeConverterLayerC(T62khz, RADIO_ALARM_MILLI_EXP-6) as TimeConverter62khzC, LocalTime62khzC;
-	PacketTimeStamp62khz = TimeConverter62khzC;
-	TimeSyncAMSend62khz = TimeConverter62khzC;
-	TimeSyncPacket62khz = TimeConverter62khzC;
-	TimeConverter62khzC.PacketTimeStampRadio -> ActiveMessageC;
-	TimeConverter62khzC.TimeSyncAMSendRadio -> TimeSyncMessageLayerC;
-	TimeConverter62khzC.TimeSyncPacketRadio -> TimeSyncMessageLayerC;
-	TimeConverter62khzC.LocalTimeRadio -> ActiveMessageC;
-	TimeConverter62khzC.LocalTimeOther -> LocalTime62khzC;
 
 	components new TimeConverterLayerC(TMilli, RADIO_ALARM_MILLI_EXP) as TimeConverterMilliC, LocalTimeMilliC;
 	PacketTimeStampMilli2 = TimeConverterMilliC;

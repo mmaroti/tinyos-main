@@ -63,7 +63,6 @@ configuration RFA1DriverLayerC
 		interface PacketFlag as TransmitPowerFlag;
 		interface PacketFlag as RSSIFlag;
 		interface PacketFlag as TimeSyncFlag;
-		interface RadioAlarm;
 	}
 }
 
@@ -98,7 +97,6 @@ implementation
 	RFA1DriverLayerP.SfdCapture -> HplAtmRfa1TimerMacC.SfdCapture;
 
 	Alarm = Alarm62khz32C;
-	RadioAlarm = RFA1DriverLayerP.RadioAlarm;
 	
 	RFA1DriverLayerP.Tasklet -> TaskletC;
 	RFA1DriverLayerP.BusyWait -> BusyWaitMicroC;

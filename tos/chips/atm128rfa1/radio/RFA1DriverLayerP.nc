@@ -74,7 +74,6 @@ module RFA1DriverLayerP
     interface PacketTimeStamp<TRadio, uint32_t>;
 
     interface Tasklet;
-    interface RadioAlarm;
 
 #ifdef RADIO_DEBUG
     interface DiagMsg;
@@ -84,7 +83,6 @@ module RFA1DriverLayerP
 
 implementation
 {
-  
   rfa1_header_t* getHeader(message_t* msg)
   {
     return ((void*)msg) + call Config.headerLength(msg);
@@ -118,18 +116,18 @@ implementation
   tasklet_norace uint8_t cmd;
   enum
   {
-    CMD_NONE = 0,			// the state machine has stopped
-    CMD_TURNOFF = 1,		// goto SLEEP state
-    CMD_STANDBY = 2,		// goto TRX_OFF state
-    CMD_TURNON = 3,			// goto RX_ON state
-    CMD_TRANSMIT = 4,		// currently transmitting a message
-    CMD_RECEIVE = 5,		// currently receiving a message
-    CMD_CCA = 6,			// performing clear channel assessment
-    CMD_CHANNEL = 7,		// changing the channel
-    CMD_SIGNAL_DONE = 8,		// signal the end of the state transition
-    CMD_DOWNLOAD = 9,		// download the received message
+    CMD_NONE = 0,    // the state machine has stopped
+    CMD_TURNOFF = 1,    // goto SLEEP state
+    CMD_STANDBY = 2,    // goto TRX_OFF state
+    CMD_TURNON = 3,    // goto RX_ON state
+    CMD_TRANSMIT = 4,    // currently transmitting a message
+    CMD_RECEIVE = 5,    // currently receiving a message
+    CMD_CCA = 6,    // performing clear channel assessment
+    CMD_CHANNEL = 7,    // changing the channel
+    CMD_SIGNAL_DONE = 8,  // signal the end of the state transition
+    CMD_DOWNLOAD = 9,    // download the received message
   };
-  
+
   enum {
     IRQ_NONE=0,
     IRQ_AWAKE=1,
@@ -155,14 +153,8 @@ implementation
   tasklet_norace message_t* rxMsg;
   message_t rxMsgBuffer;
 
-  uint32_t capturedTime;	// for the SFD
-
   tasklet_norace uint8_t rssiClear;
   tasklet_norace uint8_t rssiBusy;
-
-  /*----------------- ALARM -----------------*/
-
-  tasklet_async event void RadioAlarm.fired(){}//we only use the get() method
 
   /*----------------- INIT -----------------*/
 
@@ -186,9 +178,9 @@ implementation
 
     txPower = RFA1_DEF_RFPOWER & RFA1_TX_PWR_MASK;
     channel = RFA1_DEF_CHANNEL & RFA1_CHANNEL_MASK;
-		TRX_CTRL_1 |= 1<<TX_AUTO_CRC_ON;
+    TRX_CTRL_1 |= 1<<TX_AUTO_CRC_ON;
     PHY_CC_CCA=RFA1_CCA_MODE_VALUE|channel;
-	
+
     SET_BIT(TRXPR,SLPTR);
 
     call SfdCapture.setMode(ATMRFA1_CAPSC_ON);
@@ -240,7 +232,7 @@ implementation
   {
     if( (cmd == CMD_STANDBY || cmd == CMD_TURNON) && state == STATE_SLEEP )
     {
-			RADIO_ASSERT( ! radioIrq );
+      RADIO_ASSERT( ! radioIrq );
       IRQ_STATUS = 0xFF;
       IRQ_MASK = 1<<AWAKE_EN;
       CLR_BIT(TRXPR,SLPTR);
@@ -292,7 +284,7 @@ implementation
 
     return SUCCESS;
   }
-	
+
   tasklet_async command error_t RadioState.standby()
   {
     if( cmd != CMD_NONE  )
@@ -322,6 +314,10 @@ implementation
 
   /*----------------- TRANSMIT -----------------*/
 
+  enum {
+    TX_SFD_DELAY = 11,
+  };
+
   tasklet_async command error_t RadioSend.send(message_t* msg)
   {
     uint32_t time;
@@ -341,7 +337,7 @@ implementation
       PHY_TX_PWR=RFA1_PA_BUF_LT | RFA1_PA_LT | txPower<<TX_PWR0;
     }
 
-    if( call Config.requiresRssiCca(msg) 
+    if( call Config.requiresRssiCca(msg)
           && (PHY_RSSI & RFA1_RSSI_MASK) > ((rssiClear + rssiBusy) >> 3) )
       return EBUSY;
 
@@ -370,9 +366,11 @@ implementation
 
     atomic
     {
-        TRX_STATE=CMD_TX_START;
-        time = call RadioAlarm.getNow();
+        TRX_STATE = CMD_TX_START;
+        time = call LocalTime.get();
     }
+
+    time += TX_SFD_DELAY;
 
     RADIO_ASSERT( ! radioIrq );
 
@@ -398,7 +396,7 @@ implementation
 
       call DiagMsg.chr('t');
       call DiagMsg.uint32(call PacketTimeStamp.isValid(rxMsg) ? call PacketTimeStamp.timestamp(rxMsg) : 0);
-      call DiagMsg.uint16(call RadioAlarm.getNow());
+      call DiagMsg.uint16(call LocalTime.get());
       call DiagMsg.int8(length);
       call DiagMsg.hex8s(getPayload(msg), length - 2);
       call DiagMsg.send();
@@ -431,10 +429,10 @@ implementation
     SET_BIT(RX_SYN,RX_PDT_DIS);
     TRX_STATE=CMD_RX_ON;
     //end of workaround
-    
-		cmd = CMD_CCA;
+
+    cmd = CMD_CCA;
     PHY_CC_CCA = 1 << CCA_REQUEST | RFA1_CCA_MODE_VALUE | channel;
-	
+
     return SUCCESS;
   }
 
@@ -462,14 +460,14 @@ implementation
 
       // memory is fast, no point optimizing header check
       memcpy(data,(void*)&TRXFBST,length);
-      
+
       if( signal RadioReceive.header(rxMsg) )
       {
         call PacketLinkQuality.set(rxMsg, (uint8_t)*(&TRXFBST+TST_RX_LENGTH));
         sendSignal = TRUE;
       }
     }
-    
+
     state = STATE_RX_ON;
 
 #ifdef RADIO_DEBUG_MESSAGES
@@ -479,7 +477,7 @@ implementation
 
       call DiagMsg.chr('r');
       call DiagMsg.uint32(call PacketTimeStamp.isValid(rxMsg) ? call PacketTimeStamp.timestamp(rxMsg) : 0);
-      call DiagMsg.uint16(call RadioAlarm.getNow());
+      call DiagMsg.uint16(call LocalTime.get());
       call DiagMsg.int8(sendSignal ? length : -length);
       call DiagMsg.hex8s(getPayload(rxMsg), length - 2);
       call DiagMsg.int8(call PacketRSSI.isSet(rxMsg) ? call PacketRSSI.get(rxMsg) : -1);
@@ -487,15 +485,14 @@ implementation
       call DiagMsg.send();
     }
 #endif
-	
+
     cmd = CMD_NONE;
 
     // signal only if it has passed the CRC check
     if( sendSignal )
       rxMsg = signal RadioReceive.receive(rxMsg);
   }
-  
-  
+
   default tasklet_async event bool RadioReceive.header(message_t* msg)
   {
     return TRUE;
@@ -510,129 +507,132 @@ implementation
 
   void serviceRadio()
   {
-	  uint32_t time;
-	  uint8_t irq;
-	  uint8_t temp;
-	
-	  atomic time = capturedTime;
-	  irq = radioIrq;
-	  radioIrq = IRQ_NONE;
-    
-		if( irq & IRQ_AWAKE ){
-			if( state == STATE_SLEEP_2_TRX_OFF && (cmd==CMD_STANDBY || cmd==CMD_TURNON) )
-				state = STATE_TRX_OFF;
-			else
-				RADIO_ASSERT(FALSE);
-		}
-		if ( irq & IRQ_CCA_ED_DONE ){
-			if( cmd == CMD_CCA )
-			{
-				// workaround, see Errata 38.5.5 datasheet
-				CLR_BIT(RX_SYN,RX_PDT_DIS);
+    uint32_t time;
+    uint8_t irq;
+    uint8_t temp;
+
+    atomic
+    {
+      time = call SfdCapture.get();
+      irq = radioIrq;
+      radioIrq = IRQ_NONE;
+    }
+
+    if( irq & IRQ_AWAKE ){
+      if( state == STATE_SLEEP_2_TRX_OFF && (cmd==CMD_STANDBY || cmd==CMD_TURNON) )
+        state = STATE_TRX_OFF;
+      else
+        RADIO_ASSERT(FALSE);
+    }
+    if ( irq & IRQ_CCA_ED_DONE ){
+      if( cmd == CMD_CCA )
+      {
+        // workaround, see Errata 38.5.5 datasheet
+        CLR_BIT(RX_SYN,RX_PDT_DIS);
 
 
-				cmd = CMD_NONE;
-				
-				RADIO_ASSERT( state == STATE_RX_ON );
-				RADIO_ASSERT( (TRX_STATUS & RFA1_TRX_STATUS_MASK) == RX_ON );
+        cmd = CMD_NONE;
 
-				signal RadioCCA.done( (TRX_STATUS & CCA_DONE) ? ((TRX_STATUS & CCA_STATUS) ? SUCCESS : EBUSY) : FAIL );
-			} else
-				RADIO_ASSERT(FALSE);
-		}
-		
-	  if( irq & IRQ_PLL_LOCK )
-	  {
-	    if( cmd == CMD_TURNON || cmd == CMD_CHANNEL )
-	    {
-	      RADIO_ASSERT( state == STATE_TRX_OFF_2_RX_ON );
-	
-	      state = STATE_RX_ON;
-	      cmd = CMD_SIGNAL_DONE;
-	    }
-	    else if( cmd == CMD_TRANSMIT )
-	      RADIO_ASSERT( state == STATE_BUSY_TX_2_RX_ON );
-	    else
-	      RADIO_ASSERT(FALSE);
-	  }
-	
-	  if( irq & IRQ_RX_START )
-	  {
-	    if( cmd == CMD_CCA )
-	    {
-	      signal RadioCCA.done(FAIL);
-	      cmd = CMD_NONE;
-	    }
-	
-	    if( cmd == CMD_NONE )
-	    {
-	      RADIO_ASSERT( state == STATE_RX_ON || state == STATE_PLL_ON_2_RX_ON );
-	
-	      // the most likely place for busy channel, with no TRX_END interrupt
-	      if( irq == IRQ_RX_START )
-	      {
-	        temp = PHY_RSSI & RFA1_RSSI_MASK;
-	        rssiBusy += temp - (rssiBusy >> 2);
+        RADIO_ASSERT( state == STATE_RX_ON );
+        RADIO_ASSERT( (TRX_STATUS & RFA1_TRX_STATUS_MASK) == RX_ON );
+
+        signal RadioCCA.done( (TRX_STATUS & CCA_DONE) ? ((TRX_STATUS & CCA_STATUS) ? SUCCESS : EBUSY) : FAIL );
+      } else
+        RADIO_ASSERT(FALSE);
+    }
+
+    if( irq & IRQ_PLL_LOCK )
+    {
+      if( cmd == CMD_TURNON || cmd == CMD_CHANNEL )
+      {
+        RADIO_ASSERT( state == STATE_TRX_OFF_2_RX_ON );
+
+        state = STATE_RX_ON;
+        cmd = CMD_SIGNAL_DONE;
+      }
+      else if( cmd == CMD_TRANSMIT )
+        RADIO_ASSERT( state == STATE_BUSY_TX_2_RX_ON );
+      else
+        RADIO_ASSERT(FALSE);
+    }
+
+    if( irq & IRQ_RX_START )
+    {
+      if( cmd == CMD_CCA )
+      {
+        signal RadioCCA.done(FAIL);
+        cmd = CMD_NONE;
+      }
+
+      if( cmd == CMD_NONE )
+      {
+        RADIO_ASSERT( state == STATE_RX_ON || state == STATE_PLL_ON_2_RX_ON );
+
+        // the most likely place for busy channel, with no TRX_END interrupt
+        if( irq == IRQ_RX_START )
+        {
+          temp = PHY_RSSI & RFA1_RSSI_MASK;
+          rssiBusy += temp - (rssiBusy >> 2);
 #ifndef RFA1_RSSI_ENERGY
-	        call PacketRSSI.set(rxMsg, temp);
-	      }
-	      else
-	      {
-	        call PacketRSSI.clear(rxMsg);
+          call PacketRSSI.set(rxMsg, temp);
+        }
+        else
+        {
+          call PacketRSSI.clear(rxMsg);
 #endif
-	      }
-	
-	      if( irq == IRQ_RX_START ) // just to be cautious
-	        call PacketTimeStamp.set(rxMsg, time);
-	      else
-	        call PacketTimeStamp.clear(rxMsg);
-	
-	      cmd = CMD_RECEIVE;
-	    }
-	    else
-	      RADIO_ASSERT( cmd == CMD_TURNOFF );
-	  }
-	
-	  if( irq & IRQ_TX_END )
-	  {
-		  RADIO_ASSERT( state == STATE_BUSY_TX_2_RX_ON );
-		
-		  state = STATE_RX_ON;
-		  cmd = CMD_NONE;
-		  signal RadioSend.sendDone(SUCCESS);
-		
-		  // TODO: we could have missed a received message
-		  RADIO_ASSERT( ! (irq & IRQ_RX_START) );
-	  }
+        }
 
-	  if( irq & IRQ_RX_END )
-	  {
+        if( irq == IRQ_RX_START ) // just to be cautious
+          call PacketTimeStamp.set(rxMsg, time);
+        else
+          call PacketTimeStamp.clear(rxMsg);
+
+        cmd = CMD_RECEIVE;
+      }
+      else
+        RADIO_ASSERT( cmd == CMD_TURNOFF );
+    }
+
+    if( irq & IRQ_TX_END )
+    {
+      RADIO_ASSERT( state == STATE_BUSY_TX_2_RX_ON );
+
+      state = STATE_RX_ON;
+      cmd = CMD_NONE;
+      signal RadioSend.sendDone(SUCCESS);
+
+      // TODO: we could have missed a received message
+      RADIO_ASSERT( ! (irq & IRQ_RX_START) );
+    }
+
+    if( irq & IRQ_RX_END )
+    {
 #ifdef RFA1_RSSI_ENERGY
-		  if( irq == IRQ_RX_END && cmd == CMD_NONE )
-	            call PacketRSSI.set(rxMsg, PHY_ED_LEVEL);
-	          else
-	            call PacketRSSI.clear(rxMsg);
+      if( irq == IRQ_RX_END && cmd == CMD_NONE )
+              call PacketRSSI.set(rxMsg, PHY_ED_LEVEL);
+            else
+              call PacketRSSI.clear(rxMsg);
 #endif
-	
-		  RADIO_ASSERT( state == STATE_RX_ON || state == STATE_PLL_ON_2_RX_ON );
-		
-		  if( state == STATE_PLL_ON_2_RX_ON )
-		  {
-		    RADIO_ASSERT( (TRX_STATUS & RFA1_TRX_STATUS_MASK) == PLL_ON );
-		
-		    TRX_STATE = CMD_RX_ON;
-		    state = STATE_RX_ON;
-		  }
-		  else
-		  {
-		    // the most likely place for clear channel (hope to avoid acks)
-		    rssiClear += (PHY_RSSI & RFA1_RSSI_MASK) - (rssiClear >> 2);
-		  }
 
-		  cmd = CMD_DOWNLOAD;
-	  }
+      RADIO_ASSERT( state == STATE_RX_ON || state == STATE_PLL_ON_2_RX_ON );
+
+      if( state == STATE_PLL_ON_2_RX_ON )
+      {
+        RADIO_ASSERT( (TRX_STATUS & RFA1_TRX_STATUS_MASK) == PLL_ON );
+
+        TRX_STATE = CMD_RX_ON;
+        state = STATE_RX_ON;
+      }
+      else
+      {
+        // the most likely place for clear channel (hope to avoid acks)
+        rssiClear += (PHY_RSSI & RFA1_RSSI_MASK) - (rssiClear >> 2);
+      }
+
+      cmd = CMD_DOWNLOAD;
+    }
   }
-  
+
   /**
    * Indicates the completion of a frame transmission
    */
@@ -642,7 +642,7 @@ implementation
     atomic radioIrq |= IRQ_TX_END;
     call Tasklet.schedule();
   }
-  
+
   /**
    * Indicates the completion of a frame reception
    */
@@ -652,7 +652,7 @@ implementation
     atomic radioIrq |= IRQ_RX_END;
     call Tasklet.schedule();
   }
-  
+
   /**
    * Indicates the start of a PSDU reception. The TRX_STATE changes
    * to BUSY_RX, the PHR is ready to be read from Frame Buffer
@@ -660,14 +660,10 @@ implementation
   AVR_NONATOMIC_HANDLER(TRX24_RX_START_vect){
     RADIO_ASSERT( ! radioIrq );
 
-    atomic
-    {
-      capturedTime = call SfdCapture.get();
-      radioIrq |= IRQ_RX_START;
-    }
+    atomic radioIrq |= IRQ_RX_START;
     call Tasklet.schedule();
   }
-  
+
   /**
    * Indicates PLL lock
    */
@@ -677,7 +673,7 @@ implementation
     atomic radioIrq |= IRQ_PLL_LOCK;
     call Tasklet.schedule();
   }
-  
+
   /**
    * indicates sleep/reset->trx_off mode change
    */
@@ -687,7 +683,7 @@ implementation
     atomic radioIrq |= IRQ_AWAKE;
     call Tasklet.schedule();
   }
-  
+
   /**
    * indicates CCA ED done
    */
@@ -696,7 +692,7 @@ implementation
 
     atomic radioIrq |= IRQ_CCA_ED_DONE;
     call Tasklet.schedule();
-  }  
+  }
 
   // never called, we have the RX_START interrupt instead
   async event void SfdCapture.fired() { }
@@ -716,7 +712,7 @@ implementation
         changeState();
       else if( cmd == CMD_CHANNEL )
         changeChannel();
-	
+
       if( cmd == CMD_SIGNAL_DONE )
       {
         cmd = CMD_NONE;
@@ -730,10 +726,10 @@ implementation
   }
 
   /*----------------- RadioPacket -----------------*/
-	
+
   async command uint8_t RadioPacket.headerLength(message_t* msg)
   {
-    
+
     return call Config.headerLength(msg) + sizeof(rfa1_header_t);
   }
 
