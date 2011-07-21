@@ -59,7 +59,7 @@ implementation {
 	 
 	event void Boot.booted() {
 		call SerialControl.start();
-		call LPL.setLocalSleepInterval(100);
+		//call LPL.setLocalSleepInterval(400);
 	}
 
 	event void SerialControl.startDone(error_t err) {
@@ -100,7 +100,7 @@ implementation {
 			if (!locked){
 				ControlMsg* btrpkt2 = (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
 				btrpkt2->control=ptr->counter;
-				call LPL.setRxSleepInterval(&pkt, 100);
+				//call LPL.setRxSleepInterval(&pkt, 2048);
 				if (call AMSend.send(seged, &pkt, sizeof(ControlMsg)) == SUCCESS) {
 					locked = TRUE;
 				}

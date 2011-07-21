@@ -2457,13 +2457,13 @@ static void CC2420ActiveMessageP$CC2420Config$syncDone(error_t error);
 # 95 "/opt/tinyos-2.1.0/tos/chips/cc2420/interfaces/RadioBackoff.nc"
 static void CC2420ActiveMessageP$RadioBackoff$default$requestCca(
 # 45 "/opt/tinyos-2.1.0/tos/chips/cc2420/CC2420ActiveMessageP.nc"
-am_id_t arg_0x4087edf8, 
+am_id_t arg_0x4087e948, 
 # 95 "/opt/tinyos-2.1.0/tos/chips/cc2420/interfaces/RadioBackoff.nc"
 message_t * msg);
 #line 81
 static void CC2420ActiveMessageP$RadioBackoff$default$requestInitialBackoff(
 # 45 "/opt/tinyos-2.1.0/tos/chips/cc2420/CC2420ActiveMessageP.nc"
-am_id_t arg_0x4087edf8, 
+am_id_t arg_0x4087e948, 
 # 81 "/opt/tinyos-2.1.0/tos/chips/cc2420/interfaces/RadioBackoff.nc"
 message_t * msg);
 
@@ -2474,13 +2474,13 @@ message_t * msg);
 
 static void CC2420ActiveMessageP$RadioBackoff$default$requestCongestionBackoff(
 # 45 "/opt/tinyos-2.1.0/tos/chips/cc2420/CC2420ActiveMessageP.nc"
-am_id_t arg_0x4087edf8, 
+am_id_t arg_0x4087e948, 
 # 88 "/opt/tinyos-2.1.0/tos/chips/cc2420/interfaces/RadioBackoff.nc"
 message_t * msg);
 # 59 "/opt/tinyos-2.1.0/tos/interfaces/SendNotifier.nc"
 static void CC2420ActiveMessageP$SendNotifier$default$aboutToSend(
 # 44 "/opt/tinyos-2.1.0/tos/chips/cc2420/CC2420ActiveMessageP.nc"
-am_id_t arg_0x4087e780, 
+am_id_t arg_0x4087e2d0, 
 # 59 "/opt/tinyos-2.1.0/tos/interfaces/SendNotifier.nc"
 am_addr_t dest, 
 #line 57
@@ -2525,7 +2525,7 @@ uint8_t len);
 # 69 "/opt/tinyos-2.1.0/tos/interfaces/AMSend.nc"
 static error_t CC2420ActiveMessageP$AMSend$send(
 # 39 "/opt/tinyos-2.1.0/tos/chips/cc2420/CC2420ActiveMessageP.nc"
-am_id_t arg_0x4086dcc8, 
+am_id_t arg_0x4086d810, 
 # 69 "/opt/tinyos-2.1.0/tos/interfaces/AMSend.nc"
 am_addr_t addr, 
 #line 60
@@ -2548,7 +2548,7 @@ message_t *
 
 CC2420ActiveMessageP$Snoop$default$receive(
 # 41 "/opt/tinyos-2.1.0/tos/chips/cc2420/CC2420ActiveMessageP.nc"
-am_id_t arg_0x40880da0, 
+am_id_t arg_0x40880880, 
 # 60 "/opt/tinyos-2.1.0/tos/interfaces/Receive.nc"
 message_t * msg, 
 void * payload, 
@@ -2567,7 +2567,7 @@ message_t *
 
 CC2420ActiveMessageP$Receive$default$receive(
 # 40 "/opt/tinyos-2.1.0/tos/chips/cc2420/CC2420ActiveMessageP.nc"
-am_id_t arg_0x40880708, 
+am_id_t arg_0x408801e8, 
 # 60 "/opt/tinyos-2.1.0/tos/interfaces/Receive.nc"
 message_t * msg, 
 void * payload, 
@@ -3594,7 +3594,7 @@ message_t *
 
 CC2420TinyosNetworkP$NonTinyosReceive$default$receive(
 # 48 "/opt/tinyos-2.1.0/tos/chips/cc2420/lowpan/CC2420TinyosNetworkP.nc"
-uint8_t arg_0x40f39aa0, 
+uint8_t arg_0x40f3aaa0, 
 # 60 "/opt/tinyos-2.1.0/tos/interfaces/Receive.nc"
 message_t * msg, 
 void * payload, 
@@ -3667,23 +3667,10 @@ message_t * msg,
 
 
 uint8_t len);
-# 90 "/opt/tinyos-2.1.0/tos/interfaces/LowPowerListening.nc"
-static void DefaultLplP$LowPowerListening$setRxSleepInterval(
-#line 87
-message_t * msg, 
-
-
-uint16_t sleepIntervalMs);
-
-
-
-
-
+# 96 "/opt/tinyos-2.1.0/tos/interfaces/LowPowerListening.nc"
 static uint16_t DefaultLplP$LowPowerListening$getRxSleepInterval(
 #line 93
 message_t * msg);
-#line 53
-static void DefaultLplP$LowPowerListening$setLocalSleepInterval(uint16_t sleepIntervalMs);
 # 73 "/opt/tinyos-2.1.0/tos/chips/cc2420/interfaces/CC2420Transmit.nc"
 static void DefaultLplP$Resend$sendDone(message_t * p_msg, error_t error);
 # 51 "/opt/tinyos-2.1.0/tos/interfaces/Init.nc"
@@ -3716,8 +3703,6 @@ static void PowerCycleP$getCca$runTask(void );
 static void PowerCycleP$OnTimer$fired(void );
 # 48 "/opt/tinyos-2.1.0/tos/chips/cc2420/interfaces/PowerCycle.nc"
 static uint16_t PowerCycleP$PowerCycle$getSleepInterval(void );
-#line 43
-static void PowerCycleP$PowerCycle$setSleepInterval(uint16_t sleepIntervalMs);
 # 64 "/opt/tinyos-2.1.0/tos/interfaces/TaskBasic.nc"
 static void PowerCycleP$stopRadio$runTask(void );
 # 69 "/opt/tinyos-2.1.0/tos/interfaces/AMSend.nc"
@@ -5221,15 +5206,6 @@ static inline void /*PlatformLedsC.Led2Impl*/Msp430GpioC$2$GeneralIO$clr(void );
 
 
 static inline void /*PlatformLedsC.Led2Impl*/Msp430GpioC$2$GeneralIO$makeOutput(void );
-# 90 "/opt/tinyos-2.1.0/tos/interfaces/LowPowerListening.nc"
-static void SerialC$LPL$setRxSleepInterval(
-#line 87
-message_t * msg, 
-
-
-uint16_t sleepIntervalMs);
-#line 53
-static void SerialC$LPL$setLocalSleepInterval(uint16_t sleepIntervalMs);
 # 83 "/opt/tinyos-2.1.0/tos/interfaces/SplitControl.nc"
 static error_t SerialC$AMControl$start(void );
 # 69 "/opt/tinyos-2.1.0/tos/interfaces/AMSend.nc"
@@ -5357,13 +5333,13 @@ static uint16_t CC2420ActiveMessageP$CC2420Config$getPanAddr(void );
 # 95 "/opt/tinyos-2.1.0/tos/chips/cc2420/interfaces/RadioBackoff.nc"
 static void CC2420ActiveMessageP$RadioBackoff$requestCca(
 # 45 "/opt/tinyos-2.1.0/tos/chips/cc2420/CC2420ActiveMessageP.nc"
-am_id_t arg_0x4087edf8, 
+am_id_t arg_0x4087e948, 
 # 95 "/opt/tinyos-2.1.0/tos/chips/cc2420/interfaces/RadioBackoff.nc"
 message_t * msg);
 #line 81
 static void CC2420ActiveMessageP$RadioBackoff$requestInitialBackoff(
 # 45 "/opt/tinyos-2.1.0/tos/chips/cc2420/CC2420ActiveMessageP.nc"
-am_id_t arg_0x4087edf8, 
+am_id_t arg_0x4087e948, 
 # 81 "/opt/tinyos-2.1.0/tos/chips/cc2420/interfaces/RadioBackoff.nc"
 message_t * msg);
 
@@ -5374,13 +5350,13 @@ message_t * msg);
 
 static void CC2420ActiveMessageP$RadioBackoff$requestCongestionBackoff(
 # 45 "/opt/tinyos-2.1.0/tos/chips/cc2420/CC2420ActiveMessageP.nc"
-am_id_t arg_0x4087edf8, 
+am_id_t arg_0x4087e948, 
 # 88 "/opt/tinyos-2.1.0/tos/chips/cc2420/interfaces/RadioBackoff.nc"
 message_t * msg);
 # 59 "/opt/tinyos-2.1.0/tos/interfaces/SendNotifier.nc"
 static void CC2420ActiveMessageP$SendNotifier$aboutToSend(
 # 44 "/opt/tinyos-2.1.0/tos/chips/cc2420/CC2420ActiveMessageP.nc"
-am_id_t arg_0x4087e780, 
+am_id_t arg_0x4087e2d0, 
 # 59 "/opt/tinyos-2.1.0/tos/interfaces/SendNotifier.nc"
 am_addr_t dest, 
 #line 57
@@ -5388,7 +5364,7 @@ message_t * msg);
 # 99 "/opt/tinyos-2.1.0/tos/interfaces/AMSend.nc"
 static void CC2420ActiveMessageP$AMSend$sendDone(
 # 39 "/opt/tinyos-2.1.0/tos/chips/cc2420/CC2420ActiveMessageP.nc"
-am_id_t arg_0x4086dcc8, 
+am_id_t arg_0x4086d810, 
 # 92 "/opt/tinyos-2.1.0/tos/interfaces/AMSend.nc"
 message_t * msg, 
 
@@ -5407,7 +5383,7 @@ message_t *
 
 CC2420ActiveMessageP$Snoop$receive(
 # 41 "/opt/tinyos-2.1.0/tos/chips/cc2420/CC2420ActiveMessageP.nc"
-am_id_t arg_0x40880da0, 
+am_id_t arg_0x40880880, 
 # 60 "/opt/tinyos-2.1.0/tos/interfaces/Receive.nc"
 message_t * msg, 
 void * payload, 
@@ -5435,7 +5411,7 @@ message_t *
 
 CC2420ActiveMessageP$Receive$receive(
 # 40 "/opt/tinyos-2.1.0/tos/chips/cc2420/CC2420ActiveMessageP.nc"
-am_id_t arg_0x40880708, 
+am_id_t arg_0x408801e8, 
 # 60 "/opt/tinyos-2.1.0/tos/interfaces/Receive.nc"
 message_t * msg, 
 void * payload, 
@@ -8100,7 +8076,7 @@ message_t *
 
 CC2420TinyosNetworkP$NonTinyosReceive$receive(
 # 48 "/opt/tinyos-2.1.0/tos/chips/cc2420/lowpan/CC2420TinyosNetworkP.nc"
-uint8_t arg_0x40f39aa0, 
+uint8_t arg_0x40f3aaa0, 
 # 60 "/opt/tinyos-2.1.0/tos/interfaces/Receive.nc"
 message_t * msg, 
 void * payload, 
@@ -8273,8 +8249,6 @@ static am_addr_t DefaultLplP$AMPacket$destination(
 message_t * amsg);
 # 48 "/opt/tinyos-2.1.0/tos/chips/cc2420/interfaces/PowerCycle.nc"
 static uint16_t DefaultLplP$PowerCycle$getSleepInterval(void );
-#line 43
-static void DefaultLplP$PowerCycle$setSleepInterval(uint16_t sleepIntervalMs);
 # 56 "/opt/tinyos-2.1.0/tos/interfaces/TaskBasic.nc"
 static error_t DefaultLplP$stopRadio$postTask(void );
 # 108 "/opt/tinyos-2.1.0/tos/chips/cc2420/lpl/DefaultLplP.nc"
@@ -8345,18 +8319,7 @@ static inline void DefaultLplP$startOffTimer(void );
 
 
 static inline error_t DefaultLplP$Init$init(void );
-#line 134
-static inline void DefaultLplP$LowPowerListening$setLocalSleepInterval(
-uint16_t sleepIntervalMs);
-#line 182
-static inline void DefaultLplP$LowPowerListening$setRxSleepInterval(message_t *msg, 
-uint16_t sleepIntervalMs);
-
-
-
-
-
-
+#line 190
 static inline uint16_t DefaultLplP$LowPowerListening$getRxSleepInterval(message_t *msg);
 #line 261
 static inline error_t DefaultLplP$Send$send(message_t *msg, uint8_t len);
@@ -8531,14 +8494,6 @@ enum PowerCycleP$__nesc_unnamed4350 {
 
 static bool PowerCycleP$finishSplitControlRequests(void );
 static inline bool PowerCycleP$isDutyCycling(void );
-
-
-
-
-
-
-
-static inline void PowerCycleP$PowerCycle$setSleepInterval(uint16_t sleepIntervalMs);
 #line 130
 static inline uint16_t PowerCycleP$PowerCycle$getSleepInterval(void );
 
@@ -11176,9 +11131,9 @@ message_t *msg)
 }
 
 # 88 "/opt/tinyos-2.1.0/tos/chips/cc2420/interfaces/RadioBackoff.nc"
-inline static void CC2420ActiveMessageP$RadioBackoff$requestCongestionBackoff(am_id_t arg_0x4087edf8, message_t * msg){
+inline static void CC2420ActiveMessageP$RadioBackoff$requestCongestionBackoff(am_id_t arg_0x4087e948, message_t * msg){
 #line 88
-    CC2420ActiveMessageP$RadioBackoff$default$requestCongestionBackoff(arg_0x4087edf8, msg);
+    CC2420ActiveMessageP$RadioBackoff$default$requestCongestionBackoff(arg_0x4087e948, msg);
 #line 88
 }
 #line 88
@@ -15619,21 +15574,6 @@ inline static error_t SerialC$AMSend$send(am_addr_t addr, message_t * msg, uint8
 #line 69
 }
 #line 69
-# 182 "/opt/tinyos-2.1.0/tos/chips/cc2420/lpl/DefaultLplP.nc"
-static inline void DefaultLplP$LowPowerListening$setRxSleepInterval(message_t *msg, 
-uint16_t sleepIntervalMs)
-#line 183
-{
-  __nesc_hton_uint16(DefaultLplP$CC2420PacketBody$getMetadata(msg)->rxInterval.data, sleepIntervalMs);
-}
-
-# 90 "/opt/tinyos-2.1.0/tos/interfaces/LowPowerListening.nc"
-inline static void SerialC$LPL$setRxSleepInterval(message_t * msg, uint16_t sleepIntervalMs){
-#line 90
-  DefaultLplP$LowPowerListening$setRxSleepInterval(msg, sleepIntervalMs);
-#line 90
-}
-#line 90
 # 114 "/opt/tinyos-2.1.0/tos/interfaces/Send.nc"
 inline static void * CC2420TinyosNetworkP$SubSend$getPayload(message_t * msg, uint8_t len){
 #line 114
@@ -15942,7 +15882,7 @@ static inline message_t *SerialC$SerialReceive$receive(message_t *msg, void *pay
 
 #line 102
           __nesc_hton_uint16(btrpkt2->control.data, __nesc_ntoh_uint16(ptr->counter.data));
-          SerialC$LPL$setRxSleepInterval(&SerialC$pkt, 100);
+
           if (SerialC$AMSend$send(SerialC$seged, &SerialC$pkt, sizeof(ControlMsg )) == SUCCESS) {
               SerialC$locked = TRUE;
             }
@@ -16161,9 +16101,9 @@ static inline void CC2420ActiveMessageP$SendNotifier$default$aboutToSend(am_id_t
 }
 
 # 59 "/opt/tinyos-2.1.0/tos/interfaces/SendNotifier.nc"
-inline static void CC2420ActiveMessageP$SendNotifier$aboutToSend(am_id_t arg_0x4087e780, am_addr_t dest, message_t * msg){
+inline static void CC2420ActiveMessageP$SendNotifier$aboutToSend(am_id_t arg_0x4087e2d0, am_addr_t dest, message_t * msg){
 #line 59
-    CC2420ActiveMessageP$SendNotifier$default$aboutToSend(arg_0x4087e780, dest, msg);
+    CC2420ActiveMessageP$SendNotifier$default$aboutToSend(arg_0x4087e2d0, dest, msg);
 #line 59
 }
 #line 59
@@ -18456,9 +18396,9 @@ message_t *msg)
 }
 
 # 81 "/opt/tinyos-2.1.0/tos/chips/cc2420/interfaces/RadioBackoff.nc"
-inline static void CC2420ActiveMessageP$RadioBackoff$requestInitialBackoff(am_id_t arg_0x4087edf8, message_t * msg){
+inline static void CC2420ActiveMessageP$RadioBackoff$requestInitialBackoff(am_id_t arg_0x4087e948, message_t * msg){
 #line 81
-    CC2420ActiveMessageP$RadioBackoff$default$requestInitialBackoff(arg_0x4087edf8, msg);
+    CC2420ActiveMessageP$RadioBackoff$default$requestInitialBackoff(arg_0x4087e948, msg);
 #line 81
 }
 #line 81
@@ -18638,9 +18578,9 @@ message_t *msg)
 }
 
 # 95 "/opt/tinyos-2.1.0/tos/chips/cc2420/interfaces/RadioBackoff.nc"
-inline static void CC2420ActiveMessageP$RadioBackoff$requestCca(am_id_t arg_0x4087edf8, message_t * msg){
+inline static void CC2420ActiveMessageP$RadioBackoff$requestCca(am_id_t arg_0x4087e948, message_t * msg){
 #line 95
-    CC2420ActiveMessageP$RadioBackoff$default$requestCca(arg_0x4087edf8, msg);
+    CC2420ActiveMessageP$RadioBackoff$default$requestCca(arg_0x4087e948, msg);
 #line 95
 }
 #line 95
@@ -19309,13 +19249,13 @@ static inline message_t *CC2420TinyosNetworkP$NonTinyosReceive$default$receive(u
 }
 
 # 67 "/opt/tinyos-2.1.0/tos/interfaces/Receive.nc"
-inline static message_t * CC2420TinyosNetworkP$NonTinyosReceive$receive(uint8_t arg_0x40f39aa0, message_t * msg, void * payload, uint8_t len){
+inline static message_t * CC2420TinyosNetworkP$NonTinyosReceive$receive(uint8_t arg_0x40f3aaa0, message_t * msg, void * payload, uint8_t len){
 #line 67
   nx_struct message_t *__nesc_result;
 #line 67
 
 #line 67
-    __nesc_result = CC2420TinyosNetworkP$NonTinyosReceive$default$receive(arg_0x40f39aa0, msg, payload, len);
+    __nesc_result = CC2420TinyosNetworkP$NonTinyosReceive$default$receive(arg_0x40f3aaa0, msg, payload, len);
 #line 67
 
 #line 67
@@ -19331,13 +19271,13 @@ static inline message_t *CC2420ActiveMessageP$Snoop$default$receive(am_id_t id, 
 }
 
 # 67 "/opt/tinyos-2.1.0/tos/interfaces/Receive.nc"
-inline static message_t * CC2420ActiveMessageP$Snoop$receive(am_id_t arg_0x40880da0, message_t * msg, void * payload, uint8_t len){
+inline static message_t * CC2420ActiveMessageP$Snoop$receive(am_id_t arg_0x40880880, message_t * msg, void * payload, uint8_t len){
 #line 67
   nx_struct message_t *__nesc_result;
 #line 67
 
 #line 67
-    __nesc_result = CC2420ActiveMessageP$Snoop$default$receive(arg_0x40880da0, msg, payload, len);
+    __nesc_result = CC2420ActiveMessageP$Snoop$default$receive(arg_0x40880880, msg, payload, len);
 #line 67
 
 #line 67
@@ -19496,13 +19436,13 @@ static inline message_t *CC2420ActiveMessageP$Receive$default$receive(am_id_t id
 }
 
 # 67 "/opt/tinyos-2.1.0/tos/interfaces/Receive.nc"
-inline static message_t * CC2420ActiveMessageP$Receive$receive(am_id_t arg_0x40880708, message_t * msg, void * payload, uint8_t len){
+inline static message_t * CC2420ActiveMessageP$Receive$receive(am_id_t arg_0x408801e8, message_t * msg, void * payload, uint8_t len){
 #line 67
   nx_struct message_t *__nesc_result;
 #line 67
 
 #line 67
-  switch (arg_0x40880708) {
+  switch (arg_0x408801e8) {
 #line 67
     case 15U:
 #line 67
@@ -19512,7 +19452,7 @@ inline static message_t * CC2420ActiveMessageP$Receive$receive(am_id_t arg_0x408
 #line 67
     default:
 #line 67
-      __nesc_result = CC2420ActiveMessageP$Receive$default$receive(arg_0x40880708, msg, payload, len);
+      __nesc_result = CC2420ActiveMessageP$Receive$default$receive(arg_0x408801e8, msg, payload, len);
 #line 67
       break;
 #line 67
@@ -21502,9 +21442,9 @@ static inline void /*AMQueueP.AMQueueImplP*/AMQueueImplP$0$AMSend$sendDone(am_id
 }
 
 # 99 "/opt/tinyos-2.1.0/tos/interfaces/AMSend.nc"
-inline static void CC2420ActiveMessageP$AMSend$sendDone(am_id_t arg_0x4086dcc8, message_t * msg, error_t error){
+inline static void CC2420ActiveMessageP$AMSend$sendDone(am_id_t arg_0x4086d810, message_t * msg, error_t error){
 #line 99
-  /*AMQueueP.AMQueueImplP*/AMQueueImplP$0$AMSend$sendDone(arg_0x4086dcc8, msg, error);
+  /*AMQueueP.AMQueueImplP*/AMQueueImplP$0$AMSend$sendDone(arg_0x4086d810, msg, error);
 #line 99
 }
 #line 99
@@ -22625,56 +22565,11 @@ inline static error_t RealMainP$SoftwareInit$init(void ){
 #line 51
 }
 #line 51
-# 108 "/opt/tinyos-2.1.0/tos/chips/cc2420/lpl/PowerCycleP.nc"
-static inline void PowerCycleP$PowerCycle$setSleepInterval(uint16_t sleepIntervalMs)
-#line 108
-{
-  if (!PowerCycleP$sleepInterval && sleepIntervalMs) {
-
-      PowerCycleP$stopRadio$postTask();
-    }
-
-  PowerCycleP$sleepInterval = sleepIntervalMs;
-
-  if (PowerCycleP$sleepInterval == 0 && PowerCycleP$SplitControlState$isState(PowerCycleP$S_ON)) {
-
-
-
-
-      if (PowerCycleP$RadioPowerState$getState() == PowerCycleP$S_OFF) {
-          PowerCycleP$SubControl$start();
-        }
-    }
-}
-
-# 43 "/opt/tinyos-2.1.0/tos/chips/cc2420/interfaces/PowerCycle.nc"
-inline static void DefaultLplP$PowerCycle$setSleepInterval(uint16_t sleepIntervalMs){
-#line 43
-  PowerCycleP$PowerCycle$setSleepInterval(sleepIntervalMs);
-#line 43
-}
-#line 43
-# 134 "/opt/tinyos-2.1.0/tos/chips/cc2420/lpl/DefaultLplP.nc"
-static inline void DefaultLplP$LowPowerListening$setLocalSleepInterval(
-uint16_t sleepIntervalMs)
-#line 135
-{
-  DefaultLplP$PowerCycle$setSleepInterval(sleepIntervalMs);
-}
-
-# 53 "/opt/tinyos-2.1.0/tos/interfaces/LowPowerListening.nc"
-inline static void SerialC$LPL$setLocalSleepInterval(uint16_t sleepIntervalMs){
-#line 53
-  DefaultLplP$LowPowerListening$setLocalSleepInterval(sleepIntervalMs);
-#line 53
-}
-#line 53
 # 60 "SerialC.nc"
 static inline void SerialC$Boot$booted(void )
 #line 60
 {
   SerialC$SerialControl$start();
-  SerialC$LPL$setLocalSleepInterval(100);
 }
 
 # 49 "/opt/tinyos-2.1.0/tos/interfaces/Boot.nc"

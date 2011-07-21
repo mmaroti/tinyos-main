@@ -90,6 +90,7 @@ class SerialReceive implements MessageListener{
 		MoteIF mif = null;
 		String data=null;
 		String data2=null;
+		int seged=-1;
 				
 		if( args.length == 1 ){
 			phoenix = BuildSource.makePhoenix(PrintStreamMessenger.err);
@@ -105,7 +106,11 @@ class SerialReceive implements MessageListener{
 		mif = new MoteIF(phoenix);
 		SerialReceive app= new SerialReceive(mif);
 		app.send(data,data2);
-		//if(data!="2") System.exit(0);
+		seged=Integer.parseInt(data);
+		if(seged!=2) {
+			System.exit(0);
+		}
+		else{out.println("letoltes");}
 		
 	}
 }
