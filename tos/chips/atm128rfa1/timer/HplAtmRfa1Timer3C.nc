@@ -32,45 +32,27 @@
  * Author: Miklos Maroti
  */
 
-interface AtmegaCounter<size_type>
+configuration HplAtmRfa1Timer3C
 {
-// ----- timer counter register (TCNT) 
+	provides
+	{
+		interface AtmegaCounter<uint16_t> as Counter;
+		interface AtmegaCompare<uint16_t> as Compare[uint8_t id];
+		interface AtmegaCapture<uint16_t> as Capture;
+	}
+}
 
-	/* Returns the current counter value */
-	async command size_type get();
+implementation
+{
+	components HplAtmRfa1Timer3P;
 
-	/* Sets the current counter value */
-	async command void set(size_type value);
+	Counter = HplAtmRfa1Timer3P;
+	Compare[0] = HplAtmRfa1Timer3P.CompareA;
+	Compare[1] = HplAtmRfa1Timer3P.CompareB;
+	Compare[2] = HplAtmRfa1Timer3P.CompareC;
+	Capture = HplAtmRfa1Timer3P;
 
-// ----- timer interrupt flag register (TIFR), timer overflow flag (TOV)
-
-	/* Signalled when the counter is going from 0xFF to 0x00.
-	   WARNING: This event MUST be executed in atomic context */
-	async event void overflow();
-
-	/* Tests if there is a pending overflow interrupt
-	   WARNING: This command MUST be executed in atomic context */
-	async command bool test();
-
-	/* Resets a pending interrupt */
-	async command void reset();
-
-// ----- timer interrupt mask register (TIMSK), timer overflow interrupt enable (TOIE)
-
-	/* Enables the overflow interrupt */
-	async command void start();
-
-	/* Disables the overflow interrupt */
-	async command void stop();
-
-	/* Checks is the overflow interrupt is enabled */
-	async command bool isOn();
-
-// ----- timer control registers (TCCR), clock select bits (CS) and waveform generation mode (WGM)
-
-	/* Sets the clock select and waveform generation mode bits */
-	async command void setMode(uint8_t mode);
-
-	/* Returns the clock select andwaveform generation mode bits */
-	async command uint8_t getMode();
+	components McuSleepC;
+	HplAtmRfa1Timer3P.McuPowerState -> McuSleepC;
+	HplAtmRfa1Timer3P.McuPowerOverride <- McuSleepC;
 }
