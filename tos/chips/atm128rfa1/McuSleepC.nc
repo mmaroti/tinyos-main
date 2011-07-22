@@ -45,7 +45,7 @@ module McuSleepC @safe()
   }
   uses {
     interface McuPowerOverride;
-    interface Leds;
+    interface Leds @exactlyonce();
   }
 }
 

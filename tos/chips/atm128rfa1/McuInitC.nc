@@ -50,4 +50,11 @@ implementation
 	TimerInit = McuInitP.TimerInit;
 
 	McuInitP.MeasureClock -> MeasureClockC;
+
+#ifdef TOGGLE_ON_SLEEP
+	// this is a HACK, but becasue of some compiling issues
+	// we cannot make McuInitC into a configuration
+	components McuSleepC, LedsC;
+	McuSleepC.Leds -> LedsC;
+#endif
 }
