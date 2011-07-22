@@ -39,7 +39,7 @@ implementation {
   components Stm25pOffP, HplStm25pPinsC as PinsC;
   Stm25pOff = Stm25pOffP;
   
-  #if UCMINI_REV > 100
+  #if !defined(UCMINI_REV) || (UCMINI_REV > 100)
   Stm25pOffP.Toggle -> PinsC.Power;
   #else
   components HplStm25pSpiC as SpiC;
