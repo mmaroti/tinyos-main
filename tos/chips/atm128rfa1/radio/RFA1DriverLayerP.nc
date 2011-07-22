@@ -57,6 +57,8 @@ module RFA1DriverLayerP
     interface PacketField<uint8_t> as PacketRSSI;
     interface PacketField<uint8_t> as PacketTimeSyncOffset;
     interface PacketField<uint8_t> as PacketLinkQuality;
+
+    interface McuPowerOverride;
   }
 
   uses
@@ -74,6 +76,7 @@ module RFA1DriverLayerP
     interface PacketTimeStamp<TRadio, uint32_t>;
 
     interface Tasklet;
+    interface McuPowerState;
 
 #ifdef RADIO_DEBUG
     interface DiagMsg;
@@ -186,6 +189,7 @@ implementation
     call SfdCapture.setMode(ATMRFA1_CAPSC_ON);
 
     state = STATE_SLEEP;
+
     return SUCCESS;
   }
 
@@ -233,23 +237,25 @@ implementation
     if( (cmd == CMD_STANDBY || cmd == CMD_TURNON) && state == STATE_SLEEP )
     {
       RADIO_ASSERT( ! radioIrq );
+
       IRQ_STATUS = 0xFF;
       IRQ_MASK = 1<<AWAKE_EN;
       CLR_BIT(TRXPR,SLPTR);
+      call McuPowerState.update();
+
       state = STATE_SLEEP_2_TRX_OFF;
     }
     else if( cmd == CMD_TURNON && state == STATE_TRX_OFF )
     {
       RADIO_ASSERT( ! radioIrq );
 
-      IRQ_STATUS = 0xFF; // clear the interrupt register
       IRQ_MASK = 1<<PLL_LOCK_EN | 1<<TX_END_EN | 1<<RX_END_EN | 1<< RX_START_EN | 1<<CCA_ED_DONE_EN;
+      call McuPowerState.update();
 
       // setChannel was ignored in SLEEP because the SPI was not working, so do it here
-      //TODO: is it necessary for rfa1? - probably not
-      PHY_CC_CCA=RFA1_CCA_MODE_VALUE | channel;
+      PHY_CC_CCA = RFA1_CCA_MODE_VALUE | channel;
 
-      TRX_STATE=CMD_RX_ON;
+      TRX_STATE = CMD_RX_ON;
       state = STATE_TRX_OFF_2_RX_ON;
     }
     else if( (cmd == CMD_TURNOFF || cmd == CMD_STANDBY) && state == STATE_RX_ON )
@@ -257,7 +263,7 @@ implementation
       TRX_STATE = CMD_FORCE_TRX_OFF;
 
       IRQ_MASK = 0;
-      radioIrq = IRQ_NONE;
+      call McuPowerState.update();
 
       state = STATE_TRX_OFF;
     }
@@ -269,7 +275,12 @@ implementation
       cmd = CMD_SIGNAL_DONE;
     }
     else if( cmd == CMD_STANDBY && state == STATE_TRX_OFF )
+    {
+      IRQ_MASK = 0;
+      call McuPowerState.update();
+
       cmd = CMD_SIGNAL_DONE;
+    }
   }
 
   tasklet_async command error_t RadioState.turnOff()
@@ -315,6 +326,7 @@ implementation
   /*----------------- TRANSMIT -----------------*/
 
   enum {
+    // 16 us delay (1 tick), 4 bytes preamble (2 ticks each), 1 byte SFD (2 ticks)
     TX_SFD_DELAY = 11,
   };
 
@@ -341,7 +353,7 @@ implementation
           && (PHY_RSSI & RFA1_RSSI_MASK) > ((rssiClear + rssiBusy) >> 3) )
       return EBUSY;
 
-    TRX_STATE=CMD_PLL_ON;
+    TRX_STATE = CMD_PLL_ON;
 
     // do something useful, just to wait a little
     timesync = call PacketTimeSyncOffset.isSet(msg) ? ((void*)msg) + call PacketTimeSyncOffset.get(msg) : 0;
@@ -366,8 +378,8 @@ implementation
 
     atomic
     {
-        TRX_STATE = CMD_TX_START;
         time = call LocalTime.get();
+        TRX_STATE = CMD_TX_START;
     }
 
     time += TX_SFD_DELAY;
@@ -518,29 +530,6 @@ implementation
       radioIrq = IRQ_NONE;
     }
 
-    if( irq & IRQ_AWAKE ){
-      if( state == STATE_SLEEP_2_TRX_OFF && (cmd==CMD_STANDBY || cmd==CMD_TURNON) )
-        state = STATE_TRX_OFF;
-      else
-        RADIO_ASSERT(FALSE);
-    }
-    if ( irq & IRQ_CCA_ED_DONE ){
-      if( cmd == CMD_CCA )
-      {
-        // workaround, see Errata 38.5.5 datasheet
-        CLR_BIT(RX_SYN,RX_PDT_DIS);
-
-
-        cmd = CMD_NONE;
-
-        RADIO_ASSERT( state == STATE_RX_ON );
-        RADIO_ASSERT( (TRX_STATUS & RFA1_TRX_STATUS_MASK) == RX_ON );
-
-        signal RadioCCA.done( (TRX_STATUS & CCA_DONE) ? ((TRX_STATUS & CCA_STATUS) ? SUCCESS : EBUSY) : FAIL );
-      } else
-        RADIO_ASSERT(FALSE);
-    }
-
     if( irq & IRQ_PLL_LOCK )
     {
       if( cmd == CMD_TURNON || cmd == CMD_CHANNEL )
@@ -631,6 +620,31 @@ implementation
 
       cmd = CMD_DOWNLOAD;
     }
+
+    if( irq & IRQ_AWAKE ){
+      if( state == STATE_SLEEP_2_TRX_OFF && (cmd==CMD_STANDBY || cmd==CMD_TURNON) )
+        state = STATE_TRX_OFF;
+      else
+        RADIO_ASSERT(FALSE);
+    }
+
+    if ( irq & IRQ_CCA_ED_DONE ){
+      if( cmd == CMD_CCA )
+      {
+        // workaround, see Errata 38.5.5 datasheet
+        CLR_BIT(RX_SYN,RX_PDT_DIS);
+
+
+        cmd = CMD_NONE;
+
+        RADIO_ASSERT( state == STATE_RX_ON );
+        RADIO_ASSERT( (TRX_STATUS & RFA1_TRX_STATUS_MASK) == RX_ON );
+
+        signal RadioCCA.done( (TRX_STATUS & CCA_DONE) ? ((TRX_STATUS & CCA_STATUS) ? SUCCESS : EBUSY) : FAIL );
+      } else
+        RADIO_ASSERT(FALSE);
+    }
+
   }
 
   /**
@@ -724,6 +738,16 @@ implementation
       signal RadioSend.ready();
 
   }
+
+  /*----------------- McuPower -----------------*/
+
+   async command mcu_power_t McuPowerOverride.lowestState()
+   {
+      if( (IRQ_MASK & 1<<AWAKE_EN) != 0 )
+         return ATM128_POWER_EXT_STANDBY;
+      else
+         return ATM128_POWER_DOWN;
+   }
 
   /*----------------- RadioPacket -----------------*/
 

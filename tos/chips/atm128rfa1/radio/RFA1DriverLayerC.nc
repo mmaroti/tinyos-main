@@ -68,7 +68,7 @@ configuration RFA1DriverLayerC
 
 implementation
 {
-	components RFA1DriverLayerP, BusyWaitMicroC, TaskletC, MainC, 
+	components RFA1DriverLayerP, BusyWaitMicroC, TaskletC, 
 		LocalTime62khzC, new Alarm62khz32C(), HplAtmRfa1TimerMacC;
 
 	RadioState = RFA1DriverLayerP;
@@ -106,8 +106,11 @@ implementation
 	RFA1DriverLayerP.DiagMsg -> DiagMsgC;
 #endif
 
+	components MainC, RealMainP;
+	RealMainP.PlatformInit -> RFA1DriverLayerP.PlatformInit;
 	MainC.SoftwareInit -> RFA1DriverLayerP.SoftwareInit;
 
-	components RealMainP;
-	RealMainP.PlatformInit -> RFA1DriverLayerP.PlatformInit;
+	components McuSleepC;
+	RFA1DriverLayerP.McuPowerState -> McuSleepC;
+	RFA1DriverLayerP.McuPowerOverride <- McuSleepC;
 }
