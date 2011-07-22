@@ -1,7 +1,7 @@
 //#include "util/delay.h"
 #include "defines.h"
-#define MATCHES 50
-#define MAXERROR 2
+#define MATCHES 100
+#define MAXERROR 1
 //SERIAL
 // number of CPU cycles per 1/512 sec
 uint16_t cycles;
