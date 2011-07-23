@@ -83,6 +83,9 @@ module Si443xDriverLayerP
 
         interface Tasklet;
         interface RadioAlarm;
+        
+        interface Timer<TMilli> as MilliTimer;
+        interface Boot;
     
 #ifdef RADIO_DEBUG
         interface DiagMsg;
@@ -123,30 +126,10 @@ implementation
         }        
 
 
-#define DIAGMSG_REG(PSTR,PREG)       \
-        if( call DiagMsg.record() ) { \
-            uint8_t reg; \
-            call DiagMsg.str(PSTR);\
-            call DiagMsg.hex8(PREG);\
-            if ( isSpiAcquired() ) \
-                reg = readRegister(PREG); \
-                call DiagMsg.hex8(reg); \
-            else \
-                call DiagMsg.str("nospi");\
-            call DiagMsg.send(); \
-        }
-        
-#define DIAGMSG_DEV(PSTR) \
-        if( call DiagMsg.record() ) { \
-            if ( isSpiAcquired() ) {\
-                call DiagMsg.str(PSTR);\
-                call DiagMsg.hex8(readRegister(SI443X_OPFCN_CTRL_1_RW)); \
-                call DiagMsg.hex8(readRegister(SI443X_DEVICE_STATUS_R)); \
-                call DiagMsg.hex8(readRegister(SI443X_XTAL_POR_RW));\
-            } else\
-                call DiagMsg.str("nospi");\
-            call DiagMsg.send(); \
-        }
+
+
+
+       
     
  /*    uint8_t deviceState() {
         uint8_t r1 = 0,r2 = 0,r3 = 0;
@@ -236,14 +219,7 @@ implementation
     
     tasklet_norace stm_t sm;
 
-    enum
-    {
-        POWER_ON_RESET_TIME         = 15000 * RADIO_ALARM_MICROSEC,
-        LOW_IDLE_2_TXRX_TIME        = 800   * RADIO_ALARM_MICROSEC,
-        LOW_IDLE_2_HIGH_IDLE_TIME   = 600   * RADIO_ALARM_MICROSEC,
-        HIGH_IDLE_2_TXRX_TIME       = 200   * RADIO_ALARM_MICROSEC,
-    };
-
+ 
     norace bool radioIrq;
     uint16_t capturedTime;	// the current time when the last interrupt has occured
         
@@ -258,6 +234,23 @@ implementation
 
 /*----------------- REGISTER -----------------*/
 
+#define DIAGMSG_REG_READ(REG,VALUE)       \
+        if( call DiagMsg.record() ) { \
+            call DiagMsg.str("R");\
+            call DiagMsg.hex8(REG);\
+            call DiagMsg.hex8(VALUE);\
+            call DiagMsg.send(); \
+        }
+
+#define DIAGMSG_REG_WRITE(REG,VALUE)       \
+        if( call DiagMsg.record() ) { \
+            call DiagMsg.str("W");\
+            call DiagMsg.hex8(REG);\
+            call DiagMsg.hex8(VALUE);\
+            call DiagMsg.send(); \
+        }
+
+
     inline void writeRegister(uint8_t reg, uint8_t value)
     {
         RADIO_ASSERT( call SpiResource.isOwner() );
@@ -268,10 +261,14 @@ implementation
         call FastSpiByte.splitReadWrite(value);
         call FastSpiByte.splitRead();
         call NSEL.set();
+        
+        DIAGMSG_REG_WRITE(reg,value);
     }
 
     inline uint8_t readRegister(uint8_t reg)
     {
+        uint8_t regist = reg;
+    
         RADIO_ASSERT( call SpiResource.isOwner() );
         RADIO_ASSERT( reg == (reg & SI443X_CMD_REGISTER_MASK) );
         
@@ -281,17 +278,128 @@ implementation
         reg = call FastSpiByte.splitRead();
         call NSEL.set();
         
+        DIAGMSG_REG_READ(regist,reg);
+        
         return reg;
     }
     
     // See Bit Twiddling Hacks - Merge bits from two values according to a mask
     // mask : 1 where bits from 'next' should be selected; 0 where from 'old'.
-    inline uint8_t maskedUpdate(uint8_t old, uint8_t next, uint8_t mask) {
+    inline uint8_t masked(uint8_t old, uint8_t next, uint8_t mask) {
         return old ^ ((old ^ next) & mask);
     }
 
 
+
+
+    uint8_t status;
 /*----------------- INIT -----------------*/
+    void debug() {
+              
+        DIAGMSG_STR("dbg","beg")
+        readRegister(0x62);
+        DIAGMSG_STR("dbg","end")
+        
+    }    
+    void debugi() {
+        uint8_t i;
+        
+        for (i = 0; i< 10; ++i) {
+            readRegister(0x62);
+            call BusyWait.wait(100);            
+        }
+        
+        call BusyWait.wait(1000);
+        readRegister(0x62);        
+        DIAGMSG_STR("---","-")
+    }    
+    
+    
+    
+    /** DO NOT DELETE - VERIFIED **/
+    void _si443x_ready() {
+    
+        // wait for CHIPRDY interrupt
+        writeRegister(0x06,masked(readRegister(0x06),0x02,0x02));
+
+        // READY!
+        writeRegister(0x07,0x01);
+
+        // buf disable
+        //writeRegister(0x62, masked(readRegister(0x62),0x02,0x02) );
+    }
+
+    /** DO NOT DELETE - VERIFIED **/
+    void _si443x_sby() {
+
+        // disable POR an CHPRDY interrupts -> THIS IS THE ONLY ESSENTIAL CONDITION
+        // TODO: Burst write
+        writeRegister(0x05,0x00);
+        writeRegister(0x06,0x00);
+    
+        // STANDBY
+        writeRegister(0x07,0x00);
+
+    }
+
+    /** DO NOT DELETE - VERIFIED **/
+    void _si443x_initialize() {
+        call BusyWait.wait(15000);
+
+        // SWRESET
+        writeRegister(SI443X_OPFCN_CTRL_1_RW, SI443X_OPFCN1_SWRESET | SI443X_OPFCN1_XTON);
+        // wait for XTAL settling time
+        call BusyWait.wait(600);
+        
+        _si443x_sby();    
+       
+        // sm.state = STATE_STANDBY
+        status = 1;
+    }
+    
+    void initRadio() {
+        status = 0;
+        _si443x_initialize();
+        debug();
+        call Tasklet.schedule();
+    }
+    
+     
+    tasklet_async event void Tasklet.run()
+    {
+        switch ( status ) {
+            case 1:
+                _si443x_ready();
+                break;
+            case 2:
+                //_si443x_exit_ready();
+                _si443x_sby();
+                debugi();
+                //status = 1;
+                //call Tasklet.schedule();
+                break;
+        }
+    }
+    
+	async event void IRQ.captured(uint16_t time)
+    {
+        /**
+         * Findings : 
+         * 
+         *  1, When Ready->Standby transition is needed, NO REGISTER, NOTHING can be read before the STANDBY sequence
+         *     Otherwise, it does not go to low power mode.
+         */
+    
+        DIAGMSG_STR("IRQ","!");
+        if ( status == 1 ) {
+            status = 2;
+            call Tasklet.schedule();
+        }
+    }
+    
+    event void MilliTimer.fired() {
+    }
+
 
     command error_t PlatformInit.init()
     {
@@ -309,39 +417,29 @@ implementation
         rssiBusy = 90;
         
         // Waiting for POR to finish, then go to low-power state
-        sm.state = STATE_READY | TRANS_FLAG;
+        sm.state = STATE_READY;
         sm.next  = STATE_STANDBY;
-        sm.cmd   = CMD_INIT_RADIO | CMD_IGNORE_FLAG;
-   
-        call RadioAlarm.wait(POWER_ON_RESET_TIME);
-        
-        return call SpiResource.request();
-    }
-
-/*----------------- ALARM -----------------*/
-
-    tasklet_async event void RadioAlarm.fired()
-    {
-        DIAGMSG_STM("+A")
-        DIAGMSG_DEV(" A")
-        
-        // remove ignorance flag;
-        sm.cmd &= ~CMD_IGNORE_FLAG;
-                
-        call Tasklet.schedule();
+        sm.cmd   = CMD_INIT_RADIO;
+    
+        return SUCCESS;                
     }
     
-/*----------------- SPI -----------------*/
+    event void Boot.booted() {
+        DIAGMSG_STR("booted","!");
+        call SpiResource.request();
+    }
 
     event void SpiResource.granted()
     {
-        call Tasklet.schedule();
+        if (sm.cmd == CMD_INIT_RADIO )
+            initRadio();
     }
 
     bool isSpiAcquired()
     {
-        if( call SpiResource.isOwner() || SUCCESS == call SpiResource.immediateRequest() )
+        if( call SpiResource.isOwner() || SUCCESS == call SpiResource.immediateRequest() ) {
             return TRUE;
+        }
         else {
             call SpiResource.request();
             return FALSE;
@@ -352,16 +450,23 @@ implementation
     {
         call SpiResource.release();
     }
+    
+    
+    
+    
+    
 
 /*----------------- TURN ON/OFF -----------------*/
 
-    void enterState(uint8_t newstate) {
-        uint8_t oldregvalue;
+ /*   void enterState(uint8_t newstate) {
         
         RADIO_ASSERT( sm.state != newstate );
         
         DIAGMSG_STM("+E");        
-        DIAGMSG_DEV(" E");
+
+        readRegister(0x07);
+        readRegister(0x02);
+        readRegister(0x62);
 
         switch ( newstate ) {
             case STATE_STANDBY:
@@ -372,10 +477,12 @@ implementation
             case STATE_READY:
                 DIAGMSG_STR("  E","RDY");
                 // disable oscillator buffer
-                oldregvalue = readRegister(SI443X_XTAL_POR_RW);
-                writeRegister(SI443X_XTAL_POR_RW, maskedUpdate(oldregvalue, SI443X_XTALPOR_BUFFER_DISABLE, SI443X_XTALPOR_BUFFER_MASK));
+         //       oldregvalue = readRegister(SI443X_XTAL_POR_RW);
+         //       writeRegister(SI443X_XTAL_POR_RW, maskedUpdate(oldregvalue, SI443X_XTALPOR_BUFFER_DISABLE, SI443X_XTALPOR_BUFFER_MASK));
+                
                 // enter       
                 writeRegister(SI443X_OPFCN_CTRL_1_RW, SI443X_OPFCN1_XTON );
+                
                 break;
                 
             case STATE_TX:
@@ -401,50 +508,29 @@ implementation
         if ( newstate & STATE_TXRX_MASK || newstate == STATE_READY )
             sm.state |= TRANS_FLAG;
         
-        DIAGMSG_STM(" E");
-        DIAGMSG_DEV("-E");
+        readRegister(0x07);
+        readRegister(0x02);
+        readRegister(0x62);
+        
+        DIAGMSG_STM("-E");
     }
 
 
     inline void exitReadyState() {
         // re-enable the oscillator buffer
-        uint8_t oldvalue = readRegister(SI443X_XTAL_POR_RW);
-        writeRegister(SI443X_XTAL_POR_RW, maskedUpdate(oldvalue, SI443X_XTALPOR_BUFFER_ENABLE, SI443X_XTALPOR_BUFFER_MASK));
-    }
-
-    inline void resetRadio() {
-        writeRegister(SI443X_OPFCN_CTRL_1_RW, SI443X_OPFCN1_SWRESET);
-        // wait for TSWRST - see Manual Page 50.
-        call BusyWait.wait(70);
-    }
-
-/*----------------- TASKLET -----------------*/
-
-    tasklet_async event void Tasklet.run()
-    {
-        uint8_t lstate;
-        bool spi;
-
-        DIAGMSG_STM("+r");
-        DIAGMSG_DEV(" r");
-
-        if ( sm.cmd & CMD_IGNORE_FLAG )
-            return;
-
-        DIAGMSG_STR(" r","...");
-         
-        spi = isSpiAcquired();
-        if( (radioIrq || (sm.cmd == CMD_INIT_RADIO)) && spi ) {
-		    serviceRadio();
-		    if (sm.cmd == CMD_INIT_RADIO)
-		        sm.cmd = CMD_NONE;
-		}
+      //  uint8_t oldvalue = readRegister(SI443X_XTAL_POR_RW);
+      //  writeRegister(SI443X_XTAL_POR_RW, maskedUpdate(oldvalue, SI443X_XTALPOR_BUFFER_ENABLE, SI443X_XTALPOR_BUFFER_MASK));
+    }*/
+    
+    
+    
+        /*
 
         lstate = sm.state & ~TRANS_FLAG;
               
         // If not in transition AND current state differs from next state
         // -> Initiate a state change
-        if ( !(sm.state & TRANS_FLAG) && lstate != sm.next && spi ) {
+        if ( !(sm.state & TRANS_FLAG) && lstate != sm.next && isSpiAcquired() ) {
             
             // READY state must be exited properly
             if ( lstate == STATE_READY )
@@ -481,14 +567,37 @@ implementation
             }            
         } 
                
-        DIAGMSG_STM(" r");
-        DIAGMSG_DEV("-r");
-    }
+        DIAGMSG_STM("-r");*/
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     tasklet_async command error_t RadioState.turnOff()
     {
-        DIAGMSG_DEV("+tOff")
-        DIAGMSG_STM(" tOff")
+        DIAGMSG_STM("+tOff")
     
         if( sm.cmd != CMD_NONE || sm.state & TRANS_FLAG )
             return EBUSY;            
@@ -498,7 +607,7 @@ implementation
         sm.next = STATE_STANDBY;
         sm.cmd = CMD_EMIT;
         
-        DIAGMSG_STM("-tOff")
+        DIAGMSG_STM("!tOff")
         
         call Tasklet.schedule();
         return SUCCESS;
@@ -506,8 +615,7 @@ implementation
     
     tasklet_async command error_t RadioState.standby()
     {
-        DIAGMSG_DEV("+sby")
-        DIAGMSG_STM(" sby")
+        DIAGMSG_STM("+sby")
         
         if( sm.cmd != CMD_NONE || sm.state & TRANS_FLAG || ! call RadioAlarm.isFree() )
             return EBUSY;
@@ -517,7 +625,7 @@ implementation
         sm.next = STATE_READY;
         sm.cmd = CMD_EMIT;
         
-        DIAGMSG_STM("-sby")
+        DIAGMSG_STM("!sby")
       
         call Tasklet.schedule();
         return SUCCESS;
@@ -526,8 +634,7 @@ implementation
     tasklet_async command error_t RadioState.turnOn()
     {
     
-        DIAGMSG_DEV("+tOn")
-        DIAGMSG_STM(" tOn")
+        DIAGMSG_STM("+tOn")
         
         if( sm.cmd != CMD_NONE || sm.state & TRANS_FLAG || ! call RadioAlarm.isFree() )
             return EBUSY;
@@ -537,15 +644,38 @@ implementation
         sm.next = STATE_RX;
         sm.cmd = CMD_EMIT;
         
-        DIAGMSG_STM("-tOn")
+        DIAGMSG_STM("!tOn")
         
         call Tasklet.schedule();
         return SUCCESS;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     //default tasklet_async event void RadioState.done() { }
 
+ /*----------------- ALARM -----------------*/
 
+    tasklet_async event void RadioAlarm.fired()
+    {
+
+    }
 
     si443x_header_t* getHeader(message_t* msg)
     {
@@ -588,62 +718,7 @@ implementation
 
 /*----------------- IRQ -----------------*/
 
-    void serviceRadio() {
-        
-	    uint16_t time;
-		//uint32_t time32;
-		uint8_t irq1,irq2;
-		//uint8_t temp;
-       
-        DIAGMSG_STM("+s")
-        DIAGMSG_DEV(" s")
 
-		atomic time = capturedTime;
-		radioIrq = FALSE;
-		irq1 = readRegister(SI443X_INTERRUPT_STATUS_1_R);
-		irq2 = readRegister(SI443X_INTERRUPT_STATUS_2_R);
-		
-		DIAGMSG_VAR(" s irq1",irq1)
-		DIAGMSG_VAR(" s irq2",irq2)
-		
-		if ( irq2 ) {
-		    // Power on sequence - init radio
-		    if ( irq2 & SI443X_INTERRUPT_2_IPOR ) {
-		        DIAGMSG_STR(" s","init")
-		        //writeRegister(SI443X_INTERRUPT_ENABLE_1_RW, 0x20);
-		        //readRegister(SI443X_INTERRUPT_STATUS_1_R);
-		    }
-			    
-		    if ( irq2 & SI443X_INTERRUPT_2_ICHIPRDY ) {
-		        DIAGMSG_STR(" s","chprdy")
-	            // remove the transition flag to validate the current state
-                sm.state &= ~TRANS_FLAG;
- 		    }
-	    }
-	    
-	    irq1 = readRegister(SI443X_INTERRUPT_STATUS_1_R);
-		irq2 = readRegister(SI443X_INTERRUPT_STATUS_2_R);
-		
-		DIAGMSG_VAR(" s irq1",irq1)
-		DIAGMSG_VAR(" s irq2",irq2)
-	    
-        DIAGMSG_STM(" s")
-        DIAGMSG_DEV("-s")
-    }
-
-
-	async event void IRQ.captured(uint16_t time)
-    {
-        RADIO_ASSERT( ! radioIrq );
-        DIAGMSG_STR(".irq","!");
-		atomic
-		{
-			capturedTime = time;
-			radioIrq = TRUE;
-		}
-		call Tasklet.schedule();
-    }
-    
     default tasklet_async event bool RadioReceive.header(message_t* msg)
     {
         return TRUE;
