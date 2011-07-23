@@ -3,12 +3,14 @@ configuration RadioStackC {
     provides {
         interface RadioState;
     }
+    uses interface Boot;
 }
 
 implementation {
     #define UQ_RADIO_ALARM    "UQ_SI443X_RADIO_ALARM"
 
     RadioState = RadioDriverLayerC;
+    Boot = RadioDriverLayerC;
     
     components RadioStackP;
     components new RadioAlarmC();

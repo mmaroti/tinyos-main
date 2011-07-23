@@ -2,6 +2,7 @@
 #include "Timer.h"
 #include "RadioTest.h"
 #include "message.h"
+#include "Tasklet.h"
 
 module RadioTestC @safe() {
   uses {
@@ -14,22 +15,22 @@ module RadioTestC @safe() {
 }
 implementation {
 
-  bool sw = FALSE;
+  bool sw = TRUE;
 
   event void Boot.booted() {
     call Leds.led0On();
-    call MilliTimer.startPeriodic(1000);
+   // call MilliTimer.startPeriodic(1000);
   }
 
   event void MilliTimer.fired() {
     if (sw)
         call RadioState.turnOn();
     else
-        call RadioState.standby();
+        call RadioState.turnOff();
     sw = !sw;
   }
 
-  async event void RadioState.done() {
+  tasklet_async event void RadioState.done() {
   }
 
 }
