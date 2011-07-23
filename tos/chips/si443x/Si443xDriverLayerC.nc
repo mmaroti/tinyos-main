@@ -63,6 +63,8 @@ configuration Si443xDriverLayerC
         interface PacketFlag as RSSIFlag;
         interface PacketFlag as TimeSyncFlag;
         interface RadioAlarm;
+        
+        interface Boot;
     }
 }
 
@@ -76,7 +78,8 @@ implementation
     RadioReceive = Si443xDriverLayerP;
     RadioCCA = Si443xDriverLayerP;
     RadioPacket = Si443xDriverLayerP;
-
+    
+    
     PacketTransmitPower = Si443xDriverLayerP.PacketTransmitPower;
     PacketRSSI = Si443xDriverLayerP.PacketRSSI;
     PacketTimeSyncOffset = Si443xDriverLayerP.PacketTimeSyncOffset;
@@ -105,6 +108,11 @@ implementation
     Si443xDriverLayerP.LocalTime -> HplSi443xC;
 
     Si443xDriverLayerP.Tasklet -> TaskletC;
+
+    components new TimerMilliC();
+    Si443xDriverLayerP.MilliTimer -> TimerMilliC;
+    Boot = Si443xDriverLayerP;
+    
 
 #ifdef RADIO_DEBUG
     components DiagMsgC;
