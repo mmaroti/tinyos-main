@@ -117,6 +117,8 @@ implementation
 #ifdef RADIO_DEBUG
     components DiagMsgC;
     Si443xDriverLayerP.DiagMsg -> DiagMsgC;
+    components HplAtm128InterruptSigP;
+    HplAtm128InterruptSigP.DiagMsg -> DiagMsgC;
 #endif
 
     MainC.SoftwareInit -> Si443xDriverLayerP.SoftwareInit;

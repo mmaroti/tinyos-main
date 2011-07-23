@@ -119,11 +119,11 @@ implementation
         }
         
 #define DIAGMSG_STR(PSTR,STR) \
-        if( call DiagMsg.record() ) { \
+        atomic { if( call DiagMsg.record() ) { \
             call DiagMsg.str(PSTR);\
             call DiagMsg.str(STR); \
             call DiagMsg.send(); \
-        }        
+        }        }
 
 
 
@@ -235,20 +235,20 @@ implementation
 /*----------------- REGISTER -----------------*/
 
 #define DIAGMSG_REG_READ(REG,VALUE)       \
-        if( call DiagMsg.record() ) { \
+        atomic { if( call DiagMsg.record() ) { \
             call DiagMsg.str("R");\
             call DiagMsg.hex8(REG);\
             call DiagMsg.hex8(VALUE);\
             call DiagMsg.send(); \
-        }
+        }}
 
 #define DIAGMSG_REG_WRITE(REG,VALUE)       \
-        if( call DiagMsg.record() ) { \
+        atomic {if( call DiagMsg.record() ) { \
             call DiagMsg.str("W");\
             call DiagMsg.hex8(REG);\
             call DiagMsg.hex8(VALUE);\
             call DiagMsg.send(); \
-        }
+        }}
 
 
     inline void writeRegister(uint8_t reg, uint8_t value)
@@ -256,6 +256,7 @@ implementation
         RADIO_ASSERT( call SpiResource.isOwner() );
         RADIO_ASSERT( reg == (reg & SI443X_CMD_REGISTER_MASK) );
     
+    atomic {
         call NSEL.clr();
         call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_WRITE | reg);
         call FastSpiByte.splitReadWrite(value);
@@ -263,6 +264,7 @@ implementation
         call NSEL.set();
         
         DIAGMSG_REG_WRITE(reg,value);
+        }
     }
 
     inline uint8_t readRegister(uint8_t reg)
@@ -272,6 +274,7 @@ implementation
         RADIO_ASSERT( call SpiResource.isOwner() );
         RADIO_ASSERT( reg == (reg & SI443X_CMD_REGISTER_MASK) );
         
+        atomic {
         call NSEL.clr();
         call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_READ | reg);
         call FastSpiByte.splitReadWrite(0);
@@ -279,7 +282,7 @@ implementation
         call NSEL.set();
         
         DIAGMSG_REG_READ(regist,reg);
-        
+        }
         return reg;
     }
     
@@ -305,11 +308,13 @@ implementation
         uint8_t i;
         
         for (i = 0; i< 10; ++i) {
+            readRegister(0x04);
             readRegister(0x62);
             call BusyWait.wait(100);            
         }
         
-        call BusyWait.wait(1000);
+        call BusyWait.wait(30000);
+        readRegister(0x04);
         readRegister(0x62);        
         DIAGMSG_STR("---","-")
     }    
@@ -319,37 +324,51 @@ implementation
     /** DO NOT DELETE - VERIFIED **/
     void _si443x_ready() {
     
+     /*  writeRegister(0x05,0xff);
+        writeRegister(0x06,0xff);
+        readRegister(0x03);
+        readRegister(0x04);
+    */
         // wait for CHIPRDY interrupt
-        writeRegister(0x06,masked(readRegister(0x06),0x02,0x02));
-
+        writeRegister(0x06,0x02);
+     
         // READY!
         writeRegister(0x07,0x01);
 
-        // buf disable
+       // buf disable
         //writeRegister(0x62, masked(readRegister(0x62),0x02,0x02) );
+        //debugi();
     }
 
     /** DO NOT DELETE - VERIFIED **/
     void _si443x_sby() {
-
+    
+      //  readRegister(0x62);
+     //   readRegister(0x04);
+       
         // disable POR an CHPRDY interrupts -> THIS IS THE ONLY ESSENTIAL CONDITION
         // TODO: Burst write
-        writeRegister(0x05,0x00);
+          writeRegister(0x05,0x00);
         writeRegister(0x06,0x00);
-    
-        // STANDBY
+        
+        // READY
         writeRegister(0x07,0x00);
+        
+        //debugi();
+     
 
     }
 
     /** DO NOT DELETE - VERIFIED **/
     void _si443x_initialize() {
-        call BusyWait.wait(15000);
+        call BusyWait.wait(30000);
 
         // SWRESET
         writeRegister(SI443X_OPFCN_CTRL_1_RW, SI443X_OPFCN1_SWRESET | SI443X_OPFCN1_XTON);
         // wait for XTAL settling time
-        call BusyWait.wait(600);
+        call BusyWait.wait(30000);
+        
+        DIAGMSG_STR("test","!");
         
         _si443x_sby();    
        
@@ -367,17 +386,28 @@ implementation
      
     tasklet_async event void Tasklet.run()
     {
+        if ( radioIrq ) {
+            radioIrq = FALSE;
+            DIAGMSG_STR("readI","!");
+            readRegister(0x04);
+            
+        }
+    
         switch ( status ) {
             case 1:
                 _si443x_ready();
+                status = 2;
                 break;
             case 2:
-                //_si443x_exit_ready();
                 _si443x_sby();
-                debugi();
-                //status = 1;
-                //call Tasklet.schedule();
+//                debugi();
+                
+                status = 3;
+                call Tasklet.schedule();
                 break;
+            case 3:
+                debugi(); break;
+                
         }
     }
     
@@ -388,13 +418,13 @@ implementation
          * 
          *  1, When Ready->Standby transition is needed, NO REGISTER, NOTHING can be read before the STANDBY sequence
          *     Otherwise, it does not go to low power mode.
-         */
-    
+         */ 
+        
         DIAGMSG_STR("IRQ","!");
-        if ( status == 1 ) {
-            status = 2;
-            call Tasklet.schedule();
-        }
+         
+        radioIrq = TRUE;
+        call Tasklet.schedule();
+        
     }
     
     event void MilliTimer.fired() {
