@@ -1,14 +1,16 @@
 #include <RadioConfig.h>
+
 configuration HplSi443xC
 {
   provides
   {
     interface GeneralIO as NSEL;
     interface GeneralIO as SDN;
-    
+        
     interface GeneralIO as IO2;
     interface GeneralIO as IO1;
     interface GeneralIO as IO0;
+        
     interface Resource as SpiResource;
     interface FastSpiByte;
     interface GpioCapture as IRQ;
@@ -24,7 +26,6 @@ implementation
     NSEL = IO.PortF0;
     SDN = NoIO0;
     
-    
     IRQ = HplSi443xP.IRQ;
     HplSi443xP.RealIRQ->AvrIrq.PCInt4;
     
@@ -36,9 +37,9 @@ implementation
     SpiResource = SpiC.Resource[unique("Atm128SpiC.Resource")];
     FastSpiByte = SpiC;
 
-    components new AlarmMcu16C() as AlarmC;
+    components new Alarm62khz32C() as AlarmC;
     Alarm = AlarmC;
  
-    components LocalTimeMcuC;
-    LocalTimeRadio = LocalTimeMcuC;
+    components LocalTime62khzC as LocalTimeC;
+    LocalTimeRadio = LocalTimeC;
 }

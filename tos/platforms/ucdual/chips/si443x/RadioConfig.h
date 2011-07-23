@@ -39,6 +39,7 @@
 #ifndef __SI443X_RADIOCONFIG_H__
 #define __SI443X_RADIOCONFIG_H__
 
+#include <Si443xDriverLayer.h>
 #include "TimerConfig.h"
 
 /* This is the default value of the TX_PWR field of the PHY_TX_PWR register. */
@@ -101,4 +102,4 @@ typedef uint32_t tradio_size;
  */
 #define RADIO_ALARM_MILLI_EXP	6
 
-#endif//__RADIOCONFIG_H__
+#endif//__SI443X_RADIOCONFIG_H__
