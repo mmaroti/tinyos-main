@@ -98,7 +98,8 @@ implementation
   default async event void PCIntSig0.fired() { }
   AVR_ATOMIC_HANDLER( PCINT0_vect ) {
     if( call DiagMsg.record() ) {
-        call DiagMsg.str("pcint0");
+        call DiagMsg.str("pcint0 ----- ");
+	call DiagMsg.uint8(PINB);
         call DiagMsg.send();
     }
     signal PCIntSig0.fired();
@@ -106,19 +107,11 @@ implementation
   
   default async event void PCIntSig1.fired() { }
   AVR_ATOMIC_HANDLER( PCINT1_vect ) {
-    if( call DiagMsg.record() ) {
-        call DiagMsg.str("pcint1");
-        call DiagMsg.send();
-    }
     signal PCIntSig0.fired();
   }
   
   default async event void PCIntSig2.fired() { }
   AVR_ATOMIC_HANDLER( PCINT2_vect ) {
-    if( call DiagMsg.record() ) {
-        call DiagMsg.str("pcint2");
-        call DiagMsg.send();
-    }
     signal PCIntSig0.fired();
   }
 }

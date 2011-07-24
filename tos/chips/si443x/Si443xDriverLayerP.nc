@@ -267,6 +267,26 @@ implementation
         }
     }
 
+	inline void fillFifo()
+	{
+		uint8_t i;
+
+		RADIO_ASSERT( call SpiResource.isOwner() );
+
+		atomic {
+			call NSEL.clr();
+			call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_WRITE | 0x7F);
+
+			for(i = 0; i < 30; ++i)
+				call FastSpiByte.splitReadWrite(0x00);
+
+			call FastSpiByte.splitRead();
+			call NSEL.set();
+	
+			DIAGMSG_STR("fifo","write");
+		}
+	}
+
     inline uint8_t readRegister(uint8_t reg)
     {
         uint8_t regist = reg;
@@ -283,7 +303,8 @@ implementation
         
         DIAGMSG_REG_READ(regist,reg);
         }
-        return reg;
+	
+	return reg;
     }
     
     // See Bit Twiddling Hacks - Merge bits from two values according to a mask
@@ -319,123 +340,111 @@ implementation
         DIAGMSG_STR("---","-")
     }    
     
-    
-    
-    /** DO NOT DELETE - VERIFIED **/
-    void _si443x_ready() {
-    
-     /*  writeRegister(0x05,0xff);
-        writeRegister(0x06,0xff);
-        readRegister(0x03);
-        readRegister(0x04);
-    */
-        // wait for CHIPRDY interrupt
-        writeRegister(0x06,0x02);
-     
-        // READY!
-        writeRegister(0x07,0x01);
+	void si443x_reset()
+	{
+		DIAGMSG_STR("reset","");
+		readRegister(0x03);
+		readRegister(0x04);
+		call IRQ.captureFallingEdge();	// previous interrupts mess up the PCINT handler
+		writeRegister(0x07, 0x81);
+		call BusyWait.wait(30000);
+		readRegister(0x03);		// we will get interrupts here, just ignore them
+		readRegister(0x04);
+	}
 
-       // buf disable
-        //writeRegister(0x62, masked(readRegister(0x62),0x02,0x02) );
-        //debugi();
-    }
+	void si443x_standby()
+	{
+		DIAGMSG_STR("standby","");
+		writeRegister(0x05,0x00);	// tricky reset of interrupts
+		writeRegister(0x06,0x00);	// we might get interrupts here, just ignore them
+		writeRegister(0x05,0xFF);
+		writeRegister(0x06,0xFF);
+		writeRegister(0x05,0x00);
+		writeRegister(0x06,0x00);
+		writeRegister(0x07,0x00);	// we instantly enter standby, NO interrupt will come
+		readRegister(0x62);		// to verify status
+	}
 
-    /** DO NOT DELETE - VERIFIED **/
-    void _si443x_sby() {
-    
-      //  readRegister(0x62);
-     //   readRegister(0x04);
-       
-        // disable POR an CHPRDY interrupts -> THIS IS THE ONLY ESSENTIAL CONDITION
-        // TODO: Burst write
-          writeRegister(0x05,0x00);
-        writeRegister(0x06,0x00);
-        
-        // READY
-        writeRegister(0x07,0x00);
-        
-        //debugi();
-     
+	void si443x_ready()
+	{
+		DIAGMSG_STR("ready","");
+		writeRegister(0x05,0xFF);	// reenable mask after standby
+		writeRegister(0x06,0xFF);
+		writeRegister(0x07,0x01);	// we instantly enter ready, NO interrupt will come
+		readRegister(0x62);		// to verify status
+	}
 
-    }
+	void si443x_status()			// can be called any time
+	{
+		DIAGMSG_STR("status","");
+		readRegister(0x02);
+		readRegister(0x03);
+		readRegister(0x04);
+		readRegister(0x05);
+		readRegister(0x06);
+		readRegister(0x07);
+		readRegister(0x62);
+	}
 
-    /** DO NOT DELETE - VERIFIED **/
-    void _si443x_initialize() {
-        call BusyWait.wait(30000);
+	void si443x_handle_irq()		// after transmit and receive
+	{
+		DIAGMSG_STR("handle irq","");
+		call BusyWait.wait(30000);
+		readRegister(0x03);		// check what has happend
+		readRegister(0x04);
+		readRegister(0x62);		// to verify status
+	}
 
-        // SWRESET
-        writeRegister(SI443X_OPFCN_CTRL_1_RW, SI443X_OPFCN1_SWRESET | SI443X_OPFCN1_XTON);
-        // wait for XTAL settling time
-        call BusyWait.wait(30000);
-        
-        DIAGMSG_STR("test","!");
-        
-        _si443x_sby();    
-       
-        // sm.state = STATE_STANDBY
-        status = 1;
-    }
+	void si443x_transmit()
+	{
+		DIAGMSG_STR("transmit","");
+		writeRegister(0x71,0x21);
+		writeRegister(0x3E,0x01);
+		writeRegister(0x7F,0x00);
+		writeRegister(0x07,0x09);
+		readRegister(0x62);		// to verify status
+	}
+
+	void si443x_receive()
+	{
+		DIAGMSG_STR("receive","");
+		writeRegister(0x07,0x05);
+		readRegister(0x62);		// to verify status
+	}
+
+	void initRadio()
+	{
+		si443x_reset();		// ignore interrupts during reset
+		si443x_standby();
+		si443x_status();	// you can put status calls anywhere
+		si443x_ready();
+		si443x_transmit();
+		si443x_handle_irq();
+		si443x_receive();
+		si443x_handle_irq();
+		si443x_standby();	// ignore interrupts during standby
+		si443x_ready();
+		si443x_standby();
+	}
     
-    void initRadio() {
-        status = 0;
-        _si443x_initialize();
-        debug();
-        call Tasklet.schedule();
-    }
-    
-     
-    tasklet_async event void Tasklet.run()
-    {
-        if ( radioIrq ) {
-            radioIrq = FALSE;
-            DIAGMSG_STR("readI","!");
-            readRegister(0x04);
-            
-        }
-    
-        switch ( status ) {
-            case 1:
-                _si443x_ready();
-                status = 2;
-                break;
-            case 2:
-                _si443x_sby();
-//                debugi();
-                
-                status = 3;
-                call Tasklet.schedule();
-                break;
-            case 3:
-                debugi(); break;
-                
-        }
-    }
+	tasklet_async event void Tasklet.run()
+	{
+		DIAGMSG_STR("tasklet","");
+	}
     
 	async event void IRQ.captured(uint16_t time)
-    {
-        /**
-         * Findings : 
-         * 
-         *  1, When Ready->Standby transition is needed, NO REGISTER, NOTHING can be read before the STANDBY sequence
-         *     Otherwise, it does not go to low power mode.
-         */ 
-        
-        DIAGMSG_STR("IRQ","!");
-         
-        radioIrq = TRUE;
-        call Tasklet.schedule();
-        
-    }
+	{
+		DIAGMSG_STR("irq","");
+	}
     
     event void MilliTimer.fired() {
     }
-
 
     command error_t PlatformInit.init()
     {
         call NSEL.makeOutput();
         call NSEL.set();
-        call IRQ.captureFallingEdge();
+        call IRQ.disable();
             
         return SUCCESS;
     }

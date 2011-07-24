@@ -63,14 +63,12 @@ configuration Si443xDriverLayerC
         interface PacketFlag as RSSIFlag;
         interface PacketFlag as TimeSyncFlag;
         interface RadioAlarm;
-        
-        interface Boot;
     }
 }
 
 implementation
 {
-    components Si443xDriverLayerP, HplSi443xC, BusyWaitMicroC, TaskletC, MainC;
+    components Si443xDriverLayerP, HplSi443xC, BusyWaitMicroC, TaskletC;
 
     // provides
     RadioState = Si443xDriverLayerP;
@@ -111,18 +109,17 @@ implementation
 
     components new TimerMilliC();
     Si443xDriverLayerP.MilliTimer -> TimerMilliC;
-    Boot = Si443xDriverLayerP;
     
 
 #ifdef RADIO_DEBUG
-    components DiagMsgC;
+    components DiagMsgC, AssertC;
     Si443xDriverLayerP.DiagMsg -> DiagMsgC;
     components HplAtm128InterruptSigP;
     HplAtm128InterruptSigP.DiagMsg -> DiagMsgC;
 #endif
 
-    MainC.SoftwareInit -> Si443xDriverLayerP.SoftwareInit;
-
-    components RealMainP;
+    components RealMainP, MainC;
     RealMainP.PlatformInit -> Si443xDriverLayerP.PlatformInit;
+    MainC.SoftwareInit -> Si443xDriverLayerP.SoftwareInit;
+    Si443xDriverLayerP.Boot -> MainC;
 }
