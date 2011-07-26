@@ -1,0 +1,4 @@
+generic module AtmegaPinChangeP(){
+}
+implementation{
+}
