@@ -62,5 +62,7 @@ Generic.mk:
 	cp ../Generic.mk .
 
 -check_spec_requirements:
+	which yacc #bison
+	which flex #flex
 
 cleanup:
