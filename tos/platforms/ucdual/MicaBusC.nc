@@ -59,6 +59,7 @@ configuration MicaBusC {
     interface GeneralIO as SPI_MISO;
     interface GeneralIO as I2C_CLK;
     interface GeneralIO as I2C_DATA;
+    interface GeneralIO as Adc0_IO;
     interface GeneralIO as Adc1_IO;
     interface GeneralIO as Adc2_IO;
     interface GeneralIO as Adc3_IO;
@@ -71,7 +72,7 @@ configuration MicaBusC {
 implementation {
   components HplAtm128GeneralIOC as Pins, MicaBusP;
   components HplAtm128InterruptC;
-  components new NoPinC() as NoPW1, new NoPinC() as NoPW7;
+  components new NoPinC() as NoPW1, new NoPinC() as NoPW7, new NoPinC() as NoAdc;
   
   PW0 = Pins.PortB6;
   PW1 = NoPW1;
@@ -87,7 +88,11 @@ implementation {
   Int2 = Pins.PortE6;
   Int3 = Pins.PortE7;
   
+  #if UCDUAL_REV==1
   USART1_CLK = Pins.PortE2;//hardware bug, this is the clk of usart0
+  #else
+  USART1_CLK = Pins.PortD5;
+  #endif
   USART1_RXD = Pins.PortD3;
   USART1_TXD = Pins.PortD2;
   
@@ -98,7 +103,8 @@ implementation {
   SPI_MISO = Pins.PortB3;
   I2C_CLK = Pins.PortD0;
   I2C_DATA = Pins.PortD1;
-  Adc1_IO = Pins.PortF6;
+  Adc0_IO = NoAdc;
+  Adc1_IO = Pins.PortF1;
   Adc2_IO = Pins.PortF2;
   Adc3_IO = Pins.PortF3;
   Adc4_IO = Pins.PortF4;
@@ -121,7 +127,7 @@ implementation {
   components new Atm128GpioInterruptC() as Atm128GpioInterrupt3C;
   Atm128GpioInterrupt3C.Atm128Interrupt->HplAtm128InterruptC.Int7;
   Int3_Interrupt=Atm128GpioInterrupt3C.Interrupt;
-
+  #if UCDUAL_REV==1
   Adc0 = MicaBusP.Adc7;//not connected
   Adc1 = MicaBusP.Adc6;
   Adc2 = MicaBusP.Adc5;
@@ -130,4 +136,54 @@ implementation {
   Adc5 = MicaBusP.Adc2;
   Adc6 = MicaBusP.Adc1;
   Adc7 = MicaBusP.Adc0;
+  #else
+  Adc0 = MicaBusP.Adc0;
+  Adc1 = MicaBusP.Adc1;
+  Adc2 = MicaBusP.Adc2;
+  Adc3 = MicaBusP.Adc3;
+  Adc4 = MicaBusP.Adc4;
+  Adc5 = MicaBusP.Adc5;
+  Adc6 = MicaBusP.Adc6;
+  Adc7 = MicaBusP.Adc7;//not connected
+  #endif
+  
+  components RealMainP;
+  MicaBusP.Init<-RealMainP.PlatformInit;
+  MicaBusP.PW0 -> Pins.PortB6;
+  MicaBusP.PW1 -> NoPW1;
+  MicaBusP.PW2 -> Pins.PortB7;
+  MicaBusP.PW3 -> Pins.PortG0;
+  MicaBusP.PW4 -> Pins.PortG1;
+  MicaBusP.PW5 -> Pins.PortG2;
+  MicaBusP.PW6 -> Pins.PortG5;
+  MicaBusP.PW7 -> NoPW7;
+  
+  MicaBusP.Int0 -> Pins.PortE4;
+  MicaBusP.Int1 -> Pins.PortE5;
+  MicaBusP.Int2 -> Pins.PortE6;
+  MicaBusP.Int3 -> Pins.PortE7;
+  
+  #if UCDUAL_REV==1
+  MicaBusP.USART1_CLK -> Pins.PortE2;//hardware bug, this is the clk of usart0
+  #else
+  MicaBusP.USART1_CLK -> Pins.PortD5;
+  #endif
+  MicaBusP.USART1_RXD -> Pins.PortD3;
+  MicaBusP.USART1_TXD -> Pins.PortD2;
+  
+  MicaBusP.UART0_RXD -> Pins.PortE0;
+  MicaBusP.UART0_TXD -> Pins.PortE1;
+  MicaBusP.SPI_SCK -> Pins.PortB1;
+  MicaBusP.SPI_MOSI -> Pins.PortB2;
+  MicaBusP.SPI_MISO -> Pins.PortB3;
+  MicaBusP.I2C_CLK -> Pins.PortD0;
+  MicaBusP.I2C_DATA -> Pins.PortD1;
+  MicaBusP.Adc0_IO -> NoAdc;
+  MicaBusP.Adc1_IO -> Pins.PortF1;
+  MicaBusP.Adc2_IO -> Pins.PortF2;
+  MicaBusP.Adc3_IO -> Pins.PortF3;
+  MicaBusP.Adc4_IO -> Pins.PortF4;
+  MicaBusP.Adc5_IO -> Pins.PortF5;
+  MicaBusP.Adc6_IO -> Pins.PortF6;
+  MicaBusP.Adc7_IO -> Pins.PortF7;
 }
