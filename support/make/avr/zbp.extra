@@ -13,4 +13,4 @@ endif
 
 program: FORCE
 	@echo "    installing $(PLATFORM) binary using zigbit bootloader"
-	java org.szte.wsn.zigbit.Programmer -port $(ZBP_PORT)$(ZBP_BAUDRATE) -reset -upload $(INSTALL_SREC)
+	java net.tinyos.util.ZigbitProgrammer -port $(ZBP_PORT)$(ZBP_BAUDRATE) -reset -upload $(INSTALL_SREC)
