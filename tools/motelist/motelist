@@ -11,6 +11,10 @@ devices=getAllDevices()
 if len(devices)==0:
   print("No devices found.")
 else:
-  import pprint
-  pp = pprint.PrettyPrinter()
-  pp.pprint(getAllDevices())
+  print("Loc\tVID\tPID\tSerial\tDevice\tActive\tDescription")
+  x=0
+  for device in devices:
+    print(device['location']+"\t"+device['vid']+"\t"+device['pid']+"\t"+device['serialnum']+"\t"\
+      +device['port']+"\t"+str(device['active'])+"\t"+device['manufacturer']+","+device['description'])
+    print('{0:2d} {1:3d} {2:4d}'.format(x, x*x, x*x*x))
+    x+=200
