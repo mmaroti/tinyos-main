@@ -17,3 +17,17 @@ programming technique (ISP).
 %defattr(-,root,root,-)
 /etc
 /usr
+
+%post
+if [ -x /bin/cygwin1.dll ]; then
+  pushd /usr/bin
+  ./install_giveio.bat
+  popd
+fi
+
+%preun
+if [ -x /bin/cygwin1.dll ]; then
+  pushd /usr/bin
+  ./remove_giveio.bat
+  popd
+fi
