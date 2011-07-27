@@ -43,7 +43,7 @@ AS=/usr/bin/avr-as
 LD=/usr/bin/avr-ld
 PREFIX=/usr
 HOST=$(shell uname -m)
-CONFIGURE_OPTS=--host=$(HOST) --prefix=$(PREFIX) --disable-libssp --disable-nls --enable-languages=c,c++ --infodir=$(PREFIX)/share/info --libdir=$(PREFIX)/lib --libexecdir=$(PREFIX)/lib --mandir=$(PREFIX)/share/man --target=avr --with-ld=$(LD) --with-as=$(AS)
+CONFIGURE_OPTS=--prefix=$(PREFIX) --disable-libssp --disable-nls --enable-languages=c,c++ --infodir=$(PREFIX)/share/info --libdir=$(PREFIX)/lib --libexecdir=$(PREFIX)/lib --mandir=$(PREFIX)/share/man --target=avr --with-ld=$(LD) --with-as=$(AS)
 INSTALL_OPTS=-j1
 
 #package options
