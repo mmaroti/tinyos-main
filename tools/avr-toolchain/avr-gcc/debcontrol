@@ -2,6 +2,7 @@ Package: avr-gcc-tinyos
 Version: PKG_VERSION
 Architecture: PKG_ARCHITECTURE
 Depends: avr-binutils-tinyos, avr-tinyos-base
+Provides: gcc-avr
 Conflicts: gcc-avr
 Recommends: avr-tinyos, avr-optional-tinyos
 Maintainer: Andras Biro, Janos Sallai

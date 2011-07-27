@@ -2,6 +2,7 @@ Package: avr-binutils-tinyos
 Version: PKG_VERSION
 Architecture: PKG_ARCHITECTURE
 Depends: avr-tinyos-base
+Provides: binutils-avr
 Conflicts: binutils-avr
 Recommends: avr-tinyos, avr-optional-tinyos
 Maintainer: Andras Biro, Janos Sallai

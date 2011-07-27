@@ -2,6 +2,7 @@ Package: avr-libc-tinyos
 Version: PKG_VERSION
 Architecture: PKG_ARCHITECTURE
 Depends: avr-gcc-tinyos, avr-tinyos-base
+Provides: avr-libc
 Conflicts: avr-libc
 Recommends: avr-tinyos, avr-optional-tinyos
 Maintainer: Andras Biro, Janos Sallai
