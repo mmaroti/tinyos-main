@@ -1,4 +1,5 @@
 import org.szte.wsn.downloader.*;
+import org.szte.wsn.downloader.StreamDownloader.RunWhenShuttingDown;
 /*
  * EchoRangerUI.java
  *
@@ -46,8 +47,8 @@ public class EchoRangerUI extends javax.swing.JFrame {
     /** Creates new form EchoRangerUI */
     public EchoRangerUI() {
         initComponents();
-        System.setOut(new TextAreaPrintStream(outText2,System.out));
-        System.setErr(new TextAreaPrintStream(outText2,System.out));
+         outText.setEditable(false);
+         outText2.setEditable(false);
     }
 
     private long setArgument(long command, long argument){
@@ -73,6 +74,7 @@ public class EchoRangerUI extends javax.swing.JFrame {
         measbutton = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         outText = new javax.swing.JTextArea();
+        jButton1 = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
@@ -91,6 +93,11 @@ public class EchoRangerUI extends javax.swing.JFrame {
         nodeIDtextfield.setText("ALL");
 
         downloadbutton.setText("Download");
+        downloadbutton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                downloadbuttonMouseClicked(evt);
+            }
+        });
 
         erasebutton.setText("Erase");
         erasebutton.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -110,6 +117,13 @@ public class EchoRangerUI extends javax.swing.JFrame {
         outText.setRows(5);
         jScrollPane1.setViewportView(outText);
 
+        jButton1.setText("StopDownload");
+        jButton1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton1MouseClicked(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -124,11 +138,13 @@ public class EchoRangerUI extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(downloadbutton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(erasebutton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(measbutton))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 299, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(98, Short.MAX_VALUE))
+                .addContainerGap(111, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -140,6 +156,7 @@ public class EchoRangerUI extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(downloadbutton)
+                    .addComponent(jButton1)
                     .addComponent(erasebutton)
                     .addComponent(measbutton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -195,7 +212,7 @@ public class EchoRangerUI extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(waitButton))
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 299, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(98, Short.MAX_VALUE))
+                .addContainerGap(150, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -225,8 +242,8 @@ public class EchoRangerUI extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 413, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(64, Short.MAX_VALUE))
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 465, Short.MAX_VALUE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -241,6 +258,8 @@ public class EchoRangerUI extends javax.swing.JFrame {
 
     private void erasebuttonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_erasebuttonMouseClicked
         // TODO add your handling code here:
+        System.setOut(new TextAreaPrintStream(outText,System.out));
+        System.setErr(new TextAreaPrintStream(outText,System.out));
         String str = nodeIDtextfield.getText();
         if (str.equals("ALL")){
             nodeid=0xffff;
@@ -251,13 +270,15 @@ public class EchoRangerUI extends javax.swing.JFrame {
             nodeid = Integer.parseInt(str);
         }
         StreamCommand sc = new StreamCommand("serial@/dev/ttyUSB1:iris",nodeid,0);
-        outText.setEditable(false);
+        //outText.setEditable(false);
         outText.append("erase\n");
 
     }//GEN-LAST:event_erasebuttonMouseClicked
 
     private void measbuttonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_measbuttonMouseClicked
         // TODO add your handling code here:
+        System.setOut(new TextAreaPrintStream(outText,System.out));
+        System.setErr(new TextAreaPrintStream(outText,System.out));
         String str = nodeIDtextfield.getText();
         if (str.equals("ALL")){
             nodeid=0xffff;
@@ -268,12 +289,14 @@ public class EchoRangerUI extends javax.swing.JFrame {
             nodeid = Integer.parseInt(str);
         }
         StreamCommand sc = new StreamCommand("serial@/dev/ttyUSB1:iris",nodeid,1);
-        outText.setEditable(false);
+       // outText.setEditable(false);
         outText.append("Measurenow\n");
     }//GEN-LAST:event_measbuttonMouseClicked
 
     private void gainButtonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_gainButtonMouseClicked
         // TODO add your handling code here:
+        System.setOut(new TextAreaPrintStream(outText2,System.out));
+        System.setErr(new TextAreaPrintStream(outText2,System.out));
         String str = nodeIDTextField2.getText();
         String str2 = valueTextField2.getText();
         if(Integer.parseInt(str2)<0){
@@ -296,6 +319,8 @@ public class EchoRangerUI extends javax.swing.JFrame {
 
     private void waitButtonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_waitButtonMouseClicked
             // TODO add your handling code here
+        System.setOut(new TextAreaPrintStream(outText2,System.out));
+        System.setErr(new TextAreaPrintStream(outText2,System.out));
         String str = nodeIDTextField2.getText();
         String str2 = valueTextField2.getText();
         if(Integer.parseInt(str2)<0){
@@ -315,6 +340,30 @@ public class EchoRangerUI extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_waitButtonMouseClicked
 
+    private void downloadbuttonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_downloadbuttonMouseClicked
+        // TODO add your handling code here:
+        System.setOut(new TextAreaPrintStream(outText,System.out));
+        System.setErr(new TextAreaPrintStream(outText,System.out));
+        String str = nodeIDtextfield.getText();
+        if (str.equals("ALL")){
+            nodeid=0;
+        }else if(str.equals("FIRST"))
+        {
+            nodeid=0;
+        }else{
+            nodeid = Integer.parseInt(str);
+        }
+        StreamDownloader sd = new StreamDownloader(nodeid,3,"serial@/dev/ttyUSB1:iris");
+        outText.append("Download\n");
+
+    }//GEN-LAST:event_downloadbuttonMouseClicked
+
+    private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
+        // TODO add your handling code here:
+        System.exit(0);
+
+    }//GEN-LAST:event_jButton1MouseClicked
+
     /**
     * @param args the command line arguments
     */
@@ -330,6 +379,7 @@ public class EchoRangerUI extends javax.swing.JFrame {
     private javax.swing.JButton downloadbutton;
     private javax.swing.JButton erasebutton;
     private javax.swing.JButton gainButton;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
