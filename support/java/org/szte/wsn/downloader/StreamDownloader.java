@@ -75,7 +75,7 @@ public class StreamDownloader implements MessageListener {
 		}
 	}
 
-	public StreamDownloader(int listenonly,int maxnode, String source, byte amtype) {
+	public StreamDownloader(int listenonly,int maxnode, String source) {
 		Runtime.getRuntime().addShutdownHook(new RunWhenShuttingDown());
 		PhoenixSource phoenix;
 		this.listenonly=listenonly;
@@ -260,7 +260,7 @@ public class StreamDownloader implements MessageListener {
 		} else {
 			StreamDownloader.usage();
 		}
-		new StreamDownloader(listenonly, maxnode, source, (byte) 10);
+		new StreamDownloader(listenonly, maxnode, source);
 	}
 
 }
