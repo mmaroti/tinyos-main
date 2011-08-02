@@ -37,7 +37,7 @@ ARCHIVE_FORMAT=tar.gz
 DOWNLOAD_URL=http://download.savannah.gnu.org/releases/$(SRCNAME)/$(SRCNAME)-$(VERSION).$(ARCHIVE_FORMAT)
 
 #confiure and compile options
-BOOTSTRAP_CMD=bootstrap
+BOOTSTRAP_CMD=./bootstrap
 CONFIGURE_OPTS=--prefix=/usr --sysconfdir=/etc/avrdude --mandir=/usr/share/man
 #INSTALL_OPTS=
 

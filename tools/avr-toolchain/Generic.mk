@@ -88,6 +88,10 @@ else
  PATCHTARGET=-realpatch
 endif
 
+ifneq ($(BOOTSTRAP_CMD),)
+	REALBOOTSTRAP_CMD=cd $(SRCNAME)-$(VERSION)&&./$(BOOTSTRAP_CMD)
+endif
+
 all: check_requirements $(DEBTARGET) $(RPMTARGET)
 
 check_requirements: -check_spec_requirements -check_generic_requirements
@@ -145,7 +149,7 @@ make_patchdone:
 
 configure: patch $(SRCNAME)-$(VERSION)/Makefile
 $(SRCNAME)-$(VERSION)/Makefile:
-	cd $(SRCNAME)-$(VERSION)&&./$(BOOTSTRAP_CMD)
+	$(REALBOOTSTRAP_CMD)
 	cd $(SRCNAME)-$(VERSION)&&./configure $(CONFIGURE_OPTS)
 
 compile: configure make_compiledone
