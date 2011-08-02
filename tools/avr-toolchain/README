@@ -51,6 +51,7 @@ cleanup: In this target, you can delete files from the compiled package to resol
 You can configure the build procedure with the following variables:
 PATCHDIR: the directory, where the patches are (all the patches (*.patch) from this directory will be applied with patch -p0; default: patch;
 	if there's no patch in the patch directory, or there's no patch directory, then the patching stage will be skipped)
+BOOTSTRAP_CMD: bootstrap command to run before configure (will be started from "$(SRCNAME)-$(VERSION)" directory with "./" prefix; default: no bootstraping)
 CONFIGURE_OPTS: options for ./configure
 INSTALL_OPTS: options for make install 
 HOST: the host cpu architecture to compile. (default: build machine architecture) You have to setup a cross-compile gcc before change this.

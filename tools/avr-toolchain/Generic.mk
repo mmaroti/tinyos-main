@@ -145,6 +145,7 @@ make_patchdone:
 
 configure: patch $(SRCNAME)-$(VERSION)/Makefile
 $(SRCNAME)-$(VERSION)/Makefile:
+	cd $(SRCNAME)-$(VERSION)&&./$(BOOTSTRAP_CMD)
 	cd $(SRCNAME)-$(VERSION)&&./configure $(CONFIGURE_OPTS)
 
 compile: configure make_compiledone
