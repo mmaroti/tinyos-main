@@ -49,7 +49,8 @@ cleanup: In this target, you can delete files from the compiled package to resol
   (eg. man for gcc shouldn't be in package avr-gcc)
   
 You can configure the build procedure with the following variables:
-PATCHDIR: the directory, where the patches are (all the patches from this directory will be applied with patch -p0)
+PATCHDIR: the directory, where the patches are (all the patches (*.patch) from this directory will be applied with patch -p0; default: patch;
+	if there's no patch in the patch directory, or there's no patch directory, then the patching stage will be skipped)
 CONFIGURE_OPTS: options for ./configure
 INSTALL_OPTS: options for make install 
 HOST: the host cpu architecture to compile. (default: build machine architecture) You have to setup a cross-compile gcc before change this.

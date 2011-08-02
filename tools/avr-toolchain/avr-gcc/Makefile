@@ -35,14 +35,13 @@ SRCNAME=gcc
 VERSION=4.1.2
 ARCHIVE_FORMAT=tar.bz2
 DOWNLOAD_URL=ftp://ftp.gnu.org/gnu/$(SRCNAME)/$(SRCNAME)-$(VERSION)/$(SRCNAME)-$(VERSION).$(ARCHIVE_FORMAT)
-PATCHDIR=patch
+#PATCHDIR=patch
 
 #confiure and compile options
 PREFIX=/usr
 AS=/usr/bin/avr-as
 LD=/usr/bin/avr-ld
 PREFIX=/usr
-HOST=$(shell uname -m)
 CONFIGURE_OPTS=--prefix=$(PREFIX) --disable-libssp --disable-nls --enable-languages=c,c++ --infodir=$(PREFIX)/share/info --libdir=$(PREFIX)/lib --libexecdir=$(PREFIX)/lib --mandir=$(PREFIX)/share/man --target=avr --with-ld=$(LD) --with-as=$(AS)
 INSTALL_OPTS=-j1
 

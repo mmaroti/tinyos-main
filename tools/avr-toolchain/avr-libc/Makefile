@@ -34,13 +34,12 @@
 SRCNAME=avr-libc
 VERSION=1.6.7
 ARCHIVE_FORMAT=tar.bz2
-DOWNLOAD_URL="http://download.savannah.gnu.org/releases/$(SRCNAME)/$(SRCNAME)-$(VERSION).$(ARCHIVE_FORMAT)"
-PATCHDIR=patch
+DOWNLOAD_URL=http://download.savannah.gnu.org/releases/$(SRCNAME)/$(SRCNAME)-$(VERSION).$(ARCHIVE_FORMAT)
+#PATCHDIR=patch
 
 #confiure and compile options
 PREFIX=/usr
-HOST=$(shell uname -m)
-CONFIGURE_OPTS=--host=$(HOST) --prefix=$(PREFIX) --host=avr
+CONFIGURE_OPTS=--prefix=$(PREFIX) --host=avr
 #INSTALL_OPTS=
 
 #package options

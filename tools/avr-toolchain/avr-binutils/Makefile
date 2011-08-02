@@ -35,12 +35,11 @@ SRCNAME=binutils
 VERSION=2.17
 ARCHIVE_FORMAT=tar.bz2
 DOWNLOAD_URL=http://ftp.gnu.org/gnu/$(SRCNAME)/$(SRCNAME)-$(VERSION).$(ARCHIVE_FORMAT)
-PATCHDIR=patch
+#PATCHDIR=patch
 
 #confiure and compile options
 PREFIX=/usr
-HOST=$(shell uname -m)
-CONFIGURE_OPTS=--host=$(HOST) --prefix=$(PREFIX) --disable-nls --infodir=$(PREFIX)/share/info --libdir=$(PREFIX)/lib --mandir=$(PREFIX)/share/man --disable-werror --target=avr
+CONFIGURE_OPTS=--disable-nls --infodir=$(PREFIX)/share/info --libdir=$(PREFIX)/lib --mandir=$(PREFIX)/share/man --disable-werror --target=avr
 INSTALL_OPTS=tooldir=/usr install
 
 #package options

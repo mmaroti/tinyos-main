@@ -35,13 +35,11 @@ SRCNAME=nesc
 VERSION=1.3.1
 ARCHIVE_FORMAT=tar.gz
 DOWNLOAD_URL=http://sourceforge.net/projects/nescc/files/nescc/v$(VERSION)/$(SRCNAME)-$(VERSION).$(ARCHIVE_FORMAT)
-PATCHDIR=patch
 
 #confiure and compile options
 PREFIX=/usr
 PREFIX=/usr
-HOST=$(shell uname -m)
-CONFIGURE_OPTS=--host=$(HOST) --prefix=$(PREFIX)
+CONFIGURE_OPTS=--prefix=$(PREFIX)
 #INSTALL_OPTS=
 
 #package options

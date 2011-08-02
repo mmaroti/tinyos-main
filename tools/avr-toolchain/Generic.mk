@@ -41,7 +41,7 @@ HOST ?= $(shell uname -m)
 PKG_HOST ?= $(shell echo $(HOST)|sed 's/.*64/amd64/'|sed 's/.*86/i386/')
 PKG_DIR = $(PKG_NAME)_$(PKG_VERSION)-$(PKG_RELEASE)_$(PKG_HOST)
 ABS_PKG_DIR=$(shell echo $(PWD)/$(PKG_DIR)|sed 's/\//\\\//g')
-
+PATCHDIR?=patch
 #check package builders: these variables are the absolute path to the packager, or empty if the packager is not present
 RPMBUILD?=$(shell whereis rpmbuild|sed 's/.*: //'|sed 's/ .*//'|sed 's/.*:.*//g')
 DPKG?=$(shell whereis dpkg-deb|sed 's/.*: //'|sed 's/ .*//'|sed 's/.*:.*//g')

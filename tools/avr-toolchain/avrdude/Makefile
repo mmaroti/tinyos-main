@@ -37,13 +37,7 @@ ARCHIVE_FORMAT=tar.gz
 DOWNLOAD_URL=http://download.savannah.gnu.org/releases/$(SRCNAME)/$(SRCNAME)-$(VERSION).$(ARCHIVE_FORMAT)
 
 #confiure and compile options
-HOST=$(shell uname -m)
-CYGPATH=$(shell whereis cygpath|sed 's/.*: //'|sed 's/ .*//'|sed 's/.*:.*//g')
-ifeq ($(CYGPATH),)
-  CONFIGURE_OPTS=--host=$(HOST) --prefix=/usr --sysconfdir=/etc/avrdude --mandir=/usr/share/man
-else
-  CONFIGURE_OPTS=--host=$(HOST) --prefix=/usr --sysconfdir=/etc/avrdude --mandir=/usr/share/man --enable-cygwin
-endif
+CONFIGURE_OPTS=--prefix=/usr --sysconfdir=/etc/avrdude --mandir=/usr/share/man
 #INSTALL_OPTS=
 
 #package options
