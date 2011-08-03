@@ -62,4 +62,4 @@ Generic.mk:
 #	which automake
 #	which autoconf
 
-cleanup:
+-cleanup:

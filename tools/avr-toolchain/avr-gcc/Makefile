@@ -62,7 +62,7 @@ Generic.mk:
 
 -check_spec_requirements:
 
-cleanup:
+-cleanup:
 	rm -rf $(PKG_DIR)/usr/lib/libiberty.a \
 		$(PKG_DIR)/usr/share/man/man7 \
 		$(PKG_DIR)/usr/share/info	

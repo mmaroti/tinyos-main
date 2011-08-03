@@ -59,5 +59,5 @@ Generic.mk:
 
 -check_spec_requirements:
 
-cleanup:
+-cleanup:
 

@@ -45,7 +45,7 @@ After the include, you must add the following targets:
 -check_spec_requirements: If there are additional requirements for the package building you should add commands which returns 0,
   if they're available and not 0 if not.
 
-cleanup: In this target, you can delete files from the compiled package to resolve file conflicts between packages 
+-cleanup: In this target, you can delete files from the compiled package to resolve file conflicts between packages 
   (eg. man for gcc shouldn't be in package avr-gcc)
   
 You can configure the build procedure with the following variables:
