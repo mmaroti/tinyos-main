@@ -2,11 +2,12 @@ Readme for package builder makefiles
 
 DESCRIPTION:
 ===========
-These Makefiles are for downloading, patching, comiling programs.
-It also creates rpm and deb packages, if dpkg-deb and rpmbuild is available.
+These Makefiles download, patch, compile the tinyos toolchain programs,
+and create rpm and deb packages, if dpkg-deb and rpmbuild is available.
+You can simply type "make" to start the building process.
 
-BUILD PROCEDURE:
-===============
+MAKEFILE BUILD STEPS:
+====================
 1. set up variables
 2. copy Generic.mk to the current directory
 3. download the source
