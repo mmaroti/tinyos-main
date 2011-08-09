@@ -49,7 +49,7 @@ configuration PlatformC
 }
 implementation
 {
-  components PlatformP, McuInitC, MeasureClockC, RFA1RadioOffP, Stm25pOffC;
+  components PlatformP, McuInitC, MeasureClockC, RFA1RadioOffP, Stm25pOffC, Atm128AdcP, HplAtm128AdcC;
   components HplAtm128GeneralIOC;
   #if UCMINI_REV==49
     PlatformP.Voltmeter -> HplAtm128GeneralIOC.PortF0;
@@ -66,6 +66,8 @@ implementation
 
   LedsInit = PlatformP.LedsInit;
   PlatformP.McuInit -> McuInitC;
+  Atm128AdcP.HplAtm128Adc -> HplAtm128AdcC;
+  PlatformP.ADCInit -> Atm128AdcP.Init;
 
    PlatformP.RadioInit -> RFA1RadioOffP.RFA1RadioOff;
    PlatformP.Stm25pInit -> Stm25pOffC.Stm25pOff;

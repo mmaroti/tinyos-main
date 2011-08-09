@@ -43,7 +43,8 @@ module PlatformP @safe()
     interface Init as McuInit;
     interface Init as LedsInit;
     interface Init as RadioInit;
-    interface Init as Stm25pInit;
+    interface Init as Stm25pInit; 
+    interface Init as ADCInit;
     #if UCMINI_REV==49
       interface GeneralIO as Voltmeter;
     #endif
@@ -87,6 +88,7 @@ implementation
     ok = ecombine(ok, powerInit());
     ok = ecombine(ok, call RadioInit.init());
     ok = ecombine(ok, call Stm25pInit.init());
+    ok = ecombine(ok, call ADCInit.init());
 
     return ok;
   }
