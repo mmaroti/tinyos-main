@@ -1,0 +1,6 @@
+
+push( @includes, qw(
+  %T/chips/sht21
+  %T/chips/ms5607
+  %T/chips/bma180
+) );
