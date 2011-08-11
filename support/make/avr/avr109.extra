@@ -5,7 +5,7 @@ $(error AVR109 must be defined, try "make $(TARGETS) help")
 endif
 
 PROGRAM = avr109
-AVR109_BAUDRATE ?= 115200
+AVR109_BAUDRATE ?= 57600
 
 ifeq ($(PROGRAMMER),avrdude)
     ifeq ($(shell [ -f /bin/cygwin1.dll ] && echo cygwin),cygwin)
@@ -24,4 +24,8 @@ endif
 program: FORCE
 	$(RESET_LINE)
 	$(PROGRAMMER) $(PROGRAMMER_FLAGS) $(PROGRAMMER_INSTALL_SREC_FLAGS)
+
+program_bl: FORCE
+	java org.szte.wsn.zigbit.Programmer -port $(AVR109) -baudrate $(BOOTLOADER_BAUDRATE) -reset -askforreset -sleep $(AVR109_SLEEP)
+	$(PROGRAMMER) $(PROGRAMMER_FLAGS) $(PROGRAMMER_INSTALL_BOOTLOADER_FLAGS) 
 
