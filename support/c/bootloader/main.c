@@ -65,23 +65,26 @@ void BlockRead(unsigned int size, unsigned char mem, ADDR_T *address);
 
 uint16_t timeout=TIMEOUT_CYCLES;
 
-void exitbl(void){
+void exitbl(int silent){
     void (*funcptr)( void ) = 0x0000; // Set up function pointer to RESET vector.
-    int i;
-    ledSet(255);
-    for(i=0;i<3;i++){
-      _delay_ms(100);
-      ledSet(0);
-      _delay_ms(100);
+    if(!silent){
+      int i;
       ledSet(255);
+      for(i=0;i<3;i++){
+        _delay_ms(100);
+        ledSet(0);
+        _delay_ms(100);
+        ledSet(255);
+      }
+      _delay_ms(100);
     }
-    _delay_ms(100);
     ledSet(0);
     funcptr();
 }
 
 //INITIALIZATION
 void initialize(void){ 
+    uint8_t battery, nousb;
     MCUSR = 0;
     wdt_disable();
     #if PLATFORM != IRIS
@@ -91,13 +94,18 @@ void initialize(void){
     //every GPIO is input, except  the leds
     ledInit();
     //check battery, usb
-    if(checkBattery()){
-      //TODO
+    nousb=checkUsb();
+    battery=checkBattery();
+    if(nousb){
+      if(battery==1){//critical battery voltage, go to sleep
+        SMCR|=1<<SE;
+        asm volatile ("sleep" : : : "memory");
+      } else if(battery==2){//warning only
+        ledSet(6);
+        _delay_ms(500);
+      }
+      exitbl(1);//no usb, no need for bootloader
     }
-    if(checkUsb()){
-      exitbl();
-    }
-    
     //turn on the the two farest leds
     #ifndef LED3PORT
     led0On();
@@ -339,7 +347,7 @@ int main(void)
                 _WAIT_FOR_SPM();        
                 _ENABLE_RWW_SECTION();
                 sendchar('\r');
-                exitbl(); // Jump to Reset vector 0x0000 in Application Section.
+                exitbl(0); // Jump to Reset vector 0x0000 in Application Section.
             }
 
     
@@ -404,7 +412,7 @@ int main(void)
               {
                 _WAIT_FOR_SPM();        
                 _ENABLE_RWW_SECTION();
-                exitbl(); // Jump to Reset vector 0x0000 in Application Section.
+                exitbl(0); // Jump to Reset vector 0x0000 in Application Section.
               }
               else
               {

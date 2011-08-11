@@ -60,19 +60,19 @@ endif
 #CDEFS += -DBAUD_RATE=4800
 #CDEFS += -DBAUD_RATE=19200
 #CDEFS += -DBAUD_RATE=38400
-#CDEFS += -DBAUD_RATE=57600
+CDEFS += -DBAUD_RATE=57600
 #CDEFS += -DBAUD_RATE=115200
 #CDEFS += -DBAUD_RATE=230400
 
-ifeq ($(PLATFORM),UCMINI)
-   CDEFS += -DBAUD_RATE=115200  
-else 
-   ifeq ($(PLATFORM),UCMINI049)
-     CDEFS += -DBAUD_RATE=115200 
-   else
-     CDEFS += -DBAUD_RATE=57600
-   endif
-endif
+# ifeq ($(PLATFORM),UCMINI)
+#    CDEFS += -DBAUD_RATE=115200  
+# else 
+#    ifeq ($(PLATFORM),UCMINI049)
+#      CDEFS += -DBAUD_RATE=115200 
+#    else
+#      CDEFS += -DBAUD_RATE=57600
+#    endif
+# endif
 
 #TIMEOUT options
 #timeout in seconds (error: -1/128s..0)

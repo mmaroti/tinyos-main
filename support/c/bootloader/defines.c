@@ -238,11 +238,47 @@ void status(uint16_t time_out)
   #endif
 }
 
+/**
+ * channel: see datasheet page 429
+ * ref: 0:AREF, 1: AVDD (1.8V), 2: internal 1.5V (no ext. capacitor), 3: internal 1.6V (no ext. capacitor)
+ * prescaler: 0-1: 2; 2: 4; 3: 8; 4: 16; 5: 32; 6: 64; 7: 128;
+ */
+uint16_t ReadADC(uint8_t channel, uint8_t ref, uint8_t prescaler)
+{
+  uint16_t readValue;
+  DDRF|=1;
+  PORTF&=~(1);
+  //setting up the adc
+  ADMUX |= (channel&0x0f);
+  if(channel&0x10)
+    ADCSRB |= (1 << MUX5);
+  ADMUX |= ref<<6; 
+  ADCSRC = 0;
+  //turning on
+  ADCSRA = (1<<ADEN) | (prescaler&0x07); 
+  //conversion
+  ADCSRA |= (1<<ADSC);
+  while (ADCSRA & (1<<ADSC));
+  readValue = (ADCL | (ADCH<<8));
+  //turning off
+  ADCSRA &= ~(1<<ADEN);
+  return readValue;
+}
 
 //these functions returns 0, if the bootloader should be started
+
+//0:ok 1:charge needed 2: charge recommended
 int checkBattery(void){
-  #if PLATFORM==UCMINI049 || PLATFORM==UCMINI
-    return 0;//TODO
+  #if PLATFORM==UCMINI
+    uint16_t battery=ReadADC(2,2,7);
+    if(battery<140)
+      return 0;//~0.2->battery switch is in no charge mode or no battery
+    else if(battery<342)
+      return 1;//less than 3V, battery is dead
+    else if(battery<410)
+      return 2;//less then 3.6V, recommend charging
+    else
+      return 0;
   #else
     return 0;
   #endif
