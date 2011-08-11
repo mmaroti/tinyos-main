@@ -99,7 +99,7 @@ implementation
   AVR_ATOMIC_HANDLER( PCINT0_vect ) {
     if( call DiagMsg.record() ) {
         call DiagMsg.str("pcint0 ----- ");
-	call DiagMsg.uint8(PINB);
+	    call DiagMsg.uint8(PINB);
         call DiagMsg.send();
     }
     signal PCIntSig0.fired();
