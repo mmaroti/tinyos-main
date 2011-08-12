@@ -40,8 +40,10 @@ implementation {
   components MainC;
   components LedsC;
   components Sht21C;
+  #ifndef SHT_ONLY
   components Bh1750fviC;
   components new Ms5607C(FALSE);
+  #endif
   components ActiveMessageC;
   components new AMSenderC(AM_DATAMSG);
   components PlatformTestP as App;
@@ -55,14 +57,18 @@ implementation {
 
   App.Power -> IO.PortF1;
   App.ShtSplit -> Sht21C.SplitControl;
+  #ifndef SHT_ONLY
   App.BhSplit -> Bh1750fviC.SplitControl;
   App.MsSplit -> Ms5607C.SplitControl;
-
-  App.Light -> Bh1750fviC.Light;
+  #endif
+  
   App.ShtTemp -> Sht21C.Temperature;
   App.ShtHum -> Sht21C.Humidity;
+  #ifndef SHT_ONLY
+  App.Light -> Bh1750fviC.Light;
   App.MsTemp -> Ms5607C.Temperature;
   App.MsPress -> Ms5607C.Pressure;
+  #endif
   App.Radio -> ActiveMessageC;
   //App.Bus -> I2CBusC.BusControl;
   App.DiagMsg -> DiagMsgC;

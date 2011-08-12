@@ -37,17 +37,21 @@ module PlatformTestP {
     interface Boot;
     interface Leds;
     interface AMSend;
-    interface Read<uint16_t> as Light;
     interface Read<uint16_t> as ShtTemp;
     interface Read<uint16_t> as ShtHum;
+    #ifndef SHT_ONLY
+    interface Read<uint16_t> as Light;
     interface Read<int16_t> as MsTemp;
     interface Read<uint32_t> as MsPress;
+    #endif
     interface SplitControl as Radio;
     //interface SplitControl as Bus;
     interface GeneralIO as Power;
     interface SplitControl as ShtSplit;
+    #ifndef SHT_ONLY
     interface SplitControl as BhSplit;
     interface SplitControl as MsSplit;
+    #endif
     interface DiagMsg;
   }
 }
@@ -56,15 +60,25 @@ implementation {
   uint16_t ShtT, ShtH, L;
   int16_t MsT;
   message_t message;
+  datamsg_t* packet;
 
   event void Boot.booted() {
     Ss=Bs=Ms=FALSE;
+    call Leds.led0On();
+    call Leds.led1On();
+    call Leds.led2On();
+    call Leds.led3On();
     call Radio.start();
   }
 
   event void Radio.startDone(error_t err) {
     if(err == SUCCESS) {
      // call Bus.start();
+      if(call DiagMsg.record()) {
+        call DiagMsg.str("RadioDone");
+        call DiagMsg.uint8(err);
+        call DiagMsg.send();
+      }
       call Power.makeOutput();
       call Power.set();
       call ShtSplit.start();
@@ -75,11 +89,17 @@ implementation {
   }
 
   event void ShtSplit.startDone(error_t err) {
+    if(call DiagMsg.record()) {
+      call DiagMsg.str("ShtSplitDone");
+      call DiagMsg.uint8(err);
+      call DiagMsg.send();
+    }
     call ShtTemp.read();
   }
 
   event void ShtSplit.stopDone(error_t err) {}
 
+  #ifndef SHT_ONLY
   event void BhSplit.startDone(error_t err) {
     Bs = TRUE;
     call Light.read();
@@ -94,6 +114,7 @@ implementation {
 
   event void MsSplit.stopDone(error_t err) {}
 
+  #endif
   /*event void Bus.startDone(error_t berr) {
     if(call DiagMsg.record()) {
       call DiagMsg.str("BusDone");
@@ -121,14 +142,34 @@ implementation {
       call DiagMsg.uint16(dataHum);
       call DiagMsg.send();
     }
-    ShtH = dataHum;
-    //call Light.read();
+    #ifndef SHT_ONLY
+      ShtH = dataHum;
+    #else
+      packet = (datamsg_t*)(call AMSend.getPayload(&message, sizeof(datamsg_t) ));
+      packet -> ShtTemp_data = ShtT;
+      packet -> ShtHum_data = dataHum;
+      packet -> Light_data = 0;
+      packet -> MsTemp_data = 0;
+      packet -> MsPress_data = 0;
+      call AMSend.send(AM_BROADCAST_ADDR, &message, sizeof(datamsg_t));    
+    #endif
+    
+    #ifndef SHT_ONLY
     if(!Bs)
       call BhSplit.start();
+    #else
+    if(!Ss)
+      call ShtSplit.start();
+    #endif
     else
+      #ifndef SHT_ONLY
       call Light.read();
+      #else
+      call ShtTemp.read();
+      #endif
   }
 
+  #ifndef SHT_ONLY
   event void Light.readDone(error_t err, uint16_t dataLight) {
     if(call DiagMsg.record()) {
       call DiagMsg.str("LightDone");
@@ -156,7 +197,7 @@ implementation {
   }
 
   event void MsPress.readDone(error_t err, uint32_t data) {
-    datamsg_t* packet = (datamsg_t*)(call AMSend.getPayload(&message, sizeof(datamsg_t) ));
+    packet = (datamsg_t*)(call AMSend.getPayload(&message, sizeof(datamsg_t) ));
     packet -> ShtTemp_data = ShtT;
     packet -> ShtHum_data = ShtH;
     packet -> Light_data = L;
@@ -170,6 +211,7 @@ implementation {
     }
     call AMSend.send(AM_BROADCAST_ADDR, &message, sizeof(datamsg_t));   
   }
+  #endif
 
   event void AMSend.sendDone(message_t* bufPtr, error_t error) {
     call ShtTemp.read();
