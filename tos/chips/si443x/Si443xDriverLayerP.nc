@@ -166,7 +166,7 @@ implementation
 			call NSEL.clr();
 			call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_WRITE | 0x7F);
 
-            for (i = 0; i< 5; ++i)
+            //for (i = 0; i< 5; ++i)
                 call FastSpiByte.splitReadWrite(0x55);
 
 			call FastSpiByte.splitRead();
@@ -249,6 +249,7 @@ implementation
 		readRegister(0x06);
 		readRegister(0x07);
 		readRegister(0x62);
+		readRegister(0x71);
 	}
 
 	void si443x_transmit()
@@ -268,17 +269,17 @@ implementation
 	{
 		DIAGMSG_STR("receive","");
 		
-		writeRegister(0x05, 0x03); 								//write 0x03 to the Interrupt Enable 1 register
-		writeRegister(0x06, 0x00); 								//write 0x00 to the Interrupt Enable 2 register
-		readRegister(0x03);							//read the Interrupt Status1 register
-		readRegister(0x04);							//read the Interrupt Status2 register
+		writeRegister(0x05, 0x03); 
+		writeRegister(0x06, 0xC0);
+		readRegister(0x03);
+		readRegister(0x04);	
 		
 		writeRegister(0x07,0x05);
 		
-		writeRegister(0x05, 0x03); 								//write 0x03 to the Interrupt Enable 1 register
-		writeRegister(0x06, 0x00); 								//write 0x00 to the Interrupt Enable 2 register
-		readRegister(0x03);							//read the Interrupt Status1 register
-		readRegister(0x04);							//read the Interrupt Status2 register
+		writeRegister(0x05, 0x03); 
+		writeRegister(0x06, 0xC0);
+		readRegister(0x03);	
+		readRegister(0x04);	
 
 	}
 
@@ -287,7 +288,7 @@ implementation
     
         DIAGMSG_STR("setup","");
    
-        writeRegister( 0x1D, 0x3C ); 
+  /*      writeRegister( 0x1D, 0x3C ); 
         writeRegister( 0x1E, 0x02 ); 
         writeRegister( 0x1F, 0x03 ); // |_ AFC, Gearshift
         writeRegister( 0x21, 0x02 ); 
@@ -295,21 +296,26 @@ implementation
         writeRegister( 0x23, 0x22 ); 
         writeRegister( 0x24, 0x07 ); 
         writeRegister( 0x25, 0xFF ); // |_ Clock recovery timing
-        writeRegister( 0x2A, 0xFF ); // AFC limiter
+        writeRegister( 0x2A, 0xFF ); // AFC limiter*/
+        
+        
         writeRegister( 0x30, 0xAC ); // TX,RX handler, CRC enable, CCITT
-        writeRegister( 0x32, 0x00 ); // no header check
-        writeRegister( 0x33, 0x02 ); // 2byte sync
+        writeRegister( 0x32, 0x03 ); // check header 0 & 1
+        writeRegister( 0x33, 0x22 ); // 2byte sync, 2byte header
+        
         writeRegister( 0x34, 0x04 ); // preamble length
         writeRegister( 0x36, 0xED ); 
         writeRegister( 0x37, 0xDA ); 
         writeRegister( 0x38, 0xFE ); 
         writeRegister( 0x39, 0xC0 ); // |_ Sync words
         writeRegister( 0x3E, 0x02 ); // pkt length
-        writeRegister( 0x58, 0xED ); // ????????????????
+
+/*        writeRegister( 0x58, 0xED ); // ????????????????
         writeRegister( 0x69, 0x60 ); // AGC override
         writeRegister( 0x6E, 0x33 ); 
         writeRegister( 0x6F, 0x33 ); // |_ TX data rate
-        writeRegister( 0x70, 0x0C ); // no Manchester encoding
+        writeRegister( 0x70, 0x0C ); // no Manchester encoding*/
+  
         writeRegister( 0x71, 0x23 ); // FIFO + GFSK
         writeRegister( 0x72, 0x50 ); // freq deviation
         writeRegister( 0x75, 0x75 ); // 900-920 Mhz Band
@@ -324,11 +330,11 @@ implementation
         writeRegister( 0x1C, 0x88 ); // 335 kHZ bandwidth
         writeRegister( 0x20, 0x3C ); // Clock recovery oversampling rate
         writeRegister( 0x35, 0x22 ); // 4 nibble (16 bit) preamble safety
-        writeRegister( 0x3F, 0x00 ); 
+        writeRegister( 0x3F, 0x99 ); // check header 0
         writeRegister( 0x40, 0x00 );
         writeRegister( 0x41, 0x00 );
         writeRegister( 0x42, 0x00 ); // |_ no check header
-        writeRegister( 0x43, 0x0 );
+        writeRegister( 0x43, 0xFF ); // header enable for hdr 0
         writeRegister( 0x44, 0x0 );
         writeRegister( 0x45, 0x0 );
         writeRegister( 0x46, 0x0 ); // |_ no headers
@@ -338,7 +344,7 @@ implementation
     
         DIAGMSG_STR("setup_tx","");
         
-        writeRegister( 0x3A, 0x00 );
+        writeRegister( 0x3A, 0x99 );
         writeRegister( 0x3B, 0x00 );
         writeRegister( 0x3C, 0x00 );
         writeRegister( 0x3D, 0x00 ); // |_ no headers
@@ -355,11 +361,11 @@ implementation
 		si443x_setup(); // setup the comms
 		
 		if ( IS_TX ) {
-		    si443x_setup_tx();
+		    //si443x_setup_tx();
 		    fillFifo();
     		call RadioAlarm.wait(30000);
         } else {
-            si443x_setup_rx();
+            //si443x_setup_rx();
        		call Leds.led2On();
     		si443x_receive();
     	}
