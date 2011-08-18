@@ -166,7 +166,7 @@ implementation
 			call NSEL.clr();
 			call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_WRITE | 0x7F);
 
-            //for (i = 0; i< 5; ++i)
+            for (i = 0; i< 10; ++i)
                 call FastSpiByte.splitReadWrite(0x55);
 
 			call FastSpiByte.splitRead();
@@ -250,15 +250,18 @@ implementation
 		readRegister(0x07);
 		readRegister(0x62);
 		readRegister(0x71);
+		readRegister(0x26);
 	}
 
 	void si443x_transmit()
 	{
 		DIAGMSG_STR("transmit","");
         
-		writeRegister(0x3E, 1);     // pkt length
-		writeRegister(0x05, 0x24);  // pkt sent interrupt + TX fifo almost empty
-		writeRegister(0x06, 0x00);
+        fillFifo();
+        
+		writeRegister(0x3E, 0x10);  // pkt length
+		writeRegister(0x05, 0xFF);  // pkt sent interrupt + TX fifo almost empty
+		writeRegister(0x06, 0xFF);
 		readRegister(0x03);         // flush interrupts
 		readRegister(0x04);
 
@@ -269,24 +272,131 @@ implementation
 	{
 		DIAGMSG_STR("receive","");
 		
-		writeRegister(0x05, 0x03); 
-		writeRegister(0x06, 0xC0);
+		writeRegister(0x05, 0xFF); 
+		writeRegister(0x06, 0x80);
 		readRegister(0x03);
 		readRegister(0x04);	
 		
 		writeRegister(0x07,0x05);
-		
-		writeRegister(0x05, 0x03); 
-		writeRegister(0x06, 0xC0);
-		readRegister(0x03);	
-		readRegister(0x04);	
 
 	}
 
 
     void si443x_setup() {
     
-        DIAGMSG_STR("setup","");
+    DIAGMSG_STR("setup","");
+   
+    // 910 Mhz
+    writeRegister(0x75,0x75);
+    writeRegister(0x76,0x7D);
+    writeRegister(0x77,0x00);
+    
+/*    // OOK + FIFO + Manch
+    writeRegister(0x70,0x0E);
+    writeRegister(0x71,0x21);
+    writeRegister(0x72,0x50);
+    writeRegister(0x2C,0x18); // OOK counter
+//    writeRegister(0x2D,0x0F);
+//    writeRegister(0x2E,0x29);
+  */
+  
+    // GFSK + FIFO + Manch, AFC
+    writeRegister(0x70,0x0E);
+    writeRegister(0x71,0x23);
+    writeRegister(0x72,0x50);
+    writeRegister(0x1D,0x44);  
+    writeRegister(0x1E,0x0A);     
+    writeRegister(0x1F,0x03); 
+    
+    writeRegister(0x20,	0x4B);
+    writeRegister(0x21,	0x00);
+    writeRegister(0x22,	0xDA);
+    writeRegister(0x23,	0x74);
+    writeRegister(0x24,	0x05);
+    writeRegister(0x25,	0x78);
+    writeRegister(0x2A,	0x49);
+
+        
+    // packet handler, no crc, preamble, header control
+    writeRegister(0x30,0xA8);
+    writeRegister(0x32,0x00);
+    writeRegister(0x33,0x00);
+    writeRegister(0x34,0xFF);
+    writeRegister(0x35,0x0A); 
+    
+    // Tx power, 40 kbps
+    writeRegister(0x6D,0x1F);
+    writeRegister(0x6E,0x0A);
+    writeRegister(0x6F,0x3D);
+    
+    // 75 khz IF bw
+    writeRegister(0x1C,0x01);
+
+    
+    
+    /* OOK GFSK */
+    
+ /*   writeRegister( 0x1C, 0x99 ); //These registers are for RX modem ONLY
+    writeRegister( 0x1D, 0x3C ); 
+    writeRegister( 0x1E, 0x02 ); 
+    writeRegister( 0x1F, 0x03 ); 
+    writeRegister( 0x20, 0x4B ); //These registers are for RX modem ONLY
+    writeRegister( 0x21, 0x00 ); 
+    writeRegister( 0x22, 0xDA ); 
+    writeRegister( 0x23, 0x74 ); 
+    writeRegister( 0x24, 0x05 ); 
+    writeRegister( 0x25, 0x78 ); 
+    writeRegister( 0x2A, 0xFF ); 
+    writeRegister( 0x2C, 0x18 ); 
+    writeRegister( 0x2D, 0x0F ); 
+    writeRegister( 0x2E, 0x29 ); 
+    writeRegister( 0x30, 0xA8 ); 
+    writeRegister( 0x32, 0x00 ); 
+    writeRegister( 0x33, 0x00 ); 
+    writeRegister( 0x34, 0x04 ); 
+    writeRegister( 0x35, 0x22 ); //Relevant for RX settings Only
+    writeRegister( 0x36, 0xED ); 
+    writeRegister( 0x37, 0xDA ); 
+    writeRegister( 0x38, 0xFE ); 
+    writeRegister( 0x39, 0xC0 ); 
+    writeRegister( 0x3A, 0x00 ); //Relevant for TX settings Only
+    writeRegister( 0x3B, 0x00 ); //Relevant for TX settings Only
+    writeRegister( 0x3C, 0x00 ); //Relevant for TX settings Only
+    writeRegister( 0x3D, 0x00 ); //Relevant for TX settings Only
+    writeRegister( 0x3E, 0x01 ); 
+    writeRegister( 0x3F, 0x00 ); //Relevant for RX settings Only
+    writeRegister( 0x40, 0x00 ); //Relevant for RX settings Only
+    writeRegister( 0x41, 0x00 ); //Relevant for RX settings Only
+    writeRegister( 0x42, 0x00 ); //Relevant for RX settings Only
+    writeRegister( 0x43, 0x0 ); //Relevant for RX settings Only
+    writeRegister( 0x44, 0x0 ); //Relevant for RX settings Only
+    writeRegister( 0x45, 0x0 ); //Relevant for RX settings Only
+    writeRegister( 0x46, 0x0 ); //Relevant for RX settings Only
+    writeRegister( 0x58, 0x80 ); 
+    writeRegister( 0x69, 0x60 ); 
+    writeRegister( 0x6E, 0x0A ); //TX 0xDAT0xA R0xAT0xE
+    writeRegister( 0x6F, 0x3D ); 
+    writeRegister( 0x70, 0x0E ); 
+    writeRegister( 0x71, 0x23 ); 
+    writeRegister( 0x72, 0x50 ); //TX 0xFrequency 0xDeviation 
+    writeRegister( 0x75, 0x53 ); 
+    writeRegister( 0x76, 0x00 ); //0xCarrier 0xFrequency
+    writeRegister( 0x77, 0x00 ); 
+    
+    */
+    
+    
+    
+    }   
+    
+    
+    
+    
+    
+    
+    
+    
+        
    
   /*      writeRegister( 0x1D, 0x3C ); 
         writeRegister( 0x1E, 0x02 ); 
@@ -296,7 +406,7 @@ implementation
         writeRegister( 0x23, 0x22 ); 
         writeRegister( 0x24, 0x07 ); 
         writeRegister( 0x25, 0xFF ); // |_ Clock recovery timing
-        writeRegister( 0x2A, 0xFF ); // AFC limiter*/
+        writeRegister( 0x2A, 0xFF ); // AFC limiter
         
         
         writeRegister( 0x30, 0xAC ); // TX,RX handler, CRC enable, CCITT
@@ -310,11 +420,11 @@ implementation
         writeRegister( 0x39, 0xC0 ); // |_ Sync words
         writeRegister( 0x3E, 0x02 ); // pkt length
 
-/*        writeRegister( 0x58, 0xED ); // ????????????????
+        writeRegister( 0x58, 0xED ); // ????????????????
         writeRegister( 0x69, 0x60 ); // AGC override
         writeRegister( 0x6E, 0x33 ); 
         writeRegister( 0x6F, 0x33 ); // |_ TX data rate
-        writeRegister( 0x70, 0x0C ); // no Manchester encoding*/
+        writeRegister( 0x70, 0x0C ); // no Manchester encoding
   
         writeRegister( 0x71, 0x23 ); // FIFO + GFSK
         writeRegister( 0x72, 0x50 ); // freq deviation
@@ -349,6 +459,7 @@ implementation
         writeRegister( 0x3C, 0x00 );
         writeRegister( 0x3D, 0x00 ); // |_ no headers
     }
+*/
 
 	void initRadio()
 	{
@@ -360,21 +471,34 @@ implementation
 		
 		si443x_setup(); // setup the comms
 		
-		if ( IS_TX ) {
-		    //si443x_setup_tx();
-		    fillFifo();
-    		call RadioAlarm.wait(30000);
-        } else {
-            //si443x_setup_rx();
+		
+		if ( ! IS_TX ) {
        		call Leds.led2On();
     		si443x_receive();
     	}
+    	
+    	call RadioAlarm.wait(30000);
 	}
 	
+	uint8_t cnt = 0;
 	tasklet_async event void RadioAlarm.fired()
     {   
-        call Leds.led1On();
-        si443x_transmit();
+   
+        if ( (++cnt % 16) == 0) {
+            DIAGMSG_STR("Alarm","!");
+            si443x_status();
+            if ( ! IS_TX ) {
+                call Leds.led2Off();
+                si443x_standby();
+                call Leds.led2On();
+                si443x_receive();
+            }
+        }
+        if ( IS_TX ) {
+            call Leds.led1On();
+            si443x_transmit();
+        }
+        call RadioAlarm.wait(30000);
     }
     
 	tasklet_async event void Tasklet.run()
@@ -401,7 +525,6 @@ implementation
 		    if ( (i1 & 0x04) == 0x04 ) {
 		        DIAGMSG_STR("Int","PktSent");
 		        call Leds.led1Off();
-                call RadioAlarm.wait(30000);
 		    }
 		    
 		    if ( (i1 & 0x20) == 0x20 ) {
