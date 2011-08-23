@@ -158,19 +158,51 @@ implementation
 
 	inline void fillFifo()
 	{
-	    uint8_t i;
-    	DIAGMSG_STR("fifo","write");
+		uint8_t i;
+		
+		DIAGMSG_STR("fifo","write");
 		RADIO_ASSERT( call SpiResource.isOwner() );
 
-		atomic {
+		atomic
+		{
 			call NSEL.clr();
 			call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_WRITE | 0x7F);
 
-            for (i = 0; i< 10; ++i)
-                call FastSpiByte.splitReadWrite(0x55);
+			for (i = 0; i < 8; ++i)
+				call FastSpiByte.splitReadWrite(i);
 
 			call FastSpiByte.splitRead();
 			call NSEL.set();
+		}
+	}
+
+	inline void readFifo()
+	{
+		uint8_t i, a;
+		uint8_t buff[8];
+		
+		RADIO_ASSERT( call SpiResource.isOwner() );
+
+		atomic
+		{
+			call NSEL.clr();
+			call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_READ | 0x7F);
+
+			for (i = 0; i < 8; ++i)
+			{
+				a = call FastSpiByte.splitReadWrite(0);
+				if( i > 0 )
+					buff[i-1] = a;
+			}
+
+			buff[7] = call FastSpiByte.splitRead();
+			call NSEL.set();
+
+			if( call DiagMsg.record() ) {
+		            call DiagMsg.str("fifo read");
+		            call DiagMsg.hex8s(buff, 8);
+		            call DiagMsg.send();
+			}
 		}
 	}
 
@@ -187,8 +219,9 @@ implementation
             call FastSpiByte.splitReadWrite(0);
             reg = call FastSpiByte.splitRead();
             call NSEL.set();
-        
-            DIAGMSG_REG_READ(regist,reg);
+
+	    if( regist != 0x26 )
+	            DIAGMSG_REG_READ(regist,reg);
         }
 	
 	return reg;
@@ -257,15 +290,15 @@ implementation
 	{
 		DIAGMSG_STR("transmit","");
         
-        fillFifo();
+		fillFifo();
         
-		writeRegister(0x3E, 0x10);  // pkt length
+//		writeRegister(0x3E, 0x08);  // pkt length
 		writeRegister(0x05, 0xFF);  // pkt sent interrupt + TX fifo almost empty
 		writeRegister(0x06, 0xFF);
 		readRegister(0x03);         // flush interrupts
 		readRegister(0x04);
 
-		writeRegister(0x07, 0x09);  // tx + Rdy
+		writeRegister(0x07, 0x09);  // tx + ready
 	}
 
 	void si443x_receive()
@@ -278,238 +311,173 @@ implementation
 		readRegister(0x04);	
 		
 		writeRegister(0x07,0x05);
-
 	}
 
+	void si443x_setup()
+	{
+		DIAGMSG_STR("setup","");
 
-    void si443x_setup() {
-    
-    DIAGMSG_STR("setup","");
-   
-    // 910 Mhz
-    writeRegister(0x75,0x75);
-    writeRegister(0x76,0x7D);
-    writeRegister(0x77,0x00);
-    
-/*    // OOK + FIFO + Manch
-    writeRegister(0x70,0x0E);
-    writeRegister(0x71,0x21);
-    writeRegister(0x72,0x50);
-    writeRegister(0x2C,0x18); // OOK counter
-//    writeRegister(0x2D,0x0F);
-//    writeRegister(0x2E,0x29);
-  */
-  
-    // GFSK + FIFO + Manch, AFC
-    writeRegister(0x70,0x0E);
-    writeRegister(0x71,0x23);
-    writeRegister(0x72,0x50);
-    writeRegister(0x1D,0x44);  
-    writeRegister(0x1E,0x0A);     
-    writeRegister(0x1F,0x03); 
-    
-    writeRegister(0x20,	0x4B);
-    writeRegister(0x21,	0x00);
-    writeRegister(0x22,	0xDA);
-    writeRegister(0x23,	0x74);
-    writeRegister(0x24,	0x05);
-    writeRegister(0x25,	0x78);
-    writeRegister(0x2A,	0x49);
+		writeRegister(0x08, 0x10);	// multi receive
+		writeRegister(0x30, 0xA9);	// packet handling, crc disable
+		writeRegister(0x32, 0x00);	// no header bytes
+		writeRegister(0x33, 0x08);	// fix length, no header, 1 sync
+//		writeRegister(0x34, 0xFF);	// max preamble length
+//		writeRegister(0x35, 0x1A);	// minimum preamble match
+		writeRegister(0x34, 0x08);	// preamble length 4 bytes
+		writeRegister(0x35, 0x2A);	// preamble match 2,5 bytes
+//		writeRegister(0x36, 0x2D);	// default sync word
+		writeRegister(0x3E, 0x08);	// length = 8
 
-        
-    // packet handler, no crc, preamble, header control
-    writeRegister(0x30,0xA8);
-    writeRegister(0x32,0x00);
-    writeRegister(0x33,0x00);
-    writeRegister(0x34,0xFF);
-    writeRegister(0x35,0x0A); 
-    
-    // Tx power, 40 kbps
-    writeRegister(0x6D,0x1F);
-    writeRegister(0x6E,0x0A);
-    writeRegister(0x6F,0x3D);
-    
-    // 75 khz IF bw
-    writeRegister(0x1C,0x01);
+		writeRegister(0x1C, 0xAA);	// 400 khz IF bandwidth
+		writeRegister(0x1D, 0x3C);	// disable AFC
+		writeRegister(0x1E, 0x02);
+		writeRegister(0x1F, 0x00);
+		writeRegister(0x20, 0x77);
+		writeRegister(0x21, 0x20);
+		writeRegister(0x22, 0x57);
+		writeRegister(0x23, 0x62);
+		writeRegister(0x24, 0x10);
+		writeRegister(0x25, 0x59);
+		writeRegister(0x2A, 0xFF);
+		writeRegister(0x2C, 0x28);
+		writeRegister(0x2D, 0x9C);
+		writeRegister(0x2E, 0x2A);
+		writeRegister(0x58, 0x80);	// unknown register
+		writeRegister(0x69, 0x60);	// AGC enabled
+		writeRegister(0x6E, 0x41);	// 8 kbps datarate
+		writeRegister(0x6F, 0x89);
+		writeRegister(0x70, 0x2C);	// no manchester
+		writeRegister(0x71, 0x21);	// FIFO mode, OOK
+//		writeRegister(0x71, 0x22);	// FIFO mode, FSK
+//		writeRegister(0x71, 0x23);	// FIFO mode, GFSK
+//		writeRegister(0x72, 0x20);	// default 20 khz freq deviation
+		writeRegister(0x72, 0xA0);	// 100 khz freq deviation
 
-    
-    
-    /* OOK GFSK */
-    
- /*   writeRegister( 0x1C, 0x99 ); //These registers are for RX modem ONLY
-    writeRegister( 0x1D, 0x3C ); 
-    writeRegister( 0x1E, 0x02 ); 
-    writeRegister( 0x1F, 0x03 ); 
-    writeRegister( 0x20, 0x4B ); //These registers are for RX modem ONLY
-    writeRegister( 0x21, 0x00 ); 
-    writeRegister( 0x22, 0xDA ); 
-    writeRegister( 0x23, 0x74 ); 
-    writeRegister( 0x24, 0x05 ); 
-    writeRegister( 0x25, 0x78 ); 
-    writeRegister( 0x2A, 0xFF ); 
-    writeRegister( 0x2C, 0x18 ); 
-    writeRegister( 0x2D, 0x0F ); 
-    writeRegister( 0x2E, 0x29 ); 
-    writeRegister( 0x30, 0xA8 ); 
-    writeRegister( 0x32, 0x00 ); 
-    writeRegister( 0x33, 0x00 ); 
-    writeRegister( 0x34, 0x04 ); 
-    writeRegister( 0x35, 0x22 ); //Relevant for RX settings Only
-    writeRegister( 0x36, 0xED ); 
-    writeRegister( 0x37, 0xDA ); 
-    writeRegister( 0x38, 0xFE ); 
-    writeRegister( 0x39, 0xC0 ); 
-    writeRegister( 0x3A, 0x00 ); //Relevant for TX settings Only
-    writeRegister( 0x3B, 0x00 ); //Relevant for TX settings Only
-    writeRegister( 0x3C, 0x00 ); //Relevant for TX settings Only
-    writeRegister( 0x3D, 0x00 ); //Relevant for TX settings Only
-    writeRegister( 0x3E, 0x01 ); 
-    writeRegister( 0x3F, 0x00 ); //Relevant for RX settings Only
-    writeRegister( 0x40, 0x00 ); //Relevant for RX settings Only
-    writeRegister( 0x41, 0x00 ); //Relevant for RX settings Only
-    writeRegister( 0x42, 0x00 ); //Relevant for RX settings Only
-    writeRegister( 0x43, 0x0 ); //Relevant for RX settings Only
-    writeRegister( 0x44, 0x0 ); //Relevant for RX settings Only
-    writeRegister( 0x45, 0x0 ); //Relevant for RX settings Only
-    writeRegister( 0x46, 0x0 ); //Relevant for RX settings Only
-    writeRegister( 0x58, 0x80 ); 
-    writeRegister( 0x69, 0x60 ); 
-    writeRegister( 0x6E, 0x0A ); //TX 0xDAT0xA R0xAT0xE
-    writeRegister( 0x6F, 0x3D ); 
-    writeRegister( 0x70, 0x0E ); 
-    writeRegister( 0x71, 0x23 ); 
-    writeRegister( 0x72, 0x50 ); //TX 0xFrequency 0xDeviation 
-    writeRegister( 0x75, 0x53 ); 
-    writeRegister( 0x76, 0x00 ); //0xCarrier 0xFrequency
-    writeRegister( 0x77, 0x00 ); 
-    
-    */
-    
-    
-    
-    }   
-    
-    
-    
-    
-    
-    
-    
-    
-        
-   
-  /*      writeRegister( 0x1D, 0x3C ); 
-        writeRegister( 0x1E, 0x02 ); 
-        writeRegister( 0x1F, 0x03 ); // |_ AFC, Gearshift
-        writeRegister( 0x21, 0x02 ); 
-        writeRegister( 0x22, 0x22 ); 
-        writeRegister( 0x23, 0x22 ); 
-        writeRegister( 0x24, 0x07 ); 
-        writeRegister( 0x25, 0xFF ); // |_ Clock recovery timing
-        writeRegister( 0x2A, 0xFF ); // AFC limiter
-        
-        
-        writeRegister( 0x30, 0xAC ); // TX,RX handler, CRC enable, CCITT
-        writeRegister( 0x32, 0x03 ); // check header 0 & 1
-        writeRegister( 0x33, 0x22 ); // 2byte sync, 2byte header
-        
-        writeRegister( 0x34, 0x04 ); // preamble length
-        writeRegister( 0x36, 0xED ); 
-        writeRegister( 0x37, 0xDA ); 
-        writeRegister( 0x38, 0xFE ); 
-        writeRegister( 0x39, 0xC0 ); // |_ Sync words
-        writeRegister( 0x3E, 0x02 ); // pkt length
+		writeRegister(0x6D, 0x1F);	// max power, LNA switch set
+//		writeRegister(0x75, 0x33);	// 868 MHz
+//		writeRegister(0x75, 0x13);	// 434 MHz
+		writeRegister(0x75, 0x4B);	// 355 MHz, sideband
+		writeRegister(0x76, 0x7D);
+		writeRegister(0x77, 0x00);
+	}
 
-        writeRegister( 0x58, 0xED ); // ????????????????
-        writeRegister( 0x69, 0x60 ); // AGC override
-        writeRegister( 0x6E, 0x33 ); 
-        writeRegister( 0x6F, 0x33 ); // |_ TX data rate
-        writeRegister( 0x70, 0x0C ); // no Manchester encoding
-  
-        writeRegister( 0x71, 0x23 ); // FIFO + GFSK
-        writeRegister( 0x72, 0x50 ); // freq deviation
-        writeRegister( 0x75, 0x75 ); // 900-920 Mhz Band
-        writeRegister( 0x76, 0x7D ); 
-        writeRegister( 0x77, 0x00 ); // |_ carrier freq
-    }
-    
-    void si443x_setup_rx() {
-    
-        DIAGMSG_STR("setup_rx","");
-        
-        writeRegister( 0x1C, 0x88 ); // 335 kHZ bandwidth
-        writeRegister( 0x20, 0x3C ); // Clock recovery oversampling rate
-        writeRegister( 0x35, 0x22 ); // 4 nibble (16 bit) preamble safety
-        writeRegister( 0x3F, 0x99 ); // check header 0
-        writeRegister( 0x40, 0x00 );
-        writeRegister( 0x41, 0x00 );
-        writeRegister( 0x42, 0x00 ); // |_ no check header
-        writeRegister( 0x43, 0xFF ); // header enable for hdr 0
-        writeRegister( 0x44, 0x0 );
-        writeRegister( 0x45, 0x0 );
-        writeRegister( 0x46, 0x0 ); // |_ no headers
-    }
-    
-    void si443x_setup_tx() {
-    
-        DIAGMSG_STR("setup_tx","");
-        
-        writeRegister( 0x3A, 0x99 );
-        writeRegister( 0x3B, 0x00 );
-        writeRegister( 0x3C, 0x00 );
-        writeRegister( 0x3D, 0x00 ); // |_ no headers
-    }
-*/
+	uint8_t minRssi;
+	uint8_t maxRssi;
+
+	uint32_t avgRssi;
+	uint16_t avgCount;
+
+	task void measureRssi()
+	{
+		uint8_t a;
+
+		a = readRegister(0x26);
+		atomic
+		{
+			avgRssi += a;
+			avgCount += 1;
+
+			if( a < minRssi )
+				minRssi = a;
+			
+			if( a > maxRssi )
+				maxRssi = a;
+		}
+
+		post measureRssi();
+	}
+
+	void resetRssi()
+	{
+		atomic
+		{
+			avgRssi = 0;
+			avgCount = 0;
+			minRssi = 0xFF;
+			maxRssi = 0x00;
+		}
+	}
 
 	void initRadio()
 	{
 		si443x_reset();		// ignore interrupts during reset
 		si443x_standby();
+		si443x_setup();		// setup the comms
 		status = 1;
-		si443x_status();	// you can put status calls anywhere
+//		si443x_status();	// you can put status calls anywhere
 		si443x_ready();
 		
-		si443x_setup(); // setup the comms
-		
-		
 		if ( ! IS_TX ) {
-       		call Leds.led2On();
-    		si443x_receive();
-    	}
+			resetRssi();
+			post measureRssi();
+	    		si443x_receive();
+    		}
     	
-    	call RadioAlarm.wait(30000);
+	    	call RadioAlarm.wait(30000);
 	}
-	
-	uint8_t cnt = 0;
+
+//	uint8_t reg75 = 0;
+//	uint8_t count = 0;
+
 	tasklet_async event void RadioAlarm.fired()
-    {   
-   
-        if ( (++cnt % 16) == 0) {
-            DIAGMSG_STR("Alarm","!");
-            si443x_status();
-            if ( ! IS_TX ) {
-                call Leds.led2Off();
-                si443x_standby();
-                call Leds.led2On();
-                si443x_receive();
-            }
-        }
-        if ( IS_TX ) {
-            call Leds.led1On();
-            si443x_transmit();
-        }
-        call RadioAlarm.wait(30000);
-    }
+	{   
+		call Leds.led0Toggle();
+/*
+		if( ++count >= 19 )
+		{
+			call Leds.led1Toggle();
+
+			count = 0;
+			writeRegister(0x75, ++reg75);
+
+			if( IS_TX )
+			{
+				si443x_standby();
+				si443x_ready();
+			}
+			else
+			{
+				si443x_ready();
+				si443x_receive();
+			}
+
+			return;
+		}
+*/		
+		if( IS_TX )
+		{
+//			if( (count & 0x04) == 0 )
+//				return;
+
+			call Leds.led2On();
+			si443x_transmit();
+		}
+		else
+		{
+			if( call DiagMsg.record() ) {
+		            call DiagMsg.str("rssi");
+//			    call DiagMsg.hex8(reg75);
+		            call DiagMsg.uint8(minRssi);
+		            call DiagMsg.uint8(maxRssi);
+			    call DiagMsg.uint8(avgRssi / avgCount);
+		            call DiagMsg.send();
+			}
+		}
+
+		resetRssi();
+	    	call RadioAlarm.wait(30000);
+	}
     
 	tasklet_async event void Tasklet.run()
 	{
-		DIAGMSG_STR("tasklet","");
+//		DIAGMSG_STR("tasklet","");
 	}
     
 	async event void IRQ.captured(uint16_t time)
 	{
-	    uint8_t i1,i2;
-		DIAGMSG_STR("irq","");
+		uint8_t i1,i2;
+
+//		DIAGMSG_STR("irq","");
 		
 		if ( status == 0 )
 		    return;
@@ -517,24 +485,51 @@ implementation
 		i1 = readRegister(0x03);
 		i2 = readRegister(0x04);
 		
-		readRegister(0x05);
-		readRegister(0x06);
-		readRegister(0x62);
-		
-		if ( IS_TX ) {
-		    if ( (i1 & 0x04) == 0x04 ) {
-		        DIAGMSG_STR("Int","PktSent");
-		        call Leds.led1Off();
-		    }
-		    
-		    if ( (i1 & 0x20) == 0x20 ) {
-		        DIAGMSG_STR("Int","TxFifoE");
-		    }
-		    
-		} else {
-		
+//		readRegister(0x05);
+//		readRegister(0x06);
+//		readRegister(0x62);
+
+		if ( (i1 & 0x80) != 0 )
+			DIAGMSG_STR("Int","Fifo Error");
+
+		if ( (i1 & 0x40) != 0 )
+			DIAGMSG_STR("Int","TxFifo Full");
+
+		if ( (i1 & 0x20) != 0 )
+			DIAGMSG_STR("Int","TxFifo Empty");
+
+		if ( (i1 & 0x10) != 0 )
+			DIAGMSG_STR("Int","RxFifo Full");
+
+		if ( (i1 & 0x04) != 0 )
+		{
+			call Leds.led2Off();
+			DIAGMSG_STR("Int","Pkt Sent");
 		}
 
+		if ( (i1 & 0x02) != 0 )
+		{
+			DIAGMSG_STR("Int","Pkt Received");
+			readFifo();
+		}
+
+		if ( (i1 & 0x01) != 0 )
+			DIAGMSG_STR("Int","CRC Error");
+
+		if ( (i2 & 0x80) != 0 )
+		{
+			DIAGMSG_STR("Int","Sync Detected");
+			call Leds.led3Toggle();
+		}
+
+		if ( (i2 & 0x40) != 0 )
+			DIAGMSG_STR("Int","Valid Preamble");
+
+//		if ( (i2 & 0x02) != 0 )
+//			DIAGMSG_STR("Int","Chip Ready");
+
+		if ( (i2 & 0x01) != 0 )
+			DIAGMSG_STR("Int","Power On Reset");
 	}
 
     command error_t PlatformInit.init()
@@ -579,78 +574,6 @@ implementation
     {
         call SpiResource.release();
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    /*
-    	void si443x_setup_tx() {
-	
-	    DIAGMSG_STR("setuptx","");
-	    
-	    //set the desired TX data rate (9.6kbps)
-	    writeRegister(0x6E, 0x4E);
-	    writeRegister(0x6F, 0xA5);
-	    writeRegister(0x70, 0x2C);
-	
-	    //set the desired TX deviatioin (+-45 kHz)
-	    writeRegister(0x72, 0x48);
-
-	    //set the TX power to MAX
-	    writeRegister(0x6D, 0x1F);
-
-	    //enable the TX packet handler
-	    writeRegister(0x30, 0x04);
-	}
-	
-	void si443x_setup_rx() { 
-	
-    	DIAGMSG_STR("setuprx","");
-
-		set the modem parameters according to the exel calculator(parameters: 9.6 kbps, deviation: 45 kHz, channel filter BW: 112.1 kHz
-    	writeRegister(0x1C, 0x1E);
-    	writeRegister(0x20, 0xD0);
-    	writeRegister(0x21, 0x00);
-    	writeRegister(0x22, 0x9D);
-    	writeRegister(0x23, 0x49);
-    	writeRegister(0x24, 0x00);
-    	writeRegister(0x25, 0x24);
-	    writeRegister(0x1D, 0x40);
-	    writeRegister(0x1E, 0x0A);
-    	writeRegister(0x2A, 0x20);
-	
-	    //Disable the receive header filters
-        writeRegister(0x32, 0x00);
-
-    	//Enable the receive packet handler
-    	writeRegister(0x30, 0x80);
-	    //set preamble detection threshold to 20bits
-	    writeRegister(0x35, 0x2A);
-	    readRegister(0x60);
-        //writeRegister(0x60, 0xF0);								
-
-
-	    //set AGC Override1 Register
-	    writeRegister(0x69, 0x60);
-	}*/
     
 
 /*----------------- TURN ON/OFF -----------------*/

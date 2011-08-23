@@ -111,8 +111,9 @@ implementation
     Si443xDriverLayerP.Tasklet -> TaskletC;
 
 #ifdef RADIO_DEBUG
-    components DiagMsgC, AssertC;
+    components DiagMsgC, AssertC, LedsC;
     Si443xDriverLayerP.DiagMsg -> DiagMsgC;
+    Si443xDriverLayerP.Leds -> LedsC;
     components HplAtm128InterruptSigP;
     HplAtm128InterruptSigP.DiagMsg -> DiagMsgC;
 #endif
