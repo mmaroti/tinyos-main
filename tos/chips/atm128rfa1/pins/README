@@ -1,0 +1,16 @@
+There's two pcint driver here for backward compatibility (we will remove the old one soon)
+
+new pcint:
+AtmegaPinchange.nc
+AtmegaPinchangeP.nc
+HplAtmegaPinChange.nc
+HplAtm128rfa1PCInterrupt0P.nc
+HplAtm128rfa1PCInterrupt1P.nc
+
+old pcint:
+GpioPCInterrupt.nc
+HplAtm128InterruptC.nc
+HplAtm128InterruptPinP.nc
+HplAtm128InterruptSigP.nc
+
+HplAtm128GeneralIOC.nc has nothing to do with pcint, it just adds a new generalIO

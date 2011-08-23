@@ -32,20 +32,14 @@
  * Author: Miklos Maroti
  */
 
-interface AtmegaPinChange
+interface PinChangeInterrupt
 {
-// ----- pin change interrupt flag register (PCIFR)
 
-	/* Signalled when any of the enabled pins changed */
+	/** Signalled when state of the pin has changed.
+   * It might be fired even if the pin has not changed
+   * (but other enabled pin change interrupts have)
+   */
 	async event void fired(bool state);
-
-	/* Tests if an interrupt is pending */
-	async command bool test();
-
-	/* Resets a pending interrupt */
-	async command void reset();
-
-// ----- pin change control register (PCICR)
 
 	/* Enables the interrupt */
 	async command void enable();
@@ -56,8 +50,6 @@ interface AtmegaPinChange
 	/* Checks if the interrupt is enabled */
 	async command bool isEnabled();
 
-// ----- pin register (PIN)
-
-	/* Reads the current pin values */
-	async command uint8_t getPin();
+	/* Reads the current pin value */
+	async command bool getPin();
 }
