@@ -1,15 +1,15 @@
 configuration HplCp2102C {
-  provides interface GpioPCInterrupt as Vdd;
-	#if (UCMINI_REV != 49)
-		provides interface GpioPCInterrupt as NSuspend;
-	#endif
+  provides interface AtmegaPinChange as Vdd;
+  #if (UCMINI_REV != 49)
+    provides interface AtmegaPinChange as NSuspend;
+  #endif
 
 }
 implementation {
-  components HplAtm128InterruptC;
+  components AtmegaPinChange0C;
   
-  Vdd=HplAtm128InterruptC.PCInt7;
-	#if (UCMINI_REV != 49)
-	NSuspend=HplAtm128InterruptC.PCInt5;
-	#endif
+  Vdd=AtmegaPinChange0C.AtmegaPinChange[7];
+  #if (UCMINI_REV != 49)
+    NSuspend=AtmegaPinChange0C.AtmegaPinChange[5];
+  #endif
 }

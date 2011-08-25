@@ -32,28 +32,15 @@
 */
 module SerialAutoControlP{
   uses interface SplitControl;
-  uses interface GpioPCInterrupt as Vdd;
-  #if (UCMINI_REV != 49)
-  uses interface GpioPCInterrupt as NSuspend;
-  #endif
+  uses interface AtmegaPinChange as ControlInt;
   provides interface Init as SoftwareInit;
   #ifdef SERIAL_AUTO_DEBUG
   uses interface Leds;
   #endif
 }
 implementation{
-
-  #if UCMINI_REV==49
-	#define SERIAL_AUTO_VDD
-  #endif
   
-  inline bool isUsbOn(){
-	#ifdef SERIAL_AUTO_VDD
-      return call Vdd.get();
-	#else
-      return call NSuspend.get();	  
-	#endif
-  }
+  bool prevState;
   
   task void turnOn(){
     error_t err=call SplitControl.start();  
@@ -77,21 +64,6 @@ implementation{
     }
   }
   
-  command error_t SoftwareInit.init(){
-    atomic{
-      #ifdef SERIAL_AUTO_VDD
-        call Vdd.enable();
-      #else
-        call NSuspend.enable();
-      #endif
-      if(isUsbOn()){
-        post turnOn();
-       }
-    }
-
-    return SUCCESS;
-  }
-  
   event void SplitControl.startDone(error_t err){
     if(err!=SUCCESS)
       call SplitControl.start();
@@ -102,25 +74,30 @@ implementation{
       call SplitControl.stop();
   }
   
-  async event void Vdd.fired(bool toHigh){
-    if(toHigh)
-      post turnOn();
-    else
-      post turnOff();
-    #ifdef SERIAL_AUTO_DEBUG
-    call Leds.led0Toggle();
-    #endif
+  command error_t SoftwareInit.init(){
+    atomic{
+      call ControlInt.enable();
+      if(call ControlInt.get()){
+        prevState=TRUE;
+        post turnOn();
+      } else {
+        prevState=FALSE;
+      }
+    }
+
+    return SUCCESS;
   }
   
-  #if (UCMINI_REV != 49)
-  async event void NSuspend.fired(bool toHigh){
-    if(toHigh)
-      post turnOn();
-    else
-      post turnOff();
-    #ifdef SERIAL_AUTO_DEBUG
-    call Leds.led1Toggle();
-    #endif
+  async event void ControlInt.fired(bool state){
+    if(state!=prevState){
+      prevState=state;
+      if(state)
+        post turnOn();
+      else
+        post turnOff();
+      #ifdef SERIAL_AUTO_DEBUG
+      call Leds.led0Toggle();
+      #endif
+    }
   }
-  #endif
 }

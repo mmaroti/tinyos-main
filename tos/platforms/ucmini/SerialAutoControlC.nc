@@ -34,13 +34,18 @@
 // just to make sure that fastserial can get its include file
 #include "Serial.h"
 
+#if UCMINI_REV==49
+#define SERIAL_AUTO_VDD
+#endif
+
 configuration SerialAutoControlC{
 }
 implementation{
   components SerialAutoControlP, HplCp2102C, SerialActiveMessageC, MainC;
-  SerialAutoControlP.Vdd->HplCp2102C.Vdd;
-  #if (UCMINI_REV != 49)
-    SerialAutoControlP.NSuspend->HplCp2102C.NSuspend;
+  #ifdef SERIAL_AUTO_VDD
+    SerialAutoControlP.ControlInt->HplCp2102C.Vdd;
+  #else
+    SerialAutoControlP.ControlInt->HplCp2102C.NSuspend;
   #endif
   SerialAutoControlP.SplitControl->SerialActiveMessageC;
   MainC.SoftwareInit -> SerialAutoControlP;
