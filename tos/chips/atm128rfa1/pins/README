@@ -12,6 +12,7 @@ HplAtm128rfa1PCInterrupt1P.nc
 old pcint:
 GpioPCInterrupt.nc
 HplAtm128InterruptC.nc
+HplAtm128InterruptP.nc
 HplAtm128InterruptPinP.nc
 HplAtm128InterruptSigP.nc
 
