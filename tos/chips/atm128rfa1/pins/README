@@ -3,6 +3,8 @@ There's two pcint driver here for backward compatibility (we will remove the old
 new pcint:
 AtmegaPinchange.nc
 AtmegaPinchangeP.nc
+AtmegaPinChange0P.nc
+AtmegaPinChange1P.nc
 HplAtmegaPinChange.nc
 HplAtm128rfa1PCInterrupt0P.nc
 HplAtm128rfa1PCInterrupt1P.nc

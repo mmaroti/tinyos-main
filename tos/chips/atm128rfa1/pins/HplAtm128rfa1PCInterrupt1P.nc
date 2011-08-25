@@ -41,34 +41,33 @@ module HplAtm128rfa1PCInterrupt1P
 }
 implementation
 {
-  
 // ----- pin change interrupt flag register (PCIFR)
 
   /* Tests if an interrupt is pending */
   async command bool HplAtmegaPinChange.test(){
-    return (PCIFR&(1<<1))!=0;
+    return (PCIFR&(1<<PCIF1))!=0;
   }
 
   /* Resets a pending interrupt */
   async command void HplAtmegaPinChange.reset(){
-    PCIFR|=1<<1;
+    PCIFR|=1<<PCIF1;
   }
 
 // ----- pin change control register (PCICR)
 
   /* Enables the interrupt */
   async command void HplAtmegaPinChange.enable(){
-    PCICR|=1<<1;
+    PCICR|=1<<PCIE1;
   }
 
   /* Disables the interrupt */
   async command void HplAtmegaPinChange.disable(){
-    PCICR&=~(1<<1);
+    PCICR&=~(1<<PCIE1);
   }
 
   /* Checks if the interrupt is enabled */
   async command bool HplAtmegaPinChange.isEnabled(){
-    return (PCICR&(1<<1))!=0;
+    return (PCICR&(1<<PCIE1))!=0;
   }
 
 // ----- pin change mask register (PCMSK)
@@ -87,12 +86,13 @@ implementation
 
   /* Reads the current pin values */
   async command uint8_t HplAtmegaPinChange.getPins(){
-    return PINE&1;
+    return PINE&0x01;
   }
 
   /* Signalled when any of the enabled pins changed */
-  default event void HplAtmegaPinChange.fired(){}
   AVR_ATOMIC_HANDLER( PCINT1_vect ) {
     signal HplAtmegaPinChange.fired();
   }
+
+  default async event void HplAtmegaPinChange.fired(){}
 }

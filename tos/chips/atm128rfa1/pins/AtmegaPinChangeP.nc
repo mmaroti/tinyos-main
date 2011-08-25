@@ -34,55 +34,55 @@
 
 generic module AtmegaPinChangeP(){
   uses interface HplAtmegaPinChange;
-  provides interface AtmegaPinChangeP[8];
+  provides interface AtmegaPinChange[uint8_t pin];
 }
 implementation{
   /* Enables the interrupt */
-  async command void AtmegaPinChangeP.enable[uint8_t pin](){
+  async command void AtmegaPinChange.enable[uint8_t pin](){
     call HplAtmegaPinChange.setMask(call HplAtmegaPinChange.getMask() | (1<<pin));
     call HplAtmegaPinChange.enable();
   }
 
   /* Disables the interrupt */
-  async command void AtmegaPinChangeP.disable[uint8_t pin](){
-    call HplAtmegaPinChange.setMask(call HplAtmegaPinChange.getMask() & ~(1<<pin));
-    if(call HplAtmegaPinChange.getMask()==0)
+  async command void AtmegaPinChange.disable[uint8_t pin](){
+    uint8_t mask = call HplAtmegaPinChange.getMask() & ~(1<<pin);
+    call HplAtmegaPinChange.setMask(mask);
+    if(mask==0)
       call HplAtmegaPinChange.disable();
   }
 
   /* Checks if the interrupt is enabled */
-  async command bool AtmegaPinChangeP.isEnabled[uint8_t pin](){
+  async command bool AtmegaPinChange.isEnabled[uint8_t pin](){
     return call HplAtmegaPinChange.getMask() & (1<<pin);
   }
 
   /* Reads the current pin values */
-  async command bool AtmegaPinChangeP.getPin[uint8_t pin](){
-    return call HplAtmegaPinChange.getPins()&(1<<pin);
+  async command bool AtmegaPinChange.get[uint8_t pin](){
+    return call HplAtmegaPinChange.getPins() & (1<<pin);
   }
   
   /* Signalled when any of the enabled pins changed */
-  
-  async event HplAtmegaPinChange.fired(){
+  async event void HplAtmegaPinChange.fired(){
     uint8_t mask=call HplAtmegaPinChange.getMask();
     uint8_t pins=call HplAtmegaPinChange.getPins();
     if( mask & (1<<0) )
       //if this were plain c, we could return pins&(1<<0), but tinyos' TRUE is defined as 1
-      signal AtmegaPinChange.fired[0]( (pins & (1<<0))?TRUE:FALSE );
+      signal AtmegaPinChange.fired[0]( (pins & (1<<0)) ? TRUE : FALSE );
     if( mask & (1<<1) )
-      signal AtmegaPinChange.fired[1]( (pins & (1<<1))?TRUE:FALSE );
+      signal AtmegaPinChange.fired[1]( (pins & (1<<1)) ? TRUE : FALSE );
     if( mask & (1<<2) )
-      signal AtmegaPinChange.fired[2]( (pins & (1<<2))?TRUE:FALSE );
+      signal AtmegaPinChange.fired[2]( (pins & (1<<2)) ? TRUE : FALSE );
     if( mask & (1<<3) )
-      signal AtmegaPinChange.fired[3]( (pins & (1<<3))?TRUE:FALSE );
+      signal AtmegaPinChange.fired[3]( (pins & (1<<3)) ? TRUE : FALSE );
     if( mask & (1<<4) )
-      signal AtmegaPinChange.fired[4]( (pins & (1<<4))?TRUE:FALSE );
+      signal AtmegaPinChange.fired[4]( (pins & (1<<4)) ? TRUE : FALSE );
     if( mask & (1<<5) )
-      signal AtmegaPinChange.fired[5]( (pins & (1<<5))?TRUE:FALSE );
+      signal AtmegaPinChange.fired[5]( (pins & (1<<5)) ? TRUE : FALSE );
     if( mask & (1<<6) )
-      signal AtmegaPinChange.fired[6]( (pins & (1<<6))?TRUE:FALSE );
+      signal AtmegaPinChange.fired[6]( (pins & (1<<6)) ? TRUE : FALSE );
     if( mask & (1<<7) )
-      signal AtmegaPinChange.fired[7]( (pins & (1<<7))?TRUE:FALSE );
+      signal AtmegaPinChange.fired[7]( (pins & (1<<7)) ? TRUE : FALSE );
   }
   
-  default event AtmegaPinChange.fired[uint8_t pin](bool state) {}
-} 
+  default async event void AtmegaPinChange.fired[uint8_t pin](bool state) {}
+}

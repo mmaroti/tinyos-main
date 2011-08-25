@@ -45,29 +45,29 @@ implementation
 
   /* Tests if an interrupt is pending */
   async command bool HplAtmegaPinChange.test(){
-    return (PCIFR&(1<<0))!=0;
+    return (PCIFR&(1<<PCIF0))!=0;
   }
 
   /* Resets a pending interrupt */
   async command void HplAtmegaPinChange.reset(){
-    PCIFR|=1<<0;
+    PCIFR|=1<<PCIF0;
   }
 
 // ----- pin change control register (PCICR)
 
   /* Enables the interrupt */
   async command void HplAtmegaPinChange.enable(){
-    PCICR|=1<<0;
+    PCICR|=1<<PCIE0;
   }
 
   /* Disables the interrupt */
   async command void HplAtmegaPinChange.disable(){
-    PCICR&=~(1<<0);
+    PCICR&=~(1<<PCIE0);
   }
 
   /* Checks if the interrupt is enabled */
   async command bool HplAtmegaPinChange.isEnabled(){
-    return (PCICR&(1<<0))!=0;
+    return (PCICR&(1<<PCIE0))!=0;
   }
 
 // ----- pin change mask register (PCMSK)
@@ -90,8 +90,9 @@ implementation
   }
   
   /* Signalled when any of the enabled pins changed */  
-  default event void HplAtmegaPinChange.fired(){}
   AVR_ATOMIC_HANDLER( PCINT0_vect ) {
     signal HplAtmegaPinChange.fired();
   }
+
+  default async event void HplAtmegaPinChange.fired(){}
 }

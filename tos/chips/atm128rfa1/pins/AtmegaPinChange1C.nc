@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, University of Szeged
+ * Copyright (c) 2011, University of Szeged
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,23 +32,15 @@
  * Author: Miklos Maroti
  */
 
-interface AtmegaPinChange
+configuration AtmegaPinChange1C
 {
-	/** Signalled when state of the pin has changed.
-	 * It might be fired even if the pin has not changed
-	 * (but other enabled pin change interrupts have)
-	 */
-	async event void fired(bool state);
+	provides interface AtmegaPinChange[uint8_t pin];
+}
 
-	/* Enables the interrupt */
-	async command void enable();
+implementation
+{
+	components HplAtm128rfa1PCInterrupt1P, new AtmegaPinChangeP();
 
-	/* Disables the interrupt */
-	async command void disable();
-
-	/* Checks if the interrupt is enabled */
-	async command bool isEnabled();
-
-	/* Reads the current pin value */
-	async command bool get();
+	AtmegaPinChange = AtmegaPinChangeP;
+	AtmegaPinChangeP.HplAtmegaPinChange -> HplAtm128rfa1PCInterrupt1P;
 }
