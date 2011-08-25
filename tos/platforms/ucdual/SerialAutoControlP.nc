@@ -32,18 +32,15 @@
 */
 module SerialAutoControlP{
   uses interface SplitControl;
-  uses interface GpioPCInterrupt as NSuspend;
+  uses interface AtmegaPinChange as ControlInt;
   provides interface Init as SoftwareInit;
   #ifdef SERIAL_AUTO_DEBUG
   uses interface Leds;
   #endif
 }
 implementation{
-
   
-  inline bool isUsbOn(){
-      return call NSuspend.get();	  
-  }
+  bool prevState;
   
   task void turnOn(){
     error_t err=call SplitControl.start();  
@@ -67,17 +64,6 @@ implementation{
     }
   }
   
-  command error_t SoftwareInit.init(){
-    atomic{
-      call NSuspend.enable();
-      if(isUsbOn()){
-        post turnOn();
-       }
-    }
-
-    return SUCCESS;
-  }
-  
   event void SplitControl.startDone(error_t err){
     if(err!=SUCCESS)
       call SplitControl.start();
@@ -88,13 +74,30 @@ implementation{
       call SplitControl.stop();
   }
   
-  async event void NSuspend.fired(bool toHigh){
-    if(toHigh)
-      post turnOn();
-    else
-      post turnOff();
-    #ifdef SERIAL_AUTO_DEBUG
-    call Leds.led1Toggle();
-    #endif
+  command error_t SoftwareInit.init(){
+    atomic{
+      call ControlInt.enable();
+      if(call ControlInt.get()){
+        prevState=TRUE;
+        post turnOn();
+      } else {
+        prevState=FALSE;
+      }
+    }
+
+    return SUCCESS;
+  }
+  
+  async event void ControlInt.fired(bool state){
+    if(state!=prevState){
+      prevState=state;
+      if(state)
+        post turnOn();
+      else
+        post turnOff();
+      #ifdef SERIAL_AUTO_DEBUG
+      call Leds.led0Toggle();
+      #endif
+    }
   }
 }

@@ -38,7 +38,7 @@ configuration SerialAutoControlC{
 }
 implementation{
   components SerialAutoControlP, HplUSBDetectC, SerialActiveMessageC, MainC;
-  SerialAutoControlP.NSuspend->HplUSBDetectC.NSuspend;
+  SerialAutoControlP.ControlInt->HplUSBDetectC.NSuspend;
   SerialAutoControlP.SplitControl->SerialActiveMessageC;
   MainC.SoftwareInit -> SerialAutoControlP;
   #ifdef SERIAL_AUTO_DEBUG

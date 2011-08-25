@@ -1,8 +1,8 @@
 configuration HplUSBDetectC {
-  provides interface GpioPCInterrupt as NSuspend;
+  provides interface AtmegaPinChange as NSuspend;
 
 }
 implementation {
-  components HplAtm128InterruptC;
-  NSuspend=HplAtm128InterruptC.PCInt5;
+  components AtmegaPinChange0C;
+  NSuspend=AtmegaPinChange0C.AtmegaPinChange[5];
 }
