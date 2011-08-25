@@ -1,4 +1,4 @@
-module PinChange2GpioInt
+generic module PinChange2GpioInt
 {
   provides interface GpioInterrupt as IRQ;
   uses interface AtmegaPinChange as RealIRQ;
