@@ -31,7 +31,7 @@
 * Author: Andras Biro
 */
 #include <UserButton.h>
-#if !(UCMINI_REV>=100)
+#if defined(UCMINI_REV) && !(UCMINI_REV>=100)
 #error "There's no button on the ucmini rev<1.0"
 #endif
 configuration UserButtonC {
@@ -39,8 +39,8 @@ configuration UserButtonC {
   provides interface Notify<button_state_t>;
 }
 implementation{
-  components UserButtonP, HplAtm128InterruptC, HplAtm128GeneralIOC, MainC;
-  UserButtonP->HplAtm128InterruptC.PCInt4;
+  components UserButtonP, AtmegaPinChange0C, HplAtm128GeneralIOC, MainC;
+  UserButtonP->AtmegaPinChange0C.AtmegaPinChange[4];
   UserButtonP->HplAtm128GeneralIOC.PortB4;
   MainC.SoftwareInit->UserButtonP;
   Get=UserButtonP;
