@@ -8,6 +8,7 @@ AtmegaPinChange1P.nc
 HplAtmegaPinChange.nc
 HplAtm128rfa1PCInterrupt0P.nc
 HplAtm128rfa1PCInterrupt1P.nc
+PinChange2GpioInt.nc
 
 old pcint:
 GpioPCInterrupt.nc
