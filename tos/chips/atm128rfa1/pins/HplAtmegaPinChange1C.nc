@@ -35,7 +35,7 @@
 /*
  * Pin change interrupt HPL for atmega128rfa1 PCINT8 (PORTE0)
  */
-module HplAtm128rfa1PCInterrupt1P
+module HplAtmegaPinChange1C
 {
   provides interface HplAtmegaPinChange;
 }

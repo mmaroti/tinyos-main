@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, University of Szeged
+ * Copyright (c) 2011, University of Szeged
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,26 +29,70 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Author: Miklos Maroti
+ * Author: Andras Biro
  */
 
-interface AtmegaPinChange
+/*
+ * Pin change interrupt HPL for atmega128rfa1 PCINT0:7 (PORTB0:7)
+ */
+module HplAtmegaPinChange0C
 {
-	/** Signalled when state of the pin has changed.
-	 * It might be fired even if the pin has not changed
-	 * (but other enabled pin change interrupts have)
-	 */
-	async event void fired(bool state);
+  provides interface HplAtmegaPinChange;
+}
+implementation
+{
+// ----- pin change interrupt flag register (PCIFR)
 
-	/* Enables the interrupt */
-	async command void enable();
+  /* Tests if an interrupt is pending */
+  async command bool HplAtmegaPinChange.test(){
+    return (PCIFR&(1<<PCIF0))!=0;
+  }
 
-	/* Disables the interrupt */
-	async command void disable();
+  /* Resets a pending interrupt */
+  async command void HplAtmegaPinChange.reset(){
+    PCIFR|=1<<PCIF0;
+  }
 
-	/* Checks if the interrupt is enabled */
-	async command bool isEnabled();
+// ----- pin change control register (PCICR)
 
-	/* Reads the current pin value */
-	async command bool get();
+  /* Enables the interrupt */
+  async command void HplAtmegaPinChange.enable(){
+    PCICR|=1<<PCIE0;
+  }
+
+  /* Disables the interrupt */
+  async command void HplAtmegaPinChange.disable(){
+    PCICR&=~(1<<PCIE0);
+  }
+
+  /* Checks if the interrupt is enabled */
+  async command bool HplAtmegaPinChange.isEnabled(){
+    return (PCICR&(1<<PCIE0))!=0;
+  }
+
+// ----- pin change mask register (PCMSK)
+
+  /* Reads the mask register */
+  async command uint8_t HplAtmegaPinChange.getMask(){
+    return PCMSK0;
+  }
+
+  /* Sets the mask register */
+  async command void HplAtmegaPinChange.setMask(uint8_t value){
+    PCMSK0=value;
+  }
+
+// ----- pin register (PIN)
+
+  /* Reads the current pin values */
+  async command uint8_t HplAtmegaPinChange.getPins(){
+    return PINB;
+  }
+  
+  /* Signalled when any of the enabled pins changed */  
+  AVR_ATOMIC_HANDLER( PCINT0_vect ) {
+    signal HplAtmegaPinChange.fired();
+  }
+
+  default async event void HplAtmegaPinChange.fired(){}
 }

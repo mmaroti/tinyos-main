@@ -39,8 +39,8 @@ configuration AtmegaPinChange1C
 
 implementation
 {
-	components HplAtm128rfa1PCInterrupt1P, new AtmegaPinChangeP();
+	components HplAtmegaPinChange1P, new AtmegaPinChangeP();
 
 	AtmegaPinChange = AtmegaPinChangeP;
-	AtmegaPinChangeP.HplAtmegaPinChange -> HplAtm128rfa1PCInterrupt1P;
+	AtmegaPinChangeP.HplAtmegaPinChange -> HplAtmegaPinChange1P;
 }
