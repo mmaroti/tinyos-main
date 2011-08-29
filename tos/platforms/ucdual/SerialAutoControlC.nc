@@ -37,9 +37,9 @@
 configuration SerialAutoControlC{
 }
 implementation{
-  components SerialAutoControlP, HplUsbDetectC, SerialActiveMessageC, MainC;
-  SerialAutoControlP.ControlInt->HplUsbDetectC.GpioInterrupt;
-  SerialAutoControlP.ControlPin->HplUsbDetectC.GeneralIO;
+  components SerialAutoControlP, HplSerialAutoControlC, SerialActiveMessageC, MainC;
+  SerialAutoControlP.ControlInt->HplSerialAutoControlC.GpioInterrupt;
+  SerialAutoControlP.ControlPin->HplSerialAutoControlC.GeneralIO;
   SerialAutoControlP.SplitControl->SerialActiveMessageC;
   MainC.SoftwareInit -> SerialAutoControlP;
   #ifdef SERIAL_AUTO_DEBUG

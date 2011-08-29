@@ -31,17 +31,12 @@
 * Author: Andras Biro
 */
 
-configuration HplUsbDetectC {
+configuration HplSerialAutoControlC {
   provides interface GpioInterrupt;
   provides interface GeneralIO;
 }
 implementation {
   components AtmegaPinChange0C, HplAtm128GeneralIOC;
-  #if ( defined(SERIAL_AUTO_VDD) || UCMINI_REV==49 )
-    GpioInterrupt=AtmegaPinChange0C.GpioInterrupt[7];
-    GeneralIO=HplAtm128GeneralIOC.PortB7;
-  #else
-    GpioInterrupt=AtmegaPinChange0C.GpioInterrupt[5];
-    GeneralIO=HplAtm128GeneralIOC.PortB5;
-  #endif
+  GpioInterrupt=AtmegaPinChange0C.GpioInterrupt[5];
+  GeneralIO=HplAtm128GeneralIOC.PortB5;
 }
