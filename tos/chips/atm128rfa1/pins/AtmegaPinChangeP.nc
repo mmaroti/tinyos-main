@@ -34,55 +34,68 @@
 
 generic module AtmegaPinChangeP(){
   uses interface HplAtmegaPinChange;
-  provides interface AtmegaPinChange[uint8_t pin];
+  provides interface GpioInterrupt[uint8_t pin];
 }
 implementation{
+  uint8_t isRising;
+  
   /* Enables the interrupt */
-  async command void AtmegaPinChange.enable[uint8_t pin](){
+  async command error_t GpioInterrupt.enableRisingEdge[uint8_t pin](){
+    isRising |= 1<<pin;
     call HplAtmegaPinChange.setMask(call HplAtmegaPinChange.getMask() | (1<<pin));
     call HplAtmegaPinChange.enable();
+    return SUCCESS;
+  }
+  
+  async command error_t GpioInterrupt.enableFallingEdge[uint8_t pin](){
+    isRising &= ~(1<<pin);
+    call HplAtmegaPinChange.setMask(call HplAtmegaPinChange.getMask() | (1<<pin));
+    call HplAtmegaPinChange.enable();
+    return SUCCESS;
   }
 
   /* Disables the interrupt */
-  async command void AtmegaPinChange.disable[uint8_t pin](){
+  async command error_t GpioInterrupt.disable[uint8_t pin](){
     uint8_t mask = call HplAtmegaPinChange.getMask() & ~(1<<pin);
     call HplAtmegaPinChange.setMask(mask);
     if(mask==0)
       call HplAtmegaPinChange.disable();
-  }
-
-  /* Checks if the interrupt is enabled */
-  async command bool AtmegaPinChange.isEnabled[uint8_t pin](){
-    return call HplAtmegaPinChange.getMask() & (1<<pin);
-  }
-
-  /* Reads the current pin values */
-  async command bool AtmegaPinChange.get[uint8_t pin](){
-    return call HplAtmegaPinChange.getPins() & (1<<pin);
+    return SUCCESS;
   }
   
   /* Signalled when any of the enabled pins changed */
   async event void HplAtmegaPinChange.fired(){
     uint8_t mask=call HplAtmegaPinChange.getMask();
     uint8_t pins=call HplAtmegaPinChange.getPins();
-    if( mask & (1<<0) )
-      //if this were plain c, we could return pins&(1<<0), but tinyos' TRUE is defined as 1
-      signal AtmegaPinChange.fired[0]( (pins & (1<<0)) ? TRUE : FALSE );
-    if( mask & (1<<1) )
-      signal AtmegaPinChange.fired[1]( (pins & (1<<1)) ? TRUE : FALSE );
-    if( mask & (1<<2) )
-      signal AtmegaPinChange.fired[2]( (pins & (1<<2)) ? TRUE : FALSE );
-    if( mask & (1<<3) )
-      signal AtmegaPinChange.fired[3]( (pins & (1<<3)) ? TRUE : FALSE );
-    if( mask & (1<<4) )
-      signal AtmegaPinChange.fired[4]( (pins & (1<<4)) ? TRUE : FALSE );
-    if( mask & (1<<5) )
-      signal AtmegaPinChange.fired[5]( (pins & (1<<5)) ? TRUE : FALSE );
-    if( mask & (1<<6) )
-      signal AtmegaPinChange.fired[6]( (pins & (1<<6)) ? TRUE : FALSE );
-    if( mask & (1<<7) )
-      signal AtmegaPinChange.fired[7]( (pins & (1<<7)) ? TRUE : FALSE );
+    if( ( mask & (1<<0) ) &&                             //interrupt enabled
+        ( ( (pins & (1<<1)) && (isRising & (1<<1)) ) ||  //pin is high and rising edge int is enabled
+        ( ~(pins & (1<<1)) && ~(isRising & (1<<1)) ) ) ) //pin is low and falling edge int is enabled
+      signal GpioInterrupt.fired[1]();
+    if( ( mask & (1<<2) ) &&                             //interrupt enabled
+        ( ( (pins & (1<<2)) && (isRising & (1<<2)) ) ||  //pin is high and rising edge int is enabled
+        ( ~(pins & (1<<2)) && ~(isRising & (1<<2)) ) ) ) //pin is low and falling edge int is enabled
+      signal GpioInterrupt.fired[2]();
+    if( ( mask & (1<<3) ) &&                             //interrupt enabled
+        ( ( (pins & (1<<3)) && (isRising & (1<<3)) ) ||  //pin is high and rising edge int is enabled
+        ( ~(pins & (1<<3)) && ~(isRising & (1<<3)) ) ) ) //pin is low and falling edge int is enabled
+      signal GpioInterrupt.fired[3]();
+    if( ( mask & (1<<4) ) &&                             //interrupt enabled
+        ( ( (pins & (1<<4)) && (isRising & (1<<4)) ) ||  //pin is high and rising edge int is enabled
+        ( ~(pins & (1<<4)) && ~(isRising & (1<<4)) ) ) ) //pin is low and falling edge int is enabled
+      signal GpioInterrupt.fired[4]();
+    if( ( mask & (1<<5) ) &&                             //interrupt enabled
+        ( ( (pins & (1<<5)) && (isRising & (1<<5)) ) ||  //pin is high and rising edge int is enabled
+        ( ~(pins & (1<<5)) && ~(isRising & (1<<5)) ) ) ) //pin is low and falling edge int is enabled
+      signal GpioInterrupt.fired[5]();
+    if( ( mask & (1<<6) ) &&                             //interrupt enabled
+        ( ( (pins & (1<<6)) && (isRising & (1<<6)) ) ||  //pin is high and rising edge int is enabled
+        ( ~(pins & (1<<6)) && ~(isRising & (1<<6)) ) ) ) //pin is low and falling edge int is enabled
+      signal GpioInterrupt.fired[6]();
+    if( ( mask & (1<<7) ) &&                             //interrupt enabled
+        ( ( (pins & (1<<7)) && (isRising & (1<<7)) ) ||  //pin is high and rising edge int is enabled
+        ( ~(pins & (1<<7)) && ~(isRising & (1<<7)) ) ) ) //pin is low and falling edge int is enabled
+      signal GpioInterrupt.fired[7]();
   }
   
-  default async event void AtmegaPinChange.fired[uint8_t pin](bool state) {}
+  default async event void GpioInterrupt.fired[uint8_t pin]() {}
 }

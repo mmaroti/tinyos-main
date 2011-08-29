@@ -34,13 +34,13 @@
 
 configuration AtmegaPinChange0C
 {
-	provides interface AtmegaPinChange[uint8_t pin];
+	provides interface GpioInterrupt[uint8_t pin];
 }
 
 implementation
 {
-	components HplAtmegaPinChange0P, new AtmegaPinChangeP();
+	components HplAtmegaPinChange0C, new AtmegaPinChangeP();
 
-	AtmegaPinChange = AtmegaPinChangeP;
-	AtmegaPinChangeP.HplAtmegaPinChange -> HplAtmegaPinChange0P;
+	GpioInterrupt = AtmegaPinChangeP;
+	AtmegaPinChangeP.HplAtmegaPinChange -> HplAtmegaPinChange0C;
 }
