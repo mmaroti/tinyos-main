@@ -32,7 +32,7 @@
 */
 #include <UserButton.h>
 module UserButtonP{
-  uses interface AtmegaPinChange as Irq;
+  uses interface GpioInterrupt as Irq;
   uses interface GeneralIO as Io;
   provides interface Init;
   provides interface Get<button_state_t>;
@@ -40,7 +40,7 @@ module UserButtonP{
 }
 implementation{
   
-  norace bool prevState;
+  bool prevState;
   
   command error_t Init.init(){
     call Io.set();
@@ -48,16 +48,19 @@ implementation{
   }
   
   command button_state_t Get.get() { 
-    if(!call Irq.get())
+    if(!call Io.get())
       return BUTTON_PRESSED;
     else
       return BUTTON_RELEASED;
   }
   
   command error_t Notify.enable(){
-    if( !call Irq.isEnabled() ){//if we don't check this, the prevState can't be norace
-      prevState=call Irq.get();
-      call Irq.enable();
+    atomic {
+      prevState=call Io.get();
+      if(prevState)
+        call Irq.enableFallingEdge();
+      else
+        call Irq.enableRisingEdge();
     }
     return SUCCESS;
   }
@@ -75,13 +78,17 @@ implementation{
     signal Notify.notify( BUTTON_PRESSED );
   }
   
-  async event void Irq.fired(bool newState){
-    if(prevState!=newState){
-      prevState=newState;
-      if(newState)
+  async event void Irq.fired(){
+    bool pinState=call Io.get(); 
+    if(prevState!=pinState){
+      prevState=pinState;
+      if(pinState){
+        call Irq.enableFallingEdge();
         post NotifyReleased();
-      else
+      }else{
+        call Irq.enableRisingEdge();
         post NotifyPressed();
+      }
     }
   }
 }

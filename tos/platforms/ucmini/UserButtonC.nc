@@ -40,7 +40,7 @@ configuration UserButtonC {
 }
 implementation{
   components UserButtonP, AtmegaPinChange0C, HplAtm128GeneralIOC, MainC;
-  UserButtonP->AtmegaPinChange0C.AtmegaPinChange[4];
+  UserButtonP->AtmegaPinChange0C.GpioInterrupt[4];
   UserButtonP->HplAtm128GeneralIOC.PortB4;
   MainC.SoftwareInit->UserButtonP;
   Get=UserButtonP;
