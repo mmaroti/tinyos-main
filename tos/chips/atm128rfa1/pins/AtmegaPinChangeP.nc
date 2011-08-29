@@ -41,25 +41,31 @@ implementation{
   
   /* Enables the interrupt */
   async command error_t GpioInterrupt.enableRisingEdge[uint8_t pin](){
-    isFalling &= ~(1<<pin);
-    call HplAtmegaPinChange.setMask(call HplAtmegaPinChange.getMask() | (1<<pin));
-    call HplAtmegaPinChange.enable();
+    atomic{
+      isFalling &= ~(1<<pin);
+      call HplAtmegaPinChange.setMask(call HplAtmegaPinChange.getMask() | (1<<pin));
+      call HplAtmegaPinChange.enable();
+    }
     return SUCCESS;
   }
   
   async command error_t GpioInterrupt.enableFallingEdge[uint8_t pin](){
-    isFalling |= 1<<pin;
-    call HplAtmegaPinChange.setMask(call HplAtmegaPinChange.getMask() | (1<<pin));
-    call HplAtmegaPinChange.enable();
+    atomic {
+      isFalling |= 1<<pin;
+      call HplAtmegaPinChange.setMask(call HplAtmegaPinChange.getMask() | (1<<pin));
+      call HplAtmegaPinChange.enable();
+    }
     return SUCCESS;
   }
 
   /* Disables the interrupt */
   async command error_t GpioInterrupt.disable[uint8_t pin](){
-    uint8_t mask = call HplAtmegaPinChange.getMask() & ~(1<<pin);
-    call HplAtmegaPinChange.setMask(mask);
-    if(mask==0)
-      call HplAtmegaPinChange.disable();
+    atomic {
+      uint8_t mask = call HplAtmegaPinChange.getMask() & ~(1<<pin);
+      call HplAtmegaPinChange.setMask(mask);
+      if(mask==0)
+        call HplAtmegaPinChange.disable();
+    }
     return SUCCESS;
   }
   
