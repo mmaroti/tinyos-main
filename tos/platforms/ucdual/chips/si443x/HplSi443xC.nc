@@ -13,25 +13,22 @@ configuration HplSi443xC
         
     interface Resource as SpiResource;
     interface FastSpiByte;
-    interface GpioCapture as IRQ;
+    interface GpioInterrupt as IRQ;
     interface Alarm<TRadio, tradio_size> as Alarm;
     interface LocalTime<TRadio> as LocalTimeRadio;
   }
 }
 implementation
 {
-    components HplAtm128GeneralIOC as IO, HplAtm128InterruptC as AvrIrq, HplSi443xP;
-    components new NoPinC() as NoIO0, new NoPinC() as NoIO1;
-    
+    components HplAtm128GeneralIOC as IO, new NoPinC();
     NSEL = IO.PortF0;
-    SDN = NoIO0;
-    
-    IRQ = HplSi443xP.IRQ;
-    HplSi443xP.RealIRQ->AvrIrq.PCInt4;
-    
-    IO0 = NoIO0;
-    IO1 = NoIO1;
+    SDN = NoPinC;
+    IO0 = NoPinC;
+    IO1 = NoPinC;
     IO2 = IO.PortD4;
+    
+    components AtmegaPinChange0C;
+    IRQ = AtmegaPinChange0C.GpioInterrupt[4];
 
     components Atm128SpiC as SpiC;
     SpiResource = SpiC.Resource[unique("Atm128SpiC.Resource")];

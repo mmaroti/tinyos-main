@@ -100,7 +100,7 @@ implementation
 
     Si443xDriverLayerP.SDN -> HplSi443xC.SDN;
     Si443xDriverLayerP.NSEL -> HplSi443xC.NSEL;
-    Si443xDriverLayerP.IRQ->HplSi443xC.IRQ;
+    Si443xDriverLayerP.IRQ -> HplSi443xC.IRQ;
    
     Si443xDriverLayerP.FastSpiByte -> HplSi443xC;  
     Si443xDriverLayerP.SpiResource -> HplSi443xC.SpiResource;
@@ -114,8 +114,6 @@ implementation
     components DiagMsgC, AssertC, LedsC;
     Si443xDriverLayerP.DiagMsg -> DiagMsgC;
     Si443xDriverLayerP.Leds -> LedsC;
-    components HplAtm128InterruptSigP;
-    HplAtm128InterruptSigP.DiagMsg -> DiagMsgC;
 #endif
 
     components RealMainP, MainC;
