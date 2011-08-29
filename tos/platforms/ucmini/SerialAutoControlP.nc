@@ -32,7 +32,8 @@
 */
 module SerialAutoControlP{
   uses interface SplitControl;
-  uses interface AtmegaPinChange as ControlInt;
+  uses interface GpioInterrupt as ControlInt;
+  uses interface GeneralIO as ControlPin;
   provides interface Init as SoftwareInit;
   #ifdef SERIAL_AUTO_DEBUG
   uses interface Leds;
@@ -40,7 +41,7 @@ module SerialAutoControlP{
 }
 implementation{
   
-  bool prevState;
+  bool isSerialOn;
   
   task void turnOn(){
     error_t err=call SplitControl.start();  
@@ -74,30 +75,33 @@ implementation{
       call SplitControl.stop();
   }
   
+  
   command error_t SoftwareInit.init(){
-    atomic{
-      call ControlInt.enable();
-      if(call ControlInt.get()){
-        prevState=TRUE;
-        post turnOn();
-      } else {
-        prevState=FALSE;
-      }
-    }
-
+    if(call ControlPin.get()){
+      isSerialOn=TRUE;
+      post turnOn();
+      call ControlInt.enableFallingEdge();
+    } else {
+      isSerialOn=FALSE;
+      post turnOff();
+      call ControlInt.enableRisingEdge();
+    }     
     return SUCCESS;
   }
   
-  async event void ControlInt.fired(bool state){
-    if(state!=prevState){
-      prevState=state;
-      if(state)
-        post turnOn();
-      else
-        post turnOff();
-      #ifdef SERIAL_AUTO_DEBUG
-      call Leds.led0Toggle();
-      #endif
-    }
+  async event void ControlInt.fired(){
+    bool pinState=call ControlPin.get();
+    if(pinState && !isSerialOn ){
+      isSerialOn=TRUE;
+      post turnOn();
+      call ControlInt.enableFallingEdge();
+    } else if ( !pinState && isSerialOn){
+      isSerialOn=FALSE;
+      post turnOff();
+      call ControlInt.enableRisingEdge();
+    }     
+    #ifdef SERIAL_AUTO_DEBUG
+    call Leds.led0Toggle();
+    #endif
   }
 }
