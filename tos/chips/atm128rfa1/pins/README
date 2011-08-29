@@ -1,14 +1,12 @@
 There's two pcint driver here for backward compatibility (we will remove the old one soon)
 
 new pcint:
-AtmegaPinchange.nc
 AtmegaPinchangeP.nc
-AtmegaPinChange0P.nc
-AtmegaPinChange1P.nc
+AtmegaPinChange0C.nc
+AtmegaPinChange1C.nc
 HplAtmegaPinChange.nc
-HplAtm128rfa1PCInterrupt0P.nc
-HplAtm128rfa1PCInterrupt1P.nc
-PinChange2GpioIntC.nc
+HplAtmegaPinChange0C.nc
+HplAtmegaPinChange1C.nc
 
 old pcint:
 GpioPCInterrupt.nc
