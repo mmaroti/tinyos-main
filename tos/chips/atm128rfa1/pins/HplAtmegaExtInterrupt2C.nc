@@ -32,36 +32,59 @@
  * Author: Miklos Maroti
  */
 
-interface HplAtmegaExtInterrupt
+module HplAtmegaExtInterrupt2C
+{
+	provides interface HplAtmegaExtInterrupt;
+}
+
+#define INT_VECT	INT2_vect
+#define EIFR_REG	EIFR
+#define EIFR_PIN	INTF2
+#define EIMSK_REG	EIMSK
+#define EIMSK_PIN	INT2
+#define EICR_REG	EICRA
+#define EICR_PIN	ISC20
+
+implementation
 {
 // ----- external interrupt flag register (EIFR)
 
-	/* Signalled when any of the enabled pins changed */
-	async event void fired();
+	AVR_ATOMIC_HANDLER( INT_VECT )	{
+		signal HplAtmegaExtInterrupt.fired();
+	}
 
-	/* Tests if an interrupt is pending */
-	async command bool test();
+	default async event void HplAtmegaExtInterrupt.fired() {}
 
-	/* Resets a pending interrupt */
-	async command void reset();
+	async command bool HplAtmegaExtInterrupt.test() {
+		return (EIFR_REG & (1<<EIFR_PIN)) != 0;
+	}
+
+	async command void HplAtmegaExtInterrupt.reset() {
+		EIFR_REG = 1<<EIFR_PIN;
+	}
 
 // ----- external interrupt mask register (EIMSK)
 
-	/* Enables the interrupt */
-	async command void enable();
+	async command void HplAtmegaExtInterrupt.enable() {
+		EIMSK_REG |= 1<<EIMSK_PIN;
+	}
 
-	/* Disables the interrupt */
-	async command void disable();
+	async command void HplAtmegaExtInterrupt.disable() {
+		EIMSK_REG &= ~(1<<EIMSK_PIN);
+	}
 
-	/* Checks if the interrupt is enabled */
-	async command bool isEnabled();
+	async command bool HplAtmegaExtInterrupt.isEnabled() {
+		return (EIMSK_REG & (1<<EIMSK_PIN)) != 0;
+	}
 
 // ----- external interrupt control register (EICR)
 
-	/* Selects the operation mode. Must be called in atomic context
-	   and the interrupt flag should be cleared afterwards*/
-	async command void setMode(uint8_t mode);
+	inline async command void HplAtmegaExtInterrupt.setMode(uint8_t mode) {
+		uint8_t a = EICR_REG & ~(3 << EICR_PIN);
+		EICR_REG = a | ((mode & 3) << EICR_PIN);
+	}
 
-	/* Returns the operation mode */
-	async command uint8_t getMode();
+	async command uint8_t HplAtmegaExtInterrupt.getMode() {
+		return (EICR_REG >> EICR_PIN) & 3;
+	}
 }

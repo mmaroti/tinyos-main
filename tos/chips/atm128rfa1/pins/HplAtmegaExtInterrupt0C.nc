@@ -37,7 +37,7 @@ module HplAtmegaExtInterrupt0C
 	provides interface HplAtmegaExtInterrupt;
 }
 
-#define EI_VECTOR	INT0_vect
+#define INT_VECT	INT0_vect
 #define EIFR_REG	EIFR
 #define EIFR_PIN	INTF0
 #define EIMSK_REG	EIMSK
@@ -49,44 +49,42 @@ implementation
 {
 // ----- external interrupt flag register (EIFR)
 
-	AVR_ATOMIC_HANDLER( EI_VECTOR )	{
+	AVR_ATOMIC_HANDLER( INT_VECT )	{
 		signal HplAtmegaExtInterrupt.fired();
 	}
 
-	default async event void HplAtmegaPinChange.fired() {}
+	default async event void HplAtmegaExtInterrupt.fired() {}
 
-	async command bool test() {
+	async command bool HplAtmegaExtInterrupt.test() {
 		return (EIFR_REG & (1<<EIFR_PIN)) != 0;
 	}
 
-	async command void reset() {
+	async command void HplAtmegaExtInterrupt.reset() {
 		EIFR_REG = 1<<EIFR_PIN;
 	}
 
 // ----- external interrupt mask register (EIMSK)
 
-	async command void enable() {
+	async command void HplAtmegaExtInterrupt.enable() {
 		EIMSK_REG |= 1<<EIMSK_PIN;
 	}
 
-	async command void disable() {
+	async command void HplAtmegaExtInterrupt.disable() {
 		EIMSK_REG &= ~(1<<EIMSK_PIN);
 	}
 
-	async command bool isEnabled() {
+	async command bool HplAtmegaExtInterrupt.isEnabled() {
 		return (EIMSK_REG & (1<<EIMSK_PIN)) != 0;
 	}
 
 // ----- external interrupt control register (EICR)
 
-	async command void setMode(uint8_t mode) {
-		atomic {
-			uint8_t a = EICR_REG & ~(3 << EICR_PIN);
-			EICR_REG = a | ((mode & 3) << EICR_PIN);
-		}
+	inline async command void HplAtmegaExtInterrupt.setMode(uint8_t mode) {
+		uint8_t a = EICR_REG & ~(3 << EICR_PIN);
+		EICR_REG = a | ((mode & 3) << EICR_PIN);
 	}
 
-	async command uint8_t getMode() {
+	async command uint8_t HplAtmegaExtInterrupt.getMode() {
 		return (EICR_REG >> EICR_PIN) & 3;
 	}
 }
