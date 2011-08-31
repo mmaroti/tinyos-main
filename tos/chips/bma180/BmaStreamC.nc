@@ -17,5 +17,5 @@ implementation {
   BmaStreamP.LocalTime -> LocalTimeMilliC;
   BmaStreamP.CSN -> HplBma180C.CSN;
   BmaStreamP.PWR -> HplBma180C.PWR;
-  BmaStreamP.PCINT -> HplBma180C.ACCINT;
+  BmaStreamP.Interrupt -> HplBma180C.ACCINT;
 }

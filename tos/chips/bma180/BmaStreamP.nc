@@ -45,7 +45,7 @@ module BmaStreamP
   uses
   {
     interface FastSpiByte;
-    interface GpioPCInterrupt as PCINT;
+    interface GpioInterrupt as Interrupt;
     interface Resource;
     interface DiagMsg;
     interface Leds;
@@ -73,7 +73,6 @@ implementation
   };
 
   norace uint8_t state, temp;
-  bool newData=FALSE;
 
   bma180_data_t * firstStart;
   uint16_t firstLength;
@@ -136,33 +135,22 @@ implementation
     }
   }
 
-  async event void PCINT.fired(bool toHigh)
+  async event void Interrupt.fired()
   {    
-    if(toHigh) {
-      newData = TRUE;
+    readAccel();
+    currentPtr++;
+    if( currentPtr != currentEnd ) {
+      return;
     }
-    else {
-      //call Leds.led1Toggle();
-      ;
-    }
-
-    if(newData) {
-      newData = FALSE;
-      readAccel();
-      currentPtr++;
-      if( currentPtr != currentEnd ) {
-        return;
-      }
 
       currentPtr = secondStart;
     currentEnd = currentPtr + secondLength;
 
     if( (state += SAMPLING_STEP) != STATE_11 ) {
-      call PCINT.disable();
+      call Interrupt.disable();
     }
 
     post bufferDone();
-    }
   }
 
 	// ------- Slow path
@@ -287,7 +275,7 @@ implementation
       return FAIL;
 
     // do it early
-    //call PCINT.enable();
+    //call Interrupt.enable();
     if(call Resource.immediateRequest() == SUCCESS) {
       if(call DiagMsg.record()) {
         call DiagMsg.str("setInt");
@@ -337,7 +325,7 @@ implementation
       state = STATE_20;
     }
 
-    call PCINT.enable();
+    call Interrupt.enableRisingEdge();
       
     return SUCCESS;
   }

@@ -37,7 +37,7 @@ configuration HplBma180C{
   provides interface GeneralIO as CSN;
   provides interface GeneralIO as SCK;
   provides interface GeneralIO as PWR;
-  provides interface GpioPCInterrupt as ACCINT;
+  provides interface GpioInterrupt as ACCINT;
 }
 implementation {
   components MicaBusC; 

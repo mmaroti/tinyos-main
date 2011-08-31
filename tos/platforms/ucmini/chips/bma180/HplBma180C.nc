@@ -37,13 +37,13 @@ configuration HplBma180C{
   provides interface GeneralIO as CSN;
   provides interface GeneralIO as SCK;
   provides interface GeneralIO as PWR;
-  provides interface GpioPCInterrupt as ACCINT;
+  provides interface GpioInterrupt as ACCINT;
 }
 implementation {
-  components HplAtm128GeneralIOC as IO, HplAtm128InterruptC as Int; 
+  components HplAtm128GeneralIOC as IO, AtmegaPinChange0C; 
 
   CSN = IO.PortD7;//IO.PortB6; PortD7
   SCK = IO.PortE2;
   PWR = IO.PortE3;//IO.PortF0; PortE3
-  ACCINT= Int.PCInt6; //PortB6
+  ACCINT= AtmegaPinChange0C.GpioInterrupt[6]; //PortB6
 }
