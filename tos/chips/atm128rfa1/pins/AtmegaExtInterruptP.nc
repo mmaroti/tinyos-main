@@ -39,6 +39,8 @@ generic module AtmegaExtInterruptP(){
 implementation{
   
   async command error_t GpioInterrupt.enableRisingEdge(){
+    if(call HplAtmegaExtInterrupt.getMode()==ATMEGA_EXTINT_RISING_EDGE && call HplAtmegaExtInterrupt.isEnabled())
+      return EALREADY;
     atomic{
       call HplAtmegaExtInterrupt.setMode(ATMEGA_EXTINT_RISING_EDGE);
       call HplAtmegaExtInterrupt.enable();
@@ -48,6 +50,9 @@ implementation{
   }
   
   async command error_t GpioInterrupt.enableFallingEdge(){
+    if(call HplAtmegaExtInterrupt.getMode()==ATMEGA_EXTINT_FALLING_EDGE && call HplAtmegaExtInterrupt.isEnabled())
+      return EALREADY;
+    
     atomic{
       call HplAtmegaExtInterrupt.setMode(ATMEGA_EXTINT_FALLING_EDGE);
       call HplAtmegaExtInterrupt.enable();
