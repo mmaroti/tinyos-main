@@ -48,9 +48,6 @@ module HplAtm128InterruptSigP @safe()
   provides interface HplAtm128InterruptSig as IntSig5;
   provides interface HplAtm128InterruptSig as IntSig6;
   provides interface HplAtm128InterruptSig as IntSig7;
-  provides interface HplAtm128InterruptSig as PCIntSig0;
-  provides interface HplAtm128InterruptSig as PCIntSig1;
-  provides interface HplAtm128InterruptSig as PCIntSig2;
 }
 implementation
 {
@@ -92,20 +89,5 @@ implementation
   default async event void IntSig7.fired() { }
   AVR_ATOMIC_HANDLER( INT7_vect ) {
     signal IntSig7.fired();
-  }
-  
-  default async event void PCIntSig0.fired() { }
-  AVR_ATOMIC_HANDLER( PCINT0_vect ) {
-    signal PCIntSig0.fired();
-  }
-  
-  default async event void PCIntSig1.fired() { }
-  AVR_ATOMIC_HANDLER( PCINT1_vect ) {
-    signal PCIntSig0.fired();
-  }
-  
-  default async event void PCIntSig2.fired() { }
-  AVR_ATOMIC_HANDLER( PCINT2_vect ) {
-    signal PCIntSig0.fired();
   }
 }
