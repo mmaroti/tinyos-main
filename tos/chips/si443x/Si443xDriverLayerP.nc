@@ -168,7 +168,7 @@ implementation
 			call NSEL.clr();
 			call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_WRITE | 0x7F);
 
-			for (i = 0; i < 8; ++i)
+			for (i = 0; i < 64; ++i)
 				call FastSpiByte.splitReadWrite(i);
 
 			call FastSpiByte.splitRead();
@@ -178,8 +178,8 @@ implementation
 
 	inline void readFifo()
 	{
-		uint8_t i, a;
-		uint8_t buff[8];
+		uint8_t i,l;
+		uint8_t buff[255];
 		
 		RADIO_ASSERT( call SpiResource.isOwner() );
 
@@ -187,20 +187,19 @@ implementation
 		{
 			call NSEL.clr();
 			call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_READ | 0x7F);
-
-			for (i = 0; i < 8; ++i)
-			{
-				a = call FastSpiByte.splitReadWrite(0);
-				if( i > 0 )
-					buff[i-1] = a;
-			}
-
-			buff[7] = call FastSpiByte.splitRead();
+            call FastSpiByte.splitReadWrite(0);
+            l = call FastSpiByte.splitReadWrite(0); // pkt length
+                        
+			for (i = 0; i < l-1; ++i)
+				buff[i] = call FastSpiByte.splitReadWrite(0);
+			buff[l-1] = call FastSpiByte.splitRead();
+			
 			call NSEL.set();
 
 			if( call DiagMsg.record() ) {
 		            call DiagMsg.str("fifo read");
-		            call DiagMsg.hex8s(buff, 8);
+		            call DiagMsg.hex8(l);
+		            call DiagMsg.hex8s(buff, l);
 		            call DiagMsg.send();
 			}
 		}
@@ -286,13 +285,12 @@ implementation
 		readRegister(0x26);
 	}
 
+    uint8_t pklen = 0;
 	void si443x_transmit()
 	{
 		DIAGMSG_STR("transmit","");
         
-		fillFifo();
-        
-//		writeRegister(0x3E, 0x08);  // pkt length
+		writeRegister(0x3E, (pklen++)%8+1 );  // pkt length
 		writeRegister(0x05, 0xFF);  // pkt sent interrupt + TX fifo almost empty
 		writeRegister(0x06, 0xFF);
 		readRegister(0x03);         // flush interrupts
@@ -319,7 +317,7 @@ implementation
 
 		writeRegister(0x08, 0x10);	// multi receive
 		writeRegister(0x6D, 0x1F);	// max power, LNA switch set
-
+        writeRegister(0x7D, 0x00);  // TX fifo empty threshold = 0
 
 		writeRegister( 0x1C, 0x9A );
 		writeRegister( 0x1D, 0x3C );
@@ -335,12 +333,12 @@ implementation
 		writeRegister( 0x2C, 0x18 );
 		writeRegister( 0x2D, 0x4E );
 		writeRegister( 0x2E, 0x2A );
-		writeRegister( 0x30, 0x8D );
+		writeRegister( 0x30, 0x89 );
 		writeRegister( 0x32, 0x00 );
-		writeRegister( 0x33, 0x08 );
+		writeRegister( 0x33, 0x00 );
 		writeRegister( 0x34, 0x08 );
 		writeRegister( 0x35, 0x2A );
-		writeRegister( 0x3E, 0x08 );
+//		writeRegister( 0x3E, 0x14 );
 		writeRegister( 0x58, 0x80 );
 		writeRegister( 0x69, 0x60 );
 		writeRegister( 0x6E, 0x41 );
@@ -348,12 +346,9 @@ implementation
 		writeRegister( 0x70, 0x2F );
 		writeRegister( 0x71, 0x21 );
 		writeRegister( 0x72, 0xA0 );
-		writeRegister( 0x75, 0x75 );
+		writeRegister( 0x75, 0x4B );
 		writeRegister( 0x76, 0x7D );
 		writeRegister( 0x77, 0x00 );
-
-
-
 
 	}
 
@@ -406,10 +401,11 @@ implementation
 		if ( ! IS_TX ) {
 			resetRssi();
 			post measureRssi();
-	    		si443x_receive();
-    		}
-    	
-	    	call RadioAlarm.wait(30000);
+    		si443x_receive();
+   		} else 
+   		    fillFifo();
+
+    	call RadioAlarm.wait(30000);
 	}
 
 //	uint8_t reg75 = 0;
@@ -469,6 +465,7 @@ implementation
 //		DIAGMSG_STR("tasklet","");
 	}
     
+    bool fifoempty = FALSE;
 	async event void IRQ.fired()
 	{
 		uint8_t i1,i2;
@@ -491,9 +488,10 @@ implementation
 		if ( (i1 & 0x40) != 0 )
 			DIAGMSG_STR("Int","TxFifo Full");
 
-		if ( (i1 & 0x20) != 0 )
+		if ( (i1 & 0x20) != 0 ) {
 			DIAGMSG_STR("Int","TxFifo Empty");
-
+			fifoempty = TRUE;
+        }
 		if ( (i1 & 0x10) != 0 )
 			DIAGMSG_STR("Int","RxFifo Full");
 
@@ -501,6 +499,10 @@ implementation
 		{
 			call Leds.led2Off();
 			DIAGMSG_STR("Int","Pkt Sent");
+			if ( fifoempty ) {
+			    fillFifo(); 
+			    fifoempty = FALSE;
+			}
 		}
 
 		if ( (i1 & 0x02) != 0 )
