@@ -65,7 +65,7 @@ module Si443xDriverLayerP
         interface GeneralIO as SDN;
         interface GeneralIO as NSEL;
         
-        interface GpioCapture as IRQ;
+        interface GpioInterrupt as IRQ;
             
         interface FastSpiByte;
         interface Resource as SpiResource;
@@ -243,7 +243,7 @@ implementation
 		DIAGMSG_STR("reset","");
 		readRegister(0x03);
 		readRegister(0x04);
-		call IRQ.captureFallingEdge();	// previous interrupts mess up the PCINT handler
+		call IRQ.enableFallingEdge();	// previous interrupts mess up the PCINT handler
 		writeRegister(0x07, 0x81);
 		call BusyWait.wait(30000);
 		readRegister(0x03);		// we will get interrupts here, just ignore them
@@ -318,47 +318,43 @@ implementation
 		DIAGMSG_STR("setup","");
 
 		writeRegister(0x08, 0x10);	// multi receive
-		writeRegister(0x30, 0xA9);	// packet handling, crc disable
-		writeRegister(0x32, 0x00);	// no header bytes
-		writeRegister(0x33, 0x08);	// fix length, no header, 1 sync
-//		writeRegister(0x34, 0xFF);	// max preamble length
-//		writeRegister(0x35, 0x1A);	// minimum preamble match
-		writeRegister(0x34, 0x08);	// preamble length 4 bytes
-		writeRegister(0x35, 0x2A);	// preamble match 2,5 bytes
-//		writeRegister(0x36, 0x2D);	// default sync word
-		writeRegister(0x3E, 0x08);	// length = 8
-
-		writeRegister(0x1C, 0xAA);	// 400 khz IF bandwidth
-		writeRegister(0x1D, 0x3C);	// disable AFC
-		writeRegister(0x1E, 0x02);
-		writeRegister(0x1F, 0x00);
-		writeRegister(0x20, 0x77);
-		writeRegister(0x21, 0x20);
-		writeRegister(0x22, 0x57);
-		writeRegister(0x23, 0x62);
-		writeRegister(0x24, 0x10);
-		writeRegister(0x25, 0x59);
-		writeRegister(0x2A, 0xFF);
-		writeRegister(0x2C, 0x28);
-		writeRegister(0x2D, 0x9C);
-		writeRegister(0x2E, 0x2A);
-		writeRegister(0x58, 0x80);	// unknown register
-		writeRegister(0x69, 0x60);	// AGC enabled
-		writeRegister(0x6E, 0x41);	// 8 kbps datarate
-		writeRegister(0x6F, 0x89);
-		writeRegister(0x70, 0x2C);	// no manchester
-		writeRegister(0x71, 0x21);	// FIFO mode, OOK
-//		writeRegister(0x71, 0x22);	// FIFO mode, FSK
-//		writeRegister(0x71, 0x23);	// FIFO mode, GFSK
-//		writeRegister(0x72, 0x20);	// default 20 khz freq deviation
-		writeRegister(0x72, 0xA0);	// 100 khz freq deviation
-
 		writeRegister(0x6D, 0x1F);	// max power, LNA switch set
-//		writeRegister(0x75, 0x33);	// 868 MHz
-//		writeRegister(0x75, 0x13);	// 434 MHz
-		writeRegister(0x75, 0x4B);	// 355 MHz, sideband
-		writeRegister(0x76, 0x7D);
-		writeRegister(0x77, 0x00);
+
+
+		writeRegister( 0x1C, 0x9A );
+		writeRegister( 0x1D, 0x3C );
+		writeRegister( 0x1E, 0x02 );
+		writeRegister( 0x1F, 0x00 );
+		writeRegister( 0x20, 0x77 );
+		writeRegister( 0x21, 0x20 );
+		writeRegister( 0x22, 0x2B );
+		writeRegister( 0x23, 0xB1 );
+		writeRegister( 0x24, 0x10 );
+		writeRegister( 0x25, 0x59 );
+		writeRegister( 0x2A, 0xFF );
+		writeRegister( 0x2C, 0x18 );
+		writeRegister( 0x2D, 0x4E );
+		writeRegister( 0x2E, 0x2A );
+		writeRegister( 0x30, 0x8D );
+		writeRegister( 0x32, 0x00 );
+		writeRegister( 0x33, 0x08 );
+		writeRegister( 0x34, 0x08 );
+		writeRegister( 0x35, 0x2A );
+		writeRegister( 0x3E, 0x08 );
+		writeRegister( 0x58, 0x80 );
+		writeRegister( 0x69, 0x60 );
+		writeRegister( 0x6E, 0x41 );
+		writeRegister( 0x6F, 0x89 );
+		writeRegister( 0x70, 0x2F );
+		writeRegister( 0x71, 0x21 );
+		writeRegister( 0x72, 0xA0 );
+		writeRegister( 0x75, 0x75 );
+		writeRegister( 0x76, 0x7D );
+		writeRegister( 0x77, 0x00 );
+
+
+
+
 	}
 
 	uint8_t minRssi;
@@ -473,7 +469,7 @@ implementation
 //		DIAGMSG_STR("tasklet","");
 	}
     
-	async event void IRQ.captured(uint16_t time)
+	async event void IRQ.fired()
 	{
 		uint8_t i1,i2;
 
