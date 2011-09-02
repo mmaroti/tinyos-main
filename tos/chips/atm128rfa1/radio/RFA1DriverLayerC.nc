@@ -50,6 +50,7 @@ configuration RFA1DriverLayerC
 		interface PacketField<uint8_t> as PacketRSSI;
 		interface PacketField<uint8_t> as PacketTimeSyncOffset;
 		interface PacketField<uint8_t> as PacketLinkQuality;
+		interface LinkPacketMetadata;
 
 		interface LocalTime<TRadio> as LocalTimeRadio;
 		interface Alarm<TRadio, tradio_size>;
@@ -92,6 +93,7 @@ implementation
 
 	PacketLinkQuality = RFA1DriverLayerP.PacketLinkQuality;
 	PacketTimeStamp = RFA1DriverLayerP.PacketTimeStamp;
+	LinkPacketMetadata = RFA1DriverLayerP;
 
 	RFA1DriverLayerP.LocalTime -> LocalTime62khzC;
 	RFA1DriverLayerP.SfdCapture -> HplAtmRfa1TimerMacC.SfdCapture;

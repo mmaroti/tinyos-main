@@ -68,6 +68,7 @@ configuration RFA1ActiveMessageC
 		interface PacketField<uint8_t> as PacketLinkQuality;
 		interface PacketField<uint8_t> as PacketTransmitPower;
 		interface PacketField<uint8_t> as PacketRSSI;
+		interface LinkPacketMetadata;
 
 		interface LocalTime<TRadio> as LocalTimeRadio;
 		interface PacketTimeStamp<TRadio, uint32_t> as PacketTimeStampRadio;
@@ -103,6 +104,7 @@ implementation
 	PacketLinkQuality = RadioC.PacketLinkQuality;
 	PacketTransmitPower = RadioC.PacketTransmitPower;
 	PacketRSSI = RadioC.PacketRSSI;
+	LinkPacketMetadata = RadioC;
 
 	LocalTimeRadio = RadioC;
 	PacketTimeStampMilli = RadioC;
