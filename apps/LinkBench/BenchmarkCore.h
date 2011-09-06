@@ -106,7 +106,7 @@ typedef struct edge_t {
   flag_t        policy;           // Sending policies, settings, triggers
   num_t         nums;             // Message counters
   edgeaddr_t    reply_on;         // The edge bitmask used when sending on reception
-  seq_base_t    nextmsgid;        // The message id to send (on send side)/expected to receive (on receive side)
+  seq_base_t    nextmsgid;        // The message id to send (on send side)/consecutive to receive (on receive side)
 } edge_t;
 
 // Stats type
@@ -127,7 +127,7 @@ typedef nx_struct stat_t {
   nx_seq_base_t    notAckedCount;
 
   nx_seq_base_t    receiveCount;
-  nx_seq_base_t    expectedCount;
+  nx_seq_base_t    consecutiveCount;
   nx_seq_base_t    duplicateCount;
   nx_seq_base_t    forwardCount;
   nx_seq_base_t    missedCount;

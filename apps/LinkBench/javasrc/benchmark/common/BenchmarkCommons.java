@@ -169,7 +169,7 @@ public class BenchmarkCommons {
               s.get_wasAckedCount(),
               s.get_notAckedCount(),
               s.get_receiveCount(),
-              s.get_expectedCount(),
+              s.get_consecutiveCount(),
               s.get_wrongCount(),
               s.get_duplicateCount(),
               s.get_forwardCount(),
@@ -208,7 +208,7 @@ public class BenchmarkCommons {
       ret += "<NAC>" + s.get_notAckedCount() + "</NAC>";
 
       ret += "<RCC>" + s.get_receiveCount() + "</RCC>";
-      ret += "<EXC>" + s.get_expectedCount() + "</EXC>";
+      ret += "<EXC>" + s.get_consecutiveCount() + "</EXC>";
       ret += "<WC>" + s.get_wrongCount() + "</WC>";
       ret += "<FC>" + s.get_forwardCount() + "</FC>";
       ret += "<DRC>" + s.get_duplicateCount() + "</DRC>";

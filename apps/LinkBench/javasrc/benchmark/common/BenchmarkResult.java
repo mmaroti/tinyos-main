@@ -192,7 +192,7 @@ public class BenchmarkResult {
     s.set_notAckedCount(msg.get_payload_stat_notAckedCount());
 
     s.set_receiveCount(msg.get_payload_stat_receiveCount());
-    s.set_expectedCount(msg.get_payload_stat_expectedCount());
+    s.set_consecutiveCount(msg.get_payload_stat_consecutiveCount());
     s.set_wrongCount(msg.get_payload_stat_wrongCount());
     s.set_duplicateCount(msg.get_payload_stat_duplicateCount());
     s.set_missedCount(msg.get_payload_stat_missedCount());
@@ -221,7 +221,7 @@ public class BenchmarkResult {
     news.set_notAckedCount(        s1.get_notAckedCount()         +   s.get_notAckedCount());
 
     news.set_receiveCount(         s1.get_receiveCount()          +   s.get_receiveCount());
-    news.set_expectedCount(        s1.get_expectedCount()         +   s.get_expectedCount());
+    news.set_consecutiveCount(        s1.get_consecutiveCount()         +   s.get_consecutiveCount());
     news.set_wrongCount(           s1.get_wrongCount()            +   s.get_wrongCount());
     news.set_duplicateCount(       s1.get_duplicateCount()        +   s.get_duplicateCount());
     news.set_missedCount(          s1.get_missedCount()           +   s.get_missedCount());

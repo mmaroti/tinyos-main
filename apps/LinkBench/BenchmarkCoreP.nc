@@ -515,22 +515,22 @@ implementation {
 
       // If the message id is ok
       if ( msg->msgid == edge->nextmsgid ) {
-        ++(stat->expectedCount);
+        ++(stat->consecutiveCount);
 
       } else {
         ++(stat->wrongCount);
         
-        // If we got a message with a lower id than expected -> duplicate
+        // If we got a message with a lower id than consecutive -> duplicate
         if ( msg->msgid < edge->nextmsgid )
           ++(stat->duplicateCount);
-        // If we got a message with a higher id than expected -> we have missed messages
+        // If we got a message with a higher id than consecutive -> we have missed messages
         else {
           ++(stat->forwardCount);
           stat->missedCount += msg->msgid - edge->nextmsgid;
         }
       }
 
-      // Set the next expected message id
+      // Set the next consecutive message id
       edge->nextmsgid = msg->msgid + 1;
 
       // Check whether we have to reply

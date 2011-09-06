@@ -60,7 +60,7 @@
           <td class="sub">noACK</td>
  
           <td class="sub">Total</td>
-          <td class="sub">Expected</td>
+          <td class="sub">Consecutive</td>
           <td class="sub">Wrong</td>
           <td class="sub">Duplicate</td>
           <td class="sub">Forward</td>
