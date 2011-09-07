@@ -52,65 +52,30 @@ module PlatformP @safe()
 
 implementation
 {
-	error_t powerInit()
-	{
-		atomic
-		{
-			MCUCR = _BV(SE);	// Internal RAM, IDLE, rupt vector at 0x0002,
-			
-		}
-
-		return SUCCESS;
-	}
-
-	command error_t Init.init()
-	{
-      error_t ok;
+  command error_t Init.init(){
+    error_t ok;
 
 
-      MCUCR |= 1<<JTD;
-      MCUCR |= 1<<JTD; 
-      
-          // set the clock prescaler
-      atomic {
-        // enable changing the prescaler
-              CLKPR = 0x80;
-        #if PLATFORM_MHZ == 16
-              CLKPR=0x0F;
-        #elif PLATFORM_MHZ == 8
-              CLKPR = 0x00;
-        #elif PLATFORM_MHZ == 4
-              CLKPR = 0x01;
-        #elif PLATFORM_MHZ == 2
-              CLKPR = 0x02;
-        #elif PLATFORM_MHZ == 1
-              CLKPR = 0x03;
-        #else
-            #error "Unsupported MHZ"
-        #endif
-      }
+    MCUCR |= 1<<JTD;
+    MCUCR |= 1<<JTD; 
+    
 
-      ok = call McuInit.init();
-      ok = ecombine(ok, call LedsInit.init());
-      ok = ecombine(ok, powerInit());
-      ok = ecombine(ok, call SubInit.init());
-      call RadioInit.init();
-      call Stm25pInit.init();
-      //TODO these should be in their init
-      call FlashCS.makeOutput();
-      call RadioCS.makeOutput();
-      call FlashCS.set();
-      call RadioCS.set();
-      return ok;
-	}
-	
-	default command error_t SubInit.init()
-    {
-        return SUCCESS;
-    }
+    ok = call McuInit.init();
+    ok = ecombine(ok, call Stm25pInit.init());
+    ok = ecombine(ok, call RadioInit.init());
+    ok = ecombine(ok, call LedsInit.init());
+    ok = ecombine(ok, call SubInit.init());//TODO: this is the adc init, it will be moved to the McuInit soon, so it's just a temporary solution
+    //TODO these should be in their init
+    call FlashCS.makeOutput();
+    call RadioCS.makeOutput();
+    call FlashCS.set();
+    call RadioCS.set();
+    return ok;
+ }
 
-	default command error_t LedsInit.init()
-	{
-		return SUCCESS;
-	}
+ default command error_t SubInit.init()
+  {
+    return SUCCESS;
+  }
+
 }
