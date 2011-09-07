@@ -48,12 +48,6 @@ module PlatformP @safe()
 }
 implementation
 {
-  void power_init() {
-      atomic {
-	MCUCR = _BV(SE);      // Internal RAM, IDLE, rupt vector at 0x0002,
-			      // enable sleep instruction!
-      }
-  }
 
   command error_t Init.init()
   {
@@ -73,7 +67,7 @@ implementation
 #elif PLATFORM_MHZ == 1
       CLKPR = 0x03;
 #else
-	#error "Unsupported MHZ"
+      #error "Unsupported MHZ"
 #endif
     }
 
@@ -81,11 +75,7 @@ implementation
     ok = call MeasureClock.init();
     ok = ecombine(ok, call MoteInit.init());
 
-    if (ok != SUCCESS)
-      return ok;
+    return ok;
 
-    power_init();
-
-    return SUCCESS;
   }
 }
