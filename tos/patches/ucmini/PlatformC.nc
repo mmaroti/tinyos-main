@@ -1,7 +1,6 @@
-/// $Id: PlatformC.nc,v 1.5 2010-06-29 22:07:53 scipio Exp $
-
 /*
- * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
+ * Copyright (c) 2010, University of Szeged
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +12,7 @@
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the
  *   distribution.
- * - Neither the name of Crossbow Technology nor the names of
+ * - Neither the name of the copyright holder nor the names of
  *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -29,36 +28,44 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-/**
- * Initialisation component for mica-family platforms. See TEP107. Each 
- * mica-family member must also provide a MotePlatformC with initialisation
- * specific to that member.
  *
- * @author Martin Turon <mturon@xbow.com>
+ * Author: Miklos Maroti
  */
 
-#include "hardware.h"
-
-configuration PlatformC {
-  provides {
-    interface Init;
-    /**
-     * Provides calibration information for other components.
-     */
-    interface Atm128Calibrate;
-  }
-  uses interface Init as SubInit;
+configuration PlatformC
+{
+  provides interface Init;
+  uses interface Init as LedsInit;
 }
 implementation
 {
-  components PlatformP, MotePlatformC, MeasureClockC;
-  
+  //initialization
+  components PlatformP, McuInitC, MeasureClockC;
   Init = PlatformP;
-  Atm128Calibrate = MeasureClockC;
+  LedsInit = PlatformP.LedsInit;
+  PlatformP.McuInit -> McuInitC;
 
-  PlatformP.MeasureClock -> MeasureClockC;
-  PlatformP.MoteInit -> MotePlatformC;
-  MotePlatformC.SubInit = SubInit;
+  //turning off unused components
+  components RFA1RadioOffP, Stm25pOffC;
+  PlatformP.RadioInit -> RFA1RadioOffP.RFA1RadioOff;
+  PlatformP.Stm25pInit -> Stm25pOffC.Stm25pOff;
+  
+  //voltage measuring circuit
+  components HplAtm128GeneralIOC;
+  #if UCMINI_REV==49
+    PlatformP.Voltmeter -> HplAtm128GeneralIOC.PortF0;
+  #elif (UCMINI_REV >=50) && (UCMINI_REV<=53)
+    PlatformP.VBattADC -> HplAtm128GeneralIOC.PortF2;
+    PlatformP.VMeasureBridge -> HplAtm128GeneralIOC.PortD6;
+  #else
+    PlatformP.VBattADC -> HplAtm128GeneralIOC.PortF2;
+    PlatformP.VMeasureBridge -> HplAtm128GeneralIOC.PortF0;
+  #endif
+
+  #ifndef DISABLE_SERIAL_AUTO
+    components SerialAutoControlC;
+  #endif
+  #ifndef DISABLE_SERIAL_RESET
+    components SerialResetC;
+  #endif
 }

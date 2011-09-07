@@ -1,5 +1,3 @@
-/// $Id: PlatformP.nc,v 1.6 2010-06-29 22:07:53 scipio Exp $
-
 /*
  * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
@@ -29,12 +27,9 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-/**
- * Internal platform boot code.
  *
  * @author Martin Turon <mturon@xbow.com>
+ * @author Miklos Maroti
  */
 
 #include "hardware.h"
@@ -42,22 +37,48 @@
 module PlatformP @safe()
 {
   provides interface Init;
-  uses interface Init as MoteInit;
-  uses interface Init as MeasureClock;
 
+  uses
+  {
+    interface Init as McuInit;
+    interface Init as LedsInit;
+    interface Init as RadioInit;
+    interface Init as Stm25pInit; 
+    #if UCMINI_REV==49
+      interface GeneralIO as Voltmeter;
+    #else
+      interface GeneralIO as VBattADC;
+      interface GeneralIO as VMeasureBridge;
+    #endif
+  }
 }
+
 implementation
 {
-
   command error_t Init.init()
   {
     error_t ok;
 
-    /* First thing is to measure the clock frequency */
-    ok = call MeasureClock.init();
-    ok = ecombine(ok, call MoteInit.init());
+    //disable the voltage measuring circuit
+    #if UCMINI_REV==49
+      call Voltmeter.set();
+    #else
+      call VMeasureBridge.makeOutput();
+      call VMeasureBridge.set();
+      call VBattADC.set();
+      call VBattADC.makeOutput();
+    #endif
+
+    //disable jtag
+    MCUCR |= 1<<JTD;
+    MCUCR |= 1<<JTD; 
+
+    ok = call McuInit.init();
+    ok = ecombine(ok, call Stm25pInit.init());
+    ok = ecombine(ok, call RadioInit.init());
+    ok = ecombine(ok, call LedsInit.init());
 
     return ok;
   }
+  
 }
-
