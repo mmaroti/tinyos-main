@@ -13,13 +13,18 @@
 #include <QToolButton>
 #include <QClipboard>
 #include <QDockWidget>
+#include <QListWidget>
+#include <QListWidgetItem>
+#include <QProgressBar>
 
 #include <qwt_picker_machine.h>
 #include <qwt_plot_zoomer.h>
 #include <qwt_plot_panner.h>
 #include <qwt_plot_marker.h>
+#include <qwt_scale_widget.h>
 
 #include "MoteData.h"
+#include "constants.h"
 
 MainWindow::MainWindow(QWidget *parent, Application &app):
     QMainWindow(parent),
@@ -29,14 +34,7 @@ MainWindow::MainWindow(QWidget *parent, Application &app):
 
     setCentralWidget(d_plot);
 
-    QToolBar *toolBar = new QToolBar(this);
-
-    btnZoom = new QToolButton(toolBar);
-    btnZoom->setText("Zoom");
-    btnZoom->setCheckable(true);
-    btnZoom->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    toolBar->addWidget(btnZoom);    
-    connect(btnZoom, SIGNAL(toggled(bool)), SLOT(enableZoomMode(bool)));
+    QToolBar *toolBar = new QToolBar(this);    
 
     btnLoad = new QToolButton(toolBar);
     btnLoad->setText("Load");
@@ -50,6 +48,20 @@ MainWindow::MainWindow(QWidget *parent, Application &app):
     toolBar->addWidget(btnClear);
     connect(btnClear, SIGNAL(clicked()), SLOT(onClearButtonPressed()));
 
+    btnSave = new QToolButton(this);
+    btnSave->setText("Save");
+    toolBar->addWidget(btnSave);
+    connect(btnSave, SIGNAL(clicked()), SLOT(onSaveButtonPressed()));
+
+    toolBar->addSeparator();
+
+    btnZoom = new QToolButton(toolBar);
+    btnZoom->setText("Zoom");
+    btnZoom->setCheckable(true);
+    btnZoom->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    toolBar->addWidget(btnZoom);    
+    connect(btnZoom, SIGNAL(toggled(bool)), SLOT(enableZoomMode(bool)));
+
     btnMarker = new QToolButton(this);
     btnMarker->setText("Marker");
     btnMarker->setCheckable(true);
@@ -57,17 +69,11 @@ MainWindow::MainWindow(QWidget *parent, Application &app):
     toolBar->addWidget(btnMarker);
     connect(btnMarker, SIGNAL(toggled(bool)), SLOT(enableMarkerMode(bool)));
 
-    btnSave = new QToolButton(this);
-    btnSave->setText("Save");
-    toolBar->addWidget(btnSave);
-    connect(btnSave, SIGNAL(clicked()), SLOT(onSaveButtonPressed()));
-
     btnCut = new QToolButton(this);
     btnCut->setText("Cut");
     btnCut->setCheckable(true);
     toolBar->addWidget(btnCut);    
     connect(btnCut, SIGNAL(toggled(bool)), SLOT(enableCutMode(bool)));
-
 
     btnCopy = new QToolButton(this);
     btnCopy->setText("Copy");
@@ -80,6 +86,8 @@ MainWindow::MainWindow(QWidget *parent, Application &app):
     btnPaste->setCheckable(true);
     toolBar->addWidget(btnPaste);
     connect(btnPaste, SIGNAL(toggled(bool)), SLOT(enablePasteMode(bool)));
+
+    toolBar->addSeparator();
 
     btnSData = new QToolButton(this);
     btnSData->setText("SData Downloader");
@@ -101,12 +109,31 @@ MainWindow::MainWindow(QWidget *parent, Application &app):
     dockWidget = new QDockWidget(tr("Marker Notes"), this);
     dockWidget->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea | Qt::TopDockWidgetArea);
     dockWidget->setWidget(markerText);
-    addDockWidget(Qt::LeftDockWidgetArea, dockWidget);
+    addDockWidget(Qt::TopDockWidgetArea, dockWidget);
 
     dockWidget->hide();
 
+    listWidget = new QListWidget(this);
+
+    dockWidget2 = new QDockWidget(tr("List of markers"), this);
+    dockWidget2->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea | Qt::TopDockWidgetArea);
+    dockWidget2->setWidget(listWidget);
+    addDockWidget(Qt::LeftDockWidgetArea, dockWidget2);
+
+    dockWidget2->hide();
+
+    btnClear->setDisabled(true);
+    btnSave->setDisabled(true);
+    btnCopy->setDisabled(true);
+    btnCut->setDisabled(true);
+    btnPaste->setDisabled(true);
+    btnZoom->setDisabled(true);
+    btnMarker->setDisabled(true);
+
+
     //connect(d_loadButton, SIGNAL(clicked()), this, SLOT(onLoadButtonPressed()));
     //connect(d_clearButton, SIGNAL(clicked()), this, SLOT(onClearButtonPressed()));
+    connect(listWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(on_listWidget_itemDoubleClicked(QListWidgetItem*)));
 }
 
 void MainWindow::onLoadButtonPressed()
@@ -124,8 +151,15 @@ void MainWindow::onLoadButtonPressed()
 
     QString file = QFileDialog::getOpenFileName(this,"Select one or more files to open", "c:/", "CSV (*.csv);;Any File (*.*)");
     if ( !file.isEmpty() ) {
+
+//        progressBar = new QProgressBar(this);
+//        progressBar->setMinimum(0);
+//        progressBar->setMaximum();
+
         application.moteDataHolder.loadCSVData( file );
 
+
+        //load markers
         QFile f( file );
         QString line;
 
@@ -162,10 +196,13 @@ void MainWindow::onLoadButtonPressed()
             }
         }
 
-
+        btnClear->setEnabled(true);
+        btnSave->setEnabled(true);
+        btnCopy->setEnabled(true);
+        btnCut->setEnabled(true);
+        btnPaste->setEnabled(true);
         btnZoom->setEnabled(true);
         btnMarker->setEnabled(true);
-        btnClear->setEnabled(true);
     }
 }
 
@@ -199,8 +236,22 @@ void MainWindow::onSaveButtonPressed()
 
 }
 
+void MainWindow::clearMarkers()
+{
+    for(int i = 0; i < markers.size(); i++){
+        markers[i]->detach();
+    }
+    markers.clear();
+}
+
 void MainWindow::onClearButtonPressed()
 {
+    btnMarker->setDisabled(true);
+    btnZoom->setDisabled(true);
+
+    d_plot->enableZoomMode(false);
+    //d_plot->deleteZoomer();
+    clearMarkers();
     clearCurveDatas();
 
     for(int i=0; i<application.moteDataHolder.motesCount(); i++){
@@ -209,9 +260,17 @@ void MainWindow::onClearButtonPressed()
 
     application.moteDataHolder.clearMotes();
 
-    btnZoom->setEnabled(false);
-    btnMarker->setEnabled(false);
-    btnClear->setEnabled(false);
+    d_plot->replot();
+
+    btnMarker->setChecked(false);
+    btnCopy->setChecked(false);
+    btnCut->setChecked(false);
+    btnPaste->setChecked(false);
+
+    btnCopy->setDisabled(true);
+    btnCut->setDisabled(true);
+    btnClear->setDisabled(true);
+    btnSave->setDisabled(true);
 }
 
 void MainWindow::clearCurveDatas()
@@ -256,6 +315,8 @@ void MainWindow::enableMarkerMode(bool on)
     if(on == true){
 
         dockWidget->show();
+        dockWidget2->show();
+        markerText->setFocus();
 
         btnZoom->setChecked(false);
         btnCopy->setChecked(false);
@@ -269,6 +330,7 @@ void MainWindow::enableMarkerMode(bool on)
         connect(d_picker, SIGNAL(selected(QPointF)), this, SLOT(createMarker(QPointF)));
     } else {
         dockWidget->hide();
+        dockWidget2->hide();
         d_picker->setRubberBand(QwtPlotPicker::NoRubberBand);
 
         disconnect(d_picker, SIGNAL(selected(QPointF)), this, SLOT(createMarker(QPointF)));
@@ -424,16 +486,21 @@ void MainWindow::createMarker(const QPointF &pos)
 
     markers.append(marker);
     markerText->clear();
+    markerText->setFocus();
+
+    QListWidgetItem *newItem = new QListWidgetItem;
+    newItem->setText(label);
+    listWidget->insertItem(markers.size(), newItem);
 }
 
-void MainWindow::createMarker(const QPointF &pos, QString text)
+void MainWindow::createMarker(const QPointF &pos, QString text, QColor color)
 {
     QString label = text;
     QwtPlotMarker *marker = new QwtPlotMarker();
     marker->setValue(pos);
     marker->setLineStyle(QwtPlotMarker::VLine);
     marker->setLabelAlignment(Qt::AlignRight | Qt::AlignBottom);
-    marker->setLinePen(QPen(Qt::green, 0, Qt::DashDotLine));
+    marker->setLinePen(QPen(color, 0, Qt::DashDotLine));
 
     marker->setLabel(label);
     marker->attach(d_plot);
@@ -442,6 +509,7 @@ void MainWindow::createMarker(const QPointF &pos, QString text)
 
     markers.append(marker);
     markerText->clear();
+    markerText->setFocus();
 }
 
 
@@ -458,7 +526,7 @@ void MainWindow::copy(QRectF rect)
     for(int i = 0; i < application.moteDataHolder.motesCount(); i++){
 
         int begining = application.moteDataHolder.findNearestSample(from, i);
-        qDebug() << begining << " , " << application.moteDataHolder.mote(i)->sampleAt(begining).unix_time << "; real time: " << from;
+        qDebug() << "Copy times: begining: " << begining << " , unix_time@begining: " << application.moteDataHolder.mote(i)->sampleAt(begining).unix_time << ", unix_time@sample(0): " << application.moteDataHolder.mote(i)->sampleAt(0).unix_time << " ; real time: " << from;
         copyPositions.append(begining);
 
         int end = application.moteDataHolder.findNearestSample(to, i);
@@ -468,12 +536,32 @@ void MainWindow::copy(QRectF rect)
 
     QClipboard *clipboard = QApplication::clipboard();
     QString clipboardText;
+
+    clipboardText.append("#mote,reboot_ID,length,boot_unix_time,skew_1,offset\n");
+
+    for(int j = 0; j < application.moteDataHolder.motesCount(); j++){
+        QString row = application.moteDataHolder.mote(j)->getMoteHeader()+"\n";
+        clipboardText.append(row);
+    }
+
+    clipboardText.append("#mote,reboot_ID,unix_time,mote_time,counter,accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z,volt,temp\n");
+
     for(int j = 0; j < application.moteDataHolder.motesCount(); j++){
         for(int i = copyPositions.at(2*j); i < copyPositions.at(2*j+1); i++ ){
-            QString row = QString::number(j)+","+application.moteDataHolder.mote(j)->sampleAt(i).toCsvString()+"\n";
+            QString row = QString::number(application.moteDataHolder.mote(j)->getMoteID())+","+QString::number(application.moteDataHolder.mote(j)->getRebootID())+","+application.moteDataHolder.mote(j)->sampleAt(i).toCsvString()+"\n";
             clipboardText.append(row);
         }
     }
+
+    clipboardText.append("#marker_id,marker_text,marker_x_pos\n");
+
+    for(int i = 0; i < markers.size(); i++){
+        if(markers[i]->xValue() < to && markers[i]->xValue() >= from){
+            QString row = QString::number(i)+","+markers[i]->label().text()+","+QString::number(markers[i]->xValue())+"\n";
+            clipboardText.append(row);
+        }
+    }
+
     clipboard->setText(clipboardText);
 
 }
@@ -501,35 +589,210 @@ void MainWindow::cut(QRectF rect)
 
     QClipboard *clipboard = QApplication::clipboard();
     QString clipboardText;
+
+    clipboardText.append("#mote,reboot_ID,length,boot_unix_time,skew_1,offset\n");
+
+    for(int j = 0; j < application.moteDataHolder.motesCount(); j++){
+        QString row = application.moteDataHolder.mote(j)->getMoteHeader()+"\n";
+        clipboardText.append(row);
+    }
+
+    clipboardText.append("#mote,reboot_ID,unix_time,mote_time,counter,accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z,volt,temp\n");
+
     for(int j = 0; j < application.moteDataHolder.motesCount(); j++){
         for(int i = copyPositions.at(2*j); i < copyPositions.at(2*j+1); i++ ){
-            QString row = QString::number(j)+","+application.moteDataHolder.mote(j)->sampleAt(i).toCsvString()+"\n";
+            QString row = QString::number(application.moteDataHolder.mote(j)->getMoteID())+","+QString::number(application.moteDataHolder.mote(j)->getRebootID())+","+application.moteDataHolder.mote(j)->sampleAt(i).toCsvString()+"\n";
             clipboardText.append(row);
         }
-
         application.moteDataHolder.mote(j)->deleteSamplesFrom(copyPositions.at(2*j), copyPositions.at(2*j+1)-copyPositions.at(2*j));
     }
+
+    clipboardText.append("#marker_id,marker_text,marker_x_pos");
+
+    for(int i = 0; i < markers.size(); i++){
+        if(markers[i]->xValue() > to && markers[i]->xValue() <= from){
+            QString row = QString::number(i)+","+markers[i]->label().text()+","+QString::number(markers[i]->xValue())+"\n";
+            clipboardText.append(row);
+        }
+    }
+
+
     clipboard->setText(clipboardText);
+
     calculateCurveDatas(1.0);
 
 }
 
 void MainWindow::paste(QPointF pos)
 {
-    int from = pos.x();
-    int begining;
 
-    for(int j = 0; j < application.moteDataHolder.motesCount(); j++){
-        QVector<Sample> samples;
-        for(int i = copyPositions.at(2*j); i < copyPositions.at(2*j+1); i++ ){            
-            samples.append(application.moteDataHolder.mote(j)->sampleAt(i));
-        }
-        begining = application.moteDataHolder.findNearestSample(from, j);
+    //paste from clipboard
+    QClipboard *clipboard = QApplication::clipboard();
+    QString text = clipboard->text();
+    if(!text.isNull()){
 
-        for(int k = 0; k < samples.size(); k++){
-            application.moteDataHolder.mote(j)->insertSampleAt(begining++, samples.at(k));
+        qDebug() << "pasting from clipboard...";
+        QTextStream stream(&text, QIODevice::ReadOnly);
+
+        QString line = stream.readLine();
+        if(line != "#mote,reboot_ID,length,boot_unix_time,skew_1,offset"){
+            QMessageBox msgBox;
+            msgBox.setText("Wrong file format! Wrong header!");
+            msgBox.exec();
+        } else {
+            line = stream.readLine();
+
+            //create moteData from header information
+            while ( !line.isEmpty() && line != "#mote,reboot_ID,unix_time,mote_time,counter,accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z,volt,temp" )
+            {
+                application.moteDataHolder.createMoteData(line);            //convert line string to mote header data
+                line = stream.readLine();         // line of text excluding '\n'
+            }
+
+            //skip empty lines
+            while( line != "#mote,reboot_ID,unix_time,mote_time,counter,accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z,volt,temp" )
+            {
+                line = stream.readLine();
+            }
+
+
+
+            double from = pos.x();
+            if( from < d_plot->axisInterval(QwtPlot::xBottom).minValue() + BORDER_MARGIN ) from = d_plot->axisInterval(QwtPlot::xBottom).minValue();
+
+            int begining;
+            double minTime = 99999.999;
+            double maxTime = 0.000;
+            double timeDelay;
+
+            for(int j = 0; j < application.moteDataHolder.motesCount(); j++){
+                for(int i = copyPositions.at(2*j); i < copyPositions.at(2*j+1); i++ ){
+                    if(minTime > application.moteDataHolder.mote(j)->sampleAt(i).unix_time) minTime = application.moteDataHolder.mote(j)->sampleAt(i).unix_time;
+                    if(maxTime < application.moteDataHolder.mote(j)->sampleAt(i).unix_time) maxTime = application.moteDataHolder.mote(j)->sampleAt(i).unix_time;
+                }
+            }
+
+            timeDelay = maxTime - minTime;
+            qDebug() << "-----PASTE-----";
+            qDebug() << "Paste time delay: " << minTime << " - " << maxTime;
+
+            createMarker(QPointF(from, 0),"paste from", Qt::red);
+            createMarker(QPoint(from+timeDelay,0), "paste to", Qt::red);
+
+            line = stream.readLine();
+
+            Sample sample = application.moteDataHolder.createSample(line, false);
+
+            QVector<Sample> samples;
+            QVector< QVector <Sample> > moteSamples;
+
+            int prevMoteID = sample.moteID;
+            int mote = 0;
+
+            //create the samples for the actual moteData
+            while ( !line.isEmpty() && line != "#marker_id,marker_text,marker_x_pos" )
+            {
+                Sample sample = application.moteDataHolder.createSample(line, false);
+
+                if(prevMoteID == sample.moteID){
+                    samples.append(sample);
+                } else  {
+                    moteSamples.append(samples);
+                    samples.clear();
+                    mote++;
+                    samples.append(sample);
+                }
+
+                prevMoteID = sample.moteID;
+
+                line = stream.readLine();         // line of text excluding '\n'
+
+            }
+
+            moteSamples.append(samples);
+
+            qDebug() << "MoteSamples: " << moteSamples.size();
+
+            for(int j = 0; j < application.moteDataHolder.motesCount(); j++){
+
+                begining = application.moteDataHolder.findNearestSample(from, j);
+
+                qDebug() << "Copy begining: " << begining;
+
+                qDebug() << "Samples size: " << application.moteDataHolder.mote(j)->samplesSize();
+
+                application.moteDataHolder.mote(j)->insertBlankSamples(begining, moteSamples[j].size());
+
+                qDebug() << "   ...after injecting blank samples: " << application.moteDataHolder.mote(j)->samplesSize();
+
+                qDebug() << "Time of first sample after blanks: " << application.moteDataHolder.mote(j)->sampleAt(begining+moteSamples[j].size()+1).unix_time;
+
+                application.moteDataHolder.mote(j)->setTimeDelay(timeDelay, begining+moteSamples[j].size());
+
+                qDebug() << "   ...after setting delyay: " << application.moteDataHolder.mote(j)->sampleAt(begining+moteSamples[j].size()+1).unix_time;
+
+                for(int k = 0; k < moteSamples[j].size(); k++){
+                    int pos = begining++;
+                    Sample *sample = &application.moteDataHolder.mote(j)->getSampleAt(pos);
+                    sample->unix_time = from+k*0.005;
+                    sample->xAccel = moteSamples[j].at(k).xAccel;
+                    sample->yAccel = moteSamples[j].at(k).yAccel;
+                    sample->zAccel = moteSamples[j].at(k).zAccel;
+                    sample->xGyro  = moteSamples[j].at(k).xGyro;
+                    sample->yGyro  = moteSamples[j].at(k).yGyro;
+                    sample->zGyro  = moteSamples[j].at(k).zGyro;
+
+                    sample->counter = moteSamples[j].at(k).counter;
+                    sample->mote_time = moteSamples[j].at(k).mote_time;
+
+                }
+
+            }
+
+            line = stream.readLine();
+
+            while ( !line.isEmpty() )
+            {
+                QStringList list = line.split(",");
+                QStringListIterator csvIterator(list);
+
+                QString text;
+                QPointF pos;
+                if(csvIterator.hasNext()){
+                    int id = csvIterator.next().toInt();
+                    text = csvIterator.next();
+                    double xPos = csvIterator.next().toDouble();
+                    double yPos = csvIterator.next().toDouble();
+
+                    pos.setX(xPos);
+                    pos.setY(yPos);
+                }
+
+                createMarker(pos, text);
+                line = stream.readLine();
+            }
+
         }
-    }    
+
+
+        onLoadFinished();
+        return;
+    }
+
 
     calculateCurveDatas(1.0);
 }
+
+void MainWindow::on_listWidget_itemDoubleClicked(QListWidgetItem *item)
+{
+    int row = item->listWidget()->row(item);
+
+    listWidget->takeItem(row);
+
+    markers.at(row)->detach();
+    markers.remove(row);
+
+    d_plot->replot();
+}
+
+

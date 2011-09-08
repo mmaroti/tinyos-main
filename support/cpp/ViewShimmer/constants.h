@@ -12,4 +12,6 @@
 #define SHORTREC 100
 #define NUMOFRECS 10 
 
+// ---===PASTE===---
+#define BORDER_MARGIN 1
 #endif // CONSTANTS_H

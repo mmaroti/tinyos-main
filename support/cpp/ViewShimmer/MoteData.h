@@ -24,6 +24,7 @@ struct Sample
         QString toString() const;
         QString toCsvString() const;
 
+        int moteID;
         double unix_time;
         long mote_time;
         int counter;
@@ -60,7 +61,7 @@ public:
     double getOffset(){ return offset; }
 
     QString getMoteHeader();
-    Sample getSampleAt(int i){ return samples[i];  }
+    Sample & getSampleAt(int i){ return samples[i];  }
 
     const Sample & sampleAt(int i) const {
         return samples[i];
@@ -70,13 +71,15 @@ public:
         return samples.size();
     }
 
-    void deleteSamplesFrom(int i, int count){
-        samples.remove(i, count);
-    }
+    void deleteSamplesFrom(int i, int count);
+
+    void insertBlankSamples(int i, int x);
 
     void insertSampleAt(int i, const Sample &sample){
         samples.insert(i, sample);
     }
+
+    void setTimeDelay(double delay, int from);
 
     int size() const;
 

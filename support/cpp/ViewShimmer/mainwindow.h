@@ -17,6 +17,11 @@ class QwtPlotPanner;
 class QwtPlotMarker;
 class Application;
 class QDockWidget;
+class QListWidget;
+class QListWidgetItem;
+class QProgressBar;
+
+
 
 enum CursorMode{
     ZOOM,
@@ -42,7 +47,7 @@ public:
     void calculateCurveDatas(double zoomRatio);
     void clearCurveDatas();
     void clearCopyDatas();
-
+    void clearMarkers();
 
 Q_SIGNALS:
     void signalIntervalChanged(double);
@@ -59,10 +64,14 @@ public Q_SLOTS:
     void enableCutMode(bool);
     void enableSDownloader();
     void createMarker(const QPointF &  pos );
-    void createMarker(const QPointF & pos, QString text);
+    void createMarker(const QPointF & pos, QString text, QColor color = Qt::green);
     void copy(QRectF);
     void cut(QRectF);
     void paste(QPointF);
+
+
+private slots:
+    void on_listWidget_itemDoubleClicked( QListWidgetItem * item );
 
 private:
     Application &application;
@@ -82,7 +91,12 @@ private:
     QToolButton *btnSData;
 
     QDockWidget *dockWidget;
+
+    QDockWidget *dockWidget2;
     QLineEdit *markerText;
+    QListWidget *listWidget;    
+
+    QProgressBar* progressBar;
 
     QVector<CurveData*> curve_datas;
     QVector<QwtPlotMarker*> markers;

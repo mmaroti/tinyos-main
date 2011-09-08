@@ -37,7 +37,7 @@
 #include "DownloadManager.hpp"
 #include "DownloadTask.hpp"
 #include "SDCardCreator.hpp"
-//#include "SDataWidget.h"
+#include "SDataWidget.h"
 
 namespace sdc {
 
@@ -57,9 +57,9 @@ void DownloadManager::start(SDCardCreator* source, const SDataWidget* widget) co
 
     qDebug() << "Connecting download slots";
 
-    /*QObject::connect(task, SIGNAL(downloadFinished(  bool , const QString& )),
+    QObject::connect(task, SIGNAL(downloadFinished(  bool , const QString& )),
                      widget, SLOT(onDownloadFinished(bool , const QString& )),
-                     Qt::DirectConnection);*/
+                     Qt::DirectConnection);
 
     QThreadPool::globalInstance()->start(task);
 }

@@ -46,15 +46,18 @@ public:
 
 Sample::Sample()
 {
-        unix_time = 0;
-        xAccel = 0;
-        yAccel = 0;
-        zAccel = 0;
-        xGyro = 0;
-        yGyro = 0;
-        zGyro = 0;
-        voltage = 0;
-        temp = 0;
+    moteID = 0;
+    mote_time = 0;
+    counter = 0;
+    unix_time = 0;
+    xAccel = 0;
+    yAccel = 0;
+    zAccel = 0;
+    xGyro = 0;
+    yGyro = 0;
+    zGyro = 0;
+    voltage = 0;
+    temp = 0;
 }
 
 MoteData::MoteData()
@@ -162,4 +165,32 @@ QString MoteData::getMoteHeader()
 
     return header;
 
+}
+
+void MoteData::insertBlankSamples(int i, int x)
+{
+
+    Sample sample;
+    samples.insert(i,x,sample);
+
+}
+
+void MoteData::setTimeDelay(double delay, int from)
+{
+
+    for(int i = from; i < samples.size(); i++){
+        getSampleAt(i).unix_time = samples.at(i).unix_time + delay;
+    }
+
+    length += delay;
+}
+
+void MoteData::deleteSamplesFrom(int i, int count)
+{
+    double timeRemove;
+    timeRemove = samples.at(i+count).unix_time - samples.at(i).unix_time;
+    qDebug() << "Length = " << length << "-" << timeRemove << "=" << length-timeRemove;
+    length -= timeRemove;
+
+    samples.remove(i, count);
 }

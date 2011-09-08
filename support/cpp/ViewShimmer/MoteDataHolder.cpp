@@ -35,8 +35,6 @@ void MoteDataHolder::loadCSVData(QString filename)
         } else {
             line = ts.readLine();
 
-            //progressBar = new QProgressBar(this);
-
             while ( !line.isEmpty() && line != "#mote,reboot_ID,unix_time,mote_time,counter,accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z,volt,temp" )
             {
                 createMoteData(line);            //convert line string to mote header data
@@ -44,9 +42,6 @@ void MoteDataHolder::loadCSVData(QString filename)
             }
 
             //printMotesHeader();
-
-            //progressBar->show();
-
 
             //skip empty lines
             while( line != "#mote,reboot_ID,unix_time,mote_time,counter,accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z,volt,temp" )
@@ -66,7 +61,6 @@ void MoteDataHolder::loadCSVData(QString filename)
         }
     }
 
-    //progressBar->hide();
     //printMoteData(4);
     qDebug()  << "load finished";
     emit loadFinished();
@@ -105,14 +99,21 @@ void MoteDataHolder::saveData(const QString& filename) const {
 
 void MoteDataHolder::createMoteData(const QString& line)
 {
-    MoteData* moteData = new MoteData();
-
-
     QStringList list = line.split(",");
     QStringListIterator csvIterator(list);
 
+    int moteID = csvIterator.next().toInt();
+
+
+    MoteData* moteData;
+    if ( findMoteID(moteID) != NULL ){
+        return;
+    } else {
+        moteData = new MoteData();
+    }
+
     if(csvIterator.hasNext()){
-        moteData->setParam(MOTEID, csvIterator.next().toInt());
+        moteData->setParam(MOTEID, moteID);
         moteData->setParam(REBOOTID, csvIterator.next().toInt());
         moteData->setParam(LENGTH, csvIterator.next().toDouble());        
         moteData->setParam(BOOT_UNIX_TIME, csvIterator.next().toDouble());
@@ -143,7 +144,7 @@ const Sample MoteDataHolder::createSample(const QString& str, bool load)
     int counter;
 
     if(csvIterator.hasNext()){
-        moteID = csvIterator.next().toInt();
+        sample.moteID = moteID = csvIterator.next().toInt();
         mote = findMoteID(moteID);
 
         int reboot_ID = csvIterator.next().toInt();
@@ -171,8 +172,6 @@ const Sample MoteDataHolder::createSample(const QString& str, bool load)
 //    double value = (sample.xAccel-2300)/12;
 //    QPointF point(time, value);
 //    MoteData::instance().append(point);
-
-    //progressBar->setValue(progressCounter++);
 
 }
 
@@ -218,8 +217,11 @@ int MoteDataHolder::findNearestSample(double time, int mote)
 {
     int pos = time / 0.005;
 
+    //absolut erteket figyelni...
     if(pos < 0) pos = 0;
     if(pos > motes[mote]->samplesSize()) pos = motes[mote]->samplesSize()-1;
+    if(motes[mote]->sampleAt(0).unix_time > time + 0.5) return 0;
+    if(motes[mote]->sampleAt(motes[mote]->samplesSize()-1).unix_time < time - 0.5) return motes[mote]->samplesSize()-1;
 
     double unix_time = motes[mote]->sampleAt(pos).unix_time;
     double diff = fabs(time - unix_time);

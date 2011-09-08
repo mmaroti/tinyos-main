@@ -25,6 +25,7 @@ public:
 
     void createZoomer();
     void enableZoomMode(bool);
+    void deleteZoomer();
 
 public Q_SLOTS:
     void showCurve(QwtPlotItem *item, bool on);

@@ -2,7 +2,6 @@
 #define MOTEDATAHOLDER_H
 
 #include <QVarLengthArray>
-#include <QProgressBar>
 #include "MoteData.h"
 
 class Application;
@@ -23,7 +22,7 @@ public:
     int motesCount() { return motes.size(); }
 
     MoteData* mote(int i){
-            return motes[i]; // BUG Segmentation fault
+            return motes[i];
     }
 
     void clearMotes() {
@@ -49,7 +48,6 @@ private:
 
     Application& application;
     QVarLengthArray<MoteData*> motes;
-    //QProgressBar* progressBar;
     int progressCounter;
 };
 

@@ -43,6 +43,8 @@ public:
 
     virtual void rescale();
 
+    void zoomOut();
+
 protected:
     virtual ScrollBar *scrollBar(Qt::Orientation);
     virtual void updateScrollBars();
