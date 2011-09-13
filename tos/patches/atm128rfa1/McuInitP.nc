@@ -42,6 +42,7 @@ module McuInitP @safe()
 		interface Init as MeasureClock;
 		interface Init as TimerInit;
 		interface Init as AdcInit;
+		interface Init as RadioInit;
 	}
 }
 
@@ -76,29 +77,23 @@ implementation
 	command error_t Init.init()
 	{
 		error_t ok;
-		//workaround for errata 38.5.1 in datasheet
-		if(VERSION_NUM==3){//revision c (1.1)
-			DRTRAM0|=1<<ENDRT;
-			DRTRAM1|=1<<ENDRT;
-			DRTRAM2|=1<<ENDRT;
-			DRTRAM3|=1<<ENDRT;
+		// workaround for errata 38.5.1 in datasheet
+		if( VERSION_NUM==3 ){ //revision c (1.1)
+			DRTRAM0 |= 1<<ENDRT;
+			DRTRAM1 |= 1<<ENDRT;
+			DRTRAM2 |= 1<<ENDRT;
+			DRTRAM3 |= 1<<ENDRT;
 		}
 		
 		ok = systemClockInit();
 		ok = ecombine(ok, call MeasureClock.init());
 		ok = ecombine(ok, call TimerInit.init());
 		ok = ecombine(ok, call AdcInit.init());
+		ok = ecombine(ok, call RadioInit.init());
 
 		return ok;
 	}
 
-	default command error_t TimerInit.init()
-	{
-		return SUCCESS;
-	}
-		
-	default command error_t AdcInit.init()
-	{
-		return SUCCESS;
-	}
+	default command error_t TimerInit.init() { return SUCCESS; }
+	default command error_t AdcInit.init() { return SUCCESS; }
 }

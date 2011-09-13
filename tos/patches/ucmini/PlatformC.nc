@@ -34,7 +34,12 @@
 
 configuration PlatformC
 {
-  provides interface Init;
+  provides
+  {
+    interface Init;
+    interface Atm128Calibrate; // TODO: should be moved to McuInitC
+  }
+
   uses interface Init as LedsInit;
 }
 implementation
@@ -44,11 +49,11 @@ implementation
   Init = PlatformP;
   LedsInit = PlatformP.LedsInit;
   PlatformP.McuInit -> McuInitC;
+  Atm128Calibrate = MeasureClockC;
 
   //turning off unused components
-  components RFA1RadioOffP, Stm25pOffC;
-  PlatformP.RadioInit -> RFA1RadioOffP.RFA1RadioOff;
-  PlatformP.Stm25pInit -> Stm25pOffC.Stm25pOff;
+  components Stm25pOffC;
+  PlatformP.Stm25pInit -> Stm25pOffC;
   
   //voltage measuring circuit
   components HplAtm128GeneralIOC;

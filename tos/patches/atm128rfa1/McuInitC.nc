@@ -34,8 +34,7 @@
 
 configuration McuInitC @safe()
 {
-	provides interface Init;
-	provides interface Atm128Calibrate;
+	provides interface Init @exactlyonce();
 
 	uses
 	{
@@ -46,18 +45,18 @@ configuration McuInitC @safe()
 
 implementation
 {
-	components McuInitP, MeasureClockC;
+	components McuInitP, MeasureClockC, RFA1RadioOffP;
 
 	Init = McuInitP.Init;
 	TimerInit = McuInitP.TimerInit;
 	AdcInit = McuInitP.AdcInit;
 
+	McuInitP.RadioInit -> RFA1RadioOffP;
 	McuInitP.MeasureClock -> MeasureClockC;
-	Atm128Calibrate = MeasureClockC;
 
 #ifdef TOGGLE_ON_SLEEP
-	// this is a HACK, but becasue of some compiling issues
-	// we cannot make McuInitC into a configuration
+	// this is a HACK, but becasue of some compiling issues we
+	// cannot make McuSleepC into a configuration, so we wire here
 	components McuSleepC, LedsC;
 	McuSleepC.Leds -> LedsC;
 #endif
