@@ -84,9 +84,9 @@ module Si443xDriverLayerP
         interface Tasklet;
         interface RadioAlarm;
         
-        interface Boot;
         interface Leds;
-    
+        interface Boot;
+        
 #ifdef RADIO_DEBUG
         interface DiagMsg;
 #endif
@@ -100,14 +100,14 @@ implementation
 #ifdef RADIO_DEBUG
     
 #define DIAGMSG_STR(PSTR,STR) \
-        atomic { if( call DiagMsg.record() ) { \
+        atomic { if( chip.state != STATE_POR && call DiagMsg.record() ) { \
             call DiagMsg.str(PSTR);\
             call DiagMsg.str(STR); \
             call DiagMsg.send(); \
         }        }
 
 #define DIAGMSG_REG_READ(REG,VALUE)       \
-        atomic { if( call DiagMsg.record() ) { \
+        atomic { if( chip.state != STATE_POR && call DiagMsg.record() ) { \
             call DiagMsg.str("R");\
             call DiagMsg.hex8(REG);\
             call DiagMsg.hex8(VALUE);\
@@ -115,28 +115,63 @@ implementation
         }}
 
 #define DIAGMSG_REG_WRITE(REG,VALUE)       \
-        atomic {if( call DiagMsg.record() ) { \
+        atomic {if( chip.state != STATE_POR && call DiagMsg.record() ) { \
             call DiagMsg.str("W");\
             call DiagMsg.hex8(REG);\
             call DiagMsg.hex8(VALUE);\
             call DiagMsg.send(); \
         }}
 
+#define DIAGMSG_CHIP()       \
+        atomic { if( chip.state != STATE_POR && call DiagMsg.record() ) { \
+            call DiagMsg.str("C");\
+            call DiagMsg.hex8(chip.state);\
+            call DiagMsg.hex8(chip.cmd);\
+            call DiagMsg.send(); \
+        }}        
+
 #endif
-/* ----------------- END DEBUGGER FUNCTIONS AND HELPERS  -----------------*/    
-    
-    
-#define IS_TX ((TOS_NODE_ID) == 1)
-    
-    bool isSpiAcquired();
-    void serviceRadio();
 
-    norace bool radioIrq;
+/*----------------- STATE -----------------*/
 
-    uint8_t channel;
-    tasklet_norace message_t* rxMsg;
-    message_t rxMsgBuffer;
-    
+	enum
+	{
+		STATE_POR = 0,
+		STATE_SLEEP = 1,
+		STATE_SLEEP_2_READY = 2,
+		STATE_READY = 3,
+		STATE_READY_2_TRX = 4,
+		STATE_RX = 5,
+		STATE_TX = 6,
+		
+		CMD_NONE = 0,			// the state machine has stopped
+		CMD_TURNOFF = 1,		// goto SLEEP state
+		CMD_STANDBY = 2,		// goto READY state
+		CMD_TURNON = 3,			// goto RX state
+		CMD_CHANNEL = 4,        // change channel
+		
+		CMD_FINISH_RX = 5,	    // finish receiving
+		CMD_FINISH_TX = 6,		// finish transmitting
+		CMD_FINISH_CCA = 7,		// finish clear chanel assesment
+	};
+
+    tasklet_norace struct {
+        uint8_t state;
+        uint8_t cmd;
+    } chip;
+
+	norace bool radioIrq;
+
+	tasklet_norace uint8_t txPower;
+	tasklet_norace uint8_t channel;
+
+	tasklet_norace message_t* rxMsg;
+	message_t rxMsgBuffer;
+
+	uint16_t capturedTime;	// the current time when the last interrupt has occured
+
+	tasklet_norace uint8_t rssiClear;
+	tasklet_norace uint8_t rssiBusy;
 
 /*----------------- REGISTER -----------------*/
 
@@ -145,36 +180,30 @@ implementation
         RADIO_ASSERT( call SpiResource.isOwner() );
         RADIO_ASSERT( reg == (reg & SI443X_CMD_REGISTER_MASK) );
     
-        atomic {
-            call NSEL.clr();
-            call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_WRITE | reg);
-            call FastSpiByte.splitReadWrite(value);
-            call FastSpiByte.splitRead();
-            call NSEL.set();
-        
-            DIAGMSG_REG_WRITE(reg,value);
-        }
+        call NSEL.clr();
+        call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_WRITE | reg);
+        call FastSpiByte.splitReadWrite(value);
+        call FastSpiByte.splitRead();
+        call NSEL.set();
+     
+        DIAGMSG_REG_WRITE(reg,value);
     }
     
-    
+   
     inline uint8_t readRegister(uint8_t reg)
     {
-        uint8_t regist = reg;
-    
+        uint8_t regi = reg;
         RADIO_ASSERT( call SpiResource.isOwner() );
         RADIO_ASSERT( reg == (reg & SI443X_CMD_REGISTER_MASK) );
         
-        atomic {
-            call NSEL.clr();
-            call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_READ | reg);
-            call FastSpiByte.splitReadWrite(0);
-            reg = call FastSpiByte.splitRead();
-            call NSEL.set();
-
-	    if( regist != 0x26 )
-	        DIAGMSG_REG_READ(regist,reg);
-        }
-	
+        call NSEL.clr();
+        call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_READ | reg);
+        call FastSpiByte.splitReadWrite(0);
+        reg = call FastSpiByte.splitRead();
+        call NSEL.set();
+        
+        DIAGMSG_REG_READ(regi,reg);
+        
 	    return reg;
     }
     
@@ -183,126 +212,27 @@ implementation
     inline uint8_t masked(uint8_t old, uint8_t next, uint8_t mask) {
         return old ^ ((old ^ next) & mask);
     }
+
+    enum {
     
+        SI443X_CLEAR_RXFIFO_MASK = 1<<1,
+        SI443X_CLEAR_TXFIFO_MASK = 1,
+      
+        SI443X_DEFAULT_POWER = 0x03,
+        
+        SI443X_RFPOWER_MASK = 0x03,
+        SI443X_TXFIFO_EMPTY = 0x7D,
+        
+        SI443X_RSSI = 0x26,
+        
+        POR_TIME = (uint16_t)30000,
+        CCA_REQUEST_TIME = (uint16_t)(140 * RADIO_ALARM_MICROSEC),
+        TX_SFD_DELAY = (uint16_t)(176 * RADIO_ALARM_MICROSEC),
+    };
     
+/*----------------- LOW LEVEL FUNCTIONS -----------------*/
     
-    uint8_t sbuff[200];
-    uint8_t* sbuffptr = NULL;
-
-    uint8_t buff[200];
-    uint8_t pktlen = 1;
-    uint8_t* buffptr = NULL;
-
-	void clearFifoPacket() {
-	    uint8_t i ;
-	    for (i = 0; i < 200; ++i) {
-	        buff[i] = 0xff;
-	        sbuff[i] = 0x00;
-	    }
-	    buffptr = NULL;
-	    sbuffptr = sbuff;
-	    pktlen = 1;
-	    writeRegister(0x08,0x13);
-	    writeRegister(0x08,0x10);
-	    call BusyWait.wait(50);
-	}
-
-	inline void readFifo()
-	{
-		uint8_t i = 1;
-	   	RADIO_ASSERT( call SpiResource.isOwner() );
-	   	DIAGMSG_STR("readFifo","");
-
-     	if( call DiagMsg.record() ) {
-     	    call DiagMsg.str("buffer");
-		    call DiagMsg.hex16((uint16_t)buff);
-		    call DiagMsg.hex16((uint16_t)buffptr);
-		    call DiagMsg.send();
-		}
-		atomic
-		{
-			call NSEL.clr();
-			call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_READ | 0x7F);
-            call FastSpiByte.splitReadWrite(0);
-            
-            if ( buffptr == NULL ) {
-                buffptr = buff;
-                pktlen = call FastSpiByte.splitReadWrite(0);
-                ++i;
-            }          
-            
-			for (; i < 55 && buffptr < buff+pktlen-1; ++i) { // Fifo full thresh : 55
-				*(buffptr++) = call FastSpiByte.splitReadWrite(0);
-		    }
-		    *(buffptr++) = call FastSpiByte.splitRead();
-			call NSEL.set();
-        }
-       	if( call DiagMsg.record() ) {
-	        call DiagMsg.hex16((uint16_t)buffptr);
-	        call DiagMsg.send();
-		}
-	   	        
-	}
-	
-	void printPacket() {
-	    uint8_t i;
-        // print the whole packet
-    	if( call DiagMsg.record() ) {
-            call DiagMsg.str("packet");
-            call DiagMsg.hex8(pktlen);
-            call DiagMsg.send();
-    	}
-        for ( i = 0; i < 13; ++i  ) {
-			if( call DiagMsg.record() ) {
-	            call DiagMsg.hex8s(buff+i*15,15);
-	            call DiagMsg.send();
-			}
-		}
-/*		if( call DiagMsg.record() ) {
-		    call DiagMsg.hex8s(buff+i*15, pktlen%15);
-		    call DiagMsg.send();
-		}*/
-	}
-
-    uint8_t status;
-    
-/*----------------- INIT -----------------*/
-       
-	void si443x_reset()
-	{
-		DIAGMSG_STR("reset","");
-		readRegister(0x03);
-		readRegister(0x04);
-		call IRQ.enableFallingEdge();	// previous interrupts mess up the PCINT handler
-		writeRegister(0x07, 0x81);
-		call BusyWait.wait(30000);
-		readRegister(0x03);		// we will get interrupts here, just ignore them
-		readRegister(0x04);
-	}
-
-	void si443x_standby()
-	{
-		DIAGMSG_STR("standby","");
-		writeRegister(0x05,0x00);	// tricky reset of interrupts
-		writeRegister(0x06,0x00);	// we might get interrupts here, just ignore them
-		writeRegister(0x05,0xFF);
-		writeRegister(0x06,0xFF);
-		writeRegister(0x05,0x00);
-		writeRegister(0x06,0x00);
-		writeRegister(0x07,0x00);	// we instantly enter standby, NO interrupt will come
-		readRegister(0x62);		// to verify status
-	}
-
-	void si443x_ready()
-	{
-		DIAGMSG_STR("ready","");
-		writeRegister(0x05,0xFF);	// reenable mask after standby
-		writeRegister(0x06,0xFF);
-		writeRegister(0x07,0x01);	// we instantly enter ready, NO interrupt will come
-		readRegister(0x62);		// to verify status
-	}
-
-	void si443x_status()			// can be called any time
+    void STATUS()
 	{
 		DIAGMSG_STR("status","");
 		readRegister(0x02);
@@ -313,115 +243,112 @@ implementation
 		readRegister(0x07);
 		readRegister(0x62);
 		readRegister(0x71);
-		readRegister(0x26);
+		
+    	DIAGMSG_CHIP();
 	}
-
-    #define _PKT_LEN_ 180
+  
     
-	void si443x_transmit()
+    inline void _clearRxFifo() {
+        uint8_t old = readRegister(0x08);
+        writeRegister(0x08,masked(old,0xff, SI443X_CLEAR_RXFIFO_MASK));
+        writeRegister(0x08,masked(old,0x00, SI443X_CLEAR_RXFIFO_MASK));
+    }
+    
+    inline void _clearTxFifo() {
+        uint8_t old = readRegister(0x08);
+        writeRegister(0x08,masked(old,0xff, SI443X_CLEAR_TXFIFO_MASK));
+        writeRegister(0x08,masked(old,0x00, SI443X_CLEAR_TXFIFO_MASK));
+    }
+    
+    inline void _setPower(uint8_t power) {
+        writeRegister(0x6D, 0x18 | (power & SI443X_RFPOWER_MASK));
+    }
+    
+    inline void _reset() {
+        DIAGMSG_STR("reset","");
+		readRegister(0x03);
+		readRegister(0x04);
+		call IRQ.enableFallingEdge();	// previous interrupts mess up the PCINT handler
+		writeRegister(0x07, 0x81);
+		call BusyWait.wait(POR_TIME);
+		readRegister(0x03);		        // we will get interrupts here, just ignore them
+		readRegister(0x04);
+		//STATUS();
+    }
+    
+    inline void _standby() {
+        DIAGMSG_STR("standby","");
+		writeRegister(0x05,0x00);	// tricky reset of interrupts
+		writeRegister(0x06,0x00);	// we might get interrupts here, just ignore them
+		writeRegister(0x05,0xFF);
+		writeRegister(0x06,0xFF);
+		writeRegister(0x05,0x00);
+		writeRegister(0x06,0x00);
+		
+		writeRegister(0x07,0x00);	// we instantly enter standby, NO interrupt will come
+		//STATUS();
+    }
+    
+    inline void _ready() {
+        DIAGMSG_STR("ready","");
+		writeRegister(0x05,0xFF);	// reenable mask after standby
+		writeRegister(0x06,0xFF);
+		writeRegister(0x07,0x01);	// we instantly enter ready, NO interrupt will come
+		//STATUS();
+    }
+    
+    uint8_t* message_data;
+    uint8_t  unsent_bytes;
+    
+    void _fillTxFifo() {
+        uint8_t space;
+        RADIO_ASSERT( call SpiResource.isOwner() );
+        
+        space = 64 - readRegister(SI443X_TXFIFO_EMPTY); // TX FIFO size is 64 bytes
+		call NSEL.clr();
+		call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_WRITE | 0x7F);
+            
+        while ( space-- && unsent_bytes-- ) {
+            call FastSpiByte.splitReadWrite(*(message_data++));
+        }
+        call FastSpiByte.splitRead();
+		call NSEL.set();
+    }
+    
+    inline void _transmit()
 	{
-    	uint8_t lstatus;
+	    RADIO_ASSERT( chip.state != STATE_TX );
+	    RADIO_ASSERT( chip.cmd == CMD_FINISH_TX );
     	DIAGMSG_STR("transmit","");
-		atomic {
-		    lstatus = status;
-		    status = 2;
-		}
-		if ( lstatus == 2 ) {
-		    DIAGMSG_STR("tx","ccur");
-		    return;
-		}
-		writeRegister(0x3E, _PKT_LEN_ );  // pkt length
+    	
+		writeRegister(0x3E, unsent_bytes );  // pkt length
 		writeRegister(0x05, 0xFF);  // pkt sent interrupt + TX fifo almost empty
 		writeRegister(0x06, 0xFF);
 		readRegister(0x03);         // flush interrupts
 		readRegister(0x04);
 		writeRegister(0x07, 0x09);  // tx + ready
+		//STATUS();
 	}
-
-    
-
-    uint8_t starter = 0;
-    uint8_t fifodata = 0;    
-    void makePacket() {
-        uint8_t i;
-                
-        starter = (starter+1) % 16;
-        for ( i = 0; i< 200; ++i)
-            sbuff[i] = starter+i;
-
-        sbuffptr = sbuff;
-        fifodata = 0;
-         
-       	if( call DiagMsg.record() ) {
-       	    call DiagMsg.str("makepacket");
-	        call DiagMsg.hex8(starter);       	    
-	        call DiagMsg.hex16((uint16_t)sbuff);       	    
-	        call DiagMsg.hex16((uint16_t)sbuffptr);
-	        call DiagMsg.send();
-		}
-    }
-
-    
-    void fillFifo() {
-
-        uint8_t i;
-        RADIO_ASSERT( call SpiResource.isOwner() );
-        
-        if ( sbuffptr == sbuff + _PKT_LEN_ ) {
-            if( call DiagMsg.record() ) {
-    	        call DiagMsg.str("fifoend");
-    	        call DiagMsg.send();
-    		}
-            return;
-        }
-        
-         if( call DiagMsg.record() ) {
-    	        call DiagMsg.str("fillfifo");
-    	        call DiagMsg.hex16((uint16_t)sbuff);
-    	        call DiagMsg.hex16((uint16_t)sbuffptr);    	        
-    	        call DiagMsg.hex8(_PKT_LEN_);
-    	        call DiagMsg.hex8(fifodata);    	               
-    	        call DiagMsg.send();
-    		}
-        
-        atomic
-		{
-			call NSEL.clr();
-			call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_WRITE | 0x7F);
-            
-			for (i = 0; i < 60 && sbuffptr < sbuff+_PKT_LEN_; ++i) { // Fifo full thresh : 55, empty : 4
-			    ++fifodata;
-				call FastSpiByte.splitReadWrite(*(sbuffptr++));
-		    }
-		    call FastSpiByte.splitRead();
-			call NSEL.set();
-        }
-        
-       	if( call DiagMsg.record() ) {
-	        call DiagMsg.hex16((uint16_t)sbuffptr);
-	        call DiagMsg.hex8(fifodata);
-	        call DiagMsg.send();
-		}
-    }
-
-	void si443x_receive()
+	inline void _receive()
 	{
 		DIAGMSG_STR("receive","");
-		
+
 		writeRegister(0x05, 0xFF); 
 		writeRegister(0x06, 0x80);
 		readRegister(0x03);
 		readRegister(0x04);	
 		
 		writeRegister(0x07,0x05);
+		//STATUS();
 	}
 
-	void si443x_setup()
+    	
+    void _setupModem()
 	{
 		DIAGMSG_STR("setup","");
 
-		writeRegister(0x08, 0x10);	// multi receive
-		writeRegister(0x6D, 0x1F);	// max power, LNA switch set
+		writeRegister(0x08, 0x10);	    // multi receive
+		writeRegister(0x6D, 0x1F);	    // max power, LNA switch set
 
 		writeRegister( 0x1C, 0x9A );
 		writeRegister( 0x1D, 0x3C );
@@ -442,7 +369,6 @@ implementation
 		writeRegister( 0x33, 0x00 );
 		writeRegister( 0x34, 0x08 );
 		writeRegister( 0x35, 0x2A );
-//		writeRegister( 0x3E, 0xFF );
 		writeRegister( 0x58, 0x80 );
 		writeRegister( 0x69, 0x60 );
 		writeRegister( 0x6E, 0x41 );
@@ -450,140 +376,33 @@ implementation
 		writeRegister( 0x70, 0x2F );
 		writeRegister( 0x71, 0x21 );
 		writeRegister( 0x72, 0xA0 );
-		writeRegister( 0x75, 0x4B );
+		
+		writeRegister( 0x75, 0x4B );    // carrier freq
 		writeRegister( 0x76, 0x7D );
 		writeRegister( 0x77, 0x00 );
-
 	}
-
-	void initRadio()
-	{
-		si443x_reset();		// ignore interrupts during reset
-		si443x_standby();
-		si443x_setup();		// setup the comms
-		status = 1;
-		si443x_ready();
-		
-		if ( ! IS_TX ) {
-		    call Leds.led0On();
-    		si443x_receive();
-
-   		} else {
-   		    call Leds.led0Off();    	
-   		    call RadioAlarm.wait(30000);
-   		}
+	
+	inline void _changeChannel() {
+	    writeRegister(0x79,channel);
 	}
 
 
-	tasklet_async event void RadioAlarm.fired()
-	{   
-   		call Leds.led1Toggle();
-	    if( IS_TX && status != 2 )
-		{
-		    makePacket();
-		    fillFifo();
-		    si443x_transmit();
-		}
-       	call RadioAlarm.wait(30000);
-	}
+/*----------------- SPI -----------------*/
     
-
-
-	async event void IRQ.fired()
-	{
-		uint8_t i1,i2;
-		
-		if ( status == 0 )
-		    return;
-		
-		i1 = readRegister(0x03);
-		i2 = readRegister(0x04);
-
-		if ( (i1 & 0x80) != 0 )
-			DIAGMSG_STR("Int","Fifo Error");
-
-		if ( (i1 & 0x40) != 0 ) {
-			DIAGMSG_STR("Int","TxFifo Full");
-			si443x_transmit();
-		}
-
-		if ( (i1 & 0x20) != 0 ) {
-			DIAGMSG_STR("Int","TxFifo Empty");
-			fillFifo();
-        }
-        
-		if ( (i1 & 0x10) != 0 ) {
-			DIAGMSG_STR("Int","RxFifo Full");
-			readFifo();
-			printPacket();
-        }
-		if ( (i1 & 0x04) != 0 )
-		{
-			DIAGMSG_STR("Int","Pkt Sent");
-			status = 1;
-		}
-
-		if ( (i1 & 0x02) != 0 )
-		{
-			DIAGMSG_STR("Int","Pkt Received");
-			readFifo();
-			printPacket();
-			clearFifoPacket();
-		}
-
-		if ( (i1 & 0x01) != 0 ) {
-			DIAGMSG_STR("Int","CRC Error");
-			clearFifoPacket();
-	    }
-
-		if ( (i2 & 0x80) != 0 )
-		{
-			DIAGMSG_STR("Int","Sync Detected");
-			call Leds.led3Toggle();
-		}
-
-		if ( (i2 & 0x40) != 0 )
-			DIAGMSG_STR("Int","Valid Preamble");
-
-//		if ( (i2 & 0x02) != 0 )
-//			DIAGMSG_STR("Int","Chip Ready");
-
-		if ( (i2 & 0x01) != 0 )
-			DIAGMSG_STR("Int","Power On Reset");
-	}
-
-
-	tasklet_async event void Tasklet.run()
-	{
-//		DIAGMSG_STR("tasklet","");
-	}
-    
-
-    command error_t PlatformInit.init()
-    {
-        call NSEL.makeOutput();
-        call NSEL.set();
-        call IRQ.disable();
-
-        return SUCCESS;
-    }
-
-    command error_t SoftwareInit.init()
-    {
-        rxMsg = &rxMsgBuffer;
-        status = 0;
-        return SUCCESS;                
-    }
-    
-    event void Boot.booted() {
-        DIAGMSG_STR("booted","!");
-        call SpiResource.request();
-    }
-
     event void SpiResource.granted()
     {
-        if (status == 0 )
-            initRadio();
+        call Leds.led2Toggle();
+       	if( chip.state == STATE_POR )
+		{
+			_reset();
+			_standby();
+			_setupModem();
+			chip.state = STATE_SLEEP;
+			
+			call SpiResource.release();
+		}
+		else
+			call Tasklet.schedule();
     }
 
     bool isSpiAcquired()
@@ -601,54 +420,127 @@ implementation
     {
         call SpiResource.release();
     }
-    
+      
+/*----------------- TASKLET HANDLER -----------------*/
 
-/*----------------- TURN ON/OFF -----------------*/
+	async event void IRQ.fired()
+	{
+    	RADIO_ASSERT( ! radioIrq );
+		radioIrq = TRUE;
+		call Tasklet.schedule();
+	}
+	
+	void serviceRadio()
+	{
+		if( isSpiAcquired() )
+		{
+			uint16_t time;
+			//uint32_t time32;
+			uint8_t irq1, irq2;
+			//uint8_t temp;
+			
+			atomic time = capturedTime;
+			radioIrq = FALSE;
+		
+		    irq1 = readRegister(0x03);
+		    irq2 = readRegister(0x04);
 
- 
-    tasklet_async command error_t RadioState.turnOff()
-    {
-  /*      if( sm.cmd != CMD_NONE || sm.state & TRANS_FLAG )
-            return EBUSY;            
-        else if( sm.state == STATE_STANDBY )
-            return EALREADY;
+		    if ( irq1 & 0x80 ) {
+		        RADIO_ASSERT(
+		            (chip.state == STATE_RX && chip.cmd == CMD_FINISH_RX) ||
+		            (chip.state == STATE_TX && chip.cmd == CMD_FINISH_TX)
+		        );
+			    DIAGMSG_STR("Int","Fifo Error");
+            }
+		    if ( irq1 & 0x40 ) {
+		        RADIO_ASSERT( chip.state == STATE_TX && chip.cmd == CMD_FINISH_TX );
+			    DIAGMSG_STR("Int","TxFifo Full");
+			    chip.cmd = CMD_FINISH_TX;
+		    }
+
+		    if ( irq1 & 0x20 ) {
+		        RADIO_ASSERT( chip.state == STATE_TX && chip.cmd == CMD_FINISH_TX );
+			    DIAGMSG_STR("Int","TxFifo Empty");
+			    _fillTxFifo();
+            }
         
-        sm.next = STATE_STANDBY;
-        sm.cmd = CMD_EMIT;
-    */    
-        call Tasklet.schedule();
-        return SUCCESS;
-    }
-    
-    tasklet_async command error_t RadioState.standby()
-    {
-    
-    /*    if( sm.cmd != CMD_NONE || sm.state & TRANS_FLAG || ! call RadioAlarm.isFree() )
-            return EBUSY;
-        else if( sm.state == STATE_READY )
-            return EALREADY;
-            
-        sm.next = STATE_READY;
-        sm.cmd = CMD_EMIT;
-*/
-        call Tasklet.schedule();
-        return SUCCESS;
-    }
+		    if ( irq1 & 0x10) {
+		        RADIO_ASSERT( chip.state == STATE_RX && chip.cmd == CMD_FINISH_RX );
+			    DIAGMSG_STR("Int","RxFifo Full");
+            }
+		    if ( irq1 & 0x04 )
+		    {
+		        RADIO_ASSERT( chip.state == STATE_TX && chip.cmd == CMD_FINISH_TX );
+			    DIAGMSG_STR("Int","Pkt Sent");
+                chip.cmd = CMD_NONE;
+                chip.state = STATE_READY;
+		    }
 
-    tasklet_async command error_t RadioState.turnOn()
-    {
-/*        if( sm.cmd != CMD_NONE || sm.state & TRANS_FLAG || ! call RadioAlarm.isFree() )
-            return EBUSY;
-        else if( sm.state == STATE_RX )
-            return EALREADY;
+		    if ( irq1 & 0x02 )
+		    {
+		        RADIO_ASSERT( chip.cmd == CMD_FINISH_RX || chip.cmd == CMD_CHANNEL );
+		        RADIO_ASSERT( chip.state == STATE_RX );
+			    DIAGMSG_STR("Int","Pkt Received");
+		    }
 
-        sm.next = STATE_RX;
-        sm.cmd = CMD_EMIT;
-  
-*/
-        call Tasklet.schedule();
-        return SUCCESS;
-    }
+		    if ( irq1 & 0x01) {
+   		        RADIO_ASSERT( chip.cmd == CMD_FINISH_RX || chip.cmd == CMD_CHANNEL );
+		        RADIO_ASSERT( chip.state == STATE_RX );
+			    DIAGMSG_STR("Int","CRC Error");
+	        }
+
+		    if ( irq2 & 0x80) {
+		        RADIO_ASSERT( chip.cmd == CMD_FINISH_RX || chip.cmd == CMD_CHANNEL || chip.cmd == CMD_FINISH_CCA );
+		        RADIO_ASSERT( chip.state == STATE_RX );
+			    DIAGMSG_STR("Int","Sync Detected");
+		    }
+
+		    if ( irq2 & 0x40 ) {
+   		        RADIO_ASSERT( chip.state == STATE_RX && chip.cmd == CMD_FINISH_RX );
+			    DIAGMSG_STR("Int","Valid Preamble");
+            }
+//		if ( (irq2 & 0x02) != 0 )
+//			DIAGMSG_STR("Int","Chip Ready");
+
+		    if ( irq2 & 0x01 )
+			    DIAGMSG_STR("Int","Power On Reset");
+	    }
+	}
+	
+	tasklet_async event void Tasklet.run()
+	{
+		if( radioIrq && chip.state != STATE_POR )
+			serviceRadio();
+
+		if( chip.cmd != CMD_NONE )
+		{
+		    if ( chip.cmd < CMD_CHANNEL && isSpiAcquired() ) {
+    		    switch ( chip.cmd ) {
+	    	        case CMD_TURNOFF:    _standby(); break;
+			        case CMD_STANDBY:    _ready(); break;
+	    	        case CMD_TURNON:     _receive(); break;
+	    	        case CMD_CHANNEL:    _changeChannel(); break;
+	    	    }
+				signal RadioState.done();	    	    
+	    	    chip.cmd = CMD_NONE;
+		    }
+		    // TODO: This one needs an atomic guard or not?
+  		    if ( chip.cmd == CMD_FINISH_TX && chip.state != STATE_TX ) {
+                _transmit();
+                chip.state = STATE_TX;
+            }
+		}        
+
+		if( chip.cmd == CMD_NONE && chip.state == STATE_RX && ! radioIrq )
+			signal RadioSend.ready();
+
+		if( chip.cmd == CMD_NONE && chip.state != STATE_POR )
+			post releaseSpi();
+	}
+
+
+/*----------------- MESSAGE HANDLING -----------------*/    
+    
 
     //default tasklet_async event void RadioState.done() { }
 
@@ -667,29 +559,62 @@ implementation
         return ((void*)msg) + sizeof(message_t) - call RadioPacket.metadataLength(msg);
     }
 
-/*----------------- TRANSMIT -----------------*/
+/*----------------- TRANSMIT - RECEIVE -----------------*/
 
     tasklet_async command error_t RadioSend.send(message_t* msg)
     {
+        uint16_t time;
+		uint8_t power;
+		uint32_t time32;
+		void* timesync;
+
+		if( chip.cmd != CMD_NONE || (chip.state != STATE_READY && chip.state != STATE_TX ) || ! isSpiAcquired() || radioIrq )
+			return EBUSY;
+
+        // get the required RF power setting
+		power = (call PacketTransmitPower.isSet(msg) ? call PacketTransmitPower.get(msg) : SI443X_DEFAULT_POWER) & SI443X_RFPOWER_MASK;
+		if( power != txPower )
+		{
+			txPower = power;
+			_setPower(txPower);
+		}
+		
+        // RSSI Clear Channel Assessment
+		if( call Config.requiresRssiCca(msg) && ( readRegister(SI443X_RSSI) > ((rssiClear + rssiBusy) >> 3) ) )
+			return EBUSY;
+
+
+        // TODO: Fix Time Synchronization measurements
+   		time32 = call LocalTime.get();
+		timesync = call PacketTimeSyncOffset.isSet(msg) ? ((void*)msg) + call PacketTimeSyncOffset.get(msg) : 0;
+        time = call RadioAlarm.getNow();
+        time32 += (int16_t)(time + TX_SFD_DELAY) - (int16_t)(time32);
+
+        chip.cmd = CMD_FINISH_TX;
+        
+        // Fill the TX FIFO
+        message_data = getPayload(msg);
+		unsent_bytes = getHeader(msg)->length;
+        _fillTxFifo();
+
+        /* Enter TX state
+         * If the packet length > TX Fifo Almost Full threshold, 
+         * an interrupt have already been generated, and TX state entered.
+         */
+		if( timesync != 0 )
+			*(timesync_relative_t*)timesync = (*(timesync_absolute_t*)timesync) - time32;
+
+		call PacketTimeStamp.set(msg, time32);
+		
+		call Tasklet.schedule();
         return SUCCESS;
     }
 
     default tasklet_async event void RadioSend.sendDone(error_t error) { }
     default tasklet_async event void RadioSend.ready() { }
 
-/*----------------- CCA -----------------*/
 
-    tasklet_async command error_t RadioCCA.request()
-    {
-        return SUCCESS;
-    }
-
-    default tasklet_async event void RadioCCA.done(error_t error) { }
-
-/*----------------- RECEIVE -----------------*/
-
-/*----------------- IRQ -----------------*/
-
+ 
 
     default tasklet_async event bool RadioReceive.header(message_t* msg)
     {
@@ -701,18 +626,123 @@ implementation
         return msg;
     }
 
+/*----------------- DRIVER CONTROL -----------------*/
 
-/*----------------- CHANNEL -----------------*/
-
-    tasklet_async command uint8_t RadioState.getChannel()
+    command error_t PlatformInit.init()
     {
-        return channel;
+        call NSEL.makeOutput();
+        call NSEL.set();
+        call IRQ.disable();
+        return SUCCESS;
     }
+    
+    event void Boot.booted() {
+    
+        // these are just good approximates
+		rssiClear = 0;
+		rssiBusy = 90;
+        rxMsg = &rxMsgBuffer;
+        
+        chip.state = STATE_POR;
+        chip.cmd = CMD_NONE;
+        
+        txPower = SI443X_DEFAULT_POWER & SI443X_RFPOWER_MASK;
+		channel = SI443X_DEF_CHANNEL;
+        
+        call Leds.led1On();
+        call SpiResource.request();
+    }
+
+    command error_t SoftwareInit.init()
+    {
+        call Leds.led0On();
+        return SUCCESS;
+   	/*	// these are just good approximates
+		rssiClear = 0;
+		rssiBusy = 90;
+        rxMsg = &rxMsgBuffer;
+        
+        chip.state = STATE_POR;
+        chip.cmd = CMD_NONE;
+        
+        txPower = SI443X_DEFAULT_POWER & SI443X_RFPOWER_MASK;
+		channel = SI443X_DEF_CHANNEL;
+        
+        return call SpiResource.request();*/
+    }
+    
+    tasklet_async command error_t RadioState.turnOff()
+    {
+        if( chip.cmd != CMD_NONE )
+            return EBUSY;            
+        else if( chip.state == STATE_SLEEP )
+            return EALREADY;
+        
+        chip.cmd = CMD_TURNOFF;
+        call Tasklet.schedule();
+        return SUCCESS;
+    }
+    
+    tasklet_async command error_t RadioState.standby()
+    {
+        if( chip.cmd != CMD_NONE || (chip.state == STATE_SLEEP && ! call RadioAlarm.isFree()) )
+			return EBUSY;
+		else if( chip.state == STATE_READY )
+			return EALREADY;
+
+		chip.cmd = CMD_STANDBY;
+		call Tasklet.schedule();
+		return SUCCESS;
+    }
+
+    tasklet_async command error_t RadioState.turnOn()
+    {
+        if( chip.cmd != CMD_NONE || (chip.state == STATE_SLEEP && ! call RadioAlarm.isFree()) )
+			return EBUSY;
+		else if( chip.state == STATE_RX )
+			return EALREADY;
+
+		chip.cmd = CMD_TURNON;
+		call Tasklet.schedule();
+		return SUCCESS;
+    }
+
+    tasklet_async command uint8_t RadioState.getChannel() { return channel; }
 
     tasklet_async command error_t RadioState.setChannel(uint8_t c)
     {
+    	if( chip.cmd != CMD_NONE )
+			return EBUSY;
+		else if( channel == c )
+			return EALREADY;
+
+		channel = c;
+		chip.cmd = CMD_CHANNEL;
+		call Tasklet.schedule();
+		return SUCCESS;
+    }    
+    
+    tasklet_async command error_t RadioCCA.request()
+    {
+        if( chip.cmd != CMD_NONE || chip.state != STATE_RX || ! isSpiAcquired() || ! call RadioAlarm.isFree() )
+			return EBUSY;
+
+		call RadioAlarm.wait(CCA_REQUEST_TIME);
+		chip.cmd = CMD_FINISH_CCA;
         return SUCCESS;
     }
+
+    default tasklet_async event void RadioCCA.done(error_t error) { }
+    
+    tasklet_async event void RadioAlarm.fired()
+	{
+	    RADIO_ASSERT( chip.cmd == CMD_FINISH_CCA );
+	    RADIO_ASSERT( chip.state == STATE_RX );
+
+	    chip.cmd = CMD_NONE;
+		signal RadioCCA.done( SUCCESS );
+		call Tasklet.schedule();
+	}
 
 
 /*----------------- RadioPacket -----------------*/
