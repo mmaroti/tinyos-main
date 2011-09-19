@@ -14,6 +14,8 @@ implementation {
   App.DiagMsg -> DiagMsgC;
 
   App.RadioState -> Radio;
+  App.RadioSend -> Radio;
+  App.RadioPacket -> Radio;
 }
 
 

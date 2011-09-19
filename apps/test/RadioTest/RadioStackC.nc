@@ -2,6 +2,8 @@
 configuration RadioStackC {
     provides {
         interface RadioState;
+        interface RadioSend;
+        interface RadioPacket;
     }
 }
 
@@ -9,6 +11,8 @@ implementation {
     #define UQ_RADIO_ALARM    "UQ_SI443X_RADIO_ALARM"
 
     RadioState = RadioDriverLayerC;
+    RadioSend = RadioDriverLayerC;
+    RadioPacket = RadioDriverLayerC;
     
     components RadioStackP;
     components new RadioAlarmC();
