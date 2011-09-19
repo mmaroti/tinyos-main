@@ -43,6 +43,8 @@
 #include "RecordInfo.hpp"
 #include "Utility.hpp"
 
+#include <QtDebug>
+
 using namespace std;
 
 namespace sdc {
@@ -130,7 +132,7 @@ void RecordLinker::write_data() {
 
 		getline(in, buffer);
 
-		write_line(buffer);
+                write_line(buffer);
 	}
 }
 
@@ -201,6 +203,9 @@ const string RecordLinker::record_file_name() const {
 	FlatFileDB db(mote);
 
 	int start_at = db.first_block(reboot);
+
+        QString vmi = QString::fromStdString(get_filename(mote, reboot, start_at));
+        qDebug() << vmi;
 
 	return get_filename(mote, reboot, start_at)+".csv";
 }

@@ -180,7 +180,7 @@ void SDataWidget::on_toPlotButton_clicked()
 
     recordList.link(mote, recid);
 
-/*  if(ui->sdataRight->selectedItems().size() > 0){
+  /*if(ui->sdataRight->selectedItems().size() > 0){
         if(ui->sdataRight->currentItem()->parent()){
 
             QString msg;
@@ -196,8 +196,8 @@ void SDataWidget::on_toPlotButton_clicked()
             msgBox.setText(msg);
             msgBox.exec();
         }
-    }
-*/
+    }*/
+
 }
 
 void SDataWidget::on_clearButton_clicked()

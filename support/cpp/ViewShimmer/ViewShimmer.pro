@@ -3,25 +3,19 @@
 # -------------------------------------------------
 TARGET = ViewShimmer
 TEMPLATE = app
-
-
 INCLUDEPATH += ../TntJama/
 INCLUDEPATH += ../QextSerialPort/
 INCLUDEPATH += SDCard/
-
+INCLUDEPATH += c:\Qwt-6.0.0\include
 QMAKE_LIBDIR += ../QextSerialPort/build
 
 # See http://doc.qt.nokia.com/4.7/qmake-advanced-usage.html#adding-new-configuration-features
 # and qwt-6.0.0/INSTALL, last section "Using Qwt"
-
 CONFIG += qwt
-
 CONFIG(debug, debug|release):LIBS += -lqextserialport
 else:LIBS += -lqextserialport
 win32:LIBS += -lsetupapi
-
 DEFINES += QT_DLL
-
 SOURCES += main.cpp \
     Application.cpp \
     plot.cpp \
@@ -73,7 +67,6 @@ SOURCES += main.cpp \
     ActiveMessage.cpp \
     SDataWidget.cpp \
     DriveSelectorDialog.cpp
-
 HEADERS += Application.h \
     constants.h \
     plot.h \
@@ -130,7 +123,6 @@ HEADERS += Application.h \
     ActiveMessage.hpp \
     SDataWidget.h \
     DriveSelectorDialog.h
-
 FORMS += mainwindow.ui \
     SDataWidget.ui \
     DriveSelectorDialog.ui

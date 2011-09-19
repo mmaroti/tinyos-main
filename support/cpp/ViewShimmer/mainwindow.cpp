@@ -751,6 +751,7 @@ void MainWindow::paste(QPointF pos)
 
             line = stream.readLine();
 
+            //load markers
             while ( !line.isEmpty() )
             {
                 QStringList list = line.split(",");
