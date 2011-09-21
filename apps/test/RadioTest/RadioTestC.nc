@@ -24,15 +24,15 @@ implementation {
   bool busy = FALSE;
   
   uint8_t starter = 0;
-  uint8_t pktlen = 0x01;
+  uint8_t pktlen = 0;
   uint8_t pktlen_count = 0;
   
   bool makePacket() {
     uint8_t i;
     uint8_t* pl = (uint8_t*) ( ((void*)&pkt) + call RadioPacket.headerLength(&pkt));
-    
+  
     if ( ++pktlen_count %2 == 0 )
-        ++pktlen;
+        ++pktlen;  
         
     call RadioPacket.setPayloadLength(&pkt,pktlen%125+1);
     for( i = 0; i< pktlen%125+1; ++i)
