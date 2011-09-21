@@ -164,7 +164,7 @@ uint8_t DM_ENABLE = FALSE;
         
 		CMD_CHANNEL = 5,        // change channel
 		
-		CMD_DOWNLOAD = 9,
+		CMD_START_DOWNLOAD = 9,
 		CMD_FINISH_RX = 10,	    // finish receiving
 		CMD_FINISH_TX = 11,		// finish transmitting
 		CMD_FINISH_CCA = 12,	// finish clear chanel assesment
@@ -244,7 +244,7 @@ uint8_t DM_ENABLE = FALSE;
         call FastSpiByte.splitRead();
         call NSEL.set();
      
-        DIAGMSG_REG_WRITE(reg,value);
+        //DIAGMSG_REG_WRITE(reg,value);
     }
     
    
@@ -260,7 +260,7 @@ uint8_t DM_ENABLE = FALSE;
         reg = call FastSpiByte.splitRead();
         call NSEL.set();
         
-        DIAGMSG_REG_READ(regi,reg);
+        //DIAGMSG_REG_READ(regi,reg);
         
 	    return reg;
     }
@@ -292,7 +292,7 @@ uint8_t DM_ENABLE = FALSE;
     
     void STATUS()
 	{
-		DIAGMSG_STR("status","");
+		//DIAGMSG_STR("status","");
 		readRegister(0x02);
 		readRegister(0x03);
 		readRegister(0x04);
@@ -302,7 +302,7 @@ uint8_t DM_ENABLE = FALSE;
 		readRegister(0x62);
 		readRegister(0x71);
 		
-    	DIAGMSG_CHIP();
+    	//DIAGMSG_CHIP();
 	}
   
   
@@ -362,15 +362,13 @@ uint8_t DM_ENABLE = FALSE;
     
     uint8_t* msgdata;
 	uint8_t queued;
-	uint8_t hdrlen;
-    
+    uint8_t hdrlen;
+      
     void _fillTxFifo() {
         uint8_t space;
         RADIO_ASSERT( call SpiResource.isOwner() );
-        
         DIAGMSG_STR("fill","txfifo");
-        DIAGMSG_VAR("ub1",queued);
-        
+
         space = 64 - readRegister(SI443X_TXFIFO_EMPTY); // TX FIFO size is 64 bytes
 		call NSEL.clr();
 		call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_WRITE | 0x7F);
@@ -383,7 +381,6 @@ uint8_t DM_ENABLE = FALSE;
         }
         call FastSpiByte.splitRead();
 		call NSEL.set();
-		DIAGMSG_VAR("ub2",queued);
     }
     
     inline void _readRxFifo()
@@ -391,43 +388,54 @@ uint8_t DM_ENABLE = FALSE;
 	    uint8_t fifoload;
 	   	RADIO_ASSERT( call SpiResource.isOwner() );
 	   	DIAGMSG_STR("readFifo","");
-
-     	/*call NSEL.clr();
-		call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_READ | 0x7F);
-        call FastSpiByte.splitReadWrite(0);
-
+        
+        fifoload = readRegister(0x7E); // RX FIFO Full Thresh
+        
         // if first call
-        if ( chip.cmd == CMD_DOWNLOAD ) {
+        if ( chip.cmd == CMD_START_DOWNLOAD ) {
             
-            // read packet length, use an unused variable
-            queued = call FastSpiByte.splitReadWrite(0);
+            // read packet length
+            queued = readRegister(0x7F);
+            --fifoload;
+            
             call RadioPacket.setPayloadLength(rxMsg, queued);
-            
-            hdrlen = call Config.headerPreloadLength();
+            msgdata = getPayload(rxMsg);
+                        
+            hdrlen = call Config.headerPreloadLength()-1;
 			if( queued < hdrlen )
 				hdrlen = queued;
-
-            msgdata = getPayload(rxMsg);
+                
+            --hdrlen; // 1B already read (pktlen)
+                
             DIAGMSG_VAR("pktlen",queued);
-            DIAGMSG_VAR("hdrlen",hdrlen);
-        } else
-            RADIO_ASSERT( chip.cmd == CMD_FINISH_RX );
-            
-        // how much do we need to read in this call
-        fifoload = readRegister(0x7E); // RX FIFO full
+            //DIAGMSG_VAR("hdrlen",hdrlen);
+                        
+        } else {
+          RADIO_ASSERT( chip.cmd == CMD_FINISH_RX );
+          hdrlen = -1; // just to be cautious
+        }
+        
+        // CONDITION:
+        // CMD_START_DOWNLOAD: fifoload: 54, queued: pktlength
+        // CMD_FINISH_RX     : fifoload: 55, queued: remaining
         if ( queued < fifoload )
             fifoload = queued;
-
+        queued -= fifoload;
+        
+        call NSEL.clr();
+		call FastSpiByte.splitWrite(SI443X_CMD_REGISTER_READ | 0x7F);
+        call FastSpiByte.splitReadWrite(0);
+        
         while( --fifoload ) {
             *(msgdata++) = call FastSpiByte.splitReadWrite(0);
             if ( --hdrlen == 0 )
                 signal RadioReceive.header(rxMsg);
         }
         *(msgdata++) = call FastSpiByte.splitRead();
+   		call NSEL.set();
+   		
         if ( --hdrlen == 0 )
             signal RadioReceive.header(rxMsg);
-            
-		call NSEL.set();*/
 	}
     
     inline void _transmit()
@@ -435,7 +443,8 @@ uint8_t DM_ENABLE = FALSE;
 	    RADIO_ASSERT( chip.state != STATE_TX );
 	    RADIO_ASSERT( chip.cmd == CMD_FINISH_TX );
     	DIAGMSG_STR("transmit","");
-    	readRegister(0x3E);
+    	DIAGMSG_VAR("pktlen",readRegister(0x3E));
+    	
 		writeRegister(0x05, 0xFF);  // pkt sent interrupt + TX fifo almost empty
 		writeRegister(0x06, 0xFF);
 		readRegister(0x03);         // flush interrupts
@@ -506,6 +515,7 @@ uint8_t DM_ENABLE = FALSE;
     
     event void SpiResource.granted()
     {
+        //DIAGMSG_STR("spi","granted");
        	if( chip.state == STATE_POR )
 		{
 			_reset();
@@ -523,9 +533,11 @@ uint8_t DM_ENABLE = FALSE;
     bool isSpiAcquired()
     {
         if( call SpiResource.isOwner() || SUCCESS == call SpiResource.immediateRequest() ) {
+            //DIAGMSG_STR("spi","immediate");
             return TRUE;
         }
         else {
+            //DIAGMSG_STR("spi","request");
             call SpiResource.request();
             return FALSE;
         }
@@ -533,7 +545,7 @@ uint8_t DM_ENABLE = FALSE;
     
     task void releaseSpi()
     {
-        DIAGMSG_STR("spi","release");
+        //DIAGMSG_STR("spi","release");
         call SpiResource.release();
     }
       
@@ -565,7 +577,7 @@ uint8_t DM_ENABLE = FALSE;
 			    DIAGMSG_STR("Int","Fifo Error");
             }
 		    if ( irq1 & 0x40 ) {
-		        RADIO_ASSERT( chip.state == STATE_TX && chip.cmd == CMD_FINISH_TX );
+		        RADIO_ASSERT( chip.cmd == CMD_FINISH_TX );
 			    DIAGMSG_STR("Int","TxFifo Full");
 			    chip.cmd = CMD_FINISH_TX;
 		    }
@@ -579,9 +591,9 @@ uint8_t DM_ENABLE = FALSE;
         
 		    if ( irq1 & 0x10) {
 		        RADIO_ASSERT( chip.state == STATE_RX );
-		        RADIO_ASSERT( chip.cmd == CMD_DOWNLOAD || chip.cmd == CMD_FINISH_RX );
+		        RADIO_ASSERT( chip.cmd == CMD_START_DOWNLOAD || chip.cmd == CMD_FINISH_RX );
 			    DIAGMSG_STR("Int","RxFifo Full");
-			    //_readRxFifo();
+			    _readRxFifo();
 			    chip.cmd = CMD_FINISH_RX;
             }
 		    if ( irq1 & 0x04 )
@@ -596,11 +608,12 @@ uint8_t DM_ENABLE = FALSE;
 		    if ( irq1 & 0x02 )
 		    {
 		        RADIO_ASSERT( chip.state == STATE_RX );
-  		        RADIO_ASSERT( chip.cmd == CMD_DOWNLOAD || chip.cmd == CMD_FINISH_RX );
+  		        RADIO_ASSERT( chip.cmd == CMD_START_DOWNLOAD || chip.cmd == CMD_FINISH_RX );
 			    DIAGMSG_STR("Int","Pkt Received");
 			    _readRxFifo();
 			    chip.cmd = CMD_NONE;
-			    //printPacket();
+			    rxMsg = signal RadioReceive.receive(rxMsg);
+			    printPacket();
 		    }
 
 		    if ( irq1 & 0x01) {
@@ -612,7 +625,7 @@ uint8_t DM_ENABLE = FALSE;
 		    if ( irq2 & 0x80) {
 		        RADIO_ASSERT( chip.state == STATE_RX );
 			    DIAGMSG_STR("Int","Sync Detected");
-			    chip.cmd = CMD_DOWNLOAD;
+			    chip.cmd = CMD_START_DOWNLOAD;
 		    }
 
 		    if ( irq2 & 0x40 ) {
@@ -629,7 +642,7 @@ uint8_t DM_ENABLE = FALSE;
 	
 	tasklet_async event void Tasklet.run()
 	{
-	    DIAGMSG_STR("Tasklet","run");
+	    //DIAGMSG_STR("Tasklet","run");
 		if( radioIrq && chip.state != STATE_POR )
 			serviceRadio();
 
@@ -728,15 +741,17 @@ uint8_t DM_ENABLE = FALSE;
         return SUCCESS;
     }
 
-    default tasklet_async event void RadioSend.ready() { } 
+//    default tasklet_async event void RadioSend.ready() { } 
 
     default tasklet_async event bool RadioReceive.header(message_t* msg)
     {
+        //DIAGMSG_STR("RReceive","Hdr");
         return TRUE;
     }
 
     default tasklet_async event message_t* RadioReceive.receive(message_t* msg)
     {
+        //DIAGMSG_STR("RReceive","receive");
         return msg;
     }
 
