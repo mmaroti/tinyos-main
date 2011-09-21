@@ -42,64 +42,22 @@
 #include <Si443xDriverLayer.h>
 #include "TimerConfig.h"
 
-/* This is the default value of the TX_PWR field of the PHY_TX_PWR register. */
 #ifndef SI443X_DEF_RFPOWER
-#define SI443X_DEF_RFPOWER	0
+#define SI443X_DEF_RFPOWER	3
 #endif
 
-/* This is the default value of the CHANNEL field of the PHY_CC_CCA register. */
 #ifndef SI443X_DEF_CHANNEL
-#define SI443X_DEF_CHANNEL	11
+#define SI443X_DEF_CHANNEL	1
 #endif
 
-/* The number of microseconds a sending IRIS mote will wait for an acknowledgement */
-#ifndef SOFTWAREACK_TIMEOUT
-#define SOFTWAREACK_TIMEOUT	1000
-#endif
-
-
-enum
-{
-	/**
-	 * This is the default value of the CCA_MODE field in the PHY_CC_CCA register
-	 * which is used to configure the default mode of the clear channel assesment
-	 */
-	RFA1_CCA_MODE_VALUE = CCA_CS<<CCA_MODE0,
-
-	/**
-	 * This is the value of the CCA_THRES register that controls the
-	 * energy levels used for clear channel assesment
-	 */
-	RFA1_CCA_THRES_VALUE = 0xC7,	//TODO to avr-libc values
-	
-	RFA1_PA_BUF_LT=3<<PA_BUF_LT0,
-	RFA1_PA_LT=0<<PA_LT0,
-};
-
-/* This is the default value of the TX_PWR field of the PHY_TX_PWR register. */
-#ifndef RFA1_DEF_RFPOWER
-#define RFA1_DEF_RFPOWER	0
-#endif
-
-/* This is the default value of the CHANNEL field of the PHY_CC_CCA register. */
-#ifndef RFA1_DEF_CHANNEL
-#define RFA1_DEF_CHANNEL	11
-#endif
-
-/**
- * This is the timer type of the radio alarm interface
- */
+// This is the timer type of the radio alarm interface
 typedef T62khz TRadio;
 typedef uint32_t tradio_size;
 
-/**
- * The number of radio alarm ticks per one microsecond
- */
+// The number of radio alarm ticks per one microsecond
 #define RADIO_ALARM_MICROSEC	0.0625
 
-/**
- * The base two logarithm of the number of radio alarm ticks per one millisecond
- */
+// The base two logarithm of the number of radio alarm ticks per one millisecond
 #define RADIO_ALARM_MILLI_EXP	6
 
 #endif//__SI443X_RADIOCONFIG_H__
