@@ -18,28 +18,39 @@ module RadioTestC @safe() {
 implementation {
 
 #define IS_TX (TOS_NODE_ID == 1)
-#define PKLEN 10  
 
   uint8_t sw = 0;
   message_t pkt;
   bool busy = FALSE;
   
-  event void Boot.booted() {
+  uint8_t starter = 0;
+  uint8_t pktlen = 0x01;
+  uint8_t pktlen_count = 0;
+  
+  bool makePacket() {
     uint8_t i;
     uint8_t* pl = (uint8_t*) ( ((void*)&pkt) + call RadioPacket.headerLength(&pkt));
+    
+    if ( ++pktlen_count %2 == 0 )
+        ++pktlen;
         
-    if ( IS_TX ) {
-        call RadioPacket.setPayloadLength(&pkt,PKLEN);
-        for( i = 0; i< PKLEN; ++i)
-            *(pl++) = i*2;
+    call RadioPacket.setPayloadLength(&pkt,pktlen%125+1);
+    for( i = 0; i< pktlen%125+1; ++i)
+        *(pl++) = starter + i;
+        
+    ++starter;
+    return TRUE;
+  }
+  
+  event void Boot.booted() {
+    if ( IS_TX )
         call RadioState.standby();
-    }
     else
         call RadioState.turnOn();
   }
 
   event void MilliTimer.fired() {
-    if ( ! busy  && call RadioSend.send(&pkt) == SUCCESS )
+    if ( ! busy && makePacket() && call RadioSend.send(&pkt) == SUCCESS )
         busy = TRUE;
   }
 
