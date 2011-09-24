@@ -13,13 +13,14 @@ module RadioTestC @safe() {
     interface RadioState;
     interface RadioSend;
     interface RadioPacket;
+    interface RadioReceive;
   }
 }
 implementation {
 
 #define IS_TX (TOS_NODE_ID == 1)
 
-  uint8_t sw = 0;
+  bool accept;
   message_t pkt;
   bool busy = FALSE;
   
@@ -42,16 +43,23 @@ implementation {
     return TRUE;
   }
   
+  
   event void Boot.booted() {
-    if ( IS_TX )
+    if ( IS_TX ) {
+        call Leds.led0Off();
         call RadioState.standby();
-    else
+    } else {
+        accept = TRUE;
+        call Leds.led0On();
         call RadioState.turnOn();
+    }
   }
 
   event void MilliTimer.fired() {
-    if ( ! busy && makePacket() && call RadioSend.send(&pkt) == SUCCESS )
+    call Leds.led1On();
+    if ( ! busy && makePacket() && call RadioSend.send(&pkt) == SUCCESS ) {
         busy = TRUE;
+    }
   }
 
   tasklet_async event void RadioState.done() {
@@ -60,14 +68,49 @@ implementation {
         call MilliTimer.startPeriodic(1000);
   }
  
+  tasklet_async event void RadioSend.ready() { }
+ 
   tasklet_async event void RadioSend.sendDone(error_t error) {
-    call Leds.led1Toggle();
-    if ( error == SUCCESS ) {
-        busy = FALSE;
-    }
+    call Leds.led1Off();
+    busy = FALSE;
   }
   
-  tasklet_async event void RadioSend.ready() { }
+  tasklet_async event bool RadioReceive.header(message_t* msg)
+  {
+    accept = !accept;
+    return accept;
+  }
+
+  tasklet_async event message_t* RadioReceive.receive(message_t* msg)
+  {
+
+    uint8_t i,l;
+    uint8_t* data = ((void*)msg)+ call RadioPacket.headerLength(msg);
+  	l = call RadioPacket.payloadLength(msg);    
+    call Leds.led2On();
+            
+    // print the whole packet
+  	if( call DiagMsg.record() ) {
+      call DiagMsg.str("packet");
+      call DiagMsg.hex8(l);
+      call DiagMsg.send();
+   	}
+
+    for ( i = 0; i < l/15; ++i  ) {
+	    if( call DiagMsg.record() ) {
+	    call DiagMsg.hex8s(data+i*15,15);
+	    call DiagMsg.send();
+		}
+	}
+	if( l%15 != 0 && call DiagMsg.record() ) {
+        call DiagMsg.hex8s(data+i*15,l%15);
+        call DiagMsg.send();
+	}
+
+    call Leds.led2Off();
+    return msg;
+  }
+
 
 }
 

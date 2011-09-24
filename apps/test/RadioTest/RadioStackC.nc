@@ -4,6 +4,7 @@ configuration RadioStackC {
         interface RadioState;
         interface RadioSend;
         interface RadioPacket;
+        interface RadioReceive;
     }
 }
 
@@ -13,6 +14,7 @@ implementation {
     RadioState = RadioDriverLayerC;
     RadioSend = RadioDriverLayerC;
     RadioPacket = RadioDriverLayerC;
+    RadioReceive = RadioDriverLayerC;
     
     components RadioStackP;
     components new RadioAlarmC();

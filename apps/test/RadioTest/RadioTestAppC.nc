@@ -16,6 +16,7 @@ implementation {
   App.RadioState -> Radio;
   App.RadioSend -> Radio;
   App.RadioPacket -> Radio;
+  App.RadioReceive -> Radio;
 }
 
 
