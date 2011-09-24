@@ -50,6 +50,29 @@
 #define SI443X_DEF_CHANNEL	1
 #endif
 
+enum {
+    SI443X_TXFIFO_FULL_THRESH = 55,
+    SI443X_RXFIFO_FULL_THRESH = 55,
+    SI443X_TXFIFO_EMPTY_THRESH = 4,
+};
+
+
+#if ( SI443X_TXFIFO_FULL_THRESH >= 64 || SI443X_TXFIFO_FULL_THRESH < 0 )
+#error "SI443X_TXFIFO_FULL_THRESH value is not valid!"
+#endif
+
+#if ( SI443X_TXFIFO_EMPTY_THRESH >= 64 || SI443X_TXFIFO_EMPTY_THRESH < 0 )
+#error "SI443X_TXFIFO_EMPTY_THRESH value is not valid!"
+#endif
+
+#if ( SI443X_TXFIFO_EMPTY_THRESH > SI443X_TXFIFO_FULL_THRESH )
+#error "SI443X_TXFIFO_FULL_THRESH cannot be lesser than SI443X_TXFIFO_EMPTY_THRESH!"
+#endif
+
+#if ( SI443X_RXFIFO_FULL_THRESH >= 64 || SI443X_RXFIFO_FULL_THRESH < 0 )
+#error "SI443X_RXFIFO_FULL_THRESH value is not valid!"
+#endif
+
 // This is the timer type of the radio alarm interface
 typedef T62khz TRadio;
 typedef uint32_t tradio_size;
