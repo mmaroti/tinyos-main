@@ -20,12 +20,12 @@ implementation {
 
 #define IS_TX (TOS_NODE_ID == 1)
 
-  bool accept;
+  norace bool accept;
   message_t pkt;
-  bool busy = FALSE;
+  norace bool busy = FALSE;
   
   uint8_t starter = 0;
-  uint8_t pktlen = 0;
+  uint8_t pktlen = 50;
   uint8_t pktlen_count = 0;
   
   bool makePacket() {
@@ -35,8 +35,8 @@ implementation {
     if ( ++pktlen_count %2 == 0 )
         ++pktlen;  
         
-    call RadioPacket.setPayloadLength(&pkt,pktlen%125+1);
-    for( i = 0; i< pktlen%125+1; ++i)
+    call RadioPacket.setPayloadLength(&pkt,pktlen%123+3);
+    for( i = 0; i< pktlen%123+3; ++i)
         *(pl++) = starter + i;
         
     ++starter;
@@ -56,22 +56,24 @@ implementation {
   }
 
   event void MilliTimer.fired() {
-    call Leds.led1On();
+    call Leds.led1Toggle();
     if ( ! busy && makePacket() && call RadioSend.send(&pkt) == SUCCESS ) {
+        call Leds.led2On();
         busy = TRUE;
     }
   }
 
   tasklet_async event void RadioState.done() {
     call Leds.led0Toggle();
-    if ( IS_TX )
+    if ( IS_TX ) {
         call MilliTimer.startPeriodic(1000);
+    }
   }
  
   tasklet_async event void RadioSend.ready() { }
  
   tasklet_async event void RadioSend.sendDone(error_t error) {
-    call Leds.led1Off();
+    call Leds.led2Off();
     busy = FALSE;
   }
   
