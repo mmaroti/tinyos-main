@@ -99,7 +99,7 @@ implementation
 /* ----------------- DEBUGGER FUNCTIONS AND HELPERS  -----------------*/
 #ifdef RADIO_DEBUG
 
-uint8_t DM_ENABLE = FALSE;
+tasklet_norace uint8_t DM_ENABLE = FALSE;
     
 #define DIAGMSG_STR(PSTR,STR) \
         atomic { if( DM_ENABLE && call DiagMsg.record() ) { \
@@ -163,11 +163,12 @@ uint8_t DM_ENABLE = FALSE;
                 
 		CMD_RX_WAIT = 10,       // wait for data in the RX fifo
 		CMD_RX_FINISH = 12,     //
-		CMD_TX_FINISH = 13,		// finish transmitting
+		CMD_RX_ABORT = 13,
+		
+		CMD_TX_FINISH = 20,		// finish transmitting
 
-		CMD_CLEAR_FIFO = 20,    
-		CMD_FINISH_CCA = 21,	// finish clear chanel assesment
-		CMD_RESET = 22,
+		CMD_FINISH_CCA = 30,	// finish clear chanel assesment
+		CMD_RESET = 31,
 	};
 
     tasklet_norace struct {
@@ -180,8 +181,10 @@ uint8_t DM_ENABLE = FALSE;
 	tasklet_norace uint8_t txPower;
 	tasklet_norace uint8_t channel;
 
-	tasklet_norace message_t* rxMsg;
 	message_t rxMsgBuffer;
+	tasklet_norace message_t* rxMsg;
+	tasklet_norace uint8_t* msgdata;
+	tasklet_norace uint8_t queued;
 
 	tasklet_norace uint8_t rssiClear;
 	tasklet_norace uint8_t rssiBusy;
@@ -239,9 +242,6 @@ uint8_t DM_ENABLE = FALSE;
     
 /*----------------- LOW LEVEL FUNCTIONS -----------------*/
   	
-	uint8_t* msgdata;
-	uint8_t queued;
-	
     inline void _clearFifo() {
         uint8_t old = readRegister(SI443X_CTRL_2);
         writeRegister(SI443X_CTRL_2, old |  SI443X_CLEAR_RX_FIFO | SI443X_CLEAR_TX_FIFO );
@@ -372,9 +372,7 @@ uint8_t DM_ENABLE = FALSE;
         
         DIAGMSG_STR("dload","msg");
         RADIO_ASSERT( call SpiResource.isOwner() );
-        RADIO_ASSERT( chip.cmd == CMD_RX_WAIT || chip.cmd == CMD_RX_FINISH );
-        
-        DIAGMSG_VAR("hdrlen", call Config.headerPreloadLength());
+        RADIO_ASSERT( chip.cmd == CMD_RX_WAIT || chip.cmd == CMD_RX_FINISH || chip.cmd == CMD_RX_ABORT );
         
         call NSEL.clr();
 		call FastSpiByte.write(SI443X_SPI_READ | SI443X_FIFO);
@@ -396,40 +394,34 @@ uint8_t DM_ENABLE = FALSE;
 				// initiate the reading
 				call FastSpiByte.splitWrite(0);
 
-                // we are going to read hdrlen-1 bytes
-                fifoload -= hdrlen;
-                queued -= hdrlen-1;
+                // we are going to read hdrlen bytes
+                fifoload -= hdrlen+1;
+                queued -= hdrlen;
 				
                 // read header
-                --hdrlen; // pkt length already read
                 while( --hdrlen != 0 )
                     *(msgdata++) = call FastSpiByte.splitReadWrite(0);
-                *(msgdata) = call FastSpiByte.splitRead();
+                *(msgdata++) = call FastSpiByte.splitRead();
                 
-                chip.cmd = (signal RadioReceive.header(rxMsg)) ? CMD_RX_FINISH : CMD_NONE;
+                chip.cmd = (signal RadioReceive.header(rxMsg)) ? CMD_RX_FINISH : CMD_RX_ABORT;
             } else
-                chip.cmd = CMD_NONE;
+                chip.cmd = CMD_RX_ABORT;
         }
 
-        // compute how much data can be read from the FIFO
-        if ( queued < fifoload )
-            fifoload = queued;
+        // Note: The RX Fifo MUST be read even if the message is to be dropped.
         
+        // compute how much data can be read from the FIFO
+        if ( queued < fifoload ) {
+           fifoload = queued;
+        }
         queued -= fifoload;
-
         if ( fifoload > 0 ) {
-            // initiate the reading
-    		call FastSpiByte.splitWrite(0);
-    		while( --fifoload != 0 )
+      		call FastSpiByte.splitWrite(0);
+       		while( --fifoload != 0 )
                 *(msgdata++) = call FastSpiByte.splitReadWrite(0);
-            *(msgdata) = call FastSpiByte.splitRead();
+            *(msgdata++) = call FastSpiByte.splitRead();
         }        
         call NSEL.set();
-        
-        if ( chip.cmd == CMD_RX_FINISH && queued == 0 ) {
-            chip.cmd = CMD_NONE;
-            rxMsg = signal RadioReceive.receive(rxMsg);
-        }
     }
    
     void _setupModem()
@@ -528,6 +520,7 @@ uint8_t DM_ENABLE = FALSE;
         if ( irq1 & SI443X_I1_CRCERROR ) {      DIAGMSG_STR("Int","CRC Error");
 	        RADIO_ASSERT( chip.state == STATE_RX );
 	        _clearFifo();
+	        chip.cmd = CMD_NONE;
         }
 
         /** TRANSMISSION **/
@@ -563,16 +556,19 @@ uint8_t DM_ENABLE = FALSE;
 
 	    if ( irq1 & SI443X_I1_RXFIFOFULL ) {    DIAGMSG_STR("Int","RxFifo Full");
 	        RADIO_ASSERT( chip.state == STATE_RX );
-	        RADIO_ASSERT( chip.cmd == CMD_RX_WAIT || chip.cmd == CMD_RX_FINISH );
-	        
+	        RADIO_ASSERT( chip.cmd == CMD_RX_WAIT || chip.cmd == CMD_RX_FINISH || chip.cmd == CMD_RX_ABORT );
 	        _downloadMessage();
         }
             
         if ( irq1 & SI443X_I1_PKTRECEIVED ) {   DIAGMSG_STR("Int","Pkt Received");
 	        RADIO_ASSERT( chip.state == STATE_RX );
-	        RADIO_ASSERT( chip.cmd == CMD_RX_WAIT || chip.cmd == CMD_RX_FINISH );
+	        RADIO_ASSERT( chip.cmd == CMD_RX_WAIT || chip.cmd == CMD_RX_FINISH || chip.cmd == CMD_RX_ABORT );
             
             _downloadMessage();
+            if ( chip.cmd != CMD_RX_ABORT ) {
+                rxMsg = signal RadioReceive.receive(rxMsg);
+            }
+            chip.cmd = CMD_NONE;
 	    }
 
         /** MISC */
@@ -636,13 +632,17 @@ uint8_t DM_ENABLE = FALSE;
     {
 		uint8_t power;
 
-		if( chip.cmd != CMD_NONE || (chip.state != STATE_READY && chip.state != STATE_RX ) || radioIrq || ! isSpiAcquired() )
-			return EBUSY;
+		if( chip.cmd != CMD_NONE || (chip.state != STATE_READY && chip.state != STATE_RX ) || radioIrq || ! isSpiAcquired() ) {
+           	DIAGMSG_STR("send","BUSY");		
+           	return EBUSY;
+		}
+		
 
         // RSSI Clear Channel Assessment
-		if( call Config.requiresRssiCca(msg) && ( readRegister(SI443X_RSSI) > ((rssiClear + rssiBusy) >> 3) ) )
+		if( call Config.requiresRssiCca(msg) && ( readRegister(SI443X_RSSI) > ((rssiClear + rssiBusy) >> 3) ) ) {
+           	DIAGMSG_STR("send","BUSY-2");
 			return EBUSY;
-        
+        }
         // go to tune mode to gain some time
         _tune();
         chip.state = STATE_TUNE;
