@@ -35,11 +35,7 @@
 
 configuration ConvergecastC
 {
-	provides
-	{
-		interface Convergecast;
-		interface Init;
-	}
+	provides interface Convergecast;
 }
 
 implementation
@@ -47,7 +43,6 @@ implementation
 	components ConvergecastP, MainC, ActiveMessageAddressC;
 
 	Convergecast = ConvergecastP;
-	Init = ConvergecastP;
 	
 	MainC.SoftwareInit -> ConvergecastP;
 	
