@@ -51,6 +51,7 @@ namespace sdc {
 
 RecordLinker::RecordLinker(const char* filename) : out(new ofstream(filename)) {
 
+        qDebug() << filename;
 	if (!out->is_open()) {
 
 		throw runtime_error("failed to create output file");

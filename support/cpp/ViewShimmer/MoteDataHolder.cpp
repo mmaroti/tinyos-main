@@ -62,7 +62,10 @@ void MoteDataHolder::loadCSVData(QString filename)
     }
 
     //printMoteData(4);
-    qDebug()  << "load finished";
+    qDebug()  << "-----loading finished-----";
+    for(int i=0; i<motes.size(); i++){
+        qDebug() << motes[i]->samplesSize();
+    }
     emit loadFinished();
 }
 

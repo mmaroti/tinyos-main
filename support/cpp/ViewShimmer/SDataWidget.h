@@ -59,6 +59,9 @@ public:
     SDataWidget(QWidget *parent, Application &app);
     ~SDataWidget();
 
+
+    void initLeft(bool filter);
+
 private:
 
     Ui::SDataWidget *ui;
@@ -83,7 +86,6 @@ private:
 
     enum Side { Left, Right };
 
-    void initLeft(bool filter);
     void initRight();
 
     QTreeWidgetItem* createParentItem(int i, QTreeWidget* root, Side side);
@@ -113,10 +115,13 @@ private slots:
     void onUpdateGUI();
     void on_clearButton_clicked();
     void on_showLastTencBox_clicked();
-    void onSdataLeftFocusIn();
+    //void onSdataLeftFocusIn();
     //void onReverseExpandState();
     void on_expandLeft_cBox_clicked();
     void on_expandRight_cBox_clicked();
+
+public slots:
+    void onSdataLeftFocusIn();
 
 };
 

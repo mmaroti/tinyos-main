@@ -265,7 +265,8 @@ void RecordList::link(int mote, int reboot) {
 
     search_for_matching_records(mote, reboot);
 
-    sdc::RecordLinker linker(sdc::time_to_filename().c_str());
+    std::string filename = sdc::time_to_filename().append(".csv");
+    sdc::RecordLinker linker(filename.c_str());
 
     const sdc::RecordInfo recinfo = scout->find_recordinfo(sdc::RecordID(mote, reboot));
 

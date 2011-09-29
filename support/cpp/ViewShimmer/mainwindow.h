@@ -102,6 +102,8 @@ private:
     QVector<QwtPlotMarker*> markers;
 
     QVector<int> copyPositions;
+
+    void exitFailure(const QString& dir) const;
 };
 
 #endif

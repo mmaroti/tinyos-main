@@ -16,6 +16,7 @@
 #include <QListWidget>
 #include <QListWidgetItem>
 #include <QProgressBar>
+#include <QDir>
 
 #include <qwt_picker_machine.h>
 #include <qwt_plot_zoomer.h>
@@ -89,6 +90,14 @@ MainWindow::MainWindow(QWidget *parent, Application &app):
 
     toolBar->addSeparator();
 
+    bool success = QDir::setCurrent("../rec");
+
+    if (!success) {
+
+        exitFailure("../rec");
+    }
+
+    qDebug() << "Working directory is " << QDir::currentPath();
     btnSData = new QToolButton(this);
     btnSData->setText("SData Downloader");
     toolBar->addWidget(btnSData);
@@ -168,7 +177,7 @@ void MainWindow::onLoadButtonPressed()
             QTextStream ts( &f );
             line = ts.readLine();
 
-            while(line != "#marker_id,marker_text,marker_x_pos"){
+            while(line != "#marker_id,marker_text,marker_x_pos" && !ts.atEnd() ){
                 line = ts.readLine();
             }
 
@@ -406,6 +415,7 @@ void MainWindow::enablePasteMode(bool on)
 void MainWindow::enableSDownloader()
 {
     application.sdataWidget.show();
+    application.sdataWidget.initLeft(false);
 }
 
 void MainWindow::calculateCurveDatas(double zoomRatio)
@@ -415,15 +425,24 @@ void MainWindow::calculateCurveDatas(double zoomRatio)
     qDebug() << "PLOT DEBUG:";
     qDebug() << "Zoom ratio: " << zoomRatio;
 
-    long int longestID = -1;
-    int maxLength = 0;
+    //long int longestID = -1;
+    //int maxLength = 0;
+    double endTime = 0;
+    double startTime = 999999999.99;
     for(int i = 0; i < application.moteDataHolder.motesCount(); i++){
-        if(application.moteDataHolder.mote(i)->getLength() > maxLength){
+        /*if(application.moteDataHolder.mote(i)->getLength() > maxLength){
             maxLength = application.moteDataHolder.mote(i)->getLength();
             longestID = i;
-        }
+        }*/
+
+        long int last = application.moteDataHolder.mote(i)->samplesSize()-1;
+        double lastTime = application.moteDataHolder.mote(i)->sampleAt(last).unix_time;
+        qDebug() << "last: " << last << "; lastTime: " << lastTime;
+
+        if(endTime < lastTime) endTime = lastTime;
+        if(startTime > application.moteDataHolder.mote(i)->sampleAt(1).unix_time) startTime = application.moteDataHolder.mote(i)->sampleAt(1).unix_time;
     }
-    double time = application.moteDataHolder.mote(longestID)->getLength();
+    //double time = application.moteDataHolder.mote(longestID)->getLength();
 
     int minValue, maxValue;
     maxValue = 0; minValue = 20000;
@@ -458,7 +477,8 @@ void MainWindow::calculateCurveDatas(double zoomRatio)
         d_plot->setMoteCurve(i);
     }
 
-    d_plot->setAxisScale(QwtPlot::xBottom, -10, time+10);
+    qDebug() << "startTime: " << startTime << "; endTime: " << endTime;
+    d_plot->setAxisScale(QwtPlot::xBottom, -10-fabs(startTime), endTime+10);
     d_plot->setAxisScale(QwtPlot::yLeft, minValue, maxValue);
     d_plot->replot();
 
@@ -796,4 +816,19 @@ void MainWindow::on_listWidget_itemDoubleClicked(QListWidgetItem *item)
     d_plot->replot();
 }
 
+void MainWindow::exitFailure(const QString& dir) const {
+
+    QString msg("Error: failed to set directory ");
+
+    msg.append(dir);
+    msg.append("\nRunning from:\n");
+    msg.append(QDir::currentPath());
+
+    QMessageBox mbox;
+
+    mbox.setText(msg);
+    mbox.exec();
+
+    exit(EXIT_FAILURE);
+}
 

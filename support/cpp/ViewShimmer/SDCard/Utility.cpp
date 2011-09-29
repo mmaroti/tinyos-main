@@ -90,7 +90,7 @@ const string get_filename(int mote_id, int reboot_id, int first_block) {
 	return os.str();
 }
 
-const string time_to_filename() {
+string time_to_filename() {
 
 	string time_stamp(current_time().substr(4, 20));
 
