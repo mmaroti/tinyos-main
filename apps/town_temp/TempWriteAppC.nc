@@ -44,7 +44,6 @@ implementation {
 	components new TimerMilliC() as Timer0;
 	components new TemperatureC() as Sensor;
 	components new LogStorageC(VOLUME_LOGTEST, TRUE);
-	components I2CBusC;
 		
 	components ActiveMessageC;
 	  App.RadioControl -> ActiveMessageC;
@@ -63,6 +62,6 @@ implementation {
 	components ActiveMessageC as LPLProvider;
   	App.LPL -> LPLProvider;
 
-	App.SplitControl -> I2CBusC;
+	App.SplitControl -> Sensor;
 
 }

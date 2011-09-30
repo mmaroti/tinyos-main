@@ -33,7 +33,7 @@
 
 #include <Timer.h>
 #include "TempStorage.h"
-
+/*
 #ifndef LPL_DEF_REMOTE_WAKEUP
 	#define LPL_DEF_REMOTE_WAKEUP 1024
 #endif
@@ -43,7 +43,7 @@
 #ifndef DELAY_AFTER_RECEIVE
 	#define DELAY_AFTER_RECEIVE 200
 #endif
-
+*/
 module TempWriteC {
 	uses interface Boot;
 	uses interface Leds;
@@ -78,14 +78,14 @@ implementation {
 
 
 	event void Boot.booted() {
-		call Leds.set(0);
+		call Leds.led2On();
 		call RadioControl.start();
 	}
 
 	event void RadioControl.startDone(error_t err){
 		if (err == SUCCESS){
 			call Timer0.startPeriodic(TIMER_PERIOD_MILLI_WRITE);
-			//call Leds.led2Off();
+			call Leds.led2Off();
 		}
 		else {
 			call RadioControl.start();
@@ -93,18 +93,13 @@ implementation {
 	}
 	
 	event void SplitControl.startDone(error_t err){
-	if (err == SUCCESS){
 			call Read.read();
-		}
-		else {
-			call SplitControl.start();
-		}
+			//call Leds.led0On();
 	}
 
 	event void Timer0.fired() {
 		if (c==1) {if (set2==0) {call Timer0.startPeriodic(TIMER_PERIOD_MILLI_WRITE); set2=1;}
 				call SplitControl.start();
-				//call Leds.led0Toggle();
 				set=0;}
 		else if (c==2) { if (set==0) {call Timer0.startPeriodic(TIMER_PERIOD_MILLI_READ); set=1;}
 				call LogRead.read(&m_entry, sizeof(logentry_t));
@@ -112,12 +107,12 @@ implementation {
 				}
 		else if (c==3) {
 				if (call LogWrite.erase() == SUCCESS) {
-				/*call Leds.led0On();*/
+				call Leds.led0On();
 				set=0;
 				set2=0;
 		      		}
 		}
-		else if (c==4){/*call Leds.led2Toggle();*/ set=0; set2=0;}
+		else if (c==4){call Leds.led2Toggle(); set=0; set2=0;}
 	}
 	
 	event void Read.readDone(error_t result, uint16_t data) {
@@ -130,20 +125,22 @@ implementation {
 		call SplitControl.stop();
 	}
 
-	event void SplitControl.stopDone(error_t err){}
+	event void SplitControl.stopDone(error_t err){
+	//call Leds.led0Off();
+	}
 
 	event void LogWrite.appendDone(void* buf, storage_len_t len, bool recordsLost, error_t err) {
-    	//if (err==SUCCESS){call Leds.led3Toggle();}
+    	if (err==SUCCESS){call Leds.led3Toggle();}
   	}
 	
 	event message_t* Receive.receive(message_t* msgPtr, void* payload, uint8_t len){
-		//call Leds.set(0);
+		call Leds.set(0);
 		if(len==sizeof(ControlMsg)){
 			ControlMsg* btrpkt = (ControlMsg*)payload;
 			c=btrpkt->control;
-			//call Leds.led1On();
+			call Leds.led1On();
 			call Timer0.startPeriodic(TIMER_PERIOD_MILLI_DEFAULT);
-			//call Leds.led1Off();
+			call Leds.led1Off();
 		}
 	return msgPtr;
 	}
@@ -151,7 +148,7 @@ implementation {
 	event void LogRead.readDone(void* buf, storage_len_t len, error_t err) {
 		
 		if(err==SUCCESS){
-			//call Leds.led0Toggle();
+			call Leds.led0Toggle();
 			if (!busy) {
 			BlinkToRadioMsg* btrpkt = (BlinkToRadioMsg*)(call Packet.getPayload(&pkt, sizeof(BlinkToRadioMsg)));
 			btrpkt->temperature = m_entry.temp;
@@ -168,13 +165,14 @@ implementation {
 	event void AMSend.sendDone(message_t* msg, error_t error) {
 	if (error == SUCCESS) {
 			busy = FALSE;
-			//call Leds.led1Toggle();
+			call Leds.led1Toggle();
 		}
 	}
 
 	event void LogWrite.eraseDone(error_t err) {
-	//if (err==SUCCESS) call Leds.led0Off();	
+	if (err==SUCCESS) call Leds.led0Off();	
 	c=1;
+	counter=0;
 	}
 	event void LogWrite.syncDone(error_t err) {}
 	event void RadioControl.stopDone(error_t err){}

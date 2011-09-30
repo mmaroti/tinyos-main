@@ -35,7 +35,7 @@
 
 #include <Timer.h>
 #include "TempStorage.h"
-
+/*
 #ifndef LPL_DEF_REMOTE_WAKEUP
 	#define LPL_DEF_REMOTE_WAKEUP 1024
 #endif
@@ -45,7 +45,7 @@
 #ifndef DELAY_AFTER_RECEIVE
 	#define DELAY_AFTER_RECEIVE 200
 #endif
-
+*/
 module SerialC {
 	uses interface Boot;
 	uses interface Leds;
@@ -106,7 +106,7 @@ implementation {
 	event message_t* SerialReceive.receive(message_t* msg, void* payload, uint8_t len) {
 		if (len == sizeof(BlinkToRadioMsg)) {
 			BlinkToRadioMsg* ptr = (BlinkToRadioMsg*)payload;
-			//call Leds.set(ptr->counter);
+			call Leds.set(ptr->counter);
 			seged=ptr->counter2;
 			if (!locked){
 				ControlMsg* btrpkt2 = (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));

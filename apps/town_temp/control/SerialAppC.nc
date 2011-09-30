@@ -59,7 +59,7 @@ implementation {
 	App.SerialReceive -> SerialAMReceiverC;
 	App.SerialControl -> SerialActiveMessageC;
 
-	components CC2420ActiveMessageC as LPLProvider;
+	components ActiveMessageC as LPLProvider;
   	App.LPL -> LPLProvider;
 	
 }
