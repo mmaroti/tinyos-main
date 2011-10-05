@@ -18,66 +18,47 @@ module RadioTestC @safe() {
 }
 implementation {
 
-#define IS_TX (TOS_NODE_ID == 1)
-
-  norace bool accept;
   message_t pkt;
   norace bool busy = FALSE;
-  
-  uint8_t starter = 0;
-  uint8_t pktlen = 50;
-  uint8_t pktlen_count = 0;
-  
-  bool makePacket() {
+ 
+  void makePacket() {
     uint8_t i;
     uint8_t* pl = (uint8_t*) ( ((void*)&pkt) + call RadioPacket.headerLength(&pkt));
   
-    if ( ++pktlen_count %2 == 0 )
-        ++pktlen;  
-        
-    call RadioPacket.setPayloadLength(&pkt,pktlen%123+3);
-    for( i = 0; i< pktlen%123+3; ++i)
-        *(pl++) = starter + i;
-        
-    ++starter;
-    return TRUE;
+    call RadioPacket.setPayloadLength(&pkt,20);
+    for( i = 0; i< 20; ++i)
+        *(pl++) = TOS_NODE_ID + i;
   }
   
   
   event void Boot.booted() {
-    if ( IS_TX ) {
-        call Leds.led0Off();
-        call RadioState.standby();
-    } else {
-        accept = TRUE;
-        call Leds.led0On();
-        call RadioState.turnOn();
-    }
-  }
-
-  event void MilliTimer.fired() {
+    while ( SUCCESS != call RadioState.turnOn() ) ;
+    makePacket();
+    call MilliTimer.startPeriodic(TOS_NODE_ID * 100);    
   }
 
   tasklet_async event void RadioState.done() {
-    call Leds.led0Toggle();
+    call Leds.led0On();
   }
- 
-  tasklet_async event void RadioSend.ready() { 
-    if ( IS_TX && ! busy && makePacket() && call RadioSend.send(&pkt) == SUCCESS ) {
-        call Leds.led2On();
+
+  event void MilliTimer.fired() {
+    if ( ! busy && call RadioSend.send(&pkt) == SUCCESS ) {
+        call Leds.led1On();
         busy = TRUE;
     }
   }
+
+  tasklet_async event void RadioSend.ready() { 
+  }
  
   tasklet_async event void RadioSend.sendDone(error_t error) {
-    call Leds.led2Off();
+    call Leds.led1Off();
     busy = FALSE;
   }
   
   tasklet_async event bool RadioReceive.header(message_t* msg)
   {
-    accept = !accept;
-    return accept;
+    return TRUE;
   }
 
   tasklet_async event message_t* RadioReceive.receive(message_t* msg)
@@ -110,9 +91,5 @@ implementation {
     return msg;
   }
 
-
 }
-
-
-
 
