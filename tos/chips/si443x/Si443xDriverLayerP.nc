@@ -40,6 +40,7 @@
 #include <TimeSyncMessageLayer.h>
 #include <RadioConfig.h>
    
+#warning "* USING SI443X *"
 module Si443xDriverLayerP
 {
     provides
@@ -565,7 +566,9 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 	        RADIO_ASSERT( chip.cmd == CMD_RX_WAIT || chip.cmd == CMD_RX_FINISH || chip.cmd == CMD_RX_ABORT );
             
             _downloadMessage();
+            DIAGMSG_VAR("chip.cmd",chip.cmd);
             if ( chip.cmd != CMD_RX_ABORT ) {
+                DIAGMSG_STR("signal","RCV");
                 rxMsg = signal RadioReceive.receive(rxMsg);
             }
             chip.cmd = CMD_NONE;
@@ -635,8 +638,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		if( chip.cmd != CMD_NONE || (chip.state != STATE_READY && chip.state != STATE_RX ) || radioIrq || ! isSpiAcquired() ) {
            	DIAGMSG_STR("send","BUSY");		
            	return EBUSY;
-		}
-		
+		}		
 
         // RSSI Clear Channel Assessment
 		if( call Config.requiresRssiCca(msg) && ( readRegister(SI443X_RSSI) > ((rssiClear + rssiBusy) >> 3) ) ) {
@@ -666,7 +668,6 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
         _transmit();
         chip.state = STATE_TX;
         
-		call Tasklet.schedule();
         return SUCCESS;
     }
     
