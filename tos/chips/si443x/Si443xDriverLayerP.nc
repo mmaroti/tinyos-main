@@ -40,7 +40,6 @@
 #include <TimeSyncMessageLayer.h>
 #include <RadioConfig.h>
    
-#warning "* USING SI443X *"
 module Si443xDriverLayerP
 {
     provides
@@ -58,6 +57,7 @@ module Si443xDriverLayerP
         interface PacketField<uint8_t> as PacketRSSI;
         interface PacketField<uint8_t> as PacketTimeSyncOffset;
         interface PacketField<uint8_t> as PacketLinkQuality;
+        interface LinkPacketMetadata;
     }
 
     uses
@@ -85,10 +85,8 @@ module Si443xDriverLayerP
         interface Tasklet;
         interface RadioAlarm;
         
-        interface Leds;
-        interface Boot;
-        
 #ifdef RADIO_DEBUG
+        interface Boot;
         interface DiagMsg;
 #endif
     }
@@ -140,8 +138,12 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
             call DiagMsg.send(); \
         }        }
 
-
-
+#else
+#define DIAGMSG_STR(A,B) 
+#define DIAGMSG_REG_READ(A,B) 
+#define DIAGMSG_REG_WRITE(A,B) 
+#define DIAGMSG_CHIP() 
+#define DIAGMSG_VAR(A,B) 
 #endif
 
 /*----------------- STATE -----------------*/
@@ -685,10 +687,12 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
         
         return SUCCESS;
     }
-    
+
+#ifdef RADIO_DEBUG    
     event void Boot.booted() {
         DM_ENABLE = TRUE;
     }
+#endif
 
     command error_t SoftwareInit.init()
     {
@@ -911,5 +915,11 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
     {
         getMeta(msg)->lqi = value;
     }
+/*----------------- LinkPacketMetadata -----------------*/
+
+	async command bool LinkPacketMetadata.highChannelQuality(message_t* msg)
+	{
+		return call PacketLinkQuality.get(msg) > 200;
+	}    
 }
 

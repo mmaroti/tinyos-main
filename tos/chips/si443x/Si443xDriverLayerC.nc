@@ -49,6 +49,7 @@ configuration Si443xDriverLayerC
         interface PacketField<uint8_t> as PacketRSSI;
         interface PacketField<uint8_t> as PacketTimeSyncOffset;
         interface PacketField<uint8_t> as PacketLinkQuality;
+        interface LinkPacketMetadata;
 
         interface LocalTime<TRadio> as LocalTimeRadio;
         interface Alarm<TRadio, tradio_size>;
@@ -63,8 +64,6 @@ configuration Si443xDriverLayerC
         interface PacketFlag as RSSIFlag;
         interface PacketFlag as TimeSyncFlag;
         interface RadioAlarm;
-        
-        interface Leds;
     }
 }
 
@@ -79,12 +78,11 @@ implementation
     RadioCCA = Si443xDriverLayerP;
     RadioPacket = Si443xDriverLayerP;
     
-    Leds = Si443xDriverLayerP;
-    
     PacketTransmitPower = Si443xDriverLayerP.PacketTransmitPower;
     PacketRSSI = Si443xDriverLayerP.PacketRSSI;
     PacketTimeSyncOffset = Si443xDriverLayerP.PacketTimeSyncOffset;
     PacketLinkQuality = Si443xDriverLayerP.PacketLinkQuality;
+    LinkPacketMetadata = Si443xDriverLayerP;
   
     LocalTimeRadio = HplSi443xC;
     Alarm = HplSi443xC.Alarm;
@@ -92,6 +90,7 @@ implementation
     // uses
     Config = Si443xDriverLayerP;
     PacketTimeStamp = Si443xDriverLayerP.PacketTimeStamp;
+    
 
     TransmitPowerFlag = Si443xDriverLayerP.TransmitPowerFlag;
     RSSIFlag = Si443xDriverLayerP.RSSIFlag;
@@ -111,13 +110,13 @@ implementation
     Si443xDriverLayerP.Tasklet -> TaskletC;
 
 #ifdef RADIO_DEBUG
-    components DiagMsgC, AssertC, LedsC;
+    components DiagMsgC, AssertC;
     Si443xDriverLayerP.DiagMsg -> DiagMsgC;
-    Si443xDriverLayerP.Leds -> LedsC;
+    Si443xDriverLayerP.Boot -> MainC;
 #endif
 
     components RealMainP, MainC;
     RealMainP.PlatformInit -> Si443xDriverLayerP.PlatformInit;
     MainC.SoftwareInit -> Si443xDriverLayerP.SoftwareInit;
-    Si443xDriverLayerP.Boot -> MainC;
+
 }

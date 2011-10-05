@@ -68,8 +68,10 @@ configuration Si443xRadioC
 
         interface PacketAcknowledgements;
         interface LowPowerListening;
-        interface PacketLink;
 
+#ifdef PACKET_LINK
+		interface PacketLink;
+#endif
 #ifdef TRAFFIC_MONITOR
         interface TrafficMonitor;
 #endif
@@ -79,7 +81,8 @@ configuration Si443xRadioC
         interface PacketField<uint8_t> as PacketLinkQuality;
         interface PacketField<uint8_t> as PacketTransmitPower;
         interface PacketField<uint8_t> as PacketRSSI;
-
+        interface LinkPacketMetadata;
+        
         interface LocalTime<TRadio> as LocalTimeRadio;
         interface PacketTimeStamp<TRadio, uint32_t> as PacketTimeStampRadio;
         interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
@@ -88,8 +91,8 @@ configuration Si443xRadioC
 
 implementation
 {
-    #define UQ_METADATA_FLAGS	"UQ_Si443x_METADATA_FLAGS"
-    #define UQ_RADIO_ALARM      "UQ_Si443x_RADIO_ALARM"
+    #define UQ_METADATA_FLAGS	"UQ_SI443X_METADATA_FLAGS"
+    #define UQ_RADIO_ALARM      "UQ_SI443X_RADIO_ALARM"
 
 // -------- RadioP
 
@@ -184,16 +187,20 @@ implementation
 // -------- Packet Link
 
 #ifdef PACKET_LINK
-    components new PacketLinkLayerC();
-    PacketLinkLayerC.PacketAcknowledgements -> SoftwareAckLayerC;
+	components new PacketLinkLayerC();
+	PacketLink = PacketLinkLayerC;
+#ifdef RF230_HARDWARE_ACK
+	PacketLinkLayerC.PacketAcknowledgements -> RadioDriverLayerC;
 #else
-    components new PacketLinkDummyC() as PacketLinkLayerC;
+	PacketLinkLayerC.PacketAcknowledgements -> SoftwareAckLayerC;
 #endif
-    PacketLink = PacketLinkLayerC;
-    PacketLinkLayerC -> LowPowerListeningLayerC.Send;
-    PacketLinkLayerC -> LowPowerListeningLayerC.Receive;
-    PacketLinkLayerC -> LowPowerListeningLayerC.RadioPacket;
-
+#else
+	components new DummyLayerC() as PacketLinkLayerC;
+#endif
+	PacketLinkLayerC -> LowPowerListeningLayerC.Send;
+	PacketLinkLayerC -> LowPowerListeningLayerC.Receive;
+	PacketLinkLayerC -> LowPowerListeningLayerC.RadioPacket;
+	
 // -------- Low Power Listening
 
 #ifdef LOW_POWER_LISTENING
@@ -288,6 +295,7 @@ implementation
     PacketTransmitPower = RadioDriverLayerC.PacketTransmitPower;
     PacketLinkQuality = RadioDriverLayerC.PacketLinkQuality;
     PacketRSSI = RadioDriverLayerC.PacketRSSI;
+    LinkPacketMetadata = RadioDriverLayerC;
     LocalTimeRadio = RadioDriverLayerC;
 
     RadioDriverLayerC.TransmitPowerFlag -> MetadataFlagsLayerC.PacketFlag[unique(UQ_METADATA_FLAGS)];
