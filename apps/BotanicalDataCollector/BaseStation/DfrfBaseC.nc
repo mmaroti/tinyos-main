@@ -68,7 +68,7 @@
 configuration DfrfBaseC {
 }
 implementation {
-	components MainC, DfrfBaseP, LedsC, ConvergecastC, TimeSyncPointsC, LocalTimeMilliC;
+	components MainC, DfrfBaseP, LedsC, TimeSyncPointsC, LocalTimeMilliC;
 	components ActiveMessageC as Radio, SerialActiveMessageC as Serial;
 	components new SerialAMReceiverC(AM_GET_MSG) as GetReceiver, new SerialAMReceiverC(AM_COMMAND_MSG) as CommandReceiver;
 	components new SerialAMSenderC(AM_CTRL_MSG) as CtrlSender, new SerialAMSenderC(AM_DATA_MSG) as DataSender, new SerialAMSenderC(AM_TIME_MSG) as TimeSender;
@@ -103,8 +103,6 @@ implementation {
     DfrfBaseP.TimeSend->TimeSender;
 	DfrfBaseP.SerialPacket -> Serial;
 	DfrfBaseP.SerialAMPacket -> Serial; 
- 
-	DfrfBaseP.ConvInit -> ConvergecastC.Init;
  
 	DfrfBaseP.Leds -> LedsC;
     

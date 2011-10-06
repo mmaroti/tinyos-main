@@ -69,8 +69,6 @@ module DfrfBaseP{
 		interface DfrfSend as GetSend;
 		interface DfrfSend as CommandSend;
 
-		interface Init as ConvInit;
-
 		interface Leds;
 		
 		interface LowPowerListening as LPL;
@@ -108,7 +106,6 @@ implementation {
 
 	event void RadioControl.startDone(error_t error) {
 		if(error == SUCCESS) {
-			call ConvInit.init();
 			call LPL.setLocalWakeupInterval(512);
 			call SysLPL.setDefaultRemoteWakeupInterval(512);
 			call SysLPL.setDelayAfterReceive(3072);
