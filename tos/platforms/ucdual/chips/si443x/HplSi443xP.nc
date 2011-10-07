@@ -30,51 +30,73 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Author: Miklos Maroti
- * Author: Andras Biro
  */
 
 #include <RadioConfig.h>
+#include <TimerConfig.h>
 
-configuration HplSi443xC
+module HplSi443xP
 {
-  provides
-  {
-    interface GeneralIO as NSEL;
-    interface GeneralIO as SDN;
-    interface GpioCapture as IRQ;
-        
-    interface Resource as SpiResource;
-    interface FastSpiByte;
-    interface Alarm<TRadio, tradio_size> as Alarm;
-    interface LocalTime<TRadio> as LocalTimeRadio;
-  }
+	provides
+	{
+		interface Init;
+		interface GpioCapture;
+	}
+
+	uses
+	{
+		interface GpioInterrupt as IRQ;
+		interface LocalTime<TRadio>;
+
+		// we need to use these to get precise timing
+		interface GeneralIO as GPIO;
+		interface AtmegaCapture<uint16_t>;
+		interface AtmegaCounter<uint16_t>;
+	}
 }
+
+#include "HplAtmRfa1Timer.h"
+
 implementation
 {
-    components HplAtm128GeneralIOC as IO, new NoPinC();
-    NSEL = IO.PortF0;
-    SDN = NoPinC;
-    
-    components Atm128SpiC as SpiC;
-    SpiResource = SpiC.Resource[unique("Atm128SpiC.Resource")];
-    FastSpiByte = SpiC;
+	command error_t Init.init()
+	{
+		call AtmegaCapture.setMode(ATMRFA1_CAP16_RISING_EDGE);
+		call AtmegaCapture.start();
+		return SUCCESS;
+	}
 
-    components new Alarm62khz32C() as AlarmC;
-    Alarm = AlarmC;
- 
-    components LocalTime62khzC as LocalTimeC;
-    LocalTimeRadio = LocalTimeC;
+	async command error_t GpioCapture.captureRisingEdge()
+	{
+		return call IRQ.enableRisingEdge();
+	}
 
-    components AtmegaPinChange0C, HplSi443xP;
-    IRQ = HplSi443xP.GpioCapture;
-    HplSi443xP.IRQ -> AtmegaPinChange0C.GpioInterrupt[4];
-    HplSi443xP.LocalTime -> LocalTimeC;
-    HplSi443xP.GPIO -> IO.PortD4;
+	async command error_t GpioCapture.captureFallingEdge()
+	{
+		return call IRQ.enableFallingEdge();
+	}
 
-    components RealMainP;
-    RealMainP.PlatformInit -> HplSi443xP;
+	async command void GpioCapture.disable()
+	{
+		call IRQ.disable();
+	}
 
-    components HplAtmRfa1Timer1C;
-    HplSi443xP.AtmegaCapture -> HplAtmRfa1Timer1C;
-    HplSi443xP.AtmegaCounter -> HplAtmRfa1Timer1C;
+	async event void IRQ.fired()
+	{
+		uint16_t now;
+		uint16_t elapsed;
+
+		atomic
+		{
+			elapsed = call AtmegaCounter.get() - call AtmegaCapture.get();
+			now = call LocalTime.get();
+		}
+
+		now -= elapsed >> (MCU_TIMER_MHZ_LOG2 + 10 - 6);
+		signal GpioCapture.captured(now);
+	}
+
+	async event void AtmegaCapture.fired() { }
+
+	async event void AtmegaCounter.overflow() { }
 }
