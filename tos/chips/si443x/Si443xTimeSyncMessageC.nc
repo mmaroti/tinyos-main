@@ -37,75 +37,75 @@
 
 configuration Si443xTimeSyncMessageC
 {
-    provides
-    {
-        interface SplitControl;
+	provides
+	{
+		interface SplitControl;
 
-        interface Receive[uint8_t id];
-        interface Receive as Snoop[am_id_t id];
-        interface Packet;
-        interface AMPacket;
+		interface Receive[uint8_t id];
+		interface Receive as Snoop[am_id_t id];
+		interface Packet;
+		interface AMPacket;
 
-        interface PacketTimeStamp<TRadio, uint32_t> as PacketTimeStampRadio;
-        interface TimeSyncAMSend<TRadio, uint32_t> as TimeSyncAMSendRadio[am_id_t id];
-        interface TimeSyncPacket<TRadio, uint32_t> as TimeSyncPacketRadio;
+		interface PacketTimeStamp<TRadio, uint32_t> as PacketTimeStampRadio;
+		interface TimeSyncAMSend<TRadio, uint32_t> as TimeSyncAMSendRadio[am_id_t id];
+		interface TimeSyncPacket<TRadio, uint32_t> as TimeSyncPacketRadio;
 
-        interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
-        interface TimeSyncAMSend<TMilli, uint32_t> as TimeSyncAMSendMilli[am_id_t id];
-        interface TimeSyncPacket<TMilli, uint32_t> as TimeSyncPacketMilli;
+		interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
+		interface TimeSyncAMSend<TMilli, uint32_t> as TimeSyncAMSendMilli[am_id_t id];
+		interface TimeSyncPacket<TMilli, uint32_t> as TimeSyncPacketMilli;
 
-        interface PacketTimeStamp<T62khz, uint32_t> as PacketTimeStamp62khz;
-        interface TimeSyncAMSend<T62khz, uint32_t> as TimeSyncAMSend62khz[am_id_t id];
-        interface TimeSyncPacket<T62khz, uint32_t> as TimeSyncPacket62khz;
+		interface PacketTimeStamp<T62khz, uint32_t> as PacketTimeStamp62khz;
+		interface TimeSyncAMSend<T62khz, uint32_t> as TimeSyncAMSend62khz[am_id_t id];
+		interface TimeSyncPacket<T62khz, uint32_t> as TimeSyncPacket62khz;
 
-        interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli2;
-        interface TimeSyncAMSend<TMilli, uint32_t> as TimeSyncAMSendMilli2[am_id_t id];
-        interface TimeSyncPacket<TMilli, uint32_t> as TimeSyncPacketMilli2;
-    }
+		interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli2;
+		interface TimeSyncAMSend<TMilli, uint32_t> as TimeSyncAMSendMilli2[am_id_t id];
+		interface TimeSyncPacket<TMilli, uint32_t> as TimeSyncPacketMilli2;
+	}
 }
 
 implementation
 {
-    components Si443xActiveMessageC, new TimeSyncMessageLayerC();
-  
-    SplitControl    = Si443xActiveMessageC;
-    AMPacket    = TimeSyncMessageLayerC;
-    Receive = TimeSyncMessageLayerC.Receive;
-    Snoop   = TimeSyncMessageLayerC.Snoop;
-    Packet  = TimeSyncMessageLayerC;
+	components Si443xActiveMessageC, new TimeSyncMessageLayerC();
 
-    PacketTimeStampRadio = Si443xActiveMessageC;
-    TimeSyncAMSendRadio	= TimeSyncMessageLayerC;
-    TimeSyncPacketRadio	= TimeSyncMessageLayerC;
+	SplitControl	= Si443xActiveMessageC;
+	AMPacket	= TimeSyncMessageLayerC;
+	Receive = TimeSyncMessageLayerC.Receive;
+	Snoop   = TimeSyncMessageLayerC.Snoop;
+	Packet  = TimeSyncMessageLayerC;
 
-    PacketTimeStampMilli    = Si443xActiveMessageC;
-    TimeSyncAMSendMilli = TimeSyncMessageLayerC;
-    TimeSyncPacketMilli = TimeSyncMessageLayerC;
+	PacketTimeStampRadio = Si443xActiveMessageC;
+	TimeSyncAMSendRadio	= TimeSyncMessageLayerC;
+	TimeSyncPacketRadio	= TimeSyncMessageLayerC;
 
-    TimeSyncMessageLayerC.PacketTimeStampRadio -> Si443xActiveMessageC;
-    TimeSyncMessageLayerC.PacketTimeStampMilli -> Si443xActiveMessageC;
+	PacketTimeStampMilli	= Si443xActiveMessageC;
+	TimeSyncAMSendMilli = TimeSyncMessageLayerC;
+	TimeSyncPacketMilli = TimeSyncMessageLayerC;
 
-    components Si443xDriverLayerC;
-    TimeSyncMessageLayerC.LocalTimeRadio -> Si443xDriverLayerC;
-    TimeSyncMessageLayerC.PacketTimeSyncOffset -> Si443xDriverLayerC.PacketTimeSyncOffset;
+	TimeSyncMessageLayerC.PacketTimeStampRadio -> Si443xActiveMessageC;
+	TimeSyncMessageLayerC.PacketTimeStampMilli -> Si443xActiveMessageC;
 
-    components new TimeConverterLayerC(T62khz, RADIO_ALARM_MILLI_EXP-6) as TimeConverter62khzC, LocalTime62khzC;
-    PacketTimeStamp62khz = TimeConverter62khzC;
-    TimeSyncAMSend62khz = TimeConverter62khzC;
-    TimeSyncPacket62khz = TimeConverter62khzC;
-    TimeConverter62khzC.PacketTimeStampRadio -> Si443xActiveMessageC;
-    TimeConverter62khzC.TimeSyncAMSendRadio -> TimeSyncMessageLayerC;
-    TimeConverter62khzC.TimeSyncPacketRadio -> TimeSyncMessageLayerC;
-    TimeConverter62khzC.LocalTimeRadio -> Si443xActiveMessageC;
-    TimeConverter62khzC.LocalTimeOther -> LocalTime62khzC;
+	components Si443xDriverLayerC;
+	TimeSyncMessageLayerC.LocalTimeRadio -> Si443xDriverLayerC;
+	TimeSyncMessageLayerC.PacketTimeSyncOffset -> Si443xDriverLayerC.PacketTimeSyncOffset;
 
-    components new TimeConverterLayerC(TMilli, RADIO_ALARM_MILLI_EXP) as TimeConverterMilliC, LocalTimeMilliC;
-    PacketTimeStampMilli2 = TimeConverterMilliC;
-    TimeSyncAMSendMilli2 = TimeConverterMilliC;
-    TimeSyncPacketMilli2 = TimeConverterMilliC;
-    TimeConverterMilliC.PacketTimeStampRadio -> Si443xActiveMessageC;
-    TimeConverterMilliC.TimeSyncAMSendRadio -> TimeSyncMessageLayerC;
-    TimeConverterMilliC.TimeSyncPacketRadio -> TimeSyncMessageLayerC;
-    TimeConverterMilliC.LocalTimeRadio -> Si443xActiveMessageC;
-    TimeConverterMilliC.LocalTimeOther -> LocalTimeMilliC;
+	components new TimeConverterLayerC(T62khz, RADIO_ALARM_MILLI_EXP-6) as TimeConverter62khzC, LocalTime62khzC;
+	PacketTimeStamp62khz = TimeConverter62khzC;
+	TimeSyncAMSend62khz = TimeConverter62khzC;
+	TimeSyncPacket62khz = TimeConverter62khzC;
+	TimeConverter62khzC.PacketTimeStampRadio -> Si443xActiveMessageC;
+	TimeConverter62khzC.TimeSyncAMSendRadio -> TimeSyncMessageLayerC;
+	TimeConverter62khzC.TimeSyncPacketRadio -> TimeSyncMessageLayerC;
+	TimeConverter62khzC.LocalTimeRadio -> Si443xActiveMessageC;
+	TimeConverter62khzC.LocalTimeOther -> LocalTime62khzC;
+
+	components new TimeConverterLayerC(TMilli, RADIO_ALARM_MILLI_EXP) as TimeConverterMilliC, LocalTimeMilliC;
+	PacketTimeStampMilli2 = TimeConverterMilliC;
+	TimeSyncAMSendMilli2 = TimeConverterMilliC;
+	TimeSyncPacketMilli2 = TimeConverterMilliC;
+	TimeConverterMilliC.PacketTimeStampRadio -> Si443xActiveMessageC;
+	TimeConverterMilliC.TimeSyncAMSendRadio -> TimeSyncMessageLayerC;
+	TimeConverterMilliC.TimeSyncPacketRadio -> TimeSyncMessageLayerC;
+	TimeConverterMilliC.LocalTimeRadio -> Si443xActiveMessageC;
+	TimeConverterMilliC.LocalTimeOther -> LocalTimeMilliC;
 }

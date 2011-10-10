@@ -48,32 +48,32 @@
 
 typedef nx_struct
 {
-    si443x_header_t si443x;
-    ieee154_simple_header_t ieee154;
+	si443x_header_t si443x;
+	ieee154_simple_header_t ieee154;
 #ifndef TFRAMES_ENABLED
-    network_header_t network;
+	network_header_t network;
 #endif
 #ifndef IEEE154FRAMES_ENABLED
-    activemessage_header_t am;
+	activemessage_header_t am;
 #endif
 } si443xpacket_header_t;
 
 typedef nx_struct
 {
-    // the time stamp is not recorded here, time stamped messages cannot have max length
+	// the time stamp is not recorded here, time stamped messages cannot have max length
 } si443xpacket_footer_t;
 
 typedef struct
 {
 #ifdef LOW_POWER_LISTENING
-    lpl_metadata_t lpl;
+	lpl_metadata_t lpl;
 #endif
 #ifdef PACKET_LINK
-    link_metadata_t link;
+	link_metadata_t link;
 #endif
-    timestamp_metadata_t timestamp;
-    flags_metadata_t flags;
-    si443x_metadata_t si443x;
+	timestamp_metadata_t timestamp;
+	flags_metadata_t flags;
+	si443x_metadata_t si443x;
 } si443xpacket_metadata_t;
 
 #endif//__SI443X_RADIO_H__

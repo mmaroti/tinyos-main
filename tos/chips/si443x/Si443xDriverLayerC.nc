@@ -37,86 +37,86 @@
 
 configuration Si443xDriverLayerC
 {
-    provides
-    {
-        interface RadioState;
-        interface RadioSend;
-        interface RadioReceive;
-        interface RadioCCA;
-        interface RadioPacket;
+	provides
+	{
+		interface RadioState;
+		interface RadioSend;
+		interface RadioReceive;
+		interface RadioCCA;
+		interface RadioPacket;
 
-        interface PacketField<uint8_t> as PacketTransmitPower;
-        interface PacketField<uint8_t> as PacketRSSI;
-        interface PacketField<uint8_t> as PacketTimeSyncOffset;
-        interface PacketField<uint8_t> as PacketLinkQuality;
-        interface LinkPacketMetadata;
+		interface PacketField<uint8_t> as PacketTransmitPower;
+		interface PacketField<uint8_t> as PacketRSSI;
+		interface PacketField<uint8_t> as PacketTimeSyncOffset;
+		interface PacketField<uint8_t> as PacketLinkQuality;
+		interface LinkPacketMetadata;
 
-        interface LocalTime<TRadio> as LocalTimeRadio;
-        interface Alarm<TRadio, tradio_size>;
-    }
+		interface LocalTime<TRadio> as LocalTimeRadio;
+		interface Alarm<TRadio, tradio_size>;
+	}
 
-    uses
-    {
-        interface Si443xDriverConfig as Config;
-        interface PacketTimeStamp<TRadio, uint32_t>;
+	uses
+	{
+		interface Si443xDriverConfig as Config;
+		interface PacketTimeStamp<TRadio, uint32_t>;
 
-        interface PacketFlag as TransmitPowerFlag;
-        interface PacketFlag as RSSIFlag;
-        interface PacketFlag as TimeSyncFlag;
-        interface RadioAlarm;
-    }
+		interface PacketFlag as TransmitPowerFlag;
+		interface PacketFlag as RSSIFlag;
+		interface PacketFlag as TimeSyncFlag;
+		interface RadioAlarm;
+	}
 }
 
 implementation
 {
-    components Si443xDriverLayerP, HplSi443xC, BusyWaitMicroC, TaskletC;
+	components Si443xDriverLayerP, HplSi443xC, BusyWaitMicroC, TaskletC;
 
-    // provides
-    RadioState = Si443xDriverLayerP;
-    RadioSend = Si443xDriverLayerP;
-    RadioReceive = Si443xDriverLayerP;
-    RadioCCA = Si443xDriverLayerP;
-    RadioPacket = Si443xDriverLayerP;
-    
-    PacketTransmitPower = Si443xDriverLayerP.PacketTransmitPower;
-    PacketRSSI = Si443xDriverLayerP.PacketRSSI;
-    PacketTimeSyncOffset = Si443xDriverLayerP.PacketTimeSyncOffset;
-    PacketLinkQuality = Si443xDriverLayerP.PacketLinkQuality;
-    LinkPacketMetadata = Si443xDriverLayerP;
-  
-    LocalTimeRadio = HplSi443xC;
-    Alarm = HplSi443xC.Alarm;
+	// provides
+	RadioState = Si443xDriverLayerP;
+	RadioSend = Si443xDriverLayerP;
+	RadioReceive = Si443xDriverLayerP;
+	RadioCCA = Si443xDriverLayerP;
+	RadioPacket = Si443xDriverLayerP;
+	
+	PacketTransmitPower = Si443xDriverLayerP.PacketTransmitPower;
+	PacketRSSI = Si443xDriverLayerP.PacketRSSI;
+	PacketTimeSyncOffset = Si443xDriverLayerP.PacketTimeSyncOffset;
+	PacketLinkQuality = Si443xDriverLayerP.PacketLinkQuality;
+	LinkPacketMetadata = Si443xDriverLayerP;
 
-    // uses
-    Config = Si443xDriverLayerP;
-    PacketTimeStamp = Si443xDriverLayerP.PacketTimeStamp;
-    
+	LocalTimeRadio = HplSi443xC;
+	Alarm = HplSi443xC.Alarm;
 
-    TransmitPowerFlag = Si443xDriverLayerP.TransmitPowerFlag;
-    RSSIFlag = Si443xDriverLayerP.RSSIFlag;
-    TimeSyncFlag = Si443xDriverLayerP.TimeSyncFlag;
-    RadioAlarm = Si443xDriverLayerP.RadioAlarm;
+	// uses
+	Config = Si443xDriverLayerP;
+	PacketTimeStamp = Si443xDriverLayerP.PacketTimeStamp;
+	
 
-    Si443xDriverLayerP.SDN -> HplSi443xC.SDN;
-    Si443xDriverLayerP.NSEL -> HplSi443xC.NSEL;
-    Si443xDriverLayerP.IRQ -> HplSi443xC.IRQ;
-   
-    Si443xDriverLayerP.FastSpiByte -> HplSi443xC;  
-    Si443xDriverLayerP.SpiResource -> HplSi443xC.SpiResource;
+	TransmitPowerFlag = Si443xDriverLayerP.TransmitPowerFlag;
+	RSSIFlag = Si443xDriverLayerP.RSSIFlag;
+	TimeSyncFlag = Si443xDriverLayerP.TimeSyncFlag;
+	RadioAlarm = Si443xDriverLayerP.RadioAlarm;
 
-    Si443xDriverLayerP.BusyWait -> BusyWaitMicroC;
-    Si443xDriverLayerP.LocalTime -> HplSi443xC;
+	Si443xDriverLayerP.SDN -> HplSi443xC.SDN;
+	Si443xDriverLayerP.NSEL -> HplSi443xC.NSEL;
+	Si443xDriverLayerP.IRQ -> HplSi443xC.IRQ;
 
-    Si443xDriverLayerP.Tasklet -> TaskletC;
+	Si443xDriverLayerP.FastSpiByte -> HplSi443xC;
+	Si443xDriverLayerP.SpiResource -> HplSi443xC.SpiResource;
+
+	Si443xDriverLayerP.BusyWait -> BusyWaitMicroC;
+	Si443xDriverLayerP.LocalTime -> HplSi443xC;
+
+	Si443xDriverLayerP.Tasklet -> TaskletC;
 
 #ifdef RADIO_DEBUG
-    components DiagMsgC, AssertC;
-    Si443xDriverLayerP.DiagMsg -> DiagMsgC;
-    Si443xDriverLayerP.Boot -> MainC;
+	components DiagMsgC, AssertC;
+	Si443xDriverLayerP.DiagMsg -> DiagMsgC;
+	Si443xDriverLayerP.Boot -> MainC;
 #endif
 
-    components RealMainP, MainC;
-    RealMainP.PlatformInit -> Si443xDriverLayerP.PlatformInit;
-    MainC.SoftwareInit -> Si443xDriverLayerP.SoftwareInit;
+	components RealMainP, MainC;
+	RealMainP.PlatformInit -> Si443xDriverLayerP.PlatformInit;
+	MainC.SoftwareInit -> Si443xDriverLayerP.SoftwareInit;
 
 }

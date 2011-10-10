@@ -41,72 +41,72 @@
 
 configuration Si443xActiveMessageC
 {
-    provides 
-    {
-        interface SplitControl;
+	provides 
+	{
+		interface SplitControl;
 
-        interface AMSend[am_id_t id];
-        interface Receive[am_id_t id];
-        interface Receive as Snoop[am_id_t id];
-        interface SendNotifier[am_id_t id];
+		interface AMSend[am_id_t id];
+		interface Receive[am_id_t id];
+		interface Receive as Snoop[am_id_t id];
+		interface SendNotifier[am_id_t id];
 
-        // for TOSThreads
-        interface Receive as ReceiveDefault[am_id_t id];
-        interface Receive as SnoopDefault[am_id_t id];
+		// for TOSThreads
+		interface Receive as ReceiveDefault[am_id_t id];
+		interface Receive as SnoopDefault[am_id_t id];
 
-        interface Packet;
-        interface AMPacket;
+		interface Packet;
+		interface AMPacket;
 
-        interface PacketAcknowledgements;
-        interface LowPowerListening;
+		interface PacketAcknowledgements;
+		interface LowPowerListening;
 #ifdef PACKET_LINK
 		interface PacketLink;
 #endif
 
-        interface RadioChannel;
+		interface RadioChannel;
 
-        interface PacketField<uint8_t> as PacketLinkQuality;
-        interface PacketField<uint8_t> as PacketTransmitPower;
-        interface PacketField<uint8_t> as PacketRSSI;
-        interface LinkPacketMetadata;
+		interface PacketField<uint8_t> as PacketLinkQuality;
+		interface PacketField<uint8_t> as PacketTransmitPower;
+		interface PacketField<uint8_t> as PacketRSSI;
+		interface LinkPacketMetadata;
 
-        interface LocalTime<TRadio> as LocalTimeRadio;
-        interface PacketTimeStamp<TRadio, uint32_t> as PacketTimeStampRadio;
-        interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
-    }
+		interface LocalTime<TRadio> as LocalTimeRadio;
+		interface PacketTimeStamp<TRadio, uint32_t> as PacketTimeStampRadio;
+		interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
+	}
 }
 
 implementation
 {
-    components Si443xRadioC as RadioC;
+	components Si443xRadioC as RadioC;
 
-    SplitControl = RadioC;
+	SplitControl = RadioC;
 
-    AMSend = RadioC;
-    Receive = RadioC.Receive;
-    Snoop = RadioC.Snoop;
-    SendNotifier = RadioC;
+	AMSend = RadioC;
+	Receive = RadioC.Receive;
+	Snoop = RadioC.Snoop;
+	SendNotifier = RadioC;
 
-    ReceiveDefault = RadioC.ReceiveDefault;
-    SnoopDefault = RadioC.SnoopDefault;
+	ReceiveDefault = RadioC.ReceiveDefault;
+	SnoopDefault = RadioC.SnoopDefault;
 
-    Packet = RadioC.PacketForActiveMessage;
-    AMPacket = RadioC;
+	Packet = RadioC.PacketForActiveMessage;
+	AMPacket = RadioC;
 
-    PacketAcknowledgements = RadioC;
-    LowPowerListening = RadioC;
+	PacketAcknowledgements = RadioC;
+	LowPowerListening = RadioC;
 #ifdef PACKET_LINK
 	PacketLink = RadioC;
 #endif
 
-    RadioChannel = RadioC;
+	RadioChannel = RadioC;
 
-    PacketLinkQuality = RadioC.PacketLinkQuality;
-    PacketTransmitPower = RadioC.PacketTransmitPower;
-    PacketRSSI = RadioC.PacketRSSI;
-    LinkPacketMetadata = RadioC;
+	PacketLinkQuality = RadioC.PacketLinkQuality;
+	PacketTransmitPower = RadioC.PacketTransmitPower;
+	PacketRSSI = RadioC.PacketRSSI;
+	LinkPacketMetadata = RadioC;
 
-    LocalTimeRadio = RadioC;
-    PacketTimeStampMilli = RadioC;
-    PacketTimeStampRadio = RadioC;
+	LocalTimeRadio = RadioC;
+	PacketTimeStampMilli = RadioC;
+	PacketTimeStampRadio = RadioC;
 }

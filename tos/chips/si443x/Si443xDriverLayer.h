@@ -38,89 +38,89 @@
 
 typedef nx_struct si443x_header_t
 {
-    nxle_uint8_t length;
+	nxle_uint8_t length;
 } si443x_header_t;
 
 typedef nx_struct si443x_footer_t {} si443x_footer_t;
 
 typedef struct si443x_metadata_t
 {
-    uint8_t lqi;
-    union
-    {
-        uint8_t power;
-        uint8_t rssi;
-    };
+	uint8_t lqi;
+	union
+	{
+		uint8_t power;
+		uint8_t rssi;
+	};
 } si443x_metadata_t;
 
 enum si443x_registers_enum
 {
-    
-    SI443X_DEVSTAT = 0x02,
-    SI443X_INT_1 = 0x03,
-    SI443X_INT_2 = 0x04,
-    SI443X_IEN_1 = 0x05,
-    SI443X_IEN_2 = 0x06,
-    SI443X_CTRL_1 = 0x07,
-    SI443X_CTRL_2 = 0x08,
-    SI443X_RSSI = 0x26,
-    SI443X_PKTLEN = 0x3E,
-    SI443X_XTAL_POR = 0x62,
-    SI443X_TXPOWER = 0x6D,
-    
-    SI443X_CHANNEL_SELECT = 0x79,
-    SI443X_TXFIFO_FULL = 0x7C,
-    SI443X_TXFIFO_EMPTY = 0x7D,
-    SI443X_RXFIFO_FULL = 0x7E,
-    SI443X_FIFO = 0x7F,
+	
+	SI443X_DEVSTAT = 0x02,
+	SI443X_INT_1 = 0x03,
+	SI443X_INT_2 = 0x04,
+	SI443X_IEN_1 = 0x05,
+	SI443X_IEN_2 = 0x06,
+	SI443X_CTRL_1 = 0x07,
+	SI443X_CTRL_2 = 0x08,
+	SI443X_RSSI = 0x26,
+	SI443X_PKTLEN = 0x3E,
+	SI443X_XTAL_POR = 0x62,
+	SI443X_TXPOWER = 0x6D,
+	
+	SI443X_CHANNEL_SELECT = 0x79,
+	SI443X_TXFIFO_FULL = 0x7C,
+	SI443X_TXFIFO_EMPTY = 0x7D,
+	SI443X_RXFIFO_FULL = 0x7E,
+	SI443X_FIFO = 0x7F,
 
 };
 
 enum si443x_register_related_enum {
 
-    SI443X_SPI_READ = 0x00,
-    SI443X_SPI_WRITE = 0x80,
-    SI443X_SPI_REGMASK = 0x7F,
-    
-    SI443X_CLEAR_RX_FIFO = 1<<1,
-    SI443X_CLEAR_TX_FIFO = 1<<0,
-    
-    SI443X_LNA = 0x18,
-    SI443X_RFPOWER_MASK = 0x03,
-    SI443X_FIFO_SIZE = 64,
+	SI443X_SPI_READ = 0x00,
+	SI443X_SPI_WRITE = 0x80,
+	SI443X_SPI_REGMASK = 0x7F,
+	
+	SI443X_CLEAR_RX_FIFO = 1<<1,
+	SI443X_CLEAR_TX_FIFO = 1<<0,
+	
+	SI443X_LNA = 0x18,
+	SI443X_RFPOWER_MASK = 0x03,
+	SI443X_FIFO_SIZE = 64,
 };
 
 enum si443x_ctrl1_enums
 {
-    SI443X_CTRL1_SWRESET = 1 << 7,
-    SI443X_CTRL1_TRANSMIT = 1 << 3,
-    SI443X_CTRL1_RECEIVE = 1 << 2,
-    SI443X_CTRL1_TUNE = 1 << 1,
-    SI443X_CTRL1_READY = 1 << 0,
-    SI443X_CTRL1_STANDBY = 0,
+	SI443X_CTRL1_SWRESET = 1 << 7,
+	SI443X_CTRL1_TRANSMIT = 1 << 3,
+	SI443X_CTRL1_RECEIVE = 1 << 2,
+	SI443X_CTRL1_TUNE = 1 << 1,
+	SI443X_CTRL1_READY = 1 << 0,
+	SI443X_CTRL1_STANDBY = 0,
 };
 
 enum si443x_interrupt_enums
 {
-    SI443X_I_NONE = 0,
-    SI443X_I_ALL = 0xFF,
-    SI443X_I1_FIFOERROR = 1 << 7,
-    SI443X_I1_TXFIFOFULL = 1 << 6,
-    SI443X_I1_TXFIFOEMPTY = 1 << 5,
-    SI443X_I1_RXFIFOFULL = 1 << 4,
-    SI443X_I1_EXTERNAL = 1 << 3,
-    SI443X_I1_PKTSENT = 1 << 2,
-    SI443X_I1_PKTRECEIVED = 1 << 1,
-    SI443X_I1_CRCERROR = 1 << 0,
-    
-    SI443X_I2_SYNCDETECT = 1 << 7,
-    SI443X_I2_PREAVALID = 1 << 6,
-    SI443X_I2_PREAINVALID = 1 << 5,
-    SI443X_I2_RSSI = 1 << 4,
-    SI443X_I2_WAKEUP = 1 << 3,
-    SI443X_I2_LOWBAT = 1 << 2,
-    SI443X_I2_CHIPREADY = 1 << 1,
-    SI443X_I2_POR = 1 << 0,
+	SI443X_I_NONE = 0,
+	SI443X_I_ALL = 0xFF,
+	SI443X_I1_FIFOERROR = 1 << 7,
+	SI443X_I1_TXFIFOFULL = 1 << 6,
+	SI443X_I1_TXFIFOEMPTY = 1 << 5,
+	SI443X_I1_RXFIFOFULL = 1 << 4,
+	SI443X_I1_EXTERNAL = 1 << 3,
+	SI443X_I1_PKTSENT = 1 << 2,
+	SI443X_I1_PKTRECEIVED = 1 << 1,
+	SI443X_I1_CRCERROR = 1 << 0,
+	
+	SI443X_I2_SYNCDETECT = 1 << 7,
+	SI443X_I2_PREAVALID = 1 << 6,
+	SI443X_I2_PREAINVALID = 1 << 5,
+	SI443X_I2_RSSI = 1 << 4,
+	SI443X_I2_WAKEUP = 1 << 3,
+	SI443X_I2_LOWBAT = 1 << 2,
+	SI443X_I2_CHIPREADY = 1 << 1,
+	SI443X_I2_POR = 1 << 0,
 };
 
 #endif //__SI443X_DRIVERLAYER_H__
