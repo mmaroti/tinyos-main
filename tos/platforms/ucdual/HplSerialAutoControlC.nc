@@ -36,7 +36,7 @@ configuration HplSerialAutoControlC {
   provides interface GeneralIO;
 }
 implementation {
-  components AtmegaPinChange0C, HplAtm128GeneralIOC;
+  components AtmegaPinChange0C, AtmegaGeneralIOC as IO;
   GpioInterrupt=AtmegaPinChange0C.GpioInterrupt[5];
-  GeneralIO=HplAtm128GeneralIOC.PortB5;
+  GeneralIO=IO.PortB5;
 }

@@ -54,13 +54,13 @@ configuration NullSleepAppC{}
 implementation {
   components MainC, NullSleepC, LedsC, ActiveMessageC;
 	//components Stm25pSpiC;
-	components HplAtm128GeneralIOC;
+	components AtmegaGeneralIOC as IO;
 
 	MainC.Boot <- NullSleepC;
 	NullSleepC.Leds -> LedsC;
 	//MainC.SoftwareInit -> Stm25pSpiC.Init;
-	NullSleepC.VoltMeter -> HplAtm128GeneralIOC.PortF0;
-	NullSleepC.SSN -> HplAtm128GeneralIOC.PortB0;
+	NullSleepC.VoltMeter -> IO.PortF0;
+	NullSleepC.SSN -> IO.PortB0;
 
 	components new Alarm62khz32C() as MacAlarm;
 	NullSleepC.Alarm -> MacAlarm;

@@ -52,7 +52,7 @@
 
 configuration NullAppC{}
 implementation {
-  components MainC, NullC, HplAtm128GeneralIOC as IO;
+  components MainC, NullC, AtmegaGeneralIOC as IO;
   components HplSi443xC, LedsC, new TimerMilliC();
   NullC.NSEL->HplSi443xC.NSEL;
   NullC.Resource->HplSi443xC.SpiResource;

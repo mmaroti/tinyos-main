@@ -52,7 +52,7 @@
 
 configuration NullAppC{}
 implementation {
-  components MainC, NullC, Stm25pOffC, HplAtm128GeneralIOC as IO;
+  components MainC, NullC, Stm25pOffC, AtmegaGeneralIOC as IO;
 
   MainC.Boot <- NullC;
   NullC.Init->Stm25pOffC;

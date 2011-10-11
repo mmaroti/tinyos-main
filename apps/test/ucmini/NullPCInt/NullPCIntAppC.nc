@@ -53,12 +53,11 @@
 configuration NullPCIntAppC{}
 implementation {
   components MainC, NullPCIntC;
-components HplAtm128InterruptC, LedsC, HplAtm128GeneralIOC, ActiveMessageC;
+components HplAtm128InterruptC, LedsC, ActiveMessageC;
 
   MainC.Boot <- NullPCIntC;
 NullPCIntC.PCINT -> HplAtm128InterruptC.PCInt2;
 NullPCIntC.Leds -> LedsC;
-//NullPCIntC.pb1 -> HplAtm128GeneralIOC.PortB1;
 
 	components new Alarm62khz32C() as MacAlarmc;
 	NullPCIntC.Alarm -> MacAlarmc;

@@ -5,7 +5,7 @@ configuration HplBma180C {
   provides interface GeneralIO as SCK;
 }
 implementation {
-  components  UsartSpiC as SpiC, HplAtm128GeneralIOC as IO;
+  components  UsartSpiC as SpiC, AtmegaGeneralIOC as IO;
   
   AsyncStdControl = SpiC;
   FastSpiByte = SpiC;

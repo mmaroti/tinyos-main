@@ -51,7 +51,7 @@ configuration HplSi443xC
 }
 implementation
 {
-    components HplAtm128GeneralIOC as IO, new NoPinC();
+    components AtmegaGeneralIOC as IO, new NoPinC();
     NSEL = IO.PortF0;
     SDN = NoPinC;
     

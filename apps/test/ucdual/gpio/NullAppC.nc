@@ -52,11 +52,10 @@
 
 configuration NullAppC{}
 implementation {
-  components MainC, NullC, MicaBusC,HplAtm128GeneralIOC;
+  components MainC, NullC, MicaBusC;
 
   MainC.Boot <- NullC;
   
   NullC->MicaBusC.Adc1_IO;
-  //NullC->HplAtm128GeneralIOC.PortG0;
 }
 

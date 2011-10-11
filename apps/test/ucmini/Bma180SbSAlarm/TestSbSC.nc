@@ -41,7 +41,7 @@ configuration TestSbSC
 
 implementation
 {
-  components TestSbSP, LedsC, new TimerMilliC(), DiagMsgC, SerialActiveMessageC, SpiImpC, HplAtm128GeneralIOC;
+  components TestSbSP, LedsC, new TimerMilliC(), DiagMsgC, SerialActiveMessageC, SpiImpC, AtmegaGeneralIOC as IO;
 
   StdControl = TestSbSP.BmaControl;
   Read = TestSbSP;
@@ -52,6 +52,6 @@ implementation
   TestSbSP.FastSpiByte -> SpiImpC;
   TestSbSP.SpiPacket -> SpiImpC;
   TestSbSP.Resource -> SpiImpC.Resource[unique("Atm128SpiC.Resource")];
-  TestSbSP.CSN -> HplAtm128GeneralIOC.PortB6;
-  TestSbSP.PWR -> HplAtm128GeneralIOC.PortF0;
+  TestSbSP.CSN -> IO.PortB6;
+  TestSbSP.PWR -> IO.PortF0;
 }

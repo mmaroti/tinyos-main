@@ -52,7 +52,7 @@
 
 configuration NullAppC{}
 implementation {
-  components HplAtm128GeneralIOC as IO, DiagMsgC;
+  components AtmegaGeneralIOC as IO, DiagMsgC;
   components MainC, NullC, LedsC, ActiveMessageC,
         new Taos2550C() as Sensor;
 //          Sht21C as Sensor;

@@ -46,7 +46,7 @@ configuration HplStm25pPinsC {
 
 implementation {
 
-  components HplAtm128GeneralIOC as IO;
+  components AtmegaGeneralIOC as IO;
   components new NoPinC();
   CSN = IO.PortB0;
   Hold = NoPinC;

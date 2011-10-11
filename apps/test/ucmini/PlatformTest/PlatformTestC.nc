@@ -49,7 +49,7 @@ implementation {
   components PlatformTestP as App;
   //components I2CBusC;
   components DiagMsgC;
-  components HplAtm128GeneralIOC as IO;
+  components AtmegaGeneralIOC as IO;
 
   App.Boot -> MainC;
   App.Leds -> LedsC;

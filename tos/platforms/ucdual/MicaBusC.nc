@@ -70,7 +70,7 @@ configuration MicaBusC {
   }
 }
 implementation {
-  components HplAtm128GeneralIOC as Pins, MicaBusP;
+  components AtmegaGeneralIOC as Pins, MicaBusP;
   components HplAtm128InterruptC;
   components new NoPinC() as NoPW1, new NoPinC() as NoPW7, new NoPinC() as NoAdc;
   
