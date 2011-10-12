@@ -39,13 +39,13 @@ configuration BmaStreamC {
   }
 }
 implementation {
-  components Atm128rfa1Usart0SpiC, BmaStreamP, HplBma180C, LocalTimeMilliC, LedsC;
+  components BmaStreamP, HplBma180C, LocalTimeMilliC, LedsC;
 
   Init       = BmaStreamP;
   ReadStream = BmaStreamP;
 
-  BmaStreamP.Resource -> Atm128rfa1Usart0SpiC.Resource[unique("Atm128SpiC.Resource")];
-  BmaStreamP.FastSpiByte -> Atm128rfa1Usart0SpiC;
+  BmaStreamP.Resource -> HplBma180C;
+  BmaStreamP.FastSpiByte -> HplBma180C;
   BmaStreamP.Leds -> LedsC;
   BmaStreamP.LocalTime -> LocalTimeMilliC;
   BmaStreamP.CSN -> HplBma180C.CSN;

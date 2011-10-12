@@ -37,11 +37,15 @@ configuration HplBma180C{
   provides interface GeneralIO as CSN;
   provides interface GeneralIO as PWR;
   provides interface GpioInterrupt as ACCINT;
+  provides interface FastSpiByte;
+  provides interface Resource;
 }
 implementation {
-  components AtmegaGeneralIOC as IO, AtmegaPinChange0C; 
+  components AtmegaGeneralIOC as IO, AtmegaPinChange0C, Atm128rfa1Usart0SpiC; 
 
   CSN = IO.PortD7;
   PWR = IO.PortE3;
   ACCINT= AtmegaPinChange0C.GpioInterrupt[6];
+  Resource=Atm128rfa1Usart0SpiC.Resource[unique("Atm128SpiC.Resource")];
+  FastSpiByte=Atm128rfa1Usart0SpiC;
 }

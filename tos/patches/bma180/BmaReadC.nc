@@ -53,8 +53,8 @@ implementation
   BmaReadP.Timer -> TimerMilliC;
   BmaReadP.LocalTime -> LocalTimeMilliC;
   BmaReadP.DiagMsg -> DiagMsgC;
-  BmaReadP.FastSpiByte -> Atm128rfa1Usart0SpiC;
-  BmaReadP.Resource -> Atm128rfa1Usart0SpiC.Resource[unique("Atm128SpiC.Resource")];
+  BmaReadP.FastSpiByte -> HplBma180C;
+  BmaReadP.Resource -> HplBma180C;
   BmaReadP.CSN -> HplBma180C.CSN;
   BmaReadP.PWR -> HplBma180C.PWR;
 }
