@@ -29,10 +29,8 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Zsolt Szabo
+* Author: Zsolt Szabo, Andras Biro
 */
-
-#include "Bh1750fvi.h" 
 
 module Bh1750fviP {
   provides interface Read<uint16_t> as Light;
@@ -42,9 +40,31 @@ module Bh1750fviP {
   uses interface Resource as I2CResource;
   uses interface BusControl;
   provides interface Init;
-  uses interface DiagMsg;
 }
 implementation {
+  enum {
+    BH1750FVI_POWER_DOWN  = 0x00,
+    BH1750FVI_POWER_ON  = 0x01,
+    BH1750FVI_RESET         =       0x07,
+    BH1750FVI_CONT_H_RES    =       0x10,
+    BH1750FVI_CONT_H2_RES   =       0x11,
+    BH1750FVI_CONT_L_RES    =       0x13,
+    BH1750FVI_ONE_SHOT_H_RES        =       0x20,
+    BH1750FVI_ONE_SHOT_H2_RES       =       0x21,
+    BH1750FVI_ONE_SHOT_L_RES        =       0x23,
+  } bh1750fviCommand;
+
+  enum {
+    BH1750FVI_TIMEOUT_H_RES =       180, // max 180
+    BH1750FVI_TIMEOUT_H2_RES=       180, // max 180
+    BH1750FVI_TIMEOUT_L_RES =        24, // max 24
+    BH1750FVI_TIMEOUT_BOOT = 11,
+  } bh1750fviTimeout;
+
+  enum {
+    BH1750FVI_ADDRESS =       0x23,//0x46/0x47,  //if addr== H then it would be 0xb8/0xb9   
+  } bh1750fviHeader;
+  
   uint8_t  i2cBuffer[2];
   norace error_t lastError;
 
@@ -59,6 +79,7 @@ implementation {
   
   command error_t Init.init(){
     call BusControl.configure(BH1750FVI_TIMEOUT_BOOT,BH1750FVI_TIMEOUT_BOOT);
+    return SUCCESS;
   }
 
   command error_t Light.read() {
@@ -128,8 +149,4 @@ implementation {
   }
 
   default event void Light.readDone(error_t error, uint16_t val) { }
-  
-  default command void BusControl.configure(uint16_t startup, uint16_t keepalive){}
-  default command void BusControl.requestPower(){signal BusControl.powerOn(); }
-  default command void BusControl.releasePower(){}
 }

@@ -29,12 +29,11 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Zsolt Szabo
+* Author: Zsolt Szabo, Andras Biro
 */
 
 configuration Bh1750fviC {
   provides interface Read<uint16_t> as Light;
-  uses interface BusControl;
 }
 implementation {
   components Bh1750fviP;
@@ -43,10 +42,10 @@ implementation {
   Light = Bh1750fviP.Light;
   Bh1750fviP.Timer -> TimerMilliC;
 
-  components HplBh1750C;
+  components HplBh1750C, MainC;
+  Bh1750fviP.Init <- MainC.SoftwareInit;
   Bh1750fviP.I2CPacket -> HplBh1750C;
-  Bh1750fviP.I2CResource -> HplBh1750C.Resource;
-  
-  BusControl=Bh1750fviP;
+  Bh1750fviP.I2CResource -> HplBh1750C;
+  Bh1750fviP.BusControl -> HplBh1750C;
   
 }

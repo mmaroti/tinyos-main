@@ -29,13 +29,12 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Zsolt Szabo
+* Author: Zsolt Szabo, Andras Biro
 */
 
 configuration Sht21C {
   provides interface Read<uint16_t> as Temperature;
   provides interface Read<uint16_t> as Humidity;
-  uses interface BusControl;
 }
 implementation {
   components Sht21DriverP, MainC, new TimerMilliC();
@@ -46,11 +45,8 @@ implementation {
   Sht21DriverP.Timer -> TimerMilliC;
   Sht21DriverP.Init <- MainC.SoftwareInit;
   
-  components HplSht21C, LedsC, DiagMsgC;
+  components HplSht21C;
   Sht21DriverP.I2CPacket -> HplSht21C;
   Sht21DriverP.I2CResource -> HplSht21C;
-  Sht21DriverP.Leds->LedsC;
-  Sht21DriverP.DiagMsg->DiagMsgC;
-  
-  BusControl = Sht21DriverP;
+  Sht21DriverP.BusControl->HplSht21C;
 }

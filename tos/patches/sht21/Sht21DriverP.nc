@@ -29,9 +29,8 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Zsolt Szabo
+* Author: Zsolt Szabo, Andras Biro
 */
-#include "Sht21.h"
 
 module Sht21DriverP {
   provides interface Read<uint16_t> as Temperature;
@@ -41,11 +40,45 @@ module Sht21DriverP {
   uses interface Timer<TMilli>;
   uses interface Resource as I2CResource;
   uses interface BusControl;
-	uses interface Leds;
-	uses interface DiagMsg;
   provides interface Init;
 }
 implementation {
+  enum {
+    SHT21_TRIGGER_T_MEASUREMENT_HOLD_MASTER = 0xE3,
+    SHT21_TRIGGER_RH_MEASUREMENT_HOLD_MASTER  = 0xE5,
+    SHT21_TRIGGER_T_MEASUREMENT_NO_HOLD_MASTER  = 0xF3,
+    SHT21_TRIGGER_RH_MEASUREMENT_NO_HOLD_MASTER = 0xF5,
+    SHT21_WRITE_USER_REGISTER     = 0xE6,
+    SHT21_READ_USER_REGISTER      =       0xE7,
+    SHT21_SOFT_RESET                            =       0xFE,
+  } Sht21Command;
+
+  enum {
+    SHT21_RESOLUTION_12_14BIT = 0x00,   //humidity _ , temperature _
+    SHT21_RESOLUTION_8_12BIT  = 0x01,
+    SHT21_RESOLUTION_10_13BIT = 0x80,
+    SHT21_RESOLUTION_11_11BIT = 0x81,
+  } Sht21Resolution;
+
+  enum {
+    SHT21_HEATER_ON     =       0x04,
+    SHT21_HEATER_OFF    =       0x00,
+  } Sht21Heater;
+
+  enum {
+    SHT21_I2C_ADDRESS =  64,
+  } Sht21Header;
+
+  enum {
+    SHT21_TIMEOUT_14BIT =       85,
+    SHT21_TIMEOUT_13BIT =       43,
+    SHT21_TIMEOUT_12BIT =       22,
+    SHT21_TIMEOUT_11BIT =       11,
+    SHT21_TIMEOUT_10BIT =       6,
+    SHT21_TIMEOUT_8BIT  =       3,
+    SHT21_TIMEOUT_RESET =       15,
+  } Sht21Timeout;
+  
   uint8_t i2cBuffer[2];
   norace error_t lastError;
   enum {
@@ -193,13 +226,6 @@ implementation {
     lastError=error;
     post signalReadDone();
   }
-  
-
-  
-  
-  default command void BusControl.configure(uint16_t startup, uint16_t keepalive){}
-  default command void BusControl.requestPower(){signal BusControl.powerOn(); }
-  default command void BusControl.releasePower(){}
 
   default event void Temperature.readDone(error_t error, uint16_t val) {}
   default event void Humidity.readDone(error_t error, uint16_t val) {}

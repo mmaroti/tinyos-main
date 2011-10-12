@@ -29,18 +29,19 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Author: Zsolt Szabo
+ * Author: Zsolt Szabo, Andras Biro
  */
 
 configuration HplSht21C {
   provides interface I2CPacket<TI2CBasicAddr> ;
   provides interface Resource; 
+  provides interface BusControl;
 }
 implementation {
   
-  components new Atm128I2CMasterC() as I2CBus, HplI2CBusControlC, Sht21C;
+  components new Atm128I2CMasterC() as I2CBus, HplI2CBusControlC;
   
   I2CPacket = I2CBus.I2CPacket;
   Resource  = I2CBus.Resource;
-  Sht21C.BusControl -> HplI2CBusControlC;
+  BusControl = HplI2CBusControlC;
 }
