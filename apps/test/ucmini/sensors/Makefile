@@ -1,0 +1,3 @@
+COMPONENT=UcminiSensorC
+#CFLAGS += -DDIAGMSG_RADIO
+include $(MAKERULES)
