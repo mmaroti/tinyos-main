@@ -81,7 +81,8 @@ implementation
 		if( maxKeepAlive < keepalive )
 			maxKeepAlive = keepalive;
 	}
-
+	
+	//TODO what if someone requests/releases power more than one?
 	command void BusControl.requestPower()
 	{
 		++counter;
@@ -106,7 +107,7 @@ implementation
 		--counter;
 		if( counter == 0 )	// bus is on
 		{
-			call Timer.startOneShot(maxKeepAlive);//TODO what if maxKeepAlive == 0
+			call Timer.startOneShot(maxKeepAlive);//TODO what if maxKeepAlive == 0 - Tested accidently, seems OK
 			counter = COUNTER_TIMER;
 		}
 		else if( counter == 0 + COUNTER_TIMER) // during startup
