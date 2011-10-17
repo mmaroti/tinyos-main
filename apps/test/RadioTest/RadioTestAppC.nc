@@ -4,19 +4,19 @@
 
 configuration RadioTestAppC {}
 implementation {
-  components MainC, RadioTestC as App, RadioStackC as Radio, LedsC;
-  components new TimerMilliC();
-  components DiagMsgC;
-  
-  App.Boot -> MainC.Boot;
-  App.Leds -> LedsC;
-  App.MilliTimer -> TimerMilliC;
-  App.DiagMsg -> DiagMsgC;
+	components MainC, RadioTestC as App, RadioStackC as Radio, LedsC;
+	components new TimerMilliC();
+	components DiagMsgC;
+	
+	App.Boot -> MainC.Boot;
+	App.Leds -> LedsC;
+	App.MilliTimer -> TimerMilliC;
+	App.DiagMsg -> DiagMsgC;
 
-  App.RadioState -> Radio;
-  App.RadioSend -> Radio;
-  App.RadioPacket -> Radio;
-  App.RadioReceive -> Radio;
+	App.RadioState -> Radio;
+	App.RadioSend -> Radio;
+	App.RadioPacket -> Radio;
+	App.RadioReceive -> Radio;
 }
 
 
