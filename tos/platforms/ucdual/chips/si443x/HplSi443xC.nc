@@ -41,7 +41,7 @@ configuration HplSi443xC
   {
     interface GeneralIO as NSEL;
     interface GeneralIO as SDN;
-    interface GpioCapture as IRQ;
+    interface GpioInterrupt as IRQ;
         
     interface Resource as SpiResource;
     interface FastSpiByte;
@@ -65,7 +65,7 @@ implementation
     components LocalTime62khzC as LocalTimeC;
     LocalTimeRadio = LocalTimeC;
 
-    components AtmegaPinChange0C, HplSi443xP;
+/*    components AtmegaPinChange0C, HplSi443xP;
     IRQ = HplSi443xP.GpioCapture;
     HplSi443xP.IRQ -> AtmegaPinChange0C.GpioInterrupt[4];
     HplSi443xP.LocalTime -> LocalTimeC;
@@ -77,4 +77,9 @@ implementation
     components HplAtmRfa1Timer1C;
     HplSi443xP.AtmegaCapture -> HplAtmRfa1Timer1C;
     HplSi443xP.AtmegaCounter -> HplAtmRfa1Timer1C;
+    */
+
+	components AtmegaPinChange0C;
+	IRQ = AtmegaPinChange0C.GpioInterrupt[4];
+
 }

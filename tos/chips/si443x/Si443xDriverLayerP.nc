@@ -40,6 +40,8 @@
 #include <TimeSyncMessageLayer.h>
 #include <RadioConfig.h>
 
+#warning "Using: Si443xDriverLayerP"
+
 module Si443xDriverLayerP
 {
 	provides
@@ -66,7 +68,7 @@ module Si443xDriverLayerP
 		interface GeneralIO as SDN;
 		interface GeneralIO as NSEL;
 
-		interface GpioCapture as IRQ;
+		interface GpioInterrupt as IRQ;
 
 		interface FastSpiByte;
 		interface Resource as SpiResource;
@@ -88,6 +90,7 @@ module Si443xDriverLayerP
 #ifdef RADIO_DEBUG
 		interface Boot;
 		interface DiagMsg;
+		interface Leds;
 #endif
 	}
 }
@@ -174,6 +177,13 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		CMD_RESET = 31,
 	};
 
+	enum {
+		POR_TIME = (uint16_t)30000,
+		CCA_REQUEST_TIME = (uint16_t)(140 * RADIO_ALARM_MICROSEC),
+		TX_SFD_DELAY = (uint16_t)(176 * RADIO_ALARM_MICROSEC),
+		RX_SFD_DELAY = (uint16_t)(8 * RADIO_ALARM_MICROSEC),
+	};
+
 	tasklet_norace struct {
 		uint8_t state;
 		uint8_t cmd;
@@ -186,12 +196,12 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 
 	message_t rxMsgBuffer;
 	tasklet_norace message_t* rxMsg;
-	
+
 	message_t*	txMsg;
-	uint8_t 	msgIdx;			// the byte index in the RX/TX message we need to write/read
-	uint16_t	capturedTime;
+	uint8_t 	plbyte;			// the payload byte index in the RX/TX message we need to write/read
+	uint8_t 	txEmptyThresh;
 	uint32_t	tstime;
-	
+
 	tasklet_norace uint8_t rssiClear;
 	tasklet_norace uint8_t rssiBusy;
 
@@ -240,14 +250,6 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		return reg;
 	}
 
-	enum {
-		POR_TIME = (uint16_t)30000,
-		CCA_REQUEST_TIME = (uint16_t)(140 * RADIO_ALARM_MICROSEC),
-		TX_SFD_DELAY = (uint16_t)(176 * RADIO_ALARM_MICROSEC),
-		RX_SFD_DELAY = (uint16_t)(8 * RADIO_ALARM_MICROSEC),
-		
-		TXFIFO_REFILL_SPACE = SI443X_FIFO_SIZE - SI443X_TXFIFO_EMPTY_THRESH - 1,
-	};
 
 /*----------------- LOW LEVEL FUNCTIONS -----------------*/
 
@@ -255,8 +257,6 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		uint8_t old = readRegister(SI443X_CTRL_2);
 		writeRegister(SI443X_CTRL_2, old |  fifobits );
 		writeRegister(SI443X_CTRL_2, old & (~fifobits) );
-		txMsg = NULL;
-		msgIdx = 0;
 	}
 
 	inline void _setPower(uint8_t power) {
@@ -277,7 +277,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		readRegister(SI443X_INT_2);
 
 		// previous interrupts mess up the PCINT handler
-		call IRQ.captureFallingEdge();
+		call IRQ.enableFallingEdge();
 		writeRegister(SI443X_CTRL_1, SI443X_CTRL1_SWRESET | SI443X_CTRL1_READY );
 		call BusyWait.wait(POR_TIME);
 
@@ -285,7 +285,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		call IRQ.disable();
 		readRegister(SI443X_INT_1);
 		readRegister(SI443X_INT_2);
-		call IRQ.captureFallingEdge();
+		call IRQ.enableFallingEdge();
 	}
 
 	inline void _standby() {
@@ -301,7 +301,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		writeRegister(SI443X_IEN_2,SI443X_I_ALL);
 		writeRegister(SI443X_IEN_1,SI443X_I_NONE);
 		writeRegister(SI443X_IEN_2,SI443X_I_NONE);
-		call IRQ.captureFallingEdge();
+		call IRQ.enableFallingEdge();
 
 		// we instantly enter standby, NO interrupt will come
 		writeRegister(SI443X_CTRL_1,SI443X_CTRL1_STANDBY);
@@ -309,6 +309,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 
 	inline void _ready() {
 		DIAGMSG_STR("ready","");
+
 		writeRegister(SI443X_IEN_1, SI443X_I_ALL);
 		writeRegister(SI443X_IEN_2, SI443X_I_ALL);
 		// we instantly enter ready, NO interrupt will come
@@ -316,20 +317,17 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 	}
 
 	inline void _tune() {
-		DIAGMSG_STR("tune","");
 		writeRegister(SI443X_CTRL_1, SI443X_CTRL1_TUNE);
 	}
 
 	inline void _transmit()
 	{
 		DIAGMSG_STR("transmit","");
-		RADIO_ASSERT( chip.state == STATE_TUNE && chip.cmd == CMD_TX_FINISH );
-		
+
 		writeRegister(SI443X_IEN_1, SI443X_I1_FIFOERROR | SI443X_I1_TXFIFOEMPTY | SI443X_I1_PKTSENT);
 		writeRegister(SI443X_IEN_2, SI443X_I_NONE);
 		readRegister(SI443X_INT_1);
 		readRegister(SI443X_INT_2);
-
 		writeRegister(SI443X_CTRL_1, SI443X_CTRL1_TRANSMIT | SI443X_CTRL1_TUNE);
 	}
 
@@ -337,12 +335,11 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 	{
 		DIAGMSG_STR("receive","");
 		RADIO_ASSERT( chip.state != STATE_RX );
-		
-		writeRegister(SI443X_IEN_1, SI443X_I_ALL);
-		//writeRegister(SI443X_IEN_1, SI443X_I1_FIFOERROR | SI443X_I1_RXFIFOFULL | SI443X_I1_PKTRECEIVED | SI443X_I1_CRCERROR); 
+
+		writeRegister(SI443X_IEN_1, SI443X_I1_FIFOERROR | SI443X_I1_RXFIFOFULL | SI443X_I1_PKTRECEIVED | SI443X_I1_CRCERROR); 
 		writeRegister(SI443X_IEN_2, SI443X_I2_SYNCDETECT );
 		readRegister(SI443X_INT_1);
-		readRegister(SI443X_INT_2);	
+		readRegister(SI443X_INT_2);
 		writeRegister(SI443X_CTRL_1, SI443X_CTRL1_RECEIVE | SI443X_CTRL1_READY );
 	}
 
@@ -427,12 +424,10 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 
 /*----------------- TASKLET HANDLER -----------------*/
 
-	async event void IRQ.captured(uint16_t time)
-	{
+	async event void IRQ.fired() {
 		RADIO_ASSERT( ! radioIrq );
 		atomic {
-			capturedTime = time;
-			radioIrq = TRUE;			
+			radioIrq = TRUE;
 		}
 		call Tasklet.schedule();
 	}
@@ -452,30 +447,27 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		RADIO_ASSERT( call SpiResource.isOwner() );
 		RADIO_ASSERT( chip.state == STATE_RX || chip.state == STATE_TX );
 		RADIO_ASSERT( maxload <= SI443X_FIFO_SIZE && maxload > 0 );
-
-		// how many bytes are still not loaded into the FIFO	
-		// = length byte (1B) + payload	- already loaded bytes (msgIdx)
-		remains = getHeader(txMsg)->length - msgIdx; 
-		DIAGMSG_VAR("remains",remains);
+		RADIO_ASSERT( txMsg != NULL );
 		
-		// if we can load the msg till the end
-		if ( maxload > remains ) {
-			maxload = remains;
-		}
-		// else make sure we will have a TX FIFO Almost Empty Interrupt
-		else if ( maxload < SI443X_TXFIFO_EMPTY_THRESH ) {
-			RADIO_ASSERT(FALSE);
-			writeRegister(SI443X_TXFIFO_EMPTY, maxload);
-		}
+		// how many bytes are still not loaded into the FIFO
+		remains = getHeader(txMsg)->length - plbyte; 
 		
-		DIAGMSG_VAR("maxload",maxload);
-		if ( maxload > 0) {
+		// NB.: Here we intensively assume that sizeof(si443x_header_t) == 1.
+		// If not, data := txMsg + sizeof(si443x_header_t)
+		// and the data to be written into the FIFO should be data[plbyte++] instead of data[++plbyte]
+		if ( remains != 0 ) {
 			uint8_t* data = (uint8_t*)txMsg;
+		
+			// if we can load the msg till the end
+			if ( maxload > remains ) {
+				maxload = remains;
+			}
+			remains -= maxload;
 			
 			call NSEL.clr();
 			call FastSpiByte.splitWrite(SI443X_SPI_WRITE | SI443X_FIFO);
 			while ( maxload-- != 0 ) {
-				call FastSpiByte.splitReadWrite( data[msgIdx++] );
+				call FastSpiByte.splitReadWrite( data[++plbyte] );
 			}
 			call FastSpiByte.splitRead();
 			call NSEL.set();
@@ -503,30 +495,50 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			_setPower(txPower);
 		}
 
-		txMsg = msg;
-		msgIdx = 0;
+		// get payload size
 		misc = getHeader(msg)->length;
 		_setPktLength(misc);
+		DIAGMSG_VAR("pklen",misc);
+		
 		time32 = call LocalTime.get();
 		timesync = call PacketTimeSyncOffset.isSet(msg) ? ((void*)msg) + call PacketTimeSyncOffset.get(msg) : (void*)NULL;
-
-		// Fill the first chunk of the message into the FIFO
-		if ( timesync != NULL ) {
-			// prevent the last 4 bytes (timesync) to be loaded into the FIFO - we will set it soon.
-			misc -= sizeof(timesync_relative_t);
-			_fillTxFifo( misc > SI443X_FIFO_SIZE ? SI443X_FIFO_SIZE : misc);
-		} else {
-			_fillTxFifo( SI443X_FIFO_SIZE );
-		}
 		
-		RADIO_ASSERT( chip.state == STATE_RX );		
+		// If timesync is active, prevent the last 4 bytes (timesync) to be loaded
+		if ( timesync != NULL ) {
+			misc -= sizeof(timesync_relative_t);
+			// NB.: Since we inform the driver that the packet length is lets say L, and 
+			// we fill in the FIFO maximum L-4 bytes, it may happen that L-4 < SI443X_TXFIFO_EMPTY_THRESH.
+			// In this case neither a TX FIFO Almost Empty Interrupt nor a Packet Sent interrupt will fire,
+			// instead we would have a FIFO Underflow Error.
+			//
+			// -> We must guarantee that a FIFO EMPTY interrupt will fire
+			if ( misc < txEmptyThresh )
+				writeRegister(SI443X_TXFIFO_EMPTY, txEmptyThresh = misc );
+		}
+		// Fill the first chunk of the message into the FIFO
+		if ( misc > SI443X_FIFO_SIZE )
+			misc = SI443X_FIFO_SIZE;
+
+		// init data for fillTxFifo calls
+		txMsg = msg;
+		plbyte = 0;
+		_fillTxFifo( misc );
+		
+		RADIO_ASSERT( chip.state == STATE_RX );
+		
 		// RSSI Clear Channel Assessment
-		if( (call Config.requiresRssiCca(msg) && ( _readRssi() > ( (rssiClear >> 1) + (rssiBusy >> 1) )) ) || chip.cmd != CMD_NONE || radioIrq ) {
+		if( (call Config.requiresRssiCca(msg) && ( _readRssi() > ( (rssiClear >> 1) + (rssiBusy >> 1) )) ) ) {
 			DIAGMSG_STR("send","BUSY-2");
 			_clearFifo(SI443X_CLEAR_TX_FIFO);
 			return EBUSY;
 		}
 		
+		if ( chip.cmd != CMD_NONE || radioIrq ) {
+			DIAGMSG_STR("send","BUSY-3");
+			_clearFifo(SI443X_CLEAR_TX_FIFO);
+			return EBUSY;
+		}
+				
 		atomic {
 			_tune();
 			_transmit();
@@ -535,138 +547,128 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		
 		if( timesync != 0 )
 			*(timesync_relative_t*)timesync = (*(timesync_absolute_t*)timesync) - time32;
-			
+		
 		call PacketTimeStamp.set(msg,time32);
-		tstime = time32;		
+		tstime = time32;
 		chip.cmd = CMD_TX_FINISH;
 		chip.state = STATE_TX;
 		return SUCCESS;
 	}
 
-	
+
 	void serviceRadio()
 	{
 		uint8_t irq1, irq2;
 		irq1 = readRegister(SI443X_INT_1);
 		irq2 = readRegister(SI443X_INT_2);
 
-		/** ERRORS */
-		if ( irq1 & SI443X_I1_FIFOERROR ) {		DIAGMSG_STR("Int","Fifo Error");
+		if ( chip.state == STATE_RX ) {
 
-			if ( chip.cmd == CMD_TX_FINISH ) {
-				_receive();			
-				_clearFifo(SI443X_CLEAR_TX_FIFO);
-				signal RadioSend.sendDone(FAIL);
-			} else {
-				_clearFifo(SI443X_CLEAR_RX_FIFO);
-			}
+			if ( irq1 & SI443X_I1_PKTRECEIVED ) {
+				DIAGMSG_STR("Int","Pkt Received");
+				RADIO_ASSERT( chip.cmd == CMD_RX_WAIT || chip.cmd == CMD_RX_FINISH || chip.cmd == CMD_RX_ABORT );
 
-			chip.state = STATE_RX;
-			chip.cmd = CMD_NONE;
-		}
-		if ( irq1 & SI443X_I1_CRCERROR ) {		DIAGMSG_STR("Int","CRC Error");
-			RADIO_ASSERT( chip.state == STATE_RX );
-			_clearFifo(SI443X_CLEAR_RX_FIFO);
-			chip.cmd = CMD_NONE;
-		}
+				// the most likely place for clear channel
+				rssiClear = ( _readRssi() >> 1 ) + (rssiClear >> 1);
 
-		/** TRANSMISSION **/
-		if ( irq1 & SI443X_I1_TXFIFOFULL ) {	DIAGMSG_STR("Int","TxFifo Full");
-
-		}
-
-		if ( irq1 & SI443X_I1_TXFIFOEMPTY ) {	DIAGMSG_STR("Int","TxFifo Empty");
-			RADIO_ASSERT( chip.state == STATE_TX && chip.cmd == CMD_TX_FINISH );
-
-			_fillTxFifo(TXFIFO_REFILL_SPACE);
-		}
-
-		if ( irq1 & SI443X_I1_PKTSENT ) {
-			void* timesync;
-			DIAGMSG_STR("Int","Pkt Sent");
-			RADIO_ASSERT( chip.state == STATE_TX && chip.cmd == CMD_TX_FINISH );
-
-			// restore the absolute value of timesync
-			timesync = call PacketTimeSyncOffset.isSet(txMsg) ? ((void*)txMsg) + call PacketTimeSyncOffset.get(txMsg) : (void*)NULL;
-			if( timesync != 0 )
-				*(timesync_absolute_t*)timesync = (*(timesync_relative_t*)timesync) + tstime;
-			
-			signal RadioSend.sendDone(SUCCESS);
-			_receive();
-			chip.state = STATE_RX;
-			chip.cmd = CMD_NONE;
-		}
-
-		/** RECEPTION **/
-		if ( irq2 & SI443X_I2_SYNCDETECT ) {uint8_t temp;	DIAGMSG_STR("Int","Sync Detected");
-			
-			RADIO_ASSERT( chip.state == STATE_RX );
-			RADIO_ASSERT( chip.cmd == CMD_NONE || chip.cmd == CMD_FINISH_CCA );
-
-			if( chip.cmd == CMD_FINISH_CCA )
-			{
-				signal RadioCCA.done(FAIL);
+				_downloadMessage();
+				if ( chip.cmd != CMD_RX_ABORT ) {
+					rxMsg = signal RadioReceive.receive(rxMsg);
+				}
 				chip.cmd = CMD_NONE;
 			}
 			
-			// the most likely place for busy channel
-			temp = _readRssi();
-			rssiBusy = (temp >> 1) + (rssiBusy >> 1);
-			call PacketRSSI.set(rxMsg, temp);
+			if ( irq2 & SI443X_I2_SYNCDETECT ) {
+				uint8_t temp;	
+				DIAGMSG_STR("Int","Sync Detected");
+				RADIO_ASSERT( chip.cmd == CMD_NONE || chip.cmd == CMD_FINISH_CCA );
+
+				if( chip.cmd == CMD_FINISH_CCA )
+				{
+					signal RadioCCA.done(FAIL);
+					chip.cmd = CMD_NONE;
+				}
 			
-			// TODO : more accurately estimate the timestamp
-			call PacketTimeStamp.set(rxMsg, call LocalTime.get() - RX_SFD_DELAY);
-			chip.cmd = CMD_RX_WAIT;
-		}
-
-		if ( irq1 & SI443X_I1_RXFIFOFULL ) {	DIAGMSG_STR("Int","RxFifo Full");
-			RADIO_ASSERT( chip.state == STATE_RX );
-			RADIO_ASSERT( chip.cmd == CMD_RX_WAIT || chip.cmd == CMD_RX_FINISH || chip.cmd == CMD_RX_ABORT );
-			_downloadMessage();
-		}
-
-		if ( irq1 & SI443X_I1_PKTRECEIVED ) {	DIAGMSG_STR("Int","Pkt Received");
-			RADIO_ASSERT( chip.state == STATE_RX );
-			RADIO_ASSERT( chip.cmd == CMD_RX_WAIT || chip.cmd == CMD_RX_FINISH || chip.cmd == CMD_RX_ABORT );
-
-			// the most likely place for clear channel
-			rssiClear = ( _readRssi() >> 1 ) + (rssiClear >> 1);
-
-			_downloadMessage();
-			DIAGMSG_VAR("chip.cmd",chip.cmd);
-			if ( chip.cmd != CMD_RX_ABORT ) {
-				DIAGMSG_STR("signal","RCV");
-				rxMsg = signal RadioReceive.receive(rxMsg);
+				// the most likely place for busy channel
+				temp = _readRssi();
+				rssiBusy = (temp >> 1) + (rssiBusy >> 1);
+				call PacketRSSI.set(rxMsg, temp);
+			
+				// TODO : more accurately estimate the timestamp
+				call PacketTimeStamp.set(rxMsg, call LocalTime.get() - RX_SFD_DELAY);
+				chip.cmd = CMD_RX_WAIT;
 			}
-			chip.cmd = CMD_NONE;
+
+			if ( irq1 & SI443X_I1_RXFIFOFULL ) {
+				DIAGMSG_STR("Int","RxFifo Full");
+				RADIO_ASSERT( chip.cmd == CMD_RX_WAIT || chip.cmd == CMD_RX_FINISH || chip.cmd == CMD_RX_ABORT );
+				_downloadMessage();
+			}
+			
+			if ( irq1 & SI443X_I1_CRCERROR || irq1 & SI443X_I1_FIFOERROR ) {
+				DIAGMSG_STR("Int","CRC/FIFO Error");
+				_clearFifo(SI443X_CLEAR_RX_FIFO);
+				chip.cmd = CMD_NONE;
+			}
+			
+		} else if ( chip.state == STATE_TX ) {
+			RADIO_ASSERT( chip.cmd == CMD_TX_FINISH );
+
+			if ( irq1 & SI443X_I1_TXFIFOEMPTY ) {
+				DIAGMSG_STR("Int","TxFifo Empty");
+				_fillTxFifo(SI443X_FIFO_SIZE - txEmptyThresh - 1);
+			}
+
+			if ( irq1 & SI443X_I1_PKTSENT ) {
+				void* timesync;
+				DIAGMSG_STR("Int","Pkt Sent");
+	
+				// restore the absolute value of timesync
+				timesync = call PacketTimeSyncOffset.isSet(txMsg) ? ((void*)txMsg) + call PacketTimeSyncOffset.get(txMsg) : (void*)NULL;
+				if( timesync != 0 )
+					*(timesync_absolute_t*)timesync = (*(timesync_relative_t*)timesync) + tstime;
+			
+				signal RadioSend.sendDone(SUCCESS);
+				_receive();
+				chip.state = STATE_RX;
+				chip.cmd = CMD_NONE;
+				txMsg = NULL;
+			}
+			if ( irq1 & SI443X_I1_FIFOERROR ) {	
+				DIAGMSG_STR("Int","Fifo Error");
+				++txEmptyThresh;
+				
+				_receive();
+				_clearFifo(SI443X_CLEAR_TX_FIFO);
+				signal RadioSend.sendDone(FAIL);
+				chip.state = STATE_RX;
+				chip.cmd = CMD_NONE;
+			}
 		}
 
 		/** MISC */
-		if ( irq2 & SI443X_I2_RSSI ) {			DIAGMSG_STR("Int","RSSI");
-			RADIO_ASSERT( chip.cmd == CMD_FINISH_CCA );
-			
+		if ( irq2 & SI443X_I2_RSSI && chip.cmd == CMD_FINISH_CCA ) {
+			DIAGMSG_STR("Int","RSSI");
 			signal RadioCCA.done(FAIL);
 			chip.cmd = CMD_NONE;
 		}
-		
-		if ( irq2 & SI443X_I2_PREAVALID ) {		DIAGMSG_STR("Int","Valid Preamble");
-			RADIO_ASSERT( chip.state == STATE_RX && chip.cmd == CMD_RX_FINISH );
-		}
 
-
-		if ( irq2 & SI443X_I2_POR ) {			DIAGMSG_STR("Int","Power On Reset");
+		if ( irq2 & SI443X_I2_POR ) {
+			DIAGMSG_STR("Int","Power On Reset");
 			chip.cmd = CMD_RESET;
 		}
 		
 		radioIrq = FALSE;
 	}
 	
-	
-
 	void _downloadMessage() {
 
 		uint8_t hdrlen, remains;
 		uint8_t fifoload = SI443X_RXFIFO_FULL_THRESH + 1;
+		
+		// NB.: Here we intensively assume that sizeof(si443x_header_t) == 1.
+		// If not, data := rxMsg + sizeof(si443x_header_t)
+		// and the data to be read from the FIFO should be data[plbyte++] instead of data[++plbyte]
 		uint8_t* data = (uint8_t*)rxMsg;
 		
 		DIAGMSG_STR("dload","msg");
@@ -683,7 +685,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			// read packet length
 			remains = call FastSpiByte.write(0);
 			call RadioPacket.setPayloadLength(rxMsg, remains);
-			msgIdx = 1;
+			plbyte = 0;
 			
 			// if correct length
 			if ( remains >= 3 && remains <= call RadioPacket.maxPayloadLength() ) {
@@ -700,16 +702,15 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 
 				// read header
 				while( --hdrlen != 0 )
-					data[msgIdx++] = call FastSpiByte.splitReadWrite(0);
-				data[msgIdx++] = call FastSpiByte.splitRead();
+					data[++plbyte] = call FastSpiByte.splitReadWrite(0);
+				data[++plbyte] = call FastSpiByte.splitRead();
 
 				chip.cmd = (signal RadioReceive.header(rxMsg)) ? CMD_RX_FINISH : CMD_RX_ABORT;
 			} else
 				chip.cmd = CMD_RX_ABORT;
 		} else {
-			remains = getHeader(rxMsg)->length - msgIdx;
+			remains = getHeader(rxMsg)->length - plbyte;
 		}
-		RADIO_ASSERT(remains > 0);
 		RADIO_ASSERT(fifoload > 0);
 		
 		// compute how much data can be read from the FIFO
@@ -720,15 +721,12 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		if ( fifoload > 0 ) {
 			call FastSpiByte.splitWrite(0);
 			while( --fifoload != 0 )
-				data[msgIdx++] = call FastSpiByte.splitReadWrite(0);
-			data[msgIdx++] = call FastSpiByte.splitRead();
+				data[++plbyte] = call FastSpiByte.splitReadWrite(0);
+			data[++plbyte] = call FastSpiByte.splitRead();
 		}
 		call NSEL.set();
 	}
 
-
-
-	
 
 	tasklet_async event void Tasklet.run()
 	{
@@ -792,6 +790,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 #ifdef RADIO_DEBUG	
 	event void Boot.booted() {
 		DM_ENABLE = TRUE;
+		DIAGMSG_STR("booted","!");
 	}
 #endif
 
@@ -802,8 +801,9 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		rssiBusy = 90;
 		rxMsg = &rxMsgBuffer;
 		txMsg = NULL;
-		msgIdx = 0;
-
+		plbyte = 0;
+		txEmptyThresh = SI443X_TXFIFO_EMPTY_THRESH;
+		
 		chip.state = STATE_POR;
 		chip.cmd = CMD_RESET;
 
@@ -885,7 +885,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		RADIO_ASSERT( chip.state == STATE_RX );
 		
 		if ( chip.cmd == CMD_FINISH_CCA ) {
-			RADIO_ASSERT ( isSpiAcquired() )			
+			RADIO_ASSERT ( isSpiAcquired() );
 			writeRegister(SI443X_IEN_2, readRegister(SI443X_IEN_2) & (~SI443X_I2_RSSI) );
 	
 			signal RadioCCA.done( SUCCESS );

@@ -34,13 +34,12 @@
  * Author: Krisztian Veress
  */
 
+#ifndef __RADIOCONFIG_H__
+#define __RADIOCONFIG_H__
+
+#include <RFA1DriverLayer.h>
 #include "TimerConfig.h"
-
-#ifndef __SI443X_RADIOCONFIG_H__
-#define __SI443X_RADIOCONFIG_H__
-
 #include <Si443xDriverLayer.h>
-#include "TimerConfig.h"
 
 #ifndef SI443X_DEF_RFPOWER
 #define SI443X_DEF_RFPOWER	3
@@ -50,10 +49,49 @@
 #define SI443X_DEF_CHANNEL	1
 #endif
 
+
+/* This is the default value of the TX_PWR field of the PHY_TX_PWR register. */
+#ifndef RFA1_DEF_RFPOWER
+#define RFA1_DEF_RFPOWER	0
+#endif
+
+/* This is the default value of the CHANNEL field of the PHY_CC_CCA register. */
+#ifndef RFA1_DEF_CHANNEL
+#define RFA1_DEF_CHANNEL	11
+#endif
+
+
+/* The number of microseconds a sending mote will wait for an acknowledgement */
+#ifndef SOFTWAREACK_TIMEOUT
+#define SOFTWAREACK_TIMEOUT	1000
+#endif
+
+
 enum {
-    SI443X_TXFIFO_FULL_THRESH = 55,
-    SI443X_RXFIFO_FULL_THRESH = 55,
-    SI443X_TXFIFO_EMPTY_THRESH = 4,
+	SI443X_TXFIFO_FULL_THRESH = 55,
+	SI443X_TXFIFO_EMPTY_THRESH = 4,
+
+	/** MUST be greater or equal to Si443xDriverConfig.headerPreloadLength() ! */
+	SI443X_RXFIFO_FULL_THRESH = 55,
+};
+
+
+enum
+{
+	/**
+	 * This is the default value of the CCA_MODE field in the PHY_CC_CCA register
+	 * which is used to configure the default mode of the clear channel assesment
+	 */
+	RFA1_CCA_MODE_VALUE = CCA_CS<<CCA_MODE0,
+
+	/**
+	 * This is the value of the CCA_THRES register that controls the
+	 * energy levels used for clear channel assesment
+	 */
+	RFA1_CCA_THRES_VALUE = 0xC7,	//TODO to avr-libc values
+	
+	RFA1_PA_BUF_LT=3<<PA_BUF_LT0,
+	RFA1_PA_LT=0<<PA_LT0,
 };
 
 

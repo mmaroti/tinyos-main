@@ -55,7 +55,7 @@ typedef struct si443x_metadata_t
 
 enum si443x_registers_enum
 {
-	
+
 	SI443X_DEVSTAT = 0x02,
 	SI443X_INT_1 = 0x03,
 	SI443X_INT_2 = 0x04,
@@ -82,7 +82,7 @@ enum si443x_register_related_enum {
 	SI443X_SPI_READ = 0x00,
 	SI443X_SPI_WRITE = 0x80,
 	SI443X_SPI_REGMASK = 0x7F,
-	
+
 	SI443X_CLEAR_RX_FIFO = 1<<1,
 	SI443X_CLEAR_TX_FIFO = 1<<0,
 	
@@ -113,7 +113,7 @@ enum si443x_interrupt_enums
 	SI443X_I1_PKTSENT = 1 << 2,
 	SI443X_I1_PKTRECEIVED = 1 << 1,
 	SI443X_I1_CRCERROR = 1 << 0,
-	
+
 	SI443X_I2_SYNCDETECT = 1 << 7,
 	SI443X_I2_PREAVALID = 1 << 6,
 	SI443X_I2_PREAINVALID = 1 << 5,
