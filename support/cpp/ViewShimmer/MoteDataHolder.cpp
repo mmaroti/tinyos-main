@@ -221,6 +221,7 @@ int MoteDataHolder::findNearestSample(double time, int mote)
     int pos = time / 0.005;
 
     //absolut erteket figyelni...
+    //time lehet negativ is... TODO
     if(pos < 0) pos = 0;
     if(pos > motes[mote]->samplesSize()) pos = motes[mote]->samplesSize()-1;
     if(motes[mote]->sampleAt(0).unix_time > time + 0.5) return 0;
@@ -243,4 +244,17 @@ int MoteDataHolder::findNearestSample(double time, int mote)
         diff = fabs(time - unix_time);
     }
     return pos;
+}
+
+void MoteDataHolder::calculateOffset(int sample)
+{
+    QMessageBox msgbox;
+    msgbox.setText(QString::number(sample));
+    msgbox.exec();
+
+    double offset = -(double)(160*sample)/32768;
+
+
+    motes[0]->setTimeDelay(offset, 0);
+
 }

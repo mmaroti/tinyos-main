@@ -31,6 +31,8 @@ public:
 
     int findNearestSample(double time, int mote);
 
+    void calculateOffset(int sample);
+
     void printMoteData(int id);
     void printMotesHeader();
 

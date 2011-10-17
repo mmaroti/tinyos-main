@@ -17,6 +17,7 @@
 #include <QListWidgetItem>
 #include <QProgressBar>
 #include <QDir>
+#include <QDialog>
 
 #include <qwt_picker_machine.h>
 #include <qwt_plot_zoomer.h>
@@ -102,6 +103,14 @@ MainWindow::MainWindow(QWidget *parent, Application &app):
     btnSData->setText("SData Downloader");
     toolBar->addWidget(btnSData);
     connect(btnSData, SIGNAL(clicked()), SLOT(enableSDownloader()));
+
+    toolBar->addSeparator();
+
+    btnOffset = new QToolButton(this);
+    btnOffset->setText("Set Offset");
+    btnOffset->setCheckable(true);
+    toolBar->addWidget(btnOffset);
+    connect(btnOffset, SIGNAL(toggled(bool)), SLOT(enableOffsetMode(bool)));
 
     toolBar->addSeparator();
 
@@ -212,6 +221,7 @@ void MainWindow::onLoadButtonPressed()
         btnPaste->setEnabled(true);
         btnZoom->setEnabled(true);
         btnMarker->setEnabled(true);
+        btnOffset->setEnabled(true);
     }
 }
 
@@ -343,6 +353,31 @@ void MainWindow::enableMarkerMode(bool on)
         d_picker->setRubberBand(QwtPlotPicker::NoRubberBand);
 
         disconnect(d_picker, SIGNAL(selected(QPointF)), this, SLOT(createMarker(QPointF)));
+    }
+}
+
+void MainWindow::enableOffsetMode(bool on)
+{
+    if(on == true){
+
+        d_plot->enableZoomMode(true);
+
+        btnMarker->setChecked(false);
+        btnZoom->setChecked(false);
+        btnCopy->setChecked(false);
+        btnCut->setChecked(false);
+        btnPaste->setChecked(false);
+
+        d_picker->setRubberBand(QwtPlotPicker::VLineRubberBand);
+        d_picker->setRubberBandPen(QColor(Qt::green));
+        d_picker->setStateMachine(new QwtPickerDragPointMachine());
+
+        connect(d_picker, SIGNAL(selected(QPointF)), this, SLOT(setOffset(QPointF)));
+    } else {
+        d_plot->enableZoomMode(false);
+        d_picker->setRubberBand(QwtPlotPicker::NoRubberBand);
+
+        disconnect(d_picker, SIGNAL(selected(QPointF)), this, SLOT(setOffset(QPointF)));
     }
 }
 
@@ -832,3 +867,21 @@ void MainWindow::exitFailure(const QString& dir) const {
     exit(EXIT_FAILURE);
 }
 
+void MainWindow::setOffset(const QPointF &pos)
+{
+    QMessageBox msgBox;
+    msgBox.setText("Offset location set.");
+    msgBox.setInformativeText("Are you sure this is the right sample?");
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::No);
+    int ret = msgBox.exec();
+
+    if(ret == QMessageBox::Yes){
+        int offsetSample = application.moteDataHolder.findNearestSample((double)pos.x(),0);
+        application.moteDataHolder.calculateOffset(offsetSample);
+        qDebug() << "yes";
+    } else if( ret == QMessageBox::No){
+        qDebug() << "no";
+    }
+
+}

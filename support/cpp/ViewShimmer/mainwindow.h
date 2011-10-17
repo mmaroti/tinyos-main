@@ -63,15 +63,18 @@ public Q_SLOTS:
     void enablePasteMode(bool);
     void enableCutMode(bool);
     void enableSDownloader();
+    void enableOffsetMode(bool);
     void createMarker(const QPointF &  pos );
     void createMarker(const QPointF & pos, QString text, QColor color = Qt::green);
     void copy(QRectF);
     void cut(QRectF);
     void paste(QPointF);
 
+    //void calculateOffset(double time);
 
 private slots:
     void on_listWidget_itemDoubleClicked( QListWidgetItem * item );
+    void setOffset(const QPointF &  pos );
 
 private:
     Application &application;
@@ -89,6 +92,7 @@ private:
     QToolButton *btnPaste;
     QToolButton *btnCut;
     QToolButton *btnSData;
+    QToolButton *btnOffset;
 
     QDockWidget *dockWidget;
 
