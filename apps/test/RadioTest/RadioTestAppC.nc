@@ -4,25 +4,35 @@
 
 configuration RadioTestAppC {}
 implementation {
-	components MainC, RadioStackC as Radio, LedsC;
-	#ifdef RT_PARALLEL 
-		components RadioTestParallelC as App;
-	#else
-		components RadioTestXORC as App;
-	#endif
-	
+	components MainC, LedsC, DiagMsgC;
 	components new TimerMilliC();
-	components DiagMsgC;
-	
+
 	App.Boot -> MainC.Boot;
 	App.Leds -> LedsC;
 	App.MilliTimer -> TimerMilliC;
 	App.DiagMsg -> DiagMsgC;
 
+	#if defined(RT_PAR)
+		components RadioTestParallelC as App, RadioStackC as Radio;
+	#elif defined(RT_XOR)
+		components RadioTestXORC as App, RadioStackC as Radio;
+		
+	#elif defined(RT_AM)
+		components RadioTestAMC as App;
+		components new DirectAMSenderC(101) as DsC;
+		components Si443xActiveMessageC as MsgC;
+		App.AMSend -> DsC;
+		App.SplitControl -> MsgC;
+		App.Packet -> MsgC;
+	#endif
+	
+#ifndef RT_AM	
 	App.RadioState -> Radio;
 	App.RadioSend -> Radio;
 	App.RadioPacket -> Radio;
-	App.RadioReceive -> Radio;
+	App.RadioReceive -> Radio;	
+#endif
+
 }
 
 

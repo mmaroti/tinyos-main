@@ -26,8 +26,8 @@ implementation {
 		uint8_t i;
 		uint8_t* pl = (uint8_t*) ( ((void*)&pkt) + call RadioPacket.headerLength(&pkt));
 	
-		call RadioPacket.setPayloadLength(&pkt,20);
-		for( i = 0; i< 20; ++i)
+		call RadioPacket.setPayloadLength(&pkt,120);
+		for( i = 0; i< 120; ++i)
 			*(pl++) = TOS_NODE_ID + i;
 	}
 
@@ -81,11 +81,6 @@ implementation {
 			call DiagMsg.send();
 		}
 
-			if( call DiagMsg.record() ) {
-		call DiagMsg.str("packet");
-		call DiagMsg.hex8(l);
-		call DiagMsg.send();
-	 	}
 		call Leds.led2Off();
 		return msg;
 	}
