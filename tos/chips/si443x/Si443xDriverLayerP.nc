@@ -292,7 +292,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		DIAGMSG_STR("standby","");
 
 		// tricky reset of interrupts
-	   	// we might get interrupts here, MUST ignore them
+		// we might get interrupts here, MUST ignore them
 
 		call IRQ.disable();
 		writeRegister(SI443X_IEN_1,SI443X_I_NONE);
@@ -498,7 +498,6 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		// get payload size
 		misc = getHeader(msg)->length;
 		_setPktLength(misc);
-		DIAGMSG_VAR("pklen",misc);
 		
 		time32 = call LocalTime.get();
 		timesync = call PacketTimeSyncOffset.isSet(msg) ? ((void*)msg) + call PacketTimeSyncOffset.get(msg) : (void*)NULL;
@@ -538,7 +537,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			_clearFifo(SI443X_CLEAR_TX_FIFO);
 			return EBUSY;
 		}
-				
+
 		atomic {
 			_tune();
 			_transmit();
@@ -798,7 +797,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 	{
 		// these are just good approximates
 		rssiClear = 0;
-		rssiBusy = 90;
+		rssiBusy = 150;
 		rxMsg = &rxMsgBuffer;
 		txMsg = NULL;
 		plbyte = 0;

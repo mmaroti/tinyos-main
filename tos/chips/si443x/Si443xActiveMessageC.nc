@@ -39,6 +39,8 @@
 #error "You cannot use ActiveMessageC with IEEE154FRAMES_ENABLED defined"
 #endif
 
+#warning "Using SI443X ActiveMessage Component"
+
 configuration Si443xActiveMessageC
 {
 	provides 
