@@ -4,7 +4,13 @@
 
 configuration RadioTestAppC {}
 implementation {
-	components MainC, RadioTestC as App, RadioStackC as Radio, LedsC;
+	components MainC, RadioStackC as Radio, LedsC;
+	#ifdef RT_PARALLEL 
+		components RadioTestParallelC as App;
+	#else
+		components RadioTestXORC as App;
+	#endif
+	
 	components new TimerMilliC();
 	components DiagMsgC;
 	

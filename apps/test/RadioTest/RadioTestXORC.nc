@@ -3,7 +3,7 @@
 #include "message.h"
 #include "Tasklet.h"
 
-module RadioTestC @safe() {
+module RadioTestXORC @safe() {
 	uses {
 		interface Leds;
 		interface Boot;
@@ -17,6 +17,8 @@ module RadioTestC @safe() {
 }
 
 implementation {
+
+#warning "RadioTest is in XOR mode"
 #define IS_TX (TOS_NODE_ID == 1)
 
 	norace bool accept;
@@ -87,8 +89,6 @@ implementation {
 		call Leds.led2On();
 
 		// print the whole packet
-
-
 		for ( i = 0; i < l/15; ++i  ) {
 			if( call DiagMsg.record() ) {
 				call DiagMsg.hex8s(data+i*15,15);
