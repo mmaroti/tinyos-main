@@ -50,8 +50,11 @@ UNPACK_TARGET=-user_unpack
 PATCHSTRIP=1
 
 #confiure and compile options
+AS=/usr/bin/msp430-as
+LD=/usr/bin/msp430-ld
 PREFIX=/usr
-CONFIGURE_OPTS=--prefix=$(PREFIX) --target=msp430 --enable-languages=c CPPFLAGS=-D_FORTIFY_SOURCE=0
+CONFIGURE_OPTS=--prefix=$(PREFIX) --disable-libssp --disable-nls --enable-languages=c --infodir=$(PREFIX)/share/info --libdir=$(PREFIX)/lib --libexecdir=$(PREFIX)/lib --mandir=$(PREFIX)/share/man --target=msp430 --with-ld=$(LD) --with-as=$(AS)
+
 
 #package options
 PKG_NAME=msp430-gcc-tinyos 
