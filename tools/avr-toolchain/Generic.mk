@@ -49,6 +49,12 @@ PATCHSTRIP?=0
 RPMBUILD?=$(shell whereis rpmbuild|sed 's/.*: //'|sed 's/ .*//'|sed 's/.*:.*//g')
 DPKG?=$(shell whereis dpkg-deb|sed 's/.*: //'|sed 's/ .*//'|sed 's/.*:.*//g')
 UNPACK_TARGET?=$(SRC_DIRECTORY)/configure
+CONFIG_LINE?=./configure $(CONFIGURE_OPTS)
+ifneq ($(BUILD_SUBDIR),)
+  REAL_CONFIG_LINE=install -d $(BUILD_SUBDIR)&&cd $(BUILD_SUBDIR)&&.$(CONFIG_LINE)
+else
+  REAL_CONFIG_LINE=$(CONFIG_LINE)
+endif
 
 ifeq ($(RPMBUILD),)
  RPMTARGET=-dummyrpm
@@ -151,14 +157,14 @@ patch: $(PATCHTARGET)
 make_patchdone:
 	cd $(SRC_DIRECTORY)&&cat ../$(PATCHDIR)/*.patch|patch -p$(PATCHSTRIP) && cd .. && touch make_patchdone #just for the makefile
 
-configure: patch $(SRC_DIRECTORY)/Makefile
-$(SRC_DIRECTORY)/Makefile:
+configure: patch $(SRC_DIRECTORY)/$(BUILD_SUBDIR)/Makefile
+$(SRC_DIRECTORY)/$(BUILD_SUBDIR)/Makefile:
 	$(REALBOOTSTRAP_CMD)
-	cd $(SRC_DIRECTORY)&&./configure $(CONFIGURE_OPTS)
+	cd $(SRC_DIRECTORY)&&$(REAL_CONFIG_LINE)
 
 compile: configure make_compiledone
 make_compiledone:
-	cd $(SRC_DIRECTORY)&&make&&cd ..&&touch make_compiledone #just for the makefile
+	cd $(SRC_DIRECTORY)/$(BUILD_SUBDIR)&&make&&cd ..&&touch make_compiledone #just for the makefile
 
 -realdeb: package $(PKG_DIR).deb
 $(PKG_DIR).deb:
@@ -194,7 +200,7 @@ package: compile -install -cleanup make_pkg_packagedone
 
 -install:
 	install -d $(PKG_DIR)
-	cd $(SRC_DIRECTORY)&&make DESTDIR=$(ABS_PKG_DIR) $(INSTALL_OPTS) install
+	cd $(SRC_DIRECTORY)/$(BUILD_SUBDIR)&&make DESTDIR=$(ABS_PKG_DIR) $(INSTALL_OPTS) install
 
 make_pkg_packagedone:
 	touch make_pkg_packagedone
