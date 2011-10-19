@@ -57,7 +57,7 @@ CONFIGURE_OPTS=--prefix=$(PREFIX) --disable-libssp --disable-nls --enable-langua
 BUILD_SUBDIR=build
 
 #package options
-PKG_NAME=msp430-gcc-tinyos 
+PKG_NAME=msp430-gcc-tinyos
 #PKG_VERSION=$(VERSION)
 #PKG_RELEASE=$(shell date +%Y%m%d)
 #PKG_HOST=$(shell echo $(HOST)|sed 's/.*64/amd64/'|sed 's/.*86/i386/')
