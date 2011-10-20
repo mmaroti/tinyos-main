@@ -53,7 +53,7 @@ PATCHSTRIP=1
 AS=/usr/bin/msp430-as
 LD=/usr/bin/msp430-ld
 PREFIX=/usr
-CONFIGURE_OPTS=--prefix=$(PREFIX) --disable-libssp --disable-nls --enable-languages=c --infodir=$(PREFIX)/share/info --libdir=$(PREFIX)/lib --libexecdir=$(PREFIX)/lib --mandir=$(PREFIX)/share/man --target=msp430 --with-ld=$(LD) --with-as=$(AS)
+CONFIGURE_OPTS=--prefix=$(PREFIX) --disable-libssp --enable-languages=c,c++ --infodir=$(PREFIX)/share/info --libdir=$(PREFIX)/lib --libexecdir=$(PREFIX)/lib --mandir=$(PREFIX)/share/man --target=msp430 --with-ld=$(LD) --with-as=$(AS)
 BUILD_SUBDIR=build
 
 #package options
