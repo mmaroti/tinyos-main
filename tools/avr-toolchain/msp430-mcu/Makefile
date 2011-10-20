@@ -72,17 +72,18 @@ else
 endif
 
 usercompile: patch
-	cd $(SRC_DIRECTORY)&&export MSP430MCU_ROOT=$(PWD)/$(SRC_DIRECTORY)&&scripts/build.sh
+	install -d $(SRC_DIRECTORY)
+	cd $(SRC_DIRECTORY)&&export MSP430MCU_ROOT=$(PWD)/$(SRC_DIRECTORY)&&./scripts/build.sh
 
 userinstall: usercompile
 	install -d $(ABS_PKG_DIR)
-	cd $(SRC_DIRECTORY)&&scripts/install.sh $(ABS_PKG_DIR)/usr
+	cd $(SRC_DIRECTORY)&&./scripts/install.sh $(ABS_PKG_DIR)/usr
 
 -userdeb1: $(DEBTARGET)
 -userrpm1: $(RPMTARGET)
 
--userdeb: usercompile $(PKG_DIR).deb
--userrpm: usercompile make_pkg_rpmdone
+-userdeb: userinstall $(PKG_DIR).deb
+-userrpm: userinstall make_pkg_rpmdone
 
 -check_spec_requirements:
 
