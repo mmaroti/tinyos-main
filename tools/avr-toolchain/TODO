@@ -1,3 +1,2 @@
--test with avr-toolchain
 -update documentation
--add msp430-gdb & msp430-jtag
+-add msp430-gdb & msp430-jtag; insight, avarice?
