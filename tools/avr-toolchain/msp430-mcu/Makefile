@@ -34,7 +34,7 @@
 SRCNAME=msp430mcu
 VERSION=20110613
 ARCHIVE_FORMAT=tar.bz2
-DOWNLOAD_URL=wget http://sourceforge.net/projects/mspgcc/files/$(SRCNAME)/$(SRCNAME)-$(VERSION).$(ARCHIVE_FORMAT)
+DOWNLOAD_URL=http://sourceforge.net/projects/mspgcc/files/$(SRCNAME)/$(SRCNAME)-$(VERSION).$(ARCHIVE_FORMAT)
 #PATCHDIR=patch
 PATCHSTRIP=1
 #confiure and compile options
