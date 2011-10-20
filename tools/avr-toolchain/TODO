@@ -1,2 +1,2 @@
 -update documentation
--add msp430-gdb & msp430-jtag; insight, avarice?
+-add msp430-gdb & msp430-jtag; avr-gdb, avarice?
