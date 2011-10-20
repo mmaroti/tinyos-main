@@ -31,10 +31,10 @@
 # Author:Andras Biro <bbandi86@gmail.com>
 
 #download and patch options
-SRCNAME=msp430mcu
-VERSION=20110613
+SRCNAME=msp430-libc
+VERSION=20110612
 ARCHIVE_FORMAT=tar.bz2
-DOWNLOAD_URL=http://sourceforge.net/projects/mspgcc/files/msp430mcu/${SRCNAME}-${VERSION}.tar.bz2
+DOWNLOAD_URL=wget http://sourceforge.net/projects/mspgcc/files/$(SRCNAME)/$(SRCNAME)-$(VERSION).$(ARCHIVE_FORMAT)
 #PATCHDIR=patch
 PATCHSTRIP=1
 #confiure and compile options
@@ -43,7 +43,7 @@ CONFIGURE_OPTS=$(PREFIX)
 #INSTALL_OPTS=
 
 #package options
-PKG_NAME=msp430mcu-tinyos
+PKG_NAME=msp430-libc-tinyos
 #PKG_VERSION=$(VERSION)
 #PKG_RELEASE=$(shell date +%Y%m%d)
 #PKG_HOST=$(shell echo $(HOST)|sed 's/.*64/amd64/'|sed 's/.*86/i386/')
@@ -72,12 +72,11 @@ else
 endif
 
 usercompile: patch
-	install -d $(SRC_DIRECTORY)
 	export MSP430MCU_ROOT=$(PWD)/$(SRC_DIRECTORY)&&cd $(SRC_DIRECTORY)&&./scripts/build.sh
 
 userinstall: usercompile
 	install -d $(ABS_PKG_DIR)
-	export MSP430MCU_ROOT=$(PWD)/$(SRC_DIRECTORY)&&cd $(SRC_DIRECTORY)&&./scripts/install.sh $(ABS_PKG_DIR)/usr
+	export MSP430MCU_ROOT=$(PWD)/$(SRC_DIRECTORY)&&cd $(SRC_DIRECTORY)&&./scripts/install.sh $(ABS_PKG_DIR)/$(PREFIX)
 
 -userdeb1: $(DEBTARGET)
 -userrpm1: $(RPMTARGET)
