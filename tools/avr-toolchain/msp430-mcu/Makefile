@@ -31,8 +31,8 @@
 # Author:Andras Biro <bbandi86@gmail.com>
 
 #download and patch options
-SRCNAME=msp430-libc
-VERSION=20110612
+SRCNAME=msp430mcu
+VERSION=20110613
 ARCHIVE_FORMAT=tar.bz2
 DOWNLOAD_URL=wget http://sourceforge.net/projects/mspgcc/files/$(SRCNAME)/$(SRCNAME)-$(VERSION).$(ARCHIVE_FORMAT)
 #PATCHDIR=patch
@@ -43,7 +43,7 @@ CONFIGURE_OPTS=$(PREFIX)
 #INSTALL_OPTS=
 
 #package options
-PKG_NAME=msp430-libc-tinyos
+PKG_NAME=msp430mcu-tinyos
 #PKG_VERSION=$(VERSION)
 #PKG_RELEASE=$(shell date +%Y%m%d)
 #PKG_HOST=$(shell echo $(HOST)|sed 's/.*64/amd64/'|sed 's/.*86/i386/')
