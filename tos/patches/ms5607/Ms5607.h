@@ -36,7 +36,7 @@
 #define MS5607_H
 typedef struct {
   uint16_t coefficient[6];
-} calibration;
+} calibration_t;
 /*
  * Precision dependent values: supply current/conversion time:
  * OSR=4096: 12.5uA/9.04ms 

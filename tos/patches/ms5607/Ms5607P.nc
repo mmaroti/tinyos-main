@@ -39,7 +39,7 @@
 module Ms5607P {
   provides interface Read<uint32_t> as ReadTemperature;
   provides interface Read<uint32_t> as ReadPressure;
-  provides interface ReadRef<calibration> as ReadCalibration;
+  provides interface ReadRef<calibration_t> as ReadCalibration;
   provides interface Set<uint8_t> as SetPrecision;
   provides interface Init;
   uses interface Timer<TMilli>;
@@ -86,7 +86,7 @@ implementation {
   
   norace uint8_t state=S_OFF;
   norace uint8_t i2cBuffer[3];
-  norace calibration *calib;
+  norace calibration_t *calib;
   norace error_t lastError;
   
   uint8_t precision=MS5607_PRECISION;
@@ -182,7 +182,7 @@ implementation {
     return SUCCESS;
   }
   
-  command error_t ReadCalibration.read(calibration *cal){
+  command error_t ReadCalibration.read(calibration_t *cal){
     uint8_t prevState=state;
     if(state > S_IDLE)
       return EBUSY;
@@ -359,7 +359,7 @@ implementation {
     }
   }
   
-  default event void ReadCalibration.readDone(error_t err, calibration *data){};
+  default event void ReadCalibration.readDone(error_t err, calibration_t *data){};
   default event void ReadPressure.readDone(error_t err, uint32_t data){};
   default event void ReadTemperature.readDone(error_t err, uint32_t data){};
 }
