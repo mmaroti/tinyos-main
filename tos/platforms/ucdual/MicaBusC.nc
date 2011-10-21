@@ -71,7 +71,6 @@ configuration MicaBusC {
 }
 implementation {
   components AtmegaGeneralIOC as Pins, MicaBusP;
-  components HplAtm128InterruptC;
   components new NoPinC() as NoPW1, new NoPinC() as NoPW7, new NoPinC() as NoAdc;
   
   PW0 = Pins.PortB6;
@@ -112,21 +111,12 @@ implementation {
   Adc6_IO = Pins.PortF6;
   Adc7_IO = Pins.PortF7;
 
-  components new Atm128GpioInterruptC() as Atm128GpioInterrupt0C;
-  Atm128GpioInterrupt0C.Atm128Interrupt->HplAtm128InterruptC.Int4;
-  Int0_Interrupt=Atm128GpioInterrupt0C.Interrupt;
+  components AtmegaExtInterruptC;
+  Int0_Interrupt=AtmegaExtInterruptC.GpioInterrupt[4];
+  Int1_Interrupt=AtmegaExtInterruptC.GpioInterrupt[5];
+  Int2_Interrupt=AtmegaExtInterruptC.GpioInterrupt[6];
+  Int3_Interrupt=AtmegaExtInterruptC.GpioInterrupt[7];
 
-  components new Atm128GpioInterruptC() as Atm128GpioInterrupt1C;
-  Atm128GpioInterrupt1C.Atm128Interrupt->HplAtm128InterruptC.Int5;
-  Int1_Interrupt=Atm128GpioInterrupt1C.Interrupt;
-
-  components new Atm128GpioInterruptC() as Atm128GpioInterrupt2C;
-  Atm128GpioInterrupt2C.Atm128Interrupt->HplAtm128InterruptC.Int6;
-  Int2_Interrupt=Atm128GpioInterrupt2C.Interrupt;
-
-  components new Atm128GpioInterruptC() as Atm128GpioInterrupt3C;
-  Atm128GpioInterrupt3C.Atm128Interrupt->HplAtm128InterruptC.Int7;
-  Int3_Interrupt=Atm128GpioInterrupt3C.Interrupt;
   #if UCDUAL_REV==1
   Adc0 = MicaBusP.Adc7;//not connected
   Adc1 = MicaBusP.Adc6;
