@@ -32,19 +32,14 @@
 * Author: Andras Biro
 */
 
-generic module Ms5607ClientP(){
-  provides interface Read<uint32_t>[uint8_t client];
-  uses interface Read<uint32_t> as ActualRead;
+#include "Sht21.h"
+generic configuration Sht21RawHumidityC()
+{
+  provides interface Read<uint16_t>;
 }
-implementation{
-  uint8_t client;
+implementation
+{
+  components Sht21ArbitratedC;
   
-  command error_t Read.read[uint8_t cl](){
-    client=cl;
-    return call ActualRead.read();
-  }
-  
-  event void ActualRead.readDone(error_t result, uint32_t value) {
-    signal Read.readDone[client](result, value);
-  }
+  Read=Sht21ArbitratedC.ReadHumidity[unique(UQ_SHT21HUMI_RESOURCE)];
 }

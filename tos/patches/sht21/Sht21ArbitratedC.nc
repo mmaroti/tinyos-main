@@ -32,42 +32,36 @@
 * Author: Andras Biro
 */
 
-#include "Ms5607.h"
-configuration Ms5607ArbitratedC
+#include "Sht21.h"
+configuration Sht21ArbitratedC
 {
-  provides interface Read<uint32_t> as ReadTemperature[uint8_t client]; 
-  provides interface Read<uint32_t> as ReadPressure[uint8_t client];
-  //You can't use the following interfaces if you're waiting for any readDone
-  //the calibration data is always the same on the same chip, but this driver doesn't buffering it
-  provides interface ReadRef<calibration> as ReadCalibration;
-  provides interface Set<uint8_t> as SetPrecision;  
+  provides interface Read<uint16_t> as ReadTemperature[uint8_t client]; 
+  provides interface Read<uint16_t> as ReadHumidity[uint8_t client];
 }
 implementation
 {
-  components Ms5607C;
-  ReadCalibration=Ms5607C;
-  SetPrecision=Ms5607C;
+  components Sht21C;
   
-  components new ArbitratedReadC(uint32_t) as ArbitratedTemp,
-             new FcfsArbiterC(UQ_MS5607TEMP_RESOURCE) as TempArbiter,
-             new ReadClientP(uint32_t) as TempClient;
+  components new ArbitratedReadC(uint16_t) as ArbitratedTemp,
+             new FcfsArbiterC(UQ_SHT21TEMP_RESOURCE) as TempArbiter,
+             new ReadClientP(uint16_t) as TempClient;
   
   ReadTemperature=ArbitratedTemp.Read;
   
   ArbitratedTemp.Resource->TempArbiter;
   ArbitratedTemp.Service->TempClient;
   
-  TempClient.ActualRead->Ms5607C.ReadTemperature;
+  TempClient.ActualRead->Sht21C.Temperature;
   
   
-  components new ArbitratedReadC(uint32_t) as ArbitratedPress,
-             new FcfsArbiterC(UQ_MS5607PRESS_RESOURCE) as PressArbiter,
-             new ReadClientP(uint32_t) as PressClient;
+  components new ArbitratedReadC(uint16_t) as ArbitratedHumi,
+             new FcfsArbiterC(UQ_SHT21HUMI_RESOURCE) as HumiArbiter,
+             new ReadClientP(uint16_t) as HumiClient;
   
-  ReadPressure=ArbitratedPress.Read;
+  ReadHumidity=ArbitratedHumi.Read;
   
-  ArbitratedPress.Resource->PressArbiter;
-  ArbitratedPress.Service->PressClient;
+  ArbitratedHumi.Resource->HumiArbiter;
+  ArbitratedHumi.Service->HumiClient;
   
-  PressClient.ActualRead->Ms5607C.ReadPressure;
+  HumiClient.ActualRead->Sht21C.Humidity;
 }

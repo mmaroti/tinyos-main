@@ -32,8 +32,8 @@
 * Author: Andras Biro
 */
 
-#ifndef __MS5607_H__
-#define __MS5607_H__
+#ifndef MS5607_H
+#define MS5607_H
 typedef struct {
   uint16_t coefficient[6];
 } calibration;
@@ -64,6 +64,6 @@ enum {
 #endif
 
 #define UQ_MS5607PRESS_RESOURCE "Ms5607Pressure.ReadResource"
-#define UQ_MS5607TEMP_RESOURCE "Ms5607Temp.ReadResource"
+#define UQ_MS5607TEMP_RESOURCE "Ms5607Temperature.ReadResource"
 
 #endif
