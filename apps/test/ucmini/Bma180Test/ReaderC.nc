@@ -58,21 +58,22 @@ implementation
 	};
 
   bma180_data_t buffers[BUFFER_COUNT][BUFFER_SIZE];
+	message_t dataMsg;
  
 
   event void AMControl.startDone(error_t error) {
     uint8_t i;
     call BmaControl.start();
     call Init.init();
-//    call Read.read();
+    call Read.read();
     
 
-		for(i = 0; i < BUFFER_COUNT; ++i)
-		{
-			error = call ReadStream.postBuffer(buffers[i], BUFFER_SIZE);
-		}
-
-		error = call ReadStream.read(SAMPLING);
+// 		for(i = 0; i < BUFFER_COUNT; ++i)
+// 		{
+// 			error = call ReadStream.postBuffer(buffers[i], BUFFER_SIZE);
+// 		}
+// 
+// 		error = call ReadStream.read(SAMPLING);
 
   }
 
@@ -97,30 +98,30 @@ implementation
       call DiagMsg.str("Temp: ");
       call DiagMsg.uint8( (int8_t)data.bma180_temperature);
       call DiagMsg.send();
-    } //call Read.read();
+    } call Read.read();
   }
 
   event void ReadStream.bufferDone(error_t result, bma180_data_t* buf, uint16_t count) {
-    //uint8_t i;
-		//uint8_t *p;
+    uint8_t i;
+		uint8_t *p;
 
-		if( result == SUCCESS )
-		{
-			//sampleCount += BUFFER_SIZE;
-
-		//	p = call AMSend.getPayload(&dataMsg, BUFFER_SIZE);
-		//	if( p != NULL )
-		//	{
-		//		for(i = 0; i < BUFFER_SIZE; ++i)
-		//			p[i] = buf[i] >> 2;
-
-		//		result = call AMSend.send(AM_BROADCAST_ADDR, &dataMsg, BUFFER_SIZE);
-		//		if( result != SUCCESS )
-		//			call Leds.led0Toggle();
-		//	}
-
-			//call ReadStream.postBuffer(buf, count);
-		}
+// 		if( result == SUCCESS )
+// 		{
+// 			//sampleCount += BUFFER_SIZE;
+// 
+// 			p = call AMSend.getPayload(&dataMsg, BUFFER_SIZE);
+// 			if( p != NULL )
+// 			{
+// 				for(i = 0; i < BUFFER_SIZE; ++i)
+// 					p[i] = buf[i] >> 2;
+// 
+// 				result = call AMSend.send(AM_BROADCAST_ADDR, &dataMsg, BUFFER_SIZE);
+// 				if( result != SUCCESS )
+// 					call Leds.led0Toggle();
+// 			}
+// 
+// 			call ReadStream.postBuffer(buf, count);
+// 		}
   }
 
 
