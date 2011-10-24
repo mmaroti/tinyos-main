@@ -64,5 +64,6 @@ $(SRCNAME)-$(VERSION):
 	rm -r $(SRCNAME)-$(VERSION)/tools/
 
 -check_spec_requirements:
+	which g++
 	
 -cleanup:
