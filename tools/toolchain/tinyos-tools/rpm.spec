@@ -15,3 +15,7 @@ Development-tools for TinyOS
 %files
 %defattr(-,root,root,-)
 /usr
+
+%post
+echo "Installing JNI libraries"
+/usr/bin/tos-install-jni
