@@ -20,10 +20,12 @@ implementation {
 	#elif defined(RT_AM)
 		components RadioTestAMC as App;
 		components new DirectAMSenderC(101) as DsC;
+		components new AMReceiverC(101) as RsC;
 		components Si443xActiveMessageC as MsgC;
 		App.AMSend -> DsC;
 		App.SplitControl -> MsgC;
 		App.Packet -> MsgC;
+		App.Receive -> RsC;
 	#endif
 	
 #ifndef RT_AM	

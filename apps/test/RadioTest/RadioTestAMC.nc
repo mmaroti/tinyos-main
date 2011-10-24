@@ -13,6 +13,7 @@ module RadioTestAMC @safe() {
 		interface Packet;
 		interface SplitControl;
 		interface AMSend;
+		interface Receive;
 	}
 }
 
@@ -49,7 +50,7 @@ implementation {
 			return;
 		}
 		
-		call MilliTimer.startPeriodic(100);
+		call MilliTimer.startPeriodic(100 * TOS_NODE_ID);
 		call Leds.led0On();
 	}
 
@@ -62,6 +63,28 @@ implementation {
 	event void AMSend.sendDone(message_t* msg, error_t error) {
 		call Leds.led1Off();
 		busy = FALSE;
+	}
+	
+	event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
+	
+		uint8_t i;
+		uint8_t* data = (uint8_t*)payload;
+		call Leds.led2On();
+
+		// print the whole packet
+		for ( i = 0; i < len/15; ++i  ) {
+			if( call DiagMsg.record() ) {
+				call DiagMsg.hex8s(data+i*15,15);
+				call DiagMsg.send();
+			}
+		}
+		if( len%15 != 0 && call DiagMsg.record() ) {
+			call DiagMsg.hex8s(data+i*15,len%15);
+			call DiagMsg.send();
+		}
+
+		call Leds.led2Off();
+		return msg;
 	}
 
 }
