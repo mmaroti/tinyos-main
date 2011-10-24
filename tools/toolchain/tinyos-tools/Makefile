@@ -37,7 +37,7 @@ ARCHIVE_FORMAT=tar.gz
 DOWNLOAD_URL=http://tinyos.stanford.edu/tinyos-rpms/$(SRCNAME)-$(VERSION).$(ARCHIVE_FORMAT)
 UNPACK_TARGET=-user_unpack
 #confiure and compile options
-BOOTSTRAP_CMD=./Bootstrap&&cd platforms/mica/uisp/&&./bootstrap
+BOOTSTRAP_CMD=./Bootstrap
 PREFIX=/usr
 CONFIGURE_OPTS=--prefix=$(PREFIX)
 #INSTALL_OPTS=
