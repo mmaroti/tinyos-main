@@ -77,7 +77,7 @@ configuration Si443xRadioC
 #endif
 
 		interface RadioChannel;
-
+		
 		interface PacketField<uint8_t> as PacketLinkQuality;
 		interface PacketField<uint8_t> as PacketTransmitPower;
 		interface PacketField<uint8_t> as PacketRSSI;

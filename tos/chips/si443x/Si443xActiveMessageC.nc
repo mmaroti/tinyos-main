@@ -83,7 +83,7 @@ implementation
 	components Si443xRadioC as RadioC;
 
 	SplitControl = RadioC;
-
+	
 	AMSend = RadioC;
 	Receive = RadioC.Receive;
 	Snoop = RadioC.Snoop;

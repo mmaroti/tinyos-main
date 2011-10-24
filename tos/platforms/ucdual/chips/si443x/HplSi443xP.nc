@@ -95,7 +95,7 @@ implementation
 		now -= elapsed >> (MCU_TIMER_MHZ_LOG2 + 10 - 6);
 		signal GpioCapture.captured(now);
 	}
-
+	
 	async event void AtmegaCapture.fired() { }
 
 	async event void AtmegaCounter.overflow() { }

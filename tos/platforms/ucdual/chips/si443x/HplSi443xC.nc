@@ -37,49 +37,57 @@
 
 configuration HplSi443xC
 {
-  provides
-  {
-    interface GeneralIO as NSEL;
-    interface GeneralIO as SDN;
-    interface GpioInterrupt as IRQ;
-        
-    interface Resource as SpiResource;
-    interface FastSpiByte;
-    interface Alarm<TRadio, tradio_size> as Alarm;
-    interface LocalTime<TRadio> as LocalTimeRadio;
-  }
+	provides
+	{
+		interface GeneralIO as NSEL;
+		interface GeneralIO as SDN;
+		
+#ifdef SI443X_GPIOCAPTURE		
+		interface GpioCapture as IRQ;
+#else
+		interface GpioInterrupt as IRQ;
+#endif
+ 	    
+		interface Resource as SpiResource;
+		interface FastSpiByte;
+		interface Alarm<TRadio, tradio_size> as Alarm;
+		interface LocalTime<TRadio> as LocalTimeRadio;
+	}
 }
 implementation
 {
-    components AtmegaGeneralIOC as IO, new NoPinC();
-    NSEL = IO.PortF0;
-    SDN = NoPinC;
+	components AtmegaGeneralIOC as IO, new NoPinC();
+	NSEL = IO.PortF0;
+	SDN = NoPinC;
     
-    components Atm128SpiC as SpiC;
-    SpiResource = SpiC.Resource[unique("Atm128SpiC.Resource")];
-    FastSpiByte = SpiC;
+	components Atm128SpiC as SpiC;
+	SpiResource = SpiC.Resource[unique("Atm128SpiC.Resource")];
+	FastSpiByte = SpiC;
 
-    components new Alarm62khz32C() as AlarmC;
-    Alarm = AlarmC;
+	components new Alarm62khz32C() as AlarmC;
+	Alarm = AlarmC;
  
-    components LocalTime62khzC as LocalTimeC;
-    LocalTimeRadio = LocalTimeC;
+	components LocalTime62khzC as LocalTimeC;
+	LocalTimeRadio = LocalTimeC;
 
-/*    components AtmegaPinChange0C, HplSi443xP;
-    IRQ = HplSi443xP.GpioCapture;
-    HplSi443xP.IRQ -> AtmegaPinChange0C.GpioInterrupt[4];
-    HplSi443xP.LocalTime -> LocalTimeC;
-    HplSi443xP.GPIO -> IO.PortD4;
+	components AtmegaPinChange0C, HplSi443xP;
+#ifdef SI443X_GPIOCAPTURE
+	IRQ = HplSi443xP.GpioCapture;
+	HplSi443xP.IRQ -> AtmegaPinChange0C.GpioInterrupt[4];
+	HplSi443xP.LocalTime -> LocalTimeC;
 
-    components RealMainP;
-    RealMainP.PlatformInit -> HplSi443xP;
+	HplSi443xP.GPIO -> IO.PortD4;
 
-    components HplAtmRfa1Timer1C;
-    HplSi443xP.AtmegaCapture -> HplAtmRfa1Timer1C;
-    HplSi443xP.AtmegaCounter -> HplAtmRfa1Timer1C;
-    */
-
-	components AtmegaPinChange0C;
+	components RealMainP;
+	RealMainP.PlatformInit -> HplSi443xP;
+	
+#else
 	IRQ = AtmegaPinChange0C.GpioInterrupt[4];
+
+#endif
+
+	components HplAtmRfa1Timer1C;
+	HplSi443xP.AtmegaCapture -> HplAtmRfa1Timer1C;
+	HplSi443xP.AtmegaCounter -> HplAtmRfa1Timer1C;
 
 }

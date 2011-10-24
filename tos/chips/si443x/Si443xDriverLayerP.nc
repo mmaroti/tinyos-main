@@ -68,8 +68,12 @@ module Si443xDriverLayerP
 		interface GeneralIO as SDN;
 		interface GeneralIO as NSEL;
 
+#ifdef SI443X_GPIOCAPTURE
+		interface GpioCapture as IRQ;
+#else
 		interface GpioInterrupt as IRQ;
-
+		#define captureFallingEdge enableFallingEdge
+#endif
 		interface FastSpiByte;
 		interface Resource as SpiResource;
 
@@ -198,9 +202,9 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 	tasklet_norace message_t* rxMsg;
 
 	message_t*	txMsg;
-	uint8_t 	plbyte;			// the payload byte index in the RX/TX message we need to write/read
-	uint8_t 	txEmptyThresh;
-	uint32_t	tstime;
+	uint8_t 		plbyte;			// the payload byte index in the RX/TX message we need to write/read
+	uint8_t 		txEmptyThresh;
+	uint16_t		capturedTime;
 
 	tasklet_norace uint8_t rssiClear;
 	tasklet_norace uint8_t rssiBusy;
@@ -277,7 +281,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		readRegister(SI443X_INT_2);
 
 		// previous interrupts mess up the PCINT handler
-		call IRQ.enableFallingEdge();
+		call IRQ.captureFallingEdge();
 		writeRegister(SI443X_CTRL_1, SI443X_CTRL1_SWRESET | SI443X_CTRL1_READY );
 		call BusyWait.wait(POR_TIME);
 
@@ -285,7 +289,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		call IRQ.disable();
 		readRegister(SI443X_INT_1);
 		readRegister(SI443X_INT_2);
-		call IRQ.enableFallingEdge();
+		call IRQ.captureFallingEdge();
 	}
 
 	inline void _standby() {
@@ -301,7 +305,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		writeRegister(SI443X_IEN_2,SI443X_I_ALL);
 		writeRegister(SI443X_IEN_1,SI443X_I_NONE);
 		writeRegister(SI443X_IEN_2,SI443X_I_NONE);
-		call IRQ.enableFallingEdge();
+		call IRQ.captureFallingEdge();
 
 		// we instantly enter standby, NO interrupt will come
 		writeRegister(SI443X_CTRL_1,SI443X_CTRL1_STANDBY);
@@ -424,13 +428,25 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 
 /*----------------- TASKLET HANDLER -----------------*/
 
+#ifdef SI443X_GPIOCAPTURE
+	async event void IRQ.captured(uint16_t time) {
+		RADIO_ASSERT( ! radioIrq );
+		atomic {
+			radioIrq = TRUE;
+			capturedTime = time;
+		}
+		call Tasklet.schedule();
+	}
+#else
 	async event void IRQ.fired() {
 		RADIO_ASSERT( ! radioIrq );
 		atomic {
 			radioIrq = TRUE;
+			capturedTime = call LocalTime.get();
 		}
 		call Tasklet.schedule();
 	}
+#endif
 
 	default tasklet_async event void RadioSend.sendDone(error_t error) { }
 	default tasklet_async event void RadioSend.ready() { }
@@ -548,7 +564,6 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			*(timesync_relative_t*)timesync = (*(timesync_absolute_t*)timesync) - time32;
 		
 		call PacketTimeStamp.set(msg,time32);
-		tstime = time32;
 		chip.cmd = CMD_TX_FINISH;
 		chip.state = STATE_TX;
 		return SUCCESS;
@@ -558,6 +573,10 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 	void serviceRadio()
 	{
 		uint8_t irq1, irq2;
+		uint16_t time;
+		uint32_t time32;
+		atomic time = capturedTime;
+		
 		irq1 = readRegister(SI443X_INT_1);
 		irq2 = readRegister(SI443X_INT_2);
 
@@ -593,8 +612,11 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 				rssiBusy = (temp >> 1) + (rssiBusy >> 1);
 				call PacketRSSI.set(rxMsg, temp);
 			
-				// TODO : more accurately estimate the timestamp
-				call PacketTimeStamp.set(rxMsg, call LocalTime.get() - RX_SFD_DELAY);
+				// set timestamp;
+				time32 = call LocalTime.get();
+				time32 += (int16_t)(time - RX_SFD_DELAY) - (int16_t)(time32);
+				call PacketTimeStamp.set(rxMsg, time32);
+				
 				chip.cmd = CMD_RX_WAIT;
 			}
 
@@ -625,7 +647,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 				// restore the absolute value of timesync
 				timesync = call PacketTimeSyncOffset.isSet(txMsg) ? ((void*)txMsg) + call PacketTimeSyncOffset.get(txMsg) : (void*)NULL;
 				if( timesync != 0 )
-					*(timesync_absolute_t*)timesync = (*(timesync_relative_t*)timesync) + tstime;
+					*(timesync_absolute_t*)timesync = (*(timesync_relative_t*)timesync) + call PacketTimeStamp.timestamp(txMsg);
 			
 				signal RadioSend.sendDone(SUCCESS);
 				_receive();
@@ -795,9 +817,10 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 
 	command error_t SoftwareInit.init()
 	{
+		
 		// these are just good approximates
-		rssiClear = 0;
-		rssiBusy = 150;
+		rssiClear = 50;
+		rssiBusy = 250;
 		rxMsg = &rxMsgBuffer;
 		txMsg = NULL;
 		plbyte = 0;
