@@ -45,7 +45,7 @@ PATCHSTRIP=1
 #package options
 PKG_NAME=$(SRCNAME)
 #PKG_VERSION=$(VERSION)
-#PKG_RELEASE=$(shell date +%Y%m%d)
+PKG_RELEASE=1
 #PKG_HOST=$(shell echo $(HOST)|sed 's/.*64/amd64/'|sed 's/.*86/i386/')
 
 #packager options:
