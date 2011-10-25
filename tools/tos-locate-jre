@@ -17,6 +17,7 @@ elif [ "$1" = "--java" ]; then
     java=yes
 elif [ "$1" = "--javac" ]; then
     javac=yes
+
 else
     echo "Usage: tos-locate-jre --java|--javac|--jni" >&2
     exit 2
