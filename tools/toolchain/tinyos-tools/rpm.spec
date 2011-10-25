@@ -23,7 +23,12 @@ repository under tinyos-2.x/tools.
 
 %post
 if [ -f $RPM_INSTALL_PREFIX/lib/tinyos/giveio-install ]; then
-  (cd $RPM_INSTALL_PREFIX/lib/tinyos; ./giveio-install --install)
+  uname|grep -q WOW64
+  if [ $? -ne 0 ]; then
+	(cd $RPM_INSTALL_PREFIX/lib/tinyos; ./giveio-install --install)
+  else
+    echo "Warning: giveio.sys is not working on 64-bit Windows, therefore parellel port targets won't work with uisp"
+  fi
 fi
 echo "Installing JNI libraries"
 /usr/bin/tos-install-jni
