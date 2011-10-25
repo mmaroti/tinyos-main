@@ -36,30 +36,19 @@ pathlocate () {
 }
 
 case `uname` in
-	CYGWIN*WOW64)
-    # Hopefully this will always work on cygwin with Sun's Java
-	REGTOOL="regtool -w" #first try the x86_64
-	jversion=`$REGTOOL -q get '\\HKLM\\SOFTWARE\\JavaSoft\\Java Development Kit\\CurrentVersion'`
-    if [ $? != 0 ]; then
-	REGTOOL="regtool -W" #then the i586
-    fi
-	jversion=`$REGTOOL -q get '\\HKLM\\SOFTWARE\\JavaSoft\\Java Development Kit\\CurrentVersion'`
-	if [ $? != 0 ]; then
-	exit 1
-    fi
-    jhome=`$REGTOOL -q get '\\HKLM\SOFTWARE\\JavaSoft\\Java Development Kit\\'$jversion'\\JavaHome'`
-    if [ $? != 0 ]; then
-	exit 1
-    fi
-    jhome=`cygpath -u "$jhome"`
-    ;;
     CYGWIN*)
     # Hopefully this will always work on cygwin with Sun's Java
-	jversion=`regtool -q get '\\HKLM\\SOFTWARE\\JavaSoft\\Java Development Kit\\CurrentVersion'`
-    if [ $? != 0 ]; then
-	exit 1
-    fi
-    jhome=`regtool -q get '\\HKLM\SOFTWARE\\JavaSoft\\Java Development Kit\\'$jversion'\\JavaHome'`
+	if [ "$javac" != "yes" ]; then #first try the public jre
+		jversion=`regtool -q get '\\HKLM\\SOFTWARE\\JavaSoft\\Java Runtime Environment\\CurrentVersion'`
+		jhome=`regtool -q get '\\HKLM\SOFTWARE\\JavaSoft\\Java Runtime Environment\\'$jversion'\\JavaHome'`
+	fi
+	if [ "$jhome" == "" ]; then
+		jversion=`regtool -q get '\\HKLM\\SOFTWARE\\JavaSoft\\Java Development Kit\\CurrentVersion'`
+		if [ $? != 0 ]; then
+			exit 1
+		fi
+		jhome=`regtool -q get '\\HKLM\SOFTWARE\\JavaSoft\\Java Development Kit\\'$jversion'\\JavaHome'`
+	fi
     if [ $? != 0 ]; then
 	exit 1
     fi
