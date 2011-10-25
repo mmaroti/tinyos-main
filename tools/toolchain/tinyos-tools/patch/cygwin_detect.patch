@@ -1,0 +1,12 @@
+diff -rupN tinyos-tools-1.4.0/tinyos/misc/tos-install-jni.in tinyos-tools-1.4.0-new/tinyos/misc/tos-install-jni.in
+--- tinyos-tools-1.4.0/tinyos/misc/tos-install-jni.in	2008-07-25 18:23:04.000000000 +0200
++++ tinyos-tools-1.4.0-new/tinyos/misc/tos-install-jni.in	2011-10-25 02:55:42.470805800 +0200
+@@ -10,7 +10,7 @@ if [ $? -ne 0 ]; then
+   exit 1
+ fi
+ 
+-if [ cygpath -w / >/dev/null 2>/dev/null ] || [ `uname` = "Darwin" ]; then
++if [ -x /bin/cygwin1.dll ] || [ `uname` = "Darwin" ]; then
+   echo "Installing Java JNI code in $jni ... "
+   for lib in $tinyoslibdir/*.@JNISUFFIX@; do 
+     @INSTALLJNI@ $lib "$jni" || exit 1

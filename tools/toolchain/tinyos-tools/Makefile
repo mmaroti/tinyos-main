@@ -65,5 +65,8 @@ $(SRCNAME)-$(VERSION):
 
 -check_spec_requirements:
 	which g++
+	which perl
+	which python
+	which nescc
 	
 -cleanup:
