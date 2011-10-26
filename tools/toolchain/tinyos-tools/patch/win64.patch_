@@ -1,0 +1,83 @@
+diff -rupN tinyos-tools-1.4.1/configure.ac tinyos-tools-1.4.1-new/configure.ac
+--- tinyos-tools-1.4.1/configure.ac	2011-10-25 19:37:07.000000000 +0200
++++ tinyos-tools-1.4.1-new/configure.ac	2011-10-27 00:32:05.451209000 +0200
+@@ -73,7 +73,7 @@ case $host in
+     AC_MSG_RESULT(yes)
+     JNIPREFIX=
+     JNISUFFIX=dll
+-    JNIVERSIONS=.
++    JNIVERSIONS="-32. -64."
+     INSTALLJNI="install --group=SYSTEM"
+     CYGWIN=yes
+     ;;
+diff -rupN tinyos-tools-1.4.1/tinyos/java/env/Makefile.am tinyos-tools-1.4.1-new/tinyos/java/env/Makefile.am
+--- tinyos-tools-1.4.1/tinyos/java/env/Makefile.am	2011-10-25 19:37:08.000000000 +0200
++++ tinyos-tools-1.4.1-new/tinyos/java/env/Makefile.am	2011-10-27 00:22:51.398328000 +0200
+@@ -8,10 +8,11 @@ tinyoslib_PROGRAMS = @GETENVLIB@
+ 
+ EXTRA_PROGRAMS = libgetenv-32.so libgetenv-64.so getenv.dll libgetenv.jnilib
+ 
+-SOFLAGS = "-I$(JDK)/include/linux" "-I$(JDK)/include" -shared -fpic
++SOFLAGS = "-I$(JDK)/include/linux" "-I$(JDK)/include" -s -shared -fpic
++DLLFLAGS = "-I$(JDK)/include" "-I$(JDK)/include/win32" -s -shared -mno-cygwin  -D_JNI_IMPLEMENTATION -Wl,--kill-at
+ 
+ libgetenv_32_so_SOURCES = net_tinyos_util_Env.h net_tinyos_util_Env.c
+-libgetenv_64_so_SOURCES = $(libgetenv_32_so_SOURCES)
++libgetenv_64_so_SOURCES = $(libgetenv_32_so_SOURCES) -s -shared 
+ 
+ libgetenv-32.so : net_tinyos_util_Env.h net_tinyos_util_Env.c
+ 	$(CC) $(SOFLAGS) -m32 net_tinyos_util_Env.c -o$@ || \
+@@ -22,8 +23,13 @@ libgetenv-64.so : net_tinyos_util_Env.h
+ 	@$(CC) $(SOFLAGS) -m64 net_tinyos_util_Env.c -o$@ || \
+ 	(echo 64-bit libgetenv.so NOT GENERATED - DO NOT USE THIS RUN TO BUILD AN RPM; echo Press return to continue; read; rm -f $@)
+ 
+-getenv.dll: net_tinyos_util_Env.h net_tinyos_util_Env.c
+-	gcc -shared -o$@ -mno-cygwin "-I$(JDK)/include" "-I$(JDK)/include/win32" -D_JNI_IMPLEMENTATION -Wl,--kill-at net_tinyos_util_Env.c
++getenv-32.dll: net_tinyos_util_Env.h net_tinyos_util_Env.c
++	gcc $(DLLFLAGS) -o$@ net_tinyos_util_Env.c 
++
++getenv-64.dll: net_tinyos_util_Env.h net_tinyos_util_Env.c
++	x86_64-w64-mingw32-gcc -m64 $(DLLFLAGS) -o$@ net_tinyos_util_Env.c|| \
++	(echo 64-bit libgetenv.dll NOT GENERATED - DO NOT USE THIS RUN TO BUILD AN RPM; echo Press return to continue; read; rm -f $@)
++
+ 
+ libgetenv.jnilib : net_tinyos_util_Env.h net_tinyos_util_Env.c
+ 	gcc "-I$(JDK)/Headers" -bundle -fPIC net_tinyos_util_Env.c -o $@
+diff -rupN tinyos-tools-1.4.1/tinyos/java/serial/Makefile.am tinyos-tools-1.4.1-new/tinyos/java/serial/Makefile.am
+--- tinyos-tools-1.4.1/tinyos/java/serial/Makefile.am	2011-10-25 19:37:08.000000000 +0200
++++ tinyos-tools-1.4.1-new/tinyos/java/serial/Makefile.am	2011-10-27 00:24:09.438803000 +0200
+@@ -10,7 +10,8 @@ EXTRA_PROGRAMS = libtoscomm-32.so libtos
+ 
+ # Compiling libtoscomm.so with -O2 generates bad code with gcc 4.1.x on x86_64
+ # (the -O1 code is slightly weird, but works at least ;-))
+-SOFLAGS = -O1 -shared -fPIC "-I$(JDK)/include" "-I$(JDK)/include/linux"
++SOFLAGS = -O1 -s -shared -fPIC "-I$(JDK)/include" "-I$(JDK)/include/linux"
++DLLFLAGS = -O2 -s -mno-cygwin -shared "-I$(JDK)/include" "-I$(JDK)/include/win32" -D_JNI_IMPLEMENTATION -Wl,--kill-at
+ 
+ libtoscomm_32_so_SOURCES = \
+   NativeSerialEnums.h \
+@@ -42,7 +43,9 @@ libtoscomm-64.so: $(libtoscomm_so_SOURCE
+ 	@$(CXX) -m64 $(SOFLAGS) -o $@ NativeSerial_linux.cpp || \
+ 	(echo 64-bit libtoscomm.so NOT GENERATED - DO NOT USE THIS RUN TO BUILD AN RPM; echo Press return to continue; read; rm -f $@)
+ 
+-toscomm.dll: $(toscomm_dll_SOURCES)
+-	$(CXX) -O2 -s -mno-cygwin -shared "-I$(JDK)/include" "-I$(JDK)/include/win32" -D_JNI_IMPLEMENTATION -Wl,--kill-at \
+-	  -o $@ NativeSerial_win32.cpp
++toscomm-32.dll: $(toscomm_dll_SOURCES)
++	$(CXX) $(DLLFLAGS) -o $@ NativeSerial_win32.cpp
+ 
++toscomm-64.dll: $(toscomm_dll_SOURCES)
++	x86_64-w64-mingw32-g++ -m64 $(DLLFLAGS) -static -o $@ NativeSerial_win32.cpp|| \
++	(echo 64-bit libtoscomm.dll NOT GENERATED - DO NOT USE THIS RUN TO BUILD AN RPM; echo Press return to continue; read; rm -f $@)
+diff -rupN tinyos-tools-1.4.1/tinyos/misc/tos-install-jni.in tinyos-tools-1.4.1-new/tinyos/misc/tos-install-jni.in
+--- tinyos-tools-1.4.1/tinyos/misc/tos-install-jni.in	2011-10-25 19:37:10.000000000 +0200
++++ tinyos-tools-1.4.1-new/tinyos/misc/tos-install-jni.in	2011-10-27 00:30:00.684992000 +0200
+@@ -10,7 +10,7 @@ if [ $? -ne 0 ]; then
+   exit 1
+ fi
+ 
+-if [ cygpath -w / >/dev/null 2>/dev/null ] || [ `uname` = "Darwin" ]; then
++if [ `uname` = "Darwin" ]; then
+   echo "Installing Java JNI code in $jni ... "
+   for lib in $tinyoslibdir/*.@JNISUFFIX@; do 
+     @INSTALLJNI@ $lib "$jni" || exit 1
