@@ -4,7 +4,7 @@ implementation {
   components UcminiSensorP, MainC, LedsC, new TimerMilliC();
   components new AtmegaTemperatureC(), new AtmegaVoltageC(),
              new LightC(),
-             new PressureC(), new Temperature1C(),
+             new PressureC(), new Ms5607RawTemperatureC() as Temperature1C,
              new TemperatureC(), new HumidityC();
   components SerialStartC, new SerialAMSenderC(AM_MEASUREMENT) as MeasSend, new SerialAMSenderC(AM_CALIB) as CalibSend;
 
