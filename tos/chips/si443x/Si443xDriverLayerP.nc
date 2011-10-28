@@ -573,13 +573,15 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 	void serviceRadio()
 	{
 		uint8_t irq1, irq2;
-		uint16_t time;
 		uint32_t time32;
-		atomic time = capturedTime;
+		radioIrq = FALSE;
 		
 		irq1 = readRegister(SI443X_INT_1);
 		irq2 = readRegister(SI443X_INT_2);
 
+		DIAGMSG_VAR("irq1",irq1);
+		DIAGMSG_VAR("irq2",irq2);
+		
 		if ( chip.state == STATE_RX ) {
 
 			if ( irq1 & SI443X_I1_PKTRECEIVED ) {
@@ -588,7 +590,8 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 
 				// the most likely place for clear channel
 				rssiClear = ( _readRssi() >> 1 ) + (rssiClear >> 1);
-
+				//DIAGMSG_VAR("rssiClear",rssiClear);
+				
 				_downloadMessage();
 				if ( chip.cmd != CMD_RX_ABORT ) {
 					rxMsg = signal RadioReceive.receive(rxMsg);
@@ -597,7 +600,9 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			}
 			
 			if ( irq2 & SI443X_I2_SYNCDETECT ) {
-				uint8_t temp;	
+				uint8_t temp;
+				uint16_t time;
+				atomic time = capturedTime;
 				DIAGMSG_STR("Int","Sync Detected");
 				RADIO_ASSERT( chip.cmd == CMD_NONE || chip.cmd == CMD_FINISH_CCA );
 
@@ -610,6 +615,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 				// the most likely place for busy channel
 				temp = _readRssi();
 				rssiBusy = (temp >> 1) + (rssiBusy >> 1);
+				//DIAGMSG_VAR("rssiBusy",rssiBusy);
 				call PacketRSSI.set(rxMsg, temp);
 			
 				// set timestamp;
@@ -678,8 +684,6 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			DIAGMSG_STR("Int","Power On Reset");
 			chip.cmd = CMD_RESET;
 		}
-		
-		radioIrq = FALSE;
 	}
 	
 	void _downloadMessage() {
