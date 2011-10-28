@@ -657,7 +657,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			}
 			if ( irq1 & SI443X_I1_FIFOERROR ) {	
 				DIAGMSG_STR("Int","Fifo Error");
-				++txEmptyThresh;
+//				++txEmptyThresh;
 				
 				_receive();
 				_clearFifo(SI443X_CLEAR_TX_FIFO);
