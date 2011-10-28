@@ -199,11 +199,11 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 	tasklet_norace uint8_t channel;
 
 	message_t rxMsgBuffer;
-	tasklet_norace message_t* rxMsg;
+	tasklet_norace message_t*	rxMsg;
 
 	message_t*	txMsg;
 	uint8_t 		plbyte;			// the payload byte index in the RX/TX message we need to write/read
-	uint8_t 		txEmptyThresh;
+	uint8_t 		txEmptyThresh;	
 	uint16_t		capturedTime;
 
 	tasklet_norace uint8_t rssiClear;
@@ -527,15 +527,17 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			// instead we would have a FIFO Underflow Error.
 			//
 			// -> We must guarantee that a FIFO EMPTY interrupt will fire
-			if ( misc < txEmptyThresh )
-				writeRegister(SI443X_TXFIFO_EMPTY, txEmptyThresh = misc );
+			if ( misc < txEmptyThresh ) {
+				txEmptyThresh = misc;
+				writeRegister(SI443X_TXFIFO_EMPTY, txEmptyThresh);
+			}
 		}
 		// Fill the first chunk of the message into the FIFO
 		if ( misc > SI443X_FIFO_SIZE )
 			misc = SI443X_FIFO_SIZE;
 
 		// init data for fillTxFifo calls
-		txMsg = msg;
+		atomic txMsg = msg;
 		plbyte = 0;
 		_fillTxFifo( misc );
 		
@@ -628,12 +630,19 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 
 			if ( irq1 & SI443X_I1_RXFIFOFULL ) {
 				DIAGMSG_STR("Int","RxFifo Full");
+				DIAGMSG_VAR("cmd",chip.cmd);
 				RADIO_ASSERT( chip.cmd == CMD_RX_WAIT || chip.cmd == CMD_RX_FINISH || chip.cmd == CMD_RX_ABORT );
 				_downloadMessage();
 			}
 			
-			if ( irq1 & SI443X_I1_CRCERROR || irq1 & SI443X_I1_FIFOERROR ) {
-				DIAGMSG_STR("Int","CRC/FIFO Error");
+			if ( irq1 & SI443X_I1_CRCERROR ) {
+				DIAGMSG_STR("Int","CRC Error");
+				_clearFifo(SI443X_CLEAR_RX_FIFO);
+				chip.cmd = CMD_NONE;
+			}
+
+			if ( irq1 & SI443X_I1_FIFOERROR ) {
+				DIAGMSG_STR("Int","FIFO Error");
 				_clearFifo(SI443X_CLEAR_RX_FIFO);
 				chip.cmd = CMD_NONE;
 			}
@@ -659,7 +668,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 				_receive();
 				chip.state = STATE_RX;
 				chip.cmd = CMD_NONE;
-				txMsg = NULL;
+				atomic txMsg = NULL;
 			}
 			if ( irq1 & SI443X_I1_FIFOERROR ) {	
 				DIAGMSG_STR("Int","Fifo Error");
@@ -709,6 +718,12 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 
 			// read packet length
 			remains = call FastSpiByte.write(0);
+			call NSEL.set();
+			DIAGMSG_VAR("pktlen",remains);
+			
+			call NSEL.clr();
+			call FastSpiByte.write(SI443X_SPI_READ | SI443X_FIFO);
+
 			call RadioPacket.setPayloadLength(rxMsg, remains);
 			plbyte = 0;
 			
