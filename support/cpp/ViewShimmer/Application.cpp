@@ -44,6 +44,8 @@ Application::Application() :
 
     //sdataWidget.show();
 
+    sdataWidget.initLeft(false);
+
     connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
 
 }

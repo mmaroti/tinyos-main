@@ -161,7 +161,7 @@ void MainWindow::onLoadButtonPressed()
                                              QMessageBox::Yes, QMessageBox::Cancel);
 
         if(ret==QMessageBox::Yes){
-            onClearButtonPressed();
+            //onClearButtonPressed();
         } else {
             return;
         }
@@ -323,6 +323,7 @@ void MainWindow::enableZoomMode(bool on)
         btnCopy->setChecked(false);
         btnCut->setChecked(false);
         btnPaste->setChecked(false);
+        btnOffset->setChecked(false);
     }
     d_picker->setEnabled(!on);
 }
@@ -450,7 +451,6 @@ void MainWindow::enablePasteMode(bool on)
 void MainWindow::enableSDownloader()
 {
     application.sdataWidget.show();
-    application.sdataWidget.initLeft(false);
 }
 
 void MainWindow::calculateCurveDatas(double zoomRatio)
@@ -879,7 +879,10 @@ void MainWindow::setOffset(const QPointF &pos)
     if(ret == QMessageBox::Yes){
         int offsetSample = application.moteDataHolder.findNearestSample((double)pos.x(),0);
         application.moteDataHolder.calculateOffset(offsetSample);
-        qDebug() << "yes";
+        d_plot->replot();
+
+        //enableOffsetMode(false);
+        btnOffset->setChecked(false);
     } else if( ret == QMessageBox::No){
         qDebug() << "no";
     }
