@@ -41,7 +41,7 @@ const char MOTE_DATE_DB[] = "motes.ddb";
 
 const unsigned int TICKS_PER_SEC = 32768;
 const unsigned int SAMPLING_RATE = 160;
-const int TOLERANCE = 22;
+const int TOLERANCE = 4;
 
 }
 

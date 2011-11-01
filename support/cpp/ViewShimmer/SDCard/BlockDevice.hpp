@@ -40,8 +40,7 @@ class BlockDevice {
 
 public:
 
-	BlockDevice() { }
-
+	// Pointer to the device's internal buffer, do not delete it
 	virtual const char* read_block(int i) = 0;
 
 	virtual int end() const = 0;
@@ -51,6 +50,10 @@ public:
 	virtual unsigned long error_code() const = 0;
 
 	virtual ~BlockDevice() { }
+
+protected:
+
+	BlockDevice() { }
 
 private:
 

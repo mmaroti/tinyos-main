@@ -53,7 +53,7 @@ public:
 
 	bool finished() const;
 
-	bool datalength() const;
+	bool datalength_OK() const;
 
 	bool reboot() const;
 

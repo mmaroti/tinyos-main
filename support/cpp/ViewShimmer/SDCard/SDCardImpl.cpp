@@ -170,7 +170,7 @@ bool SDCardImpl::process_block(const char* block) {
 
 		close_out_if_open();
 	}
-	else if (check->datalength()) {
+	else if (check->datalength_OK()) {
 
 		check->mote_id();
 

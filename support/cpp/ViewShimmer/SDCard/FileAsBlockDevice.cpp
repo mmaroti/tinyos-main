@@ -91,22 +91,18 @@ const char* FileAsBlockDevice::read_block(int i) {
 		throw out_of_range("block index");
 	}
 
-	const char* ret_val = 0;
-
 	try {
 
 		in->seekg(i*BLOCK_SIZE);
 
 		in->read(buffer.get(), BLOCK_SIZE);
-
-		ret_val = buffer.get();
 	}
 	catch (ios_base::failure& ) {
 
 		throw runtime_error(failed_to_read_block(i));
 	}
 
-	return ret_val;
+	return buffer.get();
 }
 
 double FileAsBlockDevice::size_GB() const {

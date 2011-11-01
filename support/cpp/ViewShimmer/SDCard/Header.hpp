@@ -68,11 +68,11 @@ private:
 	uint16 format_id;
 	uint16 mote_id;
 	uint16 length;
-	uint16 remote_id;
-	uint32 local_time;
+	uint32 local_start; // end of SimpleFileP.nc header
+	uint32 local_time;  // struct timesync_info_t starts here
 	uint32 remote_time;
-	uint32 local_start;
 	uint32 remote_start;
+	uint16 remote_id;
 };
 
 }
