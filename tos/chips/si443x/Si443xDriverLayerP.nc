@@ -167,7 +167,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		CMD_NONE = 0,			// the state machine has stopped
 		CMD_TURNOFF = 1,		// goto SLEEP state
 		CMD_STANDBY = 2,		// goto READY state		
-		CMD_TURNON = 3,			// goto RX state
+		CMD_TURNON = 3,		// goto RX state
 
 		CMD_CHANNEL = 8,		// change channel
 
@@ -175,7 +175,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		CMD_RX_FINISH = 12,
 		CMD_RX_ABORT = 13,
 
-		CMD_TX_FINISH = 20,		// finish transmitting
+		CMD_TX_FINISH = 20,	// finish transmitting
 
 		CMD_FINISH_CCA = 30,	// finish clear chanel assesment
 		CMD_RESET = 31,
@@ -201,10 +201,10 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 	message_t rxMsgBuffer;
 	tasklet_norace message_t*	rxMsg;
 
-	message_t*	txMsg;
-	uint8_t 		plbyte;			// the payload byte index in the RX/TX message we need to write/read
-	uint8_t 		txEmptyThresh;	
-	uint16_t		capturedTime;
+	tasklet_norace message_t*	txMsg;
+	tasklet_norace uint8_t 		plbyte;			// the payload byte index in the RX/TX message we need to write/read
+	tasklet_norace uint8_t 		txEmptyThresh;	
+	tasklet_norace uint16_t		capturedTime;
 
 	tasklet_norace uint8_t rssiClear;
 	tasklet_norace uint8_t rssiBusy;
@@ -537,7 +537,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			misc = SI443X_FIFO_SIZE;
 
 		// init data for fillTxFifo calls
-		atomic txMsg = msg;
+		txMsg = msg;
 		plbyte = 0;
 		_fillTxFifo( misc );
 		
@@ -566,6 +566,18 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			*(timesync_relative_t*)timesync = (*(timesync_absolute_t*)timesync) - time32;
 		
 		call PacketTimeStamp.set(msg,time32);
+		
+		#ifdef RADIO_DEBUG
+				if( DM_ENABLE && call DiagMsg.record() )
+				{
+					call DiagMsg.str("tstamp2");
+					call DiagMsg.uint32(time32);
+					call DiagMsg.chr(call PacketTimeStamp.isValid(txMsg) ? '1' : '0');
+					call DiagMsg.uint32(call PacketTimeStamp.timestamp(txMsg));
+					call DiagMsg.uint16(call RadioAlarm.getNow());
+					call DiagMsg.send();
+				}
+#endif	
 		chip.cmd = CMD_TX_FINISH;
 		chip.state = STATE_TX;
 		return SUCCESS;
@@ -592,8 +604,6 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 
 				// the most likely place for clear channel
 				rssiClear = ( _readRssi() >> 1 ) + (rssiClear >> 1);
-				//DIAGMSG_VAR("rssiClear",rssiClear);
-				
 				_downloadMessage();
 				if ( chip.cmd != CMD_RX_ABORT ) {
 					rxMsg = signal RadioReceive.receive(rxMsg);
@@ -617,10 +627,9 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 				// the most likely place for busy channel
 				temp = _readRssi();
 				rssiBusy = (temp >> 1) + (rssiBusy >> 1);
-				//DIAGMSG_VAR("rssiBusy",rssiBusy);
 				call PacketRSSI.set(rxMsg, temp);
 			
-				// set timestamp;
+				// set the timestamp
 				time32 = call LocalTime.get();
 				time32 += (int16_t)(time - RX_SFD_DELAY) - (int16_t)(time32);
 				call PacketTimeStamp.set(rxMsg, time32);
@@ -637,13 +646,12 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			
 			if ( irq1 & SI443X_I1_CRCERROR ) {
 				DIAGMSG_STR("Int","CRC Error");
-				_clearFifo(SI443X_CLEAR_RX_FIFO);
+				_downloadMessage();
 				chip.cmd = CMD_NONE;
 			}
 
 			if ( irq1 & SI443X_I1_FIFOERROR ) {
 				DIAGMSG_STR("Int","FIFO Error");
-				_clearFifo(SI443X_CLEAR_RX_FIFO);
 				chip.cmd = CMD_NONE;
 			}
 			
@@ -665,6 +673,17 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 					*(timesync_absolute_t*)timesync = (*(timesync_relative_t*)timesync) + call PacketTimeStamp.timestamp(txMsg);
 			
 				signal RadioSend.sendDone(SUCCESS);
+				
+#ifdef RADIO_DEBUG
+				if( DM_ENABLE && call DiagMsg.record() )
+				{
+					call DiagMsg.str("tstamp3");
+					call DiagMsg.uint32(call PacketTimeStamp.isValid(txMsg) ? call PacketTimeStamp.timestamp(txMsg) : 0);
+					call DiagMsg.uint16(call RadioAlarm.getNow());
+					call DiagMsg.send();
+				}
+#endif				
+
 				_receive();
 				chip.state = STATE_RX;
 				chip.cmd = CMD_NONE;
@@ -672,10 +691,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			}
 			if ( irq1 & SI443X_I1_FIFOERROR ) {	
 				DIAGMSG_STR("Int","Fifo Error");
-//				++txEmptyThresh;
-				
 				_receive();
-				_clearFifo(SI443X_CLEAR_TX_FIFO);
 				signal RadioSend.sendDone(FAIL);
 				chip.state = STATE_RX;
 				chip.cmd = CMD_NONE;
