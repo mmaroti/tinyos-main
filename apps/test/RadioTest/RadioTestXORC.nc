@@ -55,10 +55,7 @@ implementation {
 	}
 
 	event void MilliTimer.fired() {
-		if ( IS_TX && ! busy && makePacket() && call RadioSend.send(&pkt) == SUCCESS ) {
-			call Leds.led2On();
-			busy = TRUE;
-		}
+		
 	}
 
 	tasklet_async event void RadioState.done() {
@@ -66,11 +63,15 @@ implementation {
 	}
 
 	tasklet_async event void RadioSend.ready() { 
-		call MilliTimer.startOneShot(100);
+		if ( IS_TX && ! busy && makePacket() && call RadioSend.send(&pkt) == SUCCESS ) {
+			call Leds.led1On();
+			busy = TRUE;
+		}
+	//	call MilliTimer.startOneShot(100);
 	}
 
 	tasklet_async event void RadioSend.sendDone(error_t error) {
-		call Leds.led2Off();
+		call Leds.led1Off();
 		busy = FALSE;
 	}
 
