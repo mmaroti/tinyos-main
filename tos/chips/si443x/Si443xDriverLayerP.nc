@@ -271,10 +271,6 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		writeRegister(SI443X_PKTLEN, length);
 	}
 
-	inline void _changeChannel() {
-		writeRegister(SI443X_CHANNEL_SELECT,channel);
-	}
-
 	inline void _reset() {
 		DIAGMSG_STR("reset","");
 		readRegister(SI443X_INT_1);
@@ -309,6 +305,8 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 
 		// we instantly enter standby, NO interrupt will come
 		writeRegister(SI443X_CTRL_1,SI443X_CTRL1_STANDBY);
+		
+		chip.state = STATE_SLEEP;
 	}
 
 	inline void _ready() {
@@ -318,10 +316,13 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		writeRegister(SI443X_IEN_2, SI443X_I_ALL);
 		// we instantly enter ready, NO interrupt will come
 		writeRegister(SI443X_CTRL_1, SI443X_CTRL1_READY);
+		
+		chip.state = STATE_READY;		
 	}
 
 	inline void _tune() {
 		writeRegister(SI443X_CTRL_1, SI443X_CTRL1_TUNE);
+		chip.state = STATE_TUNE;
 	}
 
 	inline void _transmit()
@@ -333,6 +334,8 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		readRegister(SI443X_INT_1);
 		readRegister(SI443X_INT_2);
 		writeRegister(SI443X_CTRL_1, SI443X_CTRL1_TRANSMIT | SI443X_CTRL1_TUNE);
+		
+		chip.state = STATE_TX;		
 	}
 
 	inline void _receive()
@@ -345,6 +348,57 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		readRegister(SI443X_INT_1);
 		readRegister(SI443X_INT_2);
 		writeRegister(SI443X_CTRL_1, SI443X_CTRL1_RECEIVE | SI443X_CTRL1_READY );
+		
+		chip.state = STATE_RX;
+	}
+
+	void _frequencyChange(uint8_t f10MHz, uint16_t fKHz) {
+		uint16_t freq;
+		
+		RADIO_ASSERT( f10MHz >= 24 && f10MHz <= 95 );
+		RADIO_ASSERT( fKHz >= 0 && fKHz <= 9999 );
+	
+		// fb (refer to AN440.pdf (Si443x Register Descriptions) page 55.)
+		freq = ( f10MHz >= 48 ) ? ((f10MHz << 1) - 24 + SI443X_FREQ_HBSEL) : f10MHz;	
+		writeRegister(0x75, SI443X_FREQ_BAND_MISC | (uint8_t)freq );
+			
+		// fc
+		freq = ( f10MHz >= 48 ) ? (uint16_t)(( (uint32_t)fKHz << 5) / 5) : (uint16_t)(( (uint32_t)fKHz << 4) / 5);
+		writeRegister(0x77,(uint8_t)freq);
+		writeRegister(0x76,(uint8_t)(freq >> 8));
+			
+		// frequency offset
+		writeRegister(0x73,0x00);
+		writeRegister(0x74,0x00);
+		
+		#ifdef RADIO_DEBUG
+		if( DM_ENABLE && call DiagMsg.record() )
+		{
+			uint8_t band = readRegister(0x75);
+			uint16_t multi = ( (band & SI443X_FREQ_HBSEL) != 0) ? 20 : 10;
+			uint16_t fc = ((uint16_t)(readRegister(0x76)) << 8 ) + readRegister(0x77);
+			call DiagMsg.str("freq");
+			call DiagMsg.hex8(band);
+			call DiagMsg.uint16(fc);
+			call DiagMsg.uint32( multi*1000 *((band & SI443X_FREQ_BAND_MASK) + 24) + fc*multi/64 );
+			call DiagMsg.send();
+		}
+		#endif
+		
+	}
+
+	inline void _channel() {
+		// No precise frequency control, can use FHS
+		if (SI443X_CHANNEL_STEP_KHZ >= 10) {
+			writeRegister(SI443X_CHANNEL_SELECT,channel);		
+		}
+		// Precise frequency control
+		else {
+			uint16_t khz = SI443X_BASE_FREQ_KHZ + channel * SI443X_CHANNEL_STEP_KHZ;
+			_tune();			
+			_frequencyChange(SI443X_BASE_FREQ_10MHZ + khz/10000, khz % 10000 );
+			_receive();
+		}
 	}
 
 	void _setupModem()
@@ -388,9 +442,16 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		writeRegister( 0x71, 0x21 );
 		writeRegister( 0x72, 0xA0 );
 
-		writeRegister( 0x75, 0x4B );	// carrier freq
+		_frequencyChange(SI443X_BASE_FREQ_10MHZ, SI443X_BASE_FREQ_KHZ);
+		if ( SI443X_CHANNEL_STEP_KHZ >= 10) {
+			writeRegister(SI443X_CHANNEL_STEPSIZE, SI443X_CHANNEL_STEP_KHZ);
+			writeRegister(SI443X_CHANNEL_SELECT, SI443X_DEF_CHANNEL);
+		}
+		
+	/*	writeRegister( 0x75, 0x4B );	// carrier freq
 		writeRegister( 0x76, 0x7D );
 		writeRegister( 0x77, 0x00 );
+		*/
 	}
 
 	uint8_t _readRssi() {
@@ -568,18 +629,17 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		call PacketTimeStamp.set(msg,time32);
 		
 		#ifdef RADIO_DEBUG
-				if( DM_ENABLE && call DiagMsg.record() )
-				{
-					call DiagMsg.str("tstamp2");
-					call DiagMsg.uint32(time32);
-					call DiagMsg.chr(call PacketTimeStamp.isValid(txMsg) ? '1' : '0');
-					call DiagMsg.uint32(call PacketTimeStamp.timestamp(txMsg));
-					call DiagMsg.uint16(call RadioAlarm.getNow());
-					call DiagMsg.send();
-				}
-#endif	
+		if( DM_ENABLE && call DiagMsg.record() )
+		{
+			call DiagMsg.str("tstamp2");
+			call DiagMsg.uint32(time32);
+			call DiagMsg.chr(call PacketTimeStamp.isValid(txMsg) ? '1' : '0');
+			call DiagMsg.uint32(call PacketTimeStamp.timestamp(txMsg));
+			call DiagMsg.uint16(call RadioAlarm.getNow());
+			call DiagMsg.send();
+		}
+		#endif	
 		chip.cmd = CMD_TX_FINISH;
-		chip.state = STATE_TX;
 		return SUCCESS;
 	}
 
@@ -685,7 +745,6 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 #endif				
 
 				_receive();
-				chip.state = STATE_RX;
 				chip.cmd = CMD_NONE;
 				atomic txMsg = NULL;
 			}
@@ -693,7 +752,6 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 				DIAGMSG_STR("Int","Fifo Error");
 				_receive();
 				signal RadioSend.sendDone(FAIL);
-				chip.state = STATE_RX;
 				chip.cmd = CMD_NONE;
 			}
 		}
@@ -793,18 +851,10 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		{
 			if ( chip.cmd <= CMD_CHANNEL ) {
 				switch ( chip.cmd ) {
-					case CMD_CHANNEL:
-						_changeChannel();
-						break;
-					case CMD_TURNOFF:
-						_standby();	chip.state = STATE_SLEEP;
-						break;
-					case CMD_STANDBY:
-						_ready();	chip.state = STATE_READY;
-						break;
-					case CMD_TURNON:
-						_receive();	chip.state = STATE_RX;
-						break;
+					case CMD_CHANNEL:	_channel();	break;
+					case CMD_TURNOFF:	_standby();	break;
+					case CMD_STANDBY:	_ready();	break;
+					case CMD_TURNON:	_receive();	break;
 					default:
 						RADIO_ASSERT(FALSE);
 				}
@@ -815,7 +865,6 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 				_reset();
 				_setupModem();
 				_standby();
-				chip.state = STATE_SLEEP;
 				chip.cmd = CMD_NONE;
 			}
 		}

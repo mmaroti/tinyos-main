@@ -1,65 +1,34 @@
-
 The SI443X radio driver has the following configuration options. Some of 
-these are set in the platforms/xxx/chips/SI443X/Si443xRadioConfig.h header file, 
+these are set in the platforms/xxx/chips/si443x/RadioConfig.h header file, 
 others can be set in your Makefile.
-
-SI443X_TRX_CTRL_0_VALUE:
-
-This is the value of the TRX_CTRL_0 register which configures the output 
-pin currents and the CLKM clock:
-
-SI443X_CCA_MODE_VALUE:
-
-This is the default value of the CCA_MODE field in the PHY_CC_CCA register
-which is used to configure the default mode of the clear channel assesment
-
-SI443X_CCA_THRES_VALUE:
-
-This is the value of the CCA_THRES register that controls the energy levels 
-used for clear channel assesment.
 
 SI443X_DEF_RFPOWER:
 
-This is the default value of the TX_PWR field of the PHY_TX_PWR register. 
-This can be cahanged via the PacketTransmitPower interface provided by the 
-SI443XActiveMessageC.
+This is the default value of the TX POWER register. This can be cahanged via the 
+PacketTransmitPower interface provided by the SI443XActiveMessageC.
+
+SI443X_BASE_FREQ_10MHZ:
+SI443X_BASE_FREQ_KHZ:
+
+The base carrier frequency is set accordint to these two values. The carrier frequency is
+set to (SI443X_BASE_FREQ_10MHZ * 10000 + SI443X_BASE_FREQ_KHZ) kiloHz. Any values between
+240000 kHz (240.000 MHz) and 959999 kHz (959.999 Mhz) can be given.
+
+SI443X_CHANNEL_STEP_KHZ:
+
+This is the spacing between channels over the frequency band. The 0th channel starts
+from the preset base carrier frequency, the k'th channel starts from (base carrier frequency) +
+k * SI443X_CHANNEL_STEP_KHZ. The channel spacing is defined in kHz precision, minimum 
+value is 1 (1 kHz), maximum value is 2550 (2,55 Mhz).
+
+Note that if this value is lesser than 10 kHz, the channel switching is done by manually
+adjusting the carrier frequency (thus slower). In turn it provides higher accuracy.
 
 SI443X_DEF_CHANNEL:
 
-This is the default value of the CHANNEL field of the PHY_CC_CCA register.
+This is the default value of the Frequency Hopping Channel Select register
 This can be cahanged via the RadioChannel interface provided by the 
 SI443XActiveMessageC.
-
-SI443X_CRCBYTE_COMMAND:
-
-This is the command used to calculate the CRC for the SI443X chip, since it 
-does not support hardware CRC checking (in rev A).
-
-SI443X_SLOW_SPI:
-
-Define this if your microcontroller SPI interface is slower then 250 
-kbit/s. This delays the start of transmission to when the header is at 
-least uploaded into the TX buffer.
-
-SI443X_RSSI_ENERGY:
-
-If you define this, then the content of the SI443X_PHY_ED_LEVEL is queried 
-instead of the RSSI value for eahc incoming message. This value can be 
-obtained with the PacketRSSI interface.
-
-SI443X_HARDWARE_ACK
-
-If you define this, then the radio stack will use hardware acknowledgements
-and address recognition. In particular, you will not be able to snoop on
-onther messages. The load on the CPU is reduced, you should be able to send
-more messages under heavy load. Note, that the PacketRSSI interface will
-return the energy level (and not the rssi value) of received packet.
-
-SI443X_HWACK_SLOPPY_TIMESTAMP
-
-If you define this, then the code that calculates the time stamp of the SFD
-from a single interrupt at the end of the message reception will not use
-floating point computation, which will be faster but less precise.
 
 SI443X_BACKOFF_MIN
 SI443X_BACKOFF_INIT

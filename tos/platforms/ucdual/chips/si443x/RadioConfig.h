@@ -46,7 +46,7 @@
 #endif
 
 #ifndef SI443X_DEF_CHANNEL
-#define SI443X_DEF_CHANNEL	1
+#define SI443X_DEF_CHANNEL	0
 #endif
 
 
@@ -66,15 +66,26 @@
 #define SOFTWAREACK_TIMEOUT	1000
 #endif
 
-
 enum {
-	SI443X_TXFIFO_FULL_THRESH = 55,
+	SI443X_TXFIFO_FULL_THRESH = 76,
 	SI443X_TXFIFO_EMPTY_THRESH = 4,
 
 	/** MUST be greater or equal to Si443xDriverConfig.headerPreloadLength() ! */
 	SI443X_RXFIFO_FULL_THRESH = 55,
+	
+	/** Base Frequency setting. Examples:
+		 240.000 Mhz : FREQ_10MHZ = 24, FREQ_KHZ = 0
+		 334.876 Mhz : FREQ_10MHZ = 33, FREQ_KHZ = 4876
+		 959.901 Mhz : FREQ_10MHZ = 95, FREQ_KHZ = 9901
+	*/
+	// Valid values for SI443X_BASE_FREQ_10MHZ : [24,..,95]
+	SI443X_BASE_FREQ_10MHZ = 24,
+	
+	// Valid values for SI443X_BASE_FREQ_KHZ : [0,..,9999]
+	SI443X_BASE_FREQ_KHZ = 0,
+	
+	SI443X_CHANNEL_STEP_KHZ = 10,	
 };
-
 
 enum
 {
@@ -93,23 +104,6 @@ enum
 	RFA1_PA_BUF_LT=3<<PA_BUF_LT0,
 	RFA1_PA_LT=0<<PA_LT0,
 };
-
-
-#if ( SI443X_TXFIFO_FULL_THRESH >= 64 || SI443X_TXFIFO_FULL_THRESH < 0 )
-#error "SI443X_TXFIFO_FULL_THRESH value is not valid!"
-#endif
-
-#if ( SI443X_TXFIFO_EMPTY_THRESH >= 64 || SI443X_TXFIFO_EMPTY_THRESH < 0 )
-#error "SI443X_TXFIFO_EMPTY_THRESH value is not valid!"
-#endif
-
-#if ( SI443X_TXFIFO_EMPTY_THRESH > SI443X_TXFIFO_FULL_THRESH )
-#error "SI443X_TXFIFO_FULL_THRESH cannot be lesser than SI443X_TXFIFO_EMPTY_THRESH!"
-#endif
-
-#if ( SI443X_RXFIFO_FULL_THRESH >= 64 || SI443X_RXFIFO_FULL_THRESH < 0 )
-#error "SI443X_RXFIFO_FULL_THRESH value is not valid!"
-#endif
 
 // This is the timer type of the radio alarm interface
 typedef T62khz TRadio;
