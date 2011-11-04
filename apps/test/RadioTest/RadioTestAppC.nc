@@ -12,7 +12,10 @@ implementation {
 	App.MilliTimer -> TimerMilliC;
 	App.DiagMsg -> DiagMsgC;
 
-	#if defined(RT_PAR)
+	#if defined(RT_CHANNEL)
+		components RadioTestChannelC as App, RadioStackC as Radio;
+
+	#elif defined(RT_PAR)
 		components RadioTestParallelC as App, RadioStackC as Radio;
 	#elif defined(RT_XOR)
 		components RadioTestXORC as App, RadioStackC as Radio;
