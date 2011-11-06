@@ -370,7 +370,7 @@ implementation
 
 	command uint16_t LowPowerListeningConfig.getListenLength()
 	{
-		return getSymbolTime()>>2;
+		return getSymbolTime();
 	}
 #endif
 
