@@ -67,42 +67,44 @@ module RF212RadioP
 
 implementation
 {
-	inline uint8_t getSymbolTime(){
-		switch (RF212_TRX_CTRL_2_VALUE){
-			case RF212_DATA_MODE_BPSK_20:{
-				return 50;
-			}break;
-			case RF212_DATA_MODE_BPSK_40:{
-				return 25;
-			}break;
-			case RF212_DATA_MODE_OQPSK_SIN_RC_100:
-			case RF212_DATA_MODE_OQPSK_SIN_RC_200:
-			case RF212_DATA_MODE_OQPSK_SIN_RC_400_SCR:
-			case RF212_DATA_MODE_OQPSK_SIN_RC_400:{
-				return 40;
-			}break;
-			case RF212_DATA_MODE_OQPSK_SIN_250:
-			case RF212_DATA_MODE_OQPSK_RC_250:
-			case RF212_DATA_MODE_OQPSK_SIN_500:
-			case RF212_DATA_MODE_OQPSK_RC_500:
-			case RF212_DATA_MODE_OQPSK_SIN_1000_SCR:
-			case RF212_DATA_MODE_OQPSK_SIN_1000:
-			case RF212_DATA_MODE_OQPSK_RC_1000_SCR:
-			case RF212_DATA_MODE_OQPSK_RC_1000:{
-				return 16;
-			}break;
+	inline uint8_t getSymbolTime()
+	{
+		switch( RF212_TRX_CTRL_2_VALUE )
+		{
+		case RF212_DATA_MODE_BPSK_20:
+			return 50;
+
+		case RF212_DATA_MODE_BPSK_40:
+			return 25;
+
+		case RF212_DATA_MODE_OQPSK_SIN_RC_100:
+		case RF212_DATA_MODE_OQPSK_SIN_RC_200:
+		case RF212_DATA_MODE_OQPSK_SIN_RC_400_SCR:
+		case RF212_DATA_MODE_OQPSK_SIN_RC_400:
+			return 40;
+
+		case RF212_DATA_MODE_OQPSK_SIN_250:
+		case RF212_DATA_MODE_OQPSK_RC_250:
+		case RF212_DATA_MODE_OQPSK_SIN_500:
+		case RF212_DATA_MODE_OQPSK_RC_500:
+		case RF212_DATA_MODE_OQPSK_SIN_1000_SCR:
+		case RF212_DATA_MODE_OQPSK_SIN_1000:
+		case RF212_DATA_MODE_OQPSK_RC_1000_SCR:
+		case RF212_DATA_MODE_OQPSK_RC_1000:
+			return 16;
 		}
 	}
 	
-	inline bool isBpsk(){
-		switch (RF212_TRX_CTRL_2_VALUE){
-			case RF212_DATA_MODE_BPSK_20:
-			case RF212_DATA_MODE_BPSK_40:{
-				return TRUE;
-			}break;
-			default:{
-				return FALSE;
-			}break;
+	inline bool isBpsk()
+	{
+		switch( RF212_TRX_CTRL_2_VALUE )
+		{
+		case RF212_DATA_MODE_BPSK_20:
+		case RF212_DATA_MODE_BPSK_40:
+			return TRUE;
+
+		default:
+			return FALSE;
 		}
 	}
 
@@ -166,26 +168,26 @@ implementation
 		call Ieee154PacketLayer.createAckReply(data, ack);
 	}
 
-//802.15.4 standard:
-//=aTurnaroundTime+phySHRDuration+6*phySymbolsPerOctet
-//=12s + phySymbolsPerOctet + 6o * phySymbolsPerOctet
-//SHR:  BPSK: 40; OQPSK: 10
-//phySymbolsPerOctet: BPSK: 8; OQPSK: 2
-//plus we add a constant for safety
+// 802.15.4 standard:
+// =aTurnaroundTime+phySHRDuration+6*phySymbolsPerOctet
+// =12s + phySymbolsPerOctet + 6o * phySymbolsPerOctet
+// SHR:  BPSK: 40; OQPSK: 10
+// phySymbolsPerOctet: BPSK: 8; OQPSK: 2
+// plus we add a constant for safety
 #ifndef SOFTWAREACK_TIMEOUT_PLUS
 #define SOFTWAREACK_TIMEOUT_PLUS	1000
 #endif
 
 	async command uint16_t SoftwareAckConfig.getAckTimeout()
 	{
-		#ifndef SOFTWAREACK_TIMEOUT
+#ifndef SOFTWAREACK_TIMEOUT
 		if(isBpsk())
 			return ((12+40+6*8) * getSymbolTime() + SOFTWAREACK_TIMEOUT_PLUS) * RADIO_ALARM_MICROSEC;
 		else
 			return ((12+10+6*2) * getSymbolTime() + SOFTWAREACK_TIMEOUT_PLUS) * RADIO_ALARM_MICROSEC;
-		#else
+#else
 			return (uint16_t)(SOFTWAREACK_TIMEOUT * RADIO_ALARM_MICROSEC);
-		#endif
+#endif
 	}
 
 	tasklet_async command void SoftwareAckConfig.reportChannelError()
@@ -206,7 +208,7 @@ implementation
 	{
 		call Ieee154PacketLayer.setDSN(msg, dsn);
 	}
-	
+
 	async command am_addr_t UniqueConfig.getSender(message_t* msg)
 	{
 		return call Ieee154PacketLayer.getSrcAddr(msg);
@@ -277,11 +279,10 @@ implementation
 
 /*----------------- RandomCollisionConfig -----------------*/
 
-	
-//802.15.4 constants:
-//aUnitBackoffPeriod: 20 symbol
-//macMinBE:0..5 (8), default 3
-//but we don't care about the standard yet, just converted the rf230 lpl timeouts to SymbolTime base
+// 802.15.4 constants:
+// aUnitBackoffPeriod: 20 symbol
+// macMinBE:0..5 (8), default 3
+// but we don't care about the standard yet, just converted the rf230 lpl timeouts to SymbolTime base
 
 	async command uint16_t RandomCollisionConfig.getMinimumBackoff()
 	{

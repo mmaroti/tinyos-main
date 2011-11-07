@@ -172,18 +172,18 @@ implementation
 		call FastSpiByte.splitReadWrite(0);
 		reg = call FastSpiByte.splitRead();
 		call SELN.set();
+
 		return reg;
 	}
 
 /*----------------- ALARM -----------------*/
 
-//TODO: these constants are depending on the (changable) physical layer
+// TODO: these constants are depending on the (changable) physical layer
 	enum
 	{
 		TX_SFD_DELAY = (uint16_t)(176 * RADIO_ALARM_MICROSEC),
 		RX_SFD_DELAY = (uint16_t)(8 * RADIO_ALARM_MICROSEC),
 	};
-
 
 /*----------------- INIT -----------------*/
 
@@ -321,7 +321,7 @@ implementation
 
 	inline void changeState()
 	{
-		if( (cmd == CMD_STANDBY || cmd == CMD_TURNON)	&& state == STATE_SLEEP && isSpiAcquired())
+		if( (cmd == CMD_STANDBY || cmd == CMD_TURNON) && state == STATE_SLEEP && isSpiAcquired())
 		{
 			RADIO_ASSERT( ! radioIrq );
 
@@ -404,7 +404,6 @@ implementation
 
 	tasklet_async command error_t RadioSend.send(message_t* msg)
 	{
-		uint16_t time;
 		uint8_t length;
 		uint8_t* data;
 		uint8_t header;
@@ -430,7 +429,6 @@ implementation
 		writeRegister(RF212_TRX_STATE, RF212_PLL_ON);
 
 		// do something useful, just to wait a little
-		time32 = call LocalTime.get();
 		timesync = call PacketTimeSyncOffset.isSet(msg) ? ((void*)msg) + call PacketTimeSyncOffset.get(msg) : 0;
 
 		// we have missed an incoming message in this short amount of time
@@ -445,12 +443,11 @@ implementation
 		atomic
 		{
 			call SLP_TR.set();
-			time = call LocalTime.get();
+			time32 = call LocalTime.get();
 		}
 		call SLP_TR.clr();
 
 		RADIO_ASSERT( ! radioIrq );
-
 
 		call SELN.clr();
 		call FastSpiByte.splitWrite(RF212_CMD_FRAME_WRITE);
@@ -462,7 +459,7 @@ implementation
 		call FastSpiByte.splitReadWrite(length);
 
 		// the FCS is atomatically generated (2 bytes), but the rf212 needs two dummy bytes, otherwise it will generate a TRX_UR interrupt
-		//length -= 2;
+		// length -= 2;
 
 		header = call Config.headerPreloadLength();
 		if( header > length )
@@ -476,7 +473,7 @@ implementation
 		}
 		while( --header != 0 );
 
-		time32 += (int16_t)(time + TX_SFD_DELAY) - (int16_t)(time32);
+		time32 += TX_SFD_DELAY;
 
 		if( timesync != 0 )
 			*(timesync_relative_t*)timesync = (*(timesync_absolute_t*)timesync) - time32;
@@ -487,8 +484,6 @@ implementation
 		// wait for the SPI transfer to finish
 		call FastSpiByte.splitRead();
 		call SELN.set();
-		
-		
 
 		/*
 		 * There is a very small window (~1 microsecond) when the RF212 went 
@@ -509,8 +504,6 @@ implementation
 			*(timesync_absolute_t*)timesync = (*(timesync_relative_t*)timesync) + time32;
 
 		call PacketTimeStamp.set(msg, time32);
-		
-
 
 #ifdef RADIO_DEBUG_MESSAGES
 		if( call DiagMsg.record() )
@@ -519,9 +512,9 @@ implementation
 
 			call DiagMsg.chr('t');
 			call DiagMsg.uint32(call PacketTimeStamp.isValid(rxMsg) ? call PacketTimeStamp.timestamp(rxMsg) : 0);
-			call DiagMsg.uint16(call LocalTime.get(););
+			call DiagMsg.uint16(call LocalTime.get());
 			call DiagMsg.int8(length);
-			call DiagMsg.hex8s(getPayload(msg), length-2 );
+			call DiagMsg.hex8s(getPayload(msg), length-2);
 			call DiagMsg.send();
 		}
 #endif
@@ -563,6 +556,7 @@ implementation
 
 		// read the length byte
 		length = call FastSpiByte.write(0);
+
 		// if correct length
 		if( length >= 3 && length <= call RadioPacket.maxPayloadLength() + 2 )
 		{
@@ -658,6 +652,7 @@ implementation
 			atomic time = capturedTime;
 			radioIrq = FALSE;
 			irq = readRegister(RF212_IRQ_STATUS);
+
 #ifdef RADIO_DEBUG
 			// TODO: handle this interrupt
 			if( irq & RF212_IRQ_TRX_UR )
@@ -700,8 +695,8 @@ implementation
 					cmd = CMD_NONE;
 					cca = readRegister(RF212_TRX_STATUS);
 
-					//sometimes we don't handle yet the RX_START interrupt, but we're already receiving. 
-					//It's all right though, CCA reports busy as it should.
+					// sometimes we don't handle yet the RX_START interrupt, but we're already receiving. 
+					// It's all right though, CCA reports busy as it should.
 					RADIO_ASSERT( (cca & RF212_TRX_STATUS_MASK) == RF212_RX_ON || (cca & RF212_TRX_STATUS_MASK) == RF212_BUSY_RX);
 					
 					signal RadioCCA.done( (cca & RF212_CCA_DONE) ? ((cca & RF212_CCA_STATUS) ? SUCCESS : EBUSY) : FAIL );
