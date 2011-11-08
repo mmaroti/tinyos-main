@@ -645,7 +645,14 @@ implementation
 			capturedTime = time;
 			radioIrq = TRUE;
 		}
-
+#ifdef RADIO_DEBUG
+			if( call DiagMsg.record() )
+			{
+				call DiagMsg.str("IRQ");
+				call DiagMsg.uint8(radioIrq);
+				call DiagMsg.send();
+			}
+#endif
 		call Tasklet.schedule();
 	}
 
@@ -664,7 +671,7 @@ implementation
 #ifdef RADIO_DEBUG
 			if( call DiagMsg.record() )
 			{
-				call DiagMsg.str("IRQ");
+				call DiagMsg.str("IRQs");
 				call DiagMsg.uint16(call LocalTime.get());
 				call DiagMsg.hex8(readRegister(RF212_TRX_STATUS));
 				call DiagMsg.hex8(readRegister(RF212_TRX_STATE));
