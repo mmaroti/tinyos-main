@@ -85,6 +85,7 @@ module RF212DriverLayerP
 
 #ifdef RADIO_DEBUG
 		interface DiagMsg;
+    interface Timer<TMilli>;
 #endif
 	}
 }
@@ -154,7 +155,10 @@ implementation
 	{
 		RADIO_ASSERT( call SpiResource.isOwner() );
 		RADIO_ASSERT( reg == (reg & RF212_CMD_REGISTER_MASK) );
-
+		if( !call SELN.get() ) {
+			RADIO_ASSERT(FALSE);
+			return;
+		}
 		call SELN.clr();
 		call FastSpiByte.splitWrite(RF212_CMD_REGISTER_WRITE | reg);
 		call FastSpiByte.splitReadWrite(value);
@@ -166,7 +170,10 @@ implementation
 	{
 		RADIO_ASSERT( call SpiResource.isOwner() );
 		RADIO_ASSERT( reg == (reg & RF212_CMD_REGISTER_MASK) );
-
+		if( !call SELN.get() ) {
+			RADIO_ASSERT(FALSE);
+			return 0;
+		}
 		call SELN.clr();
 		call FastSpiByte.splitWrite(RF212_CMD_REGISTER_READ | reg);
 		call FastSpiByte.splitReadWrite(0);
@@ -184,7 +191,7 @@ implementation
 		TX_SFD_DELAY = (uint16_t)(176 * RADIO_ALARM_MICROSEC),
 		RX_SFD_DELAY = (uint16_t)(8 * RADIO_ALARM_MICROSEC),
 	};
-
+  
 /*----------------- INIT -----------------*/
 
 	command error_t PlatformInit.init()
@@ -207,6 +214,9 @@ implementation
 
 	command error_t SoftwareInit.init()
 	{
+    #ifdef RADIO_DEBUG
+    call Timer.startPeriodic(1000);
+    #endif
 		// for powering up the radio
 		return call SpiResource.request();
 	}
@@ -439,7 +449,6 @@ implementation
 			writeRegister(RF212_TRX_STATE, RF212_RX_ON);
 			return EBUSY;
 		}
-
 		atomic
 		{
 			call SLP_TR.set();
@@ -652,6 +661,19 @@ implementation
 			atomic time = capturedTime;
 			radioIrq = FALSE;
 			irq = readRegister(RF212_IRQ_STATUS);
+#ifdef RADIO_DEBUG
+			if( call DiagMsg.record() )
+			{
+				call DiagMsg.str("IRQ");
+				call DiagMsg.uint16(call LocalTime.get());
+				call DiagMsg.hex8(readRegister(RF212_TRX_STATUS));
+				call DiagMsg.hex8(readRegister(RF212_TRX_STATE));
+				call DiagMsg.hex8(irq);
+				call DiagMsg.uint8(state);
+				call DiagMsg.uint8(cmd);
+				call DiagMsg.send();
+			}
+#endif
 
 #ifdef RADIO_DEBUG
 			// TODO: handle this interrupt
@@ -987,4 +1009,32 @@ implementation
 	{
 		return call PacketLinkQuality.get(msg) > 200;
 	}
+
+	#ifdef RADIO_DEBUG
+	event void Timer.fired(){
+		if( call DiagMsg.record() )
+		{
+			call DiagMsg.str("TIMER");
+			call DiagMsg.uint16(call LocalTime.get());
+			if ( call SELN.get() ){
+				if( call SpiResource.isOwner()){
+					call DiagMsg.hex8(readRegister(RF212_TRX_STATUS));
+					call DiagMsg.hex8(readRegister(RF212_TRX_STATE));
+				} else if ( call SpiResource.immediateRequest() == SUCCESS ){
+					call DiagMsg.hex8(readRegister(RF212_TRX_STATUS));
+					call DiagMsg.hex8(readRegister(RF212_TRX_STATE));
+					call SpiResource.release();
+				} else {
+					call DiagMsg.str("SPI busy");
+				}
+			} else 
+				call DiagMsg.str("SPI in use");
+			call DiagMsg.hex8(radioIrq);
+			call DiagMsg.uint8(state);
+			call DiagMsg.uint8(cmd);
+			call DiagMsg.send();
+		}
+		
+	}
+	#endif
 }

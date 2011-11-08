@@ -111,6 +111,9 @@ implementation
 #ifdef RADIO_DEBUG
 	components DiagMsgC;
 	RF212DriverLayerP.DiagMsg -> DiagMsgC;
+  
+  components new TimerMilliC();
+  RF212DriverLayerP.Timer->TimerMilliC;
 #endif
 
 	MainC.SoftwareInit -> RF212DriverLayerP.SoftwareInit;
