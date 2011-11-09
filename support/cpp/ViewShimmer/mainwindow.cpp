@@ -89,13 +89,19 @@ MainWindow::MainWindow(QWidget *parent, Application &app):
     toolBar->addWidget(btnPaste);
     connect(btnPaste, SIGNAL(toggled(bool)), SLOT(enablePasteMode(bool)));
 
+    btnOnlineMode = new QToolButton(this);
+    btnOnlineMode->setText("Online Mode");
+    btnOnlineMode->setCheckable(true);
+    toolBar->addWidget(btnOnlineMode);
+    connect(btnOnlineMode, SIGNAL(toggled(bool)), SLOT(enableOnlineMode(bool)));
+
     toolBar->addSeparator();
 
-    bool success = QDir::setCurrent("../rec");
+    bool success = QDir::setCurrent("rec");
 
     if (!success) {
 
-        exitFailure("../rec");
+        exitFailure("rec");
     }
 
     qDebug() << "Working directory is " << QDir::currentPath();
@@ -452,6 +458,21 @@ void MainWindow::enableSDownloader()
 {
     application.sdataWidget.show();
 }
+
+void MainWindow::enableOnlineMode(bool on)
+{
+    if(on == true){
+        btnZoom->setChecked(false);
+        btnMarker->setChecked(false);
+        btnCopy->setChecked(false);
+        btnCut->setChecked(false);
+
+        application.connectWidget.show();
+    } else {
+
+    }
+}
+
 
 void MainWindow::calculateCurveDatas(double zoomRatio)
 {

@@ -66,7 +66,8 @@ SOURCES += main.cpp \
     SerialListener.cpp \
     ActiveMessage.cpp \
     SDataWidget.cpp \
-    DriveSelectorDialog.cpp
+    DriveSelectorDialog.cpp \
+    ConnectWidget.cpp
 HEADERS += Application.h \
     constants.h \
     plot.h \
@@ -122,7 +123,9 @@ HEADERS += Application.h \
     SerialListener.h \
     ActiveMessage.hpp \
     SDataWidget.h \
-    DriveSelectorDialog.h
+    DriveSelectorDialog.h \
+    ConnectWidget.h
 FORMS += mainwindow.ui \
     SDataWidget.ui \
-    DriveSelectorDialog.ui
+    DriveSelectorDialog.ui \
+    ConnectWidget.ui

@@ -37,7 +37,8 @@
 Application::Application() :
     moteDataHolder(*this),
     window(NULL, *this),
-    sdataWidget(NULL, *this)
+    sdataWidget(NULL, *this) ,
+    connectWidget(NULL, *this)
 {
     window.resize(800,400);
     window.show();

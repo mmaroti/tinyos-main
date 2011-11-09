@@ -64,6 +64,7 @@ public Q_SLOTS:
     void enableCutMode(bool);
     void enableSDownloader();
     void enableOffsetMode(bool);
+    void enableOnlineMode(bool);
     void createMarker(const QPointF &  pos );
     void createMarker(const QPointF & pos, QString text, QColor color = Qt::green);
     void copy(QRectF);
@@ -93,6 +94,7 @@ private:
     QToolButton *btnCut;
     QToolButton *btnSData;
     QToolButton *btnOffset;
+    QToolButton *btnOnlineMode;
 
     QDockWidget *dockWidget;
 

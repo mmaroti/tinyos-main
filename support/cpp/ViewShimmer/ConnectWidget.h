@@ -32,30 +32,51 @@
 * Author: Péter Ruzicska
 */
 
-#ifndef APPLICATION_H
-#define APPLICATION_H
+#ifndef CONNECTWIDGET_H
+#define CONNECTWIDGET_H
 
-#include <QObject>
-#include "MoteDataHolder.h"
-#include "mainwindow.h"
-#include "SDataWidget.h"
-#include "ConnectWidget.h"
+#include <QWidget>
+#include <QHash>
+#include <QIcon>
 #include "SerialListener.h"
 
-class Application : public QObject
-{
+class Application;
+class QRadioButton;
+class QListWidgetItem;
 
-Q_OBJECT
+namespace Ui {
+	class ConnectWidget;
+}
 
+class ConnectWidget : public QWidget {
+	Q_OBJECT
 public:
-	Application();
+	ConnectWidget(QWidget *parent, Application &app);
+	~ConnectWidget();
 
-public:
-        MoteDataHolder moteDataHolder;
-        MainWindow window;
-        SDataWidget sdataWidget;
-        SerialListener serialListener;
-        ConnectWidget connectWidget;
+signals:
+	void portChanged(QString portName, int baudRate);
+
+protected slots:
+	void onReceiveMessage(const ActiveMessage & msg);
+
+protected:
+	void changeEvent(QEvent *e);
+	void rescanPorts();
+
+private:
+	Ui::ConnectWidget *ui;
+	QIcon moteIcon;
+
+	QHash<QString, QRadioButton*> portButtons;
+	QHash<int, QListWidgetItem*> moteItems;
+
+	Application &application;
+
+private slots:
+	void on_refreshButton_clicked();
+	void on_disconnectButton_clicked();
+	void on_connectButton_clicked();
 };
 
-#endif // APPLICATION_H
+#endif // CONNECTWIDGET_H
