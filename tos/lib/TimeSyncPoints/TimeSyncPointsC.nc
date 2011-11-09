@@ -46,7 +46,12 @@ configuration TimeSyncPointsC
 implementation
 {
 	components TimeSyncMessageC, LocalTimeMilliC, new EepromVariableUint16P(0);
-  	components TimeSyncPointsP, RF230ActiveMessageC;
+  	components TimeSyncPointsP;
+		#if defined(PLATFORM_IRIS)
+		components RF230ActiveMessageC as RadioActiveMessageC;
+		#elif defined(PLATFORM_UCMINI)
+		components RFA1ActiveMessageC as RadioActiveMessageC;
+		#endif
   	components new TimerMilliC();
 
  	TimeSyncPointsP.PacketTimeStampMilli -> TimeSyncMessageC.PacketTimeStampMilli;
@@ -56,8 +61,8 @@ implementation
   	TimeSyncPointsP.Timer -> TimerMilliC;
     TimeSyncPointsP.AMPacket -> TimeSyncMessageC.AMPacket;
     TimeSyncPointsP.LocalTime -> LocalTimeMilliC;
-    TimeSyncPointsP.PacketRSSI->RF230ActiveMessageC.PacketRSSI;
-    TimeSyncPointsP.PacketLinkQuality->RF230ActiveMessageC.PacketLinkQuality;
+    TimeSyncPointsP.PacketRSSI->RadioActiveMessageC.PacketRSSI;
+    TimeSyncPointsP.PacketLinkQuality->RadioActiveMessageC.PacketLinkQuality;
     TimeSyncPointsP.getBootCount->EepromVariableUint16P;
   	TimeSyncPoints=TimeSyncPointsP;
   	StdControl=TimeSyncPointsP;

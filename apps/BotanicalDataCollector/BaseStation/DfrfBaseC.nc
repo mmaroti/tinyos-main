@@ -111,7 +111,13 @@ implementation {
     DfrfBaseP.TimeSyncCtrl->TimeSyncPointsC;
     DfrfBaseP.LocalTime->LocalTimeMilliC;
  
-	components RF230ActiveMessageC as LplRadio, SystemLowPowerListeningC;
+	#if defined(PLATFORM_IRIS)
+	components RF230ActiveMessageC as LplRadio;
+	#elif defined(PLATFORM_UCMINI)
+	components RFA1ActiveMessageC as LplRadio;
+	#endif
+
+	components SystemLowPowerListeningC;
 	DfrfBaseP.LPL -> LplRadio.LowPowerListening;
 	DfrfBaseP.SysLPL -> SystemLowPowerListeningC.SystemLowPowerListening;
 }
