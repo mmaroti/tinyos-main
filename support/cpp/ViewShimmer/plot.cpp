@@ -144,26 +144,48 @@ Plot::~Plot()
 
 void Plot::setMoteCurve(int mote)
 {
-    MoteCurve* curve = new MoteCurve("Mote: "+QString::number(application.moteDataHolder.mote(mote)->getMoteID()));
+    if(mote ==  -1){
+        MoteCurve* curve = new MoteCurve("Online Mote");
 
-    curve->setStyle(QwtPlotCurve::Lines);
+        curve->setStyle(QwtPlotCurve::Lines);
 
-    QColor curveColor = QColor(Qt::red);
-    curveColor.setHsv(mote*(359/4),255,255);
+        QColor curveColor = QColor(Qt::red);
+        curve->setColor(curveColor);
+    #if 1
+        curve->setRenderHint(QwtPlotItem::RenderAntialiased, true);
+    #endif
+    #if 1
+        curve->setPaintAttribute(QwtPlotCurve::ClipPolygons, false);
+    #endif
+        curve->setData(application.window.curve_data_at(0));
+        curve->attach(this);
 
-    curve->setColor(curveColor);
-#if 1
-    curve->setRenderHint(QwtPlotItem::RenderAntialiased, true);
-#endif
-#if 1
-    curve->setPaintAttribute(QwtPlotCurve::ClipPolygons, false);
-#endif
-    curve->setData(application.window.curve_data_at(mote));
-    curve->attach(this);
+        d_curves.append(curve);
 
-    d_curves.append(curve);
+        showCurve(curve, true);
+    } else {
+        MoteCurve* curve = new MoteCurve("Mote: "+QString::number(application.moteDataHolder.mote(mote)->getMoteID()));
 
-    showCurve(curve, true);
+        curve->setStyle(QwtPlotCurve::Lines);
+
+        QColor curveColor = QColor(Qt::red);
+        curveColor.setHsv(mote*(359/4),255,255);
+
+        curve->setColor(curveColor);
+    #if 1
+        curve->setRenderHint(QwtPlotItem::RenderAntialiased, true);
+    #endif
+    #if 1
+        curve->setPaintAttribute(QwtPlotCurve::ClipPolygons, false);
+    #endif
+        curve->setData(application.window.curve_data_at(mote));
+        curve->attach(this);
+
+        d_curves.append(curve);
+
+        showCurve(curve, true);
+    }
+
 }
 
 void Plot::clearCurves()

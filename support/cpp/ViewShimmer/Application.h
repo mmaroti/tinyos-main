@@ -41,6 +41,7 @@
 #include "SDataWidget.h"
 #include "ConnectWidget.h"
 #include "SerialListener.h"
+#include "DataRecorder.h"
 
 class Application : public QObject
 {
@@ -54,6 +55,7 @@ public:
         MoteDataHolder moteDataHolder;
         MainWindow window;
         SDataWidget sdataWidget;
+        DataRecorder dataRecorder;
         SerialListener serialListener;
         ConnectWidget connectWidget;
 };

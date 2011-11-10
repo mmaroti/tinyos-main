@@ -8,6 +8,7 @@
 #include <QToolButton>
 #include <QLineEdit>
 #include "MoteData.h"
+#include "scrollbar.h"
 
 class CurveData;
 class Plot;
@@ -76,6 +77,7 @@ public Q_SLOTS:
 private slots:
     void on_listWidget_itemDoubleClicked( QListWidgetItem * item );
     void setOffset(const QPointF &  pos );
+    void onOnlineSampleAdded();
 
 private:
     Application &application;
@@ -83,6 +85,9 @@ private:
     Plot *d_plot;
 
     QwtPlotPicker *d_picker;
+
+    CurveData* onlineCurve;
+    ScrollBar* scrollBar;
 
     QToolButton *btnZoom;
     QToolButton *btnMarker;

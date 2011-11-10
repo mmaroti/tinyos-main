@@ -37,7 +37,8 @@
 Application::Application() :
     moteDataHolder(*this),
     window(NULL, *this),
-    sdataWidget(NULL, *this) ,
+    sdataWidget(NULL, *this) ,    
+    dataRecorder(*this) ,
     connectWidget(NULL, *this)
 {
     window.resize(800,400);
@@ -47,7 +48,9 @@ Application::Application() :
 
     sdataWidget.initLeft(false);
 
-    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));
+    connect(&moteDataHolder, SIGNAL(loadFinished()), &window, SLOT(onLoadFinished()));    
+    connect(&dataRecorder, SIGNAL(sampleAdded()), &window, SLOT(onOnlineSampleAdded()));
+    connect(&serialListener, SIGNAL(receiveMessage(ActiveMessage)), &dataRecorder, SLOT(onReceiveMessage(ActiveMessage)), Qt::DirectConnection);
 
 }
 

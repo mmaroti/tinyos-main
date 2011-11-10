@@ -28,6 +28,8 @@
 #include "MoteData.h"
 #include "constants.h"
 
+#include "scrollbar.h"
+
 MainWindow::MainWindow(QWidget *parent, Application &app):
     QMainWindow(parent),
     application(app)
@@ -35,6 +37,11 @@ MainWindow::MainWindow(QWidget *parent, Application &app):
     d_plot = new Plot(this, application);
 
     setCentralWidget(d_plot);
+
+    onlineCurve = new CurveData();
+    curve_datas.append(onlineCurve);
+    d_plot->setMoteCurve(-1);
+    scrollBar = new ScrollBar();
 
     QToolBar *toolBar = new QToolBar(this);    
 
@@ -543,6 +550,22 @@ void MainWindow::calculateCurveDatas(double zoomRatio)
 
     qDebug() << "Canvas width: " << d_plot->canvas()->width() << ";";
     qDebug() << "Number of curve points: " << curve_datas[0]->size();
+}
+
+void MainWindow::onOnlineSampleAdded()
+{
+    double value;
+    value = application.dataRecorder.at( application.dataRecorder.size()-1 ).xAccel;
+    double time;
+    time = application.dataRecorder.size()-1;
+
+    if(time >= 20)    d_plot->createZoomer();
+
+    QPointF point(time, value);
+
+    onlineCurve->append(point);
+
+    d_plot->replot();
 }
 
 void MainWindow::createMarker(const QPointF &pos)
