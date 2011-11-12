@@ -84,7 +84,7 @@ enum {
 	// Valid values for SI443X_BASE_FREQ_KHZ : [0,..,9999]
 	SI443X_BASE_FREQ_KHZ = 0,
 	
-	SI443X_CHANNEL_STEP_KHZ = 10,	
+	SI443X_CHANNEL_STEP_10KHZ = 200,	
 };
 
 enum

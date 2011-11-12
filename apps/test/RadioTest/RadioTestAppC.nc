@@ -19,7 +19,9 @@ implementation {
 		components RadioTestParallelC as App, RadioStackC as Radio;
 	#elif defined(RT_XOR)
 		components RadioTestXORC as App, RadioStackC as Radio;
-		
+	#elif defined(RT_MOPT)
+		components RadioTestMoptC as App, RadioStackC as Radio;
+	
 	#elif defined(RT_AM)
 		components RadioTestAMC as App;
 		components new DirectAMSenderC(101) as DsC;
