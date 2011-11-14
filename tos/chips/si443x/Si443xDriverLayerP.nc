@@ -724,40 +724,28 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		//DIAGMSG_VAR("irq1",irq1);
 		//DIAGMSG_VAR("irq2",irq2);
 		
-		if ( chip.state == STATE_RX ) {
-
-			if ( irq1 & SI443X_I1_PKTRECEIVED ) {
-				DIAGMSG_STR("Int","Pkt Received");
-				RADIO_ASSERT( chip.cmd == CMD_RX_WAIT || chip.cmd == CMD_RX_FINISH || chip.cmd == CMD_RX_ABORT );
-
-				// the most likely place for clear channel
-				rssiClear = ( _readRssi() >> 1 ) + (rssiClear >> 1);
-				_downloadMessage();
-				if ( chip.cmd != CMD_RX_ABORT ) {
-					rxMsg = signal RadioReceive.receive(rxMsg);
-					#ifdef MOPT_ENABLE
-					signal ModemOptimizer.receiveSuccess();
-					#endif
-				}
+		if ( chip.state == STATE_RX && irq1 & SI443X_I1_CRCERROR ) {
+				DIAGMSG_STR("Int","CRC Error");
+				#ifdef MOPT_ENABLE
+				signal ModemOptimizer.receiveCRC();
+				#endif
 				chip.cmd = CMD_NONE;
-			}
-			
+		
+		} else if ( chip.state == STATE_RX ) {
+
 			if ( irq2 & SI443X_I2_SYNCDETECT ) {
 				uint8_t temp;
 				uint16_t time;
 				atomic time = capturedTime;
-				#ifdef MOPT_ENABLE
-				signal ModemOptimizer.receiveSync();
-				#endif
+				
 				DIAGMSG_STR("Int","Sync Detected");
-				RADIO_ASSERT( chip.cmd == CMD_NONE || chip.cmd == CMD_FINISH_CCA );
-
+				
 				if( chip.cmd == CMD_FINISH_CCA )
 				{
 					signal RadioCCA.done(FAIL);
 					chip.cmd = CMD_NONE;
 				}
-			
+				
 				// the most likely place for busy channel
 				temp = _readRssi();
 				rssiBusy = (temp >> 1) + (rssiBusy >> 1);
@@ -768,25 +756,42 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 				time32 += (int16_t)(time - RX_SFD_DELAY) - (int16_t)(time32);
 				call PacketTimeStamp.set(rxMsg, time32);
 				
+				#ifdef MOPT_ENABLE
+				signal ModemOptimizer.receiveSync();
+				#endif
+				
 				chip.cmd = CMD_RX_WAIT;
 			}
-
-			if ( irq1 & SI443X_I1_RXFIFOFULL ) {
-				DIAGMSG_STR("Int","RxFifo Full");
-				DIAGMSG_VAR("cmd",chip.cmd);
-				RADIO_ASSERT( chip.cmd == CMD_RX_WAIT || chip.cmd == CMD_RX_FINISH || chip.cmd == CMD_RX_ABORT );
+			
+			if ( irq1 & (SI443X_I1_PKTRECEIVED | SI443X_I1_RXFIFOFULL) ) {
+				
+				#ifdef RADIO_DEBUG			
+				if ( irq1 & SI443X_I1_PKTRECEIVED )	{
+					DIAGMSG_STR("Int","DAvail-Pkt");
+				}
+								
+				if ( irq1 & SI443X_I1_RXFIFOFULL ) {
+					DIAGMSG_STR("Int","DAvail-Full");
+				}
+				#endif
+				
 				_downloadMessage();
 			}
 			
-			if ( irq1 & SI443X_I1_CRCERROR ) {
-				DIAGMSG_STR("Int","CRC Error");
-				#ifdef MOPT_ENABLE
-				signal ModemOptimizer.receiveCRC();
-				#endif
-				_downloadMessage();
-				chip.cmd = CMD_NONE;
-			}
+			if ( irq1 & SI443X_I1_PKTRECEIVED ) {
+				DIAGMSG_STR("Int","Pkt Received");
 
+				// the most likely place for clear channel
+				rssiClear = ( _readRssi() >> 1 ) + (rssiClear >> 1);
+				if ( chip.cmd != CMD_RX_ABORT ) {
+					rxMsg = signal RadioReceive.receive(rxMsg);
+					#ifdef MOPT_ENABLE
+					signal ModemOptimizer.receiveSuccess();
+					#endif
+				}
+				chip.cmd = CMD_NONE;
+			} 
+		
 			if ( irq1 & SI443X_I1_FIFOERROR ) {
 				#ifdef MOPT_ENABLE
 				signal ModemOptimizer.receiveError();			
@@ -794,7 +799,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 				DIAGMSG_STR("Int","FIFO Error");
 				chip.cmd = CMD_NONE;
 			}
-			
+
 		} else if ( chip.state == STATE_TX ) {
 			RADIO_ASSERT( chip.cmd == CMD_TX_FINISH );
 
@@ -848,7 +853,6 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 				}
 #endif				
 */
-
 				_receive();
 				chip.cmd = CMD_NONE;
 				atomic txMsg = NULL;
@@ -875,6 +879,9 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			DIAGMSG_STR("Int","Power On Reset");
 			chip.cmd = CMD_RESET;
 		}
+		
+		DIAGMSG_STR("Int","service END");
+		
 	}
 	
 	void _downloadMessage() {
@@ -886,6 +893,9 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		// If not, data := rxMsg + sizeof(si443x_header_t)
 		// and the data to be read from the FIFO should be data[plbyte++] instead of data[++plbyte]
 		uint8_t* data = (uint8_t*)rxMsg;
+		
+		uint8_t t1,t2,t3,t4;
+		t1 = t2 = t3 = t4 = 0;
 		
 		//DIAGMSG_STR("dload","msg");
 		RADIO_ASSERT( call SpiResource.isOwner() );
@@ -899,13 +909,8 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			hdrlen = call Config.headerPreloadLength();
 
 			// read packet length
-			remains = call FastSpiByte.write(0);
-			call NSEL.set();
-			DIAGMSG_VAR("pktlen",remains);
-			
-			call NSEL.clr();
-			call FastSpiByte.write(SI443X_SPI_READ | SI443X_FIFO);
-
+			t1 = remains = call FastSpiByte.write(0);
+	
 			call RadioPacket.setPayloadLength(rxMsg, remains);
 			plbyte = 0;
 			
@@ -935,6 +940,9 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		}
 		RADIO_ASSERT(fifoload > 0);
 		
+		t2 = remains;
+		t3 = fifoload;
+		
 		// compute how much data can be read from the FIFO
 		if ( remains < fifoload ) {
 			fifoload = remains;
@@ -947,6 +955,13 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			data[++plbyte] = call FastSpiByte.splitRead();
 		}
 		call NSEL.set();
+		
+		DIAGMSG_CHIP();
+		if ( t1 != 0 )
+			DIAGMSG_VAR("FIRST! l:",t1);
+		DIAGMSG_VAR("remains",t2);
+		DIAGMSG_VAR("fifoload",t3);
+		DIAGMSG_VAR("data[L]",data[plbyte]);
 	}
 
 
