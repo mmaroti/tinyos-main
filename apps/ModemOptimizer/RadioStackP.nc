@@ -58,27 +58,27 @@ implementation {
 		return sizeof(si443xpacket_header_t) + TOSH_DATA_LENGTH;
 	}
 
-	async command uint8_t Config.metadataLength(message_t* msg) { return 0;	}
-	async command uint8_t Config.headerPreloadLength()	{ return 7; }
+	async command uint8_t Config.metadataLength(message_t* msg) { return 0; }
+	async command uint8_t Config.headerPreloadLength() { return 7; }
 	async command bool Config.requiresRssiCca(message_t* msg) { return FALSE; }
 	
-	async command bool PacketTimeStampRadio.isValid(message_t* msg)	{ return FALSE;	}
+	async command bool PacketTimeStampRadio.isValid(message_t* msg) { return FALSE; }
 	async command uint32_t PacketTimeStampRadio.timestamp(message_t* msg) { return FALSE; }
 	async command void PacketTimeStampRadio.clear(message_t* msg) { }
-	async command void PacketTimeStampRadio.set(message_t* msg, uint32_t value)	{ }
+	async command void PacketTimeStampRadio.set(message_t* msg, uint32_t value) { }
 	
-	async command bool TransmitPowerFlag.get(message_t* msg) { return FALSE;	}
-	async command void TransmitPowerFlag.set(message_t* msg)	{	}
-	async command void TransmitPowerFlag.clear(message_t* msg)	{	}
-	async command void TransmitPowerFlag.setValue(message_t* msg, bool value)	{	}
+	async command bool TransmitPowerFlag.get(message_t* msg) { return FALSE; }
+	async command void TransmitPowerFlag.set(message_t* msg) {}
+	async command void TransmitPowerFlag.clear(message_t* msg) {}
+	async command void TransmitPowerFlag.setValue(message_t* msg, bool value) {}
 	
-	async command bool RSSIFlag.get(message_t* msg) { return FALSE;	}
-	async command void RSSIFlag.set(message_t* msg)	{	}
-	async command void RSSIFlag.clear(message_t* msg)	{	}
-	async command void RSSIFlag.setValue(message_t* msg, bool value)	{	}
+	async command bool RSSIFlag.get(message_t* msg) { return FALSE; }
+	async command void RSSIFlag.set(message_t* msg) {}
+	async command void RSSIFlag.clear(message_t* msg) {}
+	async command void RSSIFlag.setValue(message_t* msg, bool value) {}
 	
-	async command bool TimeSyncFlag.get(message_t* msg) { return FALSE;	}
-	async command void TimeSyncFlag.set(message_t* msg)	{	}
-	async command void TimeSyncFlag.clear(message_t* msg)	{	}
-	async command void TimeSyncFlag.setValue(message_t* msg, bool value)	{	}
+	async command bool TimeSyncFlag.get(message_t* msg) { return FALSE; }
+	async command void TimeSyncFlag.set(message_t* msg) {}
+	async command void TimeSyncFlag.clear(message_t* msg) {}
+	async command void TimeSyncFlag.setValue(message_t* msg, bool value) {}
 }

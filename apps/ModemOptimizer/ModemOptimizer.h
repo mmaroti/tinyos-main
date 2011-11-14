@@ -40,10 +40,26 @@
 #define MOPT_RUNTIME_MSEC 1000
 #endif
 
-typedef struct moptimizer_t {
-	uint32_t	id;
+#if MOPT_PACKET_SIZE < 4
+#error MOPT_PACKET_SIZE must be greater or equal than 4!
+#endif
 
-	uint16_t	srequest;
+#define DIAGMSG_S(STR)	\
+	atomic { if( call DiagMsg.record() ) { \
+			call DiagMsg.str(STR); \
+			call DiagMsg.send(); \
+		}}
+	
+#define DIAGMSG_U32(STR,VAR)	\
+	atomic { if( call DiagMsg.record() ) { \
+			call DiagMsg.str(STR); \
+			call DiagMsg.uint32(VAR); \
+			call DiagMsg.send(); \
+		}}
+
+typedef struct mopt_t {
+
+	uint16_t srequest;
 	uint16_t sbusy;
 	uint16_t saccept;
 	uint16_t serror;

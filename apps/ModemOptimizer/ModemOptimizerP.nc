@@ -59,113 +59,167 @@ implementation {
 	enum {
 		STATE_STOPPED = 0,
 		STATE_RUNNING,
-		STATE_BUSY
-	};
-	uint8_t 			state;
-	moptimizer_t 	bmark;
-	message_t 		pkt;	
-
-	void makePacket(uint8_t pktsize) {
-		uint8_t* pl = (uint8_t*) ( ((void*)&pkt) + call RadioPacket.headerLength(&pkt));
-		call RadioPacket.setPayloadLength(&pkt,pktsize);
-		while ( pktsize-- ) *(pl + pktsize) = pktsize;
-	}
-
-	void signalEnd() { call Leds.set(0x7);	}
-	
-	task void measureTask();
-	task void sendTask();
-
-	event void Boot.booted() {
-		call RadioState.turnOn();
-		call Leds.led0On();
 		
-		makePacket(MOPT_PACKET_SIZE);
-		memset(&bmark,0,sizeof(moptimizer_t));
+		LOCKED,
+		UNLOCKED,
+	};
+	
+	uint8_t 	state = STATE_STOPPED;
+	uint8_t 	sendlock = UNLOCKED;
+	
+	moptimizer_t 					bmark;
+	message_t						pkt;
+	tasklet_norace uint32_t 	currentid = 0;
+	
+	void signalEnd() { call Leds.set(0x7); }
+
+	void displayData() {
+		DIAGMSG_S("MOPT displayData!");
+		call Leds.led2On();
+		// Sender
+		if ( TOS_NODE_ID == 1 ) {
+			atomic {
+				if ( call DiagMsg.record() ) {
+					call DiagMsg.str("MOs");
+					call DiagMsg.uint32(currentid);
+					call DiagMsg.uint16(bmark.srequest);
+					call DiagMsg.uint16(bmark.sbusy);
+					call DiagMsg.uint16(bmark.saccept);
+					call DiagMsg.uint16(bmark.serror);
+					call DiagMsg.uint16(bmark.ssuccess);
+					call DiagMsg.send();
+	
+					call Leds.led2Off();
+				}
+			}
+		// Receiver
+		} else {
+			atomic {
+				if ( call DiagMsg.record() ) {
+					call DiagMsg.str("MOr");
+					call DiagMsg.uint32(currentid);
+					call DiagMsg.uint16(bmark.rsync);
+					call DiagMsg.uint16(bmark.rerror);
+					call DiagMsg.uint16(bmark.rcrc);
+					call DiagMsg.uint16(bmark.rsuccess);
+					call DiagMsg.send();
+
+					call Leds.led2Off();
+				}
+			}
+		}
+	}	
+	
+	void makePacket(uint8_t pktsize, uint32_t bmarkid) {
+		uint8_t* pl8 = (uint8_t*) ( ((void*)&pkt) + call RadioPacket.headerLength(&pkt));
+		call RadioPacket.setPayloadLength(&pkt,pktsize);
+		
+		// insert the benchmark id
+		*((uint32_t*)pl8) = bmarkid;
+		pl8 += 4;
+		pktsize-= 4;
+		
+		// fill the rest payload with an arithmetic sequence
+		while ( pktsize-- ) *(pl8 + pktsize) = pktsize;
+	}
+	
+	void startNextBenchmark() {
+		DIAGMSG_S("MOPT startNext!");
+		
+		// init the new benchmark
+		atomic memset(&bmark,0,sizeof(moptimizer_t));
 		
 		if ( TOS_NODE_ID == 1 )
-			post measureTask();	
+			// make the packet with the bechmark id
+			makePacket( MOPT_PACKET_SIZE, currentid );	
+	
+		// setup the driver
+		call ModemOptimizer.reset();
+		call ModemOptimizer.configure(currentid);
+	}
+			
+	task void timerTask() {
+		call MilliTimer.startOneShot(MOPT_RUNTIME_MSEC);
+	}
+	
+	task void sendTask() {
+		uint8_t lstate, llock;
+		atomic {
+			lstate = state;
+      	llock = sendlock;	
+      	sendlock = LOCKED;		
+		}		
+		
+		if ( lstate == STATE_RUNNING ) {
+			if ( llock != LOCKED && call RadioSend.send(&pkt) == SUCCESS ) {
+				call Leds.led1On();
+			} else
+				post sendTask();
+		}
+	}
+
+	event void Boot.booted() {
+		DIAGMSG_S("MOPT booted!");
+		call RadioState.turnOn();
+		call Leds.led0On();
+		startNextBenchmark();
+	}
+	
+	tasklet_async event void ModemOptimizer.configured() {
+		DIAGMSG_S("MOPT configured!");
+		if ( TOS_NODE_ID == 1 ) {
+			atomic state = STATE_RUNNING;		
+			post sendTask();
+		}
+		post timerTask();
 	}
 
 	event void MilliTimer.fired() {
-		uint32_t id;
-		state = STATE_STOPPED;		
-		
-		// dump the collected info to the serial over DiagMsg
-		if( TOS_NODE_ID == 1 && call DiagMsg.record() ) {
-			call DiagMsg.str("MOs");
-			call DiagMsg.uint32(bmark.id);
-			call DiagMsg.uint16(bmark.srequest);
-			call DiagMsg.uint16(bmark.sbusy);
-			call DiagMsg.uint16(bmark.saccept);
-			call DiagMsg.uint16(bmark.serror);
-			call DiagMsg.uint16(bmark.ssuccess);
-			call DiagMsg.send();
-		}
-		
-		if( TOS_NODE_ID == 2 && call DiagMsg.record() ) {
-			call DiagMsg.str("MOr");
-			call DiagMsg.uint32(bmark.id);
-			call DiagMsg.uint16(bmark.rsync);
-			call DiagMsg.uint16(bmark.rerror);
-			call DiagMsg.uint16(bmark.rcrc);
-			call DiagMsg.uint16(bmark.rsuccess);
-			call DiagMsg.send();
-		}
-		id = bmark.id;
-		memset(&bmark,0,sizeof(moptimizer_t));
-		bmark.id = id;
-		if ( bmark.id < call ModemOptimizer.configCount() )
-			post measureTask();
+		DIAGMSG_S("MOPT fired!");
+		atomic state = STATE_STOPPED;
+		displayData();
+		if ( ++currentid < call ModemOptimizer.configCount() )
+			startNextBenchmark();
 		else
 			signalEnd();
 	}
-
-	task void measureTask() {
-		call ModemOptimizer.reset();
-		call ModemOptimizer.configure(++bmark.id);
-		state = STATE_RUNNING;
-		post sendTask();
-		call MilliTimer.startOneShot(MOPT_RUNTIME_MSEC);
-	}
-
-	task void sendTask() {
-		if ( state == STATE_RUNNING && call RadioSend.send(&pkt) == SUCCESS ) {
-			call Leds.led1On();			
-			state = STATE_BUSY;
-		} else
-			post sendTask();
-	}
-
+	
 	tasklet_async event void RadioSend.sendDone(error_t error) {
+		call Leds.led1Off();
 		atomic {
-			if ( state == STATE_BUSY ) {
-				call Leds.led1Off();
-				state = STATE_RUNNING;
+			sendlock = UNLOCKED;
+			if ( state == STATE_RUNNING )
 				post sendTask();
-			}
 		}
 	}
-
-	tasklet_async event void RadioState.done() {	}
-	tasklet_async event void RadioSend.ready() { }
-	tasklet_async event bool RadioReceive.header(message_t* msg) {	return TRUE; }
-
+	
 	tasklet_async event message_t* RadioReceive.receive(message_t* msg)
 	{
-		call Leds.led2Toggle();
+		// get the bmark id from the message
+		uint32_t id = *((uint32_t*) ( ((void*)msg) + call RadioPacket.headerLength(msg)));
+				
+		call Leds.led1Toggle();	
+		// if new benchmark id seen
+		if ( id != currentid )
+			DIAGMSG_U32("MOPT RX fw",id);
+
 		return msg;
 	}
 
+	tasklet_async event void RadioState.done() { }
+	tasklet_async event void RadioSend.ready() { }
+	tasklet_async event bool RadioReceive.header(message_t* msg) { return TRUE; }
+	
 	tasklet_async event void ModemOptimizer.sendRequest()			{ atomic ++bmark.srequest; }
 	tasklet_async event void ModemOptimizer.sendBusy()				{ atomic ++bmark.sbusy; }
 	tasklet_async event void ModemOptimizer.sendAccept()			{ atomic ++bmark.saccept; }
 	tasklet_async event void ModemOptimizer.sendError()			{ atomic ++bmark.serror; }
 	tasklet_async event void ModemOptimizer.sendSuccess()			{ atomic ++bmark.ssuccess; }
+	
+	
 	tasklet_async event void ModemOptimizer.receiveSync()			{ atomic ++bmark.rsync; }
 	tasklet_async event void ModemOptimizer.receiveError()		{ atomic ++bmark.rerror; }
 	tasklet_async event void ModemOptimizer.receiveCRC()			{ atomic ++bmark.rcrc; }
 	tasklet_async event void ModemOptimizer.receiveSuccess()		{ atomic ++bmark.rsuccess; }
-
-
 }
+

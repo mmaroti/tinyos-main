@@ -43,6 +43,8 @@ interface ModemOptimizer {
 	/** Configure the driver to the modem configuration numbered 'id' */
 	command void configure(uint32_t id);
 	
+	tasklet_async event void configured();
+	
 	/** Ask the driver how many test should we perform */
 	command uint32_t configCount();
 		

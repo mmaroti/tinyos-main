@@ -37,18 +37,20 @@ configuration ModemOptimizerAppC {}
 implementation {
 	components MainC, LedsC, DiagMsgC;
 	components new TimerMilliC();
-	components ModemOptimizerP, RadioStackC as Radio;
 	
-	ModemOptimizerP.Boot -> MainC.Boot;
-	ModemOptimizerP.Leds -> LedsC;
-	ModemOptimizerP.MilliTimer -> TimerMilliC;
-	ModemOptimizerP.DiagMsg -> DiagMsgC;
+	components ModemOptimizerP as App;
+	components RadioStackC as Radio;
+	
+	App.Boot -> MainC.Boot;
+	App.Leds -> LedsC;
+	App.MilliTimer -> TimerMilliC;
+	App.DiagMsg -> DiagMsgC;
 
-	ModemOptimizerP.RadioState -> Radio;
-	ModemOptimizerP.RadioSend -> Radio;
-	ModemOptimizerP.RadioPacket -> Radio;
-	ModemOptimizerP.RadioReceive -> Radio;	
-	ModemOptimizerP.ModemOptimizer -> Radio;
+	App.RadioState -> Radio;
+	App.RadioSend -> Radio;
+	App.RadioPacket -> Radio;
+	App.RadioReceive -> Radio;	
+	App.ModemOptimizer -> Radio;
 }
 
 
