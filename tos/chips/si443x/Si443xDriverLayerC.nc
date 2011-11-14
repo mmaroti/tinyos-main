@@ -53,8 +53,9 @@ configuration Si443xDriverLayerC
 
 		interface LocalTime<TRadio> as LocalTimeRadio;
 		interface Alarm<TRadio, tradio_size>;
-		
+#ifdef MOPT_ENABLE		
 		interface ModemOptimizer;
+#endif
 	}
 
 	uses
@@ -79,8 +80,10 @@ implementation
 	RadioReceive = Si443xDriverLayerP;
 	RadioCCA = Si443xDriverLayerP;
 	RadioPacket = Si443xDriverLayerP;
+#ifdef MOPT_ENABLE	
 	ModemOptimizer = Si443xDriverLayerP;
-	
+#endif
+
 	PacketTransmitPower = Si443xDriverLayerP.PacketTransmitPower;
 	PacketRSSI = Si443xDriverLayerP.PacketRSSI;
 	PacketTimeSyncOffset = Si443xDriverLayerP.PacketTimeSyncOffset;

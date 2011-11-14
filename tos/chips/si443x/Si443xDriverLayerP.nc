@@ -60,8 +60,10 @@ module Si443xDriverLayerP
 		interface PacketField<uint8_t> as PacketTimeSyncOffset;
 		interface PacketField<uint8_t> as PacketLinkQuality;
 		interface LinkPacketMetadata;
-		
+#ifdef MOPT_ENABLE		
 		interface ModemOptimizer;
+#endif
+
 	}
 
 	uses
@@ -329,7 +331,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 
 	inline void _transmit()
 	{
-		DIAGMSG_STR("transmit","");
+		//DIAGMSG_STR("transmit","");
 
 		writeRegister(SI443X_IEN_1, SI443X_I1_FIFOERROR | SI443X_I1_TXFIFOEMPTY | SI443X_I1_PKTSENT);
 		writeRegister(SI443X_IEN_2, SI443X_I_NONE);
@@ -342,7 +344,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 
 	inline void _receive()
 	{
-		DIAGMSG_STR("receive","");
+		//DIAGMSG_STR("receive","");
 		RADIO_ASSERT( chip.state != STATE_RX );
 
 		writeRegister(SI443X_IEN_1, SI443X_I1_FIFOERROR | SI443X_I1_RXFIFOFULL | SI443X_I1_PKTRECEIVED | SI443X_I1_CRCERROR); 
@@ -361,11 +363,11 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		RADIO_ASSERT( fKHz >= 0 && fKHz <= 9999 );
 	
 		// fb (refer to AN440.pdf (Si443x Register Descriptions) page 55.)
-		freq = ( f10MHz >= 48 ) ? ((f10MHz << 1) - 24 + SI443X_FREQ_HBSEL) : f10MHz;	
+		freq = ( f10MHz >= 48 ) ? ( f10MHz - 48 + SI443X_FREQ_HBSEL) : f10MHz - 24;	
 		writeRegister(0x75, SI443X_FREQ_BAND_MISC | (uint8_t)freq );
 			
 		// fc
-		freq = ( f10MHz >= 48 ) ? (uint16_t)(( (uint32_t)fKHz << 5) / 5) : (uint16_t)(( (uint32_t)fKHz << 4) / 5);
+		freq = ( f10MHz >= 48 ) ? (uint16_t)(( (uint32_t)fKHz * 5) >> 4) : (uint16_t)(( (uint32_t)fKHz *5) >> 5);
 		writeRegister(0x77,(uint8_t)freq);
 		writeRegister(0x76,(uint8_t)(freq >> 8));
 			
@@ -373,29 +375,14 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		writeRegister(0x73,0x00);
 		writeRegister(0x74,0x00);
 		
-		#ifdef RADIO_DEBUG
-		if( DM_ENABLE && call DiagMsg.record() )
-		{
-			uint8_t band = readRegister(0x75);
-			uint16_t multi = ( (band & SI443X_FREQ_HBSEL) != 0) ? 20 : 10;
-			uint16_t fc = ((uint16_t)(readRegister(0x76)) << 8 ) + readRegister(0x77);
-			call DiagMsg.str("freq");
-			call DiagMsg.hex8(band);
-			call DiagMsg.uint16(fc);
-			call DiagMsg.uint32( multi*1000 *((band & SI443X_FREQ_BAND_MASK) + 24) + fc*multi/64 );
-			call DiagMsg.send();
-		}
-		#endif
-		
+	
 	}
 
 	inline void _channel() {
-		// No precise frequency control, can use FHS
-		if (SI443X_CHANNEL_STEP_10KHZ >= 10) {
-			writeRegister(SI443X_CHANNEL_SELECT,channel);
-		}
+		writeRegister(SI443X_CHANNEL_SELECT,channel);
 	}
-		
+
+#ifdef MOPT_ENABLE		
 	typedef struct si443x_modem_optimizer_t {
 		//	uint8_t 	modulation;
 		//	bool 		manchester;
@@ -416,12 +403,14 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 	}
 	
 	command void ModemOptimizer.configure(uint32_t id) {
-		call RadioState.setChannel(id);
+
+		signal ModemOptimizer.configured();
 	}
 	
 	command uint32_t ModemOptimizer.configCount() {
 		return 10;
 	}
+#endif
 
 	void _setupModem()
 	{
@@ -431,6 +420,49 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		writeRegister(SI443X_TXFIFO_FULL, SI443X_TXFIFO_FULL_THRESH);
 		writeRegister(SI443X_RXFIFO_FULL, SI443X_RXFIFO_FULL_THRESH);
 
+
+		writeRegister(0x08, 0x10);	    // multi receive
+		writeRegister(0x6D, 0x1F);	    // max power, LNA switch set
+
+		writeRegister( 0x1C, 0x9A );
+		writeRegister( 0x1D, 0x3C );
+		writeRegister( 0x1E, 0x02 );
+		writeRegister( 0x1F, 0x00 );
+		writeRegister( 0x20, 0x77 );
+		writeRegister( 0x21, 0x20 );
+		writeRegister( 0x22, 0x2B );
+		writeRegister( 0x23, 0xB1 );
+		writeRegister( 0x24, 0x10 );
+		writeRegister( 0x25, 0x59 );
+		
+		writeRegister( 0x2A, 0xFF );
+		writeRegister( 0x2C, 0x18 );
+		writeRegister( 0x2D, 0x4E );
+		writeRegister( 0x2E, 0x2A );
+		
+		writeRegister( 0x30, 0x8D );
+		writeRegister( 0x32, 0x00 );
+		writeRegister( 0x33, 0x00 );
+		writeRegister( 0x34, 0x08 );
+		writeRegister( 0x35, 0x2A );
+		
+		writeRegister( 0x58, 0x80 );
+		writeRegister( 0x69, 0x60 );
+		writeRegister( 0x6E, 0x41 );
+		writeRegister( 0x6F, 0x89 );
+		writeRegister( 0x70, 0x2F );
+		writeRegister( 0x71, 0x21 );
+		writeRegister( 0x72, 0xA0 );
+		
+		writeRegister( 0x75, 0x4B );    // carrier freq
+		writeRegister( 0x76, 0x7D );
+		writeRegister( 0x77, 0x00 );
+		
+		_frequencyChange(SI443X_BASE_FREQ_10MHZ, SI443X_BASE_FREQ_KHZ);		
+		writeRegister(SI443X_CHANNEL_STEPSIZE, SI443X_CHANNEL_STEP_10KHZ);
+		writeRegister(SI443X_CHANNEL_SELECT, SI443X_DEF_CHANNEL);
+		
+/*
 		writeRegister(0x08, 0x10);		// multi receive
 		writeRegister(0x6D, 0x1F);		// max power, LNA switch set
 
@@ -466,12 +498,8 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 
 		_frequencyChange(SI443X_BASE_FREQ_10MHZ, SI443X_BASE_FREQ_KHZ);
 		writeRegister(SI443X_CHANNEL_STEPSIZE, SI443X_CHANNEL_STEP_10KHZ);
-		writeRegister(SI443X_CHANNEL_SELECT, SI443X_DEF_CHANNEL);
+		writeRegister(SI443X_CHANNEL_SELECT, SI443X_DEF_CHANNEL);*/
 		
-	/*	writeRegister( 0x75, 0x4B );	// carrier freq
-		writeRegister( 0x76, 0x7D );
-		writeRegister( 0x77, 0x00 );
-		*/
 	}
 
 	uint8_t _readRssi() {
@@ -540,7 +568,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 	void _fillTxFifo(uint8_t maxload) {
 		uint8_t remains;
 		
-		DIAGMSG_STR("fill","txfifo");
+		//DIAGMSG_STR("fill","txfifo");
 		RADIO_ASSERT( call SpiResource.isOwner() );
 		RADIO_ASSERT( chip.state == STATE_RX || chip.state == STATE_TX );
 		RADIO_ASSERT( maxload <= SI443X_FIFO_SIZE && maxload > 0 );
@@ -579,11 +607,17 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		void* timesync;
 		uint32_t time32;
 		
+		#ifdef MOPT_ENABLE 
 		signal ModemOptimizer.sendRequest();
+		#endif
 		
 		if( chip.cmd != CMD_NONE || chip.state != STATE_RX || ! isSpiAcquired() ) {
 			DIAGMSG_STR("send","BUSY");
+			
+			#ifdef MOPT_ENABLE
 			signal ModemOptimizer.sendBusy();
+			#endif
+			
 			return EBUSY;
 		}
 		
@@ -630,14 +664,18 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		// RSSI Clear Channel Assessment
 		if( (call Config.requiresRssiCca(msg) && ( _readRssi() > ( (rssiClear >> 1) + (rssiBusy >> 1) )) ) ) {
 			DIAGMSG_STR("send","BUSY-2");
+			#ifdef MOPT_ENABLE
 			signal ModemOptimizer.sendBusy();
+			#endif
 			_clearFifo(SI443X_CLEAR_TX_FIFO);
 			return EBUSY;
 		}
 		
 		if ( chip.cmd != CMD_NONE || radioIrq ) {
 			DIAGMSG_STR("send","BUSY-3");
+			#ifdef MOPT_ENABLE
 			signal ModemOptimizer.sendBusy();
+			#endif
 			_clearFifo(SI443X_CLEAR_TX_FIFO);
 			return EBUSY;
 		}
@@ -652,7 +690,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			*(timesync_relative_t*)timesync = (*(timesync_absolute_t*)timesync) - time32;
 		
 		call PacketTimeStamp.set(msg,time32);
-		
+		/*
 		#ifdef RADIO_DEBUG
 		if( DM_ENABLE && call DiagMsg.record() )
 		{
@@ -664,8 +702,10 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			call DiagMsg.send();
 		}
 		#endif	
-		
+		*/
+		#ifdef MOPT_ENABLE
 		signal ModemOptimizer.sendAccept();
+		#endif
 		
 		chip.cmd = CMD_TX_FINISH;
 		return SUCCESS;
@@ -681,8 +721,8 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		irq1 = readRegister(SI443X_INT_1);
 		irq2 = readRegister(SI443X_INT_2);
 
-		DIAGMSG_VAR("irq1",irq1);
-		DIAGMSG_VAR("irq2",irq2);
+		//DIAGMSG_VAR("irq1",irq1);
+		//DIAGMSG_VAR("irq2",irq2);
 		
 		if ( chip.state == STATE_RX ) {
 
@@ -695,7 +735,9 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 				_downloadMessage();
 				if ( chip.cmd != CMD_RX_ABORT ) {
 					rxMsg = signal RadioReceive.receive(rxMsg);
+					#ifdef MOPT_ENABLE
 					signal ModemOptimizer.receiveSuccess();
+					#endif
 				}
 				chip.cmd = CMD_NONE;
 			}
@@ -704,7 +746,9 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 				uint8_t temp;
 				uint16_t time;
 				atomic time = capturedTime;
+				#ifdef MOPT_ENABLE
 				signal ModemOptimizer.receiveSync();
+				#endif
 				DIAGMSG_STR("Int","Sync Detected");
 				RADIO_ASSERT( chip.cmd == CMD_NONE || chip.cmd == CMD_FINISH_CCA );
 
@@ -736,13 +780,17 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			
 			if ( irq1 & SI443X_I1_CRCERROR ) {
 				DIAGMSG_STR("Int","CRC Error");
+				#ifdef MOPT_ENABLE
 				signal ModemOptimizer.receiveCRC();
+				#endif
 				_downloadMessage();
 				chip.cmd = CMD_NONE;
 			}
 
 			if ( irq1 & SI443X_I1_FIFOERROR ) {
+				#ifdef MOPT_ENABLE
 				signal ModemOptimizer.receiveError();			
+				#endif
 				DIAGMSG_STR("Int","FIFO Error");
 				chip.cmd = CMD_NONE;
 			}
@@ -758,6 +806,27 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			if ( irq1 & SI443X_I1_PKTSENT ) {
 				void* timesync;
 				DIAGMSG_STR("Int","Pkt Sent");
+				
+				#ifdef RADIO_DEBUG
+				if( DM_ENABLE && call DiagMsg.record() )
+				{
+					uint32_t freq = 0;
+					uint8_t band = readRegister(0x75);
+					uint8_t multi = ( (band & SI443X_FREQ_HBSEL) != 0) ? 20 : 10;
+					uint8_t fc1 = readRegister(0x76);
+					uint8_t fc2 = readRegister(0x77);
+					uint16_t fc = (((uint16_t)fc1) << 8 ) + fc2;
+
+					freq += ((uint32_t)(band & SI443X_FREQ_BAND_MASK) + 24)*multi*1000;
+					freq += ((((uint32_t)fc) * multi ) >> 6);						
+					freq += (uint32_t)readRegister(0x79) * readRegister(0x7A) * 10;
+										
+					call DiagMsg.str("freq");
+					call DiagMsg.uint32( freq );
+					call DiagMsg.str("kHz");
+					call DiagMsg.send();
+				}
+				#endif	
 	
 				// restore the absolute value of timesync
 				timesync = call PacketTimeSyncOffset.isSet(txMsg) ? ((void*)txMsg) + call PacketTimeSyncOffset.get(txMsg) : (void*)NULL;
@@ -765,8 +834,10 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 					*(timesync_absolute_t*)timesync = (*(timesync_relative_t*)timesync) + call PacketTimeStamp.timestamp(txMsg);
 			
 				signal RadioSend.sendDone(SUCCESS);
+				#ifdef MOPT_ENABLE
 				signal ModemOptimizer.sendSuccess();
-				
+				#endif
+		/*		
 #ifdef RADIO_DEBUG
 				if( DM_ENABLE && call DiagMsg.record() )
 				{
@@ -776,6 +847,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 					call DiagMsg.send();
 				}
 #endif				
+*/
 
 				_receive();
 				chip.cmd = CMD_NONE;
@@ -784,7 +856,9 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			if ( irq1 & SI443X_I1_FIFOERROR ) {	
 				DIAGMSG_STR("Int","Fifo Error");
 				_receive();
+				#ifdef MOPT_ENABLE
 				signal ModemOptimizer.sendError();
+				#endif
 				signal RadioSend.sendDone(FAIL);
 				chip.cmd = CMD_NONE;
 			}
@@ -813,7 +887,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		// and the data to be read from the FIFO should be data[plbyte++] instead of data[++plbyte]
 		uint8_t* data = (uint8_t*)rxMsg;
 		
-		DIAGMSG_STR("dload","msg");
+		//DIAGMSG_STR("dload","msg");
 		RADIO_ASSERT( call SpiResource.isOwner() );
 		RADIO_ASSERT( chip.cmd == CMD_RX_WAIT || chip.cmd == CMD_RX_FINISH || chip.cmd == CMD_RX_ABORT );
 
@@ -928,8 +1002,9 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 
 #ifdef RADIO_DEBUG	
 	event void Boot.booted() {
-		//DM_ENABLE = TRUE;
+		DM_ENABLE = TRUE;
 		DIAGMSG_STR("booted","!");
+
 	}
 #endif
 
