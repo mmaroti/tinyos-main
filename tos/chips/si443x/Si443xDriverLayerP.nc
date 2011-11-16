@@ -137,8 +137,8 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 #define DIAGMSG_CHIP()	\
 		atomic { if( DM_ENABLE && call DiagMsg.record() ) { \
 			call DiagMsg.str("C");\
-			call DiagMsg.hex8(chip.state);\
-			call DiagMsg.hex8(chip.cmd);\
+			call DiagMsg.uint8(chip.state);\
+			call DiagMsg.uint8(chip.cmd);\
 			call DiagMsg.send(); \
 		}}
 
@@ -146,6 +146,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		atomic { if( DM_ENABLE && call DiagMsg.record() ) { \
 			call DiagMsg.str(PSTR);\
 			call DiagMsg.hex8(VAR); \
+			call DiagMsg.uint8(VAR); \
 			call DiagMsg.send(); \
 		}}
 
@@ -454,10 +455,10 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		writeRegister( 0x71, 0x21 );
 		writeRegister( 0x72, 0xA0 );
 		
-		writeRegister( 0x75, 0x4B );    // carrier freq
+/*		writeRegister( 0x75, 0x4B );    // carrier freq
 		writeRegister( 0x76, 0x7D );
 		writeRegister( 0x77, 0x00 );
-		
+	*/	
 		_frequencyChange(SI443X_BASE_FREQ_10MHZ, SI443X_BASE_FREQ_KHZ);		
 		writeRegister(SI443X_CHANNEL_STEPSIZE, SI443X_CHANNEL_STEP_10KHZ);
 		writeRegister(SI443X_CHANNEL_SELECT, SI443X_DEF_CHANNEL);
@@ -711,6 +712,33 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		return SUCCESS;
 	}
 
+	void _dumpRxFifo() {
+		uint8_t data[64];
+		uint8_t i = 0;
+		call NSEL.clr();
+		call FastSpiByte.write(SI443X_SPI_READ | SI443X_FIFO);
+		call FastSpiByte.splitWrite(0);
+		while( i < 63 )
+			data[i++] = call FastSpiByte.splitReadWrite(0);
+		data[i++] = call FastSpiByte.splitRead();
+		call NSEL.set();
+	
+/*		if ( DM_ENABLE ) {	
+			DIAGMSG_STR("FIFO","DUMP");
+			
+			// print the whole packet
+			for ( i = 0; i < 4; ++i  ) {
+				if( call DiagMsg.record() ) {
+					call DiagMsg.hex8s(data+i*15,15);
+					call DiagMsg.send();
+				}
+			}
+			if( call DiagMsg.record() ) {
+				call DiagMsg.hex8s(data+i*15,4);
+				call DiagMsg.send();
+			}
+		}*/
+	}
 
 	void serviceRadio()
 	{
@@ -721,17 +749,11 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		irq1 = readRegister(SI443X_INT_1);
 		irq2 = readRegister(SI443X_INT_2);
 
+		DIAGMSG_STR("Int","service BEG");
 		//DIAGMSG_VAR("irq1",irq1);
 		//DIAGMSG_VAR("irq2",irq2);
 		
-		if ( chip.state == STATE_RX && irq1 & SI443X_I1_CRCERROR ) {
-				DIAGMSG_STR("Int","CRC Error");
-				#ifdef MOPT_ENABLE
-				signal ModemOptimizer.receiveCRC();
-				#endif
-				chip.cmd = CMD_NONE;
-		
-		} else if ( chip.state == STATE_RX ) {
+		if ( chip.state == STATE_RX ) {
 
 			if ( irq2 & SI443X_I2_SYNCDETECT ) {
 				uint8_t temp;
@@ -763,24 +785,16 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 				chip.cmd = CMD_RX_WAIT;
 			}
 			
-			if ( irq1 & (SI443X_I1_PKTRECEIVED | SI443X_I1_RXFIFOFULL) ) {
-				
-				#ifdef RADIO_DEBUG			
-				if ( irq1 & SI443X_I1_PKTRECEIVED )	{
-					DIAGMSG_STR("Int","DAvail-Pkt");
-				}
-								
-				if ( irq1 & SI443X_I1_RXFIFOFULL ) {
-					DIAGMSG_STR("Int","DAvail-Full");
-				}
-				#endif
-				
+			if ( irq1 & SI443X_I1_RXFIFOFULL ) {
+				DIAGMSG_STR("Int","RXFifo-Full");
 				_downloadMessage();
 			}
 			
 			if ( irq1 & SI443X_I1_PKTRECEIVED ) {
 				DIAGMSG_STR("Int","Pkt Received");
 
+				_downloadMessage();
+				
 				// the most likely place for clear channel
 				rssiClear = ( _readRssi() >> 1 ) + (rssiClear >> 1);
 				if ( chip.cmd != CMD_RX_ABORT ) {
@@ -791,7 +805,19 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 				}
 				chip.cmd = CMD_NONE;
 			} 
-		
+			
+			if ( irq1 & SI443X_I1_CRCERROR ) {
+				DIAGMSG_STR("Int","CRC Error");
+				_downloadMessage();
+				
+				_dumpRxFifo();
+								
+				#ifdef MOPT_ENABLE
+				signal ModemOptimizer.receiveCRC();
+				#endif
+				chip.cmd = CMD_NONE;
+			}
+			
 			if ( irq1 & SI443X_I1_FIFOERROR ) {
 				#ifdef MOPT_ENABLE
 				signal ModemOptimizer.receiveError();			
@@ -831,7 +857,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 					call DiagMsg.str("kHz");
 					call DiagMsg.send();
 				}
-				#endif	
+				#endif
 	
 				// restore the absolute value of timesync
 				timesync = call PacketTimeSyncOffset.isSet(txMsg) ? ((void*)txMsg) + call PacketTimeSyncOffset.get(txMsg) : (void*)NULL;
@@ -884,6 +910,8 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		
 	}
 	
+
+	
 	void _downloadMessage() {
 
 		uint8_t hdrlen, remains;
@@ -901,6 +929,8 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		RADIO_ASSERT( call SpiResource.isOwner() );
 		RADIO_ASSERT( chip.cmd == CMD_RX_WAIT || chip.cmd == CMD_RX_FINISH || chip.cmd == CMD_RX_ABORT );
 
+		DIAGMSG_CHIP();
+		
 		call NSEL.clr();
 		call FastSpiByte.write(SI443X_SPI_READ | SI443X_FIFO);
 
