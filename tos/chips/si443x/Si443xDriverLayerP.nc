@@ -357,26 +357,30 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		chip.state = STATE_RX;
 	}
 
-	void _frequencyChange(uint8_t f10MHz, uint16_t fKHz) {
+	void _frequencyChange(uint8_t f10MHz, uint16_t fKHz, uint32_t milliHz) {
 		uint16_t freq;
 		
 		RADIO_ASSERT( f10MHz >= 24 && f10MHz <= 95 );
 		RADIO_ASSERT( fKHz >= 0 && fKHz <= 9999 );
-	
-		// fb (refer to AN440.pdf (Si443x Register Descriptions) page 55.)
-		freq = ( f10MHz >= 48 ) ? ( f10MHz - 48 + SI443X_FREQ_HBSEL) : f10MHz - 24;	
-		writeRegister(0x75, SI443X_FREQ_BAND_MISC | (uint8_t)freq );
-			
+		
+		// 240-479 Mhz		
+		if ( f10MHz < 48) {
+			writeRegister(0x75, SI443X_FREQ_BAND_MISC | (f10MHz - 24));
+			freq = ((uint64_t)fKHz*1000*100 + milliHz ) / 15625;
+		} 
+		// 480 - 959 Mhz
+		else {
+			fKHz += ( f10MHz & 0x01 ) ? 10000 : 0;
+			writeRegister(0x75, SI443X_FREQ_BAND_MISC | SI443X_FREQ_HBSEL | ((f10MHz >> 1) - 24) );
+			freq = ((uint64_t)fKHz*1000*100 + milliHz ) / 31250;
+		}
 		// fc
-		freq = ( f10MHz >= 48 ) ? (uint16_t)(( (uint32_t)fKHz * 5) >> 4) : (uint16_t)(( (uint32_t)fKHz *5) >> 5);
 		writeRegister(0x77,(uint8_t)freq);
 		writeRegister(0x76,(uint8_t)(freq >> 8));
 			
 		// frequency offset
 		writeRegister(0x73,0x00);
 		writeRegister(0x74,0x00);
-		
-	
 	}
 
 	inline void _channel() {
@@ -425,6 +429,11 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		writeRegister(0x08, 0x10);	    // multi receive
 		writeRegister(0x6D, 0x1F);	    // max power, LNA switch set
 
+		
+		//#define WORKING_MODEM
+		#ifdef WORKING_MODEM
+		
+		// Working, OOK, 8kbps, no AFC, 100kHZ freqdev, 400kHz OOK BW
 		writeRegister( 0x1C, 0x9A );
 		writeRegister( 0x1D, 0x3C );
 		writeRegister( 0x1E, 0x02 );
@@ -454,53 +463,42 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		writeRegister( 0x70, 0x2F );
 		writeRegister( 0x71, 0x21 );
 		writeRegister( 0x72, 0xA0 );
-		
-/*		writeRegister( 0x75, 0x4B );    // carrier freq
-		writeRegister( 0x76, 0x7D );
-		writeRegister( 0x77, 0x00 );
-	*/	
-		_frequencyChange(SI443X_BASE_FREQ_10MHZ, SI443X_BASE_FREQ_KHZ);		
-		writeRegister(SI443X_CHANNEL_STEPSIZE, SI443X_CHANNEL_STEP_10KHZ);
-		writeRegister(SI443X_CHANNEL_SELECT, SI443X_DEF_CHANNEL);
-		
-/*
-		writeRegister(0x08, 0x10);		// multi receive
-		writeRegister(0x6D, 0x1F);		// max power, LNA switch set
-
-		writeRegister( 0x1C, 0x8A );
+		#else
+				
+		writeRegister( 0x1C, 0x9B );
 		writeRegister( 0x1D, 0x3C );
 		writeRegister( 0x1E, 0x02 );
 		writeRegister( 0x1F, 0x00 );
-		writeRegister( 0x20, 0x18 );
-		writeRegister( 0x21, 0x02 );
-		writeRegister( 0x22, 0xB8 );
-		writeRegister( 0x23, 0x52 );
-		writeRegister( 0x24, 0x15 );
-		writeRegister( 0x25, 0x57 );
-
+		writeRegister( 0x20, 0x77 );
+		writeRegister( 0x21, 0x20 );
+		writeRegister( 0x22, 0x2B );
+		writeRegister( 0x23, 0xB1 );
+		writeRegister( 0x24, 0x10 );
+		writeRegister( 0x25, 0x1E );
+		
 		writeRegister( 0x2A, 0xFF );
 		writeRegister( 0x2C, 0x18 );
-		writeRegister( 0x2D, 0x02 );
-		writeRegister( 0x2E, 0x26 );
-
+		writeRegister( 0x2D, 0x4E );
+		writeRegister( 0x2E, 0x2A );
+		
 		writeRegister( 0x30, 0x8D );
 		writeRegister( 0x32, 0x00 );
 		writeRegister( 0x33, 0x00 );
 		writeRegister( 0x34, 0x08 );
 		writeRegister( 0x35, 0x2A );
-
-		writeRegister( 0x58, 0xED );
+		
+		writeRegister( 0x58, 0x80 );
 		writeRegister( 0x69, 0x60 );
 		writeRegister( 0x6E, 0x41 );
-		writeRegister( 0x6F, 0x48 );
-		writeRegister( 0x70, 0x0F );
-		writeRegister( 0x71, 0x21 );
-		writeRegister( 0x72, 0xA0 );
-
-		_frequencyChange(SI443X_BASE_FREQ_10MHZ, SI443X_BASE_FREQ_KHZ);
-		writeRegister(SI443X_CHANNEL_STEPSIZE, SI443X_CHANNEL_STEP_10KHZ);
-		writeRegister(SI443X_CHANNEL_SELECT, SI443X_DEF_CHANNEL);*/
+		writeRegister( 0x6F, 0x89 );
+		writeRegister( 0x70, 0x2F );
+		writeRegister( 0x71, 0x23 );
+		writeRegister( 0x72, 0xA0 );		
 		
+		#endif
+		_frequencyChange(SI443X_BASE_FREQ_10MHZ, SI443X_BASE_FREQ_KHZ, SI443X_BASE_FREQ_MILLIHZ );		
+		writeRegister(SI443X_CHANNEL_STEPSIZE, SI443X_CHANNEL_STEP_10KHZ);
+		writeRegister(SI443X_CHANNEL_SELECT, SI443X_DEF_CHANNEL);
 	}
 
 	uint8_t _readRssi() {
@@ -843,18 +841,23 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 				{
 					uint32_t freq = 0;
 					uint8_t band = readRegister(0x75);
-					uint8_t multi = ( (band & SI443X_FREQ_HBSEL) != 0) ? 20 : 10;
+					uint8_t multi = ( (band & SI443X_FREQ_HBSEL) != 0) ? 2 : 1;
 					uint8_t fc1 = readRegister(0x76);
 					uint8_t fc2 = readRegister(0x77);
 					uint16_t fc = (((uint16_t)fc1) << 8 ) + fc2;
 
-					freq += ((uint32_t)(band & SI443X_FREQ_BAND_MASK) + 24)*multi*1000;
-					freq += ((((uint32_t)fc) * multi ) >> 6);						
-					freq += (uint32_t)readRegister(0x79) * readRegister(0x7A) * 10;
+					freq += ((uint32_t)(band & SI443X_FREQ_BAND_MASK) + 24)*multi*10000*1000;
+					freq += ((((uint32_t)fc) * multi * 10000) >> 6);
+					freq += (uint32_t)readRegister(0x79) * readRegister(0x7A) * 10 * 1000;
 										
 					call DiagMsg.str("freq");
+					call DiagMsg.uint8(band);
+					call DiagMsg.uint8(multi);
+					call DiagMsg.uint8(fc1);
+					call DiagMsg.uint8(fc2);
+					call DiagMsg.uint16(fc);
 					call DiagMsg.uint32( freq );
-					call DiagMsg.str("kHz");
+					call DiagMsg.str("Hz");
 					call DiagMsg.send();
 				}
 				#endif
@@ -1049,7 +1052,6 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 	event void Boot.booted() {
 		DM_ENABLE = TRUE;
 		DIAGMSG_STR("booted","!");
-
 	}
 #endif
 
