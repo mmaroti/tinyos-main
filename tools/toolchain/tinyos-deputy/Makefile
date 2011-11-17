@@ -43,7 +43,7 @@ CONFIGURE_OPTS=--prefix=$(PREFIX)
 #INSTALL_OPTS=
 
 #package options
-PKG_NAME=tinyos-$(SRCNAME)
+PKG_NAME=$(SRCNAME)-tinyos
 #PKG_VERSION=$(VERSION)
 #PKG_RELEASE=$(shell date +%Y%m%d)
 #PKG_HOST=$(shell echo $(HOST)|sed 's/.*64/amd64/'|sed 's/.*86/i386/')
@@ -61,3 +61,4 @@ Generic.mk:
 	which ocaml
 
 -cleanup:
+	rm -f $(PKG_DIR)/usr/lib/deputy/bin/deputy.byte.exe

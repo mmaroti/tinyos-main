@@ -1,5 +1,5 @@
 Summary: Deputy compiler for Safe TinyOS.
-Name: tinyos-deputy
+Name: deputy-tinyos
 Version: PKG_VERSION
 Release: PKG_RELEASE
 License: GNU GPL Version 2
