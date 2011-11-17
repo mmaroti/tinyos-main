@@ -1,0 +1,11 @@
+Package: tinyos-deputy
+Version: PKG_VERSION
+Section: devel
+Priority: optional
+Architecture: any
+Depends: perl-base (>= 5.6.1), gcc (>= 4)
+Recommends: ocaml-interp (>= 3.08)
+Maintainer: Andras Biro, John Regher
+Description: Deputy compiler for Safe TinyOS.
+
+
