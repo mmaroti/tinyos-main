@@ -10,7 +10,7 @@ Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-root
 
 %description
-
+Deputy compiler for Safe TinyOS.
 
 %files
 %defattr(-,root,root,-)
