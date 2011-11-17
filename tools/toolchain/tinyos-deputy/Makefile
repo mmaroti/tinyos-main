@@ -39,7 +39,7 @@ DOWNLOAD_URL=http://www.cs.utah.edu/~regehr/$(SRC_ARCHIVE).$(ARCHIVE_FORMAT)
 
 #confiure and compile options
 PREFIX=/usr
-CONFIGURE_OPTS=--prefix=$(PREFIX) --mandir=$(PREFIX)/share/man
+CONFIGURE_OPTS=--prefix=$(PREFIX)
 #INSTALL_OPTS=
 
 #package options
