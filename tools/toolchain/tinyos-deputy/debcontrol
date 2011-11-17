@@ -1,4 +1,4 @@
-Package: tinyos-deputy
+Package: deputy-tinyos
 Version: PKG_VERSION
 Section: devel
 Priority: optional
