@@ -35,7 +35,7 @@ SRCNAME=deputy
 VERSION=1.1
 SRC_ARCHIVE=$(SRCNAME)-$(VERSION)-111611
 ARCHIVE_FORMAT=tar.gz
-DOWNLOAD_URL=http://www.cs.utah.edu/~regehr/$(SRC_ARCHIVE).$(ARCHIVE_FORMAT)
+DOWNLOAD_URL=http://sourceforge.net/projects/szte-wsn/files/$(SRCNAME)/$(SRC_ARCHIVE).$(ARCHIVE_FORMAT)
 
 #confiure and compile options
 PREFIX=/usr
