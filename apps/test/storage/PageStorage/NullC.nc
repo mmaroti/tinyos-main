@@ -94,7 +94,7 @@ implementation
   }
   
   event void Boot.booted() {
-    fillbuffer2(buffer,10);
+    fillbuffer(buffer,10);
     call Leds.set(0xff);
     call SplitControl.start();
   }
@@ -109,38 +109,37 @@ implementation
       call DiagMsg.send();
     }
     call Leds.set(0);
-    //err=call PageStorage.erase(0, FALSE);
-    err=call PageStorage.read(0,buffer);
+    err=call PageStorage.erase(0, FALSE);
+    //err=call PageStorage.read(0,buffer);
     if(call DiagMsg.record()){
-      call DiagMsg.chr('r');
+      call DiagMsg.chr('e');
       call DiagMsg.uint8(err);
       call DiagMsg.send();
     }
   }
   
-  event void PageStorage.eraseDone(uint16_t pageNum, bool realErase, error_t error){
+  event void PageStorage.eraseDone(uint32_t sectorNum, bool realErase, error_t error){
     if(call DiagMsg.record()){
       call DiagMsg.chr('E');
       call DiagMsg.uint8(error);
       call DiagMsg.send();
     }
-    //err=call PageStorage.write(0, buffer);
-    err=call PageStorage.read(0,buffer);
+    err=call PageStorage.write(0, buffer);
+    //err=call PageStorage.read(0,buffer);
     if(call DiagMsg.record()){
       call DiagMsg.chr('w');
       call DiagMsg.uint8(err);
-//       call DiagMsg.uint16((uint16_t)buffer);
       call DiagMsg.send();
     }
   }
   
-  event void PageStorage.writeDone(uint16_t pageNum, uint8_t *buff, error_t error){
+  event void PageStorage.writeDone(uint32_t pageNum, void *buff, error_t error){
     if(call DiagMsg.record()){
       call DiagMsg.chr('W');
       call DiagMsg.uint8(error);
       call DiagMsg.send();
     }
-    fillbuffer2(buffer,33);
+    fillbuffer2(buffer,0xab);
     err=call PageStorage.read(0, buffer);
     if(call DiagMsg.record()){
       call DiagMsg.chr('r');
@@ -150,7 +149,7 @@ implementation
     }    
   }
   
-  event void PageStorage.readDone(uint16_t pageNum, uint8_t *buff, error_t error){
+  event void PageStorage.readDone(uint32_t pageNum, void *buff, error_t error){
     if(call DiagMsg.record()){
       call DiagMsg.chr('R');
       call DiagMsg.uint8(error);
