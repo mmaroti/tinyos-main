@@ -1,4 +1,6 @@
 #include "StorageVolumes.h"
+#include "Stm25p.h"
+
 module Stm25pPageStorageP {
   provides interface PageStorage[uint8_t id];
   provides interface Stm25pVolume as Volume[ uint8_t id ];
@@ -35,8 +37,19 @@ implementation{
     return signal Volume.getVolumeId[ client ]();
   }  
   
-  uint16_t physicalAddr(uint8_t id, uint16_t page) {
-    return page+(STM25P_VMAP[getVolumeId(id)].base<<(STM25P_SECTOR_SIZE_LOG2-STM25P_PAGE_SIZE_LOG2));
+  inline uint16_t physicalSector(uint8_t id,uint16_t page){
+    uint16_t ret = STM25P_VMAP[getVolumeId(id)].base+(page>>(STM25P_SECTOR_SIZE_LOG2-STM25P_PAGE_SIZE_LOG2));
+    return ret;
+  }
+  
+  inline uint16_t physicalPage(uint8_t id, uint16_t page) {
+    uint16_t ret=page+(STM25P_VMAP[getVolumeId(id)].base<<(STM25P_SECTOR_SIZE_LOG2-STM25P_PAGE_SIZE_LOG2));
+    return ret;
+  }
+  
+  inline stm25p_addr_t page2addr(uint16_t page) {
+    stm25p_addr_t ret=(uint32_t)(page)<<STM25P_PAGE_SIZE_LOG2;
+    return ret;
   }
 
   task void runRequests(){
@@ -62,6 +75,15 @@ implementation{
     clients[currentClient].status=S_IDLE;
     switch(prevstatus){
       case S_READ:{
+        if(call DiagMsg.record()){
+          call DiagMsg.str("i");
+          call DiagMsg.uint8(currentClient);
+          call DiagMsg.str("a");
+          call DiagMsg.uint8(clients[currentClient].pageNum);
+          call DiagMsg.str("b");
+          call DiagMsg.hex8s(clients[currentClient].buffer+10,16);
+          call DiagMsg.send();
+        }
         signal PageStorage.readDone[currentClient](clients[currentClient].pageNum, clients[currentClient].buffer, currentError);
       }break;
       case S_WRITE:{
@@ -79,13 +101,14 @@ implementation{
   }
   
   
-  command error_t PageStorage.read[uint8_t id](uint16_t pageNum, void *buffer){
+  command error_t PageStorage.read[uint8_t id](uint16_t pageNum, uint8_t *buffer){
     if(clients[id].status==S_READ)
       return EALREADY;
     else if(clients[id].status!=S_IDLE)
       return EBUSY;
+    
     clients[id].status=S_READ;
-    clients[id].pageNum=physicalAddr(id, pageNum);
+    clients[id].pageNum=physicalPage(id, pageNum);
     clients[id].buffer=buffer;
     if(currentClient==NOCLIENT){
       currentClient=id;
@@ -94,14 +117,22 @@ implementation{
     return SUCCESS;
   }
   
-  command error_t PageStorage.write[uint8_t id](uint16_t pageNum, void *buffer){
+  command error_t PageStorage.write[uint8_t id](uint16_t pageNum, uint8_t *buffer){
     if(clients[id].status==S_WRITE)
       return EALREADY;
     else if(clients[id].status!=S_IDLE)
       return EBUSY;
+    
     clients[id].status=S_WRITE;
-    clients[id].pageNum=physicalAddr(id, pageNum);
+    clients[id].pageNum=physicalPage(id, pageNum);
     clients[id].buffer=buffer;
+    if(call DiagMsg.record()){
+      call DiagMsg.str("i");
+      call DiagMsg.uint8(id);
+      call DiagMsg.str("b");
+      call DiagMsg.hex8s(clients[id].buffer,16);
+      call DiagMsg.send();
+    }
     if(currentClient==NOCLIENT){
       currentClient=id;
       post runRequests();
@@ -114,9 +145,11 @@ implementation{
       return EALREADY;
     else if(clients[id].status!=S_IDLE)
       return EBUSY;
-    clients[id].pageNum=physicalAddr(id, pageNum);
-    if(clients[id].pageNum%(STM25P_SECTOR_SIZE>>STM25P_PAGE_SIZE_LOG2))
-      return EINVAL;
+    clients[id].pageNum=physicalSector(id, pageNum);
+//TODO
+//     if(clients[id].pageNum%(STM25P_SECTOR_SIZE>>STM25P_PAGE_SIZE_LOG2))
+//       return EINVAL;
+
     if(realErase)
       clients[id].status=S_REAL_ERASE;
     else
@@ -141,14 +174,31 @@ implementation{
       SpiDone(ret);
     switch(clients[currentClient].status){
       case S_READ:{
-        ret=call Stm25pSpi.read(((uint32_t)clients[currentClient].pageNum<<STM25P_PAGE_SIZE_LOG2),clients[currentClient].buffer,STM25P_PAGE_SIZE);
+        if(call DiagMsg.record()){
+          call DiagMsg.str("i");
+          call DiagMsg.uint8(currentClient);
+          call DiagMsg.str("a");
+          call DiagMsg.uint32(clients[currentClient].pageNum);
+          call DiagMsg.uint32(page2addr(clients[currentClient].pageNum));
+          call DiagMsg.str("b");
+          call DiagMsg.hex8s(clients[currentClient].buffer,16);
+          call DiagMsg.send();
+        }
+        ret=call Stm25pSpi.read(page2addr(clients[currentClient].pageNum),clients[currentClient].buffer,STM25P_PAGE_SIZE);
       }break;
       case S_WRITE:{
-        ret=call Stm25pSpi.pageProgram(((uint32_t)clients[currentClient].pageNum<<STM25P_PAGE_SIZE_LOG2),clients[currentClient].buffer,STM25P_PAGE_SIZE);
+        if(call DiagMsg.record()){
+          call DiagMsg.str("i");
+          call DiagMsg.uint8(currentClient);
+          call DiagMsg.str("b");
+          call DiagMsg.hex8s(clients[currentClient].buffer,16);
+          call DiagMsg.send();
+        }
+        ret=call Stm25pSpi.pageProgram(page2addr(clients[currentClient].pageNum),clients[currentClient].buffer,STM25P_PAGE_SIZE);
       }break;
       case S_REAL_ERASE://no difference on this chip
       case S_ERASE:{
-        ret=call Stm25pSpi.sectorErase(clients[currentClient].pageNum>>(STM25P_SECTOR_SIZE_LOG2-STM25P_PAGE_SIZE_LOG2));
+        ret=call Stm25pSpi.sectorErase(clients[currentClient].pageNum);
       }break;
     }
     if(ret!=SUCCESS)
@@ -156,14 +206,37 @@ implementation{
   }
  
   async event void Stm25pSpi.readDone( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len, error_t error ){
+    if(call DiagMsg.record()){
+      call DiagMsg.str("a");
+      call DiagMsg.uint32(addr);
+      call DiagMsg.str("l");
+      call DiagMsg.uint32(len);
+//       call DiagMsg.hex16(buf);
+//       call DiagMsg.hex16(clients[currentClient].buffer);
+      call DiagMsg.send();
+    }
     SpiDone(error);
   }
 
   async event void Stm25pSpi.pageProgramDone( stm25p_addr_t addr, uint8_t* buf, stm25p_len_t len, error_t error ){
+    if(call DiagMsg.record()){
+      call DiagMsg.str("a");
+      call DiagMsg.uint32(addr);
+      call DiagMsg.str("l");
+      call DiagMsg.uint32(len);
+//       call DiagMsg.uint16(buf);
+//       call DiagMsg.uint16(clients[currentClient].buffer);
+      call DiagMsg.send();
+    }
     SpiDone(error);
   }
 
   async event void Stm25pSpi.sectorEraseDone( uint8_t sector, error_t error ){
+    if(call DiagMsg.record()){
+      call DiagMsg.str("a");
+      call DiagMsg.uint8(sector);
+      call DiagMsg.send();
+    }
     SpiDone(error);
   }
   
@@ -173,8 +246,8 @@ implementation{
   async event void Stm25pSpi.bulkEraseDone( error_t error ){}
   async event void Stm25pSpi.computeCrcDone( uint16_t crc, stm25p_addr_t addr, stm25p_len_t len, error_t error ){}
  
-  default event void PageStorage.readDone[uint8_t id](uint16_t pageNum, void *buffer, error_t error){}
-  default event void PageStorage.writeDone[uint8_t id](uint16_t pageNum, void *buffer, error_t error){}
+  default event void PageStorage.readDone[uint8_t id](uint16_t pageNum, uint8_t *buffer, error_t error){}
+  default event void PageStorage.writeDone[uint8_t id](uint16_t pageNum, uint8_t *buffer, error_t error){}
   default event void PageStorage.eraseDone[uint8_t id](uint16_t pageNum, bool realErase, error_t error){}
   default async event volume_id_t Volume.getVolumeId[ uint8_t id ]() { return 0xff; }
 }

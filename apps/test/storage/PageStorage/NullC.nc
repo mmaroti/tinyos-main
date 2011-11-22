@@ -81,26 +81,26 @@ implementation
     }
   }
   
-  inline void fillbuffer(void *buf, uint8_t start){
+  inline void fillbuffer(uint8_t *buf, uint8_t start){
     uint16_t i;
     for(i=0;i<buflen;i++)
-      buffer[i]=i+start;
+      *(buf+i)=i+start;
   }
   
-  inline void fillbuffer2(void *buf, uint8_t val){
+  inline void fillbuffer2(uint8_t *buf, uint8_t val){
     uint16_t i;
     for(i=0;i<buflen;i++)
-      buffer[i]=val;
+      *(buf+i)=val;
   }
   
   event void Boot.booted() {
-    fillbuffer(buffer,10);
+    fillbuffer2(buffer,10);
     call Leds.set(0xff);
     call SplitControl.start();
   }
   
   event void SplitControl.startDone(error_t error){
-    call Timer.startOneShot(5000);
+    call Timer.startOneShot(500);
   }
   
   event void Timer.fired(){
@@ -109,9 +109,10 @@ implementation
       call DiagMsg.send();
     }
     call Leds.set(0);
-    err=call PageStorage.erase(0, FALSE);
+    //err=call PageStorage.erase(0, FALSE);
+    err=call PageStorage.read(0,buffer);
     if(call DiagMsg.record()){
-      call DiagMsg.chr('e');
+      call DiagMsg.chr('r');
       call DiagMsg.uint8(err);
       call DiagMsg.send();
     }
@@ -120,36 +121,42 @@ implementation
   event void PageStorage.eraseDone(uint16_t pageNum, bool realErase, error_t error){
     if(call DiagMsg.record()){
       call DiagMsg.chr('E');
+      call DiagMsg.uint8(error);
       call DiagMsg.send();
     }
-    err=call PageStorage.write(0, buffer);
+    //err=call PageStorage.write(0, buffer);
+    err=call PageStorage.read(0,buffer);
     if(call DiagMsg.record()){
       call DiagMsg.chr('w');
       call DiagMsg.uint8(err);
+//       call DiagMsg.uint16((uint16_t)buffer);
       call DiagMsg.send();
     }
   }
   
-  event void PageStorage.writeDone(uint16_t pageNum, void *buff, error_t error){
+  event void PageStorage.writeDone(uint16_t pageNum, uint8_t *buff, error_t error){
     if(call DiagMsg.record()){
       call DiagMsg.chr('W');
+      call DiagMsg.uint8(error);
       call DiagMsg.send();
     }
-    fillbuffer2(buffer,0);
+    fillbuffer2(buffer,33);
     err=call PageStorage.read(0, buffer);
     if(call DiagMsg.record()){
       call DiagMsg.chr('r');
       call DiagMsg.uint8(err);
+//       call DiagMsg.uint16((uint16_t)buffer);
       call DiagMsg.send();
     }    
   }
   
-  event void PageStorage.readDone(uint16_t pageNum, void *buff, error_t error){
+  event void PageStorage.readDone(uint16_t pageNum, uint8_t *buff, error_t error){
     if(call DiagMsg.record()){
       call DiagMsg.chr('R');
+      call DiagMsg.uint8(error);
       call DiagMsg.send();
     }
-    printbuffer(buffer, 300);
+    printbuffer(buff, 300);
   }
   
   event void SplitControl.stopDone(error_t error){}
