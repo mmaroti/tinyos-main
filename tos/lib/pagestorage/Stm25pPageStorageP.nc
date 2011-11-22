@@ -32,6 +32,8 @@ implementation{
   client_data clients[N];
   
   command error_t PageStorage.read[uint8_t id](uint32_t pageNum, void *buffer){
+    if(pageNum >= (uint32_t)(call Sector.getNumSectors[id]() << (STM25P_SECTOR_SIZE_LOG2-STM25P_PAGE_SIZE_LOG2)))
+      return EINVAL;
     if(clients[id].status==S_READ)
       return EALREADY;
     else if(clients[id].status!=S_IDLE)
@@ -43,6 +45,8 @@ implementation{
     return call ClientResource.request[id]();
   }
   command error_t PageStorage.write[uint8_t id](uint32_t pageNum, void *buffer){
+    if(pageNum >= (uint32_t)(call Sector.getNumSectors[id]() << (STM25P_SECTOR_SIZE_LOG2-STM25P_PAGE_SIZE_LOG2)))
+      return EINVAL;
     if(clients[id].status==S_WRITE)
       return EALREADY;
     else if(clients[id].status!=S_IDLE)
@@ -55,6 +59,8 @@ implementation{
   }
   
   command error_t PageStorage.erase[uint8_t id](uint32_t sectorNum, bool realErase){
+    if(sectorNum >= call Sector.getNumSectors[id]())
+      return EINVAL;
     if(clients[id].status==S_ERASE)
       return EALREADY;
     else if(clients[id].status!=S_IDLE)
