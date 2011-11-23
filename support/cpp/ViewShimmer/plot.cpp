@@ -150,25 +150,14 @@ void Plot::addMoteCurve(int moteID)
 
     int pos = application.moteDataHolder.findMotePos(*moteData);
 
-    if(moteID ==  -1){
-        curve = new MoteCurve("Online Mote");
+    curve = new MoteCurve("Mote: "+QString::number(moteID));
 
-        curve->setStyle(QwtPlotCurve::Lines);
+    curve->setStyle(QwtPlotCurve::Lines);
 
-        QColor curveColor = QColor(Qt::red);
-        curve->setColor(curveColor);
+    QColor curveColor = QColor(Qt::red);
+    curveColor.setHsv(pos*(359/4),255,255);
 
-        showCurve(curve, true);
-    } else {
-        curve = new MoteCurve("Mote: "+QString::number(moteID));
-
-        curve->setStyle(QwtPlotCurve::Lines);
-
-        QColor curveColor = QColor(Qt::red);
-        curveColor.setHsv(pos*(359/4),255,255);
-
-        curve->setColor(curveColor);
-    }
+    curve->setColor(curveColor);
 
 #if 1
     curve->setRenderHint(QwtPlotItem::RenderAntialiased, true);
@@ -176,7 +165,7 @@ void Plot::addMoteCurve(int moteID)
 #if 1
     curve->setPaintAttribute(QwtPlotCurve::ClipPolygons, false);
 #endif
-    curve->setData(application.window.curve_data_at(pos)); //TODO
+    curve->setData(application.window.curve_data_at(pos));
     curve->attach(this);
 
     d_curves.append(curve);

@@ -44,10 +44,13 @@ public:
     }
 
     void createCurveData();
+    void createMoteCurve(int moteID);
     void calculateCurveDatas(double zoomRatio);
     void clearCurveDatas();
     void clearCopyDatas();
     void clearMarkers();
+
+    int replot_counter;
 
 Q_SIGNALS:
     void signalIntervalChanged(double);

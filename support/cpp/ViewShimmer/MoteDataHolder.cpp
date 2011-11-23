@@ -145,8 +145,6 @@ void MoteDataHolder::createMoteDataFromOnline(int moteID)
     moteData->setParam(OFFSET, 0.0);
 
     motes.append(moteData);
-
-    application.window.createCurveData();
 }
 
 

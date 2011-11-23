@@ -195,6 +195,8 @@ void ConnectWidget::onReceiveMessage(const ActiveMessage & msg)
 
                 if( application.moteDataHolder.getMoteData(msg.source) == NULL ){
                     application.moteDataHolder.createMoteDataFromOnline(msg.source);
+                    application.window.createCurveData();
+                    application.window.createMoteCurve(msg.source);
                 } else {
 
                 }
