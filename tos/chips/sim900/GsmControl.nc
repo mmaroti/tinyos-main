@@ -6,6 +6,6 @@ interface GsmControl
 	
 	event void connectToGSMDone(error_t err);
 	event void disconnectFromGSMDone(error_t err);
-	event void SendToGSMDone(error_t err);
-	
+	event void sendToGSMDone(error_t err);
+	event void receivedData(char* receiveMsg);
 }

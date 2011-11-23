@@ -3,6 +3,7 @@ configuration GSMActiveMessageC{
 	{
 		interface SplitControl;
 		interface AMSend;
+		interface Receive;
 
 	}
 }
@@ -22,6 +23,7 @@ implementation{
 	
 	SplitControl=GSMActiveMessageP.SplitControl;
 	AMSend=GSMActiveMessageP.AMSend;
+	Receive=GSMActiveMessageP.Receive;
 	
 	UART.Counter -> CounterMicro32C;
 	CTSINT.Atm128Interrupt -> INT.Int2;
@@ -31,7 +33,7 @@ implementation{
   	GSMDriverP.ON->MicaBusC.PW3;
 	GSMDriverP.UartStream->UART;
 	GSMDriverP.StdControl->UART;
-	GSMDriverP.TimerStart->Timer0;
+	GSMDriverP.TimerPower->Timer0;
 	GSMDriverP.TimerAnswer->Timer1;
 	GSMDriverP.TimerDelay->Timer3;
 	GSMActiveMessageP.GsmControl->GSMDriverP.GsmControl; 
