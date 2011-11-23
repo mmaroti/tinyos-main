@@ -62,8 +62,5 @@ implementation {
   NullC.Timer->TimerMilliC;
   NullC.SplitControl->SerialActiveMessageC;
   NullC.PageStorage->PageStorageC;
-  
-  components Stm25pPageStorageP;
-  Stm25pPageStorageP.DiagMsg->DiagMsgC;
 }
 

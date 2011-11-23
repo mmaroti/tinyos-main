@@ -31,16 +31,13 @@
 *
 * Author: Andras Biro
 */ 
-#include "StorageVolumes.h"
+
 #include "Stm25p.h"
 
 module Stm25pPageStorageP {
   provides interface PageStorage[uint8_t id];
-  //provides interface Stm25pVolume as Volume[ uint8_t id ];
   uses interface Stm25pSector as Sector[ uint8_t id ];
   uses interface Resource as ClientResource[ uint8_t id ];
-  uses interface Leds;
-  uses interface DiagMsg;
 }
 
 implementation{

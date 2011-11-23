@@ -31,7 +31,9 @@
 *
 * Author: Andras Biro
 */ 
+
 #include "Stm25p.h"
+
 generic configuration Stm25pPageStorageC(volume_id_t volume_id) {
   provides interface PageStorage;
 }
