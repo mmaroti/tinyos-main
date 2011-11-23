@@ -38,10 +38,11 @@ MainWindow::MainWindow(QWidget *parent, Application &app):
 
     setCentralWidget(d_plot);
 
-    onlineCurve = new CurveData();
-    curve_datas.append(onlineCurve);
-    d_plot->setMoteCurve(-1);
-    scrollBar = new ScrollBar();
+    //onlineCurve = new CurveData();
+    //curve_datas.append(onlineCurve);
+    //d_plot->setMoteCurve(-1);
+    //scrollBar = new ScrollBar(Qt::Horizontal,d_plot->canvas());
+
 
     QToolBar *toolBar = new QToolBar(this);    
 
@@ -469,17 +470,52 @@ void MainWindow::enableSDownloader()
 void MainWindow::enableOnlineMode(bool on)
 {
     if(on == true){
+        btnLoad->setChecked(false);
         btnZoom->setChecked(false);
         btnMarker->setChecked(false);
         btnCopy->setChecked(false);
         btnCut->setChecked(false);
 
+        btnLoad->setDisabled(true);
+        btnClear->setDisabled(true);
+        btnSave->setDisabled(true);
+        btnZoom->setDisabled(true);
+        btnMarker->setDisabled(true);
+        btnCut->setDisabled(true);
+        btnCopy->setDisabled(true);
+        btnPaste->setDisabled(true);        
+        btnSData->setDisabled(true);
+        btnOffset->setDisabled(true);
+
         application.connectWidget.show();
     } else {
+        btnLoad->setDisabled(false);
+        btnClear->setDisabled(false);
+        btnSave->setDisabled(false);
+        btnZoom->setDisabled(false);
+        btnMarker->setDisabled(false);
+        btnCut->setDisabled(false);
+        btnCopy->setDisabled(false);
+        btnPaste->setDisabled(false);
+        btnSData->setDisabled(false);
+        btnOffset->setDisabled(false);
 
+        application.connectWidget.hide();
     }
 }
 
+void MainWindow::createCurveData()
+{
+
+    CurveData* curve_data = new CurveData;
+
+    curve_datas.append(curve_data);
+
+    int curve_pos = curve_datas.size()-1;
+    int moteID = application.moteDataHolder.mote(curve_pos)->getMoteID();
+    d_plot->addMoteCurve(moteID);
+
+}
 
 void MainWindow::calculateCurveDatas(double zoomRatio)
 {
@@ -537,7 +573,7 @@ void MainWindow::calculateCurveDatas(double zoomRatio)
 
         curve_datas.append(curve_data);
 
-        d_plot->setMoteCurve(i);
+        d_plot->addMoteCurve(i);
     }
 
     qDebug() << "startTime: " << startTime << "; endTime: " << endTime;
@@ -552,18 +588,28 @@ void MainWindow::calculateCurveDatas(double zoomRatio)
     qDebug() << "Number of curve points: " << curve_datas[0]->size();
 }
 
-void MainWindow::onOnlineSampleAdded()
+void MainWindow::onOnlineSampleAdded(int moteID)
 {
-    double value;
-    value = application.dataRecorder.at( application.dataRecorder.size()-1 ).xAccel;
-    double time;
-    time = application.dataRecorder.size()-1;
+    MoteData* moteData = application.moteDataHolder.getMoteData(moteID);
+    int pos = application.moteDataHolder.findMotePos(*moteData);
 
-    if(time >= 20)    d_plot->createZoomer();
+    double value;
+    value = moteData->sampleAt(moteData->samplesSize()-1).xAccel;
+    double time;
+    time = (moteData->samplesSize()-1)/204.8;
+
+    /*if(time == 200){
+        d_plot->createZoomer();
+        d_plot->zoom();
+    }
+    if(time > 300){
+        d_plot->updateScroll();
+    }*/
 
     QPointF point(time, value);
 
-    onlineCurve->append(point);
+    curve_datas[pos]->append(point);
+    //scrollBar->setMaximum(scrollBar->maximum()+1);
 
     d_plot->replot();
 }
@@ -744,7 +790,7 @@ void MainWindow::paste(QPointF pos)
             //create moteData from header information
             while ( !line.isEmpty() && line != "#mote,reboot_ID,unix_time,mote_time,counter,accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z,volt,temp" )
             {
-                application.moteDataHolder.createMoteData(line);            //convert line string to mote header data
+                application.moteDataHolder.createMoteDataFromCSV(line);            //convert line string to mote header data
                 line = stream.readLine();         // line of text excluding '\n'
             }
 

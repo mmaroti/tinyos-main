@@ -142,49 +142,44 @@ Plot::~Plot()
     delete d_directPainter;
 }
 
-void Plot::setMoteCurve(int mote)
+void Plot::addMoteCurve(int moteID)
 {
-    if(mote ==  -1){
-        MoteCurve* curve = new MoteCurve("Online Mote");
+    MoteCurve* curve;
+
+    MoteData* moteData = application.moteDataHolder.getMoteData(moteID);
+
+    int pos = application.moteDataHolder.findMotePos(*moteData);
+
+    if(moteID ==  -1){
+        curve = new MoteCurve("Online Mote");
 
         curve->setStyle(QwtPlotCurve::Lines);
 
         QColor curveColor = QColor(Qt::red);
         curve->setColor(curveColor);
-    #if 1
-        curve->setRenderHint(QwtPlotItem::RenderAntialiased, true);
-    #endif
-    #if 1
-        curve->setPaintAttribute(QwtPlotCurve::ClipPolygons, false);
-    #endif
-        curve->setData(application.window.curve_data_at(0));
-        curve->attach(this);
-
-        d_curves.append(curve);
 
         showCurve(curve, true);
     } else {
-        MoteCurve* curve = new MoteCurve("Mote: "+QString::number(application.moteDataHolder.mote(mote)->getMoteID()));
+        curve = new MoteCurve("Mote: "+QString::number(moteID));
 
         curve->setStyle(QwtPlotCurve::Lines);
 
         QColor curveColor = QColor(Qt::red);
-        curveColor.setHsv(mote*(359/4),255,255);
+        curveColor.setHsv(pos*(359/4),255,255);
 
         curve->setColor(curveColor);
-    #if 1
-        curve->setRenderHint(QwtPlotItem::RenderAntialiased, true);
-    #endif
-    #if 1
-        curve->setPaintAttribute(QwtPlotCurve::ClipPolygons, false);
-    #endif
-        curve->setData(application.window.curve_data_at(mote));
-        curve->attach(this);
-
-        d_curves.append(curve);
-
-        showCurve(curve, true);
     }
+
+#if 1
+    curve->setRenderHint(QwtPlotItem::RenderAntialiased, true);
+#endif
+#if 1
+    curve->setPaintAttribute(QwtPlotCurve::ClipPolygons, false);
+#endif
+    curve->setData(application.window.curve_data_at(pos)); //TODO
+    curve->attach(this);
+
+    d_curves.append(curve);
 
 }
 
@@ -238,7 +233,7 @@ void Plot::createZoomer()
 
 void Plot::enableZoomMode(bool on)
 {
-    if(d_zoomer != NULL){
+    if(d_zoomer != NULL && on == true){
         d_zoomer->zoomOut();
         d_zoomer->setEnabled(on); // BUG Segmentation fault
     }
@@ -248,4 +243,18 @@ void Plot::enableZoomMode(bool on)
 void Plot::deleteZoomer()
 {
     delete d_zoomer;
+}
+
+void Plot::zoom()
+{
+    QPoint topLeft(0,canvas()->height());
+    QPoint bottomRight(50,0);
+    QRectF* rect = new QRectF(topLeft, bottomRight);
+
+    d_zoomer->scrollZoom(*rect);
+}
+
+void Plot::updateScroll()
+{
+    d_zoomer->updateScrollBars();
 }

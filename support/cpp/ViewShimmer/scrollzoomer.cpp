@@ -508,6 +508,11 @@ void ScrollZoomer::zoom(const QRectF &rect)
     QwtPlotZoomer::zoom(rect);
 }
 
+void ScrollZoomer::scrollZoom(const QRectF &rect)
+{
+    QwtPlotZoomer::zoom(rect);
+}
+
 void ScrollZoomer::zoomOut()
 {
     application.window.calculateCurveDatas(1.0);

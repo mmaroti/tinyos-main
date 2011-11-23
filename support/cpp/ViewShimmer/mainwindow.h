@@ -22,8 +22,6 @@ class QListWidget;
 class QListWidgetItem;
 class QProgressBar;
 
-
-
 enum CursorMode{
     ZOOM,
     MARKER,
@@ -45,6 +43,7 @@ public:
         return curve_datas.size();
     }
 
+    void createCurveData();
     void calculateCurveDatas(double zoomRatio);
     void clearCurveDatas();
     void clearCopyDatas();
@@ -77,7 +76,7 @@ public Q_SLOTS:
 private slots:
     void on_listWidget_itemDoubleClicked( QListWidgetItem * item );
     void setOffset(const QPointF &  pos );
-    void onOnlineSampleAdded();
+    void onOnlineSampleAdded(int moteID);
 
 private:
     Application &application;
@@ -86,8 +85,8 @@ private:
 
     QwtPlotPicker *d_picker;
 
-    CurveData* onlineCurve;
-    ScrollBar* scrollBar;
+    //CurveData* onlineCurve;
+    //ScrollBar* scrollBar;
 
     QToolButton *btnZoom;
     QToolButton *btnMarker;

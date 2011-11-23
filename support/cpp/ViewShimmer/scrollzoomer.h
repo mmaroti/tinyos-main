@@ -44,13 +44,17 @@ public:
     virtual void rescale();
 
     void zoomOut();
+    void zoom( const QRectF &rect );
+    void scrollZoom( const QRectF &rect );
+    virtual void updateScrollBars();
 
 protected:
     virtual ScrollBar *scrollBar(Qt::Orientation);
-    virtual void updateScrollBars();
+
     virtual void layoutScrollBars(const QRect &);
-    void widgetMouseReleaseEvent( QMouseEvent * );
-    void zoom( const QRectF &rect );
+    void widgetMouseReleaseEvent( QMouseEvent * );    
+
+
 
 private Q_SLOTS:
     void scrollBarMoved(Qt::Orientation o, double min, double max);

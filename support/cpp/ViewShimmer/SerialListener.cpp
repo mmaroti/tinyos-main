@@ -278,9 +278,9 @@ void SerialListener::timerEvent(QTimerEvent *)
 	}
 
         // Emulates message loss
-        int sec = QDateTime::currentDateTime().time().second() % 10;
+        /*int sec = QDateTime::currentDateTime().time().second() % 10;
         if (4<= sec && sec <=6)
-            return;
+            return;*/
 
 	emit receiveMessage(msg);
 }

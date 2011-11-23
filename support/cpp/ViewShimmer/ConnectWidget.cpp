@@ -193,11 +193,10 @@ void ConnectWidget::onReceiveMessage(const ActiveMessage & msg)
 
                 moteItems.insert(msg.source, item);
 
-                // FIXME Temporary hack
-                if (msg.source < 10) {
+                if( application.moteDataHolder.getMoteData(msg.source) == NULL ){
+                    application.moteDataHolder.createMoteDataFromOnline(msg.source);
+                } else {
 
-                    //TODO RPETI
-                    //application.dataRecorder.setCurrentMote(msg.source);
                 }
         }
 }

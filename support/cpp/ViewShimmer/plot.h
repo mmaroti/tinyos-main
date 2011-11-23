@@ -20,12 +20,14 @@ public:
     virtual ~Plot();
 
     //virtual void replot();
-    void setMoteCurve(int mote);
+    void addMoteCurve(int mote);
     void clearCurves();
 
     void createZoomer();
     void enableZoomMode(bool);
     void deleteZoomer();
+    void zoom();
+    void updateScroll();
 
 public Q_SLOTS:
     void showCurve(QwtPlotItem *item, bool on);

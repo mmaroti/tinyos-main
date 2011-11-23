@@ -3,6 +3,7 @@
 
 #include <QVarLengthArray>
 #include "MoteData.h"
+#include "ActiveMessage.hpp"
 
 class Application;
 
@@ -15,11 +16,15 @@ public:
     void loadCSVData( QString filename );
     void saveData( const QString& ) const;
 
-    void createMoteData( const QString& line );
+    void createMoteDataFromCSV( const QString& line );
+    void createMoteDataFromOnline( int moteID );
     const Sample createSample(const QString& str, bool load);
-    MoteData* findMoteID(int id);
+
+    int findMotePos( const MoteData& moteData );
 
     int motesCount() { return motes.size(); }
+
+    MoteData* getMoteData(int id);
 
     MoteData* mote(int i){
             return motes[i];
@@ -39,9 +44,11 @@ public:
 public slots:
     //void on_loadButton_clicked();
 
+    void createSampleFromOnline(const ActiveMessage & msg);
+
 signals:
     void loadFinished();
-
+    void sampleAdded(int mote);
 
 protected:
     void changeEvent(QEvent *e);

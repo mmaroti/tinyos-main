@@ -37,7 +37,7 @@ void MoteDataHolder::loadCSVData(QString filename)
 
             while ( !line.isEmpty() && line != "#mote,reboot_ID,unix_time,mote_time,counter,accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z,volt,temp" )
             {
-                createMoteData(line);            //convert line string to mote header data
+                createMoteDataFromCSV(line);            //convert line string to mote header data
                 line = ts.readLine();         // line of text excluding '\n'
             }
 
@@ -100,7 +100,7 @@ void MoteDataHolder::saveData(const QString& filename) const {
 
 }
 
-void MoteDataHolder::createMoteData(const QString& line)
+void MoteDataHolder::createMoteDataFromCSV(const QString& line)
 {
     QStringList list = line.split(",");
     QStringListIterator csvIterator(list);
@@ -109,7 +109,7 @@ void MoteDataHolder::createMoteData(const QString& line)
 
 
     MoteData* moteData;
-    if ( findMoteID(moteID) != NULL ){
+    if ( getMoteData(moteID) != NULL ){
         return;
     } else {
         moteData = new MoteData();
@@ -132,7 +132,22 @@ void MoteDataHolder::createMoteData(const QString& line)
 
     motes.append(moteData);
 }
-//#mote,reboot_ID,unix_time,mote_time,counter,accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z,volt,temp
+
+void MoteDataHolder::createMoteDataFromOnline(int moteID)
+{
+    MoteData* moteData = new MoteData();
+
+    moteData->setParam(MOTEID, moteID);
+    moteData->setParam(REBOOTID, 0);
+    moteData->setParam(LENGTH, 0.0);
+    moteData->setParam(BOOT_UNIX_TIME, 0.0);
+    moteData->setParam(SKEW_1, 0.0);
+    moteData->setParam(OFFSET, 0.0);
+
+    motes.append(moteData);
+
+    application.window.createCurveData();
+}
 
 
 const Sample MoteDataHolder::createSample(const QString& str, bool load)
@@ -148,7 +163,7 @@ const Sample MoteDataHolder::createSample(const QString& str, bool load)
 
     if(csvIterator.hasNext()){
         sample.moteID = moteID = csvIterator.next().toInt();
-        mote = findMoteID(moteID);
+        mote = getMoteData(moteID);
 
         int reboot_ID = csvIterator.next().toInt();
 
@@ -178,7 +193,55 @@ const Sample MoteDataHolder::createSample(const QString& str, bool load)
 
 }
 
-MoteData* MoteDataHolder::findMoteID(int id)
+void MoteDataHolder::createSampleFromOnline(const ActiveMessage & msg)
+{
+    MoteData* mote = getMoteData(msg.source);
+
+    // first type of messages
+    if( msg.type == 0x37 && msg.payload.size() == 100 )
+    {
+
+            for(int start = 0; start < 100; start += 20)
+            {
+                    Sample sample;
+
+                    sample.mote_time = msg.getUInt(start);
+                    sample.xAccel = msg.getShort(start + 4);
+                    sample.yAccel = msg.getShort(start + 6);
+                    sample.zAccel = msg.getShort(start + 8);
+                    sample.xGyro = msg.getShort(start + 10);
+                    sample.yGyro = msg.getShort(start + 12);
+                    sample.zGyro = msg.getShort(start + 14);
+                    sample.voltage = msg.getShort(start + 16);
+                    sample.temp = msg.getShort(start + 18);
+
+    //			qDebug() << "sample " + sample.toString();
+
+                    /*if(samples.size() > 2){
+                        int lag = getLag(sample.time);
+                        if(lag > MAX_DUMMY) lag = MAX_DUMMY;
+                        for(int i=lag; i > 0; i--){
+                            Sample dummy;
+                            samples.append(dummy);
+                        }
+                    }*/
+                    mote->appendSample(sample);
+            }
+            emit sampleAdded(msg.source);
+    }
+}
+
+int MoteDataHolder::findMotePos(const MoteData &moteData)
+{
+    for(int i=0; i<motes.size(); i++){
+        if(motes[i] == &moteData){
+            return i;
+        }
+    }
+    return -1;
+}
+
+MoteData* MoteDataHolder::getMoteData(int id)
 {
     for(int i=0; i<motes.size(); i++){
         if(motes[i]->getMoteID() == id){
@@ -190,7 +253,7 @@ MoteData* MoteDataHolder::findMoteID(int id)
 
 void MoteDataHolder::printMoteData(int id)
 {
-    MoteData* mote = findMoteID(id);
+    MoteData* mote = getMoteData(id);
 
     for(int i = 0; i < mote->samplesSize(); i++){
         qDebug() << QString::number(mote->getSampleAt(i).xAccel);
