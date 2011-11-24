@@ -12,6 +12,15 @@ public class UcminiSensor implements MessageListener {
     this.moteIF = moteIF;
     this.moteIF.registerListener(new UcminiSensorCalib(), this);
     this.moteIF.registerListener(new UcminiSensorMeas(), this);
+    UcminiSensorCalib payload=new UcminiSensorCalib();
+    try{
+      this.moteIF.send(0xffff, payload);
+    }
+    catch (IOException exception) {
+      System.err.println("Exception thrown when sending packets. Exiting.");
+      System.err.println(exception);
+      System.exit(1);
+    }
   }
 
   public void messageReceived(int to, Message message) {

@@ -6,7 +6,7 @@ implementation {
              new LightC(),
              new PressureC(), new Ms5607RawTemperatureC() as Temperature1C,
              new TemperatureC(), new HumidityC();
-  components SerialStartC, new SerialAMSenderC(AM_MEASUREMENT) as MeasSend, new SerialAMSenderC(AM_CALIB) as CalibSend;
+  components SerialStartC, new SerialAMSenderC(AM_MEASUREMENT) as MeasSend, new SerialAMSenderC(AM_CALIB) as CalibSend, new SerialAMReceiverC(AM_CALIB);
 
   UcminiSensorP.Boot -> MainC;
   UcminiSensorP.TempRead -> TemperatureC;
@@ -20,6 +20,7 @@ implementation {
   UcminiSensorP.Timer->TimerMilliC;
   UcminiSensorP.MeasSend->MeasSend;
   UcminiSensorP.CalibSend->CalibSend;
+  UcminiSensorP.Receive->SerialAMReceiverC;
   UcminiSensorP.Packet->MeasSend;
   UcminiSensorP.Leds -> LedsC;
 }

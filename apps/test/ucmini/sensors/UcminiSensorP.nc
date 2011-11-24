@@ -13,6 +13,7 @@ module UcminiSensorP {
     interface DiagMsg;
     interface AMSend as CalibSend;
     interface AMSend as MeasSend;
+    interface Receive;
     interface Packet;
     interface Timer<TMilli>;
     interface Leds;
@@ -20,22 +21,29 @@ module UcminiSensorP {
 }
 implementation {  
   measurement_t *meas;
-  message_t message;
+  message_t message, calibmessage;
   calibration_t *calib;
   bool starting=TRUE;
 
   event void Boot.booted() {
-    calib = (calibration_t*)call Packet.getPayload(&message, sizeof(calibration_t));
+    calib = (calibration_t*)call Packet.getPayload(&calibmessage, sizeof(calibration_t));
+    meas = (measurement_t*)call Packet.getPayload(&message, sizeof(measurement_t));
     call ReadRef.read(calib);
   }
   
+  event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len){
+    if(!starting)
+      call CalibSend.send(AM_BROADCAST_ADDR, &calibmessage, sizeof(calibration_t));
+    return msg;
+  }
+  
   event void ReadRef.readDone(error_t error, calibration_t *data){
-    call CalibSend.send(AM_BROADCAST_ADDR, &message, sizeof(calibration_t));
+    call CalibSend.send(AM_BROADCAST_ADDR, &calibmessage, sizeof(calibration_t));
   }
   
   event void CalibSend.sendDone(message_t* msg, error_t error){
-    meas = (measurement_t*)call Packet.getPayload(&message, sizeof(measurement_t));
-    call Timer.startPeriodic(512);
+    if(starting)
+      call Timer.startPeriodic(512);
   }
 
   event void Timer.fired(){
