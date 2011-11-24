@@ -7,7 +7,7 @@ import net.tinyos.util.*;
 public class UcminiSensor implements MessageListener {
 
   private MoteIF moteIF;
-  private int calibration[]=new int[6];
+  private long calibration[]=new long[6];
   public UcminiSensor(MoteIF moteIF) {
     this.moteIF = moteIF;
     this.moteIF.registerListener(new UcminiSensorCalib(), this);
@@ -28,13 +28,20 @@ public class UcminiSensor implements MessageListener {
     					   "; c5="+calibration[4]+"; c6="+calibration[5]);
     } else if(message instanceof UcminiSensorMeas){
       UcminiSensorMeas msg = (UcminiSensorMeas)message;
-      System.out.println("Humidity (sht21):\t\t"+msg.get_humi());
-      System.out.println("Temperature (sht21):\t\t"+msg.get_temp());
-      System.out.println("Temperature (atmega128rfa1):\t"+msg.get_temp3());
-      System.out.println("Temperature (ms5607):\t\t"+msg.get_temp2());
-      System.out.println("Pressure (ms5607):\t\t"+msg.get_press());
-      System.out.println("Light (bh1750fvi):\t\t"+msg.get_light());
-      System.out.println("Voltage (atmega128rfa1):\t"+msg.get_voltage());
+      double rh=-6+125*((double)msg.get_humi()/65536);
+      System.out.format("Humidity (sht21):\t\t%8.3f %% \t(%d)\n",rh, msg.get_humi());
+      double temp=-46.85+175.72*((double)msg.get_temp()/65536);
+      System.out.format("Temperature (sht21):\t\t%8.3f \u00B0C \t(%d)\n",temp,msg.get_temp());
+      //System.out.println("Temperature (atmega128rfa1):\t"+msg.get_temp3());
+      long dT=msg.get_temp2()-calibration[4]*256;
+      long temp2=2000+dT*calibration[5]/8388608;
+      System.out.format("Temperature (ms5607):\t\t%8.3f \u00B0C \t(%d)\n",(double)temp2/100,msg.get_temp2());
+      long off=calibration[1]*131072+(calibration[3]*dT)/64;
+      long sens=calibration[0]*65536+(calibration[2]*dT)/128;
+      long press=(msg.get_press()*sens/2097152-off)/32768;
+      System.out.format("Pressure (ms5607):\t\t%8.3f mbar \t(%d)\n",(double)press/100,msg.get_press());
+      System.out.format("Light (bh1750fvi):\t\t%8d lx\n",msg.get_light());
+      //System.out.println("Voltage (atmega128rfa1):\t"+msg.get_voltage());
       System.out.println();
     }
   }
