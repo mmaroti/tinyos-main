@@ -42,6 +42,7 @@ class SerialReceive implements MessageListener{
 	private MoteIF moteIF;
 	static PrintWriter fop;
 	double last=-1;
+	static int file=0;
 	public SerialReceive(MoteIF moteIF){
 		this.moteIF=moteIF;
 		this.moteIF.registerListener(new SerialMsg(),this);
@@ -49,7 +50,7 @@ class SerialReceive implements MessageListener{
 	
 	public void messageReceived(int dest_addr,Message msg){
 		int tempmert;
-		double tempkorr;
+		double tempkorr,tempkorr2;
 		double time;
 		int node;
 		if (msg instanceof SerialMsg) {
@@ -57,15 +58,16 @@ class SerialReceive implements MessageListener{
 			SerialPacket serPkt = msg.getSerialPacket();
 			tempmert = serialData.get_temperature();
 			tempkorr= (-39.6)+0.01*tempmert;
+			tempkorr2= ((-46.85)+175.72*(tempmert/65536));
 			time=serialData.get_time();
 			node=serialData.get_nodeID();
 			try{
-		fop = new PrintWriter(new FileWriter("temp"+node+".txt",true));
+		fop = new PrintWriter(new FileWriter("temp"+file+".txt",true));
 		}catch(IOException ex){}
 			if (last==time){System.exit(1);}
 			else {last=time;}
-			out.println("Temp_measured: "+tempmert+"Temperature: " + tempkorr +" Time "+time+" Node: "+node);
-			fop.println("Temp_measured: "+tempmert+"Temperature: " + tempkorr +" Time "+time+" Node: "+node);
+			out.println("Temp_measured:\t"+tempmert+"\tTemperature:\t" + tempkorr +"\tTime\t"+time+"\tNode:\t"+node);
+			fop.println(tempmert+"\t" + tempkorr2 +"\t"+time+"\t"+node);
 			fop.close();
 		}
 	}
@@ -110,7 +112,13 @@ class SerialReceive implements MessageListener{
 		if(seged!=2) {
 			System.exit(0);
 		}
-		else{out.println("letoltes");}
+		else{
+		out.println("letoltes");
+		file=Integer.parseInt(args[3]);
+		fop = new PrintWriter(new FileWriter("temp"+file+".txt",true));
+		fop.println("Measured\t" + "Calculated\t"+"Time\t"+"Node");
+		fop.close();
+		}
 		
 	}
 }
