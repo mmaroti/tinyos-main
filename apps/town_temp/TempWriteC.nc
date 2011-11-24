@@ -49,6 +49,7 @@ module TempWriteC {
 	uses interface Leds;
 	uses interface Timer<TMilli> as Timer0;
 	uses interface Read<uint16_t>;
+	uses interface Read<uint16_t> as Read2;
     	uses interface LogWrite;
 	uses interface Receive;
         uses interface AMSend;
@@ -57,7 +58,7 @@ module TempWriteC {
 	uses interface SplitControl as RadioControl;
 	uses interface LowPowerListening as LPL;
 	uses interface SplitControl;
-	
+	//uses interface SplitControl2;
 }
 implementation {
 	 
@@ -118,9 +119,15 @@ implementation {
 	event void Read.readDone(error_t result, uint16_t data) {
 		//call Leds.led3On();
 		counter++;
-		m_entry.nodeID=TOS_NODE_ID;
+		//m_entry.nodeID=TOS_NODE_ID;
 		m_entry.time=counter;
 		m_entry.temp=data;
+		call Read2.read();
+		//call SplitControl.stop();
+	}
+
+	event void Read2.readDone(error_t result, uint16_t data) {
+		m_entry.nodeID=data;
 		call LogWrite.append(&m_entry, sizeof(logentry_t));
 		call SplitControl.stop();
 	}
@@ -130,7 +137,7 @@ implementation {
 	}
 
 	event void LogWrite.appendDone(void* buf, storage_len_t len, bool recordsLost, error_t err) {
-    	if (err==SUCCESS){call Leds.led3Toggle();}
+    	if (err==SUCCESS){if (counter<0)call Leds.led3Toggle();}
   	}
 	
 	event message_t* Receive.receive(message_t* msgPtr, void* payload, uint8_t len){
