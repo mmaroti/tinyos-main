@@ -2,6 +2,7 @@
   push( @includes, qw(
   %T/platforms/ucdual
   %T/platforms/ucdual/chips/stm25p
+  %T/platforms/ucdual/chips/atm128rfa1
   %T/platforms/ucdual/chips/si443x
   %T/chips/si443x
   %T/chips/atm128rfa1

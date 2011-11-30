@@ -31,66 +31,14 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Author: Miklos Maroti
- * Author: Krisztian Veress
+ * Author: Andras Biro
  */
 
-#ifndef __RADIOCONFIG_H__
-#define __RADIOCONFIG_H__
+#ifndef __RFA1RADIOCONFIG_H__
+#define __RFA1RADIOCONFIG_H__
 
 #include <RFA1DriverLayer.h>
 #include "TimerConfig.h"
-#include <Si443xDriverLayer.h>
-
-#ifndef SI443X_DEF_RFPOWER
-#define SI443X_DEF_RFPOWER	3
-#endif
-
-#ifndef SI443X_DEF_CHANNEL
-#define SI443X_DEF_CHANNEL	0
-#endif
-
-
-/* This is the default value of the TX_PWR field of the PHY_TX_PWR register. */
-#ifndef RFA1_DEF_RFPOWER
-#define RFA1_DEF_RFPOWER	0
-#endif
-
-/* This is the default value of the CHANNEL field of the PHY_CC_CCA register. */
-#ifndef RFA1_DEF_CHANNEL
-#define RFA1_DEF_CHANNEL	11
-#endif
-
-
-/* The number of microseconds a sending mote will wait for an acknowledgement */
-#ifndef SOFTWAREACK_TIMEOUT
-#define SOFTWAREACK_TIMEOUT	1000
-#endif
-
-enum {
-	SI443X_TXFIFO_FULL_THRESH = 60,
-	SI443X_TXFIFO_EMPTY_THRESH = 4,
-
-	/** MUST be greater or equal to Si443xDriverConfig.headerPreloadLength() ! */
-	SI443X_RXFIFO_FULL_THRESH = 55,
-	
-	/** Base Frequency setting. Examples:
-		 240.000000 Mhz : FREQ_10MHZ = 24, FREQ_KHZ = 0      FREQ_MILLIHZ = 0
-		 334.876625 Mhz : FREQ_10MHZ = 33, FREQ_KHZ = 4876   FREQ_MILLIHZ = 62500
-		 959.903500 Mhz : FREQ_10MHZ = 95, FREQ_KHZ = 9901   FREQ_MILLIHZ = 250000
-	*/
-	// Valid values for SI443X_BASE_FREQ_10MHZ : [24,..,95]
-	SI443X_BASE_FREQ_10MHZ = 90,
-	
-	// Valid values for SI443X_BASE_FREQ_KHZ : [0,..,9999]
-	SI443X_BASE_FREQ_KHZ = 3545,
-	
-	// Valid values for SI443X_BASE_FREQ_MILLIHZ : [0,...,99999]
-	// Should be multiple of 15625 ( 156.25 Hz ) for band 240-480 Mhz,
-	// Should be multiple of 31250 ( 312,5  Hz ) for band 480-960 Mhz
-	SI443X_BASE_FREQ_MILLIHZ = 37300,
-	
-	SI443X_CHANNEL_STEP_10KHZ = 100,	
-};
 
 enum
 {
@@ -110,14 +58,35 @@ enum
 	RFA1_PA_LT=0<<PA_LT0,
 };
 
-// This is the timer type of the radio alarm interface
+/* This is the default value of the TX_PWR field of the PHY_TX_PWR register. */
+#ifndef RFA1_DEF_RFPOWER
+#define RFA1_DEF_RFPOWER	0
+#endif
+
+/* This is the default value of the CHANNEL field of the PHY_CC_CCA register. */
+#ifndef RFA1_DEF_CHANNEL
+#define RFA1_DEF_CHANNEL	11
+#endif
+
+/* The number of microseconds a sending mote will wait for an acknowledgement */
+#ifndef SOFTWAREACK_TIMEOUT
+#define SOFTWAREACK_TIMEOUT	1000
+#endif
+
+/**
+ * This is the timer type of the radio alarm interface
+ */
 typedef T62khz TRadio;
 typedef uint32_t tradio_size;
 
-// The number of radio alarm ticks per one microsecond
+/**
+ * The number of radio alarm ticks per one microsecond
+ */
 #define RADIO_ALARM_MICROSEC	0.0625
 
-// The base two logarithm of the number of radio alarm ticks per one millisecond
+/**
+ * The base two logarithm of the number of radio alarm ticks per one millisecond
+ */
 #define RADIO_ALARM_MILLI_EXP	6
 
-#endif//__SI443X_RADIOCONFIG_H__
+#endif//__RFA1RADIOCONFIG_H__
