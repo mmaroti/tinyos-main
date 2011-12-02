@@ -60,10 +60,6 @@ module Si443xDriverLayerP
 		interface PacketField<uint8_t> as PacketTimeSyncOffset;
 		interface PacketField<uint8_t> as PacketLinkQuality;
 		interface LinkPacketMetadata;
-#ifdef MOPT_ENABLE		
-		interface ModemOptimizer;
-#endif
-
 	}
 
 	uses
@@ -115,22 +111,6 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		atomic { if( DM_ENABLE && call DiagMsg.record() ) { \
 			call DiagMsg.str(PSTR);\
 			call DiagMsg.str(STR); \
-			call DiagMsg.send(); \
-		}}
-
-#define DIAGMSG_REG_READ(REG,VALUE)	\
-		atomic { if( DM_ENABLE && call DiagMsg.record() ) { \
-			call DiagMsg.str("R");\
-			call DiagMsg.hex8(REG);\
-			call DiagMsg.hex8(VALUE);\
-			call DiagMsg.send(); \
-		}}
-
-#define DIAGMSG_REG_WRITE(REG,VALUE)	\
-		atomic {if( DM_ENABLE && call DiagMsg.record() ) { \
-			call DiagMsg.str("W");\
-			call DiagMsg.hex8(REG);\
-			call DiagMsg.hex8(VALUE);\
 			call DiagMsg.send(); \
 		}}
 
@@ -387,36 +367,6 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		writeRegister(SI443X_CHANNEL_SELECT,channel);
 	}
 
-#ifdef MOPT_ENABLE		
-	typedef struct si443x_modem_optimizer_t {
-		//	uint8_t 	modulation;
-		//	bool 		manchester;
-		//	bool		afc;
-		uint8_t	datarate;	
-		uint8_t 	carrier_10mhz;
-		uint16_t	carrier_khz;
-		//	uint16_t	freqdeviation;
-		uint16_t	ookrxbw;
-	} si443x_modem_optimizer_t;
-	
-	si443x_modem_optimizer_t mopt;
-	
-	command void ModemOptimizer.reset() {
-		rssiClear = 50;
-		rssiBusy = 250;
-		txPower = SI443X_DEF_RFPOWER & SI443X_RFPOWER_MASK;
-	}
-	
-	command void ModemOptimizer.configure(uint32_t id) {
-
-		signal ModemOptimizer.configured();
-	}
-	
-	command uint32_t ModemOptimizer.configCount() {
-		return 10;
-	}
-#endif
-
 	void _setupModem()
 	{
 		DIAGMSG_STR("setup","");
@@ -430,7 +380,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		writeRegister(0x6D, 0x1F);	    // max power, LNA switch set
 
 		
-		//#define WORKING_MODEM
+		#define WORKING_MODEM
 		#ifdef WORKING_MODEM
 		
 		// Working, OOK, 8kbps, no AFC, 100kHZ freqdev, 400kHz OOK BW
@@ -463,18 +413,20 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		writeRegister( 0x70, 0x2F );
 		writeRegister( 0x71, 0x21 );
 		writeRegister( 0x72, 0xA0 );
+		
+		// EXPERIMENTAL MODEM SETUP
 		#else
 				
-		writeRegister( 0x1C, 0x9B );
+		writeRegister( 0x1C, 0x8E );
 		writeRegister( 0x1D, 0x3C );
 		writeRegister( 0x1E, 0x02 );
 		writeRegister( 0x1F, 0x00 );
-		writeRegister( 0x20, 0x77 );
-		writeRegister( 0x21, 0x20 );
-		writeRegister( 0x22, 0x2B );
-		writeRegister( 0x23, 0xB1 );
+		writeRegister( 0x20, 0xEE );
+		writeRegister( 0x21, 0x40 );
+		writeRegister( 0x22, 0x15 );
+		writeRegister( 0x23, 0xD8 );
 		writeRegister( 0x24, 0x10 );
-		writeRegister( 0x25, 0x1E );
+		writeRegister( 0x25, 0x06 );
 		
 		writeRegister( 0x2A, 0xFF );
 		writeRegister( 0x2C, 0x18 );
@@ -492,8 +444,8 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		writeRegister( 0x6E, 0x41 );
 		writeRegister( 0x6F, 0x89 );
 		writeRegister( 0x70, 0x2F );
-		writeRegister( 0x71, 0x23 );
-		writeRegister( 0x72, 0xA0 );		
+		writeRegister( 0x71, 0x27 );
+		writeRegister( 0x72, 0xFF );		
 		
 		#endif
 		_frequencyChange(SI443X_BASE_FREQ_10MHZ, SI443X_BASE_FREQ_KHZ, SI443X_BASE_FREQ_MILLIHZ );		
@@ -605,18 +557,9 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		uint8_t misc;
 		void* timesync;
 		uint32_t time32;
-		
-		#ifdef MOPT_ENABLE 
-		signal ModemOptimizer.sendRequest();
-		#endif
-		
+	
 		if( chip.cmd != CMD_NONE || chip.state != STATE_RX || ! isSpiAcquired() ) {
 			DIAGMSG_STR("send","BUSY");
-			
-			#ifdef MOPT_ENABLE
-			signal ModemOptimizer.sendBusy();
-			#endif
-			
 			return EBUSY;
 		}
 		
@@ -663,18 +606,12 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		// RSSI Clear Channel Assessment
 		if( (call Config.requiresRssiCca(msg) && ( _readRssi() > ( (rssiClear >> 1) + (rssiBusy >> 1) )) ) ) {
 			DIAGMSG_STR("send","BUSY-2");
-			#ifdef MOPT_ENABLE
-			signal ModemOptimizer.sendBusy();
-			#endif
 			_clearFifo(SI443X_CLEAR_TX_FIFO);
 			return EBUSY;
 		}
 		
 		if ( chip.cmd != CMD_NONE || radioIrq ) {
 			DIAGMSG_STR("send","BUSY-3");
-			#ifdef MOPT_ENABLE
-			signal ModemOptimizer.sendBusy();
-			#endif
 			_clearFifo(SI443X_CLEAR_TX_FIFO);
 			return EBUSY;
 		}
@@ -702,10 +639,6 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		}
 		#endif	
 		*/
-		#ifdef MOPT_ENABLE
-		signal ModemOptimizer.sendAccept();
-		#endif
-		
 		chip.cmd = CMD_TX_FINISH;
 		return SUCCESS;
 	}
@@ -747,7 +680,6 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 		irq1 = readRegister(SI443X_INT_1);
 		irq2 = readRegister(SI443X_INT_2);
 
-		DIAGMSG_STR("Int","service BEG");
 		//DIAGMSG_VAR("irq1",irq1);
 		//DIAGMSG_VAR("irq2",irq2);
 		
@@ -776,10 +708,6 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 				time32 += (int16_t)(time - RX_SFD_DELAY) - (int16_t)(time32);
 				call PacketTimeStamp.set(rxMsg, time32);
 				
-				#ifdef MOPT_ENABLE
-				signal ModemOptimizer.receiveSync();
-				#endif
-				
 				chip.cmd = CMD_RX_WAIT;
 			}
 			
@@ -797,29 +725,18 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 				rssiClear = ( _readRssi() >> 1 ) + (rssiClear >> 1);
 				if ( chip.cmd != CMD_RX_ABORT ) {
 					rxMsg = signal RadioReceive.receive(rxMsg);
-					#ifdef MOPT_ENABLE
-					signal ModemOptimizer.receiveSuccess();
-					#endif
 				}
 				chip.cmd = CMD_NONE;
 			} 
 			
 			if ( irq1 & SI443X_I1_CRCERROR ) {
 				DIAGMSG_STR("Int","CRC Error");
-				_downloadMessage();
-				
+				_downloadMessage();				
 				_dumpRxFifo();
-								
-				#ifdef MOPT_ENABLE
-				signal ModemOptimizer.receiveCRC();
-				#endif
 				chip.cmd = CMD_NONE;
 			}
 			
 			if ( irq1 & SI443X_I1_FIFOERROR ) {
-				#ifdef MOPT_ENABLE
-				signal ModemOptimizer.receiveError();			
-				#endif
 				DIAGMSG_STR("Int","FIFO Error");
 				chip.cmd = CMD_NONE;
 			}
@@ -835,6 +752,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			if ( irq1 & SI443X_I1_PKTSENT ) {
 				void* timesync;
 				DIAGMSG_STR("Int","Pkt Sent");
+				
 				
 				#ifdef RADIO_DEBUG
 				if( DM_ENABLE && call DiagMsg.record() )
@@ -868,11 +786,8 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 					*(timesync_absolute_t*)timesync = (*(timesync_relative_t*)timesync) + call PacketTimeStamp.timestamp(txMsg);
 			
 				signal RadioSend.sendDone(SUCCESS);
-				#ifdef MOPT_ENABLE
-				signal ModemOptimizer.sendSuccess();
-				#endif
-		/*		
-#ifdef RADIO_DEBUG
+				/*		
+				#ifdef RADIO_DEBUG
 				if( DM_ENABLE && call DiagMsg.record() )
 				{
 					call DiagMsg.str("tstamp3");
@@ -880,8 +795,8 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 					call DiagMsg.uint16(call RadioAlarm.getNow());
 					call DiagMsg.send();
 				}
-#endif				
-*/
+				#endif				
+				*/
 				_receive();
 				chip.cmd = CMD_NONE;
 				atomic txMsg = NULL;
@@ -889,9 +804,6 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			if ( irq1 & SI443X_I1_FIFOERROR ) {	
 				DIAGMSG_STR("Int","Fifo Error");
 				_receive();
-				#ifdef MOPT_ENABLE
-				signal ModemOptimizer.sendError();
-				#endif
 				signal RadioSend.sendDone(FAIL);
 				chip.cmd = CMD_NONE;
 			}
@@ -908,12 +820,7 @@ tasklet_norace uint8_t DM_ENABLE = FALSE;
 			DIAGMSG_STR("Int","Power On Reset");
 			chip.cmd = CMD_RESET;
 		}
-		
-		DIAGMSG_STR("Int","service END");
-		
 	}
-	
-
 	
 	void _downloadMessage() {
 
