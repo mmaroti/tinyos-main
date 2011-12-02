@@ -73,22 +73,25 @@ enum {
 	/** MUST be greater or equal to Si443xDriverConfig.headerPreloadLength() ! */
 	SI443X_RXFIFO_FULL_THRESH = 55,
 	
-	/** Base Frequency setting. Examples:
-		 240.000000 Mhz : FREQ_10MHZ = 24, FREQ_KHZ = 0      FREQ_MILLIHZ = 0
-		 334.876625 Mhz : FREQ_10MHZ = 33, FREQ_KHZ = 4876   FREQ_MILLIHZ = 62500
-		 959.903500 Mhz : FREQ_10MHZ = 95, FREQ_KHZ = 9901   FREQ_MILLIHZ = 250000
+	/**	Base Frequency setting.
+			Should be multiple of 156.25 Hz for band 240-480 Mhz,
+			Should be multiple of 312.50 Hz for band 480-960 Mhz
+			
+	 Examples:
+		 240 000 000.0  Hz : FREQ_10MHZ = 24, FREQ_KHZ = 0      FREQ_MILLIHZ = 0
+		 334 876 562.25 Hz : FREQ_10MHZ = 33, FREQ_KHZ = 4876   FREQ_MILLIHZ = 56225
+		 959 903 437.50 Hz : FREQ_10MHZ = 95, FREQ_KHZ = 9903   FREQ_MILLIHZ = 43750
 	*/
 	// Valid values for SI443X_BASE_FREQ_10MHZ : [24,..,95]
-	SI443X_BASE_FREQ_10MHZ = 90,
+	SI443X_BASE_FREQ_10MHZ = 24,
 	
 	// Valid values for SI443X_BASE_FREQ_KHZ : [0,..,9999]
-	SI443X_BASE_FREQ_KHZ = 3545,
+	SI443X_BASE_FREQ_KHZ = 0,
 	
-	// Valid values for SI443X_BASE_FREQ_MILLIHZ : [0,...,99999]
-	// Should be multiple of 15625 ( 156.25 Hz ) for band 240-480 Mhz,
-	// Should be multiple of 31250 ( 312,5  Hz ) for band 480-960 Mhz
-	SI443X_BASE_FREQ_MILLIHZ = 37300U,
+	// Valid values for SI443X_BASE_FREQ_MILLIHZ : [0U,...,99999U]
+	SI443X_BASE_FREQ_MILLIHZ = 0U,
 	
+	// Channel step size for frequency hopping in 10KHz's
 	SI443X_CHANNEL_STEP_10KHZ = 100,	
 };
 
