@@ -1,4 +1,5 @@
 #include "cmd.h"
+#include "parameters.h"
 
 module GSMDriverP{
 	provides interface GsmControl;
@@ -10,7 +11,7 @@ module GSMDriverP{
 		interface Timer<TMilli> as TimerDelay;
 		interface UartStream;
 		interface StdControl;
-		interface DiagMsg;
+		
 	}
 }
 implementation{
@@ -27,7 +28,6 @@ implementation{
 	norace uint8_t state=OFFED,len1,i; 
 	char cmd_data[(TOSH_DATA_LENGTH*2)+16];
 	char ans[105],cmd[20],receive[28];
-//	char kicsi[6]="kicsi\r";
 	char temp[2],g_msg[TOSH_DATA_LENGTH];		
 	char cmd_disconnect[12] ="AT+CIPCLOSE\r"; 
 	char cmd_connect[130];
@@ -50,10 +50,6 @@ implementation{
 	
 	task void receiveTask(){
 		signal GsmControl.receivedData(receive);
-		if(call DiagMsg.record()){
-			call DiagMsg.str(receive);
-			call DiagMsg.send();
-		}
 	}
 
 	task void offTask(){
@@ -76,7 +72,7 @@ implementation{
 			state=ONING;
 			call ON.set();
 			call TimerPower.startOneShot(STARTTIME);			
-		}
+		}		
 		return error;
 	}
 	
@@ -201,7 +197,6 @@ implementation{
 						byteCounter=0;						
 						break;
 					case(5):
-						//memcpy(ipAddress,ans,byteCounter-1);
 						byteCounter=0;
 						break;
 					case(6):
@@ -245,7 +240,6 @@ implementation{
 					err=FAIL;
 					pos=0;	
 					state=ONED;
-					//post offTask();
 				}else{
 					err=SUCCESS;
 					post offTask();

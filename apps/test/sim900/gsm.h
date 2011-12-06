@@ -6,8 +6,8 @@ enum{
 };
 
 typedef nx_struct gsmmsg{
-	nx_uint8_t cmd[6];
-
+	nx_uint8_t 	cmd[10];
+	nx_uint16_t length;
 }gsmmsg_t;
 
 #endif

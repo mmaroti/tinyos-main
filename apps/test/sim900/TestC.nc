@@ -9,15 +9,17 @@ implementation{
 	components ActiveMessageC;
 	components TestP;
 	components DiagMsgC;
-	components BusyWaitMicroC;
+	components new AMReceiverC(AM_GSMMSG);
+	components new AMSenderC(AM_GSMMSG);
 	
 	
 	TestP.Boot->MainC;
-	TestP.AMSend->GSMActiveMessageC.AMSend;
-	TestP.Receive->GSMActiveMessageC.Receive;
+	TestP.RadioReceive->AMReceiverC;
+	TestP.RadioSend->AMSenderC;
+	TestP.GSMSend->GSMActiveMessageC.AMSend;
+	TestP.GSMReceive->GSMActiveMessageC.Receive;
 	TestP.GSMSplitControl->GSMActiveMessageC.SplitControl;
 	TestP.RadioSplitControl->ActiveMessageC.SplitControl;
 	TestP.Leds->LedsC;
-	TestP.BusyWait->BusyWaitMicroC;
 	TestP.DiagMsg -> DiagMsgC;
 }	

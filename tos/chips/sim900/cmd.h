@@ -1,17 +1,3 @@
-#define STARTTIME 1000
-#define STOPTIME 1000
-#define ANSTIMEOUT 5000
-#define CONNECT_TIMEOUT 20000
-#define DELAY_T 3000
-
-#define UDP_TCP "TCP"
-#define APN "NET"
-#define USER ""
-#define PWD ""
-#define IP "WSN.MATH.U-SZEGED.HU"
-#define SERVERPORT "9001"
-
-
 #ifndef functions
 #define functions
 void intToString(char *array,int x){

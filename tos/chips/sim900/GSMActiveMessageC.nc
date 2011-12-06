@@ -39,6 +39,4 @@ implementation{
 	GSMActiveMessageP.GsmControl->GSMDriverP.GsmControl; 
 	
 	
-	GSMDriverP.DiagMsg->DiagMsgC;
-	GSMActiveMessageP.DiagMsg->DiagMsgC;
 }

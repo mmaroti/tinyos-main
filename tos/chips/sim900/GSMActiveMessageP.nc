@@ -6,11 +6,11 @@ module GSMActiveMessageP{
 	provides interface Receive; 
 	
 	uses interface GsmControl;
-	uses interface DiagMsg;
+	
 }
 implementation{
 	
-	message_t message,recmsg, *receiveptr;
+	message_t message,recmsg, *receiveptr=&recmsg;
 	bool busy=FALSE;
 	uint8_t reclen,i;
 	
@@ -34,15 +34,17 @@ implementation{
 	}
 	
 	command error_t AMSend.send(am_addr_t addr, message_t *msg, uint8_t len){
+		error_t err;
 		
-		error_t err=call GsmControl.SendToGSM(conToString1((uint8_t*)msg->data,TOS_NODE_ID,len,1,2,3,4));
-		//error_t err=call GsmControl.SendToGSM(toString((uint8_t*)msg->data,len));
-		
-		if(err==SUCCESS){
-			busy=TRUE;
+		if(!busy){
+			err=call GsmControl.SendToGSM(conToString1((uint8_t*)msg->data,TOS_NODE_ID,len,1,2,3,4));
+			if(err==SUCCESS){
+				busy=TRUE;
+			}else{
+				err=FAIL;
+			}			
 		}else{
-			busy=FALSE;
-			err=FAIL;
+			err=FAIL;	
 		}
 		return err;
 	}
@@ -67,14 +69,12 @@ implementation{
 
 	event void GsmControl.receivedData(char* receiveMsg){
 		reclen=strlen(receiveMsg);
-		receiveptr=&recmsg;
 		
 		for (i = 0; i < reclen-1; i++) {
-			receiveptr->data[i]=*receiveMsg;
-			receiveMsg++;
+			receiveptr->data[i]=*receiveMsg++;
 		}
 				
-		signal Receive.receive(&recmsg, ((void*)receiveptr)+sizeof(message_header_t), reclen);
+		signal Receive.receive(receiveptr, ((void*)receiveptr)+sizeof(message_header_t), reclen);
 	
 	}
 	
