@@ -1,6 +1,12 @@
 #include "cmd.h"
 #include "parameters.h"
 
+#define STARTTIME 1000
+#define STOPTIME 1000
+#define ANSTIMEOUT 5000
+#define DELAY_T 3000
+
+
 module GSMDriverP{
 	provides interface GsmControl;
 	uses
