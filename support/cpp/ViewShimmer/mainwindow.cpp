@@ -335,7 +335,7 @@ void MainWindow::enableZoomMode(bool on)
         btnPaste->setChecked(false);
         btnOffset->setChecked(false);
     } else {
-        d_picker->setEnabled(!on);
+        d_picker->setEnabled(on);
     }
 
 }
@@ -575,7 +575,7 @@ void MainWindow::calculateCurveDatas(double zoomRatio)
                 double yDiff = moteData->sampleAt(j+1).yAccel - yAvg;
                 double zDiff = moteData->sampleAt(j+1).zAccel - zAvg;
 
-                value = pow(xDiff,2) + pow(yDiff,2) + pow(zDiff,2);
+                value = sqrt(pow(xDiff,2) + pow(yDiff,2) + pow(zDiff,2));
             } else {
                 /*double xDiff = moteData->sampleAt(j+1).xAccel;
                 double yDiff = moteData->sampleAt(j+1).yAccel;
@@ -642,7 +642,7 @@ void MainWindow::onOnlineSampleAdded(int moteID)
         double yDiff = moteData->sampleAt(size+1).yAccel - yAvg;
         double zDiff = moteData->sampleAt(size+1).zAccel - zAvg;
 
-        value = pow(xDiff,2) + pow(yDiff,2) + pow(zDiff,2);
+        value = sqrt(pow(xDiff,2) + pow(yDiff,2) + pow(zDiff,2));
     } else {
         value = 0.0;
     }

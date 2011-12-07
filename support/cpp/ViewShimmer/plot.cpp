@@ -222,11 +222,10 @@ void Plot::createZoomer()
 
 void Plot::enableZoomMode(bool on)
 {
-    if(d_zoomer != NULL && on == true){
+    if(d_zoomer != NULL){
         d_zoomer->zoomOut();
-        d_zoomer->setEnabled(on); // BUG Segmentation fault
+        d_zoomer->setEnabled(on);
     }
-
 }
 
 void Plot::deleteZoomer()
