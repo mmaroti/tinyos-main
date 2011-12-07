@@ -5,6 +5,8 @@
 #include <QStringList>
 #include <QStringListIterator>
 #include <QtDebug>
+#include <QDateTime>
+#include <QTime>
 #include <math.h>
 #include "Application.h"
 
@@ -213,7 +215,28 @@ void MoteDataHolder::createSampleFromOnline(const ActiveMessage & msg)
                     sample.voltage = msg.getShort(start + 16);
                     sample.temp = msg.getShort(start + 18);
 
-    //			qDebug() << "sample " + sample.toString();
+                    //QTime local_time = QTime::currentTime();
+                    //uint local_time_msec = local_time.hour()*60*60*1000 + local_time.minute()*60*1000+local_time.second()*1000 + local_time.msec();
+
+                   // local_time_msec = connect ota eltelt ido
+
+                    long long int elapsed_time = application.connect_time.elapsed();
+
+                    long long int mote_time_msec = (sample.mote_time/32768.0)*1000;
+                    long long int mote_boot_time = elapsed_time - mote_time_msec;
+
+                    // update boot time to track time sync errors
+                    if(mote->samplesSize() == 0)
+                        mote->setBootUnixTime(mote_boot_time);
+                    else {
+                        mote->setBootUnixTime(0.99 * mote->getBootUnixTime()
+                                            + 0.01 * mote_boot_time);
+                    }
+
+                    sample.unix_time = (mote->getBootUnixTime() + mote_time_msec)/1000.0;
+
+                    //qDebug() << "elapsed: " << elapsed_time << "; mote_time_msec: " << mote_time_msec << "; mote_boot_time: " << mote_boot_time;
+                    //qDebug() << "sample.unix_time = " << mote->getBootUnixTime() << " + " << mote_time_msec;
 
                     /*if(samples.size() > 2){
                         int lag = getLag(sample.time);

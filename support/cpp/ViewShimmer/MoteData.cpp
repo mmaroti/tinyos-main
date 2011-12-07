@@ -85,13 +85,16 @@ void MoteData::setParam(Params param, double value)
 {
     if(param == LENGTH){
         length = value;
-    } else if(param == BOOT_UNIX_TIME){
-        boot_unix_time = value;
     } else if(param == SKEW_1){
         skew_1 = value;
     } else if(param == OFFSET){
         offset = value;
     }
+}
+
+void MoteData::setBootUnixTime(double value)
+{
+    boot_unix_time = value;
 }
 
 int MoteData::size() const

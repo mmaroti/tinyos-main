@@ -48,6 +48,7 @@ public:
 
     void setParam(Params param, int value);
     void setParam(Params param, double value);
+    void setBootUnixTime(double value);
 
     void appendSample(Sample sample){
         samples.append(sample);
@@ -62,6 +63,10 @@ public:
 
     QString getMoteHeader();
     Sample & getSampleAt(int i){ return samples[i];  }
+
+    const Sample & getLastSample(){
+        return samples[samples.size()-1];
+    }
 
     const Sample & sampleAt(int i) const {
         return samples[i];

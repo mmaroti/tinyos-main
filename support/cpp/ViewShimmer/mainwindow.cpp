@@ -605,18 +605,18 @@ void MainWindow::onOnlineSampleAdded(int moteID)
 
     int size = moteData->samplesSize()-2;
 
-    if(size > 11){
+    if(size > 101){
         double xAvg = 0;
         double yAvg = 0;
         double zAvg = 0;
-        for(int i = 0; i < 10; i++){
+        for(int i = 0; i < 100; i++){
             xAvg += moteData->sampleAt(size-i).xAccel;
             yAvg += moteData->sampleAt(size-i).yAccel;
             zAvg += moteData->sampleAt(size-i).zAccel;
         }
-        xAvg /= 10;
-        yAvg /= 10;
-        zAvg /= 10;
+        xAvg /= 100;
+        yAvg /= 100;
+        zAvg /= 100;
 
         double xDiff = moteData->sampleAt(size+1).xAccel - xAvg;
         double yDiff = moteData->sampleAt(size+1).yAccel - yAvg;
@@ -630,7 +630,8 @@ void MainWindow::onOnlineSampleAdded(int moteID)
     //value = moteData->sampleAt(moteData->samplesSize()-1).xAccel;
     double time;
     //time = (moteData->samplesSize()-1)/204.8;
-    time = moteData->sampleAt(moteData->samplesSize()-1).mote_time;
+    //time = moteData->sampleAt(moteData->samplesSize()-1).mote_time/160;
+    time = moteData->sampleAt(moteData->samplesSize()-1).unix_time;
 
     /*if(time == 200){
         d_plot->createZoomer();

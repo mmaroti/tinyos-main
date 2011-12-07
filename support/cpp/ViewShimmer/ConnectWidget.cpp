@@ -40,6 +40,7 @@
 #include <QList>
 #include <QtDebug>
 #include <QFile>
+#include <QTime>
 #include "Application.h"
 #include "ActiveMessage.hpp"
 
@@ -143,6 +144,8 @@ void ConnectWidget::changeEvent(QEvent *e)
 void ConnectWidget::on_connectButton_clicked()
 {
         QString portName;
+
+        application.connect_time.start();
 
         foreach(QString port, portButtons.keys())
         {

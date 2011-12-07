@@ -36,6 +36,7 @@
 #define APPLICATION_H
 
 #include <QObject>
+#include <QTime>
 #include "MoteDataHolder.h"
 #include "mainwindow.h"
 #include "SDataWidget.h"
@@ -58,6 +59,8 @@ public:
         DataRecorder dataRecorder;
         SerialListener serialListener;
         ConnectWidget connectWidget;
+
+        QTime connect_time;
 };
 
 #endif // APPLICATION_H
