@@ -215,11 +215,6 @@ void MoteDataHolder::createSampleFromOnline(const ActiveMessage & msg)
                     sample.voltage = msg.getShort(start + 16);
                     sample.temp = msg.getShort(start + 18);
 
-                    //QTime local_time = QTime::currentTime();
-                    //uint local_time_msec = local_time.hour()*60*60*1000 + local_time.minute()*60*1000+local_time.second()*1000 + local_time.msec();
-
-                   // local_time_msec = connect ota eltelt ido
-
                     long long int elapsed_time = application.connect_time.elapsed();
 
                     long long int mote_time_msec = (sample.mote_time/32768.0)*1000;

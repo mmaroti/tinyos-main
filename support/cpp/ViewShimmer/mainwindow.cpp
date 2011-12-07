@@ -40,12 +40,6 @@ MainWindow::MainWindow(QWidget *parent, Application &app):
 
     replot_counter = 0;
 
-    //onlineCurve = new CurveData();
-    //curve_datas.append(onlineCurve);
-    //d_plot->setMoteCurve(-1);
-    //scrollBar = new ScrollBar(Qt::Horizontal,d_plot->canvas());
-
-
     QToolBar *toolBar = new QToolBar(this);    
 
     btnLoad = new QToolButton(toolBar);
@@ -340,8 +334,10 @@ void MainWindow::enableZoomMode(bool on)
         btnCut->setChecked(false);
         btnPaste->setChecked(false);
         btnOffset->setChecked(false);
+    } else {
+        d_picker->setEnabled(!on);
     }
-    d_picker->setEnabled(!on);
+
 }
 
 void MainWindow::enableMarkerMode(bool on)
@@ -529,18 +525,11 @@ void MainWindow::calculateCurveDatas(double zoomRatio)
     qDebug() << "PLOT DEBUG:";
     qDebug() << "Zoom ratio: " << zoomRatio;
 
-    //long int longestID = -1;
-    //int maxLength = 0;
     double endTime = 0;
     double startTime = 999999999.99;
     for(int i = 0; i < application.moteDataHolder.motesCount(); i++){
 
         moteData = application.moteDataHolder.mote(i);
-
-        /*if(moteData->getLength() > maxLength){
-            maxLength = moteData->getLength();
-            longestID = i;
-        }*/
 
         long int last = moteData->samplesSize()-1;
         double lastTime = moteData->sampleAt(last).unix_time;
@@ -549,13 +538,13 @@ void MainWindow::calculateCurveDatas(double zoomRatio)
         if(endTime < lastTime) endTime = lastTime;
         if(startTime > moteData->sampleAt(1).unix_time) startTime = moteData->sampleAt(1).unix_time;
     }
-    //double time = application.moteDataHolder.mote(longestID)->getLength();
 
     int minValue, maxValue;
-    maxValue = 0; minValue = 20000;
+    maxValue = -20000; minValue = 20000;
 
     for(int i=0; i<application.moteDataHolder.motesCount(); i++){
 
+        moteData = application.moteDataHolder.mote(i);
         int samplesSize = moteData->samplesSize();
 
         int interval = (samplesSize/d_plot->canvas()->width()*zoomRatio) + 1;
@@ -563,24 +552,58 @@ void MainWindow::calculateCurveDatas(double zoomRatio)
 
         CurveData* curve_data = new CurveData;
 
-        for(long int j=0; j < samplesSize-interval; j+=interval)
+        for(long int j=0; j < samplesSize-2; j++)
         {
 
             double value;
-            value = moteData->sampleAt(j).xAccel + moteData->sampleAt(j).yAccel + moteData->sampleAt(j).zAccel;
+
+            double xAvg = 0.0;
+            double yAvg = 0.0;
+            double zAvg = 0.0;
+
+            if(j > 10){
+                for(int i = 0; i < 10; i++){
+                    xAvg += moteData->sampleAt(j-i).xAccel;
+                    yAvg += moteData->sampleAt(j-i).yAccel;
+                    zAvg += moteData->sampleAt(j-i).zAccel;
+                }
+                xAvg /= 10;
+                yAvg /= 10;
+                zAvg /= 10;
+
+                double xDiff = moteData->sampleAt(j+1).xAccel - xAvg;
+                double yDiff = moteData->sampleAt(j+1).yAccel - yAvg;
+                double zDiff = moteData->sampleAt(j+1).zAccel - zAvg;
+
+                value = pow(xDiff,2) + pow(yDiff,2) + pow(zDiff,2);
+            } else {
+                /*double xDiff = moteData->sampleAt(j+1).xAccel;
+                double yDiff = moteData->sampleAt(j+1).yAccel;
+                double zDiff = moteData->sampleAt(j+1).zAccel;
+
+                value = pow(xDiff,2) + pow(yDiff,2) + pow(zDiff,2);*/
+
+                value = 0.0;
+            }
 
             if(value > maxValue) maxValue = value;
             if(value < minValue) minValue = value;
 
             double time;
             time = moteData->sampleAt(j).unix_time;
-            QPointF point(time, value);
 
-            curve_data->append(point);
+            if( j%interval == 0){
+                QPointF point(time, value);
+
+                curve_data->append(point);
+            }
         }
 
         curve_datas.append(curve_data);
+    }
 
+    for(int i = 0; i < application.moteDataHolder.motesCount(); i++){
+        moteData = application.moteDataHolder.mote(i);
         d_plot->addMoteCurve(moteData->getMoteID());
     }
 
@@ -588,9 +611,6 @@ void MainWindow::calculateCurveDatas(double zoomRatio)
     d_plot->setAxisScale(QwtPlot::xBottom, -10-fabs(startTime), endTime+10);
     d_plot->setAxisScale(QwtPlot::yLeft, minValue, maxValue);
     d_plot->replot();
-
-    //d_plot->createZoomer();
-
 
     qDebug() << "Canvas width: " << d_plot->canvas()->width() << ";";
     qDebug() << "Number of curve points: " << curve_datas[0]->size();
@@ -627,10 +647,7 @@ void MainWindow::onOnlineSampleAdded(int moteID)
         value = 0.0;
     }
 
-    //value = moteData->sampleAt(moteData->samplesSize()-1).xAccel;
     double time;
-    //time = (moteData->samplesSize()-1)/204.8;
-    //time = moteData->sampleAt(moteData->samplesSize()-1).mote_time/160;
     time = moteData->sampleAt(moteData->samplesSize()-1).unix_time;
 
     /*if(time == 200){
@@ -642,8 +659,6 @@ void MainWindow::onOnlineSampleAdded(int moteID)
     }*/
 
     QPointF point(time, value);
-
-    //scrollBar->setMaximum(scrollBar->maximum()+1);
 
     if(++replot_counter > 2){
         replot_counter = 0;
