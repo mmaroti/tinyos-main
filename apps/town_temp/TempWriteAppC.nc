@@ -64,6 +64,4 @@ implementation {
 	components ActiveMessageC as LPLProvider;
   	App.LPL -> LPLProvider;
 
-	App.SplitControl -> Sensor;
-	App.SplitControl -> Sensor2;
 }

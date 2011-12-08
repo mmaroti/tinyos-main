@@ -57,7 +57,7 @@ module TempWriteC {
 	uses interface LogRead;
 	uses interface SplitControl as RadioControl;
 	uses interface LowPowerListening as LPL;
-	uses interface SplitControl;
+	//uses interface SplitControl;
 	//uses interface SplitControl2;
 }
 implementation {
@@ -93,14 +93,14 @@ implementation {
 		}
 	}
 	
-	event void SplitControl.startDone(error_t err){
+	/*event void SplitControl.startDone(error_t err){
 			call Read.read();
 			//call Leds.led0On();
-	}
+	}*/
 
 	event void Timer0.fired() {
 		if (c==1) {if (set2==0) {call Timer0.startPeriodic(TIMER_PERIOD_MILLI_WRITE); set2=1;}
-				call SplitControl.start();
+				call Read.read();
 				set=0;}
 		else if (c==2) { if (set==0) {call Timer0.startPeriodic(TIMER_PERIOD_MILLI_READ); set=1;}
 				call LogRead.read(&m_entry, sizeof(logentry_t));
@@ -129,15 +129,15 @@ implementation {
 	event void Read2.readDone(error_t result, uint16_t data) {
 		m_entry.nodeID=data;
 		call LogWrite.append(&m_entry, sizeof(logentry_t));
-		call SplitControl.stop();
+		//call SplitControl.stop();
 	}
 
-	event void SplitControl.stopDone(error_t err){
+	/*event void SplitControl.stopDone(error_t err){
 	//call Leds.led0Off();
-	}
+	}*/
 
 	event void LogWrite.appendDone(void* buf, storage_len_t len, bool recordsLost, error_t err) {
-    	if (err==SUCCESS){if (counter<0)call Leds.led3Toggle();}
+    	if (err==SUCCESS){if (counter<100)call Leds.led3Toggle();}
   	}
 	
 	event message_t* Receive.receive(message_t* msgPtr, void* payload, uint8_t len){
