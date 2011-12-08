@@ -777,13 +777,15 @@ void MainWindow::cut(QRectF rect)
     qDebug() << "Copy Positions";
     for(int i = 0; i < application.moteDataHolder.motesCount(); i++){
         begining = application.moteDataHolder.findNearestSample(from, i);
+        if(begining == -1) return;
         qDebug() << begining << " , " << application.moteDataHolder.mote(i)->sampleAt(begining).unix_time << "; real time: " << from;
-        copyPositions.append(application.moteDataHolder.findNearestSample(from, i));
+        copyPositions.append(begining);
 
 
         end = application.moteDataHolder.findNearestSample(to, i);
+        if(end == -1) return;
         qDebug() << end << " , " << application.moteDataHolder.mote(i)->sampleAt(end).unix_time << "; real time: " << to;
-        copyPositions.append(application.moteDataHolder.findNearestSample(to, i));
+        copyPositions.append(end);
     }
 
     QClipboard *clipboard = QApplication::clipboard();

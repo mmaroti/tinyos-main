@@ -1,6 +1,8 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#define CUTMARGIN 0.05
+
 #define GRAV 9.81                       //gravitational acceleration
 #define LAG_THRESHOLD 200               //the threshold for plotting lags from the radio
 #define MAX_DUMMY 200                   //maximum number of dummy samples on a lag

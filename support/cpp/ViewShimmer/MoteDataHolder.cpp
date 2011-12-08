@@ -8,6 +8,7 @@
 #include <QDateTime>
 #include <QTime>
 #include <math.h>
+#include "constants.h"
 #include "Application.h"
 
 MoteDataHolder::MoteDataHolder(Application &app) : application(app)
@@ -297,32 +298,23 @@ void MoteDataHolder::printMotesHeader()
 
 int MoteDataHolder::findNearestSample(double time, int mote)
 {
-    int pos = time / 0.005;
 
-    //absolut erteket figyelni...
-    //time lehet negativ is... TODO
-    if(pos < 0) pos = 0;
-    if(pos > motes[mote]->samplesSize()) pos = motes[mote]->samplesSize()-1;
-    if(motes[mote]->sampleAt(0).unix_time > time + 0.5) return 0;
-    if(motes[mote]->sampleAt(motes[mote]->samplesSize()-1).unix_time < time - 0.5) return motes[mote]->samplesSize()-1;
+    double minDiff = 999999.0;
+    int pos;
 
-    double unix_time = motes[mote]->sampleAt(pos).unix_time;
-    double diff = fabs(time - unix_time);
+    for(int i = 0; i < motes[mote]->samplesSize()-1; i++){
+        double unix_time = motes[mote]->sampleAt(i).unix_time;
+        double diff = fabs(unix_time - time);
 
-    while(diff > 0.005){
-        if( unix_time > time){
-            pos--;
-        } else {
-            pos++;
+        if(diff < minDiff){
+            minDiff = diff;
+            pos = i;
         }
 
-        if( pos <= 0 ) return 0;
-        if( pos >= motes[mote]->samplesSize() ) return motes[mote]->samplesSize()-1;
-
-        unix_time = motes[mote]->sampleAt(pos).unix_time;
-        diff = fabs(time - unix_time);
     }
+
     return pos;
+
 }
 
 void MoteDataHolder::calculateOffset(int sample)
