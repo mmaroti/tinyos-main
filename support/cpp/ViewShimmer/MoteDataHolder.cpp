@@ -300,7 +300,7 @@ int MoteDataHolder::findNearestSample(double time, int mote)
 {
 
     double minDiff = 999999.0;
-    int pos;
+    int pos = -1;
 
     for(int i = 0; i < motes[mote]->samplesSize()-1; i++){
         double unix_time = motes[mote]->sampleAt(i).unix_time;

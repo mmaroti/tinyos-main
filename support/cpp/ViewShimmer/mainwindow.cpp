@@ -154,7 +154,7 @@ MainWindow::MainWindow(QWidget *parent, Application &app):
     btnSave->setDisabled(true);
     btnCopy->setDisabled(true);
     btnCut->setDisabled(true);
-    btnPaste->setDisabled(true);
+    btnPaste->setDisabled(false);
     btnZoom->setDisabled(true);
     btnMarker->setDisabled(true);
 
@@ -319,7 +319,12 @@ void MainWindow::clearCopyDatas()
 
 void MainWindow::onLoadFinished()
 {
-
+    qDebug() << "Load Finished";
+    qDebug() << "Motes count: " << application.moteDataHolder.motesCount();
+    qDebug() << "Samples count:";
+    for(int i = 0; i<application.moteDataHolder.motesCount(); i++){
+        qDebug() << "Mote " << i << ": " << application.moteDataHolder.mote(i)->samplesSize();
+    }
     calculateCurveDatas(1.0);
     d_plot->createZoomer();
 
@@ -826,6 +831,8 @@ void MainWindow::cut(QRectF rect)
 
 void MainWindow::paste(QPointF pos)
 {
+    bool empty = true;
+    if(application.moteDataHolder.motesCount() != 0) empty = false;
 
     //paste from clipboard
     QClipboard *clipboard = QApplication::clipboard();
@@ -838,8 +845,9 @@ void MainWindow::paste(QPointF pos)
         QString line = stream.readLine();
         if(line != "#mote,reboot_ID,length,boot_unix_time,skew_1,offset"){
             QMessageBox msgBox;
-            msgBox.setText("Wrong file format! Wrong header!");
+            msgBox.setText("Wrong format! Wrong header!");
             msgBox.exec();
+            return;
         } else {
             line = stream.readLine();
 
@@ -856,33 +864,11 @@ void MainWindow::paste(QPointF pos)
                 line = stream.readLine();
             }
 
-
-
-            double from = pos.x();
-            if( from < d_plot->axisInterval(QwtPlot::xBottom).minValue() + BORDER_MARGIN ) from = d_plot->axisInterval(QwtPlot::xBottom).minValue();
-
-            int begining;
-            double minTime = 99999.999;
-            double maxTime = 0.000;
-            double timeDelay;
-
-            for(int j = 0; j < application.moteDataHolder.motesCount(); j++){
-                for(int i = copyPositions.at(2*j); i < copyPositions.at(2*j+1); i++ ){
-                    if(minTime > application.moteDataHolder.mote(j)->sampleAt(i).unix_time) minTime = application.moteDataHolder.mote(j)->sampleAt(i).unix_time;
-                    if(maxTime < application.moteDataHolder.mote(j)->sampleAt(i).unix_time) maxTime = application.moteDataHolder.mote(j)->sampleAt(i).unix_time;
-                }
-            }
-
-            timeDelay = maxTime - minTime;
-            qDebug() << "-----PASTE-----";
-            qDebug() << "Paste time delay: " << minTime << " - " << maxTime;
-
-            createMarker(QPointF(from, 0),"paste from", Qt::red);
-            createMarker(QPoint(from+timeDelay,0), "paste to", Qt::red);
-
             line = stream.readLine();
 
-            Sample sample = application.moteDataHolder.createSample(line, false);
+            bool loadIntoMemory = empty;
+
+            Sample sample = application.moteDataHolder.createSample(line, loadIntoMemory);
 
             QVector<Sample> samples;
             QVector< QVector <Sample> > moteSamples;
@@ -890,10 +876,11 @@ void MainWindow::paste(QPointF pos)
             int prevMoteID = sample.moteID;
             int mote = 0;
 
+
             //create the samples for the actual moteData
             while ( !line.isEmpty() && line != "#marker_id,marker_text,marker_x_pos" )
             {
-                Sample sample = application.moteDataHolder.createSample(line, false);
+                Sample sample = application.moteDataHolder.createSample(line, loadIntoMemory);
 
                 if(prevMoteID == sample.moteID){
                     samples.append(sample);
@@ -914,40 +901,67 @@ void MainWindow::paste(QPointF pos)
 
             qDebug() << "MoteSamples: " << moteSamples.size();
 
-            for(int j = 0; j < application.moteDataHolder.motesCount(); j++){
+            double from = pos.x();
+            if( from < d_plot->axisInterval(QwtPlot::xBottom).minValue() + BORDER_MARGIN ) from = d_plot->axisInterval(QwtPlot::xBottom).minValue();
+
+            //calculating timeDelay
+            int begining;
+            double minTime = 99999.999;
+            double maxTime = 0.000;
+            double timeDelay;
+
+            for(int j = 0; j < moteSamples.size(); j++){
+                for(int i = 0; i < moteSamples[j].size()-1; i++ ){
+                    if(minTime > moteSamples[j].at(i).unix_time) minTime = moteSamples[j].at(i).unix_time;
+                    if(maxTime < moteSamples[j].at(i).unix_time) maxTime = moteSamples[j].at(i).unix_time;
+                }
+            }
+
+            timeDelay = maxTime - minTime;
+            qDebug() << "-----PASTE-----";
+            qDebug() << "Paste time delay: " << maxTime << " - " << minTime << " = " << timeDelay;
+            qDebug() << "From: " << from;
+
+            //create copy markers
+            createMarker(QPointF(from, 0),"paste from", Qt::red);
+            createMarker(QPoint(from+timeDelay,0), "paste to", Qt::red);
+
+            for(int j = 0; j < moteSamples.size(); j++){
 
                 begining = application.moteDataHolder.findNearestSample(from, j);
 
-                qDebug() << "Copy begining: " << begining;
+                if( begining != -1){
 
-                qDebug() << "Samples size: " << application.moteDataHolder.mote(j)->samplesSize();
+                    qDebug() << "Copy begining: " << begining;
 
-                application.moteDataHolder.mote(j)->insertBlankSamples(begining, moteSamples[j].size());
+                    qDebug() << "Samples size: " << application.moteDataHolder.mote(j)->samplesSize();
 
-                qDebug() << "   ...after injecting blank samples: " << application.moteDataHolder.mote(j)->samplesSize();
+                    application.moteDataHolder.mote(j)->insertBlankSamples(begining, moteSamples[j].size());
 
-                qDebug() << "Time of first sample after blanks: " << application.moteDataHolder.mote(j)->sampleAt(begining+moteSamples[j].size()+1).unix_time;
+                    qDebug() << "   ...after injecting blank samples: " << application.moteDataHolder.mote(j)->samplesSize();
 
-                application.moteDataHolder.mote(j)->setTimeDelay(timeDelay, begining+moteSamples[j].size());
+                    qDebug() << "Time of first sample after blanks: " << application.moteDataHolder.mote(j)->sampleAt(begining+moteSamples[j].size()+1).unix_time;
 
-                qDebug() << "   ...after setting delyay: " << application.moteDataHolder.mote(j)->sampleAt(begining+moteSamples[j].size()+1).unix_time;
+                    application.moteDataHolder.mote(j)->setTimeDelay(timeDelay, begining+moteSamples[j].size());
 
-                for(int k = 0; k < moteSamples[j].size(); k++){
-                    int pos = begining++;
-                    Sample *sample = &application.moteDataHolder.mote(j)->getSampleAt(pos);
-                    sample->unix_time = from+k*0.005;
-                    sample->xAccel = moteSamples[j].at(k).xAccel;
-                    sample->yAccel = moteSamples[j].at(k).yAccel;
-                    sample->zAccel = moteSamples[j].at(k).zAccel;
-                    sample->xGyro  = moteSamples[j].at(k).xGyro;
-                    sample->yGyro  = moteSamples[j].at(k).yGyro;
-                    sample->zGyro  = moteSamples[j].at(k).zGyro;
+                    qDebug() << "   ...after setting delyay: " << application.moteDataHolder.mote(j)->sampleAt(begining+moteSamples[j].size()+1).unix_time;
 
-                    sample->counter = moteSamples[j].at(k).counter;
-                    sample->mote_time = moteSamples[j].at(k).mote_time;
+                    for(int k = 0; k < moteSamples[j].size(); k++){
+                        int pos = begining++;
+                        Sample *sample = &application.moteDataHolder.mote(j)->getSampleAt(pos);
+                        sample->unix_time = from+k*0.005;
+                        sample->xAccel = moteSamples[j].at(k).xAccel;
+                        sample->yAccel = moteSamples[j].at(k).yAccel;
+                        sample->zAccel = moteSamples[j].at(k).zAccel;
+                        sample->xGyro  = moteSamples[j].at(k).xGyro;
+                        sample->yGyro  = moteSamples[j].at(k).yGyro;
+                        sample->zGyro  = moteSamples[j].at(k).zGyro;
 
+                        sample->counter = moteSamples[j].at(k).counter;
+                        sample->mote_time = moteSamples[j].at(k).mote_time;
+
+                    }
                 }
-
             }
 
             line = stream.readLine();
@@ -978,11 +992,11 @@ void MainWindow::paste(QPointF pos)
 
 
         onLoadFinished();
-        return;
+        //return;
     }
 
 
-    calculateCurveDatas(1.0);
+    //calculateCurveDatas(1.0);
 }
 
 void MainWindow::on_listWidget_itemDoubleClicked(QListWidgetItem *item)
