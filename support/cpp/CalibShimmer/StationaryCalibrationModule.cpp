@@ -40,7 +40,10 @@
 #include "tnt_math_utils.h"
 #include <cmath>
 
+#include <QFile>
+
 using namespace std;
+class QFileDialog;
 
 StationaryCalibrationModule::StationaryCalibrationModule(Application& app) : application(app)
 {
@@ -421,15 +424,16 @@ QString StationaryCalibrationModule::LSF() {
     } else {
         qDebug() << "setting accel calib data";
         for (unsigned int i = 0; i < linearEquations.getVariableCount(); i++) {
-            //application.dataRecorder.setAccelCalibration(i, solution->getValueAt(i));
+            qDebug() << solution->getValueAt(i);
+            solutions.append(solution->getValueAt(i));
         }
 
         for (unsigned int i = 0; i < 3; i++) {
-            //application.dataRecorder.setGyroMinAvgs(i, gyroMinAvgs[i]);
+            qDebug() << gyroMinAvgs[i];
         }
 
         for (int i = 0; i < 6; i++){
-            //application.dataRecorder.setAccelIdleWindowStart(i, idleWindows[idleSidesMins[i]].start);
+            qDebug() << idleWindows[idleSidesMins[i]].start;
         }
 
         returnMessage.append("\n Acceleration Calibration Data: \n");

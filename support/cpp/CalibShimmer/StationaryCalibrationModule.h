@@ -39,6 +39,7 @@
 #include <jama_qr.h>
 #include <QVarLengthArray>
 #include <QStringList>
+#include <QVector>
 #include "constants.h"
 
 class Application;
@@ -92,6 +93,10 @@ public:
 
     void clearIdleSides();
 
+    int idleSidesMins[6];
+    double gyroMinAvgs[3];
+    QVector<double> solutions;
+
 private:
     Application &application;
 
@@ -108,8 +113,7 @@ private:
     //QMessageBox msgBox;
 
     QVarLengthArray<IdleWindow> idleWindows;
-    int idleSidesMins[6];
-    double gyroMinAvgs[3];
+
 
 };
 

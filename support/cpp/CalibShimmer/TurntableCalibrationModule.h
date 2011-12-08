@@ -54,6 +54,7 @@
 
 #include <QObject>
 #include <QVarLengthArray>
+#include <QVector>
 #include <jama_qr.h>
 
 class Application;
@@ -106,6 +107,8 @@ public:
     const int & atTurntableSides(int i) const { return turntableSidesMins[i]; }
 
     void clearTurntableSides();
+
+    QVector<double> solutions;
 
 private:
     Application &application;

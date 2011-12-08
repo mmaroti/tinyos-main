@@ -453,7 +453,8 @@ QString TurntableCalibrationModule::LSF() {
         return returnMessage;
     } else {
         for (unsigned int i = 0; i < linearEquations.getVariableCount(); i++) {
-            //application.dataRecorder.setGyroCalibration(i, solution->getValueAt(i));
+            qDebug() << solution->getValueAt(i);
+            solutions.append(solution->getValueAt(i));
         }
 
         returnMessage.append("\nGyroscope calibration successful \n");
