@@ -83,16 +83,40 @@ enum {
 		 959 903 437.50 Hz : FREQ_10MHZ = 95, FREQ_KHZ = 9903   FREQ_MILLIHZ = 43750
 	*/
 	// Valid values for SI443X_BASE_FREQ_10MHZ : [24,..,95]
-	SI443X_BASE_FREQ_10MHZ = 24,
+	SI443X_BASE_FREQ_10MHZ = 43,
 	
 	// Valid values for SI443X_BASE_FREQ_KHZ : [0,..,9999]
-	SI443X_BASE_FREQ_KHZ = 0,
+	SI443X_BASE_FREQ_KHZ = 3000,
 	
 	// Valid values for SI443X_BASE_FREQ_MILLIHZ : [0U,...,99999U]
 	SI443X_BASE_FREQ_MILLIHZ = 0U,
 	
 	// Channel step size for frequency hopping in 10KHz's
 	SI443X_CHANNEL_STEP_10KHZ = 100,	
+};
+
+/** You can derive more modem configuration options with the shipped Si443x Modem Configuration Excel tool. */
+#define SI443X_MODEM_CONFIG_COUNT 2
+
+#ifndef SI443X_MODEM_CONFIG
+#define SI443X_MODEM_CONFIG 1
+#elif SI443X_MODEM_CONFIG > SI443X_MODEM_CONFIG_COUNT
+#error "You have set an invalid SI443X modem configuration!"
+#endif
+
+#define SI443X_MODEM_CONFIG_LENGTH 26
+uint8_t si443x_modem_configuration[][SI443X_MODEM_CONFIG_LENGTH] = {
+	{ 0x1C,0x1D,0x1E,0x1F,0x20,0x21,0x22,0x23,0x24,0x25,0x2A,0x2C,0x2D,0x2E,0x30,0x32,0x33,0x34,0x35,0x58,0x69,0x6E,0x6F,0x70,0x71,0x72 },
+	
+	// GFSK, 250kbps, NO Manchester, AFC >1%, 150ppm crystal, CRC16
+	#if ( SI443X_MODEM_CONFIG == 1 )
+	{ 0x8E,0x44,0x02,0x00,0x30,0x02,0xAA,0xAB,0x14,0x74,0x50,0x28,0x05,0x27,0x8D,0x00,0x00,0x04,0x22,0xED,0x60,0x40,0x00,0x0D,0x27,0xE0 },
+	#endif
+	
+	// OOK, 250kbps, Manchester, 400kHZ OOK BW, 150ppm crystal, CRC16
+	#if ( SI443X_MODEM_CONFIG == 2 )
+	{ 0x8A,0x44,0x02,0x00,0x18,0x02,0xAA,0xAB,0x15,0x57,0x50,0x18,0x02,0x26,0x8D,0x00,0x00,0x04,0x22,0xED,0x60,0x40,0x00,0x0F,0x25,0xE0 }
+	#endif
 };
 
 enum
