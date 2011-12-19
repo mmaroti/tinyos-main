@@ -52,7 +52,7 @@ class SerialReceive implements MessageListener{
 		int tempmert;
 		double tempkorr,tempkorr2;
 		double time;
-		int node;
+		int hum;
 		if (msg instanceof SerialMsg) {
 			SerialMsg serialData = (SerialMsg)msg;
 			SerialPacket serPkt = msg.getSerialPacket();
@@ -60,14 +60,14 @@ class SerialReceive implements MessageListener{
 			tempkorr= (-39.6)+0.01*tempmert;
 			tempkorr2= ((-46.85)+175.72*(tempmert/65536));
 			time=serialData.get_time();
-			node=serialData.get_nodeID();
+			hum=serialData.get_humidity();
 			try{
 		fop = new PrintWriter(new FileWriter("temp"+file+".txt",true));
 		}catch(IOException ex){}
 			if (last==time){System.exit(1);}
 			else {last=time;}
-			out.println("Temp_measured:\t"+tempmert+"\tTemperature:\t" + tempkorr +"\tTime\t"+time+"\tNode:\t"+node);
-			fop.println(tempmert+"\t" + tempkorr2 +"\t"+time+"\t"+node);
+			out.println("Temp_measured:\t"+tempmert+"\tTime\t"+time+"\tHumidity:\t"+hum);
+			fop.println(tempmert+"\t"+time+"\t"+hum);
 			fop.close();
 		}
 	}
