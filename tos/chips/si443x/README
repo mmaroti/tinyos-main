@@ -9,10 +9,11 @@ PacketTransmitPower interface provided by the SI443XActiveMessageC.
 
 SI443X_BASE_FREQ_10MHZ:
 SI443X_BASE_FREQ_KHZ:
+SI443X_BASE_FREQ_MILLIHZ:
 
-The base carrier frequency is set accordint to these two values. The carrier frequency is
-set to (SI443X_BASE_FREQ_10MHZ * 10000 + SI443X_BASE_FREQ_KHZ) kiloHz. Any values between
-240000 kHz (240.000 MHz) and 959999 kHz (959.999 Mhz) can be given.
+The base carrier frequency is set according to these two values. The carrier frequency is
+set to (SI443X_BASE_FREQ_10MHZ * 10^7 + SI443X_BASE_FREQ_KHZ * 10^3 + SI443X_BASE_FREQ_MILLIHZ * 10^(-2) ) Hz.
+Any values between 240000 kHz (240.000 MHz) and 959999 kHz (959.999 Mhz) can be given. For details, see the RadioConfig.h file.
 
 SI443X_CHANNEL_STEP_KHZ:
 
@@ -21,8 +22,10 @@ from the preset base carrier frequency, the k'th channel starts from (base carri
 k * SI443X_CHANNEL_STEP_KHZ. The channel spacing is defined in kHz precision, minimum 
 value is 1 (1 kHz), maximum value is 2550 (2,55 Mhz).
 
-Note that if this value is lesser than 10 kHz, the channel switching is done by manually
-adjusting the carrier frequency (thus slower). In turn it provides higher accuracy.
+SI443X_MODEM_CONFIG:
+
+The modem is configured based on precomputed register values. These values can be found in RadioConfig.h, new config values should be
+inserted there. If multiple modem configuration exist, there is a possibility to choose from them using this constant.
 
 SI443X_DEF_CHANNEL:
 
