@@ -42,6 +42,7 @@ implementation {
 	components MainC, LedsC;
 	components TempWriteC as App;
 	components new TimerMilliC() as Timer0;
+	components LocalTimeMilliC;
 	components new TemperatureC() as Sensor;
 	components new HumidityC() as Sensor2;
 	components new LogStorageC(VOLUME_LOGTEST, TRUE);
@@ -56,6 +57,7 @@ implementation {
 	App.Boot -> MainC;
 	App.Leds -> LedsC;
 	App.Timer0 -> Timer0;
+	App.LocalTime -> LocalTimeMilliC;
 	App.Read -> Sensor.Read;
 	App.Read2 -> Sensor2.Read;
 	App.LogWrite -> LogStorageC;

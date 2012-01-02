@@ -43,6 +43,7 @@ class SerialReceive implements MessageListener{
 	static PrintWriter fop;
 	double last=-1;
 	static int file=0;
+	int time=-1;
 	public SerialReceive(MoteIF moteIF){
 		this.moteIF=moteIF;
 		this.moteIF.registerListener(new SerialMsg(),this);
@@ -72,12 +73,13 @@ class SerialReceive implements MessageListener{
 		}
 	}
 	
-	public void send(String counter, String counter2)  
+	public void send(String data, String id)  
 	{
 		SerialMsg msg=new SerialMsg();
 		try{
-			msg.set_counter(Integer.parseInt(counter));
-			msg.set_counter2(Integer.parseInt(counter2));
+			msg.set_counter(Integer.parseInt(data));
+			msg.set_temperature(Integer.parseInt(id));
+			msg.set_time(System.currentTimeMillis());
 			moteIF.send(MoteIF.TOS_BCAST_ADDR,msg);
 			out.println("Message sent to the mote ");
 		}catch(IOException e)

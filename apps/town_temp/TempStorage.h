@@ -45,12 +45,14 @@ enum{
 
 typedef nx_struct BlinkToRadioMsg {
 	nx_uint16_t humidity;
+	nx_uint16_t counter;
 	nx_uint32_t time;
 	nx_uint16_t temperature;
 } BlinkToRadioMsg;
 
 typedef nx_struct ControlMsg{
 	nx_uint16_t control;
+	nx_uint32_t time;
 } ControlMsg;
 
 #endif

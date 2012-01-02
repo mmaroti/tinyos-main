@@ -48,6 +48,7 @@ module TempWriteC {
 	uses interface Boot;
 	uses interface Leds;
 	uses interface Timer<TMilli> as Timer0;
+	uses interface LocalTime<TMilli>;
 	uses interface Read<uint16_t>;
 	uses interface Read<uint16_t> as Read2;
     	uses interface LogWrite;
@@ -62,18 +63,19 @@ implementation {
 	 
 	typedef nx_struct logentry_t {
 	    nx_uint16_t humidity;
+	    nx_uint16_t counter;
 	    nx_uint32_t time;
 	    nx_uint16_t temp;
 	  } logentry_t;
 	bool m_busy = TRUE;
-	uint32_t ts;
 	uint16_t c=1;
 	uint16_t set=0;
 	uint16_t set2=1;
   	logentry_t m_entry;
 	message_t pkt;
 	bool busy=FALSE;
-	uint32_t counter=0;
+	uint16_t counter=0;
+	uint32-t pctime;
 
 
 	event void Boot.booted() {
@@ -112,13 +114,12 @@ implementation {
 	}
 	
 	event void Read.readDone(error_t result, uint16_t data) {
-		//call Leds.led3On();
 		counter++;
-		//m_entry.nodeID=TOS_NODE_ID;
+		call Leds.led3On();
 		m_entry.time=counter;
+		m_entry.counter=counter;
 		m_entry.temp=data;
 		call Read2.read();
-		//call SplitControl.stop();
 	}
 
 	event void Read2.readDone(error_t result, uint16_t data) {
@@ -128,18 +129,15 @@ implementation {
 
 
 	event void LogWrite.appendDone(void* buf, storage_len_t len, bool recordsLost, error_t err) {
-    	if (err==SUCCESS){if (counter<100)call Leds.led3Toggle();}
+    	if (err==SUCCESS){call Leds.led3Off();}
   	}
 	
 	event message_t* Receive.receive(message_t* msgPtr, void* payload, uint8_t len){
-		call Leds.led0Off();
-		call Leds.led1Off();
-		call Leds.led2Off();
-		call Leds.led3Off();
+		call Leds.led1On();
 		if(len==sizeof(ControlMsg)){
 			ControlMsg* btrpkt = (ControlMsg*)payload;
 			c=btrpkt->control;
-			call Leds.led1On();
+			pctime=btrpkt->time;
 			call Timer0.startPeriodic(TIMER_PERIOD_MILLI_DEFAULT);
 			call Leds.led1Off();
 		}
@@ -154,6 +152,7 @@ implementation {
 			BlinkToRadioMsg* btrpkt = (BlinkToRadioMsg*)(call Packet.getPayload(&pkt, sizeof(BlinkToRadioMsg)));
 			btrpkt->temperature = m_entry.temp;
 			btrpkt->time = m_entry.time;
+			btrpkt->counter=m_entry.counter;
 			btrpkt->humidity=m_entry.humidity;
 			if (call AMSend.send(AM_BROADCAST_ADDR, &pkt, sizeof(BlinkToRadioMsg)) == SUCCESS) {
 				busy = TRUE;
@@ -166,7 +165,6 @@ implementation {
 	event void AMSend.sendDone(message_t* msg, error_t error) {
 	if (error == SUCCESS) {
 			busy = FALSE;
-			//call LogRead.read(&m_entry, sizeof(logentry_t));
 			call Leds.led1Toggle();
 		}
 	}

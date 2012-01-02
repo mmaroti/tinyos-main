@@ -107,14 +107,11 @@ implementation {
 		if (len == sizeof(BlinkToRadioMsg)) {
 			BlinkToRadioMsg* ptr = (BlinkToRadioMsg*)payload;
 			call Leds.set(ptr->counter);
-			seged=ptr->counter2;
+			seged=ptr->temperature;
 			if (!locked){
 				ControlMsg* btrpkt2 = (ControlMsg*)(call Packet.getPayload(&pkt, sizeof(ControlMsg)));
 				btrpkt2->control=ptr->counter;
-				//c=ptr->counter;
-				//if (c==2) call LPL.setLocalWakeupInterval(0);
-				//	else call LPL.setLocalWakeupInterval(1024);
-				//call LPL.setRemoteWakeupInterval(&pkt, 1024);
+				btrpkt2->time=ptr->time;
 				if (call AMSend.send(seged, &pkt, sizeof(ControlMsg)) == SUCCESS) {
 					locked = TRUE;
 					call Leds.led0On();

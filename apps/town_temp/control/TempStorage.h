@@ -48,11 +48,11 @@ typedef nx_struct BlinkToRadioMsg {
 	nx_uint32_t time;
 	nx_uint16_t temperature;
 	nx_uint16_t counter;
-	nx_uint16_t counter2;
 } BlinkToRadioMsg;
 
 typedef nx_struct ControlMsg{
 	nx_uint16_t control;
+	nx_uint32_t time;
 } ControlMsg;
 
 #endif
