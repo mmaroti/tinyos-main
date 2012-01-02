@@ -78,8 +78,8 @@ class SerialReceive implements MessageListener{
 		try{
 			msg.set_counter(Integer.parseInt(data));
 			msg.set_temperature(Integer.parseInt(id));
-			msg.set_time(System.currentTimeMillis());
-			System.out.println(System.currentTimeMillis());
+			msg.set_time((long)System.currentTimeMillis()/1000);
+			System.out.println((long)System.currentTimeMillis()/1000);
 			moteIF.send(MoteIF.TOS_BCAST_ADDR,msg);
 			out.println("Message sent to the mote ");
 		}catch(IOException e)
@@ -124,7 +124,7 @@ class SerialReceive implements MessageListener{
 		fop = new PrintWriter(new FileWriter("temp"+file+".txt",true));
 		File temp_file = new File("temp"+file+".txt");
 		if (temp_file.length()==0){
-		fop.println("Counter\t" +"Temp\t"+"Humidity\tTime");
+		fop.println("Counter\t"+"Temp\t"+"Humidity\tTime");
 		}
 		fop.close();
 		}
