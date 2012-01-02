@@ -75,7 +75,8 @@ implementation {
 	message_t pkt;
 	bool busy=FALSE;
 	uint16_t counter=0;
-	uint32-t pctime;
+	uint32_t pctime;
+	uint32_t lastTime=0;
 
 
 	event void Boot.booted() {
@@ -98,9 +99,10 @@ implementation {
 		if (c==1) {if (set2==0) {call Timer0.startPeriodic(TIMER_PERIOD_MILLI_WRITE); set2=1;}
 				call Read.read();
 				set=0;}
-		else if (c==2) { if (set==0) {call Timer0.startPeriodic(TIMER_PERIOD_MILLI_READ); 
+		else if (c==2) { if (set==0) {//call Timer0.startPeriodic(TIMER_PERIOD_MILLI_READ); 
 						set=1;}
 				call LogRead.read(&m_entry, sizeof(logentry_t));
+				call Leds.led0On();
 				set2=0;
 				}
 		else if (c==3) {
@@ -116,7 +118,7 @@ implementation {
 	event void Read.readDone(error_t result, uint16_t data) {
 		counter++;
 		call Leds.led3On();
-		m_entry.time=counter;
+		m_entry.time=call LocalTime.get();
 		m_entry.counter=counter;
 		m_entry.temp=data;
 		call Read2.read();
@@ -136,10 +138,21 @@ implementation {
 		call Leds.led1On();
 		if(len==sizeof(ControlMsg)){
 			ControlMsg* btrpkt = (ControlMsg*)payload;
-			c=btrpkt->control;
-			pctime=btrpkt->time;
-			call Timer0.startPeriodic(TIMER_PERIOD_MILLI_DEFAULT);
-			call Leds.led1Off();
+			if (c==1 && btrpkt->control==1){
+				call Leds.led1Off();
+			}else{
+				c=btrpkt->control;
+				pctime=btrpkt->time;
+				call Leds.led3On();
+				counter++;
+				m_entry.time=call LocalTime.get();
+				m_entry.counter=counter;
+				m_entry.temp=pctime>>10;
+				m_entry.humidity=0xFFFF;
+				call LogWrite.append(&m_entry, sizeof(logentry_t));
+				call Timer0.startPeriodic(TIMER_PERIOD_MILLI_DEFAULT);
+				call Leds.led1Off();
+				}
 		}
 	return msgPtr;
 	}
@@ -147,16 +160,22 @@ implementation {
 	event void LogRead.readDone(void* buf, storage_len_t len, error_t err) {
 		
 		if(err==SUCCESS){
-			call Leds.led0Toggle();
 			if (!busy) {
-			BlinkToRadioMsg* btrpkt = (BlinkToRadioMsg*)(call Packet.getPayload(&pkt, sizeof(BlinkToRadioMsg)));
-			btrpkt->temperature = m_entry.temp;
-			btrpkt->time = m_entry.time;
-			btrpkt->counter=m_entry.counter;
-			btrpkt->humidity=m_entry.humidity;
-			if (call AMSend.send(AM_BROADCAST_ADDR, &pkt, sizeof(BlinkToRadioMsg)) == SUCCESS) {
-				busy = TRUE;
+				BlinkToRadioMsg* btrpkt = (BlinkToRadioMsg*)(call Packet.getPayload(&pkt, sizeof(BlinkToRadioMsg)));
+				btrpkt->temperature = m_entry.temp;
+				btrpkt->time = m_entry.time;
+				btrpkt->counter=m_entry.counter;
+				btrpkt->humidity=m_entry.humidity;
+				if (call AMSend.send(AM_BROADCAST_ADDR, &pkt, sizeof(BlinkToRadioMsg)) == SUCCESS) {
+					busy = TRUE;
+					call Leds.led1On();
+					}
+				if(lastTime==btrpkt->time){
+					c=1;
+				}else{
+					lastTime=btrpkt->time;
 				}
+				call Leds.led0Off();
 			}
 		}
 		
@@ -165,7 +184,8 @@ implementation {
 	event void AMSend.sendDone(message_t* msg, error_t error) {
 	if (error == SUCCESS) {
 			busy = FALSE;
-			call Leds.led1Toggle();
+			call Leds.led1Off();
+			call Timer0.startOneShot(500);
 		}
 	}
 

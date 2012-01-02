@@ -50,25 +50,24 @@ class SerialReceive implements MessageListener{
 	}
 	
 	public void messageReceived(int dest_addr,Message msg){
-		int tempmert;
-		double tempkorr,tempkorr2;
-		double time;
+		int temp;
+		int counter;
+		long time;
 		int hum;
 		if (msg instanceof SerialMsg) {
 			SerialMsg serialData = (SerialMsg)msg;
 			SerialPacket serPkt = msg.getSerialPacket();
-			tempmert = serialData.get_temperature();
-			tempkorr= (-39.6)+0.01*tempmert;
-			tempkorr2= ((-46.85)+175.72*(tempmert/65536));
+			temp = serialData.get_temperature();
 			time=serialData.get_time();
+			counter=serialData.get_counter();
 			hum=serialData.get_humidity();
 			try{
 		fop = new PrintWriter(new FileWriter("temp"+file+".txt",true));
 		}catch(IOException ex){}
 			if (last==time){System.exit(1);}
 			else {last=time;}
-			out.println("Temp_measured:\t"+tempmert+"\tTime\t"+time+"\tHumidity:\t"+hum);
-			fop.println(tempmert+"\t"+time+"\t"+hum);
+			out.println("Counter: "+counter+" Temp_measured:\t"+temp+"\tTime\t"+time+"\tHumidity:\t"+hum);
+			fop.println(counter+"\t"+temp+"\t"+hum+"\t"+time);
 			fop.close();
 		}
 	}
@@ -80,6 +79,7 @@ class SerialReceive implements MessageListener{
 			msg.set_counter(Integer.parseInt(data));
 			msg.set_temperature(Integer.parseInt(id));
 			msg.set_time(System.currentTimeMillis());
+			System.out.println(System.currentTimeMillis());
 			moteIF.send(MoteIF.TOS_BCAST_ADDR,msg);
 			out.println("Message sent to the mote ");
 		}catch(IOException e)
@@ -111,14 +111,21 @@ class SerialReceive implements MessageListener{
 		SerialReceive app= new SerialReceive(mif);
 		app.send(data,data2);
 		seged=Integer.parseInt(data);
+		file=Integer.parseInt(args[3]);
 		if(seged!=2) {
+			if (seged==3){
+				File del = new File("temp"+file+".txt");
+				del.delete();
+			}
 			System.exit(0);
 		}
 		else{
 		out.println("letoltes");
-		file=Integer.parseInt(args[3]);
 		fop = new PrintWriter(new FileWriter("temp"+file+".txt",true));
-		fop.println("Measured\t" + "Calculated\t"+"Time\t"+"Node");
+		File temp_file = new File("temp"+file+".txt");
+		if (temp_file.length()==0){
+		fop.println("Counter\t" +"Temp\t"+"Humidity\tTime");
+		}
 		fop.close();
 		}
 		
