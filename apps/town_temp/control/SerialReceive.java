@@ -135,7 +135,7 @@ class SerialReceive implements MessageListener{
 				fop.println("PCTime\t"+"Temp\t"+"Humidity\tTime");
 				fop.println(System.currentTimeMillis()>>10);
 				}
-				fop.close();
+			fop.close();
 		}
 		
 	}

@@ -35,17 +35,6 @@
 
 #include <Timer.h>
 #include "TempStorage.h"
-/*
-#ifndef LPL_DEF_REMOTE_WAKEUP
-	#define LPL_DEF_REMOTE_WAKEUP 1024
-#endif
-#ifndef LPL_DEF_LOCAL_WAKEUP
-	#define LPL_DEF_LOCAL_WAKEUP 1024
-#endif
-#ifndef DELAY_AFTER_RECEIVE
-	#define DELAY_AFTER_RECEIVE 200
-#endif
-*/
 module SerialC {
 	uses interface Boot;
 	uses interface Leds;

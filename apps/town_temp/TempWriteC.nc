@@ -66,6 +66,7 @@ implementation {
 	uint16_t counter=0;
 	uint32_t pctime;
 	uint32_t lastTime=0;
+	uint32_t logReadPos=SEEK_BEGINNING;
 
 
 	event void Boot.booted() {
@@ -102,7 +103,15 @@ implementation {
 		      		}
 		}
 		else if (c==4){call Leds.led2Toggle(); set=0; set2=0;}
-		else if (c==5){call Leds.led2Toggle(); set=0; set2=0;}
+		else if (c==5){call Leds.led2On(); 
+				set=0; set2=0;
+				//call LogRead.seek(call LogWrite.currentOffset());
+				call LogRead.read(&m_entry, sizeof(logentry_t));
+				call Leds.led0On();
+				//c=1;
+				//call LogRead.seek(call LogRead.currentOffset());
+				call Leds.led2Off();
+				}
 	}
 	
 	event void Read.readDone(error_t result, uint16_t data) {
@@ -125,7 +134,7 @@ implementation {
   	}
 	
 	event message_t* Receive.receive(message_t* msgPtr, void* payload, uint8_t len){
-		call Leds.led1Toggle();
+		call Leds.led1On();
 		if(len==sizeof(ControlMsg)){
 			ControlMsg* btrpkt = (ControlMsg*)payload;
 			if (c==1 && btrpkt->control==1){
@@ -140,10 +149,11 @@ implementation {
 				m_entry.temp=pctime>>10;
 				m_entry.humidity=0xFFFF;
 				call LogWrite.append(&m_entry, sizeof(logentry_t));
-				call Timer0.startPeriodic(TIMER_PERIOD_MILLI_DEFAULT);
+				call Timer0.startOneShot(TIMER_PERIOD_MILLI_READ);
 				//call Leds.led1Off();
 				}
 		}
+	call Leds.led1Off();
 	return msgPtr;
 	}
 
@@ -156,10 +166,9 @@ implementation {
 				btrpkt->time = m_entry.time;
 				btrpkt->counter=m_entry.counter;
 				btrpkt->humidity=m_entry.humidity;
-				if (call AMSend.send(AM_BROADCAST_ADDR, &pkt, sizeof(BlinkToRadioMsg)) == SUCCESS) {
-					busy = TRUE;
-					call Leds.led1On();
-					}
+				call AMSend.send(AM_BROADCAST_ADDR, &pkt, sizeof(BlinkToRadioMsg));
+				busy = TRUE;
+				call Leds.led1On();	
 				if(lastTime==btrpkt->time){
 					c=1;
 				}else{
@@ -175,6 +184,8 @@ implementation {
 	if (error == SUCCESS) {
 			busy = FALSE;
 			call Leds.led1Off();
+			if(c==5){c=1;
+			call Timer0.startOneShot(TIMER_PERIOD_MILLI_READ);}
 		}
 	}
 
