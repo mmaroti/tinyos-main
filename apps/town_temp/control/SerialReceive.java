@@ -78,8 +78,8 @@ class SerialReceive implements MessageListener{
 		try{
 			msg.set_counter(Integer.parseInt(data));
 			msg.set_temperature(Integer.parseInt(id));
-			msg.set_time((long)System.currentTimeMillis()/1000);
-			System.out.println((long)System.currentTimeMillis()/1000);
+			msg.set_time(System.currentTimeMillis()>>10);
+			System.out.println(System.currentTimeMillis()>>10);
 			moteIF.send(MoteIF.TOS_BCAST_ADDR,msg);
 			out.println("Message sent to the mote ");
 		}catch(IOException e)
@@ -112,21 +112,30 @@ class SerialReceive implements MessageListener{
 		app.send(data,data2);
 		seged=Integer.parseInt(data);
 		file=Integer.parseInt(args[3]);
-		if(seged!=2) {
+		if((seged!=2)&&(seged!=5)) {
 			if (seged==3){
 				File del = new File("temp"+file+".txt");
 				del.delete();
 			}
 			System.exit(0);
 		}
-		else{
-		out.println("letoltes");
-		fop = new PrintWriter(new FileWriter("temp"+file+".txt",true));
-		File temp_file = new File("temp"+file+".txt");
-		if (temp_file.length()==0){
-		fop.println("Counter\t"+"Temp\t"+"Humidity\tTime");
-		}
-		fop.close();
+		else if(seged==2){
+			out.println("letoltes");
+			fop = new PrintWriter(new FileWriter("temp"+file+".txt",true));
+			File temp_file = new File("temp"+file+".txt");
+				if (temp_file.length()==0){
+				fop.println("Counter\t"+"Temp\t"+"Humidity\tTime");
+				}
+			fop.close();
+		}else if(seged==5){
+			out.println("ellenorzes");
+			fop = new PrintWriter(new FileWriter("check"+file+".txt",true));
+			File temp_file = new File("check"+file+".txt");
+				if (temp_file.length()==0){
+				fop.println("PCTime\t"+"Temp\t"+"Humidity\tTime");
+				fop.println(System.currentTimeMillis()>>10);
+				}
+				fop.close();
 		}
 		
 	}

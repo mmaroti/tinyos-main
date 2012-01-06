@@ -33,17 +33,6 @@
 
 #include <Timer.h>
 #include "TempStorage.h"
-/*
-#ifndef LPL_DEF_REMOTE_WAKEUP
-	#define LPL_DEF_REMOTE_WAKEUP 1024
-#endif
-#ifndef LPL_DEF_LOCAL_WAKEUP
-	#define LPL_DEF_LOCAL_WAKEUP 1024
-#endif
-#ifndef DELAY_AFTER_RECEIVE
-	#define DELAY_AFTER_RECEIVE 200
-#endif
-*/
 module TempWriteC {
 	uses interface Boot;
 	uses interface Leds;
@@ -99,7 +88,7 @@ implementation {
 		if (c==1) {if (set2==0) {call Timer0.startPeriodic(TIMER_PERIOD_MILLI_WRITE); set2=1;}
 				call Read.read();
 				set=0;}
-		else if (c==2) { if (set==0) {//call Timer0.startPeriodic(TIMER_PERIOD_MILLI_READ); 
+		else if (c==2) { if (set==0) {call Timer0.startPeriodic(TIMER_PERIOD_MILLI_READ); 
 						set=1;}
 				call LogRead.read(&m_entry, sizeof(logentry_t));
 				call Leds.led0On();
@@ -113,6 +102,7 @@ implementation {
 		      		}
 		}
 		else if (c==4){call Leds.led2Toggle(); set=0; set2=0;}
+		else if (c==5){call Leds.led2Toggle(); set=0; set2=0;}
 	}
 	
 	event void Read.readDone(error_t result, uint16_t data) {
@@ -135,11 +125,11 @@ implementation {
   	}
 	
 	event message_t* Receive.receive(message_t* msgPtr, void* payload, uint8_t len){
-		call Leds.led1On();
+		call Leds.led1Toggle();
 		if(len==sizeof(ControlMsg)){
 			ControlMsg* btrpkt = (ControlMsg*)payload;
 			if (c==1 && btrpkt->control==1){
-				call Leds.led1Off();
+				//call Leds.led1Off();
 			}else{
 				c=btrpkt->control;
 				pctime=btrpkt->time;
@@ -151,7 +141,7 @@ implementation {
 				m_entry.humidity=0xFFFF;
 				call LogWrite.append(&m_entry, sizeof(logentry_t));
 				call Timer0.startPeriodic(TIMER_PERIOD_MILLI_DEFAULT);
-				call Leds.led1Off();
+				//call Leds.led1Off();
 				}
 		}
 	return msgPtr;
@@ -185,7 +175,6 @@ implementation {
 	if (error == SUCCESS) {
 			busy = FALSE;
 			call Leds.led1Off();
-			call Timer0.startOneShot(500);
 		}
 	}
 

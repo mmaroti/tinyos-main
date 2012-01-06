@@ -70,7 +70,6 @@ implementation {
 	 
 	event void Boot.booted() {
 		call SerialControl.start();
-		//call LPL.setLocalWakeupInterval(1024);
 	}
 
 	event void SerialControl.startDone(error_t err) {
