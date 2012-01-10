@@ -28,7 +28,7 @@ _tos()
 	    else
 		for serial in `ls -1 /dev/tty*|grep 'ttyS|ttyUSB|ttyACM'`
 		do
-		    local extras+=" avr109,$serial mib510,$serial mib520,$serial zbp,$serial"
+		    local extras+=" avr109,$serial mib510,$serial mib520,$serial zbp,$serial bsl,$serial"
 		done
 	    fi
 	    COMPREPLY=( $( compgen -W '${extras}' -- $cur ) )
