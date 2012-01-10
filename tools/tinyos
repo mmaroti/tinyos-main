@@ -23,10 +23,10 @@ _tos()
 	    then
 		for serial in "COM1 COM2"
 		do
-		    local extras+=" avr109,$serial mib510,$serial mib520,$serial zbp,$serial"
+		    local extras+=" avr109,$serial mib510,$serial mib520,$serial zbp,$serial bsl,$serial"
 		done
 	    else
-		for serial in `ls -1 /dev/tty*|grep 'ttyS|ttyUSB|ttyACM'`
+		for serial in `ls -1 /dev/tty*|egrep 'ttyS|ttyUSB|ttyACM'`
 		do
 		    local extras+=" avr109,$serial mib510,$serial mib520,$serial zbp,$serial bsl,$serial"
 		done
