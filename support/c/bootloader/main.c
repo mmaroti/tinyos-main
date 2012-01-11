@@ -248,10 +248,12 @@ int main(void)
             // Write page.       
             else if(val== 'm')
             {
+                #ifndef DISABLE_BOOTLOADER_PROTECTION
                 if( address >= (APP_END>>1) ) // Protect bootloader area.
                 {
                     sendchar('?');
                 } else
+                #endif
                 {
                     _WAIT_FOR_SPM();      
                     _PAGE_WRITE( address << 1 ); // Convert word-address to byte-address and write.
@@ -479,8 +481,10 @@ unsigned char BlockLoad(unsigned int size, unsigned char mem, ADDR_T *address)
             size -= 2; // Reduce number of bytes to write by two.
         } while(size); // Loop until all bytes written.
 		//bootloader protection.
+		#ifndef DISABLE_BOOTLOADER_PROTECTION
 		if(((*address)>>1)>APP_END)
 			return '?';
+		#endif
 
 		_PAGE_WRITE(tempaddress);
 		_WAIT_FOR_SPM();
