@@ -156,6 +156,7 @@ void TOSH_SET_PIN_DIRECTIONS(void)
   TOSH_MAKE_FLASH_POWER_OUTPUT();
   TOSH_SET_FLASH_CS_PIN();
   TOSH_CLR_FLASH_POWER_PIN();
+  //TODO: we should wait here while the flash boots up
 }
 
 enum {
