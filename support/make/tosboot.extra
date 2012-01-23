@@ -56,6 +56,12 @@ ifeq ($(BOOTLOADER),tosboot)
     AVR_FUSE_H ?= 0xda
   endif
 
+  ifeq ($(TARGETS),ucmini)
+    CFLAGS += -I$(DELUGE_EXTRA)/iris -I$(DELUGE_EXTRA)/micaz -I$(DELUGE_EXTRA)/mica2 -I$(DELUGE_EXTRA)/avr -I$(DELUGE_EXTRA)
+    BOOTLOADER_IMG ?= $(TOSBOOT_DIR)/ucmini/main.ihex
+    AVR_FUSE_H ?= 0x98
+  endif
+
    ifeq ($(TARGETS),tinynode)
 		CFLAGS += -I$(DELUGE_EXTRA)/tinynode
 		CFLAGS += -I$(DELUGE_EXTRA) -I$(DELUGE_EXTRA)/msp430 -I$(DELUGE_EXTRA)/msp430f1611 

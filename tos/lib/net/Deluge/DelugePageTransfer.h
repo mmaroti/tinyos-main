@@ -44,7 +44,7 @@
 
 #if defined(PLATFORM_TELOSB) || defined(PLATFORM_EPIC)
   #include "extra/telosb/TOSBoot_platform.h"
-#elif defined(PLATFORM_MICAZ) || defined(PLATFORM_IRIS)
+#elif defined(PLATFORM_MICAZ) || defined(PLATFORM_IRIS) || defined(PLATFORM_UCMINI)
   #include "extra/micaz/TOSBoot_platform.h"
 #elif defined(PLATFORM_MULLE)
   #include "extra/mulle/TOSBoot_platform.h"
