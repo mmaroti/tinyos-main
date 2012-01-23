@@ -7,15 +7,22 @@
 enum{
 	
 	CL_TEST = 0xee,
-	MEASURINGS = 10
+	/* Number of readings per message. If you increase this, you may have to
+	increase the message_t size. */
+	NREADINGS = 10,
+
+	/* Default sampling period. */
+	DEFAULT_INTERVAL = 256,
+
+	AM_GREENHOUSE = 0x93
 };
 
-typedef nx_struct GreenHouseMSG {
+typedef nx_struct greenhouse {
   nx_am_addr_t source;
   nx_uint16_t seqno;
   nx_am_addr_t parent;
   nx_uint16_t metric;
-  nx_uint16_t data[MEASURINGS];
+  nx_uint16_t data[NREADINGS];
 //  nx_uint8_t hopcount;
   nx_uint16_t sendCount;
   nx_uint16_t sendSuccessCount;

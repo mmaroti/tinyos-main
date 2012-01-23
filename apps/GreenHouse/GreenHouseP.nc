@@ -161,7 +161,5 @@ implementation{
 		return msg;
 	}
 	
-	event void SerialSend.sendDone(message_t *msg, error_t error) {
-	
-	}
+	event void SerialSend.sendDone(message_t *msg, error_t error) {	}
 }
