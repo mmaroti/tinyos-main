@@ -14,6 +14,8 @@ implementation{
 	components SerialActiveMessageC;
 	components ActiveMessageC;
 	
+	components new AMSenderC(AM_GREENHOUSE);
+	
 	components DiagMsgC;
 	
 	GreenHouseP.Boot -> MainC;
@@ -32,6 +34,8 @@ implementation{
 	
 	GreenHouseP.CtpSend -> CollectionSenderC;
 	GreenHouseP.CtpReceive -> Collector.Receive[CL_TEST];
+	
+	GreenHouseP.SerialSend -> AMSenderC;
 	
 	GreenHouseP.DiagMsg -> DiagMsgC;
 }
