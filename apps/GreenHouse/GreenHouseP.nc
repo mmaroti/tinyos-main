@@ -31,12 +31,12 @@ implementation{
 
 	message_t packet;
 	uint16_t seqno;
-	uint16_t counter = 0;
-	uint8_t measuring = 0;	//from 0 to NREADINGS
+	uint8_t readings = 0;	//from 0 to NREADINGS
 	
 	//GH_Msg* ghmsg;
 	
-	bool sendBusy = FALSE;
+	bool CTPsendBusy = FALSE;
+	bool serialsendBusy = FALSE;
 	
 	enum {
 		SEND_INTERVAL = 8192
@@ -54,7 +54,7 @@ implementation{
 		
 		seqno = 0;
 		
-		call Timer.startPeriodic(1000);
+		call Timer.startPeriodic(DEFAULT_INTERVAL);
 	}
 	
 	event void RadioControl.startDone(error_t err) {
@@ -73,31 +73,37 @@ implementation{
 	
 	event void Timer.fired() {
 		
-		if( measuring < NREADINGS )
+		if( readings < NREADINGS )	//Átrakható lenne a Read.readDone()-ba.
+									//Szintén ott else ágon bufferelés.
 		{
+			/*readings ellenõrzése!!!!!!!!*/
+			
+			
 			call Read.read();
-			//measuring++;	//Read.readDone() növeli
+			//readings++;	//Read.readDone() növeli		?!
 		
 			call Leds.led2Toggle();
 			if( call DiagMsg.record() )
 			{
 				call DiagMsg.str("Timer");
-				call DiagMsg.uint8(measuring);
+				call DiagMsg.uint8(readings);
 				call DiagMsg.uint16(seqno);
-				call DiagMsg.uint8(sendBusy);
+				call DiagMsg.uint8(CTPsendBusy);
 				call DiagMsg.send();
 			}
 		}
 	}
 	
+	void sendMessage(void);
+	
 	event void Read.readDone(error_t result, uint16_t val ){
 		GH_Msg* ghmsg = (GH_Msg*)call CtpSend.getPayload(&packet, sizeof(GH_Msg));
 		
 		if(result==SUCCESS){
-			ghmsg->data[measuring++] = /*-3960+*/(int32_t)val;
+			ghmsg->data[readings++] = /*-3960+*/(int32_t)val;
 		}
 		
-		if(measuring == NREADINGS)
+		if(readings == NREADINGS)
 		{
 			sendMessage();
 		}
@@ -118,23 +124,26 @@ implementation{
 		ghmsg->seqno = seqno;
 		//ghmsg->hopcount = 0;
 		
-		if ( call CtpSend.send(&packet, sizeof(GH_Msg))!= SUCCESS)
+		if(!CTPsendBusy)
 		{
-			call Leds.led0Toggle();
-		}
-		else 
-		{
-			if( call DiagMsg.record() )
+			if ( call CtpSend.send(&packet, sizeof(GH_Msg))!= SUCCESS)
 			{
-				call DiagMsg.str("CtpSend");
-				call DiagMsg.uint16(TOS_NODE_ID);
-				call DiagMsg.uint16(seqno);
-				call DiagMsg.uint16(parent);
-				call DiagMsg.uint16(metric);
-				call DiagMsg.send();
+				call Leds.led0Toggle();
 			}
-			sendBusy = TRUE;
-			seqno++; 
+			else 
+			{
+				if( call DiagMsg.record() )
+				{
+					call DiagMsg.str("CtpSend");
+					call DiagMsg.uint16(TOS_NODE_ID);
+					call DiagMsg.uint16(seqno);
+					call DiagMsg.uint16(parent);
+					call DiagMsg.uint16(metric);
+					call DiagMsg.send();
+				}
+				CTPsendBusy = TRUE;
+				seqno++; 
+			}
 		}
 	}
 	
@@ -143,28 +152,23 @@ implementation{
 		if (err != SUCCESS) {
 			call Leds.led0On();
 		}
-		sendBusy = FALSE;
+		CTPsendBusy = FALSE;
 		
-		measuring = 0;
+		readings = 0;
 		
-	}
-
-	event void SerialSend.sendDone(message_t *msg, error_t error) {
-	
-	    sendBusy = FALSE;
 	}
 		
 	event message_t* CtpReceive.receive(message_t* msg, void* payload, uint8_t len) {
 		GH_Msg* ghmsg = (GH_Msg*)payload;
 		
-		if( RootControl.isRoot() )
+		if( call RootControl.isRoot() )
 		{
 			//Send to serial port
-		
-			memcpy(call SerialSend.getPayload(&packet, sizeof(GH_Msg)), &<gh></gh>msg, sizeof(GH_Msg));
-			if (call SerialSend.send(AM_BROADCAST_ADDR, &packet, sizeof(GH_Msg)) == SUCCESS)
-				sendBusy = TRUE;
+			memcpy(	call SerialSend.getPayload(&packet, sizeof(GH_Msg)), &ghmsg, sizeof(GH_Msg)	);
+			if (call SerialSend.send(AM_BROADCAST_ADDR, &packet, sizeof(GH_Msg) ) == SUCCESS)
+				serialsendBusy = TRUE;
 		}
+		
 		
 		if( call DiagMsg.record() )
 		{
@@ -173,10 +177,15 @@ implementation{
 			call DiagMsg.uint16( ghmsg -> seqno);
 			call DiagMsg.uint16( ghmsg -> parent);
 			call DiagMsg.uint16( ghmsg -> metric);
-			call DiagMsg.uint16s( ghmsg -> data, 10 );
+			call DiagMsg.uint16s( ghmsg -> data, 2 );
 			call DiagMsg.send();
 		}
 		return msg;
+	}
+	
+	event void SerialSend.sendDone(message_t *msg, error_t error) {
+	
+	    serialsendBusy = FALSE;
 	}
 	
 }

@@ -12,7 +12,7 @@ enum{
 	NREADINGS = 2,
 
 	/* Default sampling period. */
-	DEFAULT_INTERVAL = 256,
+	DEFAULT_INTERVAL = 1000,
 
 	AM_GREENHOUSE = 0x77
 };
