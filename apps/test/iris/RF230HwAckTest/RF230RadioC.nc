@@ -63,11 +63,7 @@ configuration RF230RadioC
 
 		interface PacketAcknowledgements;
 		interface LowPowerListening;
-
-#ifdef PACKET_LINK
 		interface PacketLink;
-#endif
-
 		interface RadioChannel;
 
 		interface PacketField<uint8_t> as PacketLinkQuality;
@@ -182,13 +178,9 @@ implementation
 
 // -------- Packet Link
 
-#ifdef PACKET_LINK
 	components PacketLinkLayerC;
 	PacketLink = PacketLinkLayerC;
 	PacketLinkLayerC.PacketAcknowledgements -> RF230DriverHwAckC;
-#else
-	components new DummyLayerC() as PacketLinkLayerC;
-#endif
 	PacketLinkLayerC.SubSend -> MessageBufferLayerC;
 	PacketLinkLayerC.SubPacket -> TimeStampingLayerC;
 

@@ -68,15 +68,12 @@ configuration Si443xRadioC
 
 		interface PacketAcknowledgements;
 		interface LowPowerListening;
-
-#ifdef PACKET_LINK
 		interface PacketLink;
-#endif
+		interface RadioChannel;
+
 #ifdef TRAFFIC_MONITOR
 		interface TrafficMonitor;
 #endif
-
-		interface RadioChannel;
 		
 		interface PacketField<uint8_t> as PacketLinkQuality;
 		interface PacketField<uint8_t> as PacketTransmitPower;
@@ -186,13 +183,9 @@ implementation
 
 // -------- Packet Link
 
-#ifdef PACKET_LINK
 	components new PacketLinkLayerC();
 	PacketLink = PacketLinkLayerC;
 	PacketLinkLayerC.PacketAcknowledgements -> SoftwareAckLayerC;
-#else
-	components new DummyLayerC() as PacketLinkLayerC;
-#endif
 	PacketLinkLayerC -> LowPowerListeningLayerC.Send;
 	PacketLinkLayerC -> LowPowerListeningLayerC.Receive;
 	PacketLinkLayerC -> LowPowerListeningLayerC.RadioPacket;

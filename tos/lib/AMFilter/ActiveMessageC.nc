@@ -49,9 +49,7 @@ configuration ActiveMessageC
 		interface SendNotifier[am_id_t id];
 		interface PacketTimeStamp<TMicro, uint32_t> as PacketTimeStampMicro;
 		interface RadioChannel;
-	#ifdef PACKET_LINK
 		interface PacketLink;
-	#endif
 #elif defined(__CC2420_H__)
 		interface PacketTimeStamp<T32khz, uint32_t> as PacketTimeStamp32khz;
 #endif
@@ -90,9 +88,7 @@ implementation
 	
 #ifdef __RF230RADIO_H__	
 	SendNotifier = MessageC;
-#ifdef PACKET_LINK
 	PacketLink = MessageC;
-#endif
 	RadioChannel = MessageC;
 
 	PacketTimeStampMilli = MessageC;
