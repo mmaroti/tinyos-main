@@ -29,18 +29,14 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* Author: Zsolt Szabo
+* Author: Andras Biro
 */
 
-module SensorStartUpM {
-  uses interface SplitControl;
-  uses interface Boot;
+generic module DummyBusPowerManagerC(){
+	provides interface BusPowerManager;
 }
 implementation {
-  event void Boot.booted() {
-    call SplitControl.start();
-  }
-
-  event void SplitControl.startDone(error_t err) {}
-  event void SplitControl.stopDone(error_t err) {}
+	command void BusPowerManager.configure(uint16_t startup, uint16_t keepalive) {}
+	command void BusPowerManager.requestPower() { signal BusPowerManager.powerOn(); }
+	command void BusPowerManager.releasePower() {}
 }
