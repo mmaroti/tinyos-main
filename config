@@ -8,7 +8,7 @@
 [remote "github"]
 	url = git@github.com:mmaroti/tinyos.git
 	fetch = +refs/heads/*:refs/remotes/github/*
-	push = +refs/tags/tinyos-main:refs/remotes/tinyos-main/trunk
+	push = +refs/heads/tinyos-main:refs/tags/tinyos-main
 [svn-remote "tinyos-main"]
 	url = https://tinyos-main.googlecode.com/svn
 	fetch = trunk:refs/remotes/tinyos-main/trunk
