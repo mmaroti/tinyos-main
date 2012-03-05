@@ -1,0 +1,14 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[svn]
+	authorsfile = .git/svn.authorsfile.txt
+[remote "github"]
+	url = git@github.com:mmaroti/tinyos.git
+	fetch = +refs/heads/*:refs/remotes/github/*
+	push = +refs/tags/tinyos-main:refs/remotes/tinyos-main/trunk
+[svn-remote "tinyos-main"]
+	url = https://tinyos-main.googlecode.com/svn
+	fetch = trunk:refs/remotes/tinyos-main/trunk
