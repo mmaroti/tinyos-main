@@ -91,7 +91,7 @@
 #ifndef MHZ
 /* Clock rate is ~8MHz except if specified by user 
    (this value must be a power of 2, see MicaTimer.h and MeasureClockC.nc) */
-#define MHZ 16
+#define MHZ 8
 #endif 
 
 typedef uint32_t in_flash_addr_t;
@@ -113,50 +113,21 @@ static inline void wait( uint16_t dt ) {
 TOSH_ASSIGN_INVERTED_PIN(RED_LED, E, 4);
 TOSH_ASSIGN_INVERTED_PIN(GREEN_LED, E, 5);
 TOSH_ASSIGN_INVERTED_PIN(YELLOW_LED, E, 6);
-
-
+//SPI assignments
+TOSH_ASSIGN_PIN(SPI_SS, B, 0);
+TOSH_ASSIGN_PIN(SPI_CLK,  B, 1);
+TOSH_ASSIGN_PIN(SPI_MOSI,  B, 2);
+TOSH_ASSIGN_PIN(SPI_MISO,  B, 3);
 // Flash assignments
-TOSH_ASSIGN_PIN(FLASH_CS, B, 0);
-TOSH_ASSIGN_PIN(FLASH_CLK,  B, 1);
-TOSH_ASSIGN_PIN(FLASH_OUT,  B, 2);
+TOSH_ASSIGN_PIN(FLASH_CS, B, 0); //same as SPI SS
 TOSH_ASSIGN_DUMMY_PIN(FLASH_HOLD,  1);
-TOSH_ASSIGN_PIN(FLASH_POWER,  D, 6);
-
-// power control assignments
-// TOSH_ASSIGN_PIN(PW0, C, 0);
-// TOSH_ASSIGN_PIN(PW1, C, 1);
-// TOSH_ASSIGN_PIN(PW2, C, 2);
-// TOSH_ASSIGN_PIN(PW3, C, 3);
-// TOSH_ASSIGN_PIN(PW4, C, 4);
-// TOSH_ASSIGN_PIN(PW5, C, 5);
-// TOSH_ASSIGN_PIN(PW6, C, 6);
-// TOSH_ASSIGN_PIN(PW7, C, 7);
+TOSH_ASSIGN_INVERTED_PIN(FLASH_POWER,  D, 6);
 
 void TOSH_SET_PIN_DIRECTIONS(void)
 {
   TOSH_MAKE_RED_LED_OUTPUT();
   TOSH_MAKE_YELLOW_LED_OUTPUT();
   TOSH_MAKE_GREEN_LED_OUTPUT();
-      
-//   TOSH_MAKE_PW7_OUTPUT();
-//   TOSH_MAKE_PW6_OUTPUT();
-//   TOSH_MAKE_PW5_OUTPUT();
-//   TOSH_MAKE_PW4_OUTPUT();
-//   TOSH_MAKE_PW3_OUTPUT(); 
-//   TOSH_MAKE_PW2_OUTPUT();
-//   TOSH_MAKE_PW1_OUTPUT();
-//   TOSH_MAKE_PW0_OUTPUT();
-// 
-//   TOSH_MAKE_SERIAL_ID_INPUT();
-//   TOSH_CLR_SERIAL_ID_PIN();  // Prevent sourcing current
-
-  TOSH_MAKE_FLASH_CS_OUTPUT();
-  TOSH_MAKE_FLASH_OUT_OUTPUT();
-  TOSH_MAKE_FLASH_CLK_OUTPUT();
-  TOSH_MAKE_FLASH_POWER_OUTPUT();
-  TOSH_SET_FLASH_CS_PIN();
-  TOSH_CLR_FLASH_POWER_PIN();
-  //TODO: we should wait here while the flash boots up
 }
 
 enum {

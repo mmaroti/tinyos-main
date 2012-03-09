@@ -158,7 +158,7 @@ implementation {
 
 #if defined(PLATFORM_TELOSB) || defined (PLATFORM_EPIC) || defined (PLATFORM_TINYNODE)
     if (intAddr != TOSBOOT_END) {
-#elif defined(PLATFORM_MICAZ) || defined(PLATFORM_IRIS)
+#elif defined(PLATFORM_MICAZ) || defined(PLATFORM_IRIS) || defined (PLATFORM_UCMINI)
     if (intAddr != 0) {
 #elif defined(PLATFORM_MULLE)
     if (intAddr != 0xA0000) {
