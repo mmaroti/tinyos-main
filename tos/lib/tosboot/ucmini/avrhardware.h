@@ -138,8 +138,8 @@ static inline void TOSH_SET_##name##_PIN() {cbi(PORT##port , bit);} \
 static inline void TOSH_CLR_##name##_PIN() {sbi(PORT##port , bit);} \
 static inline int TOSH_READ_##name##_PIN() \
   {return (inp(PIN##port) & (1 << bit)) == 0;} \
-static inline void TOSH_MAKE_##name##_OUTPUT() {cbi(DDR##port , bit);} \
-static inline void TOSH_MAKE_##name##_INPUT() {sbi(DDR##port , bit);} 
+static inline void TOSH_MAKE_##name##_OUTPUT() {sbi(DDR##port , bit);} \
+static inline void TOSH_MAKE_##name##_INPUT() {cbi(DDR##port , bit);} 
 
 
 #define TOSH_ASSIGN_OUTPUT_ONLY_PIN(name, port, bit) \

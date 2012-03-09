@@ -108,7 +108,7 @@ endif
 ifeq ($(MAKECMDGOALS),ucmini)
   CFLAGS += -DTOSBOOT_START=0x1f000 -DTOSBOOT_END=0x20000
   CFLAGS += -Wl,--section-start=.text=0x1f000
-  CFLAGS +=  -Iucmini -Istm25p -Iavr -Imicaz -Ilib
+  CFLAGS +=  -Iucmini -Istm25p_spi -Iavr -Imicaz -Ilib
   CFLAGS += -I../net/Deluge
 endif
 
