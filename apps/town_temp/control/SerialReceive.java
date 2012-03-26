@@ -76,10 +76,15 @@ class SerialReceive implements MessageListener{
 	{
 		SerialMsg msg=new SerialMsg();
 		try{
+			long time = System.currentTimeMillis();
+       			int seged=(int) (time/1000);
+       			short s1=(short) (seged/100000);
+		       	int seged2=seged%(s1*100000);
+		       	short s2=(short)(seged2-Short.MAX_VALUE);
 			msg.set_counter(Integer.parseInt(data));
 			msg.set_temperature(Integer.parseInt(id));
-			msg.set_time(System.currentTimeMillis()>>10);
-			System.out.println(System.currentTimeMillis()>>10);
+			msg.set_time(seged);
+			System.out.println(seged);
 			moteIF.send(MoteIF.TOS_BCAST_ADDR,msg);
 			out.println("Message sent to the mote ");
 		}catch(IOException e)
