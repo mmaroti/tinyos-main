@@ -65,7 +65,7 @@ class SerialReceive implements MessageListener{
 			if (last==time){System.exit(1);}
 			else {last=time;}
 			out.println("Temp_measured: "+tempmert+"Temperature: " + tempkorr +" Time "+time+" Node: "+node);
-			fop.println("Temperature: " + tempkorr +" Time "+time+" Node: "+node);
+			fop.println("Temp_measured: "+tempmert+"Temperature: " + tempkorr +" Time "+time+" Node: "+node);
 			fop.close();
 		}
 	}

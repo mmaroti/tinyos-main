@@ -33,14 +33,17 @@
 
 generic configuration TemperatureC() {
   provides interface Read<uint16_t>;
+  provides interface SplitControl;
 }
 implementation {
-#if PLATFORM==TELOS
-components new SensirionSht11C();
-  Read = SensirionSht11C.Temperature;
-#elif PLATFORM==UCMINI
+//#if PLATFORM==TELOS
+//components new SensirionSht11C();
+  //Read = SensirionSht11C.Temperature;
+//#elif PLATFORM==UCMINI
 components Sht21C;
   Read = Sht21C.Temperature;
-#endif
+  components I2CBusC;
+  SplitControl = I2CBusC.BusControl;
+//#endif
   
 }
