@@ -1,19 +1,23 @@
+[user]
+        name = Miklos Maroti
+        email = mmaroti@gmail.com
 [core]
 	repositoryformatversion = 0
 	filemode = true
 	bare = false
 	logallrefupdates = true
+[alias]
+	graph = log --graph --full-history --all --pretty=format:"%h%x09%d%x20%s"
 [svn]
 	authorsfile = .git/svn.authorsfile.txt
+	addauthorfrom = true
+	uselogauthor = true
 [remote "github"]
 	url = git@github.com:mmaroti/tinyos.git
 	fetch = +refs/heads/*:refs/remotes/github/*
 [svn-remote "tinyos-main"]
 	url = https://tinyos-main.googlecode.com/svn
 	fetch = trunk:refs/remotes/tinyos-main/trunk
-[branch "python-automake"]
-	remote = github
-	merge = refs/heads/python-automake
 [branch "config"]
 	remote = github
 	merge = refs/heads/config
