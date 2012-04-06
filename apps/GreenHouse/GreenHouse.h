@@ -10,6 +10,8 @@ enum{
 	/* Number of readings per message. If you increase this, you may have to
 	increase the message_t size. */
 	NREADINGS = 2,
+	
+	//NSERIALMSGS = 10,
 
 	/* Default sampling period. */
 	DEFAULT_INTERVAL = 1000,
@@ -27,5 +29,9 @@ typedef nx_struct greenhouse {
 //  nx_uint16_t sendCount;
 //  nx_uint16_t sendSuccessCount;
 } GH_Msg;
-
+/*
+typedef nx_struct greenhouse {
+  GH_Msg messages[NSERIALMSGS];
+} UART_Msg;
+*/
 #endif /* GREEN_HOUSE_H */

@@ -33,25 +33,29 @@ implementation{
 		SEND_INTERVAL = 8192
 	};
 	*/
-	message_t packet;
+	message_t CTPpacket;
+	//message_t UARTpacket;
+	message_t buffer;
+
 	uint16_t seqno;
 	uint8_t readings = 0;	//from 0 to NREADINGS
+	//uint8_t serialmsgs = 0;	//from 0 to NSERIALMSGS
 	
 	//GH_Msg* ghmsg;
 	
 	bool CTPsendBusy = FALSE;
-	bool serialsendBusy = FALSE;
-	
-	message_t buffer;
+	bool UARTsendBusy = FALSE;
 
 	task void uartSendTask();
+	//task void uartSendTask2();
 
 	//Piros LED = HIBA
 	void errorBlink()	{ call Leds.led0Toggle(); }
 	//Zöld LED = MÉRÉS
 	void radioreadBlink()	{ call Leds.led1Toggle(); }
-	//Kék LED = KÜLDÉS SOROS PORTRA
-	void serialsendBlink(){ call Leds.led2Toggle(); }
+	//Kék LED = SOROS PORTRA KÜLDÉS HIBA
+	void serialErrorOn(){ call Leds.led2On(); }
+	void serialErrorOff(){ call Leds.led2Off(); }
 	
 	event void Boot.booted(){
 		call SerialControl.start();
@@ -68,14 +72,14 @@ implementation{
 	}
 	
 	event void RadioControl.startDone(error_t err) {
-		
-		if( err != SUCCESS )
-			errorBlink();
+	
+		if( err != SUCCESS );
+			//errorBlink();
 	}
 	event void SerialControl.startDone(error_t err) {
 	
-		if( err != SUCCESS )
-			errorBlink();
+		if( err != SUCCESS );
+			//errorBlink();
 	}
 	
 	event void RadioControl.stopDone(error_t err) {}
@@ -109,9 +113,9 @@ implementation{
 	void sendMessage(void);
 	
 	event void Read.readDone(error_t result, uint16_t val ){
-		GH_Msg* ghmsg = (GH_Msg*)call CtpSend.getPayload(&packet, sizeof(GH_Msg));
+		GH_Msg* ghmsg = (GH_Msg*)call CtpSend.getPayload(&CTPpacket, sizeof(GH_Msg));
 		
-		if(result==SUCCESS){
+		if(result == SUCCESS){
 			ghmsg->data[readings++] = /*-3960+*/(int32_t)val;
 		}
 		
@@ -125,7 +129,7 @@ implementation{
 		am_addr_t parent;
 		uint16_t metric;
 		
-		GH_Msg* ghmsg = (GH_Msg*)call CtpSend.getPayload(&packet, sizeof(GH_Msg));
+		GH_Msg* ghmsg = (GH_Msg*)call CtpSend.getPayload(&CTPpacket, sizeof(GH_Msg));
 		
 		call CtpInfo.getParent(&parent);
 		call CtpInfo.getEtx(&metric);
@@ -138,16 +142,7 @@ implementation{
 		
 		if(!CTPsendBusy)
 		{
-			if ( call CtpSend.send(&packet, sizeof(GH_Msg))!= SUCCESS)
-			{
-				if( call DiagMsg.record() )
-				{
-					call DiagMsg.str("CTPsendBusy");
-					call DiagMsg.send();
-				}
-				errorBlink();
-			}
-			else
+			if ( call CtpSend.send(&CTPpacket, sizeof(GH_Msg))== SUCCESS)
 			{
 				/*
 				if( call DiagMsg.record() )
@@ -161,7 +156,16 @@ implementation{
 				}
 				*/
 				CTPsendBusy = TRUE;
-				seqno++; 
+				seqno++;
+			}
+			else
+			{
+				if( call DiagMsg.record() )
+				{
+					call DiagMsg.str("CtpSend.send error.");
+					call DiagMsg.send();
+				}
+				//errorBlink();
 			}
 		}
 	}
@@ -171,13 +175,13 @@ implementation{
 		{
 			if( call DiagMsg.record() )
 			{
-				call DiagMsg.str("CtpSend.sendDone error");
+				call DiagMsg.str("CtpSend.sendDone error.");
 				call DiagMsg.send();
 			}
-			errorBlink();
+			//errorBlink();
 		}
-		CTPsendBusy = FALSE;
 		
+		CTPsendBusy = FALSE;
 		readings = 0;
 		
 	}
@@ -192,9 +196,9 @@ implementation{
 			/*
 			 * SerialSend -> AMSenderC konfiguráció esetén
 			 *********************************			
-			memcpy(	call SerialSend.getPayload(&packet, sizeof(GH_Msg)), &ghmsg, sizeof(GH_Msg)	);
-			if (call SerialSend.send(AM_BROADCAST_ADDR, &packet, sizeof(GH_Msg) ) == SUCCESS)
-				serialsendBusy = TRUE;
+			memcpy(	call SerialSend.getPayload(&CTPpacket, sizeof(GH_Msg)), &ghmsg, sizeof(GH_Msg)	);
+			if (call SerialSend.send(AM_BROADCAST_ADDR, &CTPpacket, sizeof(GH_Msg) ) == SUCCESS)
+				UARTsendBusy = TRUE;
 			 */
 			receive(msg, payload, len);
 		}
@@ -234,8 +238,11 @@ implementation{
 		//atomic /*NEM KELL, mert taskok szinkron futnak*/
 		//ha nincs async kulcsszó ÉS task kontextusban dolgozunk => nem kell atomic
 		//{
-
-			if (!serialsendBusy)
+			/*
+			UART_Msg* uartmsg = (UART_Msg*)call SerialSend.getPayload(&UARTpacket, sizeof(UART_Msg));
+			uartmsg -> messages[serialmsgs++] = 
+			*/
+			if (!UARTsendBusy)
 			{
 				if( call DiagMsg.record() )
 				{
@@ -245,59 +252,26 @@ implementation{
 				//üzenet MÁSOLÁSA
 				memcpy(&buffer, msg, sizeof (message_t));
 				post uartSendTask();
-				serialsendBusy = TRUE;
+				UARTsendBusy = TRUE;
 			}
 			else
 			{
 				if( call DiagMsg.record() )
 				{
-					call DiagMsg.str("Busy.");
+					call DiagMsg.str("Busy");
 					call DiagMsg.send();
 				}
-				errorBlink();
 			}
 		//}
 		return msg;
 	}
   
-	//uint8_t tmpLen;
-  
 	task void uartSendTask() {
-		if( call DiagMsg.record() )
-		{
-			call DiagMsg.str("Task");
-			call DiagMsg.send();
-		}
-		/*
-		uint8_t len;
-		am_id_t id;
-		am_addr_t addr, src;
-		message_t* msg;
-		am_group_t grp;
-		*/
-		/*
-		atomic
-		  if (uartIn == uartOut && !uartFull)
-		{
-		  serialsendBusy = FALSE;
-		  return;
-		}
-		*/
-		/*
-		 *BaseStationP.nc
-		 *******************************************************************
-		tmpLen = len = call RadioPacket.payloadLength(msg);
-		id = call RadioAMPacket.type(msg);
-		addr = call RadioAMPacket.destination(msg);
-		src = call RadioAMPacket.source(msg);
-		grp = call RadioAMPacket.group(msg);
-		call UartPacket.clear(msg);
-		call UartAMPacket.setSource(msg, src);
-		call UartAMPacket.setGroup(msg, grp);
-		 *******************************************************************
-		 */
+		
 		if (call SerialSend.send(AM_BROADCAST_ADDR, &buffer, sizeof(GH_Msg)) == SUCCESS)
-			;//serialsendBlink();
+		{
+			serialErrorOff();
+		}
 		else
 		{
 			if( call DiagMsg.record() )
@@ -305,14 +279,31 @@ implementation{
 				call DiagMsg.str("Task error.");
 				call DiagMsg.send();
 			}
-			
-			errorBlink();
-			//if( call DiagMsg.record() )
+			serialErrorOn();
 			
 			post uartSendTask();
+			//post uartSendTask2();
 		}
-  }
-
+	}
+	/*
+	task void uartSendTask2() {
+		
+		if (call SerialSend.send(AM_BROADCAST_ADDR, &buffer, sizeof(GH_Msg)) == SUCCESS)
+		{
+		}
+		else
+		{
+			if( call DiagMsg.record() )
+			{
+				call DiagMsg.str("Task error.");
+				call DiagMsg.send();
+			}
+			serialsendBlink();
+			
+			post uartSendTask2();
+		}
+	}
+	*/
 	event void SerialSend.sendDone(message_t *msg, error_t error) {
 		if (error != SUCCESS)
 		{
@@ -321,9 +312,14 @@ implementation{
 				call DiagMsg.str("SerialSend.sendDone error");
 				call DiagMsg.send();
 			}
-			errorBlink();
+			serialErrorOn();
 		}
-		serialsendBusy = FALSE;
+		else
+		{
+			serialErrorOff();
+		}
+		
+		UARTsendBusy = FALSE;
 	}
 	
 }
