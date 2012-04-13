@@ -33,9 +33,9 @@ implementation{
 		SEND_INTERVAL = 8192
 	};
 	*/
-	message_t CTPpacket;
-	//message_t UARTpacket;
-	message_t buffer;
+	message_t CTPpacket;	//Üzenet küldéséhez rádión.
+	message_t UARTpacket;	//Üzenet küldéséhez soros porton.
+	//message_t buffer;		//Üzenet küldéséhez soros porton.
 
 	uint16_t seqno;
 	uint8_t readings = 0;	//from 0 to NREADINGS
@@ -131,8 +131,22 @@ implementation{
 		
 		GH_Msg* ghmsg = (GH_Msg*)call CtpSend.getPayload(&CTPpacket, sizeof(GH_Msg));
 		
-		call CtpInfo.getParent(&parent);
-		call CtpInfo.getEtx(&metric);
+		if( call CtpInfo.getParent(&parent) == FAIL )
+		{
+			if( call DiagMsg.record() )
+			{
+				call DiagMsg.str("getParent failure...");
+				call DiagMsg.send();
+			}
+		}
+		if( call CtpInfo.getEtx(&metric) == FAIL )
+		{
+			if( call DiagMsg.record() )
+			{
+				call DiagMsg.str("getEtx failure...");
+				call DiagMsg.send();
+			}
+		}
 
 		ghmsg->source = TOS_NODE_ID;
 		ghmsg->parent = parent;
@@ -162,7 +176,7 @@ implementation{
 			{
 				if( call DiagMsg.record() )
 				{
-					call DiagMsg.str("CtpSend.send error.");
+					call DiagMsg.str("Packet was not accepted to send...");
 					call DiagMsg.send();
 				}
 				//errorBlink();
@@ -175,7 +189,7 @@ implementation{
 		{
 			if( call DiagMsg.record() )
 			{
-				call DiagMsg.str("CtpSend.sendDone error.");
+				call DiagMsg.str("Failure sending packet...");
 				call DiagMsg.send();
 			}
 			//errorBlink();
@@ -220,8 +234,9 @@ implementation{
 	
 	message_t* receive(message_t *msg, void *payload, uint8_t len) {
 
+		GH_Msg* ghmsg;
 		/*
-		GH_Msg* ghmsg = (GH_Msg*)payload;	//SZÜKSÉGES???
+		ghmsg = (GH_Msg*)payload;
 		
 		if( call DiagMsg.record() )
 		{
@@ -244,15 +259,31 @@ implementation{
 			*/
 			if (!UARTsendBusy)
 			{
+			/*
 				if( call DiagMsg.record() )
 				{
 					call DiagMsg.str("Not busy.");
 					call DiagMsg.send();
 				}
+			*/
 				//üzenet MÁSOLÁSA
-				memcpy(&buffer, msg, sizeof (message_t));
+				//memcpy(&buffer, (GH_Msg*)payload, sizeof(GH_Msg));
+				ghmsg = (GH_Msg*)call SerialSend.getPayload(&UARTpacket, sizeof(GH_Msg));
+				*ghmsg = *((GH_Msg*)payload);
+				
+				if( call DiagMsg.record() )
+				{
+					call DiagMsg.str("CtpReceive2");
+					call DiagMsg.uint16( ghmsg -> source);
+					call DiagMsg.uint16( ghmsg -> seqno);
+					call DiagMsg.uint16( ghmsg -> parent);
+					call DiagMsg.uint16( ghmsg -> metric);
+					call DiagMsg.uint16s( (uint16_t*)(ghmsg -> data), 2 );
+					call DiagMsg.send();
+				}
+				
 				post uartSendTask();
-				UARTsendBusy = TRUE;
+				UARTsendBusy = TRUE;	//Elõzõ sor elé??
 			}
 			else
 			{
@@ -268,7 +299,8 @@ implementation{
   
 	task void uartSendTask() {
 		
-		if (call SerialSend.send(AM_BROADCAST_ADDR, &buffer, sizeof(GH_Msg)) == SUCCESS)
+		//if (call SerialSend.send(AM_BROADCAST_ADDR, &buffer, sizeof(GH_Msg)) == SUCCESS)
+		if (call SerialSend.send(AM_BROADCAST_ADDR, &UARTpacket, sizeof(GH_Msg)) == SUCCESS)
 		{
 			serialErrorOff();
 		}
@@ -305,6 +337,9 @@ implementation{
 	}
 	*/
 	event void SerialSend.sendDone(message_t *msg, error_t error) {
+		
+		GH_Msg* ghmsg = (GH_Msg*)call SerialSend.getPayload(msg, sizeof(GH_Msg));
+		
 		if (error != SUCCESS)
 		{
 			if( call DiagMsg.record() )
@@ -317,6 +352,17 @@ implementation{
 		else
 		{
 			serialErrorOff();
+			
+			if( call DiagMsg.record() )
+			{
+				call DiagMsg.str("SerialSend.sendDone");
+				call DiagMsg.uint16( ghmsg -> source);
+				call DiagMsg.uint16( ghmsg -> seqno);
+				call DiagMsg.uint16( ghmsg -> parent);
+				call DiagMsg.uint16( ghmsg -> metric);
+				call DiagMsg.uint16s( (uint16_t*)(ghmsg -> data), 4 );
+				call DiagMsg.send();
+			}
 		}
 		
 		UARTsendBusy = FALSE;
