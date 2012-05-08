@@ -23,6 +23,10 @@ module GreenHouseP{
 		interface Receive as CtpReceive;
 		
 		interface AMSend as SerialSend;
+
+		interface Queue<message_t*> as QueueCtp;
+		interface Queue<message_t*> as QueueSerial;
+		interface Queue<message_t*> as QueueTemp;
 	
 		interface DiagMsg;
 	}
@@ -43,9 +47,14 @@ implementation{
 	
 	//GH_Msg* ghmsg;
 	
+	message_t*	m_temp;
+	GH_Msg*		gh_temp;
+	
 	bool CTPsendBusy = FALSE;
 	bool UARTsendBusy = FALSE;
 
+
+	task void ctpSendTask();
 	task void uartSendTask();
 	//task void uartSendTask2();
 
@@ -58,6 +67,8 @@ implementation{
 	void serialErrorOff(){ call Leds.led2Off(); }
 	
 	event void Boot.booted(){
+		int i;
+		
 		call SerialControl.start();
 		call RadioControl.start();
 		call CtpControl.start();
@@ -67,7 +78,14 @@ implementation{
 		}
 		
 		seqno = 0;
-		
+		m_temp = NULL;
+		//Sorok inicializálása
+		/*
+		for(i = 0; i < 10; i++)
+		{
+			
+		}
+		*/
 		call Timer.startPeriodic(DEFAULT_INTERVAL);
 	}
 	
@@ -110,65 +128,69 @@ implementation{
 		}
 	}
 	
-	void sendMessage(void);
+	//void ctpSendTask(void);
 	
 	event void Read.readDone(error_t result, uint16_t val ){
-		GH_Msg* ghmsg = (GH_Msg*)call CtpSend.getPayload(&CTPpacket, sizeof(GH_Msg));
-		
-		if(result == SUCCESS){
-			ghmsg->data[readings++] = /*-3960+*/(int32_t)val;
+	
+		if(	m_temp == NULL )		//Ha nincs aktív buffer
+		{
+			if( !call QueueTemp.empty() )			//és a szabad bufferek listája nem üres (azaz van szabad buffer)
+				m_temp = call QueueTemp.dequeue();	//lefoglaljuk a buffert.
+			else
+				return;								//Egyébként eldobjuk az adatot.
 		}
 		
+		gh_temp = (GH_Msg*)call CtpSend.getPayload(m_temp, sizeof(GH_Msg));
+		//Ha sikerült leolvasni a szenzorértéket
+		if(result == SUCCESS)
+		{
+			gh_temp->data[readings++] = /*-39.6 + */0.04 * val;		//0.04 = 1/256 = 1/(2^8) = 1 bájttal jobbra shiftelés
+		}
+		//Ha megtelt
 		if(readings == NREADINGS)
 		{
-			sendMessage();
+			call QueueCtp.enqueue( m_temp );
+			post ctpSendTask();
+			m_temp = NULL;
 		}
 	} 
 	
-	void sendMessage() {
+	task void ctpSendTask() {
 		am_addr_t parent;
 		uint16_t metric;
-		
-		GH_Msg* ghmsg = (GH_Msg*)call CtpSend.getPayload(&CTPpacket, sizeof(GH_Msg));
-		
-		if( call CtpInfo.getParent(&parent) == FAIL )
+		//Ha van elküldendõ üzenet
+		if( !QueueCtp.empty() )
 		{
-			if( call DiagMsg.record() )
+			m_temp = call QueueCtp.head();
+			gh_temp = (GH_Msg*)call CtpSend.getPayload(m_temp, sizeof(GH_Msg));
+			
+			if( call CtpInfo.getParent(&parent) == FAIL )
 			{
-				call DiagMsg.str("getParent failure...");
-				call DiagMsg.send();
-			}
-		}
-		if( call CtpInfo.getEtx(&metric) == FAIL )
-		{
-			if( call DiagMsg.record() )
-			{
-				call DiagMsg.str("getEtx failure...");
-				call DiagMsg.send();
-			}
-		}
-
-		ghmsg->source = TOS_NODE_ID;
-		ghmsg->parent = parent;
-		ghmsg->metric = metric;
-		ghmsg->seqno = seqno;
-		//ghmsg->hopcount = 0;
-		
-		if(!CTPsendBusy)
-		{
-			if ( call CtpSend.send(&CTPpacket, sizeof(GH_Msg))== SUCCESS)
-			{
-				/*
 				if( call DiagMsg.record() )
 				{
-					call DiagMsg.str("CtpSend");
-					call DiagMsg.uint16(ghmsg -> source);
-					call DiagMsg.uint16(ghmsg -> seqno);
-					call DiagMsg.uint16(ghmsg -> parent);
-					call DiagMsg.uint16(ghmsg -> metric);
+					call DiagMsg.str("getParent failure...");
 					call DiagMsg.send();
 				}
-				*/
+			}
+			if( call CtpInfo.getEtx(&metric) == FAIL )
+			{
+				if( call DiagMsg.record() )
+				{
+					call DiagMsg.str("getEtx failure...");
+					call DiagMsg.send();
+				}
+			}
+			gh_temp->source = TOS_NODE_ID;
+			gh_temp->parent = parent;
+			gh_temp->metric = metric;
+			gh_temp->seqno = seqno;
+		}
+		//Ha szabad a rádió
+		if(!CTPsendBusy)
+		{
+			if ( call CtpSend.send( m_temp, sizeof(GH_Msg))== SUCCESS )
+			{
+				//call QueueCtp.dequeue();
 				CTPsendBusy = TRUE;
 				seqno++;
 			}
@@ -176,12 +198,13 @@ implementation{
 			{
 				if( call DiagMsg.record() )
 				{
-					call DiagMsg.str("Packet was not accepted to send...");
+					call DiagMsg.str("CTP packet was not accepted to send...");
 					call DiagMsg.send();
 				}
 				//errorBlink();
 			}
 		}
+		post ctpSendTask();
 	}
 	
 	event void CtpSend.sendDone(message_t* m, error_t err) {
@@ -194,148 +217,73 @@ implementation{
 			}
 			//errorBlink();
 		}
+		else
+		{
+			call QueueCtp.dequeue();
+		}
+		
+		post ctpSendTask();
 		
 		CTPsendBusy = FALSE;
 		readings = 0;
 		
 	}
 	
-	message_t* /*ONE */receive(message_t* /*ONE */msg, void* payload, uint8_t len);
-		
 	event message_t* CtpReceive.receive(message_t* msg, void* payload, uint8_t len) {
-		
-		if( call RootControl.isRoot() )
-		{
-			//Send to serial port
-			/*
-			 * SerialSend -> AMSenderC konfiguráció esetén
-			 *********************************			
-			memcpy(	call SerialSend.getPayload(&CTPpacket, sizeof(GH_Msg)), &ghmsg, sizeof(GH_Msg)	);
-			if (call SerialSend.send(AM_BROADCAST_ADDR, &CTPpacket, sizeof(GH_Msg) ) == SUCCESS)
-				UARTsendBusy = TRUE;
-			 */
-			receive(msg, payload, len);
-		}
-		/*
-		GH_Msg* ghmsg = (GH_Msg*)payload;
-		if( call DiagMsg.record() )
-		{
-			call DiagMsg.str("CtpReceive");
-			call DiagMsg.uint16( ghmsg -> source);
-			call DiagMsg.uint16( ghmsg -> seqno);
-			call DiagMsg.uint16( ghmsg -> parent);
-			call DiagMsg.uint16( ghmsg -> metric);
-			call DiagMsg.uint16s( ghmsg -> data, 2 );
-			call DiagMsg.send();
-		}
-		*/
-		return msg;
-	}
-	
-	message_t* receive(message_t *msg, void *payload, uint8_t len) {
 
 		GH_Msg* ghmsg;
-		/*
-		ghmsg = (GH_Msg*)payload;
 		
-		if( call DiagMsg.record() )
-		{
-			call DiagMsg.str("CtpReceive");
-			call DiagMsg.uint16( ghmsg -> source);
-			call DiagMsg.uint16( ghmsg -> seqno);
-			call DiagMsg.uint16( ghmsg -> parent);
-			call DiagMsg.uint16( ghmsg -> metric);
-			call DiagMsg.uint16s( (uint16_t*)(ghmsg -> data), 2 );
-			call DiagMsg.send();
-		}
-		*/
-		
-		//atomic /*NEM KELL, mert taskok szinkron futnak*/
-		//ha nincs async kulcsszó ÉS task kontextusban dolgozunk => nem kell atomic
+		//atomic /*NEM KELL, mert taskok szinkron futnak*/	//ha nincs async kulcsszó ÉS task kontextusban dolgozunk => nem kell atomic
 		//{
 			/*
 			UART_Msg* uartmsg = (UART_Msg*)call SerialSend.getPayload(&UARTpacket, sizeof(UART_Msg));
 			uartmsg -> messages[serialmsgs++] = 
 			*/
+			//Üzenet "másolása"
+			if( !call QueueSerial.empty() )
+				call QueueSerial.enqueue( msg );
+				
 			if (!UARTsendBusy)
 			{
-			/*
-				if( call DiagMsg.record() )
-				{
-					call DiagMsg.str("Not busy.");
-					call DiagMsg.send();
-				}
-			*/
-				//üzenet MÁSOLÁSA
-				//memcpy(&buffer, (GH_Msg*)payload, sizeof(GH_Msg));
-				ghmsg = (GH_Msg*)call SerialSend.getPayload(&UARTpacket, sizeof(GH_Msg));
-				*ghmsg = *((GH_Msg*)payload);
-				
-				if( call DiagMsg.record() )
-				{
-					call DiagMsg.str("CtpReceive2");
-					call DiagMsg.uint16( ghmsg -> source);
-					call DiagMsg.uint16( ghmsg -> seqno);
-					call DiagMsg.uint16( ghmsg -> parent);
-					call DiagMsg.uint16( ghmsg -> metric);
-					call DiagMsg.uint16s( (uint16_t*)(ghmsg -> data), 2 );
-					call DiagMsg.send();
-				}
-				
 				post uartSendTask();
-				UARTsendBusy = TRUE;	//Elõzõ sor elé??
 			}
 			else
 			{
 				if( call DiagMsg.record() )
 				{
-					call DiagMsg.str("Busy");
+					call DiagMsg.str("Serial busy...");
 					call DiagMsg.send();
 				}
 			}
 		//}
-		return msg;
+		if( call !QueueTemp.empty() )
+			return call QueueTemp.dequeue();
+		else
+			return msg;
 	}
   
 	task void uartSendTask() {
-		
-		//if (call SerialSend.send(AM_BROADCAST_ADDR, &buffer, sizeof(GH_Msg)) == SUCCESS)
-		if (call SerialSend.send(AM_BROADCAST_ADDR, &UARTpacket, sizeof(GH_Msg)) == SUCCESS)
+		if( !call QueueSerial.empty() && !uartSendBusy )
 		{
-			serialErrorOff();
-		}
-		else
-		{
-			if( call DiagMsg.record() )
+			if( call SerialSend.send(AM_BROADCAST_ADDR, call QueueSerial.head(), sizeof(GH_Msg)) == SUCCESS )
 			{
-				call DiagMsg.str("Task error.");
-				call DiagMsg.send();
+				//call QueueSerial.dequeue()
+				UARTsendBusy = TRUE;
+				serialErrorOff();
 			}
-			serialErrorOn();
-			
-			post uartSendTask();
-			//post uartSendTask2();
-		}
-	}
-	/*
-	task void uartSendTask2() {
-		
-		if (call SerialSend.send(AM_BROADCAST_ADDR, &buffer, sizeof(GH_Msg)) == SUCCESS)
-		{
-		}
-		else
-		{
-			if( call DiagMsg.record() )
+			else
 			{
-				call DiagMsg.str("Task error.");
-				call DiagMsg.send();
-			}
-			serialsendBlink();
-			
-			post uartSendTask2();
+				if( call DiagMsg.record() )
+				{
+					call DiagMsg.str("UART packet was not accepted to send...");
+					call DiagMsg.send();
+				}
+				serialErrorOn();
+			}		
 		}
+		post uartSendTask();
 	}
-	*/
+	
 	event void SerialSend.sendDone(message_t *msg, error_t error) {
 		
 		GH_Msg* ghmsg = (GH_Msg*)call SerialSend.getPayload(msg, sizeof(GH_Msg));
@@ -344,13 +292,15 @@ implementation{
 		{
 			if( call DiagMsg.record() )
 			{
-				call DiagMsg.str("SerialSend.sendDone error");
+				call DiagMsg.str("SerialSend.sendDone error.");
 				call DiagMsg.send();
 			}
 			serialErrorOn();
 		}
 		else
 		{
+			call QueueSerial.dequeue();
+			call QueueTemp.enqueue( msg );
 			serialErrorOff();
 			
 			if( call DiagMsg.record() )
@@ -360,12 +310,11 @@ implementation{
 				call DiagMsg.uint16( ghmsg -> seqno);
 				call DiagMsg.uint16( ghmsg -> parent);
 				call DiagMsg.uint16( ghmsg -> metric);
-				call DiagMsg.uint16s( (uint16_t*)(ghmsg -> data), 4 );
+				call DiagMsg.uint16s( (uint16_t*)(ghmsg -> data), NREADINGS );
 				call DiagMsg.send();
 			}
 		}
 		
 		UARTsendBusy = FALSE;
 	}
-	
 }

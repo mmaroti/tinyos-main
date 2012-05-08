@@ -17,6 +17,10 @@ implementation{
 	components ActiveMessageC;
 	components SerialActiveMessageC;
 	
+	components new QueueC(message_t*, 10) as QueueCtp;
+	components new QueueC(message_t*, 10) as QueueSerial;
+	components new QueueC(message_t*, 10) as QueueTemp;
+	
 	components DiagMsgC;
 	
 	
@@ -38,6 +42,10 @@ implementation{
 	
 	//GreenHouseP.SerialSend -> AMSenderC;
 	GreenHouseP.SerialSend -> SerialActiveMessageC.AMSend[AM_GREENHOUSE];
+	
+	GreenHouseP.QueueCtp	-> QueueCtp;
+	GreenHouseP.QueueSerial	-> QueueSerial;
+	GreenHouseP.QueueTemp	-> QueueTemp;
 	
 	GreenHouseP.DiagMsg -> DiagMsgC;
 }
