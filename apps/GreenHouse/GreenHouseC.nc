@@ -17,9 +17,9 @@ implementation{
 	components ActiveMessageC;
 	components SerialActiveMessageC;
 	
-	components new QueueC(message_t*, 10) as QueueCtp;
-	components new QueueC(message_t*, 10) as QueueSerial;
-	components new QueueC(message_t*, 10) as QueueTemp;
+	components new QueueC(message_t*, QUEUE_SIZE) as QueueCtp;
+	components new QueueC(message_t*, QUEUE_SIZE) as QueueSerial;
+	components new QueueC(message_t*, QUEUE_SIZE) as QueueTemp;
 	
 	components DiagMsgC;
 	

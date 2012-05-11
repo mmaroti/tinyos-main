@@ -44,6 +44,9 @@ implementation
 	uint8_t readings = 0;	//from 0 to NREADINGS
 	//uint8_t serialmsgs = 0;	//from 0 to NSERIALMSGS
 	
+	message_t a_queueCtp[QUEUE_SIZE];
+	message_t a_queueSerial[QUEUE_SIZE];
+	message_t a_queueTemp[QUEUE_SIZE];
 	message_t*	m_temp;
 	
 	bool CTPsendBusy = FALSE;
@@ -61,7 +64,8 @@ implementation
 	void serialErrorOff(){ call Leds.led2Off(); }
 	
 	event void Boot.booted()
-	{	
+	{
+		int i;
 		call SerialControl.start();
 		call RadioControl.start();
 		call CtpControl.start();
@@ -71,6 +75,13 @@ implementation
 		}
 		
 		seqno = 0;
+		//Küldési sorok feltöltése mutatókkal
+		for(i = 0; i < QUEUE_SIZE; i++)
+		{
+			call QueueCtp.enqueue( &a_queueCtp[i] );
+			call QueueCtp.enqueue( &a_queueSerial[i] );
+			call QueueCtp.enqueue( &a_queueTemp[i] );
+		}
 		m_temp = NULL;
 		
 		call Timer.startPeriodic(DEFAULT_INTERVAL);
