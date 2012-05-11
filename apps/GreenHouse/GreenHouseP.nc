@@ -37,15 +37,10 @@ implementation{
 		SEND_INTERVAL = 8192
 	};
 	*/
-	message_t CTPpacket;	//Üzenet küldéséhez rádión.
-	message_t UARTpacket;	//Üzenet küldéséhez soros porton.
-	//message_t buffer;		//Üzenet küldéséhez soros porton.
 
 	uint16_t seqno;
 	uint8_t readings = 0;	//from 0 to NREADINGS
 	//uint8_t serialmsgs = 0;	//from 0 to NSERIALMSGS
-	
-	//GH_Msg* ghmsg;
 	
 	message_t*	m_temp;
 	GH_Msg*		gh_temp;
@@ -53,10 +48,8 @@ implementation{
 	bool CTPsendBusy = FALSE;
 	bool UARTsendBusy = FALSE;
 
-
 	task void ctpSendTask();
 	task void uartSendTask();
-	//task void uartSendTask2();
 
 	//Piros LED = HIBA
 	void errorBlink()	{ call Leds.led0Toggle(); }
@@ -67,8 +60,6 @@ implementation{
 	void serialErrorOff(){ call Leds.led2Off(); }
 	
 	event void Boot.booted(){
-		int i;
-		
 		call SerialControl.start();
 		call RadioControl.start();
 		call CtpControl.start();
@@ -79,13 +70,7 @@ implementation{
 		
 		seqno = 0;
 		m_temp = NULL;
-		//Sorok inicializálása
-		/*
-		for(i = 0; i < 10; i++)
-		{
-			
-		}
-		*/
+		
 		call Timer.startPeriodic(DEFAULT_INTERVAL);
 	}
 	
@@ -110,21 +95,10 @@ implementation{
 		{
 			/*readings ellenõrzése!!!!!!!!*/
 			
-			
 			call Read.read();
 			//readings++;	//Read.readDone() növeli		?!
 		
 			radioreadBlink();
-			/*
-			if( call DiagMsg.record() )
-			{
-				call DiagMsg.str("Timer");
-				call DiagMsg.uint8(readings);
-				call DiagMsg.uint16(seqno);
-				call DiagMsg.uint8(CTPsendBusy);
-				call DiagMsg.send();
-			}
-			*/
 		}
 	}
 	
