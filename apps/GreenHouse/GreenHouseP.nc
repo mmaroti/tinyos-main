@@ -44,8 +44,8 @@ implementation
 	uint8_t readings = 0;	//from 0 to NREADINGS
 	//uint8_t serialmsgs = 0;	//from 0 to NSERIALMSGS
 	
-	message_t a_queueCtp[QUEUE_SIZE];
-	message_t a_queueSerial[QUEUE_SIZE];
+	//message_t a_queueCtp[QUEUE_SIZE];
+	//message_t a_queueSerial[QUEUE_SIZE];
 	message_t a_queueTemp[QUEUE_SIZE];
 	message_t*	m_temp;
 	
@@ -78,9 +78,11 @@ implementation
 		//Küldési sorok feltöltése mutatókkal
 		for(i = 0; i < QUEUE_SIZE; i++)
 		{
+			/*
 			call QueueCtp.enqueue( &a_queueCtp[i] );
-			call QueueCtp.enqueue( &a_queueSerial[i] );
-			call QueueCtp.enqueue( &a_queueTemp[i] );
+			call QueueSerial.enqueue( &a_queueSerial[i] );
+			*/
+			call QueueTemp.enqueue( &a_queueTemp[i] );
 		}
 		m_temp = NULL;
 		
@@ -127,11 +129,6 @@ implementation
 	{
 		GH_Msg*	gh_temp;
 		
-		if( call DiagMsg.record() )
-		{
-			call DiagMsg.str("Read.readDone");
-			call DiagMsg.send();
-		}
 		if(	m_temp == NULL )		//Ha nincs aktív buffer
 		{
 			if( !call QueueTemp.empty() )			//és a szabad bufferek listája nem üres (azaz van szabad buffer)
@@ -155,18 +152,14 @@ implementation
 		}
 		//Ha megtelt
 		if(readings == NREADINGS)
-		{		
-			post ctpSendTask();
-			if( call QueueCtp.enqueue( m_temp ) == FAIL )
+		{
+			if( call QueueCtp.enqueue( m_temp ) == SUCCESS )
 			{
-				if( call DiagMsg.record() )
-				{
-					call DiagMsg.str("CTP packet dropped...");
-					call DiagMsg.send();
-				}
-			}
-			else
-			{
+				//call QueueTemp.enqueue( m_temp );
+				m_temp = NULL;
+				post ctpSendTask();
+				readings = 0;
+				
 				if( call DiagMsg.record() )
 				{
 					call DiagMsg.str("Read.readDone.");
@@ -175,8 +168,15 @@ implementation
 					call DiagMsg.send();
 				}
 			}
-			call QueueTemp.enqueue( m_temp );
-			m_temp = NULL;
+			else
+			{
+				if( call DiagMsg.record() )
+				{
+					call DiagMsg.str("CTP packet dropped...");
+					call DiagMsg.send();
+				}
+			}
+			
 		}
 	} 
 	
@@ -186,17 +186,12 @@ implementation
 		am_addr_t parent;
 		uint16_t metric;
 		
-		if( call DiagMsg.record() )
-		{
-			call DiagMsg.str("CTP send task.");
-			call DiagMsg.send();
-		}
 		//Ha van elküldendõ üzenet
 		if( !call QueueCtp.empty() )
 		{
 			if( call DiagMsg.record() )
 			{
-				call DiagMsg.str("CTP sending task.");
+				call DiagMsg.str("CTP send task.");
 				call DiagMsg.str("QueueCtp size:");
 				call DiagMsg.uint8(call QueueCtp.size());
 				call DiagMsg.send();
@@ -224,6 +219,9 @@ implementation
 			gh_temp->metric = metric;
 			gh_temp->seqno = seqno;
 		}
+		else
+			return;
+			
 		//Ha szabad a rádió
 		if(!CTPsendBusy)
 		{
@@ -243,7 +241,7 @@ implementation
 				errorBlink();
 			}
 		}
-		post ctpSendTask();
+		//post ctpSendTask();
 	}
 	
 	event void CtpSend.sendDone(message_t* m, error_t err)
@@ -256,6 +254,7 @@ implementation
 		if (err == SUCCESS)
 		{
 			call QueueCtp.dequeue();
+			call QueueTemp.enqueue(m);
 		}
 		else
 		{
@@ -267,10 +266,10 @@ implementation
 			errorBlink();
 		}
 		
-		post ctpSendTask();
+		//post ctpSendTask();
 		
 		CTPsendBusy = FALSE;
-		readings = 0;
+		//readings = 0;
 		
 	}
 	
@@ -282,42 +281,35 @@ implementation
 			call DiagMsg.str("CtpReceive.receive");
 			call DiagMsg.send();
 		}
-		//atomic /*NEM KELL, mert taskok szinkron futnak*/	//ha nincs async kulcsszó ÉS task kontextusban dolgozunk => nem kell atomic
-		//{
-			/*
-			UART_Msg* uartmsg = (UART_Msg*)call SerialSend.getPayload(&UARTpacket, sizeof(UART_Msg));
-			uartmsg -> messages[serialmsgs++] = 
-			*/
-			//Üzenet "másolása"
-			if( call QueueSerial.enqueue( msg ) == SUCCESS )
+		
+		//Üzenet "másolása"
+		if( call QueueSerial.enqueue( msg ) == SUCCESS )
+		{
+			if( call DiagMsg.record() )
 			{
-				if( call DiagMsg.record() )
-				{
-					call DiagMsg.str("UART sending task.");
-					call DiagMsg.str("QueueSerial size:");
-					call DiagMsg.uint8(call QueueSerial.size());
-					call DiagMsg.send();
-				}
-				p_ret = msg;
+				call DiagMsg.str("CtpReceive.receive");
+				call DiagMsg.str("QueueSerial size:");
+				call DiagMsg.uint8(call QueueSerial.size());
+				call DiagMsg.send();
 			}
-			else if( !call QueueTemp.empty() )
-				p_ret = call QueueTemp.dequeue();
-			else
-				p_ret = msg;
-				
-			if (!UARTsendBusy)
+			p_ret = msg;
+		}
+		else if( !call QueueTemp.empty() )
+			p_ret = call QueueTemp.dequeue();
+		else
+			p_ret = msg;
+			
+		post uartSendTask();
+		
+		if (UARTsendBusy)
+		{
+			if( call DiagMsg.record() )
 			{
-				post uartSendTask();
+				call DiagMsg.str("Serial busy...");
+				call DiagMsg.send();
 			}
-			else
-			{
-				if( call DiagMsg.record() )
-				{
-					call DiagMsg.str("Serial busy...");
-					call DiagMsg.send();
-				}
-			}
-		//}
+		}
+		
 		return p_ret;
 	}
   
@@ -325,14 +317,14 @@ implementation
 	{
 		if( call DiagMsg.record() )
 		{
-			call DiagMsg.str("UART send task.");
+			call DiagMsg.str("UART sender task.");
 			call DiagMsg.send();
 		}
 		if( !call QueueSerial.empty() && !UARTsendBusy )
 		{
 			if( call DiagMsg.record() )
 			{
-				call DiagMsg.str("UART sending task.");
+				call DiagMsg.str("UART sender task.");
 				call DiagMsg.str("QueueSerial size:");
 				call DiagMsg.uint8(call QueueSerial.size());
 				call DiagMsg.send();

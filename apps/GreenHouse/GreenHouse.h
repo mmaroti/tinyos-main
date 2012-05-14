@@ -9,7 +9,7 @@ enum
 	CL_TEST = 0xee,
 	/* Number of readings per message. If you increase this, you may have to
 	increase the message_t size. */
-	NREADINGS = 4,
+	NREADINGS = 1,
 	//NSERIALMSGS = 10,
 	QUEUE_SIZE = 10,
 	/* Default sampling period. */

@@ -21,11 +21,12 @@ public class GreenHouse implements MessageListener
 		System.out.println("Message received.");
 		if(m instanceof GreenHouseMsg)
 		{
-			System.out.println("Correct message format.");
-			
-			System.out.println(m);
-			
 			GreenHouseMsg ghmsg = (GreenHouseMsg)(m);
+			int nid = ghmsg.get_source();
+			
+			System.out.println("Correct message format. Sent by mote " + nid + ".");
+			
+			//System.out.println(m);
 			
 			File logfile;
 			FileOutputStream fos = null;
@@ -33,7 +34,7 @@ public class GreenHouse implements MessageListener
 			
 			final String delimiter = " ";
 			
-			int nid = ghmsg.get_source();
+			//int nid = ghmsg.get_source();
 			
 			logfile = new File("log/mote_" + Integer.toString(nid) + ".txt");
 			/*
@@ -90,17 +91,20 @@ public class GreenHouse implements MessageListener
 			{
 				fos = new FileOutputStream( logfile, true );
 				pw = new PrintWriter( fos, true );
-				
+				/*
 				int baseOffset = m.baseOffset();
 				int dataLength = m.dataLength();
 				byte[] rawData = m.dataGet();
-				
+				*/
 				pw.println( "--------------------------------------" );
 				pw.println( timestamp.format(new java.util.Date()) );
+				/*
 				pw.print("Raw data: ");
 				for(int i = baseOffset; i < baseOffset + dataLength; i++)
 					pw.print(Byte.toString(rawData[i]) + " ");
 				pw.println();
+				*/
+				
 				pw.println( "ID of transmitter: " + Integer.toString(ghmsg.get_source()) );
 				pw.println( "Sequence number: " + Integer.toString(ghmsg.get_seqno()) );
 				pw.println( "Parent: " + Integer.toString(ghmsg.get_parent()) );
@@ -111,6 +115,8 @@ public class GreenHouse implements MessageListener
 				for(int i = 0; i < data.length; i++)
 					dataString += Integer.toString(data[i]) + delimiter;
 				pw.println(dataString);
+				
+				//pw.println( ghmsg.toString() );
 				
 				pw.close();
 			}
