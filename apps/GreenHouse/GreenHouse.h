@@ -25,6 +25,6 @@ typedef nx_struct greenhouse {
   nx_am_addr_t parent;
   nx_uint16_t metric;
   nx_uint16_t data[NREADINGS];
-} GH_Msg;
+} GHMsg;
 
 #endif /* GREEN_HOUSE_H */

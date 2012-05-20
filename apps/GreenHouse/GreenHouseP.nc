@@ -117,7 +117,7 @@ implementation
 	//Esemény: szenzor leolvasása kész
 	event void Read.readDone(error_t result, uint16_t val )
 	{
-		GH_Msg*	gh_temp;
+		GHMsg*	gh_temp;
 		//Ha nincs aktív buffer
 		if(	m_temp == NULL )
 		{
@@ -136,7 +136,7 @@ implementation
 			}
 		}
 		
-		gh_temp = (GH_Msg*)call CtpSend.getPayload(m_temp, sizeof(GH_Msg));
+		gh_temp = (GHMsg*)call CtpSend.getPayload(m_temp, sizeof(GHMsg));
 		//Ha sikerült leolvasni a szenzorértéket
 		if(result == SUCCESS)
 		{
@@ -175,7 +175,7 @@ implementation
 	//Taszk: csomag küldése a CTP motornak
 	task void ctpSendTask()
 	{
-		GH_Msg*	gh_temp;
+		GHMsg*	gh_temp;
 		am_addr_t parent;
 		uint16_t metric;
 		
@@ -190,7 +190,7 @@ implementation
 				call DiagMsg.send();
 			}
 			//Beállítjuk a többi mezõ értékét
-			gh_temp = (GH_Msg*)call CtpSend.getPayload( call QueueCtp.head(), sizeof(GH_Msg) );
+			gh_temp = (GHMsg*)call CtpSend.getPayload( call QueueCtp.head(), sizeof(GHMsg) );
 			
 			if( call CtpInfo.getParent(&parent) == FAIL )
 			{
@@ -220,7 +220,7 @@ implementation
 		if(!CTPsendBusy)
 		{
 			//és a hálózati réteg elfogadja a csomagot
-			if ( call CtpSend.send( call QueueCtp.head(), sizeof(GH_Msg) ) == SUCCESS )
+			if ( call CtpSend.send( call QueueCtp.head(), sizeof(GHMsg) ) == SUCCESS )
 			{
 				CTPsendBusy = TRUE;
 				seqno++;
@@ -328,7 +328,7 @@ implementation
 				call DiagMsg.uint8(call QueueSerial.size());
 				call DiagMsg.send();
 			}
-			if( call SerialSend.send(AM_BROADCAST_ADDR, call QueueSerial.head(), sizeof(GH_Msg)) == SUCCESS )
+			if( call SerialSend.send(AM_BROADCAST_ADDR, call QueueSerial.head(), sizeof(GHMsg)) == SUCCESS )
 			{
 				UARTsendBusy = TRUE;
 				serialErrorOff();
@@ -348,7 +348,7 @@ implementation
 	//Esemény: soros porton való küldés befejezve
 	event void SerialSend.sendDone(message_t *msg, error_t error)
 	{
-		//GH_Msg* gh_temp;
+		//GHMsg* gh_temp;
 		
 		if( call DiagMsg.record() )
 		{
@@ -362,7 +362,7 @@ implementation
 			call QueueTemp.enqueue( msg );
 			serialErrorOff();
 			/*
-			gh_temp = (GH_Msg*)call SerialSend.getPayload(msg, sizeof(GH_Msg));
+			gh_temp = (GHMsg*)call SerialSend.getPayload(msg, sizeof(GHMsg));
 			if( call DiagMsg.record() )
 			{
 				call DiagMsg.str("SerialSend.sendDone");

@@ -26,7 +26,8 @@ public class GreenHouse implements MessageListener
 			
 			System.out.println("Correct message format. Sent by mote " + nid + ".");
 			
-			//System.out.println(m);
+			System.out.println("GHMsg: " + ghmsg);
+			System.out.println("Message: " + m);
 			
 			File logfile;
 			FileOutputStream fos = null;
@@ -112,9 +113,7 @@ public class GreenHouse implements MessageListener
 				String dataString = "";
 				for(int i = 0; i < data.length; i++)
 				{
-					System.out.println(ghmsg);
-					//dataString += Double.toString( temp ) + delimiter;
-					//dataString += temp.toString();
+					dataString += Double.toString( data[i] ) + delimiter;
 				}
 				pw.println(dataString);
 				
