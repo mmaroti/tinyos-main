@@ -34,8 +34,6 @@ public class GreenHouse implements MessageListener
 			
 			final String delimiter = " ";
 			
-			//int nid = ghmsg.get_source();
-			
 			logfile = new File("log/mote_" + Integer.toString(nid) + ".txt");
 			/*
 			if( !logfile.exists() )
@@ -113,7 +111,11 @@ public class GreenHouse implements MessageListener
 				int[] data = ghmsg.get_data();
 				String dataString = "";
 				for(int i = 0; i < data.length; i++)
-					dataString += Integer.toString(data[i]) + delimiter;
+				{
+					System.out.println(ghmsg);
+					//dataString += Double.toString( temp ) + delimiter;
+					//dataString += temp.toString();
+				}
 				pw.println(dataString);
 				
 				//pw.println( ghmsg.toString() );

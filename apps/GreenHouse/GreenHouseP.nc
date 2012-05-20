@@ -1,6 +1,8 @@
 #include <Timer.h>
 #include "GreenHouse.h"
-
+/**
+komment teszt
+*/
 module GreenHouseP
 {
 	uses
@@ -11,47 +13,40 @@ module GreenHouseP
 		interface RootControl;
 		interface SplitControl as RadioControl;
 		interface SplitControl as SerialControl;
-		
+		//Szenzorérték periodikus leolvasását végzõ interfészek
 		interface Timer<TMilli>;
 		interface Read<uint16_t>;
-	
+		//CTP protokollal való kapcsolatot megvalósító interfészek
 		interface CollectionPacket;
 		interface CtpInfo;
 		interface CtpCongestion;
-		
 		interface Send as CtpSend;
 		interface Receive as CtpReceive;
-		
+		//Soros kapcsolatot megvalósító interfész
 		interface AMSend as SerialSend;
-
+		//A csomagforgalom bufferelését megvalósító interfészek
 		interface Queue<message_t*> as QueueCtp;
 		interface Queue<message_t*> as QueueSerial;
 		interface Queue<message_t*> as QueueTemp;
-	
+		//Rendszer diagnosztizálás
 		interface DiagMsg;
 	}
 }
 
 implementation
 {
-	/*
-	enum {
-		SEND_INTERVAL = 8192
-	};
-	*/
-
-	uint16_t seqno;
-	uint8_t readings = 0;	//from 0 to NREADINGS
-	//uint8_t serialmsgs = 0;	//from 0 to NSERIALMSGS
+	uint16_t seqno;				//A szenzorlapka által küldött csomagok száma
+	uint8_t readings = 0;		//0 - NREADINGS között változhat
 	
 	//message_t a_queueCtp[QUEUE_SIZE];
 	//message_t a_queueSerial[QUEUE_SIZE];
 	message_t a_queueTemp[QUEUE_SIZE];
 	message_t*	m_temp;
 	
+	//Kommunikációs csatornák foglaltáság jelzõ "flag"-ek
 	bool CTPsendBusy = FALSE;
 	bool UARTsendBusy = FALSE;
-
+	//Kommunikációs csatornákon való küldést végzõ taszkok
 	task void ctpSendTask();
 	task void uartSendTask();
 
@@ -70,7 +65,7 @@ implementation
 		call RadioControl.start();
 		call CtpControl.start();
 
-		if (TOS_NODE_ID /*% 500*/ == 0) {
+		if (TOS_NODE_ID % 200 == 0) {
 			call RootControl.setRoot();
 		}
 		
@@ -85,7 +80,7 @@ implementation
 			call QueueTemp.enqueue( &a_queueTemp[i] );
 		}
 		m_temp = NULL;
-		
+		//Idõzítõ elindítása
 		call Timer.startPeriodic(DEFAULT_INTERVAL);
 	}
 	
@@ -102,7 +97,7 @@ implementation
 	
 	event void RadioControl.stopDone(error_t err) {}
 	event void SerialControl.stopDone(error_t err) {}
-	
+	//Esemény: Idõzítõ lejárt
 	event void Timer.fired()
 	{
 		if( call DiagMsg.record() )
@@ -111,28 +106,25 @@ implementation
 			call DiagMsg.send();
 		}
 		
-		if( readings < NREADINGS )	//Átrakható lenne a Read.readDone()-ba.
-									//Szintén ott else ágon bufferelés.
+		if( readings < NREADINGS )
 		{
-			/*readings ellenõrzése!!!!!!!!*/
-			
 			call Read.read();
-			//readings++;	//Read.readDone() növeli		?!
+			//readings++;	//Read.readDone() növeli
 		
 			radioreadBlink();
 		}
 	}
-	
-	//void ctpSendTask(void);
-	
+	//Esemény: szenzor leolvasása kész
 	event void Read.readDone(error_t result, uint16_t val )
 	{
 		GH_Msg*	gh_temp;
-		
-		if(	m_temp == NULL )		//Ha nincs aktív buffer
+		//Ha nincs aktív buffer
+		if(	m_temp == NULL )
 		{
-			if( !call QueueTemp.empty() )			//és a szabad bufferek listája nem üres (azaz van szabad buffer)
-				m_temp = call QueueTemp.dequeue();	//lefoglalunk egy buffert.
+			//és a szabad bufferek listája nem üres (azaz van szabad buffer)
+			if( !call QueueTemp.empty() )
+				//lefoglalunk egy buffert.
+				m_temp = call QueueTemp.dequeue();
 			else
 			{
 				if( call DiagMsg.record() )
@@ -148,38 +140,39 @@ implementation
 		//Ha sikerült leolvasni a szenzorértéket
 		if(result == SUCCESS)
 		{
-			gh_temp->data[readings++] = /*-39.6 + */0.04 * val;		//0.04 = 1/256 = 1/(2^8) = 1 bájttal jobbra shiftelés
-		}
-		//Ha megtelt
-		if(readings == NREADINGS)
-		{
-			if( call QueueCtp.enqueue( m_temp ) == SUCCESS )
-			{
-				//call QueueTemp.enqueue( m_temp );
-				m_temp = NULL;
-				post ctpSendTask();
-				readings = 0;
-				
-				if( call DiagMsg.record() )
-				{
-					call DiagMsg.str("Read.readDone.");
-					call DiagMsg.str("QueueCtp size:");
-					call DiagMsg.uint8(call QueueCtp.size());
-					call DiagMsg.send();
-				}
-			}
-			else
-			{
-				if( call DiagMsg.record() )
-				{
-					call DiagMsg.str("CTP packet dropped...");
-					call DiagMsg.send();
-				}
-			}
+			gh_temp->data[readings++] = val;
 			
+			//Ha összegyûlt egy csomagnyi mért adat
+			if(readings == NREADINGS)
+			{
+				//Az üzenet bekerül a CTP küldési sorba
+				if( call QueueCtp.enqueue( m_temp ) == SUCCESS )
+				{
+					m_temp = NULL;
+					readings = 0;
+					post ctpSendTask();		//Küldés CTP-nek...
+					
+					if( call DiagMsg.record() )
+					{
+						call DiagMsg.str("Read.readDone.");
+						call DiagMsg.str("QueueCtp size:");
+						call DiagMsg.uint8(call QueueCtp.size());
+						call DiagMsg.send();
+					}
+				}
+				else
+				{
+					if( call DiagMsg.record() )
+					{
+						call DiagMsg.str("CTP packet dropped...");
+						call DiagMsg.send();
+					}
+				}
+				
+			}
 		}
 	} 
-	
+	//Taszk: csomag küldése a CTP motornak
 	task void ctpSendTask()
 	{
 		GH_Msg*	gh_temp;
@@ -196,6 +189,7 @@ implementation
 				call DiagMsg.uint8(call QueueCtp.size());
 				call DiagMsg.send();
 			}
+			//Beállítjuk a többi mezõ értékét
 			gh_temp = (GH_Msg*)call CtpSend.getPayload( call QueueCtp.head(), sizeof(GH_Msg) );
 			
 			if( call CtpInfo.getParent(&parent) == FAIL )
@@ -225,9 +219,9 @@ implementation
 		//Ha szabad a rádió
 		if(!CTPsendBusy)
 		{
+			//és a hálózati réteg elfogadja a csomagot
 			if ( call CtpSend.send( call QueueCtp.head(), sizeof(GH_Msg) ) == SUCCESS )
 			{
-				//call QueueCtp.dequeue();
 				CTPsendBusy = TRUE;
 				seqno++;
 			}
@@ -243,7 +237,7 @@ implementation
 		}
 		//post ctpSendTask();
 	}
-	
+	//Esemény: küldés befejezve
 	event void CtpSend.sendDone(message_t* m, error_t err)
 	{
 		if( call DiagMsg.record() )
@@ -251,6 +245,8 @@ implementation
 			call DiagMsg.str("CtpSend.sendDone");
 			call DiagMsg.send();
 		}
+		//Sikeres küldés esetén a mutatót kikerül a CTP sorból,
+		//és átkerül az szabad mutatók listájába.
 		if (err == SUCCESS)
 		{
 			call QueueCtp.dequeue();
@@ -272,7 +268,8 @@ implementation
 		//readings = 0;
 		
 	}
-	
+	//Esemény: csomag érkezett
+	//Csak a CTP gyökere kapja meg.
 	event message_t* CtpReceive.receive(message_t* msg, void* payload, uint8_t len)
 	{
 		message_t* p_ret;
@@ -281,7 +278,6 @@ implementation
 			call DiagMsg.str("CtpReceive.receive");
 			call DiagMsg.send();
 		}
-		
 		//Üzenet "másolása"
 		if( call QueueSerial.enqueue( msg ) == SUCCESS )
 		{
@@ -294,13 +290,15 @@ implementation
 			}
 			p_ret = msg;
 		}
+		//Ha van üres buffer, azzal térünk vissza,
+		//hogy a fogadott csomagot legyen idõ feldolgozni.
 		else if( !call QueueTemp.empty() )
 			p_ret = call QueueTemp.dequeue();
 		else
 			p_ret = msg;
 			
-		post uartSendTask();
-		
+		post uartSendTask();	//Küldés PC-re...
+		/*
 		if (UARTsendBusy)
 		{
 			if( call DiagMsg.record() )
@@ -309,10 +307,10 @@ implementation
 				call DiagMsg.send();
 			}
 		}
-		
+		*/
 		return p_ret;
 	}
-  
+	//Taszk: csomag küldése a soros portra
 	task void uartSendTask()
 	{
 		if( call DiagMsg.record() )
@@ -320,6 +318,7 @@ implementation
 			call DiagMsg.str("UART sender task.");
 			call DiagMsg.send();
 		}
+		//Ha van elküldendõ csomag, és szabad a csatorna.
 		if( !call QueueSerial.empty() && !UARTsendBusy )
 		{
 			if( call DiagMsg.record() )
@@ -331,7 +330,6 @@ implementation
 			}
 			if( call SerialSend.send(AM_BROADCAST_ADDR, call QueueSerial.head(), sizeof(GH_Msg)) == SUCCESS )
 			{
-				//call QueueSerial.dequeue()
 				UARTsendBusy = TRUE;
 				serialErrorOff();
 			}
@@ -347,22 +345,23 @@ implementation
 		}
 		post uartSendTask();
 	}
-	
+	//Esemény: soros porton való küldés befejezve
 	event void SerialSend.sendDone(message_t *msg, error_t error)
 	{
-		GH_Msg* gh_temp;
+		//GH_Msg* gh_temp;
 		
 		if( call DiagMsg.record() )
 		{
 			call DiagMsg.str("SerialSend.sendDone");
 			call DiagMsg.send();
 		}
+		//Sikeres küldés esetén a csomag mutató visszakerül a szabad bufferek listájába
 		if (error == SUCCESS)
 		{
 			call QueueSerial.dequeue();
 			call QueueTemp.enqueue( msg );
 			serialErrorOff();
-			
+			/*
 			gh_temp = (GH_Msg*)call SerialSend.getPayload(msg, sizeof(GH_Msg));
 			if( call DiagMsg.record() )
 			{
@@ -374,6 +373,7 @@ implementation
 				call DiagMsg.uint16s( (uint16_t*)(gh_temp -> data), NREADINGS );
 				call DiagMsg.send();
 			}
+			*/
 		}
 		else
 		{
