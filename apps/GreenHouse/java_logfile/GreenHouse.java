@@ -7,15 +7,17 @@ import net.tinyos.util.*;
 
 public class GreenHouse implements MessageListener
 {
+	//A szenzorlapka és a számítógép közötti kommunikációt megvalósító osztály
     private MoteIF mif;
-	
+	//Üzenetek érkezésének idõpontját regisztráló tag
 	protected java.text.SimpleDateFormat timestamp = new java.text.SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
-
+	//Konstruktor
 	public GreenHouse(MoteIF mif){
 		this.mif = mif;
+		//Várt üzenet típusának megadása
 		this.mif.registerListener(new GreenHouseMsg(), this);
 	}
-	
+	//mif.receiver.[msgTemplate].listener.messageReceived(int, Message)
 	public /*synchronized */void messageReceived(int to, Message m){
 		
 		System.out.println("Message received.");
@@ -29,14 +31,15 @@ public class GreenHouse implements MessageListener
 			int nid = ghmsg.get_source();
 			
 			System.out.println("Correct message format. Sent by mote " + nid + ".");
-			
+			//Fájlba írás
 			File logfile;
 			FileOutputStream fos = null;
 			PrintWriter pw;
 			
 			final String delimiter = " ";
-			
+			//A szenzorlapkához tartozó logfájl nevének meghatározása
 			logfile = new File("log/mote_" + Integer.toString(nid) + ".txt");
+			//Ha nem létezik, megpróbáljuk létrehozni
 			if( !logfile.exists() )
 			{
 				try
@@ -57,15 +60,16 @@ public class GreenHouse implements MessageListener
 				pw.println("Log file of mote with ID " + Integer.toString(nid));
 				pw.close();
 			}
+			//Tényleges adatírás
 			try
 			{
 				fos = new FileOutputStream( logfile, true );
 				pw = new PrintWriter( fos, true );
-
+				
 				pw.println( "--------------------------------------" );
 				pw.println( timestamp.format(new java.util.Date()) );				
 				
-				pw.println( "ID of transmitter: " + Integer.toString(ghmsg.get_source()) );
+				pw.println( "ID of transmitter: " + Integer.toString(nid) );
 				pw.println( "Sequence number: " + Integer.toString(ghmsg.get_seqno()) );
 				pw.println( "Parent: " + Integer.toString(ghmsg.get_parent()) );
 				pw.println( "Metric: " + Integer.toString(ghmsg.get_metric()) );
@@ -89,7 +93,7 @@ public class GreenHouse implements MessageListener
     public static void main(String[] args) {
 		PhoenixSource phoenix = null;
 		MoteIF mif = null;
-		
+		//Parancssori paraméterek alapján adatforrás meghatározása
 		if( args.length == 0 )
 		{
 			phoenix = BuildSource.makePhoenix( PrintStreamMessenger.err );
@@ -104,6 +108,7 @@ public class GreenHouse implements MessageListener
 			java.lang.System.exit(1);
 		}
 		mif = new MoteIF(phoenix);
+		//Alkalmazás futtatása
 		GreenHouse app = new GreenHouse(mif);
     }
 }

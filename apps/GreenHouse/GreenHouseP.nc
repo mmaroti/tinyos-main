@@ -278,7 +278,7 @@ implementation
 			call DiagMsg.str("CtpReceive.receive");
 			call DiagMsg.send();
 		}
-		//Üzenet "másolása"
+		//Üzenetmutatót beletesszük a küldési sorba
 		if( call QueueSerial.enqueue( msg ) == SUCCESS )
 		{
 			if( call DiagMsg.record() )
@@ -288,26 +288,16 @@ implementation
 				call DiagMsg.uint8(call QueueSerial.size());
 				call DiagMsg.send();
 			}
-			p_ret = msg;
 		}
 		//Ha van üres buffer, azzal térünk vissza,
-		//hogy a fogadott csomagot legyen idõ feldolgozni.
-		else if( !call QueueTemp.empty() )
+		//hogy a fogadott csomagot ne írjuk felül.
+		if( !call QueueTemp.empty() )
 			p_ret = call QueueTemp.dequeue();
 		else
 			p_ret = msg;
 			
 		post uartSendTask();	//Küldés PC-re...
-		/*
-		if (UARTsendBusy)
-		{
-			if( call DiagMsg.record() )
-			{
-				call DiagMsg.str("Serial busy...");
-				call DiagMsg.send();
-			}
-		}
-		*/
+		
 		return p_ret;
 	}
 	//Taszk: csomag küldése a soros portra
