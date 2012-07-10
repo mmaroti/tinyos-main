@@ -1,0 +1,18 @@
+goldenimage addr: TOSBoot_platform.h
+
+deluge platform define-ok:
+==========================
+net/Deluge:
+DelugePageTransfer.h: TOSBoot_platform.h
+BlockStorageManagerC, BlockStorageManagerP (2x): Flash meghajtó
+
+support/make:
+tosboot.extra: iris-ról másolni egy ifeq-et
+
+tosboot platform:
+=================
+Makefile-ben lemásolni az ucmini-t
+TosBootP.nc: intAddr
+platform könyvtár:
+hardware.h: pin összerendelések (TOSH_ASSIGN_PIN, TOSH_ASSIGN_INVERTED_PIN, TOSH_ASSIGN_DUMMY_PIN)
+						SET_PIN_DIRECTION függvény
