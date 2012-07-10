@@ -105,17 +105,35 @@ ifeq ($(MAKECMDGOALS),tinynode)
   POST_BUILD_EXTRA_DEPS += strip_iv 
 endif
 
-ifeq ($(MAKECMDGOALS),ucmini)
-  CFLAGS += -DTOSBOOT_START=0x1f000 -DTOSBOOT_END=0x20000
-  CFLAGS += -Wl,--section-start=.text=0x1f000
-  CFLAGS +=  -Iucmini -Istm25p_spi -Iavr -Imicaz -Ilib
-  CFLAGS += -I../net/Deluge
+ifneq (, $(filter $(MAKECMDGOALS), ucmini10 ucmini ucminitest))
+#ifeq ($(MAKECMDGOALS),ucmini10)
+  CFLAGS += -Iucmini
 endif
 
+ifneq (, $(filter $(MAKECMDGOALS), ucmotedrd ucmotedrdb))
+#ifeq ($(MAKECMDGOALS),ucmotedrd)
+  CFLAGS += -Iucmotedrd
+endif
 
+ifeq ($(MAKECMDGOALS),ucmotetivi)
+  CFLAGS += -Iucmotetivi
+endif
+
+ifeq ($(MAKECMDGOALS),ucmote900zb51p)
+  CFLAGS += -Iucmote900zb
+endif
 
 strip_iv: FORCE
 	@echo "    removing interrupt vector from binary"
 	msp430-objcopy -j .text -j .data -O ihex $(BUILDDIR)/main.exe $(BUILDDIR)/main.ihex
 
 include $(MAKERULES)
+
+ifneq (,$(filter ATM128RFA1 ATM1281, $(MCU)))
+  CFLAGS += -DTOSBOOT_START=0x1f000 -DTOSBOOT_END=0x20000
+  CFLAGS += -Wl,--section-start=.text=0x1f000 -Iavr
+endif
+ifeq ($(FLASH),STM25P)
+  CFLAGS += -Istm25p_spi
+endif
+CFLAGS += -Ilib -I../net/Deluge

@@ -74,12 +74,12 @@ implementation
   BlockStorageManagerP.SubBlockWrite[VOLUME_DELUGE2]     -> BlockStorageC_2;
   BlockStorageManagerP.SubBlockWrite[VOLUME_DELUGE3]     -> BlockStorageC_3;
 
-#if defined(PLATFORM_TELOSB) || defined(PLATFORM_UCMINI)
+#if defined(PLATFORM_TELOSB) || FLASH==FLASH_STM25P
   BlockStorageManagerP.SubStorageMap[VOLUME_GOLDENIMAGE] -> BlockStorageC_Golden;
   BlockStorageManagerP.SubStorageMap[VOLUME_DELUGE1]     -> BlockStorageC_1;
   BlockStorageManagerP.SubStorageMap[VOLUME_DELUGE2]     -> BlockStorageC_2;
   BlockStorageManagerP.SubStorageMap[VOLUME_DELUGE3]     -> BlockStorageC_3;
-#elif defined(PLATFORM_MICAZ) || defined(PLATFORM_IRIS) || defined(PLATFORM_EPIC) || defined(PLATFORM_MULLE) || defined(PLATFORM_TINYNODE)
+#elif defined(PLATFORM_MICAZ) || defined(PLATFORM_IRIS) || defined(PLATFORM_EPIC) || defined(PLATFORM_MULLE) || defined(PLATFORM_TINYNODE) || FLASH==FLASH_AT45DB
   components At45dbStorageManagerC;
   BlockStorageManagerP.At45dbVolume -> At45dbStorageManagerC;
 #endif

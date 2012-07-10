@@ -42,18 +42,6 @@
 #ifndef DELUGEPAGETRANSFER_H
 #define DELUGEPAGETRANSFER_H
 
-#if defined(PLATFORM_TELOSB) || defined(PLATFORM_EPIC)
-  #include "extra/telosb/TOSBoot_platform.h"
-#elif defined(PLATFORM_MICAZ) || defined(PLATFORM_IRIS) || defined(PLATFORM_UCMINI)
-  #include "extra/micaz/TOSBoot_platform.h"
-#elif defined(PLATFORM_MULLE)
-  #include "extra/mulle/TOSBoot_platform.h"
-#elif defined(PLATFORM_TINYNODE)
-  #include "extra/tinynode/TOSBoot_platform.h"
-#else
-  #error "Target platform is not currently supported by Deluge T2"
-#endif
-
 #include <message.h>
 
 #define AM_DELUGEADVMSG  0x50

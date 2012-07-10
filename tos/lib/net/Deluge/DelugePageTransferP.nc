@@ -405,7 +405,7 @@ if (error == SUCCESS) {
 if (rxDataMsg->pktNum == 0) {
   //call StatsCollector.startRecvPageTransTime(0);
 }
-call Leds.led1Toggle();
+call Leds.led0Toggle();
 //call Leds.set(rxDataMsg->pktNum);
       
       // copy data
@@ -475,7 +475,7 @@ call Leds.led1Toggle();
 // For collecting stats
 //call StatsCollector.endRecvPageTransTime(publisher_addr);
 
-call Leds.led1Off();
+      call Leds.led0Off();
       signal DelugePageTransfer.receivedPage(workingObjid, workingPgNum);
       changeState(S_IDLE);
       size = 0;
@@ -494,6 +494,6 @@ call Leds.led1Off();
   
   default command error_t BlockRead.read[uint8_t img_num](storage_addr_t addr, void* buf, storage_len_t len) { return FAIL; }
   default command error_t BlockWrite.write[uint8_t img_num](storage_addr_t addr, void* buf, storage_len_t len) { return FAIL; }
-  default async command void Leds.led1Toggle() {}
-  default async command void Leds.led1Off() {}
+  default async command void Leds.led0Toggle() {}
+  default async command void Leds.led0Off() {}
 }

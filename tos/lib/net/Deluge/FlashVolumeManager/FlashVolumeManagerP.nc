@@ -204,7 +204,7 @@ implementation
 	  }
       }
       if (error == SUCCESS) {
-	call Leds.led1On();
+	call Leds.led0On();
 	call TimeoutTimer.startOneShot(2*1024);
 	currentImgNum = imgNum;
 	switch (request->cmd) {
@@ -271,7 +271,7 @@ implementation
       call Resource.release();
     }
     if (state == S_IDLE) {
-      call Leds.led1Off();
+      call Leds.led0Off();
     }
   }
 

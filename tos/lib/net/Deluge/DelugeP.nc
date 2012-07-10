@@ -143,7 +143,7 @@ implementation
   
   event void ObjectTransfer.receiveDone(error_t error)
   {
-    call Leds.set(LEDS_LED1 | LEDS_LED2);
+    call Leds.set(LEDS_LED0 | LEDS_LED2);
     state = S_IDLE;
     
     if (error == SUCCESS) {
