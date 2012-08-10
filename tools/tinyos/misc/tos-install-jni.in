@@ -10,9 +10,9 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-if [ -x /bin/cygwin1.dll ] || [ `uname` = "Darwin" ]; then
+if [ `uname` = "Darwin" ]; then
   echo "Installing Java JNI code in $jni ... "
-  for lib in $tinyoslibdir/*.@JNISUFFIX@; do 
+  for lib in $tinyoslibdir/*.@JNISUFFIX@; do
     @INSTALLJNI@ $lib "$jni" || exit 1
   done
 else
@@ -24,7 +24,7 @@ else
     bits=64
   fi
   echo "Installing $bits-bit Java JNI code in $jni ... "
-  for lib in $tinyoslibdir/*-$bits.@JNISUFFIX@; do 
+  for lib in $tinyoslibdir/*-$bits.@JNISUFFIX@; do
     realname=`basename $lib | sed -e s/-$bits\.@JNISUFFIX@/.@JNISUFFIX@/`
     @INSTALLJNI@ $lib "$jni/$realname" || exit 1
   done
