@@ -204,7 +204,7 @@ implementation
 		if( cmd == CMD_REGISTER )
 			writeRegister(reg, value);
 	}
-	
+
 	tasklet_async command uint8_t RadioRegister.read(uint8_t reg)
 	{
 		return cmd == CMD_REGISTER ? readRegister(reg) : 0;
@@ -397,11 +397,11 @@ tasklet_async command uint8_t RadioState.getChannel()
 			call RadioAlarm.wait(SLEEP_WAKEUP_TIME);
 			state = STATE_SLEEP_2_TRX_OFF;
 		}
-		else if( cmd == CMD_TURNON && state == STATE_TRX_OFF 
+		else if( cmd == CMD_TURNON && state == STATE_TRX_OFF
 			&& isSpiAcquired() && call RadioAlarm.isFree() )
 		{
 			uint16_t temp;
-	
+
 			ASSERT( ! radioIrq );
 
 			readRegister(RF230_IRQ_STATUS); // clear the interrupt register
@@ -418,7 +418,7 @@ tasklet_async command uint8_t RadioState.getChannel()
 			writeRegister(RF230_TRX_STATE, RF230_RX_AACK_ON);
 			state = STATE_TRX_OFF_2_RX_ON;
 		}
-		else if( (cmd == CMD_TURNOFF || cmd == CMD_STANDBY) 
+		else if( (cmd == CMD_TURNOFF || cmd == CMD_STANDBY)
 			&& state == STATE_RX_ON && isSpiAcquired() )
 		{
 			writeRegister(RF230_TRX_STATE, RF230_FORCE_TRX_OFF);
@@ -451,7 +451,7 @@ tasklet_async command uint8_t RadioState.getChannel()
 
 		return SUCCESS;
 	}
-	
+
 	tasklet_async command error_t RadioState.standby()
 	{
 		if( cmd != CMD_NONE || (state == STATE_SLEEP && ! call RadioAlarm.isFree()) )
@@ -598,14 +598,14 @@ tasklet_async command uint8_t RadioState.getChannel()
 		call SELN.set();
 
 		/*
-		 * There is a very small window (~1 microsecond) when the RF230 went 
-		 * into PLL_ON state but was somehow not properly initialized because 
+		 * There is a very small window (~1 microsecond) when the RF230 went
+		 * into PLL_ON state but was somehow not properly initialized because
 		 * of an incoming message and could not go into BUSY_TX. I think the
 		 * radio can even receive a message, and generate a TRX_UR interrupt
 		 * because of concurrent access, but that message probably cannot be
 		 * recovered.
 		 *
-		 * TODO: this needs to be verified, and make sure that the chip is 
+		 * TODO: this needs to be verified, and make sure that the chip is
 		 * not locked up in this case.
 		 */
 
@@ -623,7 +623,7 @@ tasklet_async command uint8_t RadioState.getChannel()
 			length = getHeader(msg)->length;
 
 			call DiagMsg.chr('t');
-			call DiagMsg.uint32(call PacketTimeStamp.isValid(rxMsg) ? call PacketTimeStamp.timestamp(rxMsg) : 0);
+			call DiagMsg.uint32(call PacketTimeStamp.isValid(msg) ? call PacketTimeStamp.timestamp(msg) : 0);
 			call DiagMsg.uint16(call RadioAlarm.getNow());
 			call DiagMsg.int8(length);
 			call DiagMsg.hex8s(getPayload(msg), length - 2);
@@ -656,7 +656,7 @@ tasklet_async command uint8_t RadioState.getChannel()
 		writeRegister(RF230_PHY_CC_CCA, RF230_CCA_REQUEST | RF230_CCA_MODE_VALUE | channel);
 		call RadioAlarm.wait(CCA_REQUEST_TIME);
 		cmd = CMD_CCA;
-		
+
 		return SUCCESS;
 	}
 
@@ -772,7 +772,7 @@ tasklet_async command uint8_t RadioState.getChannel()
 			uint32_t time32;
 			uint8_t irq;
 			uint8_t temp;
-			
+
 			atomic time = capturedTime;
 			radioIrq = FALSE;
 			irq = readRegister(RF230_IRQ_STATUS);
@@ -866,7 +866,7 @@ tasklet_async command uint8_t RadioState.getChannel()
 				changeState();
 			else if( cmd == CMD_CHANNEL )
 				changeChannel();
-			
+
 			if( cmd == CMD_SIGNAL_DONE )
 			{
 				cmd = CMD_NONE;
@@ -918,7 +918,7 @@ tasklet_async command uint8_t RadioState.getChannel()
 	}
 
 /*----------------- RadioPacket -----------------*/
-	
+
 	async command uint8_t RadioPacket.headerLength(message_t* msg)
 	{
 		return call Config.headerLength(msg) + sizeof(rf230_header_t);
