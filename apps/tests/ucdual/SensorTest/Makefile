@@ -1,0 +1,4 @@
+COMPONENT=NullAppC
+SENSORBOARD=mts400
+include $(MAKERULES)
+
