@@ -1,3 +1,4 @@
+mikeghealy@gmail.com = Mike Healy <mikeghealy@gmail.com>
 abecsi = Andras Becsi <abecsi@inf.u-szeged.hu>
 andrasbiro = Andras Biro <bbandi86@gmail.com>
 baharev_ali = Ali Baharev <ali.baharev@gmail.com>
