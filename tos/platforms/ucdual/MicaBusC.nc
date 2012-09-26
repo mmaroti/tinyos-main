@@ -136,44 +136,4 @@ implementation {
   Adc6 = MicaBusP.Adc6;
   Adc7 = MicaBusP.Adc7;//not connected
   #endif
-  
-  components RealMainP;
-  MicaBusP.Init<-RealMainP.PlatformInit;
-  MicaBusP.PW0 -> Pins.PortB6;
-  MicaBusP.PW1 -> NoPW1;
-  MicaBusP.PW2 -> Pins.PortB7;
-  MicaBusP.PW3 -> Pins.PortG0;
-  MicaBusP.PW4 -> Pins.PortG1;
-  MicaBusP.PW5 -> Pins.PortG2;
-  MicaBusP.PW6 -> Pins.PortG5;
-  MicaBusP.PW7 -> NoPW7;
-  
-  MicaBusP.Int0 -> Pins.PortE4;
-  MicaBusP.Int1 -> Pins.PortE5;
-  MicaBusP.Int2 -> Pins.PortE6;
-  MicaBusP.Int3 -> Pins.PortE7;
-  
-  #if UCDUAL_REV==1
-  MicaBusP.USART1_CLK -> Pins.PortE2;//hardware bug, this is the clk of usart0
-  #else
-  MicaBusP.USART1_CLK -> Pins.PortD5;
-  #endif
-  MicaBusP.USART1_RXD -> Pins.PortD3;
-  MicaBusP.USART1_TXD -> Pins.PortD2;
-  
-  MicaBusP.UART0_RXD -> Pins.PortE0;
-  MicaBusP.UART0_TXD -> Pins.PortE1;
-  MicaBusP.SPI_SCK -> Pins.PortB1;
-  MicaBusP.SPI_MOSI -> Pins.PortB2;
-  MicaBusP.SPI_MISO -> Pins.PortB3;
-  MicaBusP.I2C_CLK -> Pins.PortD0;
-  MicaBusP.I2C_DATA -> Pins.PortD1;
-  MicaBusP.Adc0_IO -> NoAdc;
-  MicaBusP.Adc1_IO -> Pins.PortF1;
-  MicaBusP.Adc2_IO -> Pins.PortF2;
-  MicaBusP.Adc3_IO -> Pins.PortF3;
-  MicaBusP.Adc4_IO -> Pins.PortF4;
-  MicaBusP.Adc5_IO -> Pins.PortF5;
-  MicaBusP.Adc6_IO -> Pins.PortF6;
-  MicaBusP.Adc7_IO -> Pins.PortF7;
 }
