@@ -11,10 +11,18 @@ devices=getAllDevices()
 if len(devices)==0:
   print("No devices found.")
 else:
-  print("Loc\tVID\tPID\tSerial\tDevice\tActive\tDescription")
-  x=0
+  print("Loc".rjust(4)+" "+\
+      "VID".rjust(4)+" "+\
+      "PID".rjust(4)+" "+\
+      "Serial".rjust(10)+" "+\
+      "Device".rjust(15)+" "+\
+      "Active".rjust(6)+" "+\
+      "Manufacturer; Description")
   for device in devices:
-    print(device['location']+"\t"+device['vid']+"\t"+device['pid']+"\t"+device['serialnum']+"\t"\
-      +device['port']+"\t"+str(device['active'])+"\t"+device['manufacturer']+","+device['description'])
-    print('{0:2d} {1:3d} {2:4d}'.format(x, x*x, x*x*x))
-    x+=200
+    print(device['location'].rjust(4)+" "+\
+      device['vid'].rjust(4)+" "+\
+      device['pid'].rjust(4)+" "+\
+      device['serialnum'].rjust(10)+" "+\
+      device['port'].rjust(15)+" "+\
+      str(device['active']).rjust(6)+" "+\
+      device['manufacturer']+"; "+device['description'])
