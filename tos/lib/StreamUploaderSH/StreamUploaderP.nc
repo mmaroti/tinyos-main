@@ -50,6 +50,7 @@ module StreamUploaderP{
 		interface TimeSyncAMSend<TMilli, uint32_t> as TimeSyncAMSendMilli;
 		interface Resource;
 		interface LocalTime<TMilli>;
+		interface DiagMsg;
 	}
 }
 
@@ -159,6 +160,11 @@ implementation{
 	}
 	
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len){
+		if(call DiagMsg.record()){
+			call DiagMsg.str("rec");
+			call DiagMsg.uint8(status);
+			call DiagMsg.send();
+		}
 		if((status==WAIT_FOR_REQ)&&len==sizeof(ctrl_msg)){
 			ctrl_msg *rec=(ctrl_msg*)payload;
 			call WaitTimer.stop();

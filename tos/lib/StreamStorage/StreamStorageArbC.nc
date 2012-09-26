@@ -44,8 +44,13 @@ configuration StreamStorageArbC{
 }
 implementation{
 	components new SimpleFcfsArbiterC(UQ_STREAMSTORAGE) as Arbiter;
-	components StreamStorageC, StreamStorageArbP, MainC;
-
+	components StreamStorageArbP, MainC;
+	#ifdef PLATFORM_IRIS
+	components StreamStorageC;
+	#else
+	components StreamStorageRamC as StreamStorageC;
+	#endif
+	
 	Resource=Arbiter;
 	StreamStorageErase=StreamStorageArbP;
 	StreamStorageWrite=StreamStorageArbP;

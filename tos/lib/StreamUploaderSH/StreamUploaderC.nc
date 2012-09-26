@@ -61,4 +61,7 @@ implementation{
 	StreamUploaderP.Leds->LedsC;
   	StdControl=StreamUploaderP.StdControl;
 	Command=StreamUploaderP.Command;
+	
+	components NoDiagMsgC as DiagMsgC;
+	StreamUploaderP.DiagMsg -> DiagMsgC;
 }
