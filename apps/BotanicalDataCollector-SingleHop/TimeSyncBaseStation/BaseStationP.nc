@@ -114,8 +114,10 @@ implementation {
 		radioBusy = FALSE;
 		radioFull = TRUE;
 
-		call RadioControl.start();
-		call SerialControl.start();
+		if(call RadioControl.start() == EALREADY)
+			radioFull = FALSE;
+		if(call SerialControl.start() == EALREADY)
+			uartFull = FALSE;
 	}
 
 	event void RadioControl.startDone(error_t error) {
@@ -182,8 +184,6 @@ implementation {
 		return ret;
 	}
 
-	uint8_t tmpLen;
-
 	task void uartSendTask() {
 		uint8_t len;
 		am_id_t id;
@@ -206,12 +206,12 @@ implementation {
 			id=((timesync_footer_t*)(msg->data + len))->type;
 			footer = (nx_uint32_t*)(msg->data + len);
 			*footer=call LocalTime.get()-*(nx_uint32_t*)(msg->data + len+1);
-			len=tmpLen=len+4;
+			len+=4;
 		} else {
-			tmpLen = len = call RadioPacket.payloadLength(msg);
+			len = call RadioPacket.payloadLength(msg);
 		}
 		
-		if(call UartSend.send[id](addr, uartQueue[uartOut], len) == SUCCESS) 
+		if(call UartSend.send[id](addr, msg, len) == SUCCESS) 
 			call Leds.led1Toggle();
 		else {
 			failBlink();
