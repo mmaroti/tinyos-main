@@ -91,7 +91,7 @@ public class StreamCommand implements MessageListener {
 		if (message instanceof ctrltsMsg && message.dataLength() == ctrltsMsg.DEFAULT_MESSAGE_SIZE) {
 			ctrltsMsg msg = (ctrltsMsg) message;
 			if(!commanded.contains(msg.getSerialPacket().get_header_src())&&(nodeid==FIRST_NODE||nodeid==ALL_NODE||msg.getSerialPacket().get_header_src()==nodeid)){
-				if(command==CMD_ERASE&&(msg.get_max_address()-msg.get_min_address()<=200||msg.get_min_address()==twopow(32))){
+				if(command==CMD_ERASE&&(msg.get_max_address()-msg.get_min_address()<=200&&msg.get_min_address()!=twopow(32))){
 					commanded.add(msg.getSerialPacket().get_header_src());
 				} else {
 					System.out.println("Found node #"+msg.getSerialPacket().get_header_src()+" data:"+ (msg.get_max_address()-msg.get_min_address())+" , sending command ("+command+")");
