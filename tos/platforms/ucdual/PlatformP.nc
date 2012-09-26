@@ -56,9 +56,6 @@ implementation
     error_t ok;
 
 
-    MCUCR |= 1<<JTD;
-    MCUCR |= 1<<JTD; 
-    
 
     ok = call McuInit.init();
     ok = ecombine(ok, call Stm25pInit.init());
