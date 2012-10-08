@@ -20,7 +20,7 @@ CFLAGS+=-DMCU=MCU_$(MCU)
 CFLAGS+=-DRADIO=RADIO_$(RADIO)
 CFLAGS+=-DFLASH=FLASH_$(FLASH)
 
-RESET_LINE = java net.tinyos.util.ZigbitProgrammer -port $(AVR109) -baudrate 500000 -reset -sleep 2 -askforreset
+RESET_LINE = java net.tinyos.util.ZigbitProgrammer -port $(AVR109) -reset -sleep 2 -askforreset
 
 $(call TOSMake_include_platform,avr)
 
