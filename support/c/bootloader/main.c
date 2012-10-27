@@ -173,7 +173,7 @@ int main(void)
                 led3On();
                 #endif
 
-                for(address = 0; address < APP_END;address += PAGESIZE)
+                for(address = 0; (address<<1) < APP_END;address += PAGESIZE)
                 { // NOTE: Here we use address as a byte-address, not word-address, for convenience.
                     _WAIT_FOR_SPM();        
                     _PAGE_ERASE( address );
