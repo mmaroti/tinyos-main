@@ -44,22 +44,22 @@ implementation{
 	components ActiveMessageC;
 	components new TimerMilliC() as WaitTimer;
 	components new TimerMilliC() as StorageWaitTimer;
-	components TimeSyncMessageC, NoLedsC as LedsC, LocalTimeMilliC;
+	components TimeSyncMessageC, LedsC as LedsC, LocalTimeMilliC;
 	
 	StreamUploaderP.Packet -> AMSend;
  	StreamUploaderP.AMPacket -> AMSend;
-  	StreamUploaderP.AMSend -> AMSend;
-  	StreamUploaderP.SplitControl -> ActiveMessageC;
-  	StreamUploaderP.PacketAcknowledgements -> ActiveMessageC;
-  	StreamUploaderP.Receive -> AMReceive;
-  	StreamUploaderP.WaitTimer->WaitTimer;
-  	StreamUploaderP.TimeSyncAMSendMilli -> TimeSyncMessageC.TimeSyncAMSendMilli[AM_CTRL_MSG_T];
-  	StreamUploaderP.LocalTime -> LocalTimeMilliC;
+	StreamUploaderP.AMSend -> AMSend;
+	StreamUploaderP.SplitControl -> ActiveMessageC;
+	StreamUploaderP.PacketAcknowledgements -> ActiveMessageC;
+	StreamUploaderP.Receive -> AMReceive;
+	StreamUploaderP.WaitTimer->WaitTimer;
+	StreamUploaderP.TimeSyncAMSendMilli -> TimeSyncMessageC.TimeSyncAMSendMilli[AM_CTRL_MSG_T];
+	StreamUploaderP.LocalTime -> LocalTimeMilliC;
 	StreamUploaderP.StreamStorageRead -> StreamStorageClientC;
 	StreamUploaderP.StreamStorageErase -> StreamStorageClientC;
 	StreamUploaderP.Resource -> StreamStorageClientC;
 	StreamUploaderP.Leds->LedsC;
-  	StdControl=StreamUploaderP.StdControl;
+	StdControl=StreamUploaderP.StdControl;
 	Command=StreamUploaderP.Command;
 	
 	components NoDiagMsgC as DiagMsgC;
