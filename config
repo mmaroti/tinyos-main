@@ -8,28 +8,16 @@
 	logallrefupdates = true
 [alias]
 	graph = log --graph --full-history --all --pretty=format:"%h%x09%d%x20%s"
+[remote "origin"]
+	url = git@github.com:mmaroti/tinyos-main.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[remote "upstream"]
+	url = git@github.com:tinyos/tinyos-main.git
+	fetch = +refs/heads/*:refs/remotes/upstream/*
 [svn]
 	authorsfile = .git/svn.authorsfile.txt
 	addauthorfrom = true
 	uselogauthor = true
-[remote "github"]
-	url = git@github.com:mmaroti/tinyos.git
-	fetch = +refs/heads/*:refs/remotes/github/*
-[remote "tinyos-main"]
-	url = git@github.com:tinyos/tinyos-main.git
-	fetch = +refs/heads/*:refs/remotes/tinyos-main/*
 [svn-remote "szte-wsn"]
 	url = https://szte-wsn.svn.sourceforge.net/svnroot/szte-wsn
 	fetch = tinyos-2.x/trunk:refs/remotes/szte-wsn/trunk
-[branch "config"]
-	remote = github
-	merge = refs/heads/config
-[branch "szte-wsn"]
-	remote = github
-	merge = refs/heads/szte-wsn
-[branch "deluge_unicomp"]
-	remote = github
-	merge = refs/heads/deluge_unicomp
-[branch "migPlatform"]
-	remote = github
-	merge = refs/heads/migPlatform
