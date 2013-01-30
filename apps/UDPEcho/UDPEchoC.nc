@@ -69,7 +69,12 @@ configuration UDPEchoC {
   components UDPShellC;
 
   // prints the routing table
+#if defined(PLATFORM_IRIS)
+#warning *** RouterCmd disabled for IRIS ***
+#else
   components RouteCmdC;
+#endif
+
 #ifndef  IN6_PREFIX
   components DhcpCmdC;
 #endif
@@ -79,7 +84,7 @@ configuration UDPEchoC {
    * not use any framing.  You can view the output simply by tailing
    * the serial device.  Unlike the old printfUART, this allows us to
    * use PlatformSerialC to provide the serial driver.
-   * 
+   *
    * For instance:
    * $ stty -F /dev/ttyUSB0 115200
    * $ tail -f /dev/ttyUSB0
