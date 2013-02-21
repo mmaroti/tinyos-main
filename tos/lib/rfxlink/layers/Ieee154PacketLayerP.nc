@@ -36,7 +36,7 @@
 
 generic module Ieee154PacketLayerP()
 {
-	provides 
+	provides
 	{
 		interface Ieee154PacketLayer;
 		interface Ieee154Packet;
@@ -56,21 +56,26 @@ implementation
 
 	enum
 	{
-		IEEE154_DATA_FRAME_MASK = (IEEE154_TYPE_MASK << IEEE154_FCF_FRAME_TYPE) 
-			| (1 << IEEE154_FCF_INTRAPAN) 
-			| (IEEE154_ADDR_MASK << IEEE154_FCF_DEST_ADDR_MODE) 
+		IEEE154_DATA_FRAME_MASK = (IEEE154_TYPE_MASK << IEEE154_FCF_FRAME_TYPE)
+			| (1 << IEEE154_FCF_INTRAPAN)
+			| (IEEE154_ADDR_MASK << IEEE154_FCF_DEST_ADDR_MODE)
 			| (IEEE154_ADDR_MASK << IEEE154_FCF_SRC_ADDR_MODE),
 
-		IEEE154_DATA_FRAME_VALUE = (IEEE154_TYPE_DATA << IEEE154_FCF_FRAME_TYPE) 
-			| (1 << IEEE154_FCF_INTRAPAN) 
-			| (IEEE154_ADDR_SHORT << IEEE154_FCF_DEST_ADDR_MODE) 
+		IEEE154_DATA_FRAME_VALUE = (IEEE154_TYPE_DATA << IEEE154_FCF_FRAME_TYPE)
+			| (1 << IEEE154_FCF_INTRAPAN)
+#ifdef RFXLINK_64BIT_ADDR
+			| (IEEE154_ADDR_EXT << IEEE154_FCF_DEST_ADDR_MODE)
+			| (IEEE154_ADDR_EXT << IEEE154_FCF_SRC_ADDR_MODE),
+#else
+			| (IEEE154_ADDR_SHORT << IEEE154_FCF_DEST_ADDR_MODE)
 			| (IEEE154_ADDR_SHORT << IEEE154_FCF_SRC_ADDR_MODE),
+#endif
 
-		IEEE154_DATA_FRAME_PRESERVE = (1 << IEEE154_FCF_ACK_REQ) 
+		IEEE154_DATA_FRAME_PRESERVE = (1 << IEEE154_FCF_ACK_REQ)
 			| (1 << IEEE154_FCF_FRAME_PENDING),
 
 		IEEE154_ACK_FRAME_LENGTH = 3,	// includes the FCF, DSN
-		IEEE154_ACK_FRAME_MASK = (IEEE154_TYPE_MASK << IEEE154_FCF_FRAME_TYPE), 
+		IEEE154_ACK_FRAME_MASK = (IEEE154_TYPE_MASK << IEEE154_FCF_FRAME_TYPE),
 		IEEE154_ACK_FRAME_VALUE = (IEEE154_TYPE_ACK << IEEE154_FCF_FRAME_TYPE),
 	};
 
@@ -165,33 +170,33 @@ implementation
 		getHeader(msg)->dsn = dsn;
 	}
 
-	async command uint16_t Ieee154PacketLayer.getDestPan(message_t* msg)
+	async command ieee154_panid_t Ieee154PacketLayer.getDestPan(message_t* msg)
 	{
 		return getHeader(msg)->destpan;
 	}
 
-	async command void Ieee154PacketLayer.setDestPan(message_t* msg, uint16_t pan)
+	async command void Ieee154PacketLayer.setDestPan(message_t* msg, ieee154_panid_t pan)
 	{
 		getHeader(msg)->destpan = pan;
 	}
 
-	async command uint16_t Ieee154PacketLayer.getDestAddr(message_t* msg)
+	async command ieee154_address_t Ieee154PacketLayer.getDestAddr(message_t* msg)
 	{
 		return getHeader(msg)->dest;
 	}
 
-	async command void Ieee154PacketLayer.setDestAddr(message_t* msg, uint16_t addr)
+	async command void Ieee154PacketLayer.setDestAddr(message_t* msg, ieee154_address_t addr)
 	{
 		getHeader(msg)->dest = addr;
 	}
 
-	async command uint16_t Ieee154PacketLayer.getSrcAddr(message_t* msg)
+	async command ieee154_address_t Ieee154PacketLayer.getSrcAddr(message_t* msg)
 	{
 		return getHeader(msg)->src;
 	}
 
-	async command void Ieee154PacketLayer.setSrcAddr(message_t* msg, uint16_t addr)
-	{	
+	async command void Ieee154PacketLayer.setSrcAddr(message_t* msg, ieee154_address_t addr)
+	{
 		getHeader(msg)->src = addr;
 	}
 
@@ -199,7 +204,7 @@ implementation
 	{
 		return call Ieee154PacketLayer.getAckRequired(msg)
 			&& call Ieee154PacketLayer.isDataFrame(msg)
-			&& call Ieee154PacketLayer.getDestAddr(msg) != 0xFFFF;
+			&& call Ieee154PacketLayer.getDestAddr(msg) != IEEE154_BROADCAST_ADDR;
 	}
 
 	async command bool Ieee154PacketLayer.requiresAckReply(message_t* msg)
@@ -221,7 +226,7 @@ implementation
 
 	async command bool Ieee154PacketLayer.isForMe(message_t* msg)
 	{
-		ieee154_saddr_t addr = call Ieee154PacketLayer.getDestAddr(msg);
+		ieee154_address_t addr = call Ieee154PacketLayer.getDestAddr(msg);
 		return (addr == call Ieee154PacketLayer.localAddr() || addr == IEEE154_BROADCAST_ADDR)
 			&& call Ieee154PacketLayer.getDestPan(msg) == call Ieee154PacketLayer.localPan();
 	}
@@ -236,12 +241,12 @@ implementation
 	{
 		return call Ieee154PacketLayer.localAddr();
 	}
- 
+
 	command ieee154_saddr_t Ieee154Packet.destination(message_t* msg)
 	{
 		return call Ieee154PacketLayer.getDestAddr(msg);
 	}
- 
+
 	command ieee154_saddr_t Ieee154Packet.source(message_t* msg)
 	{
 		return call Ieee154PacketLayer.getSrcAddr(msg);

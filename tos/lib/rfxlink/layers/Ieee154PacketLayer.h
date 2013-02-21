@@ -37,13 +37,21 @@
 
 #include "Ieee154.h"
 
+#ifdef RFXLINK_64BIT_ADDR
+typedef uint64_t ieee154_address_t;
+typedef nxle_uint64_t nxle_ieee154_address_t;
+#else
+typedef uint16_t ieee154_address_t;
+typedef nxle_uint16_t nxle_ieee154_address_t;
+#endif
+
 typedef nx_struct ieee154_simple_header_t
 {
 	nxle_uint16_t fcf;
 	nxle_uint8_t dsn;
 	nxle_uint16_t destpan;
-	nxle_uint16_t dest;
-	nxle_uint16_t src;
+	nxle_ieee154_address_t dest;
+	nxle_ieee154_address_t src;
 } ieee154_simple_header_t;
 
 #endif//__IEEE154PACKETLAYER_H__

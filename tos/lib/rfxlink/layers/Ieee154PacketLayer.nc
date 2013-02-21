@@ -36,8 +36,8 @@
 #include "message.h"
 
 /**
- * This interface encapsulates IEEE 802.15.4 intrapan data frames with 
- * 16-bit destination pan, source and destination addresses. It also 
+ * This interface encapsulates IEEE 802.15.4 intrapan data frames with
+ * 16-bit destination pan, source and destination addresses. It also
  * supports 6LowPan interoperability mode, and acknowledgement frames.
  * Note, that this interface does not support the CRC-16 value, which
  * should be verified before the data can be trusted.
@@ -45,19 +45,19 @@
 interface Ieee154PacketLayer
 {
 	/**
-	 * Returns the frame control field. This method should not be used, 
+	 * Returns the frame control field. This method should not be used,
 	 * isDataFrame and isAckFrame should be used instead.
 	 */
 	async command uint16_t getFCF(message_t* msg);
 
 	/**
-	 * Sets the frame control field. This method should not be used, 
+	 * Sets the frame control field. This method should not be used,
 	 * createDataFrame and createAckFrame should be used instead.
 	 */
 	async command void setFCF(message_t* msg, uint16_t fcf);
 
 	/**
-	 * Returns TRUE if the message is a data frame supported by 
+	 * Returns TRUE if the message is a data frame supported by
 	 * this interface (based on the value of the FCF).
 	 */
 	async command bool isDataFrame(message_t* msg);
@@ -82,7 +82,7 @@ interface Ieee154PacketLayer
 
 	/**
 	 * Creates an acknowledgement packet for the given data packet.
-	 * This also sets the DSN value. The data message must be a 
+	 * This also sets the DSN value. The data message must be a
 	 * data frame, the ack message will be overwritten.
 	 */
 	async command void createAckReply(message_t* data, message_t* ack);
@@ -128,32 +128,32 @@ interface Ieee154PacketLayer
 	 * returns the destination PAN id, values <= 255 are tinyos groups,
 	 * valid only for data frames
 	 */
-	async command uint16_t getDestPan(message_t* msg);
+	async command ieee154_panid_t getDestPan(message_t* msg);
 
 	/**
 	 * Sets the destination PAN id, valid only for data frames
 	 */
-	async command void setDestPan(message_t* msg, uint16_t pan);
+	async command void setDestPan(message_t* msg, ieee154_panid_t pan);
 
 	/**
 	 * Returns the destination address, valid only for data frames
 	 */
-	async command uint16_t getDestAddr(message_t* msg);
+	async command ieee154_address_t getDestAddr(message_t* msg);
 
 	/**
 	 * Sets the destination address, valid only for data frames
 	 */
-	async command void setDestAddr(message_t* msg, uint16_t addr);
+	async command void setDestAddr(message_t* msg, ieee154_address_t addr);
 
 	/**
 	 * Returns the source address, valid only for data frames
 	 */
-	async command uint16_t getSrcAddr(message_t* msg);
+	async command ieee154_address_t getSrcAddr(message_t* msg);
 
 	/**
 	 * Sets the source address, valid only for data frames
 	 */
-	async command void setSrcAddr(message_t* msg, uint16_t addr);
+	async command void setSrcAddr(message_t* msg, ieee154_address_t addr);
 
 	/**
 	 * Returns TRUE if the packet is a data packet, the ACK_REQ field

@@ -59,7 +59,11 @@ typedef struct {
 #define i_laddr ieee_addr.laddr
 
 enum {
+#ifdef RFXLINK_64BIT_ADDR
+  IEEE154_BROADCAST_ADDR = 0xffffffffffffffffULL,
+#else
   IEEE154_BROADCAST_ADDR = 0xffff,
+#endif
   IEEE154_LINK_MTU   = 127,
 };
 
