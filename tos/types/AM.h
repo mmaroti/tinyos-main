@@ -8,23 +8,16 @@ typedef nx_uint8_t nx_am_group_t;
 typedef uint8_t am_group_t;
 
 #ifdef RFXLINK_64BIT_ADDR
-
 typedef nx_uint64_t nx_am_addr_t;
 typedef uint64_t am_addr_t;
-
-enum {
-  AM_BROADCAST_ADDR = 0xffffffffffffffffULL,
-};
 #else
-
 typedef nx_uint16_t nx_am_addr_t;
 typedef uint16_t am_addr_t;
+#endif
 
 enum {
   AM_BROADCAST_ADDR = 0xffff,
 };
-
-#endif
 
 #ifndef DEFINED_TOS_AM_GROUP
 #define DEFINED_TOS_AM_GROUP 0x22
